@@ -20,13 +20,40 @@ public abstract class LSPDocument : IDisposable
 
     public abstract IReadOnlyList<VirtualDocument> VirtualDocuments { get; }
 
+    internal virtual void SetVirtualDocuments(IReadOnlyList<VirtualDocument> virtualDocuments)
+    {
+        // No-op in the default implementation.
+    }
+
     public abstract LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state) where TVirtualDocument : VirtualDocument;
+
+    public virtual LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(TVirtualDocument virtualDocument, IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state) where TVirtualDocument : VirtualDocument
+    {
+        // This is only virtual to prevent a binary breaking change. We don't expect anyone to call this method, without also implementing it
+        throw new NotImplementedException();
+    }
 
     public bool TryGetVirtualDocument<TVirtualDocument>([NotNullWhen(returnValue: true)] out TVirtualDocument? virtualDocument) where TVirtualDocument : VirtualDocument
     {
         for (var i = 0; i < VirtualDocuments.Count; i++)
         {
             if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument)
+            {
+                virtualDocument = actualVirtualDocument;
+                return true;
+            }
+        }
+
+        virtualDocument = null;
+        return false;
+    }
+
+    public bool TryGetVirtualDocument<TVirtualDocument>(Uri virtualDocumentUri, [NotNullWhen(returnValue: true)] out TVirtualDocument? virtualDocument) where TVirtualDocument : VirtualDocument
+    {
+        for (var i = 0; i < VirtualDocuments.Count; i++)
+        {
+            if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument &&
+                actualVirtualDocument.Uri == virtualDocumentUri)
             {
                 virtualDocument = actualVirtualDocument;
                 return true;

@@ -40,7 +40,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     private readonly ILanguageServiceBroker2 _languageServiceBroker;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly IClientSettingsManager _clientSettingsManager;
-    private readonly RazorLanguageServerCustomMessageTarget _customMessageTarget;
+    private readonly ILspServerActivationTracker _lspServerActivationTracker;
+    private readonly RazorCustomMessageTarget _customMessageTarget;
     private readonly ILanguageClientMiddleLayer _middleLayer;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
@@ -63,7 +64,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     [ImportingConstructor]
     public RazorLanguageServerClient(
-        RazorLanguageServerCustomMessageTarget customTarget,
+        RazorCustomMessageTarget customTarget,
         RazorLanguageClientMiddleLayer middleLayer,
         LSPRequestInvoker requestInvoker,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
@@ -75,6 +76,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         ILanguageServiceBroker2 languageServiceBroker,
         ITelemetryReporter telemetryReporter,
         IClientSettingsManager clientSettingsManager,
+        ILspServerActivationTracker lspServerActivationTracker,
         [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
     {
         if (customTarget is null)
@@ -132,6 +134,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             throw new ArgumentNullException(nameof(clientSettingsManager));
         }
 
+        if (lspServerActivationTracker is null)
+        {
+            throw new ArgumentNullException(nameof(lspServerActivationTracker));
+        }
+
         _customMessageTarget = customTarget;
         _middleLayer = middleLayer;
         _requestInvoker = requestInvoker;
@@ -145,6 +152,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _telemetryReporter = telemetryReporter;
         _clientSettingsManager = clientSettingsManager;
+        _lspServerActivationTracker = lspServerActivationTracker;
     }
 
     public string Name => RazorLSPConstants.RazorLanguageServerName;
@@ -184,6 +192,15 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var loggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
         var razorLogger = new LoggerAdapter(loggers, _telemetryReporter, traceSource);
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
+
+        // We want the LogHub logs to include logs from custom messages, but they are scoped to the lifetime of the
+        // server. The lifetime of the custom message logger is defined by MEF, and StreamJsonRpc has some static
+        // caching around messages it can handle etc. so we have to inject our logging separately. 
+        var customMessageLogger = _loggerProvider.CreateLogger("CustomMessage");
+        var customMessageLoggers = _outputWindowLogger == null ? new ILogger[] { customMessageLogger } : new ILogger[] { customMessageLogger, _outputWindowLogger };
+        var logAdapter = new LoggerAdapter(customMessageLoggers, telemetryReporter: null, traceSource);
+        _customMessageTarget.SetLogger(logAdapter);
+
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
             serverStream,
@@ -193,6 +210,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             ConfigureLanguageServer,
             _languageServerFeatureOptions,
             lspOptions,
+            _lspServerActivationTracker,
             traceSource);
 
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
@@ -201,9 +219,9 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         return connection;
     }
 
-    internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetReleventContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
+    internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetRelevantContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
     {
-        var releventClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
+        var relevantClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
 
 #pragma warning disable CS0618 // Type or member is obsolete
         foreach (var languageClientAndMetadata in languageServiceBroker.LanguageClients)
@@ -223,11 +241,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             if (IsCSharpApplicable(metadata) ||
                 metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPDelegationContentTypeName))
             {
-                releventClientAndMetadata.Add(languageClientAndMetadata);
+                relevantClientAndMetadata.Add(languageClientAndMetadata);
             }
         }
 
-        return releventClientAndMetadata;
+        return relevantClientAndMetadata;
 
         static bool IsCSharpApplicable(ILanguageClientMetadata metadata)
         {
@@ -238,11 +256,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     private async Task EnsureContainedLanguageServersInitializedAsync()
     {
-        var releventClientsAndMetadata = GetReleventContainedLanguageClientsAndMetadata(_languageServiceBroker);
+        var relevantClientsAndMetadata = GetRelevantContainedLanguageClientsAndMetadata(_languageServiceBroker);
 
         var clientLoadTasks = new List<Task>();
 
-        foreach (var languageClientAndMetadata in releventClientsAndMetadata)
+        foreach (var languageClientAndMetadata in relevantClientsAndMetadata)
         {
             if (languageClientAndMetadata.Metadata is not ILanguageClientMetadata metadata)
             {
@@ -254,6 +272,9 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         }
 
         await Task.WhenAll(clientLoadTasks).ConfigureAwait(false);
+
+        // We only want to mark the server as activated after the delegated language servers have been initialized.
+        _lspServerActivationTracker.Activated();
     }
 
     private void ConfigureLanguageServer(IServiceCollection serviceCollection)
@@ -291,6 +312,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             // Server was already cleaned up
             return;
         }
+
+        _customMessageTarget.SetLogger(logger: null);
 
         if (_server is not null)
         {
@@ -341,6 +364,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
     {
+        _lspServerActivationTracker.Deactivated();
+
         var initializationFailureContext = new InitializationFailureContext
         {
             FailureMessage = string.Format(SR.LanguageServer_Initialization_Failed,

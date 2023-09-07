@@ -37,15 +37,17 @@ internal class VisualStudioMacLanguageServerFeatureOptions : LanguageServerFeatu
 
     public override bool SingleServerSupport => true;
 
-    public override bool SupportsDelegatedCodeActions => true;
-
-    public override bool SupportsDelegatedDiagnostics => false;
+    public override bool DelegateToCSharpOnDiagnosticPublish => false;
 
     public override bool ShowAllCSharpCodeActions => false;
+
+    public override bool UsePreciseSemanticTokenRanges => true;
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 
     public override bool UpdateBuffersForClosedDocuments => false;
+
+    public override bool IncludeProjectKeyInGeneratedFilePath => false;
 
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 

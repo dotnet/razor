@@ -2,11 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
@@ -15,13 +12,8 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test;
 
-public class TagHelperDescriptorCacheTest : TestBase
+public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBase(testOutput)
 {
-    public TagHelperDescriptorCacheTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void TagHelperDescriptorCache_TypeNameAffectsHash()
     {
@@ -65,7 +57,7 @@ public class TagHelperDescriptorCacheTest : TestBase
         // Reads 5 copies of the TagHelpers (with 5x references)
         for (var i = 0; i < 5; ++i)
         {
-            var tagHelpersBatch = ReadTagHelpers();
+            var tagHelpersBatch = RazorTestResources.BlazorServerAppTagHelpers;
             tagHelpers.AddRange(tagHelpersBatch);
             tagHelpersPerBatch = tagHelpersBatch.Length;
         }
@@ -82,24 +74,12 @@ public class TagHelperDescriptorCacheTest : TestBase
     public void GetHashCode_AllTagHelpers_NoCacheIdCollisions()
     {
         // Arrange
-        var tagHelpers = ReadTagHelpers();
+        var tagHelpers = RazorTestResources.BlazorServerAppTagHelpers;
 
         // Act
         var hashes = new HashSet<int>(tagHelpers.Select(TagHelperDescriptorCache.GetTagHelperDescriptorCacheId));
 
         // Assert
         Assert.Equal(hashes.Count, tagHelpers.Length);
-    }
-
-    private static ImmutableArray<TagHelperDescriptor> ReadTagHelpers()
-    {
-        var bytes = RazorTestResources.GetResourceBytes(RazorTestResources.BlazorServerAppTagHelpersJson);
-
-        using var stream = new MemoryStream(bytes);
-        using var reader = new StreamReader(stream);
-
-        return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadImmutableArray(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
     }
 }

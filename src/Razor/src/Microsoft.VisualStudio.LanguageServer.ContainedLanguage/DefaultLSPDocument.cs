@@ -10,6 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 internal class DefaultLSPDocument : LSPDocument
 {
     private LSPDocumentSnapshot? _currentSnapshot;
+    private IReadOnlyList<VirtualDocument> _virtualDocuments;
 
     public DefaultLSPDocument(
         Uri uri,
@@ -33,7 +34,7 @@ internal class DefaultLSPDocument : LSPDocument
 
         Uri = uri;
         TextBuffer = textBuffer;
-        VirtualDocuments = virtualDocuments;
+        _virtualDocuments = virtualDocuments;
     }
 
     public override int Version => TextBuffer.CurrentSnapshot.Version.VersionNumber;
@@ -42,7 +43,7 @@ internal class DefaultLSPDocument : LSPDocument
 
     public override ITextBuffer TextBuffer { get; }
 
-    public override IReadOnlyList<VirtualDocument> VirtualDocuments { get; }
+    public override IReadOnlyList<VirtualDocument> VirtualDocuments => _virtualDocuments;
 
     public override LSPDocumentSnapshot CurrentSnapshot
     {
@@ -64,6 +65,13 @@ internal class DefaultLSPDocument : LSPDocument
         }
     }
 
+    internal override void SetVirtualDocuments(IReadOnlyList<VirtualDocument> virtualDocuments)
+    {
+        _virtualDocuments = virtualDocuments;
+
+        _currentSnapshot = UpdateSnapshot();
+    }
+
     public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
     {
         if (!TryGetVirtualDocument<TVirtualDocument>(out var virtualDocument))
@@ -71,6 +79,11 @@ internal class DefaultLSPDocument : LSPDocument
             throw new InvalidOperationException($"Cannot update virtual document of type {typeof(TVirtualDocument)} because LSP document {Uri} does not contain a virtual document of that type.");
         }
 
+        return UpdateVirtualDocument<TVirtualDocument>(virtualDocument, changes, hostDocumentVersion, state);
+    }
+
+    public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(TVirtualDocument virtualDocument, IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
+    {
         virtualDocument.Update(changes, hostDocumentVersion, state);
 
         _currentSnapshot = UpdateSnapshot();

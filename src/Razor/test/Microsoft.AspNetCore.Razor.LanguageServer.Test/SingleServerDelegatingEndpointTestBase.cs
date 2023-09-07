@@ -13,13 +13,13 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -52,10 +52,9 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
     protected async Task CreateLanguageServerAsync(RazorCodeDocument codeDocument, string razorFilePath, IEnumerable<(string, string)> additionalRazorDocuments = null)
     {
-        var realLanguageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-
+        var projectKey = TestProjectKey.Create("");
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new Uri(realLanguageServerFeatureOptions.GetRazorCSharpFilePath(razorFilePath));
+        var csharpDocumentUri = new Uri(FilePathService.GetRazorCSharpFilePath(projectKey, razorFilePath));
 
         var csharpFiles = new List<(Uri, SourceText)>();
         csharpFiles.Add((csharpDocumentUri, csharpSourceText));
@@ -65,7 +64,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             {
                 var additionalDocument = CreateCodeDocument(contents, filePath: filePath);
                 var additionalDocumentSourceText = additionalDocument.GetCSharpSourceText();
-                var additionalDocumentUri = new Uri(realLanguageServerFeatureOptions.GetRazorCSharpFilePath("C:/path/to/" + filePath));
+                var additionalDocumentUri = new Uri(FilePathService.GetRazorCSharpFilePath(projectKey, "C:/path/to/" + filePath));
 
                 csharpFiles.Add((additionalDocumentUri, additionalDocumentSourceText));
             }
@@ -87,13 +86,12 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
         DocumentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
         LanguageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.SupportsFileManipulation == true &&
-            options.SupportsDelegatedCodeActions == true &&
             options.SingleServerSupport == true &&
-            options.CSharpVirtualDocumentSuffix == realLanguageServerFeatureOptions.CSharpVirtualDocumentSuffix &&
-            options.HtmlVirtualDocumentSuffix == realLanguageServerFeatureOptions.HtmlVirtualDocumentSuffix,
+            options.CSharpVirtualDocumentSuffix == DefaultLanguageServerFeatureOptions.DefaultCSharpVirtualDocumentSuffix &&
+            options.HtmlVirtualDocumentSuffix == DefaultLanguageServerFeatureOptions.DefaultHtmlVirtualDocumentSuffix,
             MockBehavior.Strict);
         LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
-        DocumentMappingService = new RazorDocumentMappingService(LanguageServerFeatureOptions, DocumentContextFactory, LoggerFactory);
+        DocumentMappingService = new RazorDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
     }
 
     internal class TestLanguageServer : ClientNotifierServiceBase
@@ -124,24 +122,31 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             RequestCount++;
             object result = method switch
             {
-                RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName => await HandleDefinitionAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName => await HandleImplementationAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName => await HandleSignatureHelpAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName => await HandleRenameAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName => await HandleReferencesAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
-                RazorLanguageServerCustomMessageTargets.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
+                CustomMessageNames.RazorDefinitionEndpointName => await HandleDefinitionAsync(@params),
+                CustomMessageNames.RazorImplementationEndpointName => await HandleImplementationAsync(@params),
+                CustomMessageNames.RazorSignatureHelpEndpointName => await HandleSignatureHelpAsync(@params),
+                CustomMessageNames.RazorRenameEndpointName => await HandleRenameAsync(@params),
+                CustomMessageNames.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
+                CustomMessageNames.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
+                CustomMessageNames.RazorReferencesEndpointName => await HandleReferencesAsync(@params),
+                CustomMessageNames.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
+                CustomMessageNames.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
+                CustomMessageNames.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
+                CustomMessageNames.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
+                CustomMessageNames.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
+                CustomMessageNames.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
+                CustomMessageNames.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
+                CustomMessageNames.RazorSimplifyMethodEndpointName => HandleSimplifyMethod(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
             return (TResponse)result;
+        }
+
+        private static TextEdit[] HandleSimplifyMethod<TParams>(TParams @params)
+        {
+            Assert.IsType<DelegatedSimplifyMethodParams>(@params);
+            return null;
         }
 
         private async Task<VSProjectContextList> HandleProjectContextsAsync<TParams>(TParams @params)
