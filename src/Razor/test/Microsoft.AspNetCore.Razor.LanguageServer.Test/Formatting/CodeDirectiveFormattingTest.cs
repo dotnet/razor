@@ -1670,6 +1670,58 @@ public class CodeDirectiveFormattingTest : FormattingTestBase
     }
 
     [Fact]
+    public async Task Formats_MultilineExpressions()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @{
+                        var icon = "/images/bootstrap-icons.svg#"
+                            + GetIconName(login.ProviderDisplayName!);
+
+                        var x = DateTime
+                                .Now
+                            .ToString();
+                    }
+
+                    @code
+                    {
+                        public void M()
+                        {
+                            var icon2 = "/images/bootstrap-icons.svg#"
+                                + GetIconName(login.ProviderDisplayName!);
+                    
+                            var x2 = DateTime
+                                    .Now
+                                .ToString();
+                        }
+                    }
+                    """,
+            expected: """
+                    @{
+                        var icon = "/images/bootstrap-icons.svg#"
+                            + GetIconName(login.ProviderDisplayName!);
+
+                        var x = DateTime
+                                .Now
+                            .ToString();
+                    }
+                    
+                    @code
+                    {
+                        public void M()
+                        {
+                            var icon2 = "/images/bootstrap-icons.svg#"
+                                + GetIconName(login.ProviderDisplayName!);
+                    
+                            var x2 = DateTime
+                                    .Now
+                                .ToString();
+                        }
+                    }
+                    """);
+    }
+
+    [Fact]
     public async Task Formats_MultilineExpressionAtStartOfBlock()
     {
         await RunFormattingTestAsync(
