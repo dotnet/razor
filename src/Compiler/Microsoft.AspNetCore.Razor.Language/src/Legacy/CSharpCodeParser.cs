@@ -1378,7 +1378,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                             tokenDescriptor.Kind == DirectiveTokenKind.Type ||
                             tokenDescriptor.Kind == DirectiveTokenKind.Attribute ||
                             tokenDescriptor.Kind == DirectiveTokenKind.GenericTypeConstraint ||
-                            tokenDescriptor.Kind == DirectiveTokenKind.Boolean)
+                            tokenDescriptor.Kind == DirectiveTokenKind.Boolean ||
+                            tokenDescriptor.Kind == DirectiveTokenKind.IdentifierOrExpression)
                         {
                             directiveBuilder.Add(OutputTokensAsStatementLiteral());
 
@@ -1551,6 +1552,27 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                                         new SourceSpan(CurrentStart, CurrentToken.Content.Length),
                                         CurrentToken.Content,
                                         CSharpLanguageCharacteristics.GetKeyword(CSharpKeyword.Where)));
+
+                                builder.Add(BuildDirective());
+                                return;
+                            }
+
+                            break;
+
+                        case DirectiveTokenKind.IdentifierOrExpression:
+                            if (At(SyntaxKind.Transition) && NextIs(SyntaxKind.LeftParenthesis))
+                            {
+                                AcceptAndMoveNext();
+                                directiveBuilder.Add(OutputAsMetaCode(Output()));
+
+                                var expression = ParseExplicitExpressionBody();
+                                directiveBuilder.Add(expression);
+                            }
+                            else if (!TryParseQualifiedIdentifier(out identifierLength))
+                            {
+                                Context.ErrorSink.OnError(
+                                    RazorDiagnosticFactory.CreateParsing_DirectiveExpectsIdentifierOrExpression(
+                                        new SourceSpan(CurrentStart, identifierLength), descriptor.Directive));
 
                                 builder.Add(BuildDirective());
                                 return;

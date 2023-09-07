@@ -30,8 +30,8 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         // We don't need to worry about duplicate attributes as we have already replaced any multiples with MalformedDirective
         Debug.Assert(directives.Count == 1);
 
-        var token = ((DirectiveIntermediateNode)directives[0].Node).Tokens.FirstOrDefault();
-        if (token == null)
+        var child = ((DirectiveIntermediateNode)directives[0].Node).Children.FirstOrDefault();
+        if (child == null)
         {
             return;
         }
@@ -55,14 +55,16 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                 },
                 new CSharpCodeIntermediateNode()
                 {
-                    Source = token.Source,
+                    Source = child.Source,
                     Children =
                     {
-                        new IntermediateToken()
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = token.Content
-                        }
+                         child is not DirectiveTokenIntermediateNode directiveToken
+                         ? child
+                         : new IntermediateToken()
+                         {
+                             Kind = TokenKind.CSharp,
+                             Content = directiveToken.Content
+                         }
                     }
                 },
                 new IntermediateToken()
