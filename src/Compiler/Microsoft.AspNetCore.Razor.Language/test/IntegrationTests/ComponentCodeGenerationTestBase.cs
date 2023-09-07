@@ -10079,6 +10079,21 @@ Time: @DateTime.Now
     }
 
     [Fact]
+    public void RenderMode_Directive_WithNamespaces()
+    {
+        var generated = CompileToCSharp("""
+                @namespace Custom.Namespace
+
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
+                """, throwOnFailure: false);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
     public void RenderMode_Attribute_With_SimpleIdentifier()
     {
         var generated = CompileToCSharp($"""

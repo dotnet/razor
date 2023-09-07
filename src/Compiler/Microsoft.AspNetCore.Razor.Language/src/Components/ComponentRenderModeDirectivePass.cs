@@ -92,7 +92,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         attributeNode.Children.Add(new IntermediateToken()
         {
             Kind = TokenKind.CSharp,
-            Content = $"[{GeneratedRenderModeAttributeName}]",
+            Content = $"[global::{@namespace.Content}.{@class.ClassName}.{GeneratedRenderModeAttributeName}]",
         });
 
         // Insert the new attribute on top of the class

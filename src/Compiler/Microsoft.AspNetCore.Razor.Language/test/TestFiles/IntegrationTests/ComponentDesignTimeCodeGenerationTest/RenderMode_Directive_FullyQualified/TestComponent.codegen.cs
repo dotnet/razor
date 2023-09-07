@@ -8,7 +8,7 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-    [PrivateComponentRenderModeAttribute]
+    [global::Test.TestComponent.PrivateComponentRenderModeAttribute]
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
