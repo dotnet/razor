@@ -13,6 +13,26 @@ namespace Custom.Namespace
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
+        ((global::System.Action)(() => {
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+global::System.Object __typeHelper = nameof(Custom.Namespace);
+
+#line default
+#line hidden
+#nullable disable
+        }
+        ))();
+        ((global::System.Action)(() => {
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
+
+#line default
+#line hidden
+#nullable disable
+        }
+        ))();
         }
         #pragma warning restore 219
         #pragma warning disable 0414
