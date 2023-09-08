@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -213,68 +212,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             _lspServerActivationTracker,
             traceSource);
 
-        // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
-        await EnsureContainedLanguageServersInitializedAsync();
         var connection = new Connection(clientStream, clientStream);
         return connection;
-    }
-
-    internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetRelevantContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
-    {
-        var relevantClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        foreach (var languageClientAndMetadata in languageServiceBroker.LanguageClients)
-#pragma warning restore CS0618 // Type or member is obsolete
-        {
-            if (languageClientAndMetadata.Metadata is not ILanguageClientMetadata metadata)
-            {
-                continue;
-            }
-
-            if (metadata is IIsUserExperienceDisabledMetadata userExperienceDisabledMetadata &&
-                userExperienceDisabledMetadata.IsUserExperienceDisabled)
-            {
-                continue;
-            }
-
-            if (IsCSharpApplicable(metadata) ||
-                metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPDelegationContentTypeName))
-            {
-                relevantClientAndMetadata.Add(languageClientAndMetadata);
-            }
-        }
-
-        return relevantClientAndMetadata;
-
-        static bool IsCSharpApplicable(ILanguageClientMetadata metadata)
-        {
-            return metadata.ContentTypes.Contains(RazorLSPConstants.CSharpContentTypeName) &&
-                metadata.ClientName == CSharpVirtualDocumentFactory.CSharpClientName;
-        }
-    }
-
-    private async Task EnsureContainedLanguageServersInitializedAsync()
-    {
-        var relevantClientsAndMetadata = GetRelevantContainedLanguageClientsAndMetadata(_languageServiceBroker);
-
-        var clientLoadTasks = new List<Task>();
-
-        foreach (var languageClientAndMetadata in relevantClientsAndMetadata)
-        {
-            if (languageClientAndMetadata.Metadata is not ILanguageClientMetadata metadata)
-            {
-                continue;
-            }
-
-            var loadAsyncTask = _languageClientBroker.LoadAsync(metadata, languageClientAndMetadata.Value);
-            clientLoadTasks.Add(loadAsyncTask);
-        }
-
-        await Task.WhenAll(clientLoadTasks).ConfigureAwait(false);
-
-        // We only want to mark the server as activated after the delegated language servers have been initialized.
-        _lspServerActivationTracker.Activated();
     }
 
     private void ConfigureLanguageServer(IServiceCollection serviceCollection)
