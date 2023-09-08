@@ -181,7 +181,16 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         return razorCodeDocument
             .GetDocumentIntermediateNode()
             .FindDescendantNodes<UsingDirectiveIntermediateNode>()
-            .Select(n => n.Content);
+            .Select(n =>
+            {
+                var content = n.Content;
+                if (content.StartsWith("global::", StringComparison.Ordinal))
+                {
+                    return content.Substring(8);
+                }
+
+                return content;
+            });
     }
 
     /// <summary>
