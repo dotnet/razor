@@ -5400,6 +5400,36 @@ namespace Test
         Assert.Collection(result.Diagnostics, d => { Assert.Equal("CS0411", d.Id); });
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/48526")]
+    public void EventCallbackOfT_Array()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components.Forms;
+
+            namespace Test;
+
+            public class MyComponent<TItem> : InputBase<TItem[]>
+            {
+                protected override bool TryParseValueFromString(string value, out TItem[] result, out string validationErrorMessage) => throw null;
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-Value="Selected" />
+
+            @code {
+                string[] Selected { get; set; } = Array.Empty<string>();
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Event Handlers
