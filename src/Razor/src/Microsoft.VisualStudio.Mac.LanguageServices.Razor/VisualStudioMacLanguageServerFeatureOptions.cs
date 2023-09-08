@@ -37,11 +37,11 @@ internal class VisualStudioMacLanguageServerFeatureOptions : LanguageServerFeatu
 
     public override bool SingleServerSupport => true;
 
-    public override bool SupportsDelegatedCodeActions => true;
-
     public override bool DelegateToCSharpOnDiagnosticPublish => false;
 
     public override bool ShowAllCSharpCodeActions => false;
+
+    public override bool UsePreciseSemanticTokenRanges => true;
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 

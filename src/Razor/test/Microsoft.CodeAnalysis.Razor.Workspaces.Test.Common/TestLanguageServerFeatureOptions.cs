@@ -29,13 +29,13 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool SingleServerSupport => false;
 
-    public override bool SupportsDelegatedCodeActions => false;
-
     public override bool DelegateToCSharpOnDiagnosticPublish => true;
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 
     public override bool ShowAllCSharpCodeActions => false;
+
+    public override bool UsePreciseSemanticTokenRanges => true;
 
     public override bool UpdateBuffersForClosedDocuments => false;
 
