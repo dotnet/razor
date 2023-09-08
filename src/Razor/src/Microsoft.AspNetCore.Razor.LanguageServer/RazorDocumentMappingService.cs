@@ -23,33 +23,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly FilePathService _documentFilePathService;
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly ILogger _logger;
 
     public RazorDocumentMappingService(
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        FilePathService filePathService,
         DocumentContextFactory documentContextFactory,
         ILoggerFactory loggerFactory)
     {
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
-
-        if (documentContextFactory is null)
-        {
-            throw new ArgumentNullException(nameof(documentContextFactory));
-        }
-
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-        _documentContextFactory = documentContextFactory;
-        _logger = loggerFactory.CreateLogger<RazorDocumentMappingService>();
+        _documentFilePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
+        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
+        _logger = loggerFactory?.CreateLogger<RazorDocumentMappingService>() ?? throw new ArgumentNullException(nameof(loggerFactory));
     }
 
     public TextEdit[] GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] generatedDocumentEdits)
@@ -326,8 +311,9 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
         }
 
-        foreach (var mapping in generatedDocument.SourceMappings)
+        for (var i = 0; i < generatedDocument.SourceMappings.Count; i++)
         {
+            var mapping = generatedDocument.SourceMappings[i];
             var generatedSpan = mapping.GeneratedSpan;
             var generatedAbsoluteIndex = generatedSpan.AbsoluteIndex;
             if (generatedAbsoluteIndex <= generatedDocumentIndex)
@@ -388,6 +374,8 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             }
             else if (nextCSharpPositionOnFailure)
             {
+                Debug.Assert(generatedDocument is RazorCSharpDocument);
+
                 // The "next" C# location is only valid if it is on the same line in the source document
                 // as the requested position.
                 codeDocument.GetSourceText().GetLineAndOffset(hostDocumentIndex, out var hostDocumentLine, out _);
@@ -456,16 +444,16 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
     public async Task<(Uri MappedDocumentUri, Range MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, Range generatedDocumentRange, CancellationToken cancellationToken)
     {
-        var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(generatedDocumentUri);
+        var razorDocumentUri = _documentFilePathService.GetRazorDocumentUri(generatedDocumentUri);
 
         // For Html we just map the Uri, the range will be the same
-        if (_languageServerFeatureOptions.IsVirtualHtmlFile(generatedDocumentUri))
+        if (_documentFilePathService.IsVirtualHtmlFile(generatedDocumentUri))
         {
             return (razorDocumentUri, generatedDocumentRange);
         }
 
         // We only map from C# files
-        if (!_languageServerFeatureOptions.IsVirtualCSharpFile(generatedDocumentUri))
+        if (!_documentFilePathService.IsVirtualCSharpFile(generatedDocumentUri))
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
@@ -591,20 +579,20 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
     {
         hostDocumentRange = default;
 
-        var csharpSourceText = GetGeneratedSourceText(generatedDocument);
+        var generatedSourceText = GetGeneratedSourceText(generatedDocument);
         var range = generatedDocumentRange;
-        if (!IsRangeWithinDocument(range, csharpSourceText))
+        if (!IsRangeWithinDocument(range, generatedSourceText))
         {
             return false;
         }
 
-        if (!range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex) ||
+        if (!range.Start.TryGetAbsoluteIndex(generatedSourceText, _logger, out var startIndex) ||
             !TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _))
         {
             return false;
         }
 
-        if (!range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex) ||
+        if (!range.End.TryGetAbsoluteIndex(generatedSourceText, _logger, out var endIndex) ||
             !TryMapToHostDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _))
         {
             return false;
@@ -628,14 +616,14 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         hostDocumentRange = default;
 
-        var csharpSourceText = GetGeneratedSourceText(generatedDocument);
+        var generatedSourceText = GetGeneratedSourceText(generatedDocument);
 
-        if (!IsRangeWithinDocument(generatedDocumentRange, csharpSourceText))
+        if (!IsRangeWithinDocument(generatedDocumentRange, generatedSourceText))
         {
             return false;
         }
 
-        var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
+        var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(generatedSourceText);
         var range = generatedDocumentRange;
         var startIndex = generatedRangeAsSpan.Start;
         var startMappedDirectly = TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
@@ -727,8 +715,14 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         // Doesn't map so lets try and infer some mappings
 
         hostDocumentRange = default;
-        var csharpSourceText = GetGeneratedSourceText(generatedDocument);
-        var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
+        var generatedSourceText = GetGeneratedSourceText(generatedDocument);
+
+        if (!IsRangeWithinDocument(generatedDocumentRange, generatedSourceText))
+        {
+            return false;
+        }
+
+        var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(generatedSourceText);
         SourceMapping? mappingBeforeGeneratedRange = null;
         SourceMapping? mappingAfterGeneratedRange = null;
 
@@ -805,7 +799,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         {
             s_haveAsserted = true;
             var sourceTextLinesCount = sourceText.Lines.Count;
-            _logger.LogWarning("Attempted to map a range {range} outside of the Source (line count {sourceTextLinesCount}.) This could happen if the Roslyn and Razor LSP servers are not in sync.", range, sourceTextLinesCount);
+            _logger.LogWarning("Attempted to map a range ({startLine},{startChar})-({endLine},{endChar}) outside of the Source (line count {sourceTextLinesCount}.) This could happen if the Roslyn and Razor LSP servers are not in sync.", range.Start.Line, range.Start.Character, range.End.Line, range.End.Character, sourceTextLinesCount);
         }
 
         return result;
@@ -824,14 +818,14 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var generatedDocumentUri = entry.TextDocument.Uri;
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!_languageServerFeatureOptions.IsVirtualDocumentUri(generatedDocumentUri))
+            if (!_documentFilePathService.IsVirtualDocumentUri(generatedDocumentUri))
             {
                 // This location doesn't point to a background razor file. No need to remap.
                 remappedDocumentEdits.Add(entry);
                 continue;
             }
 
-            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(generatedDocumentUri);
+            var razorDocumentUri = _documentFilePathService.GetRazorDocumentUri(generatedDocumentUri);
             var documentContext = _documentContextFactory.TryCreateForOpenDocument(razorDocumentUri, entry.TextDocument.GetProjectContext());
             if (documentContext is null)
             {
@@ -870,7 +864,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var edits = entry.Value;
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!_languageServerFeatureOptions.IsVirtualDocumentUri(uri))
+            if (!_documentFilePathService.IsVirtualDocumentUri(uri))
             {
                 remappedChanges[entry.Key] = entry.Value;
                 continue;
@@ -890,7 +884,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                 continue;
             }
 
-            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(uri);
+            var razorDocumentUri = _documentFilePathService.GetRazorDocumentUri(uri);
             remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
         }
 
@@ -929,11 +923,11 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
     private IRazorGeneratedDocument? GetGeneratedDocumentFromGeneratedDocumentUri(Uri generatedDocumentUri, RazorCodeDocument codeDocument)
     {
-        if (_languageServerFeatureOptions.IsVirtualCSharpFile(generatedDocumentUri))
+        if (_documentFilePathService.IsVirtualCSharpFile(generatedDocumentUri))
         {
             return codeDocument.GetCSharpDocument();
         }
-        else if (_languageServerFeatureOptions.IsVirtualHtmlFile(generatedDocumentUri))
+        else if (_documentFilePathService.IsVirtualHtmlFile(generatedDocumentUri))
         {
             return codeDocument.GetHtmlDocument();
         }
