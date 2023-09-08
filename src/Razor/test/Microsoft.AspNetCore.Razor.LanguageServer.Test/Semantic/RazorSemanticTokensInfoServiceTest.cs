@@ -5,10 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -18,15 +21,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-// Sets the FileName static variable.
-// Finds the test method name using reflection, and uses
-// that to find the expected input/output test files as Embedded resources.
-[IntializeTestFile]
-[UseExportProvider]
-public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
+public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
 {
-    public RazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
+    public RazorSemanticTokensInfoServiceTest(ITestOutputHelper testOutput, bool usePreciseSemanticTokenRanges)
+        : base(testOutput, usePreciseSemanticTokenRanges)
     {
     }
 
@@ -41,7 +39,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
                 """;
 
         var razorRange = GetRange(documentText);
-        var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: 1);
+        var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int[]>(), hostDocumentSyncVersion: 1);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
     }
 
@@ -59,6 +57,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -73,6 +73,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -85,7 +87,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
                 """;
 
         var razorRange = GetRange(documentText);
-        var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: 1);
+        var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int[]>(), hostDocumentSyncVersion: 1);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
     }
 
@@ -102,6 +104,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -117,6 +121,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -131,6 +137,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 21);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -145,6 +153,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -161,6 +171,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -177,6 +189,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -190,6 +204,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -203,6 +219,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -216,6 +234,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -230,6 +250,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -244,6 +266,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -258,6 +282,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -272,6 +298,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -286,6 +314,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -300,6 +330,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -314,6 +346,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -328,6 +362,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -342,6 +378,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -356,6 +394,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -370,6 +410,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -385,6 +427,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -399,6 +443,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -417,6 +463,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -431,6 +479,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -445,6 +495,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -459,6 +511,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -472,6 +526,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -485,6 +541,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -498,6 +556,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -511,6 +571,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -529,6 +591,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -542,6 +606,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -555,6 +621,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -582,6 +650,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -598,6 +668,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -610,6 +682,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -625,6 +699,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -643,6 +719,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -654,6 +732,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -668,6 +748,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.Empty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -691,6 +773,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -715,6 +799,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -738,6 +824,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -757,6 +845,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -776,6 +866,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
     }
 
     [Fact]
@@ -790,6 +882,46 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
+    }
+
+    [Fact]
+    public void GetMappedCSharpRanges_MinimalRangeVsSmallDisjointRanges_DisjointRangesAreSmaller()
+    {
+        var documentText =
+            """
+                @using System
+                @functions {
+                    Action<object> abc = @<span></span>;
+                }
+                """;
+
+        var razorRange = GetRange(documentText);
+        var codeDocument = CreateCodeDocument(documentText, isRazorFile: true, DefaultTagHelpers);
+        var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+        var csharpSourceText = codeDocument.GetCSharpSourceText();
+        var sourceText = codeDocument.GetSourceText();
+
+        if (UsePreciseSemanticTokenRanges)
+        {
+            var expectedCsharpRangeLengths = new int[] { 12, 27, 3 };
+            Assert.True(RazorSemanticTokensInfoService.TryGetSortedCSharpRanges(codeDocument, razorRange, out var csharpRanges));
+            Assert.Equal(3, csharpRanges.Length);
+            for (var i = 0; i < csharpRanges.Length; i++)
+            {
+                var csharpRange = csharpRanges[i];
+                var textSpan = csharpRange.AsTextSpan(csharpSourceText);
+                Assert.Equal(expectedCsharpRangeLengths[i], textSpan.Length);
+            }
+        }
+        else
+        {
+            var expectedCsharpRangeLength = 970;
+            Assert.True(RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out var csharpRange));
+            var textSpan = csharpRange.AsTextSpan(csharpSourceText);
+            Assert.Equal(expectedCsharpRangeLength, textSpan.Length);
+        }
     }
 
     private async Task AssertSemanticTokensAsync(
@@ -879,10 +1011,18 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
 
         await optionsMonitor.UpdateAsync(CancellationToken.None);
 
+        var featureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
+            options.DelegateToCSharpOnDiagnosticPublish == true &&
+            options.UsePreciseSemanticTokenRanges == UsePreciseSemanticTokenRanges &&
+            options.CSharpVirtualDocumentSuffix == ".ide.g.cs" &&
+            options.HtmlVirtualDocumentSuffix == "__virtual.html",
+            MockBehavior.Strict);
+
         return new RazorSemanticTokensInfoService(
             languageServer.Object,
             documentMappingService,
             optionsMonitor,
+            featureOptions,
             LoggerFactory);
     }
 

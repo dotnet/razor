@@ -176,4 +176,16 @@ internal static class RangeExtensions
 
         return range == UndefinedRange;
     }
+
+    public static int CompareTo(this Range range1, Range range2)
+    {
+        var result = range1.Start.CompareTo(range2.Start);
+
+        if (result == 0)
+        {
+            result = range1.End.CompareTo(range2.End);
+        }
+
+        return result;
+    }
 }
