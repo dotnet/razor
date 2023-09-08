@@ -5,13 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -793,6 +791,32 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
                         {
                         }
                     }
+                }
+                """;
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
+    }
+
+    [Fact]
+    public async Task GetSemanticTokens_CSharp_Tabs_Static_WithBackground()
+    {
+        var documentText = """
+                @using System
+                @code
+                {
+                	private static bool
+                		_isStatic;
+
+                	public void M()
+                	{
+                		if (_isStatic)
+                		{
+                		}
+                	}
                 }
                 """;
 
