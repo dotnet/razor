@@ -230,7 +230,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var end = startIndex + count;
         for (var i = startIndex; i < end; i++)
         {
-            if (razorSource[i] is not ' ' or '\t')
+            if (razorSource[i] is not (' ' or '\t'))
             {
                 return false;
             }
