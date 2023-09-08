@@ -252,6 +252,43 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.DoesNotContain("AddComponentParameter", source.SourceText.ToString());
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8660")]
+    public async Task TypeArgumentsCannotBeInferred()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = """
+                @typeparam T
+
+                <Component1 />
+
+                @code {
+                    private void M1<T1>() { }
+                    private void M2()
+                    {
+                        M1();
+                    }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver,
+            // Shared/Component1.razor(9,9): error CS0411: The type arguments for method 'Component1<T>.M1<T1>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //         M1();
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("MyApp.Shared.Component1<T>.M1<T1>()").WithLocation(9, 9));
+
+        // Assert
+        result.Diagnostics.Verify(
+            // Shared/Component1.razor(3,1): error RZ10001: The type of component 'Component1' cannot be inferred based on the values provided. Consider specifying the type arguments directly using the following attributes: 'T'.
+            // <Component1 />
+            Diagnostic("RZ10001").WithLocation(3, 1));
+        Assert.Single(result.GeneratedSources);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8545")]
     public async Task Doctype_Newline()
     {

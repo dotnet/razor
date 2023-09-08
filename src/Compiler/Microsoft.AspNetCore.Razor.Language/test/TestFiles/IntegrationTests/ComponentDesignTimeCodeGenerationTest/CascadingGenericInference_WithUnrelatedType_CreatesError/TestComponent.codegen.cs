@@ -31,7 +31,6 @@ namespace Test
 #nullable disable
                 , out var __typeInferenceArg_0___arg0);
                 var __typeInference_CreateGrid_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateGrid_0(__builder, -1, -1, __typeInferenceArg_0___arg0, -1, (__builder2) => {
-                    var __typeInference_CreateColumn_1 = global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_1(__builder2, -1);
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Column<>);

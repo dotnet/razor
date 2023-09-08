@@ -368,7 +368,11 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
         string typeInferenceLocalName = null;
 
-        if (node.TypeInferenceNode == null)
+        var suppressTypeInference = ShouldSuppressTypeInferenceCall(node);
+        if (suppressTypeInference)
+        {
+        }
+        else if (node.TypeInferenceNode == null)
         {
             // Writes something like:
             //
@@ -520,24 +524,27 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         // parameter is explicitly set, but that's exactly what we will be doing in order to represent the attribute
         // being set.
 
-        var wrotePragmaDisable = false;
-        foreach (var child in node.Children)
+        if (!suppressTypeInference)
         {
-            if (child is ComponentAttributeIntermediateNode attribute)
+            var wrotePragmaDisable = false;
+            foreach (var child in node.Children)
             {
-                WritePropertyAccess(context, attribute, node, typeInferenceLocalName, shouldWriteBL0005Disable: !wrotePragmaDisable, out var wrotePropertyAccess);
-
-                if (wrotePropertyAccess)
+                if (child is ComponentAttributeIntermediateNode attribute)
                 {
-                    wrotePragmaDisable = true;
+                    WritePropertyAccess(context, attribute, node, typeInferenceLocalName, shouldWriteBL0005Disable: !wrotePragmaDisable, out var wrotePropertyAccess);
+
+                    if (wrotePropertyAccess)
+                    {
+                        wrotePragmaDisable = true;
+                    }
                 }
             }
-        }
 
-        if (wrotePragmaDisable)
-        {
-            // Restore the warning in case the user has written other code that explicitly sets a property
-            context.CodeWriter.WriteLine("#pragma warning restore BL0005");
+            if (wrotePragmaDisable)
+            {
+                // Restore the warning in case the user has written other code that explicitly sets a property
+                context.CodeWriter.WriteLine("#pragma warning restore BL0005");
+            }
         }
 
         typeInferenceCaptureScope?.Dispose();

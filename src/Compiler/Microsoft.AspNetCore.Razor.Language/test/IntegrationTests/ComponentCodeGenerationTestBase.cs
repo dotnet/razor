@@ -5353,10 +5353,12 @@ namespace Test
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: DesignTime);
         var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        Assert.Collection(result.Diagnostics, d => { Assert.Equal("CS0411", d.Id); });
+        result.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(4,17): warning CS0169: The field 'TestComponent.counter' is never used
+            //     private int counter;
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "counter").WithArguments("Test.TestComponent.counter").WithLocation(4, 17));
     }
 
     [Fact]
@@ -5394,10 +5396,12 @@ namespace Test
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: DesignTime);
         var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        Assert.Collection(result.Diagnostics, d => { Assert.Equal("CS0411", d.Id); });
+        result.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(4,17): warning CS0169: The field 'TestComponent.counter' is never used
+            //     private int counter;
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "counter").WithArguments("Test.TestComponent.counter").WithLocation(4, 17));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/48526")]

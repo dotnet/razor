@@ -374,9 +374,12 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        if (node.TypeInferenceNode == null)
+        if (ShouldSuppressTypeInferenceCall(node))
         {
-            // If the component is using not using type inference then we just write an open/close with a series
+        }
+        else if (node.TypeInferenceNode == null)
+        {
+            // If the component is not using type inference then we just write an open/close with a series
             // of add attribute calls in between.
             //
             // Writes something like:
