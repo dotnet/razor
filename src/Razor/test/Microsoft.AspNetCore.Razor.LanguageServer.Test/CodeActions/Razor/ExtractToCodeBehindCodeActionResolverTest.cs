@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -12,9 +11,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Newtonsoft.Json.Linq;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -95,7 +93,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private var x = 1; }}";
+        var contents = """
+            @page "/test"
+
+            @code {
+                private var x = 1;
+            }
+            """;
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
@@ -126,9 +130,23 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeBehindChange = documentChanges[2];
         Assert.True(editCodeBehindChange.TryGetFirst(out var textDocumentEdit2));
         var editCodeBehindEdit = textDocumentEdit2!.Edits.First();
-        Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("namespace test.Pages", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+
+        AssertEx.EqualOrDiff("""
+            using global::System;
+            using global::System.Collections.Generic;
+            using global::System.Linq;
+            using global::System.Threading.Tasks;
+            using global::Microsoft.AspNetCore.Components;
+            
+            namespace test.Pages
+            {
+                public partial class Test
+                {
+                    private var x = 1;
+                }
+            }
+            """,
+            editCodeBehindEdit.NewText);
     }
 
     [Fact]
@@ -136,8 +154,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@functions {{ private var x = 1; }}";
-        var codeDocument = CreateCodeDocument(contents);
+        var contents = """
+            @page "/test"
+
+            @functions {
+                private var x = 1;
+            }
+            """; var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
         var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
@@ -167,9 +190,23 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeBehindChange = documentChanges[2];
         Assert.True(editCodeBehindChange.TryGetFirst(out var editCodeBehind));
         var editCodeBehindEdit = editCodeBehind!.Edits.First();
-        Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("namespace test.Pages", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+
+        AssertEx.EqualOrDiff("""
+            using global::System;
+            using global::System.Collections.Generic;
+            using global::System.Linq;
+            using global::System.Threading.Tasks;
+            using global::Microsoft.AspNetCore.Components;
+            
+            namespace test.Pages
+            {
+                public partial class Test
+                {
+                    private var x = 1;
+                }
+            }
+            """,
+            editCodeBehindEdit.NewText);
     }
 
     [Fact]
@@ -177,7 +214,14 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@page \"/test\"\n@using System.Diagnostics{Environment.NewLine}@code {{ private var x = 1; }}";
+        var contents = """
+            @page "/test"
+            @using System.Diagnostics
+
+            @code {
+                private var x = 1;
+            }
+            """;
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
@@ -208,10 +252,24 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeBehindChange = documentChanges[2];
         Assert.True(editCodeBehindChange.TryGetFirst(out var editCodeBehind));
         var editCodeBehindEdit = editCodeBehind!.Edits.First();
-        Assert.Contains("using System.Diagnostics", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("namespace test.Pages", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+
+        AssertEx.EqualOrDiff("""
+            using global::System;
+            using global::System.Collections.Generic;
+            using global::System.Linq;
+            using global::System.Threading.Tasks;
+            using global::Microsoft.AspNetCore.Components;
+            using System.Diagnostics;
+            
+            namespace test.Pages
+            {
+                public partial class Test
+                {
+                    private var x = 1;
+                }
+            }
+            """,
+            editCodeBehindEdit.NewText);
     }
 
     [Fact]
@@ -219,7 +277,15 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ {Environment.NewLine} #region TestRegion {Environment.NewLine} private var x = 1; {Environment.NewLine} #endregion {Environment.NewLine}}}";
+        var contents = """
+            @page "/test"
+
+            @code {
+            #region TestRegion 
+                    private var x = 1;
+            #endregion
+            }
+            """;
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
@@ -250,11 +316,25 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeBehindChange = documentChanges[2];
         Assert.True(editCodeBehindChange.TryGetFirst(out var textDocumentEdit2));
         var editCodeBehindEdit = textDocumentEdit2!.Edits.First();
-        Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("#region TestRegion", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("#endregion", editCodeBehindEdit.NewText, StringComparison.Ordinal);
-        Assert.Contains("namespace test.Pages", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+
+        AssertEx.EqualOrDiff("""
+            using global::System;
+            using global::System.Collections.Generic;
+            using global::System.Linq;
+            using global::System.Threading.Tasks;
+            using global::Microsoft.AspNetCore.Components;
+     
+            namespace test.Pages
+            {
+                public partial class Test
+                {
+            #region TestRegion 
+                    private var x = 1;
+            #endregion
+                }
+            }
+            """,
+            editCodeBehindEdit.NewText);
     }
 
     private static RazorCodeDocument CreateCodeDocument(string text)
