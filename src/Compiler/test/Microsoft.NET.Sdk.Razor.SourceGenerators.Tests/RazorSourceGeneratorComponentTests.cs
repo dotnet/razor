@@ -578,4 +578,57 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
         }
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9050")]
+    public async Task LineMapping_Tabs()
+    {
+        // Arrange
+        var tab = '\t';
+        var source = $$"""
+            <div>
+            {{tab}}@if (true)
+            {{tab}}{
+            {{tab}}{{tab}}@("code")
+            {{tab}}}
+            </div>
+            """;
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = source,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        result.Diagnostics.Verify();
+
+        var original = project.AdditionalDocuments.Single();
+        var originalText = await original.GetTextAsync();
+        Assert.Equal(source, originalText.ToString());
+        var generated = result.GeneratedSources.Single();
+        var generatedText = generated.SourceText;
+        var generatedTextString = generatedText.ToString();
+
+        // Find snippets and verify their mapping.
+        var snippets = new[] { "true", "code" };
+        var expectedLines = new[] { 1, 3 };
+        var originalIndex = -1;
+        var generatedIndex = -1;
+        foreach (var (snippet, expectedLine) in snippets.Zip(expectedLines))
+        {
+            originalIndex = source.IndexOf(snippet, originalIndex + 1, StringComparison.Ordinal);
+            generatedIndex = generatedTextString.IndexOf(snippet, generatedIndex + 1, StringComparison.Ordinal);
+            var mapped = generated.SyntaxTree.GetMappedLineSpan(new TextSpan(generatedIndex, snippet.Length));
+            Assert.True(mapped.IsValid);
+            Assert.True(mapped.HasMappedPath);
+            Assert.Equal("Shared/Component1.razor", mapped.Path);
+            Assert.Equal(expectedLine, mapped.StartLinePosition.Line);
+            Assert.Equal(expectedLine, mapped.EndLinePosition.Line);
+            var mappedSpan = originalText.Lines.GetTextSpan(mapped.Span);
+            Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
+        }
+    }
 }
