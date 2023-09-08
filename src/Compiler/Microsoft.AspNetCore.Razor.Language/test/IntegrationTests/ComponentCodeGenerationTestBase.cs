@@ -10001,7 +10001,7 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp("""
                 @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
-                """, throwOnFailure: false);    
+                """, throwOnFailure: true);    
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10085,7 +10085,7 @@ Time: @DateTime.Now
                 @namespace Custom.Namespace
 
                 @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
-                """, throwOnFailure: false);
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
 {
-    private const string GeneratedRenderModeAttributeName = "PrivateComponentRenderModeAttribute";
+    private const string GeneratedRenderModeAttributeName = "__PrivateComponentRenderModeAttribute";
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {

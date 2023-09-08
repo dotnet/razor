@@ -6,12 +6,12 @@
         UsingDirective - (97:4,1 [38] ) - global::System.Threading.Tasks
         UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
         CSharpCode - 
-            IntermediateToken -  - CSharp - [global::Test.TestComponent.PrivateComponentRenderModeAttribute]
+            IntermediateToken -  - CSharp - [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
             CSharpCode - (80:3,1 [55] x:\dir\subdir\Test\TestComponent.cshtml)
                 LazyIntermediateToken - (80:3,1 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public int Count { get; set; }\n
-            ClassDeclaration -  - private sealed - PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
+            ClassDeclaration -  - private sealed - __PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
                 CSharpCode - 
                     IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
                     CSharpCode - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml)
