@@ -511,6 +511,52 @@ public class CodeDirectiveFormattingTest : FormattingTestBase
     }
 
     [Fact]
+    public async Task Format_SectionDirectiveBlock7()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
+
+                    @section Scripts
+                    {
+                    <meta property="a" content="b">
+                    <meta property="a" content="b"/>
+                    <meta property="a" content="b">
+
+                    @if(true)
+                    {
+                    <p>this is a paragraph</p>
+                    }
+                    }
+                    """,
+            expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
+
+                    @section Scripts
+                    {
+                        <meta property="a" content="b">
+                        <meta property="a" content="b" />
+                        <meta property="a" content="b">
+
+                        @if (true)
+                        {
+                            <p>this is a paragraph</p>
+                        }
+                    }
+                    """,
+            fileKind: FileKinds.Legacy);
+    }
+
+    [Fact]
     public async Task Formats_CodeBlockDirectiveWithRazorComments()
     {
         await RunFormattingTestAsync(
