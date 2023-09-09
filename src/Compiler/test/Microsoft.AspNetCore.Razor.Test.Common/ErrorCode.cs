@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis;
 public enum ErrorCode
 {
     ERR_NameNotInContext = 103,
+    ERR_ObjectRequired = 120,
     ERR_SingleTypeNameNotFound = 246,
     WRN_UnreferencedFieldAssg = 414,
     WRN_AsyncLacksAwaits = 1998,

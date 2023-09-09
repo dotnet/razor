@@ -10001,7 +10001,7 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp("""
                 @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
-                """, throwOnFailure: false);    
+                """, throwOnFailure: true);    
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10071,6 +10071,21 @@ Time: @DateTime.Now
                         public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
                     }
                     """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Directive_WithNamespaces()
+    {
+        var generated = CompileToCSharp("""
+                @namespace Custom.Namespace
+
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
