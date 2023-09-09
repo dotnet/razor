@@ -375,6 +375,88 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     }
 
     [Fact]
+    public async Task Handle_ExtractCodeBlock_MultipleMembers3()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = """
+            @page "/test"
+
+            <div>
+                @code
+                {
+                    private int x = 1;
+                    private int z = 2;
+
+                    private string y = "hello";
+
+                    // Here is a comment
+                    private void M()
+                    {
+                        // okay
+                    }
+                }
+            </div>
+            """;
+        var codeDocument = CreateCodeDocument(contents);
+        Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
+
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _projectSnapshotManagerAccessor);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var data = JObject.FromObject(actionParams);
+
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
+
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit!.DocumentChanges);
+        Assert.Equal(3, workspaceEdit.DocumentChanges!.Value.Count());
+
+        var documentChanges = workspaceEdit.DocumentChanges!.Value.ToArray();
+        var createFileChange = documentChanges[0];
+        Assert.True(createFileChange.TryGetSecond(out var _));
+
+        var editCodeDocumentChange = documentChanges[1];
+        Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
+        var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
+        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        Assert.Equal(actionParams.RemoveStart, removeStart);
+        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.Equal(actionParams.RemoveEnd, removeEnd);
+
+        var editCodeBehindChange = documentChanges[2];
+        Assert.True(editCodeBehindChange.TryGetFirst(out var textDocumentEdit2));
+        var editCodeBehindEdit = textDocumentEdit2!.Edits.First();
+
+        AssertEx.EqualOrDiff("""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+            using Microsoft.AspNetCore.Components;
+            
+            namespace test.Pages
+            {
+                public partial class Test
+                {
+                    private int x = 1;
+                    private int z = 2;
+
+                    private string y = "hello";
+
+                    // Here is a comment
+                    private void M()
+                    {
+                        // okay
+                    }
+                }
+            }
+            """,
+            editCodeBehindEdit.NewText);
+    }
+
+    [Fact]
     public async Task Handle_ExtractFunctionsBlock()
     {
         // Arrange
