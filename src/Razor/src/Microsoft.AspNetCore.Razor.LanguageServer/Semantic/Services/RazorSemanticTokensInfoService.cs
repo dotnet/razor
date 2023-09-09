@@ -70,6 +70,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         {
             csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, razorSemanticTokensLegend, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
         }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range.");
@@ -230,7 +234,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var end = startIndex + count;
         for (var i = startIndex; i < end; i++)
         {
-            if (razorSource[i] is not ' ' or '\t')
+            if (razorSource[i] is not (' ' or '\t'))
             {
                 return false;
             }

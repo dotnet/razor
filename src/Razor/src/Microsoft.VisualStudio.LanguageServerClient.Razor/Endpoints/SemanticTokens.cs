@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -85,10 +86,12 @@ internal partial class RazorCustomMessageTarget
         var nonEmptyResults = results.Select(r => r?.Response?.Data).WithoutNull().ToArray();
         if (nonEmptyResults.Length != semanticTokensParams.Ranges.Length)
         {
+            _logger?.LogDebug("Made {count} semantic tokens requests to Roslyn but only got {nonEmpty} results back", semanticTokensParams.Ranges.Length, nonEmptyResults.Length);
             // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion ?? -1);
         }
 
+        _logger?.LogDebug("Made {count} semantic tokens requests to Roslyn", semanticTokensParams.Ranges.Length);
         return new ProvideSemanticTokensResponse(nonEmptyResults, semanticTokensParams.RequiredHostDocumentVersion);
     }
 }
