@@ -59,7 +59,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:\\Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private var x = 1; }}";
+        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private int x = 1; }}";
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetUnsupported();
 
@@ -78,7 +78,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:\\Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private var x = 1; }}";
+        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private int x = 1; }}";
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetFileKind(FileKinds.Legacy);
 
@@ -101,7 +101,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             @page "/test"
 
             @code {
-                private var x = 1;
+                private int x = 1;
             }
             """;
         var codeDocument = CreateCodeDocument(contents);
@@ -146,7 +146,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             {
                 public partial class Test
                 {
-                    private var x = 1;
+                    private int x = 1;
                 }
             }
             """,
@@ -163,7 +163,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
 
             @code
             {
-                private var x = 1;
+                private int x = 1;
             }
             """;
         var codeDocument = CreateCodeDocument(contents);
@@ -208,7 +208,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             {
                 public partial class Test
                 {
-                    private var x = 1;
+                    private int x = 1;
                 }
             }
             """,
@@ -465,7 +465,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             @page "/test"
 
             @functions {
-                private var x = 1;
+                private int x = 1;
             }
             """; var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
@@ -509,7 +509,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             {
                 public partial class Test
                 {
-                    private var x = 1;
+                    private int x = 1;
                 }
             }
             """,
@@ -526,7 +526,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             @using System.Diagnostics
 
             @code {
-                private var x = 1;
+                private int x = 1;
             }
             """;
         var codeDocument = CreateCodeDocument(contents);
@@ -572,7 +572,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             {
                 public partial class Test
                 {
-                    private var x = 1;
+                    private int x = 1;
                 }
             }
             """,
@@ -589,7 +589,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
 
             @code {
             #region TestRegion 
-                    private var x = 1;
+                    private int x = 1;
             #endregion
             }
             """;
@@ -636,7 +636,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
                 public partial class Test
                 {
                     #region TestRegion 
-                    private var x = 1;
+                    private int x = 1;
                     #endregion
                 }
             }
