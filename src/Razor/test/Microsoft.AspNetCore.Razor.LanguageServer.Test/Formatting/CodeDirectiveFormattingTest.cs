@@ -1207,6 +1207,39 @@ public class CodeDirectiveFormattingTest : FormattingTestBase
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/7058")]
+    public async Task CodeBlock_ImplicitArrayInitializers()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new[]
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+                        }
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new[]
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+                        }
+                    }
+                    """);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
     public async Task CodeBlock_ArrayInitializers()
     {
