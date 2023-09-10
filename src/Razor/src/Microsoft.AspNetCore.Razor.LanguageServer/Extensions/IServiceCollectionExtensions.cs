@@ -203,15 +203,12 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorProjectService, DefaultRazorProjectService>();
         services.AddSingleton<IProjectSnapshotChangeTrigger, OpenDocumentGenerator>();
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
-        services.AddSingleton<RazorFileChangeDetectorManager>();
 
         // File change listeners
         services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
-        services.AddSingleton<IRazorFileChangeListener, RazorFileSynchronizer>();
 
         // File Change detectors
         services.AddSingleton<IFileChangeDetector, ProjectConfigurationFileChangeDetector>();
-        services.AddSingleton<IFileChangeDetector, RazorFileChangeDetector>();
 
         // Document processed listeners
         if (!featureOptions.SingleServerSupport)
