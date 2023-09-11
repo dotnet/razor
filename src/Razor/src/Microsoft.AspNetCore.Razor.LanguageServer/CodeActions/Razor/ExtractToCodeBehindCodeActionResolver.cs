@@ -97,7 +97,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         }
 
         var className = Path.GetFileNameWithoutExtension(path);
-        var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart));
+        var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var codeBehindContent = await GenerateCodeBehindClassAsync(documentContext.Project, codeBehindUri, className, actionParams.Namespace, codeBlockContent, codeDocument, cancellationToken).ConfigureAwait(false);
 
         var start = codeDocument.Source.Lines.GetLocation(actionParams.RemoveStart);
