@@ -27,6 +27,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
     {
     }
 
+    // Avoid using `AddComponentParameter` in design time where we currently don't detect its availability.
+    protected override bool CanUseAddComponentParameter(CodeRenderingContext context) => false;
+
     public override void WriteMarkupBlock(CodeRenderingContext context, MarkupBlockIntermediateNode node)
     {
         if (context == null)
@@ -377,8 +380,8 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             // Writes something like:
             //
             // __builder.OpenComponent<MyComponent>(0);
-            // __builder.AddComponentParameter(1, "Foo", ...);
-            // __builder.AddComponentParameter(2, "ChildContent", ...);
+            // __builder.AddAttribute(1, "Foo", ...);
+            // __builder.AddAttribute(2, "ChildContent", ...);
             // __builder.SetKey(someValue);
             // __builder.AddElementCapture(3, (__value) => _field = __value);
             // __builder.CloseComponent();
@@ -986,9 +989,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         // Writes something like:
         //
-        // __builder.AddComponentParameter(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
+        // __builder.AddAttribute(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
         // OR
-        // __builder.AddComponentParameter(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
+        // __builder.AddAttribute(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
         BeginWriteAttribute(context, node.AttributeName);
         context.CodeWriter.WriteParameterSeparator();
         context.CodeWriter.Write("(");

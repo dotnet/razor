@@ -1638,6 +1638,35 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1869483")]
+    public void AddComponentParameter()
+    {
+        var generated = CompileToCSharp("""
+            @typeparam T
+
+            <TestComponent Param="42" />
+            
+            @code {
+                [Parameter]
+                public T Param { get; set; }
+            }
+            """);
+
+        CompileToAssembly(generated);
+
+        if (DesignTime)
+        {
+            // In design-time, AddComponentParameter shouldn't be used.
+            Assert.Contains("AddAttribute", generated.Code);
+            Assert.DoesNotContain("AddComponentParameter", generated.Code);
+        }
+        else
+        {
+            Assert.DoesNotContain("AddAttribute", generated.Code);
+            Assert.Contains("AddComponentParameter", generated.Code);
+        }
+    }
+
     #endregion
 
     #region Bind
