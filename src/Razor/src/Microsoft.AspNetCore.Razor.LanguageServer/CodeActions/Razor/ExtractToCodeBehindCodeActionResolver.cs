@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
@@ -24,18 +25,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionResolver
 {
+    private static readonly Workspace s_workspace = new AdhocWorkspace();
+
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
     public ExtractToCodeBehindCodeActionResolver(
         DocumentContextFactory documentContextFactory,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+        LanguageServerFeatureOptions languageServerFeatureOptions)
     {
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         _languageServerFeatureOptions = languageServerFeatureOptions;
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
     }
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
@@ -211,9 +211,11 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         builder.AppendLine(contents);
         builder.Append('}');
 
+        // Sadly we can't use a "real" workspace here, because we don't have access. If we use our workspace, it wouldn't have the right settings
+        // for C# formatting, only Razor formatting, and we have no access to Roslyn's real workspace, since it could be in another process.
         // TODO: Rather than format here, call Roslyn via LSP to format, and remove and sort usings: https://github.com/dotnet/razor/issues/8766
         var node = CSharpSyntaxTree.ParseText(builder.ToString()).GetRoot();
-        node = Formatter.Format(node, _projectSnapshotManagerAccessor.Instance.Workspace);
+        node = Formatter.Format(node, s_workspace);
 
         return node.ToFullString();
     }
