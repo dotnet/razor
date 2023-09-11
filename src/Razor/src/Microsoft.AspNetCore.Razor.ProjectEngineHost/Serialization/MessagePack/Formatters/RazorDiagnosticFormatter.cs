@@ -16,7 +16,7 @@ internal sealed class RazorDiagnosticFormatter : ValueFormatter<RazorDiagnostic>
     {
     }
 
-    protected override RazorDiagnostic Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override RazorDiagnostic Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(8);
 
@@ -41,7 +41,7 @@ internal sealed class RazorDiagnosticFormatter : ValueFormatter<RazorDiagnostic>
         }
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, RazorDiagnostic value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, RazorDiagnostic value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(8);
 
@@ -55,5 +55,20 @@ internal sealed class RazorDiagnosticFormatter : ValueFormatter<RazorDiagnostic>
         writer.Write(span.LineIndex);
         writer.Write(span.CharacterIndex);
         writer.Write(span.Length);
+    }
+
+    public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        reader.ReadArrayHeaderAndVerify(8);
+
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Id
+        reader.Skip(); // Severity
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Message
+
+        CachedStringFormatter.Instance.Skim(ref reader, options); // FilePath
+        reader.Skip(); // AbsoluteIndex
+        reader.Skip(); // LineIndex
+        reader.Skip(); // CharacterIndex
+        reader.Skip(); // Length
     }
 }

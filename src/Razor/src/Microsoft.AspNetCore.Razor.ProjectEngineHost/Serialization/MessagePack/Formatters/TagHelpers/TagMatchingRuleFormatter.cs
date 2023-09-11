@@ -14,7 +14,7 @@ internal sealed class TagMatchingRuleFormatter : ValueFormatter<TagMatchingRuleD
     {
     }
 
-    protected override TagMatchingRuleDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override TagMatchingRuleDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(6);
 
@@ -31,7 +31,7 @@ internal sealed class TagMatchingRuleFormatter : ValueFormatter<TagMatchingRuleD
             attributes, diagnostics);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, TagMatchingRuleDescriptor value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, TagMatchingRuleDescriptor value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(6);
 
@@ -41,5 +41,17 @@ internal sealed class TagMatchingRuleFormatter : ValueFormatter<TagMatchingRuleD
         writer.Write(value.CaseSensitive);
         writer.Serialize((RequiredAttributeDescriptor[])value.Attributes, options);
         writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
+    }
+
+    public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        reader.ReadArrayHeaderAndVerify(6);
+
+        CachedStringFormatter.Instance.Skim(ref reader, options); // TagName
+        CachedStringFormatter.Instance.Skim(ref reader, options); // ParentTag
+        reader.Skip(); // TagStructure
+        reader.Skip(); // CaseSensitive
+        RequiredAttributeFormatter.Instance.SkimArray(ref reader, options); // Attributes
+        RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
     }
 }

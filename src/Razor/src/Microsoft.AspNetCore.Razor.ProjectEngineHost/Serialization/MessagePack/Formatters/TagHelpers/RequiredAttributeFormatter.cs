@@ -15,7 +15,7 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
     {
     }
 
-    protected override RequiredAttributeDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override RequiredAttributeDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(8);
 
@@ -36,7 +36,7 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
             displayName!, diagnostics, metadata);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, RequiredAttributeDescriptor value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, RequiredAttributeDescriptor value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(8);
 
@@ -49,5 +49,20 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
 
         writer.Serialize((MetadataCollection)value.Metadata, options);
         writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
+    }
+
+    public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        reader.ReadArrayHeaderAndVerify(8);
+
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Name
+        reader.Skip(); // NameComparison
+        reader.Skip(); // CaseSensitive
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Value
+        reader.Skip(); // ValueComparison
+        CachedStringFormatter.Instance.Skim(ref reader, options); // DisplayName
+
+        MetadataCollectionFormatter.Instance.Skim(ref reader, options); // Metadata
+        RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
     }
 }

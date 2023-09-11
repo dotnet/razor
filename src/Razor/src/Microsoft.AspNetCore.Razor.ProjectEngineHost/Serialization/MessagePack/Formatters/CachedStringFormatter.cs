@@ -13,7 +13,7 @@ internal sealed class CachedStringFormatter : ValueFormatter<string?>
     {
     }
 
-    protected override string? Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override string? Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         if (reader.NextMessagePackType == MessagePackType.Integer)
         {
@@ -31,7 +31,7 @@ internal sealed class CachedStringFormatter : ValueFormatter<string?>
         return result;
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, string? value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, string? value, SerializerCachingOptions options)
     {
         if (value is null)
         {
@@ -45,6 +45,22 @@ internal sealed class CachedStringFormatter : ValueFormatter<string?>
         {
             writer.Write(value);
             options.Strings.Add(value);
+        }
+    }
+
+    public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        if (reader.NextMessagePackType == MessagePackType.Integer)
+        {
+            reader.Skip(); // Reference Id
+            return;
+        }
+
+        var result = reader.ReadString();
+
+        if (result is not null)
+        {
+            options.Strings.Add(result);
         }
     }
 }
