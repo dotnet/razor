@@ -66,7 +66,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
             {
                 result = await ResolveTagHelpersOutOfProcessAsync(factory, workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (ex is not (TaskCanceledException or OperationCanceledException))
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 throw new InvalidOperationException(
                     "An unexpected exception occurred when resolving tag helpers out-of-process.",
@@ -81,7 +81,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
             {
                 result = await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (ex is not (TaskCanceledException or OperationCanceledException))
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 throw new InvalidOperationException(
                     $"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.",
