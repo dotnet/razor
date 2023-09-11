@@ -1,37 +1,37 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using MessagePack;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal sealed class ProjectWorkspaceStateFormatter : MessagePackFormatter<ProjectWorkspaceState>
+internal sealed class ProjectWorkspaceStateFormatter : ValueFormatter<ProjectWorkspaceState>
 {
-    public static readonly MessagePackFormatter<ProjectWorkspaceState> Instance = new ProjectWorkspaceStateFormatter();
+    public static readonly ValueFormatter<ProjectWorkspaceState> Instance = new ProjectWorkspaceStateFormatter();
 
     private ProjectWorkspaceStateFormatter()
     {
     }
 
-    public override ProjectWorkspaceState Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override ProjectWorkspaceState Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        using var _ = TagHelperSerializationCache.Pool.GetPooledObject(out var cache);
+        reader.ReadArrayHeaderAndVerify(2);
 
-        var tagHelpers = TagHelperFormatter.Instance.DeserializeImmutableArray(ref reader, options, cache);
+        var tagHelpers = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(options);
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
 
         return new ProjectWorkspaceState(tagHelpers, csharpLanguageVersion);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, ProjectWorkspaceState value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, ProjectWorkspaceState value, SerializerCachingOptions options)
     {
-        using var _ = TagHelperSerializationCache.Pool.GetPooledObject(out var cache);
+        writer.WriteArrayHeader(2);
 
-        TagHelperFormatter.Instance.SerializeArray(ref writer, value.TagHelpers, options, cache);
+        writer.SerializeObject(value.TagHelpers, options);
         writer.Write((int)value.CSharpLanguageVersion);
     }
 }
