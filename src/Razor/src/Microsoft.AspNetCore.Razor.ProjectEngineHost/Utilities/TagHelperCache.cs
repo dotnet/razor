@@ -26,24 +26,8 @@ internal sealed class TagHelperCache
     {
         lock (_checksumToTagHelperMap)
         {
-            if (++_addsSinceLastCleanUp >= CleanUpThreshold)
-            {
-                CleanUpDeadObjects_NoLock();
-            }
-
-            if (!_checksumToTagHelperMap.TryGetValue(checksum, out var weakRef))
-            {
-                _checksumToTagHelperMap.Add(checksum, new(tagHelper));
-                return tagHelper;
-            }
-
-            if (!weakRef.TryGetTarget(out var cachedTagHelper))
-            {
-                weakRef.SetTarget(tagHelper);
-                return tagHelper;
-            }
-
-            return cachedTagHelper;
+            // Note: This returns null if tagHelper was added to the cache.
+            return TryAddOrGet_NoLock(checksum, tagHelper) ?? tagHelper;
         }
     }
 
@@ -51,25 +35,34 @@ internal sealed class TagHelperCache
     {
         lock (_checksumToTagHelperMap)
         {
-            if (++_addsSinceLastCleanUp >= CleanUpThreshold)
-            {
-                CleanUpDeadObjects_NoLock();
-            }
-
-            if (!_checksumToTagHelperMap.TryGetValue(checksum, out var weakRef))
-            {
-                _checksumToTagHelperMap.Add(checksum, new(tagHelper));
-                return true;
-            }
-
-            if (!weakRef.TryGetTarget(out var cachedTagHelper))
-            {
-                weakRef.SetTarget(tagHelper);
-                return true;
-            }
-
-            return false;
+            // Note: This returns null if tagHelper was added to the cache.
+            return TryAddOrGet_NoLock(checksum, tagHelper) is null;
         }
+    }
+
+    /// <summary>
+    ///  Try to add the given tag helper to the cache. If it already exists, return the cached instance.
+    /// </summary>
+    private TagHelperDescriptor? TryAddOrGet_NoLock(Checksum checksum, TagHelperDescriptor tagHelper)
+    {
+        if (++_addsSinceLastCleanUp >= CleanUpThreshold)
+        {
+            CleanUpDeadObjects_NoLock();
+        }
+
+        if (!_checksumToTagHelperMap.TryGetValue(checksum, out var weakRef))
+        {
+            _checksumToTagHelperMap.Add(checksum, new(tagHelper));
+            return null;
+        }
+
+        if (!weakRef.TryGetTarget(out var cachedTagHelper))
+        {
+            weakRef.SetTarget(tagHelper);
+            return null;
+        }
+
+        return cachedTagHelper;
     }
 
     public bool TryGet(Checksum checksum, [NotNullWhen(true)] out TagHelperDescriptor? tagHelper)

@@ -65,9 +65,11 @@ internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemote
                 .GetTagHelpersAsync(workspaceProject, projectHandle.Configuration, factoryTypeName, cancellationToken)
                 .ConfigureAwait(false);
 
+            var cache = TagHelperCache.Default;
+
             foreach (var tagHelper in latestTagHelpers)
             {
-                TagHelperCache.Default.TryAdd(tagHelper.GetChecksum(), tagHelper);
+                cache.TryAdd(tagHelper.GetChecksum(), tagHelper);
             }
 
             // Finally, try to retrieve our cached tag helpers
