@@ -134,8 +134,14 @@ internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemote
                 .GetTagHelpersAsync(workspaceProject, projectHandle.Configuration, factoryTypeName, cancellationToken)
                 .ConfigureAwait(false);
 
-            using var _ = ArrayBuilderPool<Checksum>.GetPooledObject(out var builder);
-            builder.SetCapacityIfLarger(tagHelpers.Length);
+            checksums = GetChecksums(tagHelpers);
+        }
+
+        return _tagHelperDeltaProvider.GetTagHelpersDelta(projectHandle.ProjectId, lastResultId, checksums);
+
+        static ImmutableArray<Checksum> GetChecksums(ImmutableArray<TagHelperDescriptor> tagHelpers)
+        {
+            using var builder = new PooledArrayBuilder<Checksum>(capacity: tagHelpers.Length);
 
             // Add each tag helpers to the cache so that we can retrieve them later if needed.
             var cache = TagHelperCache.Default;
@@ -147,9 +153,7 @@ internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemote
                 cache.TryAdd(checksum, tagHelper);
             }
 
-            checksums = builder.DrainToImmutable();
+            return builder.DrainToImmutable();
         }
-
-        return _tagHelperDeltaProvider.GetTagHelpersDelta(projectHandle.ProjectId, lastResultId, checksums);
     }
 }
