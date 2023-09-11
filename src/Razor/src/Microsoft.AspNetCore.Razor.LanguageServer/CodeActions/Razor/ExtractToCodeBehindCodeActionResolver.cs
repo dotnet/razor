@@ -205,9 +205,8 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         builder.AppendLine(namespaceName);
         builder.Append('{');
         builder.AppendLine();
-        builder.Append("    public partial class ");
+        builder.Append("public partial class ");
         builder.AppendLine(className);
-        builder.Append("    ");
         builder.AppendLine(contents);
         builder.Append('}');
 
