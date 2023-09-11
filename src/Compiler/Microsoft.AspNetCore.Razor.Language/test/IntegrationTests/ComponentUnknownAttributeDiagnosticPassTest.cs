@@ -157,6 +157,71 @@ namespace Test
         Assert.Empty(documentNode.GetAllDiagnostics());
     }
 
+    [Fact]
+    public void Execute_DoNotCaptureAdditionalAttributes()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter] public int Value { get; set; }
+
+        [Parameter(CaptureUnmatchedValues = false)]
+        public IDictionary<string, object> AdditionalAttributes { get; set; }
+    }
+}
+"));
+        var result = CompileToCSharp(@"<MyComponent InvalidAttribute=""123"" />");
+        var document = result.CodeDocument;
+        var documentNode = Lower(document);
+
+        // Act
+        Pass.Execute(document, documentNode);
+
+        // Assert
+        Assert.NotEmpty(documentNode.GetAllDiagnostics());
+    }
+
+    [Fact]
+    public void Execute_CaptureAdditionalAttributes_PartialComponentClass()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public partial class MyComponent : ComponentBase
+    {
+        [Parameter] public int Value { get; set; }
+    }
+
+    public partial class MyComponent
+    {
+        [Parameter(CaptureUnmatchedValues = true)]
+        public IDictionary<string, object> AdditionalAttributes { get; set; }
+    }
+}
+"));
+        var result = CompileToCSharp(@"<MyComponent InvalidAttribute=""123"" />");
+        var document = result.CodeDocument;
+        var documentNode = Lower(document);
+
+        // Act
+        Pass.Execute(document, documentNode);
+
+        // Assert
+        Assert.Empty(documentNode.GetAllDiagnostics());
+    }
+
     private DocumentIntermediateNode Lower(RazorCodeDocument codeDocument)
     {
         for (var i = 0; i < Engine.Phases.Count; i++)
