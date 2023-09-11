@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -112,7 +110,7 @@ public sealed class SourceChange : IEquatable<SourceChange>
         return node.GetContent().Substring(offset, Span.Length);
     }
 
-    public bool Equals(SourceChange other)
+    public bool Equals(SourceChange? other)
     {
         return
             other != null &&
@@ -120,7 +118,7 @@ public sealed class SourceChange : IEquatable<SourceChange>
             string.Equals(NewText, other.NewText, StringComparison.Ordinal);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return Equals(obj as SourceChange);
     }

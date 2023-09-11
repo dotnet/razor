@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using Microsoft.Extensions.Internal;
@@ -45,7 +43,7 @@ public struct SourceLocation : IEquatable<SourceLocation>
     /// <param name="absoluteIndex">The absolute index.</param>
     /// <param name="lineIndex">The line index.</param>
     /// <param name="characterIndex">The character index.</param>
-    public SourceLocation(string filePath, int absoluteIndex, int lineIndex, int characterIndex)
+    public SourceLocation(string? filePath, int absoluteIndex, int lineIndex, int characterIndex)
     {
         FilePath = filePath;
         AbsoluteIndex = absoluteIndex;
@@ -62,7 +60,7 @@ public struct SourceLocation : IEquatable<SourceLocation>
     /// </para>
     /// <para>Set property is only accessible for deserialization purposes.</para>
     /// </remarks>
-    public string FilePath { get; set; }
+    public string? FilePath { get; set; }
 
     /// <remarks>Set property is only accessible for deserialization purposes.</remarks>
     public int AbsoluteIndex { get; set; }
@@ -82,9 +80,9 @@ public struct SourceLocation : IEquatable<SourceLocation>
     /// <remarks>A <see cref="SourceLocation"/> that corresponds to the beginning of the span.</remarks>
     public static SourceLocation FromSpan(SourceSpan? span)
     {
-        return span == null ?
-            SourceLocation.Undefined :
-            new SourceLocation(span.Value.FilePath, span.Value.AbsoluteIndex, span.Value.LineIndex, span.Value.CharacterIndex);
+        return span is { } value
+            ? new SourceLocation(value.FilePath, value.AbsoluteIndex, value.LineIndex, value.CharacterIndex)
+            : SourceLocation.Undefined;
     }
 
     /// <inheritdoc />
@@ -99,10 +97,9 @@ public struct SourceLocation : IEquatable<SourceLocation>
     }
 
     /// <inheritdoc />
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
-        return obj is SourceLocation &&
-            Equals((SourceLocation)obj);
+        return obj is SourceLocation location && Equals(location);
     }
 
     /// <inheritdoc />
