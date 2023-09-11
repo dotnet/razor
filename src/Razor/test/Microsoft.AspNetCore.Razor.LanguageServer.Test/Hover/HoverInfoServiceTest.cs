@@ -88,6 +88,35 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
     }
 
     [Fact]
+    public void GetHoverInfo_TagHelper_Element_WithParent()
+    {
+        // Arrange
+        var txt = """
+                @addTagHelper *, TestAssembly
+                <test1>
+                    <Som$$eChild></SomeChild>
+                </test1>
+                """;
+        TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
+
+        var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
+        var service = GetHoverInfoService();
+        var location = new SourceLocation(cursorPosition, -1, -1);
+
+        // Act
+        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+
+        // Assert
+        Assert.Contains("**SomeChild**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+        var expectedRange = new Range
+        {
+            Start = new Position(2, 5),
+            End = new Position(2, 14),
+        };
+        Assert.Equal(expectedRange, hover.Range);
+    }
+
+    [Fact]
     public void GetHoverInfo_TagHelper_Element_EndTag()
     {
         // Arrange
