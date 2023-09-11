@@ -2,11 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
@@ -21,18 +24,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
 {
     private readonly DocumentContextFactory _emptyDocumentContextFactory;
+    private readonly TestLanguageServer _languageServer;
 
     public ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _emptyDocumentContextFactory = new TestDocumentContextFactory();
+        _languageServer = new TestLanguageServer(new Dictionary<string, Func<object?, Task<object>>>()
+        {
+            [CustomMessageNames.RazorFormatNewFileEndpointName] = c => Task.FromResult<object>(null!),
+        });
     }
 
     [Fact]
     public async Task Handle_MissingFile()
     {
         // Arrange
-        var resolver = new ExtractToCodeBehindCodeActionResolver(_emptyDocumentContextFactory, TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(_emptyDocumentContextFactory, TestLanguageServerFeatureOptions.Instance, _languageServer);
         var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
         {
             Uri = new Uri("c:/Test.razor"),
@@ -59,7 +67,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetUnsupported();
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var data = JObject.FromObject(CreateExtractToCodeBehindCodeActionParams(new Uri("c:/Test.razor"), contents, "@code", "Test"));
 
         // Act
@@ -78,7 +86,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetFileKind(FileKinds.Legacy);
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var data = JObject.FromObject(CreateExtractToCodeBehindCodeActionParams(new Uri("c:/Test.razor"), contents, "@code", "Test"));
 
         // Act
@@ -103,7 +111,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
@@ -165,7 +173,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
@@ -235,7 +243,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
@@ -315,7 +323,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
@@ -397,7 +405,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
@@ -467,7 +475,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@functions", @namespace);
         var data = JObject.FromObject(actionParams);
 
@@ -529,7 +537,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
@@ -593,7 +601,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
         var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
