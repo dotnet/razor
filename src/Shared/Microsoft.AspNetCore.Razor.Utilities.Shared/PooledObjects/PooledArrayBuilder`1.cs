@@ -444,7 +444,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         // Add the inline items and clear their field values.
         for (var i = 0; i < _inlineCount; i++)
         {
-            builder.Add(this[i]);
+            builder.Add(GetInlineElement(i));
             ClearInlineElement(i);
         }
 
