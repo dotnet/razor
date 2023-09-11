@@ -16,7 +16,7 @@ using Shared = System.Composition.SharedAttribute;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 /// <summary>
-/// Publishes project.razor.json files.
+/// Publishes project.razor.bin files.
 /// </summary>
 [Shared]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
