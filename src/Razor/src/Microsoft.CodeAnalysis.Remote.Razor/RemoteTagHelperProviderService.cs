@@ -49,7 +49,7 @@ internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemote
     {
         if (!TryGetCachedTagHelpers(checksums, out var tagHelpers))
         {
-            // If one or more of the tag helpers aren't in the cached, we'll need to re-compute them from the project.
+            // If one or more of the tag helpers aren't in the cache, we'll need to re-compute them from the project.
             // In practice, this shouldn't happen because FetchTagHelpersAsync(...) is normally called immediately after
             // calling GetTagHeleprsDeltaAsync(...), which caches the tag helpers it computes.
 
