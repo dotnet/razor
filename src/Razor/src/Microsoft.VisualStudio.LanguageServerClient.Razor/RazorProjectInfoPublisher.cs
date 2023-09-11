@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -260,11 +259,11 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
         }
     }
 
-    protected virtual void SerializeToFile(IProjectSnapshot projectSnapshot, string publishFilePath)
+    protected virtual void SerializeToFile(IProjectSnapshot projectSnapshot, string configurationFilePath)
     {
         // We need to avoid having an incomplete file at any point, but our
         // project configuration file is large enough that it will be written as multiple operations.
-        var tempFilePath = string.Concat(publishFilePath, TempFileExt);
+        var tempFilePath = string.Concat(configurationFilePath, TempFileExt);
         var tempFileInfo = new FileInfo(tempFilePath);
 
         if (tempFileInfo.Exists)
@@ -275,19 +274,19 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
 
         // This needs to be in explicit brackets because the operation needs to be completed
         // by the time we move the tempfile into its place
-        using (var writer = tempFileInfo.CreateText())
+        using (var stream = tempFileInfo.Create())
         {
-            var projectInfo = projectSnapshot.ToRazorProjectInfo(publishFilePath);
-            JsonDataConvert.SerializeObject(writer, projectInfo, ObjectWriters.WriteProperties);
+            var projectInfo = projectSnapshot.ToRazorProjectInfo(configurationFilePath);
+            projectInfo.SerializeTo(stream);
         }
 
-        var fileInfo = new FileInfo(publishFilePath);
+        var fileInfo = new FileInfo(configurationFilePath);
         if (fileInfo.Exists)
         {
             fileInfo.Delete();
         }
 
-        File.Move(tempFilePath, publishFilePath);
+        File.Move(tempFilePath, configurationFilePath);
     }
 
     protected virtual bool FileExists(string file)
