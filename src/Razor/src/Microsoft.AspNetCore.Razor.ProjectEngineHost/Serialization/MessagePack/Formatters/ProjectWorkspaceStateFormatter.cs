@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -28,10 +27,9 @@ internal sealed class ProjectWorkspaceStateFormatter : ValueFormatter<ProjectWor
 
         var checksums = reader.Deserialize<ImmutableArray<Checksum>>(options);
 
-        var length = reader.ReadArrayHeader();
-        Debug.Assert(checksums.Length == length);
+        reader.ReadArrayHeaderAndVerify(checksums.Length);
 
-        using var builder = new PooledArrayBuilder<TagHelperDescriptor>(capacity: length);
+        using var builder = new PooledArrayBuilder<TagHelperDescriptor>(capacity: checksums.Length);
         var cache = TagHelperCache.Default;
 
         foreach (var checksum in checksums)
