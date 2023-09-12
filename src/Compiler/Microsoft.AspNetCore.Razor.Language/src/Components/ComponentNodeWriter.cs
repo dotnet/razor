@@ -68,6 +68,13 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         WriteComponentTypeInferenceMethod(context, node, returnComponentType: false);
     }
 
+    protected bool ShouldSuppressTypeInferenceCall(ComponentIntermediateNode node)
+    {
+        // When RZ10001 (type of component cannot be inferred) is reported, we want to suppress the equivalent CS0411 errors,
+        // so we don't generate the call to TypeInference.CreateComponent.
+        return node.Diagnostics.Any(d => d.Id == ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id);
+    }
+
     protected void WriteComponentTypeInferenceMethod(CodeRenderingContext context, ComponentTypeInferenceMethodIntermediateNode node, bool returnComponentType)
     {
         if (context == null)

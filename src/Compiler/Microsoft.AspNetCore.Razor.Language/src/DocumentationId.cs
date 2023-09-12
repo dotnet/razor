@@ -29,6 +29,7 @@ internal enum DocumentationId
     RefTagHelper,
     SplatTagHelper,
     RenderModeTagHelper,
+    FormNameTagHelper,
 
-    Last = RenderModeTagHelper
+    Last = FormNameTagHelper
 }

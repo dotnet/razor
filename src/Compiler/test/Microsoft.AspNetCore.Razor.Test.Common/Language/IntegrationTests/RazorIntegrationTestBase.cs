@@ -218,6 +218,7 @@ public class RazorIntegrationTestBase
         }
 
         baseCompilation ??= BaseCompilation;
+        configuration ??= Configuration;
 
         if (nullableEnable)
         {

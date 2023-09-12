@@ -37,9 +37,9 @@ public class ComponentRenderModeAttributeIntegrationTests : RazorIntegrationTest
                 """, throwOnFailure: true);
 
         // Assert
-        //x:\dir\subdir\Test\TestComponent.cshtml(1,21): Error RZ10021: Attribute 'rendermode' is only valid when used on a component.
+        //x:\dir\subdir\Test\TestComponent.cshtml(1,21): Error RZ10023: Attribute 'rendermode' is only valid when used on a component.
         var diag = Assert.Single(generated.Diagnostics);
-        Assert.Equal("RZ10021", diag.Id);
+        Assert.Equal("RZ10023", diag.Id);
     }
 
     [Fact]
@@ -53,9 +53,9 @@ public class ComponentRenderModeAttributeIntegrationTests : RazorIntegrationTest
 
         // Assert
 
-        // x:\dir\subdir\Test\TestComponent.cshtml(3,29): Error RZ10022: Cannot override render mode for component 'Test.TestComponent' as it explicitly declares one.
+        // x:\dir\subdir\Test\TestComponent.cshtml(3,29): Error RZ10024: Cannot override render mode for component 'Test.TestComponent' as it explicitly declares one.
         var diagnostic = Assert.Single(generated.Diagnostics);
-        Assert.Equal("RZ10022", diagnostic.Id);
+        Assert.Equal("RZ10024", diagnostic.Id);
     }
 }
 

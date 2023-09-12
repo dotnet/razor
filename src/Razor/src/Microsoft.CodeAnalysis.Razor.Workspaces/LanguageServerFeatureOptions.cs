@@ -17,9 +17,9 @@ internal abstract class LanguageServerFeatureOptions
 
     public abstract bool SingleServerSupport { get; }
 
-    public abstract bool SupportsDelegatedCodeActions { get; }
-
     public abstract bool DelegateToCSharpOnDiagnosticPublish { get; }
+
+    public abstract bool UsePreciseSemanticTokenRanges { get; }
 
     public abstract bool ShowAllCSharpCodeActions { get; }
 

@@ -35,6 +35,8 @@ Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.WriteLine(System.R
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.LinePragma() -> void
 Microsoft.AspNetCore.Razor.Language.CommonMetadata
 Microsoft.AspNetCore.Razor.Language.DirectiveTokenKind.IdentifierOrExpression = 7 -> Microsoft.AspNetCore.Razor.Language.DirectiveTokenKind
+Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode
+Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.FormNameIntermediateNode() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection.Enumerator.Enumerator() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeReference.IntermediateNodeReference() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode
@@ -58,6 +60,9 @@ Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan() -> void
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder.Dispose() -> void
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder.PooledBuilder() -> void
+override Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.Accept(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeVisitor! visitor) -> void
+override Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.Children.get -> Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection!
+override Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.FormatNode(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeFormatter! formatter) -> void
 override Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.Accept(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeVisitor! visitor) -> void
 override Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.Children.get -> Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection!
 override sealed Microsoft.AspNetCore.Razor.Language.MetadataCollection.Equals(object! obj) -> bool
@@ -109,5 +114,7 @@ virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.TryGetMet
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.GloballyQualifiedTypeName -> string
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.TypeNameIdentifier -> string
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.TypeNamespace -> string
+~virtual Microsoft.AspNetCore.Razor.Language.CodeGeneration.IntermediateNodeWriter.WriteFormName(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context, Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode node) -> void
 ~virtual Microsoft.AspNetCore.Razor.Language.CodeGeneration.IntermediateNodeWriter.WriteRenderMode(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context, Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode node) -> void
+~virtual Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeVisitor.VisitFormName(Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode node) -> void
 ~virtual Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeVisitor.VisitRenderMode(Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode node) -> void

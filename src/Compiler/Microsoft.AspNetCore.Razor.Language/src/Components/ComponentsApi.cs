@@ -81,6 +81,8 @@ internal static class ComponentsApi
 
         public const string BuilderParameter = "__builder";
 
+        public const string FormNameVariableName = "__formName";
+
         public const string OpenElement = nameof(OpenElement);
 
         public const string CloseElement = nameof(CloseElement);
@@ -96,7 +98,10 @@ internal static class ComponentsApi
         public const string AddAttribute = nameof(AddAttribute);
 
         public const string AddMultipleAttributes = nameof(AddMultipleAttributes);
+
         public const string AddComponentParameter = nameof(AddComponentParameter);
+
+        public const string AddNamedEvent = nameof(AddNamedEvent);
 
         public const string AddElementReferenceCapture = nameof(AddElementReferenceCapture);
 

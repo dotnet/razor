@@ -27,6 +27,11 @@ internal class ScopeStack
        Current.BuilderVarNumber == 1 && Current.RenderModeCount == 0
             ? ComponentsApi.RenderTreeBuilder.RenderModeVariableName
             : $"{ComponentsApi.RenderTreeBuilder.RenderModeVariableName}{Current.BuilderVarNumber}_{Current.RenderModeCount}";
+   
+    public string FormNameVarName =>
+       Current.BuilderVarNumber == 1 && Current.FormNameCount == 0
+            ? ComponentsApi.RenderTreeBuilder.FormNameVariableName
+            : $"{ComponentsApi.RenderTreeBuilder.FormNameVariableName}{Current.BuilderVarNumber}_{Current.FormNameCount}";
 
     public int Depth => _stack.Count - 1;
 
@@ -34,7 +39,7 @@ internal class ScopeStack
 
     public ScopeStack()
     {
-        _stack.Push(new ScopeEntry() { BuilderVarNumber = 1});
+        _stack.Push(new ScopeEntry() { BuilderVarNumber = 1 });
     }
 
     public void OpenComponentScope(CodeRenderingContext context, string name, string parameterName)
@@ -56,7 +61,7 @@ internal class ScopeStack
 
     private void OpenScope(CodeRenderingContext context)
     {
-        var scope = new ScopeEntry() {  BuilderVarNumber = Current.BuilderVarNumber + 1 };
+        var scope = new ScopeEntry() { BuilderVarNumber = Current.BuilderVarNumber + 1 };
         _stack.Push(scope);
         scope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
     }
@@ -72,9 +77,15 @@ internal class ScopeStack
         Current.RenderModeCount++;
     }
 
+    public void IncrementFormName()
+    { 
+        Current.FormNameCount++;
+    }
+
     private class ScopeEntry
     {
         public int RenderModeCount;
+        public int FormNameCount;
         public int BuilderVarNumber;
         public IDisposable LambdaScope;
     }
