@@ -54,7 +54,7 @@ internal static class ExtraExtensions
 {
     // C# allows extension method overloads to differ only by generic constraints, but they must be declared on
     // different classes, since they'll have the same signature.
-    public static void SerializeObject<T>(this ref MessagePackWriter writer, T value, MessagePackSerializerOptions options)
+    public static void Serialize<T>(this ref MessagePackWriter writer, T value, MessagePackSerializerOptions options)
         where T : struct
     {
         options.Resolver.GetFormatterWithVerify<T>().Serialize(ref writer, value, options);

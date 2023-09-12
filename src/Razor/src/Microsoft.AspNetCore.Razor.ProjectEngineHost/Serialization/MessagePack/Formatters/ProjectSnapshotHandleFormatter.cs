@@ -16,7 +16,7 @@ internal sealed class ProjectSnapshotHandleFormatter : TopLevelFormatter<Project
     {
     }
 
-    protected override ProjectSnapshotHandle Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override ProjectSnapshotHandle Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(3);
 
@@ -29,7 +29,7 @@ internal sealed class ProjectSnapshotHandleFormatter : TopLevelFormatter<Project
         return new(projectId, configuration, rootNamespace);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, ProjectSnapshotHandle value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, ProjectSnapshotHandle value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(3);
 

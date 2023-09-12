@@ -14,7 +14,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
     {
     }
 
-    protected override BoundAttributeDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override BoundAttributeDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(14);
 
@@ -41,7 +41,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
             parameters, metadata, diagnostics);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, BoundAttributeDescriptor value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, BoundAttributeDescriptor value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(14);
 
@@ -53,12 +53,33 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
         CachedStringFormatter.Instance.Serialize(ref writer, value.IndexerNamePrefix, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.IndexerTypeName, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
-        writer.SerializeObject(value.DocumentationObject, options);
+        writer.Serialize(value.DocumentationObject, options);
         writer.Write(value.CaseSensitive);
         writer.Write(value.IsEditorRequired);
         writer.Serialize(value.BoundAttributeParameters, options);
 
         writer.Serialize((MetadataCollection)value.Metadata, options);
         writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
+    }
+
+    public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        reader.ReadArrayHeaderAndVerify(14);
+
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Kind;
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Name
+        CachedStringFormatter.Instance.Skim(ref reader, options); // TypeName
+        reader.Skip(); // IsEnum
+        reader.Skip(); // HasIndexer
+        CachedStringFormatter.Instance.Skim(ref reader, options); // IndexerNamePrefix
+        CachedStringFormatter.Instance.Skim(ref reader, options); // IndexerTypeName
+        CachedStringFormatter.Instance.Skim(ref reader, options); // DisplayName
+        DocumentationObjectFormatter.Instance.Skim(ref reader, options); // DocumentationObject
+        reader.Skip(); // CaseSenstive
+        reader.Skip(); // IsEditorRequired
+        BoundAttributeParameterFormatter.Instance.SkimArray(ref reader, options); // BoundAttributeParameters
+
+        MetadataCollectionFormatter.Instance.Skim(ref reader, options); // Metadata
+        RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
     }
 }

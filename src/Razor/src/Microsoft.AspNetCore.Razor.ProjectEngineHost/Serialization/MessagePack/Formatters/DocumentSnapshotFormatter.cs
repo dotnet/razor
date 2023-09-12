@@ -13,7 +13,7 @@ internal sealed class DocumentSnapshotHandleFormatter : ValueFormatter<DocumentS
     {
     }
 
-    protected override DocumentSnapshotHandle Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override DocumentSnapshotHandle Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(3);
 
@@ -24,7 +24,7 @@ internal sealed class DocumentSnapshotHandleFormatter : ValueFormatter<DocumentS
         return new DocumentSnapshotHandle(filePath, targetPath, fileKind);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, DocumentSnapshotHandle value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, DocumentSnapshotHandle value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(3);
 

@@ -15,7 +15,7 @@ internal sealed class TagHelperDeltaResultFormatter : TopLevelFormatter<TagHelpe
     {
     }
 
-    protected override TagHelperDeltaResult Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override TagHelperDeltaResult Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(4);
 
@@ -27,13 +27,13 @@ internal sealed class TagHelperDeltaResultFormatter : TopLevelFormatter<TagHelpe
         return new(isDelta, resultId, added, removed);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, TagHelperDeltaResult value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, TagHelperDeltaResult value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(4);
 
         writer.Write(value.IsDelta);
         writer.Write(value.ResultId);
-        writer.SerializeObject(value.Added, options);
-        writer.SerializeObject(value.Removed, options);
+        writer.Serialize(value.Added, options);
+        writer.Serialize(value.Removed, options);
     }
 }
