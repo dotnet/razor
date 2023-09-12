@@ -431,6 +431,8 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             builder.SetCapacityIfLarger(capacity);
         }
 
+        _builder = builder;
+
         // Add the inline items and clear their field values.
         for (var i = 0; i < _inlineCount; i++)
         {
@@ -440,8 +442,5 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         // Since _inlineCount tracks the number of inline items used, we zero it out here.
         _inlineCount = 0;
-
-        // Note: We're careful wait to assign _builder here to ensure that 
-        _builder = builder;
     }
 }
