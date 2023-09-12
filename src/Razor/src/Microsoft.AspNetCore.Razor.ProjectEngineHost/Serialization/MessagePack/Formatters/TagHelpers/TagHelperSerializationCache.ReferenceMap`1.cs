@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 
-namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
+namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal partial class SerializerCachingOptions
+internal sealed partial class TagHelperSerializationCache
 {
     public struct ReferenceMap<T> : IDisposable
         where T : notnull

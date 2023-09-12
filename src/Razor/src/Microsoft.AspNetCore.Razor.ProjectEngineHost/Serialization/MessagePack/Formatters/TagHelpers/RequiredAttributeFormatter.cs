@@ -7,27 +7,25 @@ using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttributeDescriptor>
+internal sealed class RequiredAttributeFormatter : TagHelperObjectFormatter<RequiredAttributeDescriptor>
 {
-    public static readonly ValueFormatter<RequiredAttributeDescriptor> Instance = new RequiredAttributeFormatter();
+    public static readonly TagHelperObjectFormatter<RequiredAttributeDescriptor> Instance = new RequiredAttributeFormatter();
 
     private RequiredAttributeFormatter()
     {
     }
 
-    protected override RequiredAttributeDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override RequiredAttributeDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
     {
-        reader.ReadArrayHeaderAndVerify(8);
-
-        var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var name = reader.ReadString(cache);
         var nameComparison = (NameComparisonMode)reader.ReadInt32();
         var caseSensitive = reader.ReadBoolean();
-        var value = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var value = reader.ReadString(cache);
         var valueComparison = (ValueComparisonMode)reader.ReadInt32();
-        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var displayName = reader.ReadString(cache);
 
-        var metadata = reader.Deserialize<MetadataCollection>(options);
-        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
+        var metadata = MetadataCollectionFormatter.Instance.Deserialize(ref reader, options, cache);
+        var diagnostics = RazorDiagnosticFormatter.Instance.DeserializeArray(ref reader, options);
 
         return new DefaultRequiredAttributeDescriptor(
             name, nameComparison,
@@ -36,18 +34,16 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
             displayName!, diagnostics, metadata);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, RequiredAttributeDescriptor value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, RequiredAttributeDescriptor value, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
     {
-        writer.WriteArrayHeader(8);
-
-        CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
+        writer.Write(value.Name, cache);
         writer.Write((int)value.NameComparison);
         writer.Write(value.CaseSensitive);
-        CachedStringFormatter.Instance.Serialize(ref writer, value.Value, options);
+        writer.Write(value.Value, cache);
         writer.Write((int)value.ValueComparison);
-        CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
+        writer.Write(value.DisplayName, cache);
 
-        writer.Serialize((MetadataCollection)value.Metadata, options);
-        writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
+        MetadataCollectionFormatter.Instance.Serialize(ref writer, (MetadataCollection)value.Metadata, options, cache);
+        RazorDiagnosticFormatter.Instance.SerializeArray(ref writer, value.Diagnostics, options);
     }
 }
