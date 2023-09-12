@@ -144,8 +144,6 @@
     <MicrosoftWebToolsLanguagesSharedPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesSharedPackageVersion>
     <MicrosoftWebToolsLanguagesSharedEditorPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesSharedEditorPackageVersion>
     <MicrosoftWebToolsSharedPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsSharedPackageVersion>
-    <MonoAddinsPackageVersion>1.3.8</MonoAddinsPackageVersion>
-    <MonoDevelopSdkPackageVersion>1.0.15</MonoDevelopSdkPackageVersion>
     <MoqPackageVersion>4.16.0</MoqPackageVersion>
     <MessagePackPackageVersion>2.5.108</MessagePackPackageVersion>
     <NewtonsoftJsonPackageVersion>13.0.3</NewtonsoftJsonPackageVersion>
