@@ -10,6 +10,8 @@
 
     <!-- In theory we want to have this property set, but our pipeline doesn't set the access tokens yet -->
     <PublishWindowsPdb Condition="'$(DotNetSymbolServerTokenMsdl)'!='' and '$(DotNetSymbolServerTokenSymWeb)'!=''">true</PublishWindowsPdb>
+
+    <RollForward Condition="'$(IsTestProject)' == 'true'">LatestMajor</RollForward>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
