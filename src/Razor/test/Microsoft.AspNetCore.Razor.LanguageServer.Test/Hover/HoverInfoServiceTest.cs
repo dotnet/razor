@@ -88,6 +88,35 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
     }
 
     [Fact]
+    public void GetHoverInfo_TagHelper_Element_WithParent()
+    {
+        // Arrange
+        var txt = """
+                @addTagHelper *, TestAssembly
+                <test1>
+                    <Som$$eChild></SomeChild>
+                </test1>
+                """;
+        TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
+
+        var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
+        var service = GetHoverInfoService();
+        var location = new SourceLocation(cursorPosition, -1, -1);
+
+        // Act
+        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+
+        // Assert
+        Assert.Contains("**SomeChild**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+        var expectedRange = new Range
+        {
+            Start = new Position(2, 5),
+            End = new Position(2, 14),
+        };
+        Assert.Equal(expectedRange, hover.Range);
+    }
+
+    [Fact]
     public void GetHoverInfo_TagHelper_Element_EndTag()
     {
         // Arrange
@@ -708,6 +737,34 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
         var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
         Assert.Equal("Test1TagHelper", text);
+    }
+
+    [Fact]
+    public async Task Handle_Hover_SingleServer_AddTagHelper()
+    {
+        // Arrange
+        var input = """
+                @addTagHelper *, Test$$Assembly
+
+                <test1></test1>
+                """;
+
+        // Act
+        var result = await GetResultFromSingleServerEndpointAsync(input);
+
+        // Assert
+
+        // Roslyn returns us a range that is outside of our source mappings, so we expect the endpoint
+        // to return null, so as not to confuse the client
+        Assert.Null(result.Range);
+
+        var rawContainer = (ContainerElement)result.RawContent;
+        var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
+
+        var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
+        var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
+        // Hover info is for a string
+        Assert.StartsWith("Represents text as a sequence of UTF-16", text);
     }
 
     private async Task<VSInternalHover> GetResultFromSingleServerEndpointAsync(string input)

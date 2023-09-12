@@ -197,6 +197,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             .WriteStringLiteral(node.TagName)
             .WriteEndMethodInvocation();
 
+        bool hasFormName = false;
+
         // Render attributes and splats (in order) before creating the scope.
         foreach (var child in node.Children)
         {
@@ -211,6 +213,12 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             else if (child is SplatIntermediateNode splat)
             {
                 context.RenderNode(splat);
+            }
+            else if (child is FormNameIntermediateNode formName)
+            {
+                Debug.Assert(!hasFormName);
+                context.RenderNode(formName);
+                hasFormName = true;
             }
         }
 
@@ -228,6 +236,20 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         foreach (var child in node.Body)
         {
             context.RenderNode(child);
+        }
+
+        // AddNamedEvent must be called last.
+        if (hasFormName)
+        {
+            // _builder.AddNamedEvent("onsubmit", __formName);
+            context.CodeWriter.Write(_scopeStack.BuilderVarName);
+            context.CodeWriter.Write(".");
+            context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.AddNamedEvent);
+            context.CodeWriter.Write("(\"onsubmit\", ");
+            context.CodeWriter.Write(_scopeStack.FormNameVarName);
+            context.CodeWriter.Write(");");
+            context.CodeWriter.WriteLine();
+            _scopeStack.IncrementFormName();
         }
 
         context.CodeWriter
@@ -351,9 +373,12 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        if (node.TypeInferenceNode == null)
+        if (ShouldSuppressTypeInferenceCall(node))
         {
-            // If the component is using not using type inference then we just write an open/close with a series
+        }
+        else if (node.TypeInferenceNode == null)
+        {
+            // If the component is not using type inference then we just write an open/close with a series
             // of add attribute calls in between.
             //
             // Writes something like:
@@ -917,6 +942,19 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         }
     }
 
+    public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
+    {
+        // string __formName = expression;
+        context.CodeWriter.Write("string ");
+        context.CodeWriter.Write(_scopeStack.FormNameVarName);
+        context.CodeWriter.Write(" = ");
+        context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
+        context.CodeWriter.Write("<string>(");
+        WriteAttributeValue(context, node.FindDescendantNodes<IntermediateToken>());
+        context.CodeWriter.Write(")");
+        context.CodeWriter.WriteLine(";");
+    }
+
     public override void WriteReferenceCapture(CodeRenderingContext context, ReferenceCaptureIntermediateNode node)
     {
         // Looks like:
@@ -990,7 +1028,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         });
     }
 
-    private void WriteAttribute(CodeRenderingContext context, string key, IList<IntermediateToken> value)
+    private void WriteAttribute(CodeRenderingContext context, string key, IReadOnlyList<IntermediateToken> value)
     {
         BeginWriteAttribute(context, key);
 
@@ -1010,7 +1048,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteEndMethodInvocation();
     }
 
-    private void WriteAttribute(CodeRenderingContext context, IntermediateNode nameExpression, IList<IntermediateToken> value)
+    private void WriteAttribute(CodeRenderingContext context, IntermediateNode nameExpression, IReadOnlyList<IntermediateToken> value)
     {
         BeginWriteAttribute(context, nameExpression);
         if (value.Count > 0)
@@ -1064,7 +1102,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     // Only the mixed case is complicated, we want to turn it into code that will concatenate
     // the values into a string at runtime.
 
-    private static void WriteAttributeValue(CodeRenderingContext context, IList<IntermediateToken> tokens)
+    private static void WriteAttributeValue(CodeRenderingContext context, IReadOnlyList<IntermediateToken> tokens)
     {
         if (tokens == null)
         {
