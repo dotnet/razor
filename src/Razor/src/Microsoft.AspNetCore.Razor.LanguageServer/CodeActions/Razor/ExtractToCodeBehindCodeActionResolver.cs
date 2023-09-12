@@ -178,8 +178,8 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         var usingDirectives = razorCodeDocument
-                    .GetDocumentIntermediateNode()
-                    .FindDescendantNodes<UsingDirectiveIntermediateNode>();
+            .GetDocumentIntermediateNode()
+            .FindDescendantNodes<UsingDirectiveIntermediateNode>();
         foreach (var usingDirective in usingDirectives)
         {
             builder.Append("using ");
