@@ -438,7 +438,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             ClearInlineElement(i);
         }
 
-        // Since _count tracks the number of inline items used, we zero it out here.
+        // Since _inlineCount tracks the number of inline items used, we zero it out here.
         _inlineCount = 0;
 
         // Note: We're careful wait to assign _builder here to ensure that 
