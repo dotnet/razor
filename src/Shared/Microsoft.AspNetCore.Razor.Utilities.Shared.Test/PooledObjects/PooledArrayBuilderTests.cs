@@ -10,16 +10,8 @@ namespace Microsoft.AspNetCore.Razor.Utilities.Shared.Test.PooledObjects;
 public class PooledArrayBuilderTests
 {
     [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(3)]
-    [InlineData(4)]
-    [InlineData(5)]
-    [InlineData(6)]
-    [InlineData(7)]
-    [InlineData(8)]
-    public void AddElements(int count)
+    [CombinatorialData]
+    public void AddElements([CombinatorialRange(0, 8)] int count)
     {
         using var builder = new PooledArrayBuilder<int>();
 
