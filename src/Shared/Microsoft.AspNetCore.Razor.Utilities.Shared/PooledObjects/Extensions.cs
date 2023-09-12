@@ -5,12 +5,25 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static partial class PooledObjectExtensions
+internal static partial class Extensions
 {
+    /// <summary>
+    ///  Clears the given reference and returns its instance to the pool.
+    /// </summary>
+    public static void ReturnAndClear<T>(this ObjectPool<T> pool, ref T? obj)
+        where T : class
+    {
+        if (Interlocked.Exchange(ref obj, null) is { } o)
+        {
+            pool.Return(o);
+        }
+    }
+
     public static PooledObject<T> GetPooledObject<T>(this ObjectPool<T> pool)
         where T : class
         => new(pool);

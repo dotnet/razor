@@ -66,20 +66,10 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public void Dispose()
     {
-        if (_builder is { } builder)
-        {
-            ArrayBuilderPool<T>.Default.Return(builder);
-            _builder = null;
-        }
-        else
-        {
-            for (var i = 0; i < _inlineCount; i++)
-            {
-                ClearInlineElement(i);
-            }
-
-            _inlineCount = 0;
-        }
+        // Return _builder to the pool if necesary. Note that we don't need to clear the inline elements here
+        // because this type is intended to be allocated on the stack and the GC can reclaim objects from the
+        // stack after the last use of a reference to them.
+        ArrayBuilderPool<T>.Default.ReturnAndClear(ref _builder);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
