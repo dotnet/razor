@@ -2,10 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,21 +11,22 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionResolver
 {
+    private static readonly Workspace s_workspace = new AdhocWorkspace();
+
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
@@ -171,20 +170,6 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
     }
 
     /// <summary>
-    /// Determine all explicit and implicit using statements in the code
-    /// document using the intermediate node.
-    /// </summary>
-    /// <param name="razorCodeDocument">The code document to analyze.</param>
-    /// <returns>An enumerable of the qualified namespaces.</returns>
-    private static IEnumerable<string> FindUsings(RazorCodeDocument razorCodeDocument)
-    {
-        return razorCodeDocument
-            .GetDocumentIntermediateNode()
-            .FindDescendantNodes<UsingDirectiveIntermediateNode>()
-            .Select(n => n.Content);
-    }
-
-    /// <summary>
     /// Generate a complete C# compilation unit containing a partial class
     /// with the given name, body contents, and the namespace and all
     /// usings from the existing code document.
@@ -194,27 +179,43 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
     /// <param name="contents">Class body contents.</param>
     /// <param name="razorCodeDocument">Existing code document we're extracting from.</param>
     /// <returns></returns>
-    private static string GenerateCodeBehindClass(string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument)
+    private string GenerateCodeBehindClass(string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument)
     {
-        var mock = (ClassDeclarationSyntax)CSharpSyntaxFactory.ParseMemberDeclaration($"class Class {contents}")!;
-        var @class = CSharpSyntaxFactory
-            .ClassDeclaration(className)
-            .AddModifiers(CSharpSyntaxFactory.Token(CSharpSyntaxKind.PublicKeyword), CSharpSyntaxFactory.Token(CSharpSyntaxKind.PartialKeyword))
-            .AddMembers(mock.Members.ToArray())
-            .WithCloseBraceToken(mock.CloseBraceToken);
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-        var @namespace = CSharpSyntaxFactory
-            .NamespaceDeclaration(CSharpSyntaxFactory.ParseName(namespaceName))
-            .AddMembers(@class);
+        var usingDirectives = razorCodeDocument
+            .GetDocumentIntermediateNode()
+            .FindDescendantNodes<UsingDirectiveIntermediateNode>();
+        foreach (var usingDirective in usingDirectives)
+        {
+            builder.Append("using ");
 
-        var usings = FindUsings(razorCodeDocument)
-            .Select(u => CSharpSyntaxFactory.UsingDirective(CSharpSyntaxFactory.ParseName(u)))
-            .ToArray();
-        var compilationUnit = CSharpSyntaxFactory
-            .CompilationUnit()
-            .AddUsings(usings)
-            .AddMembers(@namespace);
+            var content = usingDirective.Content;
+            var startIndex = content.StartsWith("global::", StringComparison.Ordinal)
+                ? 8
+                : 0;
 
-        return compilationUnit.NormalizeWhitespace().ToFullString();
+            builder.Append(content, startIndex, content.Length - startIndex);
+            builder.Append(';');
+            builder.AppendLine();
+        }
+
+        builder.AppendLine();
+        builder.Append("namespace ");
+        builder.AppendLine(namespaceName);
+        builder.Append('{');
+        builder.AppendLine();
+        builder.Append("public partial class ");
+        builder.AppendLine(className);
+        builder.AppendLine(contents);
+        builder.Append('}');
+
+        // Sadly we can't use a "real" workspace here, because we don't have access. If we use our workspace, it wouldn't have the right settings
+        // for C# formatting, only Razor formatting, and we have no access to Roslyn's real workspace, since it could be in another process.
+        // TODO: Rather than format here, call Roslyn via LSP to format, and remove and sort usings: https://github.com/dotnet/razor/issues/8766
+        var node = CSharpSyntaxTree.ParseText(builder.ToString()).GetRoot();
+        node = Formatter.Format(node, s_workspace);
+
+        return node.ToFullString();
     }
 }
