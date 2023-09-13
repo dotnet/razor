@@ -100,29 +100,31 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         Debug.Assert(razorRanges.SequenceEqual(razorRanges.OrderBy(g => g)));
 
-        // If there are no C# in what we're trying to classify we can skip this, since we know the razor ranges will be sorted.
+        // If there are no C# in what we're trying to classify we don't need to do anything special since we know the razor ranges will be sorted
+        // because we use a visitor to create them, and the above Assert will validate it in our tests.
         if (csharpRanges.Length == 0)
         {
             return razorRanges;
         }
 
-        // If there are no Razor ranges then we can't fully fast path, as the C# ranges are not necessarily sorted, but we can
-        // avoid creating a new builder and copying all of the elements. Or maybe that's what the Sort method does internally
-        // anyway 🤷‍
+        // If there are no Razor ranges then we can't just return the C# ranges, as they ranges are not necessarily sorted. They would have been
+        // in order when the C# server gave them to us, but the data we have here is after re-mapping to the Razor document, which can result in
+        // things being moved around. We need to sort before we return them.
         if (razorRanges.Length == 0)
         {
             return csharpRanges.Sort();
         }
 
+        // If we have both types of tokens then we need to sort them all together, even though we know the Razor ranges will be sorted already,
+        // because they can arbitrarily interleave. The SemanticRange.CompareTo method also has some logic to ensure that if Razor and C# ranges
+        // are equivalent, the Razor range will be ordered first, so we can later drop the C# range, and prefer our classification over C#s.
+        // Additionally, as mentioned above, the C# ranges are not guaranteed to be in order
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var newList);
         newList.SetCapacityIfLarger(razorRanges.Length + csharpRanges.Length);
 
         newList.AddRange(razorRanges);
         newList.AddRange(csharpRanges);
 
-        // Because SemanticToken data is generated relative to the previous token it must be in order.
-        // We have a guarantee of order within any given language server, but the interweaving of them can be quite complex.
-        // Rather than attempting to reason about transition zones we can simply order our ranges since we know there can be no overlapping range.
         newList.Sort();
 
         return newList.DrainToImmutable();
