@@ -129,8 +129,8 @@ internal static class RangeExtensions
             throw new ArgumentNullException(nameof(sourceText));
         }
 
-        var start = GetAbsolutePosition(range.Start, sourceText);
-        var end = GetAbsolutePosition(range.End, sourceText);
+        var start = GetAbsoluteIndex(range.Start, sourceText);
+        var end = GetAbsoluteIndex(range.End, sourceText);
 
         var length = end - start;
         if (length < 0)
@@ -140,11 +140,11 @@ internal static class RangeExtensions
 
         return new TextSpan(start, length);
 
-        static int GetAbsolutePosition(Position position, SourceText sourceText, [CallerArgumentExpression(nameof(position))] string? argName = null)
+        static int GetAbsoluteIndex(Position position, SourceText sourceText, [CallerArgumentExpression(nameof(position))] string? argName = null)
         {
             var line = position.Line;
             var character = position.Character;
-            if (!sourceText.TryGetAbsolutePosition(line, character, out var absolutePosition))
+            if (!sourceText.TryGetAbsoluteIndex(line, character, out var absolutePosition))
             {
                 throw new ArgumentOutOfRangeException($"{argName} ({line},{character}) matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
             }

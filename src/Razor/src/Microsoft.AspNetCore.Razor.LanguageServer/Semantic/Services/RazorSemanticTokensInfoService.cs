@@ -537,8 +537,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             // length
 
-            if (!sourceText.TryGetAbsolutePosition(currentRange.StartLine, currentRange.StartCharacter, out var startPosition) ||
-                !sourceText.TryGetAbsolutePosition(currentRange.EndLine, currentRange.EndCharacter, out var endPosition))
+            if (!sourceText.TryGetAbsoluteIndex(currentRange.StartLine, currentRange.StartCharacter, out var startPosition) ||
+                !sourceText.TryGetAbsoluteIndex(currentRange.EndLine, currentRange.EndCharacter, out var endPosition))
             {
                 throw new ArgumentOutOfRangeException($"Range: All or part of {currentRange} was outside the bounds of the document.");
             }
