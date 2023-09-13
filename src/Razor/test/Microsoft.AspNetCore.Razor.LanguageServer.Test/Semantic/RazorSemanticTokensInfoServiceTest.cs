@@ -782,6 +782,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         var start = """
                 @page
                 @model SampleApp.Pages.ErrorModel
+                @using System
 
                 <!DOCTYPE html>
                 <html lang="en">
@@ -799,6 +800,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         var middle = """
                     <div class="@cssClass">
                         <div class="content px-4">
+                            @using System
                             <h1 class="text-danger">Error.</h1>
                             <h2 class="text-danger">An error occurred while processing your request.</h2>
 
