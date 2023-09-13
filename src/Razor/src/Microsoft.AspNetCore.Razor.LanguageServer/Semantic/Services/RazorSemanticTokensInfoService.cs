@@ -96,13 +96,29 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return tokens;
     }
 
-    private static ImmutableArray<SemanticRange> CombineSemanticRanges(ImmutableArray<SemanticRange> ranges1, ImmutableArray<SemanticRange> ranges2)
+    private static ImmutableArray<SemanticRange> CombineSemanticRanges(ImmutableArray<SemanticRange> razorRanges, ImmutableArray<SemanticRange> csharpRanges)
     {
-        using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var newList);
-        newList.SetCapacityIfLarger(ranges1.Length + ranges2.Length);
+        Debug.Assert(razorRanges.SequenceEqual(razorRanges.OrderBy(g => g)));
 
-        newList.AddRange(ranges1);
-        newList.AddRange(ranges2);
+        // If there are no C# in what we're trying to classify we can skip this, since we know the razor ranges will be sorted.
+        if (csharpRanges.Length == 0)
+        {
+            return razorRanges;
+        }
+
+        // If there are no Razor ranges then we can't fully fast path, as the C# ranges are not necessarily sorted, but we can
+        // avoid creating a new builder and copying all of the elements. Or maybe that's what the Sort method does internally
+        // anyway 🤷‍
+        if (razorRanges.Length == 0)
+        {
+            return csharpRanges.Sort();
+        }
+
+        using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var newList);
+        newList.SetCapacityIfLarger(razorRanges.Length + csharpRanges.Length);
+
+        newList.AddRange(razorRanges);
+        newList.AddRange(csharpRanges);
 
         // Because SemanticToken data is generated relative to the previous token it must be in order.
         // We have a guarantee of order within any given language server, but the interweaving of them can be quite complex.
