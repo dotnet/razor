@@ -144,20 +144,12 @@ internal static class RangeExtensions
         {
             var line = position.Line;
             var character = position.Character;
-            var lineCount = sourceText.Lines.Count;
-            if (line > lineCount ||
-                (line == lineCount && character > 0))
+            if (!sourceText.TryGetAbsolutePosition(line, character, out var absolutePosition))
             {
-                throw new ArgumentOutOfRangeException($"{argName} ({line},{character}) matches or exceeds SourceText boundary {lineCount}.");
+                throw new ArgumentOutOfRangeException($"{argName} ({line},{character}) matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
             }
 
-            // LSP spec allowed a Range to end one line past the end, and character 0. SourceText does not, so we adjust to the final char position
-            if (line == lineCount)
-            {
-                return sourceText.Length;
-            }
-
-            return sourceText.Lines[line].Start + character;
+            return absolutePosition;
         }
     }
 

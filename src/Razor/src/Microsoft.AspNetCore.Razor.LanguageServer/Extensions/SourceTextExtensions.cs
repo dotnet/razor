@@ -201,4 +201,27 @@ internal static class SourceTextExtensions
 
         return null;
     }
+
+    public static bool TryGetAbsolutePosition(this SourceText sourceText, int line, int character, out int absolutePosition)
+    {
+        absolutePosition = 0;
+        var lineCount = sourceText.Lines.Count;
+        if (line > lineCount ||
+            (line == lineCount && character > 0))
+        {
+            return false;
+        }
+
+        // LSP spec allowed a Range to end one line past the end, and character 0. SourceText does not, so we adjust to the final char position
+        if (line == lineCount)
+        {
+            absolutePosition = sourceText.Length;
+        }
+        else
+        {
+            absolutePosition = sourceText.Lines[line].Start + character;
+        }
+
+        return true;
+    }
 }
