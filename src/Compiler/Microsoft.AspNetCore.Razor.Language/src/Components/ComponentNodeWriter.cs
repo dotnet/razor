@@ -21,7 +21,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         _version = version;
     }
 
-    protected bool CanUseAddComponentParameter(CodeRenderingContext context)
+    protected virtual bool CanUseAddComponentParameter(CodeRenderingContext context)
     {
         return !context.Options.SuppressAddComponentParameter && _version.CompareTo(RazorLanguageVersion.Version_8_0) >= 0;
     }
