@@ -48,7 +48,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
         _usePreciseSemanticTokenRanges = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
-            var usePreciseSemanticTokenRanges = featureFlags.IsFeatureEnabled(UsePreciseSemanticTokenRangesFeatureFlag, defaultValue: true);
+            var usePreciseSemanticTokenRanges = featureFlags.IsFeatureEnabled(UsePreciseSemanticTokenRangesFeatureFlag, defaultValue: false);
             return usePreciseSemanticTokenRanges;
         });
     }
