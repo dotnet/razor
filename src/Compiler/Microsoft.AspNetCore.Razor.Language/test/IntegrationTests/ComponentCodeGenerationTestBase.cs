@@ -25,6 +25,10 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
 
     internal override RazorConfiguration Configuration => _configuration ?? base.Configuration;
 
+    internal string ComponentName = "TestComponent";
+
+    internal override string DefaultFileName => ComponentName + ".cshtml";
+
     protected ComponentCodeGenerationTestBase()
         : base(generateBaselines: null)
     {
@@ -10023,6 +10027,248 @@ Time: @DateTime.Now
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: false);
+    }
+
+    #endregion
+
+    #region RenderMode
+
+    [Fact]
+    public void RenderMode_Directive_FullyQualified()
+    {
+        var generated = CompileToCSharp("""
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
+                """, throwOnFailure: true);    
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Directive_SimpleExpression()
+    {
+        var generated = CompileToCSharp("""
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Directive_SimpleExpression_With_Code()
+    {
+        var generated = CompileToCSharp("""
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
+
+                @code
+                {
+                    [Parameter]
+                    public int Count { get; set; }
+                }
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Directive_SimpleExpression_NotFirst()
+    {
+        var generated = CompileToCSharp("""
+                @code
+                {
+                    [Parameter]
+                    public int Count { get; set; }
+                }
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Directive_NewExpression()
+    {
+        var generated = CompileToCSharp("""
+                    @rendermode @(new TestComponent.MyRenderMode("This is some text"))
+
+                    @code
+                    {
+                    #pragma warning disable CS9113
+                        public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
+                    }
+                    """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Directive_WithNamespaces()
+    {
+        var generated = CompileToCSharp("""
+                @namespace Custom.Namespace
+
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_SimpleIdentifier()
+    {
+        var generated = CompileToCSharp($"""
+                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" /> 
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_Expression()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="@(new MyRenderMode() { Extra = "Hello" })" />
+                @code
+                {
+                    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+                    {
+                        public string Extra {get;set;}
+                    }
+                } 
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_Existing_Attributes()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} P2="abc" @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" P1="def" />
+
+                @code
+                {
+                    [Parameter]public string P1 {get; set;}
+
+                    [Parameter]public string P2 {get; set;}
+                } 
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void Duplicate_RenderMode()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server"
+                                   @rendermode="Value2" />
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Multiple_Components()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Child_Components()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                    <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                    </{{ComponentName}}>
+                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                    </{{ComponentName}}>
+                </{{ComponentName}}>
+
+                @code
+                {
+                    [Parameter]
+                    public RenderFragment ChildContent { get; set; }
+                }
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_With_TypeInference()
+    {
+        var generated = CompileToCSharp($$"""
+                @typeparam TRenderMode where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+
+                <{{ComponentName}} @rendermode="RenderModeParam" RenderModeParam="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+
+                @code
+                {
+                    [Parameter] public TRenderMode RenderModeParam { get; set;}
+                }
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_With_Ternary()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="@(true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null)" />
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
     }
 
     #endregion

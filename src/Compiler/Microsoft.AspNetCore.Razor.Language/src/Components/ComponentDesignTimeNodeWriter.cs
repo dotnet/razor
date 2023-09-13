@@ -388,7 +388,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 context.RenderNode(typeArgument);
             }
 
-            // We need to preserve order for attibutes and attribute splats since the ordering
+            // We need to preserve order for attributes and attribute splats since the ordering
             // has a semantic effect.
 
             foreach (var child in node.Children)
@@ -400,6 +400,10 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 else if (child is SplatIntermediateNode splat)
                 {
                     context.RenderNode(splat);
+                }
+                else if (child is RenderModeIntermediateNode renderMode)
+                {
+                    context.RenderNode(renderMode);
                 }
             }
 
@@ -628,6 +632,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
+                break;
+            case RenderModeIntermediateNode renderMode:
+                WriteCSharpCode(context, new CSharpCodeIntermediateNode() { Source = renderMode.Source, Children = { renderMode.Children[0] } });
                 break;
             default:
                 throw new InvalidOperationException($"Not implemented: type inference method parameter from source {parameter.Source}");
@@ -1254,6 +1261,30 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 });
             }
         }
+    }
+
+    public override void WriteRenderMode(CodeRenderingContext context, RenderModeIntermediateNode node)
+    {
+        // Looks like:
+        // __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(expression);
+        WriteCSharpCode(context, new CSharpCodeIntermediateNode
+        {
+            Source = node.Source,
+            Children =
+            {
+                new IntermediateToken
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})(" 
+                },
+                node.Children[0],
+                new IntermediateToken
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = ");"
+                }
+            }
+        });
     }
 
     private void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)
