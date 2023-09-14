@@ -19,7 +19,7 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool SupportsFileManipulation => false;
 
-    public override string ProjectConfigurationFileName => "project.razor.json";
+    public override string ProjectConfigurationFileName => "project.razor.bin";
 
     public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
 
