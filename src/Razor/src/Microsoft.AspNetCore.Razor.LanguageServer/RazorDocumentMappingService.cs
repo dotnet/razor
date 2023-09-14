@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +39,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
     public TextEdit[] GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] generatedDocumentEdits)
     {
-        var hostDocumentEdits = new List<TextEdit>();
+        using var _1 = ListPool<TextEdit>.GetPooledObject(out var hostDocumentEdits);
         var generatedDocumentSourceText = GetGeneratedSourceText(generatedDocument);
         var lastNewLineAddedToLine = 0;
 
@@ -615,21 +616,21 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return true;
         }
 
-        List<SourceMapping> candidateMappings;
+        using var _1 = ListPool<SourceMapping>.GetPooledObject(out var candidateMappings);
         if (startMappedDirectly)
         {
             // Start of generated range intersects with a mapping
-            candidateMappings = generatedDocument.SourceMappings.Where(mapping => IntersectsWith(startIndex, mapping.GeneratedSpan)).ToList();
+            candidateMappings.AddRange(generatedDocument.SourceMappings.Where(mapping => IntersectsWith(startIndex, mapping.GeneratedSpan)));
         }
         else if (endMappedDirectly)
         {
             // End of generated range intersects with a mapping
-            candidateMappings = generatedDocument.SourceMappings.Where(mapping => IntersectsWith(endIndex, mapping.GeneratedSpan)).ToList();
+            candidateMappings.AddRange(generatedDocument.SourceMappings.Where(mapping => IntersectsWith(endIndex, mapping.GeneratedSpan)));
         }
         else
         {
             // Our range does not intersect with any mapping; we should see if it overlaps generated locations
-            candidateMappings = generatedDocument.SourceMappings.Where(mapping => Overlaps(generatedDocumentRange.AsTextSpan(generatedSourceText), mapping.GeneratedSpan)).ToList();
+            candidateMappings.AddRange(generatedDocument.SourceMappings.Where(mapping => Overlaps(generatedDocumentRange.AsTextSpan(generatedSourceText), mapping.GeneratedSpan)));
         }
 
         if (candidateMappings.Count == 1)
@@ -779,7 +780,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
     private async Task<TextDocumentEdit[]> RemapVersionedDocumentEditsAsync(TextDocumentEdit[] documentEdits, CancellationToken cancellationToken)
     {
-        var remappedDocumentEdits = new List<TextDocumentEdit>();
+        using var _ = ListPool<TextDocumentEdit>.GetPooledObject(out var remappedDocumentEdits);
         foreach (var entry in documentEdits)
         {
             var generatedDocumentUri = entry.TextDocument.Uri;
@@ -866,7 +867,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return edits;
         }
 
-        var remappedEdits = new List<TextEdit>();
+        using var _ = ListPool<TextEdit>.GetPooledObject(out var remappedEdits);
         for (var i = 0; i < edits.Length; i++)
         {
             var generatedRange = edits[i].Range;
