@@ -156,7 +156,7 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
         }
     }
 
-    public IReadOnlyDictionary<string, string> Metadata { get; protected set; }
+    public MetadataCollection Metadata { get; protected set; }
 
     public virtual IReadOnlyList<BoundAttributeParameterDescriptor> BoundAttributeParameters { get; protected set; }
 

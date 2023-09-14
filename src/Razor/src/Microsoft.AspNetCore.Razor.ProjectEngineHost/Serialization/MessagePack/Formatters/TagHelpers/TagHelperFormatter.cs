@@ -59,7 +59,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         writer.Serialize((BoundAttributeDescriptor[])value.BoundAttributes, options);
         writer.Serialize((AllowedChildTagDescriptor[])value.AllowedChildTags, options);
 
-        writer.Serialize((MetadataCollection)value.Metadata, options);
+        writer.Serialize(value.Metadata, options);
         writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
     }
 

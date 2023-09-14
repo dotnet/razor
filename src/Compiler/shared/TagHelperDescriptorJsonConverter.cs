@@ -266,7 +266,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         writer.WriteEndObject();
     }
 
-    private static void WriteMetadata(JsonWriter writer, IReadOnlyDictionary<string, string> metadata)
+    private static void WriteMetadata(JsonWriter writer, MetadataCollection metadata)
     {
         writer.WriteStartObject();
         foreach (var kvp in metadata)

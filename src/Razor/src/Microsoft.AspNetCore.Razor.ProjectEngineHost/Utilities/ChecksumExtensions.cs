@@ -44,7 +44,7 @@ internal static class ChecksumExtensions
             builder.AppendData(GetChecksum(descriptor));
         }
 
-        builder.AppendData(GetChecksum((MetadataCollection)value.Metadata));
+        builder.AppendData(GetChecksum(value.Metadata));
 
         foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
         {
@@ -124,7 +124,7 @@ internal static class ChecksumExtensions
 
             builder.AppendData(value.CaseSensitive);
 
-            builder.AppendData(GetChecksum((MetadataCollection)value.Metadata));
+            builder.AppendData(GetChecksum(value.Metadata));
 
             foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
             {
@@ -168,7 +168,7 @@ internal static class ChecksumExtensions
                 builder.AppendData(GetChecksum(descriptor));
             }
 
-            builder.AppendData(GetChecksum((MetadataCollection)value.Metadata));
+            builder.AppendData(GetChecksum(value.Metadata));
 
             foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
             {
@@ -200,7 +200,7 @@ internal static class ChecksumExtensions
             builder.AppendData(value.IsEnum);
             builder.AppendData(value.IsBooleanProperty);
             builder.AppendData(value.IsStringProperty);
-            builder.AppendData(GetChecksum((MetadataCollection)value.Metadata));
+            builder.AppendData(GetChecksum(value.Metadata));
 
             foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
             {

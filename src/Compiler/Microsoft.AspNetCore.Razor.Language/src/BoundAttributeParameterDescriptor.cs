@@ -95,7 +95,7 @@ public abstract class BoundAttributeParameterDescriptor : IEquatable<BoundAttrib
         }
     }
 
-    public IReadOnlyDictionary<string, string> Metadata { get; protected set; }
+    public MetadataCollection Metadata { get; protected set; }
 
     public bool HasErrors
     {

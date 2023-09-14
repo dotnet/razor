@@ -55,14 +55,7 @@ internal sealed class BoundAttributeDescriptorComparer : IEqualityComparer<Bound
             return false;
         }
 
-        // FAST PATH: If each descriptor has a MetadataCollection, we should use their equality.
-        if (descriptorX.Metadata is MetadataCollection metadataX &&
-            descriptorY.Metadata is MetadataCollection metadataY)
-        {
-            return metadataX.Equals(metadataY);
-        }
-
-        return ComparerUtilities.Equals(descriptorX.Metadata, descriptorY.Metadata, StringComparer.Ordinal);
+        return descriptorX.Metadata.Equals(descriptorY.Metadata);
     }
 
     public int GetHashCode(BoundAttributeDescriptor? descriptor)

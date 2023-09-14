@@ -93,7 +93,7 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
         }
     }
 
-    public IReadOnlyDictionary<string, string> Metadata { get; protected set; }
+    public MetadataCollection Metadata { get; protected set; }
 
     internal bool? IsComponentFullyQualifiedNameMatchCache
     {

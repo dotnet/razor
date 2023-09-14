@@ -90,6 +90,10 @@ virtual Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilder.T
 virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection! metadata) -> void
 virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.TryGetMetadataValue(string! key, out string? value) -> bool
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.CodeDocument.get -> Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
+~Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection
+~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection
+~Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection
+~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetBindAttributeGetSet(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder builder) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetGloballyQualifiedTypeName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetMetadata(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, System.Collections.Generic.KeyValuePair<string, string> pair) -> void

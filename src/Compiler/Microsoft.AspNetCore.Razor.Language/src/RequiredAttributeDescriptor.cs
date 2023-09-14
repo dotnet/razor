@@ -58,7 +58,7 @@ public abstract class RequiredAttributeDescriptor : IEquatable<RequiredAttribute
         }
     }
 
-    public IReadOnlyDictionary<string, string> Metadata { get; protected set; }
+    public MetadataCollection Metadata { get; protected set; }
 
     public bool HasErrors
     {

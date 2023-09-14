@@ -101,7 +101,7 @@ internal static class ObjectWriters
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.TagMatchingRules), value.TagMatchingRules, WriteTagMatchingRule);
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.BoundAttributes), value.BoundAttributes, WriteBoundAttribute);
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.AllowedChildTags), value.AllowedChildTags, WriteAllowedChildTag);
-        WriteMetadata(writer, nameof(value.Metadata), (MetadataCollection)value.Metadata);
+        WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
 
         static void WriteDocumentationObject(JsonDataWriter writer, string propertyName, DocumentationObject documentationObject)
@@ -158,7 +158,7 @@ internal static class ObjectWriters
                 writer.WriteIfNotZero(nameof(value.ValueComparison), (int)value.ValueComparison);
                 writer.WriteIfNotNull(nameof(value.DisplayName), value.DisplayName);
 
-                WriteMetadata(writer, nameof(value.Metadata), (MetadataCollection)value.Metadata);
+                WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
             });
         }
@@ -180,7 +180,7 @@ internal static class ObjectWriters
                 writer.WriteIfNotFalse(nameof(value.IsEditorRequired), value.IsEditorRequired);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.BoundAttributeParameters), value.BoundAttributeParameters, WriteBoundAttributeParameter);
 
-                WriteMetadata(writer, nameof(value.Metadata), (MetadataCollection)value.Metadata);
+                WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
             });
         }
@@ -197,7 +197,7 @@ internal static class ObjectWriters
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
                 writer.WriteIfNotTrue(nameof(value.CaseSensitive), value.CaseSensitive);
 
-                WriteMetadata(writer, nameof(value.Metadata), (MetadataCollection)value.Metadata);
+                WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
             });
         }
