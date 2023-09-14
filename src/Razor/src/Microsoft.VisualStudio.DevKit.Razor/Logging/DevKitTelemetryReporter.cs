@@ -196,10 +196,7 @@ internal sealed class DevKitTelemetryReporter : IDevKitTelemetryReporter
         try
         {
 #if !DEBUG
-            foreach (var session in _telemetrySessions)
-            {
-                session.PostEvent(telemetryEvent);
-            }
+            _telemetrySession?.PostEvent(telemetryEvent);
 #else
             // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
             // before we're ready to send them to the cloud
