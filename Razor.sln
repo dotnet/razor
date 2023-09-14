@@ -179,6 +179,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.DevKit.Razor", "src\Razor\src\Microsoft.VisualStudio.DevKit.Razor\Microsoft.VisualStudio.DevKit.Razor.csproj", "{0F2D75D1-89AD-40A6-9F02-D45708AEA3EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Telemetry.Razor", "src\Razor\src\Microsoft.VisualStudio.Telemetry.Razor\Microsoft.VisualStudio.Telemetry.Razor.csproj", "{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -747,6 +749,14 @@ Global
 		{0F2D75D1-89AD-40A6-9F02-D45708AEA3EB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0F2D75D1-89AD-40A6-9F02-D45708AEA3EB}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{0F2D75D1-89AD-40A6-9F02-D45708AEA3EB}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -829,6 +839,7 @@ Global
 		{C0C2AD17-5F5B-4B11-956D-203D91C377FB} = {92463391-81BE-462B-AC3C-78C6C760741F}
 		{4126E0A6-1CA9-44B1-AD22-66EDB9FEE7AD} = {92463391-81BE-462B-AC3C-78C6C760741F}
 		{0F2D75D1-89AD-40A6-9F02-D45708AEA3EB} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
+		{FB5C66E7-9B92-4A7A-A391-46C5729FA9E6} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0035341D-175A-4D05-95E6-F1C2785A1E26}

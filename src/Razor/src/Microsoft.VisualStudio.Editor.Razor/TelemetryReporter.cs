@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Telemetry.Razor;
 
 #if DEBUG
 using System.Linq;
@@ -39,22 +39,22 @@ internal class TelemetryReporter : ITelemetryReporter
 
     public void ReportEvent(string name, Severity severity)
     {
-        var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), ToTelemetrySeverity(severity));
+        var telemetryEvent = new TelemetryEvent(TelemetryHelpers.GetTelemetryName(name), TelemetryHelpers.ToTelemetrySeverity(severity));
         Report(telemetryEvent);
     }
 
     public void ReportEvent(string name, Severity severity, ImmutableDictionary<string, object?> values)
     {
-        var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), ToTelemetrySeverity(severity));
+        var telemetryEvent = new TelemetryEvent(TelemetryHelpers.GetTelemetryName(name), TelemetryHelpers.ToTelemetrySeverity(severity));
         foreach (var (propertyName, propertyValue) in values)
         {
-            if (IsNumeric(propertyValue))
+            if (TelemetryHelpers.IsNumeric(propertyValue))
             {
-                telemetryEvent.Properties.Add(GetPropertyName(propertyName), propertyValue);
+                telemetryEvent.Properties.Add(TelemetryHelpers.GetPropertyName(propertyName), propertyValue);
             }
             else
             {
-                telemetryEvent.Properties.Add(GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
+                telemetryEvent.Properties.Add(TelemetryHelpers.GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
             }
         }
 
@@ -103,8 +103,8 @@ internal class TelemetryReporter : ITelemetryReporter
             var currentProcess = Process.GetCurrentProcess();
 
             var faultEvent = new FaultEvent(
-                eventName: GetTelemetryName("fault"),
-                description: GetDescription(exception),
+                eventName: TelemetryHelpers.GetTelemetryName("fault"),
+                description: TelemetryHelpers.GetDescription(exception),
                 FaultSeverity.General,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
@@ -132,9 +132,6 @@ internal class TelemetryReporter : ITelemetryReporter
         {
         }
     }
-
-    private static string GetTelemetryName(string name) => "dotnet/razor/" + name;
-    private static string GetPropertyName(string name) => "dotnet.razor." + name;
 
     private void Report(TelemetryEvent telemetryEvent)
     {
@@ -171,64 +168,6 @@ internal class TelemetryReporter : ITelemetryReporter
         }
     }
 
-    private static string GetDescription(Exception exception)
-    {
-        const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
-        const string AspNetCoreNamespace = nameof(Microsoft) + "." + nameof(AspNetCore);
-
-        // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
-        // used to report.
-        try
-        {
-            // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
-            var frames = new StackTrace(exception).GetFrames();
-
-            // On the .NET Framework, GetFrames() can return null even though it's not documented as such.
-            // At least one case here is if the exception's stack trace itself is null.
-            if (frames != null)
-            {
-                foreach (var frame in frames)
-                {
-                    var method = frame?.GetMethod();
-                    var methodName = method?.Name;
-                    if (methodName is null)
-                    {
-                        continue;
-                    }
-
-                    var declaringTypeName = method?.DeclaringType?.FullName;
-                    if (declaringTypeName == null)
-                    {
-                        continue;
-                    }
-
-                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace) &&
-                        !declaringTypeName.StartsWith(AspNetCoreNamespace))
-                    {
-                        continue;
-                    }
-
-                    return declaringTypeName + "." + methodName;
-                }
-            }
-        }
-        catch
-        {
-        }
-
-        // If we couldn't get a stack, do this
-        return exception.Message;
-    }
-
-    private static TelemetrySeverity ToTelemetrySeverity(Severity severity)
-        => severity switch
-        {
-            Severity.Normal => TelemetrySeverity.Normal,
-            Severity.Low => TelemetrySeverity.Low,
-            Severity.High => TelemetrySeverity.High,
-            _ => throw new InvalidOperationException($"Unknown severity: {severity}")
-        };
-
     public IDisposable BeginBlock(string name, Severity severity)
     {
         return BeginBlock(name, severity, ImmutableDictionary<string, object?>.Empty);
@@ -252,67 +191,5 @@ internal class TelemetryReporter : ITelemetryReporter
             new("eventscope.languageservername", languageServerName),
             new("eventscope.correlationid", correlationId),
         }));
-    }
-
-    private static bool IsNumeric(object? o)
-        => o is not null &&
-        !o.GetType().IsEnum &&
-        Type.GetTypeCode(o.GetType()) switch
-        {
-            TypeCode.Char or
-            TypeCode.SByte or
-            TypeCode.Byte or
-            TypeCode.Int16 or
-            TypeCode.Int32 or
-            TypeCode.Int64 or
-            TypeCode.Double or
-            TypeCode.Single or
-            TypeCode.UInt16 or
-            TypeCode.UInt32 or
-            TypeCode.UInt64
-            => true,
-            _ => false
-        };
-
-    private class NullTelemetryScope : IDisposable
-    {
-        public static NullTelemetryScope Instance { get; } = new NullTelemetryScope();
-        private NullTelemetryScope() { }
-        public void Dispose() { }
-    }
-
-    private class TelemetryScope : IDisposable
-    {
-        private readonly ITelemetryReporter _telemetryReporter;
-        private string _name;
-        private Severity _severity;
-        private ImmutableDictionary<string, object?> _values;
-        private bool _disposed;
-        private Stopwatch _stopwatch;
-
-        public TelemetryScope(ITelemetryReporter telemetryReporter, string name, Severity severity, ImmutableDictionary<string, object?> values)
-        {
-            _telemetryReporter = telemetryReporter;
-            _name = name;
-            _severity = severity;
-            _values = values;
-            _stopwatch = StopwatchPool.Default.Get();
-            _stopwatch.Restart();
-        }
-
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-
-            _stopwatch.Stop();
-            var values = _values.Add("eventscope.ellapsedms", _stopwatch.ElapsedMilliseconds);
-            _telemetryReporter.ReportEvent(_name, _severity, values);
-            StopwatchPool.Default.Return(_stopwatch);
-        }
     }
 }
