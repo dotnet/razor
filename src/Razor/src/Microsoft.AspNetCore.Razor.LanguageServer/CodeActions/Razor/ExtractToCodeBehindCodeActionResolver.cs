@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -29,13 +30,16 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
 
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly ClientNotifierServiceBase _languageServer;
 
     public ExtractToCodeBehindCodeActionResolver(
         DocumentContextFactory documentContextFactory,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
+        LanguageServerFeatureOptions languageServerFeatureOptions,
+        ClientNotifierServiceBase languageServer)
     {
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
     }
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
@@ -93,8 +97,8 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         }
 
         var className = Path.GetFileNameWithoutExtension(path);
-        var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart));
-        var codeBehindContent = GenerateCodeBehindClass(className, actionParams.Namespace, codeBlockContent, codeDocument);
+        var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        var codeBehindContent = await GenerateCodeBehindClassAsync(documentContext.Project, codeBehindUri, className, actionParams.Namespace, codeBlockContent, codeDocument, cancellationToken).ConfigureAwait(false);
 
         var start = codeDocument.Source.Lines.GetLocation(actionParams.RemoveStart);
         var end = codeDocument.Source.Lines.GetLocation(actionParams.RemoveEnd);
@@ -169,17 +173,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         return codeBehindPath;
     }
 
-    /// <summary>
-    /// Generate a complete C# compilation unit containing a partial class
-    /// with the given name, body contents, and the namespace and all
-    /// usings from the existing code document.
-    /// </summary>
-    /// <param name="className">Name of the resultant partial class.</param>
-    /// <param name="namespaceName">Name of the namespace to put the resultant class in.</param>
-    /// <param name="contents">Class body contents.</param>
-    /// <param name="razorCodeDocument">Existing code document we're extracting from.</param>
-    /// <returns></returns>
-    private string GenerateCodeBehindClass(string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument)
+    private async Task<string> GenerateCodeBehindClassAsync(CodeAnalysis.Razor.ProjectSystem.IProjectSnapshot project, Uri codeBehindUri, string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument, CancellationToken cancellationToken)
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -210,12 +204,32 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         builder.AppendLine(contents);
         builder.Append('}');
 
-        // Sadly we can't use a "real" workspace here, because we don't have access. If we use our workspace, it wouldn't have the right settings
-        // for C# formatting, only Razor formatting, and we have no access to Roslyn's real workspace, since it could be in another process.
-        // TODO: Rather than format here, call Roslyn via LSP to format, and remove and sort usings: https://github.com/dotnet/razor/issues/8766
-        var node = CSharpSyntaxTree.ParseText(builder.ToString()).GetRoot();
-        node = Formatter.Format(node, s_workspace);
+        var newFileContent = builder.ToString();
 
-        return node.ToFullString();
+        var parameters = new FormatNewFileParams()
+        {
+            Project = new TextDocumentIdentifier
+            {
+                Uri = new Uri(project.FilePath, UriKind.Absolute)
+            },
+            Document = new TextDocumentIdentifier
+            {
+                Uri = codeBehindUri
+            },
+            Contents = newFileContent
+        };
+        var fixedContent = await _languageServer.SendRequestAsync<FormatNewFileParams, string?>(CustomMessageNames.RazorFormatNewFileEndpointName, parameters, cancellationToken).ConfigureAwait(false);
+
+        if (fixedContent is null)
+        {
+            // Sadly we can't use a "real" workspace here, because we don't have access. If we use our workspace, it wouldn't have the right settings
+            // for C# formatting, only Razor formatting, and we have no access to Roslyn's real workspace, since it could be in another process.
+            var node = await CSharpSyntaxTree.ParseText(newFileContent).GetRootAsync(cancellationToken).ConfigureAwait(false);
+            node = Formatter.Format(node, s_workspace);
+
+            return node.ToFullString();
+        }
+
+        return fixedContent;
     }
 }
