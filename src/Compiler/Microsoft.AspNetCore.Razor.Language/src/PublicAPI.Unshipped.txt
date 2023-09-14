@@ -19,6 +19,19 @@ abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Keys.get -> Syst
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.this[string! key].get -> string?
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.TryGetValue(string! key, out string? value) -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Values.get -> System.Collections.Generic.IEnumerable<string?>!
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!>
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.DisplayName.get -> string?
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Equals(Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor! other) -> bool
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.HasErrors.get -> bool
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Name.get -> string!
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.Build() -> Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor!
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!>.Builder!
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.DisplayName.get -> string?
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.DisplayName.set -> void
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.Name.get -> string?
+Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.Name.set -> void
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.IsDirectiveAttribute.get -> bool
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.CodeWriter(string! newLine, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions! options) -> void
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.GenerateCode() -> string!
@@ -69,6 +82,8 @@ Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan() -> void
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder.Dispose() -> void
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder.PooledBuilder() -> void
+override Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Equals(object? obj) -> bool
+override Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.ToString() -> string!
 override Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.Accept(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeVisitor! visitor) -> void
 override Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.Children.get -> Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection!
 override Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.FormatNode(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeFormatter! formatter) -> void

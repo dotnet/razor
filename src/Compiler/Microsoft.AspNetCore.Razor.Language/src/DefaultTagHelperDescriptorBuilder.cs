@@ -45,7 +45,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
     private DocumentationObject _documentationObject;
 
-    private List<DefaultAllowedChildTagDescriptorBuilder>? _allowedChildTags;
+    private List<AllowedChildTagDescriptorBuilder>? _allowedChildTags;
     private List<DefaultBoundAttributeDescriptorBuilder>? _attributeBuilders;
     private List<DefaultTagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
     private RazorDiagnosticCollection? _diagnostics;
@@ -124,7 +124,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
         EnsureAllowedChildTags();
 
-        var builder = DefaultAllowedChildTagDescriptorBuilder.GetInstance(this);
+        var builder = AllowedChildTagDescriptorBuilder.GetInstance(this);
         configure(builder);
         _allowedChildTags.Add(builder);
     }
@@ -223,7 +223,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     [MemberNotNull(nameof(_allowedChildTags))]
     private void EnsureAllowedChildTags()
     {
-        _allowedChildTags ??= new List<DefaultAllowedChildTagDescriptorBuilder>();
+        _allowedChildTags ??= new List<AllowedChildTagDescriptorBuilder>();
     }
 
     [MemberNotNull(nameof(_attributeBuilders))]

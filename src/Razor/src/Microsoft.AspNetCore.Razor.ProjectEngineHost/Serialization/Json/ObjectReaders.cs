@@ -265,11 +265,11 @@ internal static partial class ObjectReaders
 
             static AllowedChildTagDescriptor ReadFromProperties(JsonDataReader reader)
             {
-                var name = reader.ReadString(nameof(AllowedChildTagDescriptor.Name));
+                var name = reader.ReadNonNullString(nameof(AllowedChildTagDescriptor.Name));
                 var displayName = reader.ReadString(nameof(AllowedChildTagDescriptor.DisplayName));
-                var diagnostics = reader.ReadArrayOrEmpty(nameof(AllowedChildTagDescriptor.Diagnostics), ReadDiagnostic);
+                var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(AllowedChildTagDescriptor.Diagnostics), ReadDiagnostic);
 
-                return new DefaultAllowedChildTagDescriptor(Cached(name), Cached(displayName), diagnostics);
+                return new AllowedChildTagDescriptor(Cached(name), Cached(displayName), diagnostics);
             }
         }
 

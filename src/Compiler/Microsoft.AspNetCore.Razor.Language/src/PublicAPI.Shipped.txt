@@ -1,9 +1,4 @@
 #nullable enable
-~abstract Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.Diagnostics.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection
-~abstract Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.DisplayName.get -> string
-~abstract Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.DisplayName.set -> void
-~abstract Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.Name.get -> string
-~abstract Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.Name.set -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.Diagnostics.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection
 ~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.DisplayName.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.DisplayName.set -> void
@@ -157,13 +152,6 @@
 ~abstract Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptorBuilder.ParentTag.set -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptorBuilder.TagName.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptorBuilder.TagName.set -> void
-~Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Diagnostics.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic>
-~Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Diagnostics.set -> void
-~Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.DisplayName.get -> string
-~Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.DisplayName.set -> void
-~Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Equals(Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor other) -> bool
-~Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Name.get -> string
-~Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Name.set -> void
 ~Microsoft.AspNetCore.Razor.Language.AssemblyExtension.Assembly.get -> System.Reflection.Assembly
 ~Microsoft.AspNetCore.Razor.Language.AssemblyExtension.AssemblyExtension(string extensionName, System.Reflection.Assembly assembly) -> void
 ~Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.BoundAttributeDescriptor(string kind) -> void
@@ -600,8 +588,6 @@
 ~Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.ParentTag.set -> void
 ~Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.TagName.get -> string
 ~Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.TagName.set -> void
-~override Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.ToString() -> string
 ~override Microsoft.AspNetCore.Razor.Language.AssemblyExtension.ExtensionName.get -> string
 ~override Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.Equals(object obj) -> bool
 ~override Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.ToString() -> string
@@ -1111,11 +1097,6 @@ abstract Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilder.
 abstract Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.Reset() -> void
 abstract Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptorBuilder.TagStructure.get -> Microsoft.AspNetCore.Razor.Language.TagStructure
 abstract Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptorBuilder.TagStructure.set -> void
-Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor
-Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.AllowedChildTagDescriptor() -> void
-Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.HasErrors.get -> bool
-Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder
-Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.AllowedChildTagDescriptorBuilder() -> void
 Microsoft.AspNetCore.Razor.Language.AssemblyExtension
 Microsoft.AspNetCore.Razor.Language.AttributeStructure
 Microsoft.AspNetCore.Razor.Language.AttributeStructure.DoubleQuotes = 0 -> Microsoft.AspNetCore.Razor.Language.AttributeStructure

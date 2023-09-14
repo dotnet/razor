@@ -27,7 +27,7 @@ internal partial class DefaultTagHelperDescriptorBuilder
                 // Make sure that we return all allowed child tag builders to their pool.
                 foreach (var allowedChildTagBuilder in allowedChildTagBuilders)
                 {
-                    DefaultAllowedChildTagDescriptorBuilder.ReturnInstance(allowedChildTagBuilder);
+                    AllowedChildTagDescriptorBuilder.ReturnInstance(allowedChildTagBuilder);
                 }
 
                 ClearList(allowedChildTagBuilders);

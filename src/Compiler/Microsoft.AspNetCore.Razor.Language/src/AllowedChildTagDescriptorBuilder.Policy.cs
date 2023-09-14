@@ -3,22 +3,22 @@
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal partial class DefaultAllowedChildTagDescriptorBuilder
+public partial class AllowedChildTagDescriptorBuilder
 {
-    private sealed class Policy : TagHelperPooledObjectPolicy<DefaultAllowedChildTagDescriptorBuilder>
+    private sealed class Policy : TagHelperPooledObjectPolicy<AllowedChildTagDescriptorBuilder>
     {
         public static readonly Policy Instance = new();
 
-        public override DefaultAllowedChildTagDescriptorBuilder Create() => new();
+        public override AllowedChildTagDescriptorBuilder Create() => new();
 
-        public override bool Return(DefaultAllowedChildTagDescriptorBuilder builder)
+        public override bool Return(AllowedChildTagDescriptorBuilder builder)
         {
             builder._parent = null;
 
             builder.Name = null;
             builder.DisplayName = null;
 
-            ClearDiagnostics(builder._diagnostics);
+            builder._diagnostics?.Clear();
 
             return true;
         }

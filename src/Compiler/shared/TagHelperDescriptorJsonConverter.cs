@@ -751,7 +751,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         });
     }
 
-    private static void ReadDiagnostics(JsonReader reader, RazorDiagnosticCollection diagnostics)
+    private static void ReadDiagnostics(JsonReader reader, IList<RazorDiagnostic> diagnostics)
     {
         if (!reader.Read())
         {
@@ -766,10 +766,11 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         do
         {
             ReadDiagnostic(reader, diagnostics);
-        } while (reader.TokenType != JsonToken.EndArray);
+        }
+        while (reader.TokenType != JsonToken.EndArray);
     }
 
-    private static void ReadDiagnostic(JsonReader reader, RazorDiagnosticCollection diagnostics)
+    private static void ReadDiagnostic(JsonReader reader, IList<RazorDiagnostic> diagnostics)
     {
         if (!reader.Read())
         {

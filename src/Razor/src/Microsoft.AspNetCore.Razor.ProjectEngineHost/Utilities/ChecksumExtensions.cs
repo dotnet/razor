@@ -67,7 +67,7 @@ internal static class ChecksumExtensions
             builder.AppendData(value.Name);
             builder.AppendData(value.DisplayName);
 
-            foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
+            foreach (var diagnostic in value.Diagnostics)
             {
                 builder.AppendData(GetChecksum(diagnostic));
             }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
@@ -55,6 +56,9 @@ internal ref struct PooledHashSet<T>
 
     public readonly T[] ToArray()
         => _set?.ToArray() ?? Array.Empty<T>();
+
+    public readonly ImmutableArray<T> ToImmutableArray()
+        => _set?.ToImmutableArray() ?? ImmutableArray<T>.Empty;
 
     public void UnionWith(IList<T>? other)
     {
