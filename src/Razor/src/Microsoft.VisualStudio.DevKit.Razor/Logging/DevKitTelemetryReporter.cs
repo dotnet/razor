@@ -6,11 +6,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Razor;
+
+#if DEBUG
+using System.Linq;
+#endif
 
 namespace Microsoft.VisualStudio.DevKit.Razor.Logging;
 
