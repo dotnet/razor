@@ -159,6 +159,9 @@ internal static class RangeExtensions
         return new Language.Syntax.TextSpan(span.Start, span.Length);
     }
 
+    public static LinePositionSpan AsLinePositionSpan(this Range range)
+        => new LinePositionSpan(range.Start.AsLinePosition(), range.End.AsLinePosition());
+
     public static bool IsUndefined(this Range range)
     {
         if (range is null)
