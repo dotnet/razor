@@ -7,21 +7,31 @@ using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public class AllowedChildTagDescriptor : IEquatable<AllowedChildTagDescriptor>
+public class AllowedChildTagDescriptor : TagHelperObject, IEquatable<AllowedChildTagDescriptor>
 {
     public string Name { get; }
     public string? DisplayName { get; }
-    public ImmutableArray<RazorDiagnostic> Diagnostics { get; }
 
     internal AllowedChildTagDescriptor(string name, string? displayName, ImmutableArray<RazorDiagnostic> diagnostics)
     {
         Name = name;
         DisplayName = displayName;
-        Diagnostics = diagnostics.NullToEmpty();
+
+        if (!diagnostics.IsDefaultOrEmpty)
+        {
+            SetFlag(ContainsDiagnosticsBit);
+            TagHelperDiagnostics.AddDiagnostics(this, diagnostics);
+        }
     }
 
+    public ImmutableArray<RazorDiagnostic> Diagnostics
+        => HasFlag(ContainsDiagnosticsBit)
+            ? TagHelperDiagnostics.GetDiagnostics(this)
+            : ImmutableArray<RazorDiagnostic>.Empty;
+
     public bool HasErrors
-        => !Diagnostics.IsEmpty && Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
+        => HasFlag(ContainsDiagnosticsBit) &&
+           Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
 
     public override string ToString()
         => DisplayName ?? base.ToString();

@@ -54,7 +54,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
     private DefaultTagHelperDescriptorBuilder _parent;
     [AllowNull]
     private string _kind;
-    private List<DefaultBoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
+    private List<BoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
     private DocumentationObject _documentationObject;
     private MetadataHolder _metadata;
     private RazorDiagnosticCollection? _diagnostics;
@@ -104,7 +104,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
 
         EnsureAttributeParameterBuilders();
 
-        var builder = DefaultBoundAttributeParameterDescriptorBuilder.GetInstance(this, _kind);
+        var builder = BoundAttributeParameterDescriptorBuilder.GetInstance(this, _kind);
         configure(builder);
         _attributeParameterBuilders.Add(builder);
     }
@@ -305,6 +305,6 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
     [MemberNotNull(nameof(_attributeParameterBuilders))]
     private void EnsureAttributeParameterBuilders()
     {
-        _attributeParameterBuilders ??= new List<DefaultBoundAttributeParameterDescriptorBuilder>();
+        _attributeParameterBuilders ??= new List<BoundAttributeParameterDescriptorBuilder>();
     }
 }

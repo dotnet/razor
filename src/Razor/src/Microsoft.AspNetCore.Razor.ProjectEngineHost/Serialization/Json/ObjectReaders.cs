@@ -243,17 +243,17 @@ internal static partial class ObjectReaders
             {
                 var kind = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.Kind));
                 var name = reader.ReadString(nameof(BoundAttributeParameterDescriptor.Name));
-                var typeName = reader.ReadString(nameof(BoundAttributeParameterDescriptor.TypeName));
+                var typeName = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.TypeName));
                 var isEnum = reader.ReadBooleanOrFalse(nameof(BoundAttributeParameterDescriptor.IsEnum));
                 var displayName = reader.ReadStringOrNull(nameof(BoundAttributeParameterDescriptor.DisplayName));
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeParameterDescriptor.Documentation));
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(BoundAttributeParameterDescriptor.CaseSensitive));
 
                 var metadata = ReadMetadata(reader, nameof(RequiredAttributeDescriptor.Metadata));
-                var diagnostics = reader.ReadArrayOrEmpty(nameof(BoundAttributeParameterDescriptor.Diagnostics), ReadDiagnostic);
+                var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(BoundAttributeParameterDescriptor.Diagnostics), ReadDiagnostic);
 
-                return new DefaultBoundAttributeParameterDescriptor(
-                    Cached(kind), Cached(name), Cached(typeName),
+                return new BoundAttributeParameterDescriptor(
+                    Cached(kind), Cached(name)!, Cached(typeName),
                     isEnum, documentationObject, Cached(displayName), caseSensitive,
                     metadata, diagnostics);
             }

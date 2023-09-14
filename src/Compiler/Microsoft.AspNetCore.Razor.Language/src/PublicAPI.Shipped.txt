@@ -13,16 +13,6 @@
 ~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.Name.set -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.TypeName.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.TypeName.set -> void
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.Diagnostics.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.DisplayName.get -> string
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.DisplayName.set -> void
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.Documentation.get -> string
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.Documentation.set -> void
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.Metadata.get -> System.Collections.Generic.IDictionary<string, string>
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.Name.get -> string
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.Name.set -> void
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.TypeName.get -> string
-~abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.TypeName.set -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.AddSourceMappingFor(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNode node) -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.Ancestors.get -> System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNode>
 ~abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.CodeWriter.get -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter
@@ -173,21 +163,6 @@
 ~Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.Name.set -> void
 ~Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.TypeName.get -> string
 ~Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.TypeName.set -> void
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.BoundAttributeParameterDescriptor(string kind) -> void
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Diagnostics.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic>
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Diagnostics.set -> void
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.DisplayName.get -> string
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.DisplayName.set -> void
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Documentation.get -> string
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Documentation.set -> void
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Equals(Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor other) -> bool
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Kind.get -> string
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Metadata.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Metadata.set -> void
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Name.get -> string
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Name.set -> void
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.TypeName.get -> string
-~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.TypeName.set -> void
 ~Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.FilePath.get -> string
 ~Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.LinePragma(int startLineIndex, int lineCount, string filePath) -> void
 ~Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.LinePragma(int startLineIndex, int lineCount, string filePath, int? startCharacterIndex, int? endCharacterIndex, int? characterOffset) -> void
@@ -591,8 +566,6 @@
 ~override Microsoft.AspNetCore.Razor.Language.AssemblyExtension.ExtensionName.get -> string
 ~override Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.Equals(object obj) -> bool
 ~override Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.ToString() -> string
-~override Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.ToString() -> string
 ~override Microsoft.AspNetCore.Razor.Language.CodeGeneration.DesignTimeNodeWriter.BeginWriterScope(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context, string writer) -> void
 ~override Microsoft.AspNetCore.Razor.Language.CodeGeneration.DesignTimeNodeWriter.EndWriterScope(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context) -> void
 ~override Microsoft.AspNetCore.Razor.Language.CodeGeneration.DesignTimeNodeWriter.WriteCSharpCode(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context, Microsoft.AspNetCore.Razor.Language.Intermediate.CSharpCodeIntermediateNode node) -> void
@@ -1060,8 +1033,6 @@ abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.IsD
 abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.IsDictionary.set -> void
 abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.IsEnum.get -> bool
 abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.IsEnum.set -> void
-abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.IsEnum.get -> bool
-abstract Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.IsEnum.set -> void
 abstract Microsoft.AspNetCore.Razor.Language.DirectiveDescriptor.Kind.get -> Microsoft.AspNetCore.Razor.Language.DirectiveKind
 abstract Microsoft.AspNetCore.Razor.Language.DirectiveDescriptor.Usage.get -> Microsoft.AspNetCore.Razor.Language.DirectiveUsage
 abstract Microsoft.AspNetCore.Razor.Language.DirectiveTokenDescriptor.Kind.get -> Microsoft.AspNetCore.Razor.Language.DirectiveTokenKind
@@ -1123,18 +1094,6 @@ Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.BoundAttributeDescriptorBuilder() -> void
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.CaseSensitive.get -> bool
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.CaseSensitive.set -> void
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.HasErrors.get -> bool
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.IsBooleanProperty.get -> bool
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.IsBooleanProperty.set -> void
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.IsEnum.get -> bool
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.IsEnum.set -> void
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.IsStringProperty.get -> bool
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.IsStringProperty.set -> void
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder
-Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.BoundAttributeParameterDescriptorBuilder() -> void
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.CodeRenderingContext() -> void
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTarget

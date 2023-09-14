@@ -202,7 +202,7 @@ internal static class ChecksumExtensions
             builder.AppendData(value.IsStringProperty);
             builder.AppendData(GetChecksum(value.Metadata));
 
-            foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
+            foreach (var diagnostic in value.Diagnostics)
             {
                 builder.AppendData(GetChecksum(diagnostic));
             }

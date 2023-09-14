@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization;
 
 internal class TagHelperDescriptorJsonConverter : JsonConverter
 {
-    public static readonly TagHelperDescriptorJsonConverter Instance = new TagHelperDescriptorJsonConverter();
+    public static readonly TagHelperDescriptorJsonConverter Instance = new();
 
     public override bool CanConvert(Type objectType)
     {
@@ -254,7 +254,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             writer.WriteValue(boundAttributeParameter.Documentation);
         }
 
-        if (boundAttributeParameter.Diagnostics != null && boundAttributeParameter.Diagnostics.Count > 0)
+        if (boundAttributeParameter.Diagnostics != null && boundAttributeParameter.Diagnostics.Length > 0)
         {
             writer.WritePropertyName(nameof(BoundAttributeParameterDescriptor.Diagnostics));
             serializer.Serialize(writer, boundAttributeParameter.Diagnostics);

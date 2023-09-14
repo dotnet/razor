@@ -31,7 +31,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder
                 // Make sure that we return all parameter builders to their pool.
                 foreach (var attributeParameterBuilder in attributeParameterBuilders)
                 {
-                    DefaultBoundAttributeParameterDescriptorBuilder.ReturnInstance(attributeParameterBuilder);
+                    BoundAttributeParameterDescriptorBuilder.ReturnInstance(attributeParameterBuilder);
                 }
 
                 ClearList(attributeParameterBuilders);

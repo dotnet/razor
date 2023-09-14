@@ -3,15 +3,15 @@
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal partial class DefaultBoundAttributeParameterDescriptorBuilder
+public partial class BoundAttributeParameterDescriptorBuilder
 {
-    private sealed class Policy : TagHelperPooledObjectPolicy<DefaultBoundAttributeParameterDescriptorBuilder>
+    private sealed class Policy : TagHelperPooledObjectPolicy<BoundAttributeParameterDescriptorBuilder>
     {
         public static readonly Policy Instance = new();
 
-        public override DefaultBoundAttributeParameterDescriptorBuilder Create() => new();
+        public override BoundAttributeParameterDescriptorBuilder Create() => new();
 
-        public override bool Return(DefaultBoundAttributeParameterDescriptorBuilder builder)
+        public override bool Return(BoundAttributeParameterDescriptorBuilder builder)
         {
             builder._parent = null;
             builder._kind = null;
@@ -22,7 +22,7 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder
             builder.IsEnum = false;
             builder.DisplayName = null;
 
-            ClearDiagnostics(builder._diagnostics);
+            builder._diagnostics?.Clear();
 
             builder._metadata.Clear();
 
