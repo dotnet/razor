@@ -35,7 +35,7 @@ internal static class IRazorDocumentMappingServiceExtensions
             var generatedDocument = languageKind is RazorLanguageKind.CSharp
                 ? (IRazorGeneratedDocument)codeDocument.GetCSharpDocument()
                 : codeDocument.GetHtmlDocument();
-            if (service.TryMapToGeneratedDocumentPosition(generatedDocument, hostDocumentIndex, out var mappedPosition, out _))
+            if (service.TryMapToGeneratedDocumentPosition(generatedDocument, hostDocumentIndex, out Position? mappedPosition, out _))
             {
                 // For C# locations, we attempt to return the corresponding position
                 // within the projected document
@@ -69,7 +69,7 @@ internal static class IRazorDocumentMappingServiceExtensions
 
     public static bool TryMapToHostDocumentPosition(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, int generatedDocumentIndex, [NotNullWhen(true)] out Position? hostDocumentPosition, out int hostDocumentIndex)
     {
-        var result = service.TryMapToHostDocumentPosition(generatedDocument, generatedDocumentIndex,  out var hostDocumentLinePosition, out hostDocumentIndex);
+        var result = service.TryMapToHostDocumentPosition(generatedDocument, generatedDocumentIndex, out var hostDocumentLinePosition, out hostDocumentIndex);
         hostDocumentPosition = result ? hostDocumentLinePosition.AsPosition() : null;
         return result;
     }
