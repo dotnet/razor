@@ -116,7 +116,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         }
         writer.WriteEndArray();
 
-        if (tagHelper.BoundAttributes != null && tagHelper.BoundAttributes.Count > 0)
+        if (tagHelper.BoundAttributes != null && tagHelper.BoundAttributes.Length > 0)
         {
             writer.WritePropertyName(nameof(TagHelperDescriptor.BoundAttributes));
             writer.WriteStartArray();
@@ -127,7 +127,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             writer.WriteEndArray();
         }
 
-        if (tagHelper.AllowedChildTags != null && tagHelper.AllowedChildTags.Count > 0)
+        if (tagHelper.AllowedChildTags != null && tagHelper.AllowedChildTags.Length > 0)
         {
             writer.WritePropertyName(nameof(TagHelperDescriptor.AllowedChildTags));
             writer.WriteStartArray();
@@ -218,7 +218,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         writer.WritePropertyName(nameof(BoundAttributeDescriptor.Metadata));
         WriteMetadata(writer, boundAttribute.Metadata);
 
-        if (boundAttribute.BoundAttributeParameters != null && boundAttribute.BoundAttributeParameters.Count > 0)
+        if (boundAttribute.BoundAttributeParameters != null && boundAttribute.BoundAttributeParameters.Length > 0)
         {
             writer.WritePropertyName(nameof(BoundAttributeDescriptor.BoundAttributeParameters));
             writer.WriteStartArray();
@@ -296,7 +296,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             writer.WriteValue(ruleDescriptor.TagStructure);
         }
 
-        if (ruleDescriptor.Attributes != null && ruleDescriptor.Attributes.Count > 0)
+        if (ruleDescriptor.Attributes != null && ruleDescriptor.Attributes.Length > 0)
         {
             writer.WritePropertyName(nameof(TagMatchingRuleDescriptor.Attributes));
             writer.WriteStartArray();

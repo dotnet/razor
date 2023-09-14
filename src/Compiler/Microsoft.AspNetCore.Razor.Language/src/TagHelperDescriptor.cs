@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -42,13 +43,13 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
 
     public string Name { get; protected set; }
 
-    public IReadOnlyList<TagMatchingRuleDescriptor> TagMatchingRules { get; protected set; }
+    public ImmutableArray<TagMatchingRuleDescriptor> TagMatchingRules { get; protected set; }
 
     public string AssemblyName { get; protected set; }
 
-    public IReadOnlyList<BoundAttributeDescriptor> BoundAttributes { get; protected set; }
+    public ImmutableArray<BoundAttributeDescriptor> BoundAttributes { get; protected set; }
 
-    public IReadOnlyList<AllowedChildTagDescriptor> AllowedChildTags { get; protected set; }
+    public ImmutableArray<AllowedChildTagDescriptor> AllowedChildTags { get; protected set; }
 
     public string Documentation
     {

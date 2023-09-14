@@ -118,9 +118,9 @@ public class RemoteTagHelperDeltaProviderBenchmark
                  origin.Documentation,
                  origin.TagOutputHint,
                  origin.CaseSensitive,
-                 origin.TagMatchingRules.ToArray(),
-                 origin.BoundAttributes.ToArray(),
-                 origin.AllowedChildTags.ToArray(),
+                 origin.TagMatchingRules,
+                 origin.BoundAttributes,
+                 origin.AllowedChildTags,
                  MetadataCollection.Create(origin.Metadata),
                  origin.Diagnostics.ToArray())
         {

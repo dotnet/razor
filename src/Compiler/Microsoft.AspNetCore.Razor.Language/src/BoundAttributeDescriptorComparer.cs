@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -18,44 +19,36 @@ internal sealed class BoundAttributeDescriptorComparer : IEqualityComparer<Bound
     {
     }
 
-    public bool Equals(BoundAttributeDescriptor? descriptorX, BoundAttributeDescriptor? descriptorY)
+    public bool Equals(BoundAttributeDescriptor? x, BoundAttributeDescriptor? y)
     {
-        if (ReferenceEquals(descriptorX, descriptorY))
+        if (ReferenceEquals(x, y))
         {
             return true;
         }
 
-        if (descriptorX is null)
+        if (x is null)
         {
-            return descriptorY is null;
+            return y is null;
         }
-        else if (descriptorY is null)
-        {
-            return false;
-        }
-
-        if (descriptorX.Kind != descriptorY.Kind ||
-            descriptorX.IsIndexerStringProperty != descriptorY.IsIndexerStringProperty ||
-            descriptorX.IsEnum != descriptorY.IsEnum ||
-            descriptorX.HasIndexer != descriptorY.HasIndexer ||
-            descriptorX.CaseSensitive != descriptorY.CaseSensitive ||
-            descriptorX.IsEditorRequired != descriptorY.IsEditorRequired ||
-            descriptorX.Name != descriptorY.Name ||
-            descriptorX.IndexerNamePrefix != descriptorY.IndexerNamePrefix ||
-            descriptorX.TypeName != descriptorY.TypeName ||
-            descriptorX.IndexerTypeName != descriptorY.IndexerTypeName ||
-            descriptorX.DocumentationObject != descriptorY.DocumentationObject ||
-            descriptorX.DisplayName != descriptorY.DisplayName)
+        else if (y is null)
         {
             return false;
         }
 
-        if (!ComparerUtilities.Equals(descriptorX.BoundAttributeParameters, descriptorY.BoundAttributeParameters, BoundAttributeParameterDescriptorComparer.Default))
-        {
-            return false;
-        }
-
-        return descriptorX.Metadata.Equals(descriptorY.Metadata);
+        return x.Kind == y.Kind &&
+               x.IsIndexerStringProperty == y.IsIndexerStringProperty &&
+               x.IsEnum == y.IsEnum &&
+               x.HasIndexer == y.HasIndexer &&
+               x.CaseSensitive == y.CaseSensitive &&
+               x.IsEditorRequired == y.IsEditorRequired &&
+               x.Name == y.Name &&
+               x.IndexerNamePrefix == y.IndexerNamePrefix &&
+               x.TypeName == y.TypeName &&
+               x.IndexerTypeName == y.IndexerTypeName &&
+               x.DocumentationObject == y.DocumentationObject &&
+               x.DisplayName == y.DisplayName &&
+               x.BoundAttributeParameters.SequenceEqual(y.BoundAttributeParameters, BoundAttributeParameterDescriptorComparer.Default) &&
+               x.Metadata.Equals(y.Metadata);
     }
 
     public int GetHashCode(BoundAttributeDescriptor? descriptor)

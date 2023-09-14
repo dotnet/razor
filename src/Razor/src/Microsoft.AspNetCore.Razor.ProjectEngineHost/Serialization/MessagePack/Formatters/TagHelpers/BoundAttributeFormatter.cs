@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 
@@ -29,7 +30,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var caseSensitive = reader.ReadBoolean();
         var isEditorRequired = reader.ReadBoolean();
-        var parameters = reader.Deserialize<BoundAttributeParameterDescriptor[]>(options);
+        var parameters = reader.Deserialize<ImmutableArray<BoundAttributeParameterDescriptor>>(options);
 
         var metadata = reader.Deserialize<MetadataCollection>(options);
         var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
@@ -58,7 +59,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
         writer.Write(value.IsEditorRequired);
         writer.Serialize(value.BoundAttributeParameters, options);
 
-        writer.Serialize((MetadataCollection)value.Metadata, options);
+        writer.Serialize(value.Metadata, options);
         writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
     }
 

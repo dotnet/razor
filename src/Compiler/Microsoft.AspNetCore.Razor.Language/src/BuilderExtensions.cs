@@ -1,8 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 
@@ -10,21 +10,16 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class BuilderExtensions
 {
-    public static T[] BuildAll<T, TBuilder>(this List<TBuilder> builders, ObjectPool<HashSet<T>> pool)
+    public static ImmutableArray<T> BuildAll<T, TBuilder>(this List<TBuilder> builders, ObjectPool<HashSet<T>> pool)
         where TBuilder : IBuilder<T>
     {
         if (builders.Count == 0)
         {
-            return Array.Empty<T>();
+            return ImmutableArray<T>.Empty;
         }
 
-        if (builders.Count == 1)
-        {
-            return new[] { builders[0].Build() };
-        }
-
-        using var _1 = ListPool<T>.GetPooledObject(out var result);
-        using var _2 = pool.GetPooledObject(out var set);
+        using var result = new PooledArrayBuilder<T>(capacity: builders.Count);
+        using var _ = pool.GetPooledObject(out var set);
 
         foreach (var builder in builders)
         {
@@ -36,10 +31,10 @@ internal static class BuilderExtensions
             }
         }
 
-        return result.ToArray();
+        return result.DrainToImmutable();
     }
 
-    public static T[] BuildAllOrEmpty<T, TBuilder>(this List<TBuilder>? builders, ObjectPool<HashSet<T>> pool)
+    public static ImmutableArray<T> BuildAllOrEmpty<T, TBuilder>(this List<TBuilder>? builders, ObjectPool<HashSet<T>> pool)
         where TBuilder : IBuilder<T>
-        => builders?.BuildAll(pool) ?? Array.Empty<T>();
+        => builders?.BuildAll(pool) ?? ImmutableArray<T>.Empty;
 }

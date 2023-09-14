@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 
@@ -22,7 +23,7 @@ internal sealed class TagMatchingRuleFormatter : ValueFormatter<TagMatchingRuleD
         var parentTag = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var tagStructure = (TagStructure)reader.ReadInt32();
         var caseSensitive = reader.ReadBoolean();
-        var attributes = reader.Deserialize<RequiredAttributeDescriptor[]>(options);
+        var attributes = reader.Deserialize<ImmutableArray<RequiredAttributeDescriptor>>(options);
         var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
 
         return new DefaultTagMatchingRuleDescriptor(
@@ -39,7 +40,7 @@ internal sealed class TagMatchingRuleFormatter : ValueFormatter<TagMatchingRuleD
         CachedStringFormatter.Instance.Serialize(ref writer, value.ParentTag, options);
         writer.Write((int)value.TagStructure);
         writer.Write(value.CaseSensitive);
-        writer.Serialize((RequiredAttributeDescriptor[])value.Attributes, options);
+        writer.Serialize(value.Attributes, options);
         writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
     }
 

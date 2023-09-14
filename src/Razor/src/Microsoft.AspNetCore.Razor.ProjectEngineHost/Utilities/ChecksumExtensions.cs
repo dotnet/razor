@@ -29,17 +29,17 @@ internal static class ChecksumExtensions
 
         builder.AppendData(value.CaseSensitive);
 
-        foreach (var descriptor in (AllowedChildTagDescriptor[])value.AllowedChildTags)
+        foreach (var descriptor in value.AllowedChildTags)
         {
             builder.AppendData(GetChecksum(descriptor));
         }
 
-        foreach (var descriptor in (BoundAttributeDescriptor[])value.BoundAttributes)
+        foreach (var descriptor in value.BoundAttributes)
         {
             builder.AppendData(GetChecksum(descriptor));
         }
 
-        foreach (var descriptor in (TagMatchingRuleDescriptor[])value.TagMatchingRules)
+        foreach (var descriptor in value.TagMatchingRules)
         {
             builder.AppendData(GetChecksum(descriptor));
         }
@@ -92,12 +92,12 @@ internal static class ChecksumExtensions
 
             builder.AppendData(value.CaseSensitive);
 
-            foreach (var descriptor in (RequiredAttributeDescriptor[])value.Attributes)
+            foreach (var descriptor in value.Attributes)
             {
                 builder.AppendData(GetChecksum(descriptor));
             }
 
-            foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
+            foreach (var diagnostic in value.Diagnostics)
             {
                 builder.AppendData(GetChecksum(diagnostic));
             }
@@ -163,7 +163,7 @@ internal static class ChecksumExtensions
             builder.AppendData(value.IsIndexerBooleanProperty);
             builder.AppendData(value.IsIndexerStringProperty);
 
-            foreach (var descriptor in (BoundAttributeParameterDescriptor[])value.BoundAttributeParameters)
+            foreach (var descriptor in value.BoundAttributeParameters)
             {
                 builder.AppendData(GetChecksum(descriptor));
             }

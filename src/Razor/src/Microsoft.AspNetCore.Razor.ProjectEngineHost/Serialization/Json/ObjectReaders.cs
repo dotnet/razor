@@ -139,9 +139,9 @@ internal static partial class ObjectReaders
         var tagOutputHint = reader.ReadStringOrNull(nameof(TagHelperDescriptor.TagOutputHint));
         var caseSensitive = reader.ReadBooleanOrTrue(nameof(TagHelperDescriptor.CaseSensitive));
 
-        var tagMatchingRules = reader.ReadArrayOrEmpty(nameof(TagHelperDescriptor.TagMatchingRules), ReadTagMatchingRule);
-        var boundAttributes = reader.ReadArrayOrEmpty(nameof(TagHelperDescriptor.BoundAttributes), ReadBoundAttribute);
-        var allowedChildTags = reader.ReadArrayOrEmpty(nameof(TagHelperDescriptor.AllowedChildTags), ReadAllowedChildTag);
+        var tagMatchingRules = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDescriptor.TagMatchingRules), ReadTagMatchingRule);
+        var boundAttributes = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDescriptor.BoundAttributes), ReadBoundAttribute);
+        var allowedChildTags = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDescriptor.AllowedChildTags), ReadAllowedChildTag);
 
         var metadata = ReadMetadata(reader, nameof(TagHelperDescriptor.Metadata));
         var diagnostics = reader.ReadArrayOrEmpty(nameof(TagHelperDescriptor.Diagnostics), ReadDiagnostic);
@@ -170,7 +170,7 @@ internal static partial class ObjectReaders
                 var parentTag = reader.ReadStringOrNull(nameof(TagMatchingRuleDescriptor.ParentTag));
                 var tagStructure = (TagStructure)reader.ReadInt32OrZero(nameof(TagMatchingRuleDescriptor.TagStructure));
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(TagMatchingRuleDescriptor.CaseSensitive));
-                var attributes = reader.ReadArrayOrEmpty(nameof(TagMatchingRuleDescriptor.Attributes), ReadRequiredAttribute);
+                var attributes = reader.ReadImmutableArrayOrEmpty(nameof(TagMatchingRuleDescriptor.Attributes), ReadRequiredAttribute);
 
                 var diagnostics = reader.ReadArrayOrEmpty(nameof(TagMatchingRuleDescriptor.Diagnostics), ReadDiagnostic);
 
@@ -222,7 +222,7 @@ internal static partial class ObjectReaders
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeDescriptor.Documentation));
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(BoundAttributeDescriptor.CaseSensitive));
                 var isEditorRequired = reader.ReadBooleanOrFalse(nameof(BoundAttributeDescriptor.IsEditorRequired));
-                var parameters = reader.ReadArrayOrEmpty(nameof(BoundAttributeDescriptor.BoundAttributeParameters), ReadBoundAttributeParameter);
+                var parameters = reader.ReadImmutableArrayOrEmpty(nameof(BoundAttributeDescriptor.BoundAttributeParameters), ReadBoundAttributeParameter);
 
                 var metadata = ReadMetadata(reader, nameof(BoundAttributeDescriptor.Metadata));
                 var diagnostics = reader.ReadArrayOrEmpty(nameof(BoundAttributeDescriptor.Diagnostics), ReadDiagnostic);

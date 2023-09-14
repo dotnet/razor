@@ -4,7 +4,7 @@
 #nullable disable
 
 using System;
-using System.Globalization;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -97,7 +97,7 @@ namespace Test
         Assert.Equal("Test.MyComponent", bind.DisplayName);
         Assert.Equal("Test.MyComponent", bind.GetTypeName());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Length),
             rule =>
             {
                 Assert.Empty(rule.Diagnostics);
@@ -249,7 +249,7 @@ namespace Test
         Assert.Equal("Test.MyComponent", bind.DisplayName);
         Assert.Equal("Test.MyComponent", bind.GetTypeName());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
             {
                 Assert.Empty(rule.Diagnostics);
@@ -436,7 +436,7 @@ namespace Test
         Assert.Equal("Test.BindAttributes", bind.GetTypeName());
 
         // The tag matching rule for a bind-Component is always the component name + the attribute name
-        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
             {
                 Assert.Empty(rule.Diagnostics);
@@ -668,7 +668,7 @@ namespace Test
         Assert.False(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
             {
                 Assert.Equal("div", rule.TagName);
@@ -754,7 +754,7 @@ namespace Test
         Assert.True(bind.IsInputElementBindTagHelper());
         Assert.True(bind.IsInputElementFallbackBindTagHelper());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Length),
             rule =>
             {
                 Assert.Equal("input", rule.TagName);
@@ -830,7 +830,7 @@ namespace Test
         Assert.True(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Length),
             rule =>
             {
                 Assert.Equal("input", rule.TagName);
@@ -929,7 +929,7 @@ namespace Test
         Assert.False(bind.IsInvariantCultureBindTagHelper());
         Assert.Null(bind.GetFormat());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
             {
                 Assert.Equal("input", rule.TagName);

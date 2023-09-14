@@ -51,7 +51,7 @@ internal static class TagHelperDescriptorExtensions
     {
         return
             tagHelper.IsBindTagHelper() &&
-            tagHelper.TagMatchingRules.Count == 2 &&
+            tagHelper.TagMatchingRules.Length == 2 &&
             string.Equals("input", tagHelper.TagMatchingRules[0].TagName);
     }
 
@@ -193,9 +193,8 @@ internal static class TagHelperDescriptorExtensions
     /// <returns>The child content attributes</returns>
     public static IEnumerable<BoundAttributeDescriptor> GetChildContentProperties(this TagHelperDescriptor tagHelper)
     {
-        for (var i = 0; i < tagHelper.BoundAttributes.Count; i++)
+        foreach (var attribute in tagHelper.BoundAttributes)
         {
-            var attribute = tagHelper.BoundAttributes[i];
             if (attribute.IsChildContentProperty())
             {
                 yield return attribute;
@@ -210,9 +209,8 @@ internal static class TagHelperDescriptorExtensions
     /// <returns>The type parameter attributes</returns>
     public static IEnumerable<BoundAttributeDescriptor> GetTypeParameters(this TagHelperDescriptor tagHelper)
     {
-        for (var i = 0; i < tagHelper.BoundAttributes.Count; i++)
+        foreach (var attribute in tagHelper.BoundAttributes)
         {
-            var attribute = tagHelper.BoundAttributes[i];
             if (attribute.IsTypeParameterProperty())
             {
                 yield return attribute;
@@ -228,9 +226,8 @@ internal static class TagHelperDescriptorExtensions
     /// <returns>True if it does supply one or more generic type parameters to descendants; false otherwise.</returns>
     public static bool SuppliesCascadingGenericParameters(this TagHelperDescriptor tagHelper)
     {
-        for (var i = 0; i < tagHelper.BoundAttributes.Count; i++)
+        foreach (var attribute in tagHelper.BoundAttributes)
         {
-            var attribute = tagHelper.BoundAttributes[i];
             if (attribute.IsCascadingTypeParameterProperty())
             {
                 return true;

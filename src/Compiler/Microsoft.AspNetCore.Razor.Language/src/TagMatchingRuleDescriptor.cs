@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -20,7 +21,7 @@ public abstract class TagMatchingRuleDescriptor : IEquatable<TagMatchingRuleDesc
 
     public string TagName { get; protected set; }
 
-    public IReadOnlyList<RequiredAttributeDescriptor> Attributes { get; protected set; }
+    public ImmutableArray<RequiredAttributeDescriptor> Attributes { get; protected set; }
 
     public string ParentTag { get; protected set; }
 

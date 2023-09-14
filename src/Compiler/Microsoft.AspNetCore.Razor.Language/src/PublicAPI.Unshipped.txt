@@ -1,5 +1,14 @@
 #nullable enable
 *REMOVED*Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilderExtensions
+*REMOVED*~Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.Metadata.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
+*REMOVED*~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Metadata.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
+*REMOVED*~Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.Metadata.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
+*REMOVED*~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.AllowedChildTags.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor>
+*REMOVED*~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.BoundAttributes.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor>
+*REMOVED*~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Metadata.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
+*REMOVED*~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.TagMatchingRules.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor>
+*REMOVED*~Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.Attributes.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor>
+*REMOVED*~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.BoundAttributeParameters.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor>
 abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.AddSourceMappingFor(Microsoft.AspNetCore.Razor.Language.SourceSpan node) -> void
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.ComputeHashCode() -> int
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.ContainsKey(string! key) -> bool
@@ -93,7 +102,11 @@ virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.TryGetMet
 ~Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection
 ~Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection
 ~Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection
+~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.AllowedChildTags.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor>
+~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.BoundAttributes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor>
 ~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection
+~Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.TagMatchingRules.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor>
+~Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.Attributes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor>
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetBindAttributeGetSet(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder builder) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetGloballyQualifiedTypeName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetMetadata(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, System.Collections.Generic.KeyValuePair<string, string> pair) -> void
@@ -118,6 +131,7 @@ virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.TryGetMet
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.GloballyQualifiedTypeName -> string
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.TypeNameIdentifier -> string
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.TypeNamespace -> string
+~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.BoundAttributeParameters.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor>
 ~virtual Microsoft.AspNetCore.Razor.Language.CodeGeneration.IntermediateNodeWriter.WriteFormName(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context, Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode node) -> void
 ~virtual Microsoft.AspNetCore.Razor.Language.CodeGeneration.IntermediateNodeWriter.WriteRenderMode(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context, Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode node) -> void
 ~virtual Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeVisitor.VisitFormName(Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode node) -> void

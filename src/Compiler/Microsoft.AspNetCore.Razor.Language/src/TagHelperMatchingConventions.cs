@@ -61,11 +61,9 @@ internal static class TagHelperMatchingConventions
     public static bool SatisfiesAttributes(ImmutableArray<KeyValuePair<string, string>> tagAttributes, TagMatchingRuleDescriptor rule)
     {
         var requiredAttributes = rule.Attributes;
-        var count = requiredAttributes.Count;
 
-        for (var i = 0; i < count; i++)
+        foreach (var requiredAttribute in requiredAttributes)
         {
-            var requiredAttribute = requiredAttributes[i];
             var satisfied = false;
 
             foreach (var (attributeName, attributeValue) in tagAttributes)

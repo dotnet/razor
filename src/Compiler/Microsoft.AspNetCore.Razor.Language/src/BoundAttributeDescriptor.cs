@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -158,7 +159,7 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
 
     public MetadataCollection Metadata { get; protected set; }
 
-    public virtual IReadOnlyList<BoundAttributeParameterDescriptor> BoundAttributeParameters { get; protected set; }
+    public virtual ImmutableArray<BoundAttributeParameterDescriptor> BoundAttributeParameters { get; protected set; }
 
     public bool HasErrors
     {

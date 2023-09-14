@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal class DefaultTagHelperDescriptor : TagHelperDescriptor
@@ -13,9 +15,9 @@ internal class DefaultTagHelperDescriptor : TagHelperDescriptor
         DocumentationObject documentationObject,
         string? tagOutputHint,
         bool caseSensitive,
-        TagMatchingRuleDescriptor[] tagMatchingRules,
-        BoundAttributeDescriptor[] attributeDescriptors,
-        AllowedChildTagDescriptor[] allowedChildTags,
+        ImmutableArray<TagMatchingRuleDescriptor> tagMatchingRules,
+        ImmutableArray<BoundAttributeDescriptor> attributeDescriptors,
+        ImmutableArray<AllowedChildTagDescriptor> allowedChildTags,
         MetadataCollection metadata,
         RazorDiagnostic[] diagnostics)
         : base(kind)
@@ -26,9 +28,9 @@ internal class DefaultTagHelperDescriptor : TagHelperDescriptor
         DocumentationObject = documentationObject;
         TagOutputHint = tagOutputHint;
         CaseSensitive = caseSensitive;
-        TagMatchingRules = tagMatchingRules;
-        BoundAttributes = attributeDescriptors;
-        AllowedChildTags = allowedChildTags;
+        TagMatchingRules = tagMatchingRules.NullToEmpty();
+        BoundAttributes = attributeDescriptors.NullToEmpty();
+        AllowedChildTags = allowedChildTags.NullToEmpty();
         Diagnostics = diagnostics;
         Metadata = metadata;
     }
