@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,8 +57,8 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                 break;
             }
 
-            var mappedStart = this.TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
-            var mappedEnd = this.TryMapToHostDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _);
+            var mappedStart = this.TryMapToHostDocumentPosition(generatedDocument, startIndex, out Position? hostDocumentStart, out _);
+            var mappedEnd = this.TryMapToHostDocumentPosition(generatedDocument, endIndex, out Position? hostDocumentEnd, out _);
 
             // Ideal case, both start and end can be mapped so just return the edit
             if (mappedStart && mappedEnd)
@@ -168,7 +167,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
                 // Only do anything if the end of the line in question is a valid mapping point (ie, a transition)
                 var endOfLine = line.Span.End;
-                if (this.TryMapToHostDocumentPosition(generatedDocument, endOfLine, out var hostDocumentIndex, out _))
+                if (this.TryMapToHostDocumentPosition(generatedDocument, endOfLine, out Position? hostDocumentIndex, out _))
                 {
                     if (range.Start.Line == lastNewLineAddedToLine)
                     {
@@ -200,16 +199,11 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return hostDocumentEdits.ToArray();
     }
 
-    public bool TryMapToHostDocumentRange(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? hostDocumentRange)
+    public bool TryMapToHostDocumentRange(IRazorGeneratedDocument generatedDocument, LinePositionSpan generatedDocumentRange, MappingBehavior mappingBehavior, out LinePositionSpan hostDocumentRange)
     {
         if (generatedDocument is null)
         {
             throw new ArgumentNullException(nameof(generatedDocument));
-        }
-
-        if (generatedDocumentRange is null)
-        {
-            throw new ArgumentNullException(nameof(generatedDocumentRange));
         }
 
         if (mappingBehavior == MappingBehavior.Strict)
@@ -230,16 +224,11 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
     }
 
-    public bool TryMapToGeneratedDocumentRange(IRazorGeneratedDocument generatedDocument, Range hostDocumentRange, [NotNullWhen(true)] out Range? generatedDocumentRange)
+    public bool TryMapToGeneratedDocumentRange(IRazorGeneratedDocument generatedDocument, LinePositionSpan hostDocumentRange, out LinePositionSpan generatedDocumentRange)
     {
         if (generatedDocument is null)
         {
             throw new ArgumentNullException(nameof(generatedDocument));
-        }
-
-        if (hostDocumentRange is null)
-        {
-            throw new ArgumentNullException(nameof(hostDocumentRange));
         }
 
         if (generatedDocument.CodeDocument is not { } codeDocument)
@@ -290,16 +279,12 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return false;
         }
 
-        generatedDocumentRange = new Range
-        {
-            Start = generatedRangeStart,
-            End = generatedRangeEnd,
-        };
+        generatedDocumentRange = new LinePositionSpan(generatedRangeStart, generatedRangeEnd);
 
         return true;
     }
 
-    public bool TryMapToHostDocumentPosition(IRazorGeneratedDocument generatedDocument, int generatedDocumentIndex, [NotNullWhen(true)] out Position? hostDocumentPosition, out int hostDocumentIndex)
+    public bool TryMapToHostDocumentPosition(IRazorGeneratedDocument generatedDocument, int generatedDocumentIndex, out LinePosition hostDocumentPosition, out int hostDocumentIndex)
     {
         if (generatedDocument is null)
         {
@@ -327,7 +312,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
                     hostDocumentIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
                     var originalLocation = codeDocument.Source.Lines.GetLocation(hostDocumentIndex);
-                    hostDocumentPosition = new Position(originalLocation.LineIndex, originalLocation.CharacterIndex);
+                    hostDocumentPosition = new LinePosition(originalLocation.LineIndex, originalLocation.CharacterIndex);
                     return true;
                 }
             }
@@ -338,13 +323,13 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return false;
     }
 
-    public bool TryMapToGeneratedDocumentOrNextCSharpPosition(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
+    public bool TryMapToGeneratedDocumentOrNextCSharpPosition(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex)
         => TryMapToGeneratedDocumentPositionInternal(generatedDocument, hostDocumentIndex, nextCSharpPositionOnFailure: true, out generatedPosition, out generatedIndex);
 
-    public bool TryMapToGeneratedDocumentPosition(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
+    public bool TryMapToGeneratedDocumentPosition(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex)
         => TryMapToGeneratedDocumentPositionInternal(generatedDocument, hostDocumentIndex, nextCSharpPositionOnFailure: false, out generatedPosition, out generatedIndex);
 
-    private static bool TryMapToGeneratedDocumentPositionInternal(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
+    private static bool TryMapToGeneratedDocumentPositionInternal(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, bool nextCSharpPositionOnFailure, out LinePosition generatedPosition, out int generatedIndex)
     {
         if (generatedDocument is null)
         {
@@ -395,12 +380,10 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         generatedIndex = default;
         return false;
 
-        static Position GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int generatedIndex)
+        static LinePosition GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int generatedIndex)
         {
             var generatedSource = GetGeneratedSourceText(generatedDocument);
-            var generatedLinePosition = generatedSource.Lines.GetLinePosition(generatedIndex);
-            var generatedPosition = new Position(generatedLinePosition.Line, generatedLinePosition.Character);
-            return generatedPosition;
+            return generatedSource.Lines.GetLinePosition(generatedIndex);
         }
     }
 
@@ -442,7 +425,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return workspaceEdit;
     }
 
-    public async Task<(Uri MappedDocumentUri, Range MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, Range generatedDocumentRange, CancellationToken cancellationToken)
+    public async Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken)
     {
         var razorDocumentUri = _documentFilePathService.GetRazorDocumentUri(generatedDocumentUri);
 
@@ -575,7 +558,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
     }
 
-    private bool TryMapToHostDocumentRangeStrict(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, [NotNullWhen(returnValue: true)] out Range? hostDocumentRange)
+    private bool TryMapToHostDocumentRangeStrict(IRazorGeneratedDocument generatedDocument, LinePositionSpan generatedDocumentRange, out LinePositionSpan hostDocumentRange)
     {
         hostDocumentRange = default;
 
@@ -598,16 +581,12 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return false;
         }
 
-        hostDocumentRange = new Range
-        {
-            Start = hostDocumentStart,
-            End = hostDocumentEnd
-        };
+        hostDocumentRange = new LinePositionSpan(hostDocumentStart, hostDocumentEnd);
 
         return true;
     }
 
-    private bool TryMapToHostDocumentRangeInclusive(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, [NotNullWhen(returnValue: true)] out Range? hostDocumentRange)
+    private bool TryMapToHostDocumentRangeInclusive(IRazorGeneratedDocument generatedDocument, LinePositionSpan generatedDocumentRange, out LinePositionSpan hostDocumentRange)
     {
         if (generatedDocument.CodeDocument is not { } codeDocument)
         {
@@ -623,22 +602,16 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return false;
         }
 
-        var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(generatedSourceText);
-        var range = generatedDocumentRange;
-        var startIndex = generatedRangeAsSpan.Start;
+        var startIndex = generatedDocumentRange.Start.GetRequiredAbsoluteIndex(generatedSourceText);
         var startMappedDirectly = TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
 
-        var endIndex = generatedRangeAsSpan.End;
+        var endIndex = generatedDocumentRange.End.GetRequiredAbsoluteIndex(generatedSourceText);
         var endMappedDirectly = TryMapToHostDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _);
 
         if (startMappedDirectly && endMappedDirectly)
         {
             // We strictly mapped the start/end of the generated range.
-            hostDocumentRange = new Range
-            {
-                Start = hostDocumentStart!,
-                End = hostDocumentEnd!
-            };
+            hostDocumentRange = new LinePositionSpan(hostDocumentStart, hostDocumentEnd);
             return true;
         }
 
@@ -656,7 +629,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         else
         {
             // Our range does not intersect with any mapping; we should see if it overlaps generated locations
-            candidateMappings = generatedDocument.SourceMappings.Where(mapping => Overlaps(generatedRangeAsSpan, mapping.GeneratedSpan)).ToList();
+            candidateMappings = generatedDocument.SourceMappings.Where(mapping => Overlaps(generatedDocumentRange.AsTextSpan(generatedSourceText), mapping.GeneratedSpan)).ToList();
         }
 
         if (candidateMappings.Count == 1)
@@ -686,20 +659,18 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return unchecked((uint)(position - span.AbsoluteIndex) <= (uint)span.Length);
         }
 
-        static Range ConvertMapping(RazorSourceDocument sourceDocument, SourceMapping mapping)
+        static LinePositionSpan ConvertMapping(RazorSourceDocument sourceDocument, SourceMapping mapping)
         {
             var startLocation = sourceDocument.Lines.GetLocation(mapping.OriginalSpan.AbsoluteIndex);
             var endLocation = sourceDocument.Lines.GetLocation(mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length);
-            var convertedRange = new Range
-            {
-                Start = new Position(startLocation.LineIndex, startLocation.CharacterIndex),
-                End = new Position(endLocation.LineIndex, endLocation.CharacterIndex)
-            };
+            var convertedRange = new LinePositionSpan(
+                new LinePosition(startLocation.LineIndex, startLocation.CharacterIndex),
+                new LinePosition(endLocation.LineIndex, endLocation.CharacterIndex));
             return convertedRange;
         }
     }
 
-    private bool TryMapToHostDocumentRangeInferred(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, [NotNullWhen(returnValue: true)] out Range? hostDocumentRange)
+    private bool TryMapToHostDocumentRangeInferred(IRazorGeneratedDocument generatedDocument, LinePositionSpan generatedDocumentRange, out LinePositionSpan hostDocumentRange)
     {
         if (generatedDocument.CodeDocument is not { } codeDocument)
         {
@@ -755,7 +726,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         var originalSpanBeforeGeneratedRange = mappingBeforeGeneratedRange.OriginalSpan;
         var originalEndBeforeGeneratedRange = originalSpanBeforeGeneratedRange.AbsoluteIndex + originalSpanBeforeGeneratedRange.Length;
         var originalEndPositionBeforeGeneratedRange = sourceDocument.Lines.GetLocation(originalEndBeforeGeneratedRange);
-        var inferredStartPosition = new Position(originalEndPositionBeforeGeneratedRange.LineIndex, originalEndPositionBeforeGeneratedRange.CharacterIndex);
+        var inferredStartPosition = new LinePosition(originalEndPositionBeforeGeneratedRange.LineIndex, originalEndPositionBeforeGeneratedRange.CharacterIndex);
 
         if (mappingAfterGeneratedRange != null)
         {
@@ -763,14 +734,11 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
             var originalSpanAfterGeneratedRange = mappingAfterGeneratedRange.OriginalSpan;
             var originalStartPositionAfterGeneratedRange = sourceDocument.Lines.GetLocation(originalSpanAfterGeneratedRange.AbsoluteIndex);
-            var inferredEndPosition = new Position(originalStartPositionAfterGeneratedRange.LineIndex, originalStartPositionAfterGeneratedRange.CharacterIndex);
+            var inferredEndPosition = new LinePosition(originalStartPositionAfterGeneratedRange.LineIndex, originalStartPositionAfterGeneratedRange.CharacterIndex);
 
-            hostDocumentRange = new Range()
-            {
-                Start = inferredStartPosition,
-                End = inferredEndPosition,
-            };
+            hostDocumentRange = new LinePositionSpan(inferredStartPosition, inferredEndPosition);
             return true;
+
         }
 
         // There was no projection after the "generated range". Therefore, lets fallback to the end-document location.
@@ -778,19 +746,18 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         Debug.Assert(sourceDocument.Length > 0, "Source document length should be greater than 0 here because there's a mapping before us");
 
         var endOfDocumentLocation = sourceDocument.Lines.GetLocation(sourceDocument.Length);
-        var endOfDocumentPosition = new Position(endOfDocumentLocation.LineIndex, endOfDocumentLocation.CharacterIndex);
+        var endOfDocumentPosition = new LinePosition(endOfDocumentLocation.LineIndex, endOfDocumentLocation.CharacterIndex);
 
-        hostDocumentRange = new Range()
-        {
-            Start = inferredStartPosition,
-            End = endOfDocumentPosition,
-        };
+        hostDocumentRange = new LinePositionSpan(inferredStartPosition, endOfDocumentPosition);
         return true;
     }
 
     private static bool s_haveAsserted = false;
 
     private bool IsRangeWithinDocument(Range range, SourceText sourceText)
+        => IsRangeWithinDocument(range.AsLinePositionSpan(), sourceText);
+
+    private bool IsRangeWithinDocument(LinePositionSpan range, SourceText sourceText)
     {
         // This might happen when the document that ranges were created against was not the same as the document we're consulting.
         var result = IsPositionWithinDocument(range.Start, sourceText) && IsPositionWithinDocument(range.End, sourceText);
@@ -804,9 +771,9 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         return result;
 
-        static bool IsPositionWithinDocument(Position position, SourceText sourceText)
+        static bool IsPositionWithinDocument(LinePosition linePosition, SourceText sourceText)
         {
-            return position.Line < sourceText.Lines.Count;
+            return sourceText.TryGetAbsoluteIndex(linePosition.Line, linePosition.Character, out _);
         }
     }
 
@@ -903,7 +870,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         for (var i = 0; i < edits.Length; i++)
         {
             var generatedRange = edits[i].Range;
-            if (!TryMapToHostDocumentRange(generatedDocument, generatedRange, MappingBehavior.Strict, out var originalRange))
+            if (!this.TryMapToHostDocumentRange(generatedDocument, generatedRange, MappingBehavior.Strict, out var originalRange))
             {
                 // Can't map range. Discard this edit.
                 continue;
