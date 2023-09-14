@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -118,40 +117,7 @@ internal static class RangeExtensions
     }
 
     public static TextSpan AsTextSpan(this Range range, SourceText sourceText)
-    {
-        if (range is null)
-        {
-            throw new ArgumentNullException(nameof(range));
-        }
-
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
-
-        var start = GetAbsoluteIndex(range.Start, sourceText);
-        var end = GetAbsoluteIndex(range.End, sourceText);
-
-        var length = end - start;
-        if (length < 0)
-        {
-            throw new ArgumentOutOfRangeException($"{range} resolved to zero or negative length.");
-        }
-
-        return new TextSpan(start, length);
-
-        static int GetAbsoluteIndex(Position position, SourceText sourceText, [CallerArgumentExpression(nameof(position))] string? argName = null)
-        {
-            var line = position.Line;
-            var character = position.Character;
-            if (!sourceText.TryGetAbsoluteIndex(line, character, out var absolutePosition))
-            {
-                throw new ArgumentOutOfRangeException($"{argName} ({line},{character}) matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
-            }
-
-            return absolutePosition;
-        }
-    }
+        => sourceText.GetTextSpan(range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
 
     public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range, SourceText sourceText)
     {

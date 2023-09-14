@@ -13,4 +13,7 @@ internal static class LinePositionSpanExtensions
             Start = linePositionSpan.Start.AsPosition(),
             End = linePositionSpan.End.AsPosition()
         };
+
+    public static TextSpan AsTextSpan(this LinePositionSpan linePositionSpan, SourceText sourceText)
+        => sourceText.GetTextSpan(linePositionSpan.Start.Line, linePositionSpan.Start.Character, linePositionSpan.End.Line, linePositionSpan.End.Character);
 }
