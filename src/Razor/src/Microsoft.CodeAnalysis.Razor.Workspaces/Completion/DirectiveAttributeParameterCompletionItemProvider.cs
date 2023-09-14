@@ -100,7 +100,7 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
             for (var i = 0; i < descriptor.BoundAttributes.Length; i++)
             {
                 var attributeDescriptor = descriptor.BoundAttributes[i];
-                var boundAttributeParameters = attributeDescriptor.BoundAttributeParameters;
+                var boundAttributeParameters = attributeDescriptor.Parameters;
                 if (boundAttributeParameters.Length == 0)
                 {
                     continue;

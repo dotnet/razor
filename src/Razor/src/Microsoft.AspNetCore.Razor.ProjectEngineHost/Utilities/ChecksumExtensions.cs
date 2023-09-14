@@ -163,14 +163,14 @@ internal static class ChecksumExtensions
             builder.AppendData(value.IsIndexerBooleanProperty);
             builder.AppendData(value.IsIndexerStringProperty);
 
-            foreach (var descriptor in value.BoundAttributeParameters)
+            foreach (var descriptor in value.Parameters)
             {
                 builder.AppendData(GetChecksum(descriptor));
             }
 
             builder.AppendData(GetChecksum(value.Metadata));
 
-            foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
+            foreach (var diagnostic in value.Diagnostics)
             {
                 builder.AppendData(GetChecksum(diagnostic));
             }

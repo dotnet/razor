@@ -20,7 +20,7 @@ internal sealed class AllowedChildTagFormatter : ValueFormatter<AllowedChildTagD
         reader.ReadArrayHeaderAndVerify(3);
 
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
-        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new AllowedChildTagDescriptor(name, displayName, diagnostics);

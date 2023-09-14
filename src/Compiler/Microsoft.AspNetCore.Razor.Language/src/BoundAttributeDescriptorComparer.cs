@@ -47,7 +47,7 @@ internal sealed class BoundAttributeDescriptorComparer : IEqualityComparer<Bound
                x.IndexerTypeName == y.IndexerTypeName &&
                x.DocumentationObject == y.DocumentationObject &&
                x.DisplayName == y.DisplayName &&
-               x.BoundAttributeParameters.SequenceEqual(y.BoundAttributeParameters, BoundAttributeParameterDescriptorComparer.Default) &&
+               x.Parameters.SequenceEqual(y.Parameters, BoundAttributeParameterDescriptorComparer.Default) &&
                x.Metadata.Equals(y.Metadata);
     }
 

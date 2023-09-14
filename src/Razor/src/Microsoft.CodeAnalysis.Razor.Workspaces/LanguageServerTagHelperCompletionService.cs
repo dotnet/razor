@@ -114,7 +114,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
                         htmlNameToBoundAttribute[attributeDescriptor.Name] = attributeDescriptor;
                     }
 
-                    if (!string.IsNullOrEmpty(attributeDescriptor.IndexerNamePrefix))
+                    if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
                     {
                         htmlNameToBoundAttribute[attributeDescriptor.IndexerNamePrefix] = attributeDescriptor;
                     }

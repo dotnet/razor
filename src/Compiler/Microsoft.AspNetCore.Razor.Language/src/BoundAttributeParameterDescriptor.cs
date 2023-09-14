@@ -19,7 +19,7 @@ public class BoundAttributeParameterDescriptor : TagHelperObject, IEquatable<Bou
     public string Kind { get; }
     public string Name { get; }
     public string TypeName { get; }
-    public string? DisplayName { get; }
+    public string DisplayName { get; }
 
     public bool IsEnum => HasFlag(IsEnumBit);
     public bool IsStringProperty => HasFlag(IsStringPropertyBit);
@@ -35,7 +35,7 @@ public class BoundAttributeParameterDescriptor : TagHelperObject, IEquatable<Bou
         string typeName,
         bool isEnum,
         DocumentationObject documentationObject,
-        string? displayName,
+        string displayName,
         bool caseSensitive,
         MetadataCollection metadata,
         ImmutableArray<RazorDiagnostic> diagnostics)

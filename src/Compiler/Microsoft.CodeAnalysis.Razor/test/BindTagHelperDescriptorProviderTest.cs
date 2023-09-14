@@ -519,7 +519,7 @@ namespace Test
             Assert.False(attribute.IsBooleanProperty);
             Assert.False(attribute.IsEnum);
 
-            var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+            var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -542,7 +542,7 @@ namespace Test
             Assert.False(parameter.IsBooleanProperty);
             Assert.False(parameter.IsEnum);
 
-            parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("culture"));
+            parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("culture"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -564,7 +564,7 @@ namespace Test
             Assert.False(parameter.IsBooleanProperty);
             Assert.False(parameter.IsEnum);
 
-            parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("get"));
+            parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("get"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -586,7 +586,7 @@ namespace Test
             Assert.False(parameter.IsBooleanProperty);
             Assert.False(parameter.IsEnum);
 
-            parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("set"));
+            parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("set"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -608,7 +608,7 @@ namespace Test
             Assert.False(parameter.IsBooleanProperty);
             Assert.False(parameter.IsEnum);
 
-            parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("after"));
+            parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("after"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -787,7 +787,7 @@ namespace Test
         Assert.Equal("Bind", attribute.GetPropertyName());
         Assert.Equal("object Test.BindAttributes.Bind", attribute.DisplayName);
 
-        var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+        var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
         Assert.Equal("format", parameter.Name);
         Assert.Equal("Format_myprop", parameter.GetPropertyName());
         Assert.Equal(":format", parameter.DisplayName);
@@ -884,7 +884,7 @@ namespace Test
         Assert.Equal("Bind", attribute.GetPropertyName());
         Assert.Equal("object Test.BindAttributes.Bind", attribute.DisplayName);
 
-        var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+        var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
         Assert.Equal("format", parameter.Name);
         Assert.Equal("Format_myprop", parameter.GetPropertyName());
         Assert.Equal(":format", parameter.DisplayName);
@@ -983,7 +983,7 @@ namespace Test
         Assert.Equal("Bind_somevalue", attribute.GetPropertyName());
         Assert.Equal("object Test.BindAttributes.Bind_somevalue", attribute.DisplayName);
 
-        var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+        var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
         Assert.Equal("format", parameter.Name);
         Assert.Equal("Format_somevalue", parameter.GetPropertyName());
         Assert.Equal(":format", parameter.DisplayName);
@@ -1130,7 +1130,7 @@ namespace Test
         Assert.False(attribute.IsBooleanProperty);
         Assert.False(attribute.IsEnum);
 
-        var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+        var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
 
         // Invariants
         Assert.Empty(parameter.Diagnostics);
@@ -1155,7 +1155,7 @@ namespace Test
         Assert.False(parameter.IsBooleanProperty);
         Assert.False(parameter.IsEnum);
 
-        parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("culture"));
+        parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("culture"));
 
         // Invariants
         Assert.Empty(parameter.Diagnostics);

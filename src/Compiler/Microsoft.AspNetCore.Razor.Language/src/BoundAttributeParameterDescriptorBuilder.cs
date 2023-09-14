@@ -14,7 +14,7 @@ public partial class BoundAttributeParameterDescriptorBuilder : IBuilder<BoundAt
 {
     private static readonly ObjectPool<BoundAttributeParameterDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    internal static BoundAttributeParameterDescriptorBuilder GetInstance(DefaultBoundAttributeDescriptorBuilder parent, string kind)
+    internal static BoundAttributeParameterDescriptorBuilder GetInstance(BoundAttributeDescriptorBuilder parent, string kind)
     {
         var builder = s_pool.Get();
 
@@ -28,7 +28,7 @@ public partial class BoundAttributeParameterDescriptorBuilder : IBuilder<BoundAt
         => s_pool.Return(builder);
 
     [AllowNull]
-    private DefaultBoundAttributeDescriptorBuilder _parent;
+    private BoundAttributeDescriptorBuilder _parent;
     [AllowNull]
     private string _kind;
     private DocumentationObject _documentationObject;
@@ -40,7 +40,7 @@ public partial class BoundAttributeParameterDescriptorBuilder : IBuilder<BoundAt
     {
     }
 
-    internal BoundAttributeParameterDescriptorBuilder(DefaultBoundAttributeDescriptorBuilder parent, string kind)
+    internal BoundAttributeParameterDescriptorBuilder(BoundAttributeDescriptorBuilder parent, string kind)
     {
         _parent = parent;
         _kind = kind;
@@ -93,7 +93,7 @@ public partial class BoundAttributeParameterDescriptorBuilder : IBuilder<BoundAt
             var descriptor = new BoundAttributeParameterDescriptor(
                 _kind,
                 Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
-                TypeName.AssumeNotNull(),
+                TypeName!,
                 IsEnum,
                 _documentationObject,
                 GetDisplayName(),

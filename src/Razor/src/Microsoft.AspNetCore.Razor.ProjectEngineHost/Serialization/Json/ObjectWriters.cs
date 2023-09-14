@@ -178,7 +178,7 @@ internal static class ObjectWriters
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
                 writer.WriteIfNotTrue(nameof(value.CaseSensitive), value.CaseSensitive);
                 writer.WriteIfNotFalse(nameof(value.IsEditorRequired), value.IsEditorRequired);
-                writer.WriteArrayIfNotNullOrEmpty(nameof(value.BoundAttributeParameters), value.BoundAttributeParameters, WriteBoundAttributeParameter);
+                writer.WriteArrayIfNotNullOrEmpty("BoundAttributeParameters", value.Parameters, WriteBoundAttributeParameter);
 
                 WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);

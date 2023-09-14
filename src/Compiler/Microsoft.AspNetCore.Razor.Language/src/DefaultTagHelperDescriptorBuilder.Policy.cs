@@ -38,7 +38,7 @@ internal partial class DefaultTagHelperDescriptorBuilder
                 // Make sure that we return all allowed bound attribute builders to their pool.
                 foreach (var attributeBuilder in attributeBuilders)
                 {
-                    DefaultBoundAttributeDescriptorBuilder.ReturnInstance(attributeBuilder);
+                    BoundAttributeDescriptorBuilder.ReturnInstance(attributeBuilder);
                 }
 
                 ClearList(attributeBuilders);

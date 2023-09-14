@@ -118,7 +118,7 @@ internal class LegacyTagHelperCompletionService : TagHelperCompletionService
                         htmlNameToBoundAttribute[attributeDescriptor.Name] = attributeDescriptor;
                     }
 
-                    if (!string.IsNullOrEmpty(attributeDescriptor.IndexerNamePrefix))
+                    if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
                     {
                         htmlNameToBoundAttribute[attributeDescriptor.IndexerNamePrefix] = attributeDescriptor;
                     }

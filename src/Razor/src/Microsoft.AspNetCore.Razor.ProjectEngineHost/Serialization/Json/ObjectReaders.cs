@@ -213,22 +213,22 @@ internal static partial class ObjectReaders
             {
                 var kind = reader.ReadNonNullString(nameof(BoundAttributeDescriptor.Kind));
                 var name = reader.ReadString(nameof(BoundAttributeDescriptor.Name));
-                var typeName = reader.ReadString(nameof(BoundAttributeDescriptor.TypeName));
+                var typeName = reader.ReadNonNullString(nameof(BoundAttributeDescriptor.TypeName));
                 var isEnum = reader.ReadBooleanOrFalse(nameof(BoundAttributeDescriptor.IsEnum));
                 var hasIndexer = reader.ReadBooleanOrFalse(nameof(BoundAttributeDescriptor.HasIndexer));
                 var indexerNamePrefix = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.IndexerNamePrefix));
                 var indexerTypeName = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.IndexerTypeName));
-                var displayName = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.DisplayName));
+                var displayName = reader.ReadNonNullString(nameof(BoundAttributeDescriptor.DisplayName));
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeDescriptor.Documentation));
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(BoundAttributeDescriptor.CaseSensitive));
                 var isEditorRequired = reader.ReadBooleanOrFalse(nameof(BoundAttributeDescriptor.IsEditorRequired));
-                var parameters = reader.ReadImmutableArrayOrEmpty(nameof(BoundAttributeDescriptor.BoundAttributeParameters), ReadBoundAttributeParameter);
+                var parameters = reader.ReadImmutableArrayOrEmpty("BoundAttributeParameters", ReadBoundAttributeParameter);
 
                 var metadata = ReadMetadata(reader, nameof(BoundAttributeDescriptor.Metadata));
-                var diagnostics = reader.ReadArrayOrEmpty(nameof(BoundAttributeDescriptor.Diagnostics), ReadDiagnostic);
+                var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(BoundAttributeDescriptor.Diagnostics), ReadDiagnostic);
 
-                return new DefaultBoundAttributeDescriptor(
-                    Cached(kind), Cached(name), Cached(typeName), isEnum,
+                return new BoundAttributeDescriptor(
+                    Cached(kind), Cached(name)!, Cached(typeName), isEnum,
                     hasIndexer, Cached(indexerNamePrefix), Cached(indexerTypeName),
                     documentationObject, Cached(displayName), caseSensitive, isEditorRequired,
                     parameters, metadata, diagnostics);
@@ -245,7 +245,7 @@ internal static partial class ObjectReaders
                 var name = reader.ReadString(nameof(BoundAttributeParameterDescriptor.Name));
                 var typeName = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.TypeName));
                 var isEnum = reader.ReadBooleanOrFalse(nameof(BoundAttributeParameterDescriptor.IsEnum));
-                var displayName = reader.ReadStringOrNull(nameof(BoundAttributeParameterDescriptor.DisplayName));
+                var displayName = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.DisplayName));
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeParameterDescriptor.Documentation));
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(BoundAttributeParameterDescriptor.CaseSensitive));
 
@@ -266,7 +266,7 @@ internal static partial class ObjectReaders
             static AllowedChildTagDescriptor ReadFromProperties(JsonDataReader reader)
             {
                 var name = reader.ReadNonNullString(nameof(AllowedChildTagDescriptor.Name));
-                var displayName = reader.ReadString(nameof(AllowedChildTagDescriptor.DisplayName));
+                var displayName = reader.ReadNonNullString(nameof(AllowedChildTagDescriptor.DisplayName));
                 var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(AllowedChildTagDescriptor.Diagnostics), ReadDiagnostic);
 
                 return new AllowedChildTagDescriptor(Cached(name), Cached(displayName), diagnostics);

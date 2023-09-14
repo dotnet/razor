@@ -1,10 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -14,9 +11,8 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// <summary>
 /// A metadata class describing a tag helper attribute.
 /// </summary>
-public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescriptor>
+public class BoundAttributeDescriptor : TagHelperObject, IEquatable<BoundAttributeDescriptor>
 {
-    private const int ContainsDiagnosticsBit = 1 << 0;
     private const int IsDirectiveAttributeComputedBit = 1 << 1;
     private const int IsDirectiveAttributeBit = 1 << 2;
     private const int IsIndexerStringPropertyBit = 1 << 3;
@@ -28,89 +24,81 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
     private const int HasIndexerBit = 1 << 9;
     private const int CaseSensitiveBit = 1 << 10;
 
-    private int _flags;
-    private DocumentationObject _documentationObject;
-
-    private bool HasFlag(int flag) => (_flags & flag) != 0;
-    private void SetFlag(int toSet) => ThreadSafeFlagOperations.Set(ref _flags, toSet);
-    private void ClearFlag(int toClear) => ThreadSafeFlagOperations.Clear(ref _flags, toClear);
-    private void SetOrClearFlag(int toChange, bool value) => ThreadSafeFlagOperations.SetOrClear(ref _flags, toChange, value);
-
-    protected BoundAttributeDescriptor(string kind)
-    {
-        Kind = kind;
-    }
+    private readonly DocumentationObject _documentationObject;
 
     public string Kind { get; }
+    public string Name { get; }
+    public string TypeName { get; }
+    public string DisplayName { get; }
 
-    public bool IsIndexerStringProperty
+    public string? IndexerNamePrefix { get; }
+    public string? IndexerTypeName { get; }
+
+    public bool IsIndexerStringProperty => HasFlag(IsIndexerStringPropertyBit);
+    public bool IsIndexerBooleanProperty => HasFlag(IsIndexerBooleanPropertyBit);
+    public bool IsEnum => HasFlag(IsEnumBit);
+    public bool IsStringProperty => HasFlag(IsStringPropertyBit);
+    public bool IsBooleanProperty => HasFlag(IsBooleanPropertyBit);
+    internal bool IsEditorRequired => HasFlag(IsEditorRequiredBit);
+
+    public bool HasIndexer => HasFlag(HasIndexerBit);
+
+    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+
+    public MetadataCollection Metadata { get; }
+    public ImmutableArray<BoundAttributeParameterDescriptor> Parameters { get; }
+
+    internal BoundAttributeDescriptor(
+        string kind,
+        string name,
+        string typeName,
+        bool isEnum,
+        bool hasIndexer,
+        string? indexerNamePrefix,
+        string? indexerTypeName,
+        DocumentationObject documentationObject,
+        string displayName,
+        bool caseSensitive,
+        bool isEditorRequired,
+        ImmutableArray<BoundAttributeParameterDescriptor> parameters,
+        MetadataCollection metadata,
+        ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        get => HasFlag(IsIndexerStringPropertyBit);
-        protected set => SetOrClearFlag(IsIndexerStringPropertyBit, value);
-    }
+        Kind = kind;
+        Name = name;
+        TypeName = typeName;
+        IndexerNamePrefix = indexerNamePrefix;
+        IndexerTypeName = indexerTypeName;
 
-    public bool IsIndexerBooleanProperty
-    {
-        get => HasFlag(IsIndexerBooleanPropertyBit);
-        protected set => SetOrClearFlag(IsIndexerBooleanPropertyBit, value);
-    }
+        SetOrClearFlag(IsEnumBit, isEnum);
+        SetOrClearFlag(HasIndexerBit, hasIndexer);
+        SetOrClearFlag(CaseSensitiveBit, caseSensitive);
+        SetOrClearFlag(IsEditorRequiredBit, isEditorRequired);
 
-    public bool IsEnum
-    {
-        get => HasFlag(IsEnumBit);
-        protected set => SetOrClearFlag(IsEnumBit, value);
-    }
+        var isIndexerStringProperty = indexerTypeName == typeof(string).FullName || indexerTypeName == "string";
+        SetOrClearFlag(IsIndexerStringPropertyBit, isIndexerStringProperty);
 
-    public bool IsStringProperty
-    {
-        get => HasFlag(IsStringPropertyBit);
-        protected set => SetOrClearFlag(IsStringPropertyBit, value);
-    }
+        var isStringProperty = typeName == typeof(string).FullName || typeName == "string";
+        SetOrClearFlag(IsStringPropertyBit, isStringProperty);
 
-    public bool IsBooleanProperty
-    {
-        get => HasFlag(IsBooleanPropertyBit);
-        protected set => SetOrClearFlag(IsBooleanPropertyBit, value);
-    }
+        var isIndexerBooleanProperty = indexerTypeName == typeof(bool).FullName || indexerTypeName == "bool";
+        SetOrClearFlag(IsIndexerBooleanPropertyBit, isIndexerBooleanProperty);
 
-    internal bool IsEditorRequired
-    {
-        get => HasFlag(IsEditorRequiredBit);
-        private protected set => SetOrClearFlag(IsEditorRequiredBit, value);
-    }
+        var isBooleanProperty = typeName == typeof(bool).FullName || typeName == "bool";
+        SetOrClearFlag(IsBooleanPropertyBit, isBooleanProperty);
 
-    public string Name { get; protected set; }
+        _documentationObject = documentationObject;
+        DisplayName = displayName;
 
-    public string IndexerNamePrefix { get; protected set; }
+        Parameters = parameters.NullToEmpty();
 
-    public string TypeName { get; protected set; }
+        Metadata = metadata;
 
-    public string IndexerTypeName { get; protected set; }
-
-    public bool HasIndexer
-    {
-        get => HasFlag(HasIndexerBit);
-        protected set => SetOrClearFlag(HasIndexerBit, value);
-    }
-
-    public string Documentation
-    {
-        get => _documentationObject.GetText();
-        protected set => _documentationObject = new(value);
-    }
-
-    internal DocumentationObject DocumentationObject
-    {
-        get => _documentationObject;
-        set => _documentationObject = value;
-    }
-
-    public string DisplayName { get; protected set; }
-
-    public bool CaseSensitive
-    {
-        get => HasFlag(CaseSensitiveBit);
-        protected set => SetOrClearFlag(CaseSensitiveBit, value);
+        if (!diagnostics.IsDefaultOrEmpty)
+        {
+            SetFlag(ContainsDiagnosticsBit);
+            TagHelperDiagnostics.AddDiagnostics(this, diagnostics);
+        }
     }
 
     public bool IsDirectiveAttribute
@@ -136,45 +124,18 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
         }
     }
 
-    public IReadOnlyList<RazorDiagnostic> Diagnostics
-    {
-        get => HasFlag(ContainsDiagnosticsBit)
+    public string? Documentation => _documentationObject.GetText();
+
+    internal DocumentationObject DocumentationObject => _documentationObject;
+
+    public ImmutableArray<RazorDiagnostic> Diagnostics
+        => HasFlag(ContainsDiagnosticsBit)
             ? TagHelperDiagnostics.GetDiagnostics(this)
-            : Array.Empty<RazorDiagnostic>();
-
-        protected set
-        {
-            if (value?.Count > 0)
-            {
-                TagHelperDiagnostics.AddDiagnostics(this, value);
-                SetFlag(ContainsDiagnosticsBit);
-            }
-            else if (HasFlag(ContainsDiagnosticsBit))
-            {
-                TagHelperDiagnostics.RemoveDiagnostics(this);
-                ClearFlag(ContainsDiagnosticsBit);
-            }
-        }
-    }
-
-    public MetadataCollection Metadata { get; protected set; }
-
-    public virtual ImmutableArray<BoundAttributeParameterDescriptor> BoundAttributeParameters { get; protected set; }
+            : ImmutableArray<RazorDiagnostic>.Empty;
 
     public bool HasErrors
-    {
-        get
-        {
-            if (!HasFlag(ContainsDiagnosticsBit))
-            {
-                return false;
-            }
-
-            var errors = Diagnostics.Any(diagnostic => diagnostic.Severity == RazorDiagnosticSeverity.Error);
-
-            return errors;
-        }
-    }
+        => HasFlag(ContainsDiagnosticsBit) &&
+           Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
 
     public override string ToString()
     {
@@ -182,17 +143,12 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
     }
 
     public bool Equals(BoundAttributeDescriptor other)
-    {
-        return BoundAttributeDescriptorComparer.Default.Equals(this, other);
-    }
+        => BoundAttributeDescriptorComparer.Default.Equals(this, other);
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as BoundAttributeDescriptor);
-    }
+    public override bool Equals(object? obj)
+        => obj is BoundAttributeDescriptor other &&
+           Equals(other);
 
     public override int GetHashCode()
-    {
-        return BoundAttributeDescriptorComparer.Default.GetHashCode(this);
-    }
+        => BoundAttributeDescriptorComparer.Default.GetHashCode(this);
 }

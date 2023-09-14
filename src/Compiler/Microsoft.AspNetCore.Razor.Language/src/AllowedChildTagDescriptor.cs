@@ -10,9 +10,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public class AllowedChildTagDescriptor : TagHelperObject, IEquatable<AllowedChildTagDescriptor>
 {
     public string Name { get; }
-    public string? DisplayName { get; }
+    public string DisplayName { get; }
 
-    internal AllowedChildTagDescriptor(string name, string? displayName, ImmutableArray<RazorDiagnostic> diagnostics)
+    internal AllowedChildTagDescriptor(string name, string displayName, ImmutableArray<RazorDiagnostic> diagnostics)
     {
         Name = name;
         DisplayName = displayName;

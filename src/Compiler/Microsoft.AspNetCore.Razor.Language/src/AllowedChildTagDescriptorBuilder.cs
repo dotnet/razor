@@ -53,7 +53,7 @@ public partial class AllowedChildTagDescriptorBuilder : IBuilder<AllowedChildTag
 
             diagnostics.UnionWith(_diagnostics);
 
-            var displayName = DisplayName ?? Name;
+            var displayName = DisplayName ?? Name ?? string.Empty;
 
             var descriptor = new AllowedChildTagDescriptor(
                 Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.

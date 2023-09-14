@@ -23,7 +23,7 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var typeName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var isEnum = reader.ReadBoolean();
-        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var caseSensitive = reader.ReadBoolean();
 

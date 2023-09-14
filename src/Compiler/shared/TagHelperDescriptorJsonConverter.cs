@@ -209,7 +209,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             writer.WriteValue(boundAttribute.Documentation);
         }
 
-        if (boundAttribute.Diagnostics != null && boundAttribute.Diagnostics.Count > 0)
+        if (boundAttribute.Diagnostics != null && boundAttribute.Diagnostics.Length > 0)
         {
             writer.WritePropertyName(nameof(BoundAttributeDescriptor.Diagnostics));
             serializer.Serialize(writer, boundAttribute.Diagnostics);
@@ -218,11 +218,11 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         writer.WritePropertyName(nameof(BoundAttributeDescriptor.Metadata));
         WriteMetadata(writer, boundAttribute.Metadata);
 
-        if (boundAttribute.BoundAttributeParameters != null && boundAttribute.BoundAttributeParameters.Length > 0)
+        if (boundAttribute.Parameters != null && boundAttribute.Parameters.Length > 0)
         {
-            writer.WritePropertyName(nameof(BoundAttributeDescriptor.BoundAttributeParameters));
+            writer.WritePropertyName(nameof(BoundAttributeDescriptor.Parameters));
             writer.WriteStartArray();
-            foreach (var boundAttributeParameter in boundAttribute.BoundAttributeParameters)
+            foreach (var boundAttributeParameter in boundAttribute.Parameters)
             {
                 WriteBoundAttributeParameter(writer, boundAttributeParameter, serializer);
             }
@@ -449,7 +449,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
                             attribute.IsEditorRequired = value;
                         }
                         break;
-                    case nameof(BoundAttributeDescriptor.BoundAttributeParameters):
+                    case nameof(BoundAttributeDescriptor.Parameters):
                         ReadBoundAttributeParameters(reader, attribute);
                         break;
                     case nameof(BoundAttributeDescriptor.Diagnostics):

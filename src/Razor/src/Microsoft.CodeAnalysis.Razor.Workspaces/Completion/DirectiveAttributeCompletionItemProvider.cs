@@ -116,12 +116,12 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                     continue;
                 }
 
-                if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor) && attributeDescriptor.BoundAttributeParameters.Length > 0)
+                if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor) && attributeDescriptor.Parameters.Length > 0)
                 {
                     // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
                     // parameters left to be provided, if so, we need to still represent the base attribute name in the completion list.
 
-                    foreach (var parameterDescriptor in attributeDescriptor.BoundAttributeParameters)
+                    foreach (var parameterDescriptor in attributeDescriptor.Parameters)
                     {
                         if (!attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(name, attributeDescriptor, parameterDescriptor)))
                         {
@@ -216,7 +216,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 commitCharacters.Add(" ");
             }
 
-            if (tagHelperDescriptor.BoundAttributes.Any(b => b.BoundAttributeParameters.Length > 0))
+            if (tagHelperDescriptor.BoundAttributes.Any(b => b.Parameters.Length > 0))
             {
                 commitCharacters.Add(":");
             }
