@@ -188,10 +188,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var razorSource = codeDocument.GetSourceText();
 
         SemanticRange previousSemanticRange = default;
-        Range? previousRazorSemanticRange = null;
+        LinePositionSpan? previousRazorSemanticRange = null;
 
-        // We need a real Range object to pass to our document mapper, so this is a pool of one :)
-        var rangePool = new Range() { Start = new(), End = new() };
         for (var i = 0; i < csharpResponse.Length; i += TokenSize)
         {
             var lineDelta = csharpResponse[i];
@@ -201,9 +199,9 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var tokenModifiers = csharpResponse[i + 4];
 
             var semanticRange = CSharpDataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, CopyValues(semanticRange, rangePool), out var originalRange))
+            if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, semanticRange.AsLinePositionSpan(), out var originalRange))
             {
-                if (razorRange is null || razorRange.OverlapsWith(originalRange))
+                if (razorRange is null || razorRange.ToLinePositionSpan().OverlapsWith(originalRange))
                 {
                     if (colorBackground)
                     {
@@ -221,30 +219,20 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         }
 
         return razorRanges.DrainToImmutable();
-
-        static Range CopyValues(SemanticRange source, Range destination)
-        {
-            destination.Start.Line = source.StartLine;
-            destination.Start.Character = source.StartCharacter;
-            destination.End.Line = source.EndLine;
-            destination.End.Character = source.EndCharacter;
-
-            return destination;
-        }
     }
 
-    private static void AddAdditionalCSharpWhitespaceRanges(ImmutableArray<SemanticRange>.Builder razorRanges, int textClassification, SourceText razorSource, Range? previousRazorSemanticRange, Range originalRange, ILogger logger)
+    private static void AddAdditionalCSharpWhitespaceRanges(ImmutableArray<SemanticRange>.Builder razorRanges, int textClassification, SourceText razorSource, LinePositionSpan? previousRazorSemanticRange, LinePositionSpan originalRange, ILogger logger)
     {
         var startLine = originalRange.Start.Line;
         var startChar = originalRange.Start.Character;
-        if (previousRazorSemanticRange is not null &&
-            previousRazorSemanticRange.End.Line == startLine &&
-            previousRazorSemanticRange.End.Character < startChar &&
-            previousRazorSemanticRange.End.TryGetAbsoluteIndex(razorSource, logger, out var previousSpanEndIndex) &&
-            ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, startChar - previousRazorSemanticRange.End.Character - 1))
+        if (previousRazorSemanticRange is { } previousRange &&
+            previousRange.End.Line == startLine &&
+            previousRange.End.Character < startChar &&
+            previousRange.End.TryGetAbsoluteIndex(razorSource, logger, out var previousSpanEndIndex) &&
+            ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, startChar - previousRange.End.Character - 1))
         {
             // we're on the same line as previous, lets extend ours to include whitespace between us and the proceeding range
-            razorRanges.Add(new SemanticRange(textClassification, startLine, previousRazorSemanticRange.End.Character, startLine, startChar, (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode, fromRazor: false));
+            razorRanges.Add(new SemanticRange(textClassification, startLine, previousRange.End.Character, startLine, startChar, (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode, fromRazor: false));
         }
         else if (startChar > 0 &&
             previousRazorSemanticRange?.End.Line != startLine &&
@@ -277,7 +265,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         SourceSpan? maxGeneratedSpan = null;
 
         var sourceText = codeDocument.GetSourceText();
-        var textSpan = razorRange.AsTextSpan(sourceText);
+        var textSpan = razorRange.ToTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
@@ -304,8 +292,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
         {
             var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var startRange = minGeneratedSpan.Value.AsRange(csharpSourceText);
-            var endRange = maxGeneratedSpan.Value.AsRange(csharpSourceText);
+            var startRange = minGeneratedSpan.Value.ToRange(csharpSourceText);
+            var endRange = maxGeneratedSpan.Value.ToRange(csharpSourceText);
 
             csharpRange = new Range { Start = startRange.Start, End = endRange.End };
             Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");
@@ -440,7 +428,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         using var _ = ListPool<Range>.GetPooledObject(out var csharpRanges);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var sourceText = codeDocument.GetSourceText();
-        var textSpan = razorRange.AsTextSpan(sourceText);
+        var textSpan = razorRange.ToTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
@@ -450,7 +438,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             if (textSpan.OverlapsWith(mappedTextSpan))
             {
-                var mappedRange = mapping.GeneratedSpan.AsRange(csharpSourceText);
+                var mappedRange = mapping.GeneratedSpan.ToRange(csharpSourceText);
                 csharpRanges.Add(mappedRange);
             }
         }

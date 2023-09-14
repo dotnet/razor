@@ -37,7 +37,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         if (range is not null)
         {
             var sourceText = razorCodeDocument.GetSourceText();
-            rangeAsTextSpan = range.AsRazorTextSpan(sourceText);
+            rangeAsTextSpan = range.ToRazorTextSpan(sourceText);
         }
 
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var builder);
