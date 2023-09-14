@@ -201,7 +201,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var semanticRange = CSharpDataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
             if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, semanticRange.AsLinePositionSpan(), out var originalRange))
             {
-                if (razorRange is null || razorRange.AsLinePositionSpan().OverlapsWith(originalRange))
+                if (razorRange is null || razorRange.ToLinePositionSpan().OverlapsWith(originalRange))
                 {
                     if (colorBackground)
                     {
@@ -265,7 +265,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         SourceSpan? maxGeneratedSpan = null;
 
         var sourceText = codeDocument.GetSourceText();
-        var textSpan = razorRange.AsTextSpan(sourceText);
+        var textSpan = razorRange.ToTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
@@ -292,8 +292,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
         {
             var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var startRange = minGeneratedSpan.Value.AsRange(csharpSourceText);
-            var endRange = maxGeneratedSpan.Value.AsRange(csharpSourceText);
+            var startRange = minGeneratedSpan.Value.ToRange(csharpSourceText);
+            var endRange = maxGeneratedSpan.Value.ToRange(csharpSourceText);
 
             csharpRange = new Range { Start = startRange.Start, End = endRange.End };
             Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");
@@ -428,7 +428,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         using var _ = ListPool<Range>.GetPooledObject(out var csharpRanges);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var sourceText = codeDocument.GetSourceText();
-        var textSpan = razorRange.AsTextSpan(sourceText);
+        var textSpan = razorRange.ToTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
@@ -438,7 +438,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             if (textSpan.OverlapsWith(mappedTextSpan))
             {
-                var mappedRange = mapping.GeneratedSpan.AsRange(csharpSourceText);
+                var mappedRange = mapping.GeneratedSpan.ToRange(csharpSourceText);
                 csharpRanges.Add(mappedRange);
             }
         }

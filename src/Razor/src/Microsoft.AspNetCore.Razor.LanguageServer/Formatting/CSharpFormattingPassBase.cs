@@ -38,7 +38,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
         // 2. The indentation due to Razor and HTML constructs
 
         var text = context.SourceText;
-        range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
+        range ??= TextSpan.FromBounds(0, text.Length).ToRange(text);
 
         // To help with figuring out the correct indentation, first we will need the indentation
         // that the C# formatter wants to apply in the following locations,
@@ -69,7 +69,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             // loop will find them. Sadly the ShouldFormat method is used in too many places, for too many
             // different purposes, to put this check there.
             if (owner is { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
-                explicitExpression.Span.AsRange(text) is { } exprRange &&
+                explicitExpression.Span.ToRange(text) is { } exprRange &&
                 exprRange.Start.Line == exprRange.End.Line)
             {
                 continue;

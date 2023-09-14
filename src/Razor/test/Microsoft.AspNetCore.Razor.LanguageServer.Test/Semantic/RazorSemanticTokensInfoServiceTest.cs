@@ -1016,7 +1016,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
             for (var i = 0; i < csharpRanges.Length; i++)
             {
                 var csharpRange = csharpRanges[i];
-                var textSpan = csharpRange.AsTextSpan(csharpSourceText);
+                var textSpan = csharpRange.ToTextSpan(csharpSourceText);
                 Assert.Equal(expectedCsharpRangeLengths[i], textSpan.Length);
             }
         }
@@ -1024,7 +1024,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         {
             var expectedCsharpRangeLength = 970;
             Assert.True(RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out var csharpRange));
-            var textSpan = csharpRange.AsTextSpan(csharpSourceText);
+            var textSpan = csharpRange.ToTextSpan(csharpSourceText);
             Assert.Equal(expectedCsharpRangeLength, textSpan.Length);
         }
     }

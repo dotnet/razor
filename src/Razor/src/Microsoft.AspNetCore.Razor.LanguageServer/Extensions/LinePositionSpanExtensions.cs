@@ -7,14 +7,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 internal static class LinePositionSpanExtensions
 {
-    public static Range AsRange(this LinePositionSpan linePositionSpan)
+    public static Range ToRange(this LinePositionSpan linePositionSpan)
         => new Range
         {
-            Start = linePositionSpan.Start.AsPosition(),
-            End = linePositionSpan.End.AsPosition()
+            Start = linePositionSpan.Start.ToPosition(),
+            End = linePositionSpan.End.ToPosition()
         };
 
-    public static TextSpan AsTextSpan(this LinePositionSpan linePositionSpan, SourceText sourceText)
+    public static TextSpan ToTextSpan(this LinePositionSpan linePositionSpan, SourceText sourceText)
         => sourceText.GetTextSpan(linePositionSpan.Start.Line, linePositionSpan.Start.Character, linePositionSpan.End.Line, linePositionSpan.End.Character);
 
     public static bool OverlapsWith(this LinePositionSpan range, LinePositionSpan other)

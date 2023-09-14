@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 internal static class LinePositionExtensions
 {
-    public static Position AsPosition(this LinePosition linePosition)
+    public static Position ToPosition(this LinePosition linePosition)
         => new Position(linePosition.Line, linePosition.Character);
 
     public static bool TryGetAbsoluteIndex(this LinePosition position, SourceText sourceText, ILogger logger, out int absoluteIndex)

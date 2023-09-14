@@ -48,7 +48,7 @@ internal static class RangeExtensions
             throw new ArgumentNullException(nameof(other));
         }
 
-        return range.AsLinePositionSpan().OverlapsWith(other.AsLinePositionSpan());
+        return range.ToLinePositionSpan().OverlapsWith(other.ToLinePositionSpan());
     }
 
     public static bool LineOverlapsWith(this Range range, Range other)
@@ -103,17 +103,17 @@ internal static class RangeExtensions
         return range.Start.Line != range.End.Line;
     }
 
-    public static TextSpan AsTextSpan(this Range range, SourceText sourceText)
+    public static TextSpan ToTextSpan(this Range range, SourceText sourceText)
         => sourceText.GetTextSpan(range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
 
-    public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range, SourceText sourceText)
+    public static Language.Syntax.TextSpan ToRazorTextSpan(this Range range, SourceText sourceText)
     {
-        var span = range.AsTextSpan(sourceText);
+        var span = range.ToTextSpan(sourceText);
         return new Language.Syntax.TextSpan(span.Start, span.Length);
     }
 
-    public static LinePositionSpan AsLinePositionSpan(this Range range)
-        => new LinePositionSpan(range.Start.AsLinePosition(), range.End.AsLinePosition());
+    public static LinePositionSpan ToLinePositionSpan(this Range range)
+        => new LinePositionSpan(range.Start.ToLinePosition(), range.End.ToLinePosition());
 
     public static bool IsUndefined(this Range range)
     {

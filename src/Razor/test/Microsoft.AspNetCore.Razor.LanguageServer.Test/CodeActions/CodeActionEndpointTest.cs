@@ -660,7 +660,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument("@code {}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var projectedRange = new Range { Start = new Position(15, 2), End = new Position(15, 2) };
-        var documentMappingService = CreateDocumentMappingService(projectedRange.AsLinePositionSpan());
+        var documentMappingService = CreateDocumentMappingService(projectedRange.ToLinePositionSpan());
         var languageServer = CreateLanguageServer();
         var codeActionEndpoint = new CodeActionEndpoint(
             documentMappingService,

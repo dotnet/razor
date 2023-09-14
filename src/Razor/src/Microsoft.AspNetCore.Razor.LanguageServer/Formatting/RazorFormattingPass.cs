@@ -53,7 +53,7 @@ internal class RazorFormattingPass : FormattingPassBase
         var changedContext = context;
         if (result.Edits.Length > 0)
         {
-            var changes = result.Edits.Select(e => e.AsTextChange(originalText)).ToArray();
+            var changes = result.Edits.Select(e => e.ToTextChange(originalText)).ToArray();
             changedText = changedText.WithChanges(changes);
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
 
@@ -65,11 +65,11 @@ internal class RazorFormattingPass : FormattingPassBase
         var edits = FormatRazor(changedContext, syntaxTree);
 
         // Compute the final combined set of edits
-        var formattingChanges = edits.Select(e => e.AsTextChange(changedText));
+        var formattingChanges = edits.Select(e => e.ToTextChange(changedText));
         changedText = changedText.WithChanges(formattingChanges);
 
         var finalChanges = changedText.GetTextChanges(originalText);
-        var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
+        var finalEdits = finalChanges.Select(f => f.ToTextEdit(originalText)).ToArray();
 
         return new FormattingResult(finalEdits);
     }

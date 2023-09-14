@@ -98,7 +98,7 @@ internal class CSharpFormatter
     private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, Range projectedRange, CancellationToken cancellationToken)
     {
         var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
-        var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
+        var spanToFormat = projectedRange.ToTextSpan(csharpSourceText);
         var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         Assumes.NotNull(root);
 
@@ -107,7 +107,7 @@ internal class CSharpFormatter
         // Formatting options will already be set in the workspace.
         var changes = CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(root, spanToFormat, workspace, cancellationToken: cancellationToken);
 
-        var edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
+        var edits = changes.Select(c => c.ToTextEdit(csharpSourceText)).ToArray();
         return edits;
     }
 
@@ -285,7 +285,7 @@ internal class CSharpFormatter
 
         static bool SpansMultipleLines(SyntaxNode node, SourceText text)
         {
-            var range = node.Span.AsRange(text);
+            var range = node.Span.ToRange(text);
             return range.Start.Line != range.End.Line;
         }
     }

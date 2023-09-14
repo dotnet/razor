@@ -630,7 +630,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         else
         {
             // Our range does not intersect with any mapping; we should see if it overlaps generated locations
-            candidateMappings.AddRange(generatedDocument.SourceMappings.Where(mapping => Overlaps(generatedDocumentRange.AsTextSpan(generatedSourceText), mapping.GeneratedSpan)));
+            candidateMappings.AddRange(generatedDocument.SourceMappings.Where(mapping => Overlaps(generatedDocumentRange.ToTextSpan(generatedSourceText), mapping.GeneratedSpan)));
         }
 
         if (candidateMappings.Count == 1)
@@ -694,7 +694,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return false;
         }
 
-        var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(generatedSourceText);
+        var generatedRangeAsSpan = generatedDocumentRange.ToTextSpan(generatedSourceText);
         SourceMapping? mappingBeforeGeneratedRange = null;
         SourceMapping? mappingAfterGeneratedRange = null;
 
@@ -756,7 +756,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
     private static bool s_haveAsserted = false;
 
     private bool IsRangeWithinDocument(Range range, SourceText sourceText)
-        => IsRangeWithinDocument(range.AsLinePositionSpan(), sourceText);
+        => IsRangeWithinDocument(range.ToLinePositionSpan(), sourceText);
 
     private bool IsRangeWithinDocument(LinePositionSpan range, SourceText sourceText)
     {
