@@ -64,12 +64,12 @@ internal class ViewCssScopePass : IntermediateNodePassBase, IRazorOptimizationPa
             var content = token.Content.AsSpan();
 
             // `<!tag` is lowered into separate nodes `<` and `tag`, we process the latter.
-            if (previousTokenOpt?.Content == "<" && !content.StartsWith("<".AsSpan(), StringComparison.Ordinal) && content.Length != 0)
+            if (previousTokenOpt?.Content == "<" && content is [not '<', ..])
             {
                 // There is no leading `<` to trim.
             }
             // Otherwise process the token if it starts with `<` but ignore if it is *only* `<`.
-            else if (content.StartsWith("<".AsSpan(), StringComparison.Ordinal) && content.Length > 1)
+            else if (content is ['<', _, ..])
             {
                 // Trim the leading `<`.
                 content = content[1..];
