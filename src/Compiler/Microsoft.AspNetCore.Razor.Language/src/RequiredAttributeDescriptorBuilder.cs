@@ -16,7 +16,7 @@ public partial class RequiredAttributeDescriptorBuilder : IBuilder<RequiredAttri
 {
     private static readonly ObjectPool<RequiredAttributeDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    internal static RequiredAttributeDescriptorBuilder GetInstance(DefaultTagMatchingRuleDescriptorBuilder parent)
+    internal static RequiredAttributeDescriptorBuilder GetInstance(TagMatchingRuleDescriptorBuilder parent)
     {
         var builder = s_pool.Get();
 
@@ -29,7 +29,7 @@ public partial class RequiredAttributeDescriptorBuilder : IBuilder<RequiredAttri
         => s_pool.Return(builder);
 
     [AllowNull]
-    private DefaultTagMatchingRuleDescriptorBuilder _parent;
+    private TagMatchingRuleDescriptorBuilder _parent;
     private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
     private MetadataHolder _metadata;
 
@@ -37,7 +37,7 @@ public partial class RequiredAttributeDescriptorBuilder : IBuilder<RequiredAttri
     {
     }
 
-    internal RequiredAttributeDescriptorBuilder(DefaultTagMatchingRuleDescriptorBuilder parent)
+    internal RequiredAttributeDescriptorBuilder(TagMatchingRuleDescriptorBuilder parent)
     {
         _parent = parent;
     }

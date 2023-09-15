@@ -144,7 +144,7 @@ public class TagHelperMatchingConventionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
+        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
         var builder = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
 
         configure(builder);

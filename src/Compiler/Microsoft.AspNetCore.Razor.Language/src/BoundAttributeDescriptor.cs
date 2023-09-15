@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// <summary>
 /// A metadata class describing a tag helper attribute.
 /// </summary>
-public class BoundAttributeDescriptor : TagHelperObject, IEquatable<BoundAttributeDescriptor>
+public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<BoundAttributeDescriptor>
 {
     private const int IsDirectiveAttributeComputedBit = LastFlagBit << 1;
     private const int IsDirectiveAttributeBit = LastFlagBit << 2;

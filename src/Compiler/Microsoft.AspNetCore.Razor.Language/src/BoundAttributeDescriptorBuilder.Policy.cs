@@ -37,7 +37,7 @@ public partial class BoundAttributeDescriptorBuilder
                 ClearList(attributeParameterBuilders);
             }
 
-            builder._diagnostics?.Clear();
+            ClearDiagnostics(builder._diagnostics);
             builder._metadata.Clear();
 
             return true;

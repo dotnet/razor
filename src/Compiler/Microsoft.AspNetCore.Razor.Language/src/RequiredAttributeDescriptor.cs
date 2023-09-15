@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public class RequiredAttributeDescriptor : TagHelperObject, IEquatable<RequiredAttributeDescriptor>
+public sealed class RequiredAttributeDescriptor : TagHelperObject, IEquatable<RequiredAttributeDescriptor>
 {
     public string Name { get; }
     public NameComparisonMode NameComparison { get; }
@@ -19,7 +19,7 @@ public class RequiredAttributeDescriptor : TagHelperObject, IEquatable<RequiredA
 
     public bool CaseSensitive => HasFlag(CaseSensitiveBit);
 
-    public RequiredAttributeDescriptor(
+    internal RequiredAttributeDescriptor(
         string name,
         NameComparisonMode nameComparison,
         bool caseSensitive,

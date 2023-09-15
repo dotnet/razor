@@ -57,8 +57,8 @@ internal static class TagHelperDiagnostics
     public static void AddDiagnostics(TagHelperDescriptor descriptor, IReadOnlyList<RazorDiagnostic> diagnostics)
         => AddDiagnosticsToTable(descriptor, diagnostics);
 
-    public static void AddDiagnostics(TagMatchingRuleDescriptor descriptor, IReadOnlyList<RazorDiagnostic> diagnostics)
-        => AddDiagnosticsToTable(descriptor, diagnostics);
+    public static void AddDiagnostics(TagMatchingRuleDescriptor descriptor, ImmutableArray<RazorDiagnostic> diagnostics)
+        => AddImmutableDiagnosticsToTable(descriptor, diagnostics);
 
     public static ImmutableArray<RazorDiagnostic> GetDiagnostics(AllowedChildTagDescriptor descriptor)
         => GetImmutableDiagnosticsFromTable(descriptor);
@@ -75,12 +75,9 @@ internal static class TagHelperDiagnostics
     public static IReadOnlyList<RazorDiagnostic> GetDiagnostics(TagHelperDescriptor descriptor)
         => GetDiagnosticsFromTable(descriptor);
 
-    public static IReadOnlyList<RazorDiagnostic> GetDiagnostics(TagMatchingRuleDescriptor descriptor)
-        => GetDiagnosticsFromTable(descriptor);
+    public static ImmutableArray<RazorDiagnostic> GetDiagnostics(TagMatchingRuleDescriptor descriptor)
+        => GetImmutableDiagnosticsFromTable(descriptor);
 
     public static void RemoveDiagnostics(TagHelperDescriptor descriptor)
-        => RemoveDiagnosticsFromTable(descriptor);
-
-    public static void RemoveDiagnostics(TagMatchingRuleDescriptor descriptor)
         => RemoveDiagnosticsFromTable(descriptor);
 }

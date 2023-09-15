@@ -172,9 +172,9 @@ internal static partial class ObjectReaders
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(TagMatchingRuleDescriptor.CaseSensitive));
                 var attributes = reader.ReadImmutableArrayOrEmpty(nameof(TagMatchingRuleDescriptor.Attributes), ReadRequiredAttribute);
 
-                var diagnostics = reader.ReadArrayOrEmpty(nameof(TagMatchingRuleDescriptor.Diagnostics), ReadDiagnostic);
+                var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(TagMatchingRuleDescriptor.Diagnostics), ReadDiagnostic);
 
-                return new DefaultTagMatchingRuleDescriptor(
+                return new TagMatchingRuleDescriptor(
                     Cached(tagName), Cached(parentTag),
                     tagStructure, caseSensitive,
                     attributes, diagnostics);

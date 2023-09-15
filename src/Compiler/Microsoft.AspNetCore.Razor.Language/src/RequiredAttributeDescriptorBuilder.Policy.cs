@@ -20,8 +20,7 @@ public partial class RequiredAttributeDescriptorBuilder
             builder.Value = null;
             builder.ValueComparisonMode = default;
 
-            builder._diagnostics?.Clear();
-
+            ClearDiagnostics(builder._diagnostics);
             builder._metadata.Clear();
 
             return true;

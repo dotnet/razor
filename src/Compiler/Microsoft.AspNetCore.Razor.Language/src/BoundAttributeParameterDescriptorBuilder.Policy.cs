@@ -22,8 +22,7 @@ public partial class BoundAttributeParameterDescriptorBuilder
             builder.IsEnum = false;
             builder.DisplayName = null;
 
-            builder._diagnostics?.Clear();
-
+            ClearDiagnostics(builder._diagnostics);
             builder._metadata.Clear();
 
             return true;

@@ -47,7 +47,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
     private List<AllowedChildTagDescriptorBuilder>? _allowedChildTags;
     private List<BoundAttributeDescriptorBuilder>? _attributeBuilders;
-    private List<DefaultTagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
+    private List<TagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
     private RazorDiagnosticCollection? _diagnostics;
     private MetadataHolder _metadata;
 
@@ -152,7 +152,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
         EnsureTagMatchingRuleBuilders();
 
-        var builder = DefaultTagMatchingRuleDescriptorBuilder.GetInstance(this);
+        var builder = TagMatchingRuleDescriptorBuilder.GetInstance(this);
         configure(builder);
         _tagMatchingRuleBuilders.Add(builder);
     }
@@ -235,7 +235,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     [MemberNotNull(nameof(_tagMatchingRuleBuilders))]
     private void EnsureTagMatchingRuleBuilders()
     {
-        _tagMatchingRuleBuilders ??= new List<DefaultTagMatchingRuleDescriptorBuilder>();
+        _tagMatchingRuleBuilders ??= new List<TagMatchingRuleDescriptorBuilder>();
     }
 
     internal override MetadataBuilder GetMetadataBuilder(string? runtimeName = null)

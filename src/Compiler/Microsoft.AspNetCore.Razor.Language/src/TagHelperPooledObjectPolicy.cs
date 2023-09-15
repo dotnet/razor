@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -26,6 +27,21 @@ internal abstract class TagHelperPooledObjectPolicy<T> : IPooledObjectPolicy<T>
         if (list.Capacity > MaxSize)
         {
             list.Capacity = MaxSize;
+        }
+    }
+
+    protected static void ClearDiagnostics(ImmutableArray<RazorDiagnostic>.Builder? builder)
+    {
+        if (builder is null)
+        {
+            return;
+        }
+
+        builder.Clear();
+
+        if (builder.Capacity > MaxSize)
+        {
+            builder.Capacity = MaxSize;
         }
     }
 

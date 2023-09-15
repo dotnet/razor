@@ -18,7 +18,7 @@ public partial class AllowedChildTagDescriptorBuilder
             builder.Name = null;
             builder.DisplayName = null;
 
-            builder._diagnostics?.Clear();
+            ClearDiagnostics(builder._diagnostics);
 
             return true;
         }

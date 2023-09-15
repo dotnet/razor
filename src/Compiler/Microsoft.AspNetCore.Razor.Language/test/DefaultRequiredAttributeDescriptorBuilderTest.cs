@@ -13,7 +13,7 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
+        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
         var builder = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
 
         builder
@@ -32,7 +32,7 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
+        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
         var builder = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
 
         builder
@@ -54,7 +54,7 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
 
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
+        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
 
         var metadata = MetadataCollection.Create(PropertyName("SomeProperty"));
 
@@ -80,7 +80,7 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
 
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
+        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
 
         var builder1 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
         var builder2 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);

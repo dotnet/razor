@@ -1,10 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -13,59 +10,60 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public abstract class TagMatchingRuleDescriptor : IEquatable<TagMatchingRuleDescriptor>
+public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagMatchingRuleDescriptor>
 {
-    private bool _containsDiagnostics;
     private int? _hashCode;
-    private IEnumerable<RazorDiagnostic> _allDiagnostics;
+    private ImmutableArray<RazorDiagnostic>? _allDiagnostics;
 
-    public string TagName { get; protected set; }
+    public string TagName { get; }
+    public string? ParentTag { get; }
+    public TagStructure TagStructure { get; }
+    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+    public ImmutableArray<RequiredAttributeDescriptor> Attributes { get; }
 
-    public ImmutableArray<RequiredAttributeDescriptor> Attributes { get; protected set; }
-
-    public string ParentTag { get; protected set; }
-
-    public TagStructure TagStructure { get; protected set; }
-
-    public bool CaseSensitive { get; protected set; }
-
-    public IReadOnlyList<RazorDiagnostic> Diagnostics
+    internal TagMatchingRuleDescriptor(
+        string tagName,
+        string? parentTag,
+        TagStructure tagStructure,
+        bool caseSensitive,
+        ImmutableArray<RequiredAttributeDescriptor> attributes,
+        ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        get => _containsDiagnostics
-            ? TagHelperDiagnostics.GetDiagnostics(this)
-            : Array.Empty<RazorDiagnostic>();
+        TagName = tagName;
+        ParentTag = parentTag;
+        TagStructure = tagStructure;
+        SetOrClearFlag(CaseSensitiveBit, caseSensitive);
+        Attributes = attributes.NullToEmpty();
 
-        protected set
+        if (!diagnostics.IsDefaultOrEmpty)
         {
-            if (value?.Count > 0)
-            {
-                TagHelperDiagnostics.AddDiagnostics(this, value);
-                _containsDiagnostics = true;
-            }
-            else if (_containsDiagnostics)
-            {
-                TagHelperDiagnostics.RemoveDiagnostics(this);
-                _containsDiagnostics = false;
-            }
+            SetFlag(ContainsDiagnosticsBit);
+            TagHelperDiagnostics.AddDiagnostics(this, diagnostics);
         }
     }
+
+    public ImmutableArray<RazorDiagnostic> Diagnostics
+        => HasFlag(ContainsDiagnosticsBit)
+            ? TagHelperDiagnostics.GetDiagnostics(this)
+            : ImmutableArray<RazorDiagnostic>.Empty;
 
     public bool HasErrors
     {
         get
         {
             var allDiagnostics = GetAllDiagnostics();
-            var errors = allDiagnostics.Any(diagnostic => diagnostic.Severity == RazorDiagnosticSeverity.Error);
 
-            return errors;
+            return allDiagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
         }
     }
 
-    public virtual IEnumerable<RazorDiagnostic> GetAllDiagnostics()
+    public ImmutableArray<RazorDiagnostic> GetAllDiagnostics()
     {
-        if (_allDiagnostics == null)
-        {
-            using var diagnostics = new PooledList<RazorDiagnostic>();
+        return _allDiagnostics ??= GetAllDiagnosticsCore();
+
+        ImmutableArray<RazorDiagnostic> GetAllDiagnosticsCore()
+        { 
+            using var diagnostics = new PooledArrayBuilder<RazorDiagnostic>();
 
             foreach (var attribute in Attributes)
             {
@@ -74,10 +72,8 @@ public abstract class TagMatchingRuleDescriptor : IEquatable<TagMatchingRuleDesc
 
             diagnostics.AddRange(Diagnostics);
 
-            _allDiagnostics = diagnostics.ToArray();
+            return diagnostics.ToImmutable();
         }
-
-        return _allDiagnostics;
     }
 
     public bool Equals(TagMatchingRuleDescriptor other)
@@ -85,10 +81,9 @@ public abstract class TagMatchingRuleDescriptor : IEquatable<TagMatchingRuleDesc
         return TagMatchingRuleDescriptorComparer.Default.Equals(this, other);
     }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as TagMatchingRuleDescriptor);
-    }
+    public override bool Equals(object? obj)
+        => obj is TagMatchingRuleDescriptor other &&
+           Equals(other);
 
     public override int GetHashCode()
     {

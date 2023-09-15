@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public class BoundAttributeParameterDescriptor : TagHelperObject, IEquatable<BoundAttributeParameterDescriptor>
+public sealed class BoundAttributeParameterDescriptor : TagHelperObject, IEquatable<BoundAttributeParameterDescriptor>
 {
     private const int IsEnumBit = LastFlagBit << 1;
     private const int IsStringPropertyBit = LastFlagBit << 2;

@@ -307,7 +307,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             writer.WriteEndArray();
         }
 
-        if (ruleDescriptor.Diagnostics != null && ruleDescriptor.Diagnostics.Count > 0)
+        if (ruleDescriptor.Diagnostics != null && ruleDescriptor.Diagnostics.Length > 0)
         {
             writer.WritePropertyName(nameof(TagMatchingRuleDescriptor.Diagnostics));
             serializer.Serialize(writer, ruleDescriptor.Diagnostics);

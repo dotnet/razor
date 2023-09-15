@@ -49,7 +49,7 @@ internal partial class DefaultTagHelperDescriptorBuilder
                 // Make sure that we return all allowed tag matching rule builders to their pool.
                 foreach (var tagMatchingRuleBuilder in tagMatchingRuleBuilders)
                 {
-                    DefaultTagMatchingRuleDescriptorBuilder.ReturnInstance(tagMatchingRuleBuilder);
+                    TagMatchingRuleDescriptorBuilder.ReturnInstance(tagMatchingRuleBuilder);
                 }
 
                 ClearList(tagMatchingRuleBuilders);

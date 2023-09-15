@@ -205,7 +205,7 @@ public class DefaultTagHelperDescriptorFactoryTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var ruleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
+        var ruleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
 
         var expectedRules = new List<RequiredAttributeDescriptor>();
         foreach (var configureBuilder in configureBuilders)
@@ -300,7 +300,7 @@ public class DefaultTagHelperDescriptorFactoryTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var ruleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
+        var ruleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
 
         var expectedRules = new List<RequiredAttributeDescriptor>();
         foreach (var configureBuilder in configureBuilders)

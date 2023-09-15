@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public class AllowedChildTagDescriptor : TagHelperObject, IEquatable<AllowedChildTagDescriptor>
+public sealed class AllowedChildTagDescriptor : TagHelperObject, IEquatable<AllowedChildTagDescriptor>
 {
     public string Name { get; }
     public string DisplayName { get; }

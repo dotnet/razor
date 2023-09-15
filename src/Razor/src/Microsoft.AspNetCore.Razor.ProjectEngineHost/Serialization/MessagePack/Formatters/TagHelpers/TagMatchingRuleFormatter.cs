@@ -24,9 +24,9 @@ internal sealed class TagMatchingRuleFormatter : ValueFormatter<TagMatchingRuleD
         var tagStructure = (TagStructure)reader.ReadInt32();
         var caseSensitive = reader.ReadBoolean();
         var attributes = reader.Deserialize<ImmutableArray<RequiredAttributeDescriptor>>(options);
-        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
+        var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
-        return new DefaultTagMatchingRuleDescriptor(
+        return new TagMatchingRuleDescriptor(
             tagName, parentTag,
             tagStructure, caseSensitive,
             attributes, diagnostics);
@@ -41,7 +41,7 @@ internal sealed class TagMatchingRuleFormatter : ValueFormatter<TagMatchingRuleD
         writer.Write((int)value.TagStructure);
         writer.Write(value.CaseSensitive);
         writer.Serialize(value.Attributes, options);
-        writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
+        writer.Serialize(value.Diagnostics, options);
     }
 
     public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)

@@ -3,15 +3,15 @@
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal partial class DefaultTagMatchingRuleDescriptorBuilder
+public partial class TagMatchingRuleDescriptorBuilder
 {
-    private sealed class Policy : TagHelperPooledObjectPolicy<DefaultTagMatchingRuleDescriptorBuilder>
+    private sealed class Policy : TagHelperPooledObjectPolicy<TagMatchingRuleDescriptorBuilder>
     {
         public static readonly Policy Instance = new();
 
-        public override DefaultTagMatchingRuleDescriptorBuilder Create() => new();
+        public override TagMatchingRuleDescriptorBuilder Create() => new();
 
-        public override bool Return(DefaultTagMatchingRuleDescriptorBuilder builder)
+        public override bool Return(TagMatchingRuleDescriptorBuilder builder)
         {
             builder._parent = null;
 
