@@ -27,12 +27,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj" PrivateAssets="all" />
   </ItemGroup>
-
-  <!--
+  
+    <!--
     Technique for publishing multiple RIDs from
     https://github.com/dotnet/cli/issues/9221#issuecomment-387512008
     Example usage:

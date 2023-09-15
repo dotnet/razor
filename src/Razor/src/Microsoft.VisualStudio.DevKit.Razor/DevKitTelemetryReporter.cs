@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Telemetry;
 using System.Linq;
 #endif
 
-namespace Microsoft.VisualStudio.DevKit.Razor.Logging;
+namespace Microsoft.VisualStudio.DevKit.Razor;
 
 [Shared]
 [Export(typeof(IDevKitTelemetryReporter))]
@@ -48,7 +48,7 @@ internal sealed class DevKitTelemetryReporter : IDevKitTelemetryReporter
 
     public IDisposable BeginBlock(string name, Severity severity, ImmutableDictionary<string, object?> values)
     {
-        return new TelemetryScope(this, name, severity, values.ToImmutableDictionary((tuple) => tuple.Key, (tuple) => (object?)tuple.Value));
+        return new TelemetryScope(this, name, severity, values.ToImmutableDictionary((tuple) => tuple.Key, (tuple) => tuple.Value));
     }
 
     public void ReportEvent(string name, Severity severity)
