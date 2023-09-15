@@ -3,9 +3,9 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.VisualStudio.Telemetry.Razor;
+namespace Microsoft.AspNetCore.Razor.Telemetry;
 
 internal static class TelemetryHelpers
 {

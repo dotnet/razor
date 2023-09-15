@@ -13,18 +13,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\NullTelemetryScope.cs" Link="NullTelemetryScope.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\TelemetryHelpers.cs" Link="TelemetryHelpers.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\TelemetryScope.cs" Link="TelemetryScope.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Since we're including these DLLs in the package, we mark them as private assets so they're not also dependencies -->
-    <ProjectReference Include="..\Microsoft.VisualStudio.Telemetry.Razor\Microsoft.VisualStudio.Telemetry.Razor.csproj" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="$(RepositoryRoot)NOTICE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <!--

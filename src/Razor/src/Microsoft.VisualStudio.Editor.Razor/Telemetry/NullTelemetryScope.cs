@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Telemetry.Razor;
+namespace Microsoft.AspNetCore.Razor.Telemetry;
 
 internal class NullTelemetryScope : IDisposable
 {

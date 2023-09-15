@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
-using Microsoft.VisualStudio.Telemetry.Razor;
 
 #if DEBUG
 using System.Linq;

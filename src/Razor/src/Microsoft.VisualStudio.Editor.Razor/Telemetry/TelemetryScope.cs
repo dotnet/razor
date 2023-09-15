@@ -5,9 +5,8 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Telemetry;
 
-namespace Microsoft.VisualStudio.Telemetry.Razor;
+namespace Microsoft.AspNetCore.Razor.Telemetry;
 
 internal class TelemetryScope : IDisposable
 {

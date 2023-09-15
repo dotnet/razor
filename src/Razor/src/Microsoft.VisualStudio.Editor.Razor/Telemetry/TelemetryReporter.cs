@@ -8,7 +8,6 @@ using System.Composition;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
-using Microsoft.VisualStudio.Telemetry.Razor;
 
 #if DEBUG
 using System.Linq;
