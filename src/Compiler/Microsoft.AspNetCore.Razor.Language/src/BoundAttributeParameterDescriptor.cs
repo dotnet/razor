@@ -9,10 +9,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public class BoundAttributeParameterDescriptor : TagHelperObject, IEquatable<BoundAttributeParameterDescriptor>
 {
-    private const int IsEnumBit = 1 << 1;
-    private const int IsStringPropertyBit = 1 << 2;
-    private const int IsBooleanPropertyBit = 1 << 3;
-    private const int CaseSensitiveBit = 1 << 4;
+    private const int IsEnumBit = LastFlagBit << 1;
+    private const int IsStringPropertyBit = LastFlagBit << 2;
+    private const int IsBooleanPropertyBit = LastFlagBit << 3;
 
     private readonly DocumentationObject _documentationObject;
 

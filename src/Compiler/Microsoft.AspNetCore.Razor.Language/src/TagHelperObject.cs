@@ -8,6 +8,8 @@ public abstract class TagHelperObject
     private int _flags;
 
     private protected const int ContainsDiagnosticsBit = 1 << 0;
+    private protected const int CaseSensitiveBit = 1 << 1;
+    private protected const int LastFlagBit = CaseSensitiveBit;
 
     private protected bool HasFlag(int flag) => (_flags & flag) != 0;
     private protected void SetFlag(int toSet) => ThreadSafeFlagOperations.Set(ref _flags, toSet);

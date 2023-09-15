@@ -14,7 +14,7 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
         var tagMatchingRuleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
-        var builder = new DefaultRequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
+        var builder = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
 
         builder
             .Name("asp-action")
@@ -33,7 +33,7 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
         var tagMatchingRuleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
-        var builder = new DefaultRequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
+        var builder = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
 
         builder
             .Name("asp-route-")
@@ -58,8 +58,8 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
 
         var metadata = MetadataCollection.Create(PropertyName("SomeProperty"));
 
-        var builder1 = new DefaultRequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
-        var builder2 = new DefaultRequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
+        var builder1 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
+        var builder2 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
 
         builder1.SetMetadata(metadata);
         builder2.SetMetadata(metadata);
@@ -82,8 +82,8 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
         var tagMatchingRuleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
 
-        var builder1 = new DefaultRequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
-        var builder2 = new DefaultRequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
+        var builder1 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
+        var builder2 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
 
         builder1.Metadata.Add(PropertyName("SomeProperty"));
         builder2.Metadata.Add(PropertyName("SomeProperty"));

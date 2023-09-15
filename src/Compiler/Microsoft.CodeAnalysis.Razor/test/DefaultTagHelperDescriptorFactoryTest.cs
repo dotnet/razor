@@ -210,7 +210,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var expectedRules = new List<RequiredAttributeDescriptor>();
         foreach (var configureBuilder in configureBuilders)
         {
-            var builder = new DefaultRequiredAttributeDescriptorBuilder(ruleBuilder);
+            var builder = new RequiredAttributeDescriptorBuilder(ruleBuilder);
             configureBuilder(builder);
 
             expectedRules.Add(builder.Build());
@@ -305,7 +305,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var expectedRules = new List<RequiredAttributeDescriptor>();
         foreach (var configureBuilder in configureBuilders)
         {
-            var builder = new DefaultRequiredAttributeDescriptorBuilder(ruleBuilder);
+            var builder = new RequiredAttributeDescriptorBuilder(ruleBuilder);
             configureBuilder(builder);
 
             expectedRules.Add(builder.Build());

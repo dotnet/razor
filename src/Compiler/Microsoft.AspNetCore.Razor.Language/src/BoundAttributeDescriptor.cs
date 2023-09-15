@@ -13,16 +13,15 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 public class BoundAttributeDescriptor : TagHelperObject, IEquatable<BoundAttributeDescriptor>
 {
-    private const int IsDirectiveAttributeComputedBit = 1 << 1;
-    private const int IsDirectiveAttributeBit = 1 << 2;
-    private const int IsIndexerStringPropertyBit = 1 << 3;
-    private const int IsIndexerBooleanPropertyBit = 1 << 4;
-    private const int IsEnumBit = 1 << 5;
-    private const int IsStringPropertyBit = 1 << 6;
-    private const int IsBooleanPropertyBit = 1 << 7;
-    private const int IsEditorRequiredBit = 1 << 8;
-    private const int HasIndexerBit = 1 << 9;
-    private const int CaseSensitiveBit = 1 << 10;
+    private const int IsDirectiveAttributeComputedBit = LastFlagBit << 1;
+    private const int IsDirectiveAttributeBit = LastFlagBit << 2;
+    private const int IsIndexerStringPropertyBit = LastFlagBit << 3;
+    private const int IsIndexerBooleanPropertyBit = LastFlagBit << 4;
+    private const int IsEnumBit = LastFlagBit << 5;
+    private const int IsStringPropertyBit = LastFlagBit << 6;
+    private const int IsBooleanPropertyBit = LastFlagBit << 7;
+    private const int IsEditorRequiredBit = LastFlagBit << 8;
+    private const int HasIndexerBit = LastFlagBit << 9;
 
     private readonly DocumentationObject _documentationObject;
 

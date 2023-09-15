@@ -192,16 +192,16 @@ internal static partial class ObjectReaders
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(RequiredAttributeDescriptor.CaseSensitive));
                 var value = reader.ReadStringOrNull(nameof(RequiredAttributeDescriptor.Value));
                 var valueComparison = (ValueComparisonMode)reader.ReadInt32OrZero(nameof(RequiredAttributeDescriptor.ValueComparison));
-                var displayName = reader.ReadStringOrNull(nameof(RequiredAttributeDescriptor.DisplayName));
+                var displayName = reader.ReadNonNullString(nameof(RequiredAttributeDescriptor.DisplayName));
 
                 var metadata = ReadMetadata(reader, nameof(RequiredAttributeDescriptor.Metadata));
-                var diagnostics = reader.ReadArrayOrEmpty(nameof(RequiredAttributeDescriptor.Diagnostics), ReadDiagnostic);
+                var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(RequiredAttributeDescriptor.Diagnostics), ReadDiagnostic);
 
-                return new DefaultRequiredAttributeDescriptor(
-                    Cached(name), nameComparison,
+                return new RequiredAttributeDescriptor(
+                    Cached(name)!, nameComparison,
                     caseSensitive,
                     Cached(value), valueComparison,
-                    Cached(displayName)!, diagnostics, metadata);
+                    Cached(displayName), diagnostics, metadata);
             }
         }
 

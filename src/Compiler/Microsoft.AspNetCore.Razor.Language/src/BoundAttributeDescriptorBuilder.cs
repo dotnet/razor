@@ -70,7 +70,8 @@ public partial class BoundAttributeDescriptorBuilder : TagHelperObject, IBuilder
         _kind = kind;
     }
 
-    public string? Name { get; set; }
+    [AllowNull]
+    public string Name { get; set; }
     public string? TypeName { get; set; }
     public bool IsEnum { get; set; }
     public bool IsDictionary { get; set; }

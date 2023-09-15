@@ -42,9 +42,6 @@ internal static class TagHelperDiagnostics
     private static void RemoveDiagnosticsFromTable(object obj)
         => s_diagnosticsTable.Remove(obj);
 
-    private static void RemoveImmutableDiagnosticsFromTable(object obj)
-        => s_immutablediagnosticsTable.Remove(obj);
-
     public static void AddDiagnostics(AllowedChildTagDescriptor descriptor, ImmutableArray<RazorDiagnostic> diagnostics)
         => AddImmutableDiagnosticsToTable(descriptor, diagnostics);
 
@@ -54,8 +51,8 @@ internal static class TagHelperDiagnostics
     public static void AddDiagnostics(BoundAttributeParameterDescriptor descriptor, ImmutableArray<RazorDiagnostic> diagnostics)
         => AddImmutableDiagnosticsToTable(descriptor, diagnostics);
 
-    public static void AddDiagnostics(RequiredAttributeDescriptor descriptor, IReadOnlyList<RazorDiagnostic> diagnostics)
-        => AddDiagnosticsToTable(descriptor, diagnostics);
+    public static void AddDiagnostics(RequiredAttributeDescriptor descriptor, ImmutableArray<RazorDiagnostic> diagnostics)
+        => AddImmutableDiagnosticsToTable(descriptor, diagnostics);
 
     public static void AddDiagnostics(TagHelperDescriptor descriptor, IReadOnlyList<RazorDiagnostic> diagnostics)
         => AddDiagnosticsToTable(descriptor, diagnostics);
@@ -72,26 +69,14 @@ internal static class TagHelperDiagnostics
     public static ImmutableArray<RazorDiagnostic> GetDiagnostics(BoundAttributeParameterDescriptor descriptor)
         => GetImmutableDiagnosticsFromTable(descriptor);
 
-    public static IReadOnlyList<RazorDiagnostic> GetDiagnostics(RequiredAttributeDescriptor descriptor)
-        => GetDiagnosticsFromTable(descriptor);
+    public static ImmutableArray<RazorDiagnostic> GetDiagnostics(RequiredAttributeDescriptor descriptor)
+        => GetImmutableDiagnosticsFromTable(descriptor);
 
     public static IReadOnlyList<RazorDiagnostic> GetDiagnostics(TagHelperDescriptor descriptor)
         => GetDiagnosticsFromTable(descriptor);
 
     public static IReadOnlyList<RazorDiagnostic> GetDiagnostics(TagMatchingRuleDescriptor descriptor)
         => GetDiagnosticsFromTable(descriptor);
-
-    public static void RemoveDiagnostics(AllowedChildTagDescriptor descriptor)
-        => RemoveImmutableDiagnosticsFromTable(descriptor);
-
-    public static void RemoveDiagnostics(BoundAttributeDescriptor descriptor)
-        => RemoveImmutableDiagnosticsFromTable(descriptor);
-
-    public static void RemoveDiagnostics(BoundAttributeParameterDescriptor descriptor)
-        => RemoveImmutableDiagnosticsFromTable(descriptor);
-
-    public static void RemoveDiagnostics(RequiredAttributeDescriptor descriptor)
-        => RemoveDiagnosticsFromTable(descriptor);
 
     public static void RemoveDiagnostics(TagHelperDescriptor descriptor)
         => RemoveDiagnosticsFromTable(descriptor);

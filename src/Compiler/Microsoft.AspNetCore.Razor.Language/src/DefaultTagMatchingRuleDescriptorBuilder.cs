@@ -30,7 +30,7 @@ internal partial class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRule
 
     [AllowNull]
     private DefaultTagHelperDescriptorBuilder _parent;
-    private List<DefaultRequiredAttributeDescriptorBuilder>? _requiredAttributeBuilders;
+    private List<RequiredAttributeDescriptorBuilder>? _requiredAttributeBuilders;
     private RazorDiagnosticCollection? _diagnostics;
 
     private DefaultTagMatchingRuleDescriptorBuilder()
@@ -69,7 +69,7 @@ internal partial class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRule
 
         EnsureRequiredAttributeBuilders();
 
-        var builder = DefaultRequiredAttributeDescriptorBuilder.GetInstance(this);
+        var builder = RequiredAttributeDescriptorBuilder.GetInstance(this);
         configure(builder);
         _requiredAttributeBuilders.Add(builder);
     }
@@ -148,6 +148,6 @@ internal partial class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRule
     [MemberNotNull(nameof(_requiredAttributeBuilders))]
     private void EnsureRequiredAttributeBuilders()
     {
-        _requiredAttributeBuilders ??= new List<DefaultRequiredAttributeDescriptorBuilder>();
+        _requiredAttributeBuilders ??= new List<RequiredAttributeDescriptorBuilder>();
     }
 }

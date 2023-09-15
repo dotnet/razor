@@ -341,7 +341,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             writer.WriteValue(requiredAttribute.ValueComparison);
         }
 
-        if (requiredAttribute.Diagnostics != null && requiredAttribute.Diagnostics.Count > 0)
+        if (requiredAttribute.Diagnostics != null && requiredAttribute.Diagnostics.Length > 0)
         {
             writer.WritePropertyName(nameof(RequiredAttributeDescriptor.Diagnostics));
             serializer.Serialize(writer, requiredAttribute.Diagnostics);

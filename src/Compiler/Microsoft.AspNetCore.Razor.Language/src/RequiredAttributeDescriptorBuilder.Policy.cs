@@ -3,15 +3,15 @@
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal partial class DefaultRequiredAttributeDescriptorBuilder
+public partial class RequiredAttributeDescriptorBuilder
 {
-    private sealed class Policy : TagHelperPooledObjectPolicy<DefaultRequiredAttributeDescriptorBuilder>
+    private sealed class Policy : TagHelperPooledObjectPolicy<RequiredAttributeDescriptorBuilder>
     {
         public static readonly Policy Instance = new();
 
-        public override DefaultRequiredAttributeDescriptorBuilder Create() => new();
+        public override RequiredAttributeDescriptorBuilder Create() => new();
 
-        public override bool Return(DefaultRequiredAttributeDescriptorBuilder builder)
+        public override bool Return(RequiredAttributeDescriptorBuilder builder)
         {
             builder._parent = null;
 
@@ -20,7 +20,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder
             builder.Value = null;
             builder.ValueComparisonMode = default;
 
-            ClearDiagnostics(builder._diagnostics);
+            builder._diagnostics?.Clear();
 
             builder._metadata.Clear();
 
