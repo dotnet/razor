@@ -54,6 +54,10 @@ internal sealed class AssemblyLoadContextWrapper
             var builder = new Dictionary<string, Assembly>();
             foreach (var file in directory.GetFiles("*.dll"))
             {
+                // HACK: For some reason trying to load ProjectEngineHost here causes a second version of the
+                // expected dll to be loaded (one from rzls folder instead of the Razor telemetry folder). We'll
+                // skip loading it (and investigate later) since the one from the Razor telemetry folder is the
+                // one we want.
                 if (!file.Name.Contains("ProjectEngineHost"))
                 {
                     builder.Add(file.Name, loadContext.LoadFromAssemblyPath(file.FullName));
