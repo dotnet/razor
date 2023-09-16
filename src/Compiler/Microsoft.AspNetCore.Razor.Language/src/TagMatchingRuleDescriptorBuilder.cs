@@ -14,7 +14,7 @@ public partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatchingRule
 {
     private static readonly ObjectPool<TagMatchingRuleDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    internal static TagMatchingRuleDescriptorBuilder GetInstance(DefaultTagHelperDescriptorBuilder parent)
+    internal static TagMatchingRuleDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent)
     {
         var builder = s_pool.Get();
 
@@ -30,7 +30,7 @@ public partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatchingRule
         = HashSetPool<RequiredAttributeDescriptor>.Create(RequiredAttributeDescriptorComparer.Default);
 
     [AllowNull]
-    private DefaultTagHelperDescriptorBuilder _parent;
+    private TagHelperDescriptorBuilder _parent;
     private List<RequiredAttributeDescriptorBuilder>? _requiredAttributeBuilders;
     private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
 
@@ -38,7 +38,7 @@ public partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatchingRule
     {
     }
 
-    internal TagMatchingRuleDescriptorBuilder(DefaultTagHelperDescriptorBuilder parent)
+    internal TagMatchingRuleDescriptorBuilder(TagHelperDescriptorBuilder parent)
     {
         _parent = parent;
     }
@@ -50,6 +50,16 @@ public partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatchingRule
     internal bool CaseSensitive => _parent.CaseSensitive;
 
     public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
+
+    public IReadOnlyList<RequiredAttributeDescriptorBuilder> Attributes
+    {
+        get
+        {
+            EnsureRequiredAttributeBuilders();
+
+            return _requiredAttributeBuilders;
+        }
+    }
 
     public void Attribute(Action<RequiredAttributeDescriptorBuilder> configure)
     {

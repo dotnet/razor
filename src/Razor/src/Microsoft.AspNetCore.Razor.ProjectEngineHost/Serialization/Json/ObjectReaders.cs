@@ -144,9 +144,9 @@ internal static partial class ObjectReaders
         var allowedChildTags = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDescriptor.AllowedChildTags), ReadAllowedChildTag);
 
         var metadata = ReadMetadata(reader, nameof(TagHelperDescriptor.Metadata));
-        var diagnostics = reader.ReadArrayOrEmpty(nameof(TagHelperDescriptor.Diagnostics), ReadDiagnostic);
+        var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDescriptor.Diagnostics), ReadDiagnostic);
 
-        tagHelper = new DefaultTagHelperDescriptor(
+        tagHelper = new TagHelperDescriptor(
             Cached(kind), Cached(name), Cached(assemblyName),
             Cached(displayName)!, documentationObject,
             Cached(tagOutputHint), caseSensitive,

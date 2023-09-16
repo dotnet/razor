@@ -13,7 +13,7 @@ public partial class AllowedChildTagDescriptorBuilder : IBuilder<AllowedChildTag
 {
     private static readonly ObjectPool<AllowedChildTagDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    internal static AllowedChildTagDescriptorBuilder GetInstance(DefaultTagHelperDescriptorBuilder parent)
+    internal static AllowedChildTagDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent)
     {
         var builder = s_pool.Get();
 
@@ -26,14 +26,14 @@ public partial class AllowedChildTagDescriptorBuilder : IBuilder<AllowedChildTag
         => s_pool.Return(builder);
 
     [AllowNull]
-    private DefaultTagHelperDescriptorBuilder _parent;
+    private TagHelperDescriptorBuilder _parent;
     private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
 
     private AllowedChildTagDescriptorBuilder()
     {
     }
 
-    internal AllowedChildTagDescriptorBuilder(DefaultTagHelperDescriptorBuilder parent)
+    internal AllowedChildTagDescriptorBuilder(TagHelperDescriptorBuilder parent)
     {
         _parent = parent;
     }

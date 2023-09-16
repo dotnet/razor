@@ -3,15 +3,15 @@
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal partial class DefaultTagHelperDescriptorBuilder
+public partial class TagHelperDescriptorBuilder
 {
-    private sealed class Policy : TagHelperPooledObjectPolicy<DefaultTagHelperDescriptorBuilder>
+    private sealed class Policy : TagHelperPooledObjectPolicy<TagHelperDescriptorBuilder>
     {
         public static readonly Policy Instance = new();
 
-        public override DefaultTagHelperDescriptorBuilder Create() => new();
+        public override TagHelperDescriptorBuilder Create() => new();
 
-        public override bool Return(DefaultTagHelperDescriptorBuilder builder)
+        public override bool Return(TagHelperDescriptorBuilder builder)
         {
             builder._kind = null;
             builder._name = null;

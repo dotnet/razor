@@ -23,7 +23,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var assemblyName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
 
-        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var tagOutputHint = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var caseSensitive = reader.ReadBoolean();
@@ -33,11 +33,11 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         var allowedChildTags = reader.Deserialize<ImmutableArray<AllowedChildTagDescriptor>>(options);
 
         var metadata = reader.Deserialize<MetadataCollection>(options);
-        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
+        var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
-        return new DefaultTagHelperDescriptor(
+        return new TagHelperDescriptor(
             kind, name, assemblyName,
-            displayName!, documentationObject,
+            displayName, documentationObject,
             tagOutputHint, caseSensitive,
             tagMatchingRules, boundAttributes, allowedChildTags,
             metadata, diagnostics);
@@ -61,7 +61,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         writer.Serialize(value.AllowedChildTags, options);
 
         writer.Serialize(value.Metadata, options);
-        writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
+        writer.Serialize(value.Diagnostics, options);
     }
 
     public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)

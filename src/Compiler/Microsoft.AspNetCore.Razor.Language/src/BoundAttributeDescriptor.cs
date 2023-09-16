@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -23,6 +24,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
     private const int IsEditorRequiredBit = LastFlagBit << 8;
     private const int HasIndexerBit = LastFlagBit << 9;
 
+    private ImmutableArray<RazorDiagnostic>? _allDiagnostics;
     private readonly DocumentationObject _documentationObject;
 
     public string Kind { get; }
@@ -135,6 +137,25 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
     public bool HasErrors
         => HasFlag(ContainsDiagnosticsBit) &&
            Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
+
+    public ImmutableArray<RazorDiagnostic> GetAllDiagnostics()
+    {
+        return _allDiagnostics ??= GetAllDiagnosticsCore();
+
+        ImmutableArray<RazorDiagnostic> GetAllDiagnosticsCore()
+        {
+            using var diagnostics = new PooledArrayBuilder<RazorDiagnostic>();
+
+            foreach (var parameter in Parameters)
+            {
+                diagnostics.AddRange(parameter.Diagnostics);
+            }
+
+            diagnostics.AddRange(Diagnostics);
+
+            return diagnostics.DrainToImmutable();
+        }
+    }
 
     public override string ToString()
     {

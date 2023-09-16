@@ -1,155 +1,226 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract partial class TagHelperDescriptorBuilder
+public partial class TagHelperDescriptorBuilder
 {
-    public static TagHelperDescriptorBuilder Create(string name, string assemblyName)
+    private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
+        = HashSetPool<AllowedChildTagDescriptor>.Create(AllowedChildTagDescriptorComparer.Default);
+
+    private static readonly ObjectPool<HashSet<BoundAttributeDescriptor>> s_boundAttributeSetPool
+        = HashSetPool<BoundAttributeDescriptor>.Create(BoundAttributeDescriptorComparer.Default);
+
+    private static readonly ObjectPool<HashSet<TagMatchingRuleDescriptor>> s_tagMatchingRuleSetPool
+        = HashSetPool<TagMatchingRuleDescriptor>.Create(TagMatchingRuleDescriptorComparer.Default);
+
+    private string? _kind;
+    private string? _name;
+    private string? _assemblyName;
+
+    private DocumentationObject _documentationObject;
+
+    private List<AllowedChildTagDescriptorBuilder>? _allowedChildTags;
+    private List<BoundAttributeDescriptorBuilder>? _attributeBuilders;
+    private List<TagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
+    private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
+    private MetadataHolder _metadata;
+
+    private TagHelperDescriptorBuilder()
     {
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
-        if (assemblyName == null)
-        {
-            throw new ArgumentNullException(nameof(assemblyName));
-        }
-
-        return new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, name, assemblyName);
     }
+
+    internal TagHelperDescriptorBuilder(string kind, string name, string assemblyName)
+        : this()
+    {
+        _kind = kind ?? throw new ArgumentNullException(nameof(kind));
+        _name = name ?? throw new ArgumentNullException(nameof(name));
+        _assemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
+    }
+
+    public static TagHelperDescriptorBuilder Create(string name, string assemblyName)
+        => new(TagHelperConventions.DefaultKind, name, assemblyName);
 
     public static TagHelperDescriptorBuilder Create(string kind, string name, string assemblyName)
+        => new(kind, name, assemblyName);
+
+    public string Kind => _kind.AssumeNotNull();
+    public string Name => _name.AssumeNotNull();
+    public string AssemblyName => _assemblyName.AssumeNotNull();
+    public string? DisplayName { get; set; }
+    public string? TagOutputHint { get; set; }
+    public bool CaseSensitive { get; set; }
+
+    public string? Documentation
     {
-        if (kind == null)
+        get => _documentationObject.GetText();
+        set => _documentationObject = new(value);
+    }
+
+    public IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
+
+    public void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
+
+    public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+        => _metadata.TryGetMetadataValue(key, out value);
+
+    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
+
+    public IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags
+    {
+        get
         {
-            throw new ArgumentNullException(nameof(kind));
+            EnsureAllowedChildTags();
+
+            return _allowedChildTags;
+        }
+    }
+
+    public IReadOnlyList<BoundAttributeDescriptorBuilder> BoundAttributes
+    {
+        get
+        {
+            EnsureAttributeBuilders();
+
+            return _attributeBuilders;
+        }
+    }
+
+    public IReadOnlyList<TagMatchingRuleDescriptorBuilder> TagMatchingRules
+    {
+        get
+        {
+            EnsureTagMatchingRuleBuilders();
+
+            return _tagMatchingRuleBuilders;
+        }
+    }
+
+    public void AllowChildTag(Action<AllowedChildTagDescriptorBuilder> configure)
+    {
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        if (name == null)
+        EnsureAllowedChildTags();
+
+        var builder = AllowedChildTagDescriptorBuilder.GetInstance(this);
+        configure(builder);
+        _allowedChildTags.Add(builder);
+    }
+
+    public void BindAttribute(Action<BoundAttributeDescriptorBuilder> configure)
+    {
+        if (configure == null)
         {
-            throw new ArgumentNullException(nameof(name));
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        if (assemblyName == null)
+        EnsureAttributeBuilders();
+
+        var builder = BoundAttributeDescriptorBuilder.GetInstance(this, Kind);
+        configure(builder);
+        _attributeBuilders.Add(builder);
+    }
+
+    public void TagMatchingRule(Action<TagMatchingRuleDescriptorBuilder> configure)
+    {
+        if (configure == null)
         {
-            throw new ArgumentNullException(nameof(assemblyName));
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        return new DefaultTagHelperDescriptorBuilder(kind, name, assemblyName);
+        EnsureTagMatchingRuleBuilders();
+
+        var builder = TagMatchingRuleDescriptorBuilder.GetInstance(this);
+        configure(builder);
+        _tagMatchingRuleBuilders.Add(builder);
     }
 
-    /// <summary>
-    ///  Retrieves a pooled <see cref="TagHelperDescriptorBuilder"/> instance.
-    /// </summary>
-    /// <remarks>
-    ///  The <see cref="PooledBuilder"/> returned by this method should be disposed
-    ///  to return the <see cref="TagHelperDescriptorBuilder"/> to its pool.
-    ///  The correct way to achieve this is with a using statement:
-    ///
-    /// <code>
-    ///  using var _ = TagHelperDescriptorBuilder.GetPooledInstance(..., out var builder);
-    /// </code>
-    /// 
-    ///  Once disposed, the builder can no longer be used.
-    /// </remarks>
-    public static PooledBuilder GetPooledInstance(
-        string kind, string name, string assemblyName,
-        out TagHelperDescriptorBuilder builder)
+    internal void SetDocumentation(string? text)
     {
-        var defaultBuilder = DefaultTagHelperDescriptorBuilder.GetInstance(kind, name, assemblyName);
-        builder = defaultBuilder;
-        return new(defaultBuilder);
+        _documentationObject = new(text);
     }
 
-    /// <summary>
-    ///  Retrieves a pooled <see cref="TagHelperDescriptorBuilder"/> instance.
-    /// </summary>
-    /// <remarks>
-    ///  The <see cref="PooledBuilder"/> returned by this method should be disposed
-    ///  to return the <see cref="TagHelperDescriptorBuilder"/> to its pool.
-    ///  The correct way to achieve this is with a using statement:
-    ///
-    /// <code>
-    ///  using var _ = TagHelperDescriptorBuilder.GetPooledInstance(..., out var builder);
-    /// </code>
-    /// 
-    ///  Once disposed, the builder can no longer be used.
-    /// </remarks>
-    public static PooledBuilder GetPooledInstance(
-        string name, string assemblyName,
-        out TagHelperDescriptorBuilder builder)
+    internal void SetDocumentation(DocumentationDescriptor? documentation)
     {
-        var defaultBuilder = DefaultTagHelperDescriptorBuilder.GetInstance(name, assemblyName);
-        builder = defaultBuilder;
-        return new(defaultBuilder);
+        _documentationObject = new(documentation);
     }
 
-    public abstract string Name { get; }
-
-    public abstract string AssemblyName { get; }
-
-    public abstract string Kind { get; }
-
-    public abstract string DisplayName { get; set; }
-
-    public abstract string TagOutputHint { get; set; }
-
-    public virtual bool CaseSensitive { get; set; }
-
-    public abstract string Documentation { get; set; }
-
-    public abstract IDictionary<string, string> Metadata { get; }
-
-    public abstract RazorDiagnosticCollection Diagnostics { get; }
-
-    public abstract IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags { get; }
-
-    public abstract IReadOnlyList<BoundAttributeDescriptorBuilder> BoundAttributes { get; }
-
-    public abstract IReadOnlyList<TagMatchingRuleDescriptorBuilder> TagMatchingRules { get; }
-
-    public abstract void AllowChildTag(Action<AllowedChildTagDescriptorBuilder> configure);
-
-    public abstract void BindAttribute(Action<BoundAttributeDescriptorBuilder> configure);
-
-    public abstract void TagMatchingRule(Action<TagMatchingRuleDescriptorBuilder> configure);
-
-    public abstract TagHelperDescriptor Build();
-
-    public abstract void Reset();
-
-#nullable enable
-
-    internal virtual void SetDocumentation(string? text)
+    public TagHelperDescriptor Build()
     {
-        throw new NotImplementedException();
+        using var diagnostics = new PooledHashSet<RazorDiagnostic>();
+
+        diagnostics.UnionWith(_diagnostics);
+
+        var allowedChildTags = _allowedChildTags.BuildAllOrEmpty(s_allowedChildTagSetPool);
+        var tagMatchingRules = _tagMatchingRuleBuilders.BuildAllOrEmpty(s_tagMatchingRuleSetPool);
+        var attributes = _attributeBuilders.BuildAllOrEmpty(s_boundAttributeSetPool);
+
+        _metadata.AddIfMissing(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+        var metadata = _metadata.GetMetadataCollection();
+
+        var descriptor = new TagHelperDescriptor(
+            Kind,
+            Name,
+            AssemblyName,
+            GetDisplayName(),
+            _documentationObject,
+            TagOutputHint,
+            CaseSensitive,
+            tagMatchingRules,
+            attributes,
+            allowedChildTags,
+            metadata,
+            diagnostics.ToImmutableArray());
+
+        return descriptor;
     }
 
-    internal virtual void SetDocumentation(DocumentationDescriptor? documentation)
+    internal string GetDisplayName()
     {
-        throw new NotImplementedException();
+        return DisplayName ?? GetTypeName() ?? Name;
+
+        string? GetTypeName()
+        {
+            return TryGetMetadataValue(TagHelperMetadata.Common.TypeName, out var value)
+                ? value
+                : null;
+        }
     }
 
-    public virtual void SetMetadata(MetadataCollection metadata)
+    [MemberNotNull(nameof(_allowedChildTags))]
+    private void EnsureAllowedChildTags()
     {
-        throw new NotImplementedException();
+        _allowedChildTags ??= new List<AllowedChildTagDescriptorBuilder>();
     }
 
-    public virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+    [MemberNotNull(nameof(_attributeBuilders))]
+    private void EnsureAttributeBuilders()
     {
-        throw new NotImplementedException();
+        _attributeBuilders ??= new List<BoundAttributeDescriptorBuilder>();
     }
 
-    internal virtual MetadataBuilder GetMetadataBuilder(string? runtimeName = null)
+    [MemberNotNull(nameof(_tagMatchingRuleBuilders))]
+    private void EnsureTagMatchingRuleBuilders()
     {
-        throw new NotImplementedException();
+        _tagMatchingRuleBuilders ??= new List<TagMatchingRuleDescriptorBuilder>();
+    }
+
+    internal MetadataBuilder GetMetadataBuilder(string? runtimeName = null)
+    {
+        var metadataBuilder = new MetadataBuilder();
+
+        metadataBuilder.Add(TagHelperMetadata.Runtime.Name, runtimeName ?? TagHelperConventions.DefaultKind);
+
+        return metadataBuilder;
     }
 }

@@ -14,7 +14,7 @@ public partial class BoundAttributeDescriptorBuilder : TagHelperObject, IBuilder
 {
     private static readonly ObjectPool<BoundAttributeDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    internal static BoundAttributeDescriptorBuilder GetInstance(DefaultTagHelperDescriptorBuilder parent, string kind)
+    internal static BoundAttributeDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent, string kind)
     {
         var builder = s_pool.Get();
 
@@ -52,7 +52,7 @@ public partial class BoundAttributeDescriptorBuilder : TagHelperObject, IBuilder
     };
 
     [AllowNull]
-    private DefaultTagHelperDescriptorBuilder _parent;
+    private TagHelperDescriptorBuilder _parent;
     [AllowNull]
     private string _kind;
     private List<BoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
@@ -64,7 +64,7 @@ public partial class BoundAttributeDescriptorBuilder : TagHelperObject, IBuilder
     {
     }
 
-    internal BoundAttributeDescriptorBuilder(DefaultTagHelperDescriptorBuilder parent, string kind)
+    internal BoundAttributeDescriptorBuilder(TagHelperDescriptorBuilder parent, string kind)
     {
         _parent = parent;
         _kind = kind;
