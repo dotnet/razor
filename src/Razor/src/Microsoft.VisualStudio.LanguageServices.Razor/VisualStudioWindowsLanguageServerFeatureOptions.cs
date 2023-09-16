@@ -48,7 +48,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
         _usePreciseSemanticTokenRanges = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
-            var usePreciseSemanticTokenRanges = featureFlags.IsFeatureEnabled(UsePreciseSemanticTokenRangesFeatureFlag, defaultValue: true);
+            var usePreciseSemanticTokenRanges = featureFlags.IsFeatureEnabled(UsePreciseSemanticTokenRangesFeatureFlag, defaultValue: false);
             return usePreciseSemanticTokenRanges;
         });
     }
@@ -57,7 +57,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
 
     // In VS we override the project configuration file name because we don't want our serialized state to clash with other platforms (VSCode)
-    public override string ProjectConfigurationFileName => "project.razor.vs.json";
+    public override string ProjectConfigurationFileName => "project.razor.vs.bin";
 
     public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
 

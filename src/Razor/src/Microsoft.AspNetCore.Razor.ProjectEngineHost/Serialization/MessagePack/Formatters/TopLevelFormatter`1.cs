@@ -43,6 +43,6 @@ internal abstract partial class TopLevelFormatter<T> : IMessagePackFormatter<T>
         }
     }
 
-    protected abstract T Deserialize(ref MessagePackReader reader, SerializerCachingOptions options);
-    protected abstract void Serialize(ref MessagePackWriter writer, T value, SerializerCachingOptions options);
+    public abstract T Deserialize(ref MessagePackReader reader, SerializerCachingOptions options);
+    public abstract void Serialize(ref MessagePackWriter writer, T value, SerializerCachingOptions options);
 }

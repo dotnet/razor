@@ -45,6 +45,43 @@ internal abstract partial class ValueFormatter<T> : IMessagePackFormatter<T>
         throw new InvalidOperationException($"Expected to be given a {nameof(SerializerCachingOptions)} instance.");
     }
 
-    protected abstract T Deserialize(ref MessagePackReader reader, SerializerCachingOptions options);
-    protected abstract void Serialize(ref MessagePackWriter writer, T value, SerializerCachingOptions options);
+    public abstract T Deserialize(ref MessagePackReader reader, SerializerCachingOptions options);
+    public abstract void Serialize(ref MessagePackWriter writer, T value, SerializerCachingOptions options);
+
+    /// <summary>
+    ///  Partially deserializes an object and ensures that any cached references are handled. Descendents should override
+    ///  this method if they support skimming.
+    /// </summary>
+    public virtual void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        throw new NotImplementedException("Formatter does not support skimming.");
+    }
+
+    public void SkimArray(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return;
+        }
+
+        var length = reader.ReadArrayHeader();
+        if (length == 0)
+        {
+            return;
+        }
+
+        options.Security.DepthStep(ref reader);
+        try
+        {
+            for (var i = 0; i < length; i++)
+            {
+                reader.CancellationToken.ThrowIfCancellationRequested();
+                Skim(ref reader, options);
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
+    }
 }

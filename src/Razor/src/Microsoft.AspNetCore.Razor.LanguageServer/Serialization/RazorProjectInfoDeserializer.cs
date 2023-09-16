@@ -3,7 +3,6 @@
 
 using System.IO;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization.Json;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 
@@ -18,11 +17,10 @@ internal sealed class RazorProjectInfoDeserializer : IRazorProjectInfoDeserializ
     public RazorProjectInfo? DeserializeFromFile(string filePath)
     {
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-        using var reader = new StreamReader(stream);
 
         try
         {
-            return JsonDataConvert.DeserializeObject(reader, ObjectReaders.ReadProjectInfoFromProperties);
+            return RazorProjectInfo.DeserializeFrom(stream);
         }
         catch
         {

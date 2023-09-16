@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -776,6 +777,86 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Fact]
+    public async Task GetSemanticTokens_CSharp_LargeFile()
+    {
+        var start = """
+                @page
+                @model SampleApp.Pages.ErrorModel
+                @using System
+
+                <!DOCTYPE html>
+                <html lang="en">
+
+                <head>
+                    <meta charset="utf-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+                    <title>Error</title>
+                    <link href="~/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+                    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
+                </head>
+
+                <body>
+                """;
+        var middle = """
+                    <div class="@cssClass">
+                        <div class="content px-4">
+                            @using System
+                            <h1 class="text-danger">Error.</h1>
+                            <h2 class="text-danger">An error occurred while processing your request.</h2>
+
+                            @if (Model.ShowRequestId)
+                            {
+                                <p>
+                                    <strong>Request ID:</strong> <code>@Model.RequestId</code>
+                                </p>
+                            }
+
+                            <h3>Development Mode</h3>
+                            @if (true)
+                            {
+                                <p>
+                                    Swapping to the <strong>@DateTime.Now</strong> environment displays detailed information about the error that occurred.
+                                </p>
+                            }
+                            <p>
+                                @if (false)
+                                {
+                                    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
+                                }
+                                It can result in displaying sensitive information from exceptions to end users.
+                                @if (true)
+                                {
+                                    <text>For local debugging, enable the <strong>@Environment.NewLine</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
+                                    and restarting the app.</text>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                """;
+        var end = """
+                </body>
+
+                </html>
+                """;
+
+        var builder = new StringBuilder();
+        builder.AppendLine(start);
+        for (var i = 0; i < 100; i++)
+        {
+            builder.AppendLine(middle);
+        }
+
+        builder.AppendLine(end);
+
+        var documentText = builder.ToString();
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
+    }
+
+    [Fact]
     public async Task GetSemanticTokens_CSharp_Static_WithBackground()
     {
         var documentText = """
@@ -935,7 +1016,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
             for (var i = 0; i < csharpRanges.Length; i++)
             {
                 var csharpRange = csharpRanges[i];
-                var textSpan = csharpRange.AsTextSpan(csharpSourceText);
+                var textSpan = csharpRange.ToTextSpan(csharpSourceText);
                 Assert.Equal(expectedCsharpRangeLengths[i], textSpan.Length);
             }
         }
@@ -943,7 +1024,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         {
             var expectedCsharpRangeLength = 970;
             Assert.True(RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out var csharpRange));
-            var textSpan = csharpRange.AsTextSpan(csharpSourceText);
+            var textSpan = csharpRange.ToTextSpan(csharpSourceText);
             Assert.Equal(expectedCsharpRangeLength, textSpan.Length);
         }
     }

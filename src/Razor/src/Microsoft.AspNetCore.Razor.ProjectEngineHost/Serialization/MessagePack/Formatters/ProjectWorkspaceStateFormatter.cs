@@ -4,8 +4,12 @@
 using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
@@ -17,21 +21,46 @@ internal sealed class ProjectWorkspaceStateFormatter : ValueFormatter<ProjectWor
     {
     }
 
-    protected override ProjectWorkspaceState Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override ProjectWorkspaceState Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        reader.ReadArrayHeaderAndVerify(2);
+        reader.ReadArrayHeaderAndVerify(3);
 
-        var tagHelpers = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(options);
+        var checksums = reader.Deserialize<ImmutableArray<Checksum>>(options);
+
+        reader.ReadArrayHeaderAndVerify(checksums.Length);
+
+        using var builder = new PooledArrayBuilder<TagHelperDescriptor>(capacity: checksums.Length);
+        var cache = TagHelperCache.Default;
+
+        foreach (var checksum in checksums)
+        {
+            if (!cache.TryGet(checksum, out var tagHelper))
+            {
+                tagHelper = TagHelperFormatter.Instance.Deserialize(ref reader, options);
+                cache.TryAdd(checksum, tagHelper);
+            }
+            else
+            {
+                TagHelperFormatter.Instance.Skim(ref reader, options);
+            }
+
+            builder.Add(tagHelper);
+        }
+
+        var tagHelpers = builder.DrainToImmutable();
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
 
         return new ProjectWorkspaceState(tagHelpers, csharpLanguageVersion);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, ProjectWorkspaceState value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, ProjectWorkspaceState value, SerializerCachingOptions options)
     {
-        writer.WriteArrayHeader(2);
+        writer.WriteArrayHeader(3);
 
-        writer.SerializeObject(value.TagHelpers, options);
+        var checksums = value.TagHelpers.SelectAsArray(x => x.GetChecksum());
+
+        writer.Serialize(checksums, options);
+        writer.Serialize(value.TagHelpers, options);
         writer.Write((int)value.CSharpLanguageVersion);
     }
 }
