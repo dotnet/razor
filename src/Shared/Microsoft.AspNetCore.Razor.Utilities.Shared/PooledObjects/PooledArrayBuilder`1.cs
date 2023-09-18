@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -19,9 +20,10 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 ///  For very small arrays of length 4 or less, the elements will be stored on the stack. If the array
 ///  grows larger than 4 elements, a builder will be employed.
 /// </summary>
+[NonCopyable]
 internal partial struct PooledArrayBuilder<T> : IDisposable
 {
-    public static readonly PooledArrayBuilder<T> Empty = default;
+    public static PooledArrayBuilder<T> Empty => default;
 
     /// <summary>
     ///  The number of items that can be stored inline.
@@ -61,12 +63,14 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     private PooledArrayBuilder(in PooledArrayBuilder<T> builder)
     {
         // This is an intentional copy used to create an Enumerator.
+#pragma warning disable RS0042
         this = builder;
+#pragma warning restore RS0042
     }
 
     public void Dispose()
     {
-        // Return _builder to the pool if necesary. Note that we don't need to clear the inline elements here
+        // Return _builder to the pool if necessary. Note that we don't need to clear the inline elements here
         // because this type is intended to be allocated on the stack and the GC can reclaim objects from the
         // stack after the last use of a reference to them.
         ArrayBuilderPool<T>.Default.ReturnAndClear(ref _builder);
@@ -123,6 +127,12 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
             SetInlineElement(index, value);
         }
+    }
+
+    public T this[Index index]
+    {
+        readonly get => this[index.GetOffset(Count)];
+        set => this[index.GetOffset(Count)] = value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -217,7 +227,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         if (!items.TryGetCount(out var count))
         {
             // We can't retrieve a count, so we have to enumerate the elements.
-            AddRangeSlow(this, items);
+            AddRangeSlow(ref this.AsRef(), items);
             return;
         }
 
@@ -244,7 +254,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             _builder.AddRange(items);
         }
 
-        static void AddRangeSlow(in PooledArrayBuilder<T> @this, IEnumerable<T> items)
+        static void AddRangeSlow(ref PooledArrayBuilder<T> @this, IEnumerable<T> items)
         {
             if (@this._builder is { } builder)
             {
@@ -291,7 +301,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             ThrowIndexOutOfRangeException();
         }
 
-        // Copy inline elements dependening on the index to be removed.
+        // Copy inline elements depending on the index to be removed.
         switch (index)
         {
             case 0:
@@ -313,6 +323,9 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         ClearInlineElement(_inlineCount);
         _inlineCount--;
     }
+
+    public void RemoveAt(Index index)
+        => RemoveAt(index.GetOffset(Count));
 
     /// <summary>
     ///  Returns the current contents as an <see cref="ImmutableArray{T}"/> and sets
@@ -394,8 +407,10 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public T Pop()
     {
-        var item = this[^1];
-        RemoveAt(Count - 1);
+        var index = ^1;
+        var item = this[index];
+        RemoveAt(index);
+
         return item;
     }
 
@@ -412,7 +427,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     }
 
     /// <summary>
-    ///  This is present to help the JIT with inlining methods that need to throw
+    ///  This is present to help the JIT inline methods that need to throw
     ///  a <see cref="IndexOutOfRangeException"/>.
     /// </summary>
     [DoesNotReturn]

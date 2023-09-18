@@ -1,10 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Razor.Utilities;
+
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 internal partial struct PooledArrayBuilder<T>
 {
+    [NonCopyable]
     public struct Enumerator(in PooledArrayBuilder<T> builder)
     {
         // Enumerate a copy of the original.
