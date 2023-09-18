@@ -71,6 +71,8 @@
     <MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>4.8.0-1.23415.13</MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>4.8.0-1.23415.13</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
     <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.8.0-1.23415.13</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
+    <MicrosoftCodeAnalysisCSharpAnalyzerTestingXUnitPackageVersion>1.1.2-beta1.23431.1</MicrosoftCodeAnalysisCSharpAnalyzerTestingXUnitPackageVersion>
+    <MicrosoftCodeAnalysisTestingVerifiersXUnitPackageVersion>1.1.2-beta1.23431.1</MicrosoftCodeAnalysisTestingVerifiersXUnitPackageVersion>
     <MicrosoftVisualStudioLanguageServicesPackageVersion>4.8.0-1.23415.13</MicrosoftVisualStudioLanguageServicesPackageVersion>
     <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23426.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!--

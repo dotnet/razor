@@ -227,7 +227,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         if (!items.TryGetCount(out var count))
         {
             // We can't retrieve a count, so we have to enumerate the elements.
-            AddRangeSlow(ref this.AsRef(), items);
+            AddRangeSlow(ref this, items);
             return;
         }
 
