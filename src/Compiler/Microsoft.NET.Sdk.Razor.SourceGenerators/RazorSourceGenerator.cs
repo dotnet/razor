@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -167,6 +168,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     // Note: compilation.References just enumerates compilation.ExternalReferences and compilation.DirectiveReferences.
                     if (compilation.ExternalReferences is [] && compilation.DirectiveReferences is [])
                     {
+                        Debug.Assert(
+                            !compilation.References.Any(),
+                            "Compilation.References returns references other than ExternalReferences and DirectiveReferences");
                         return null;
                     }
 
