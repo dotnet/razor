@@ -272,7 +272,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath, kind);
                         return (filePath, document);
                     });
-                }
+            }
 
             var csharpDocuments = processed(designTime: false)
                 .Select(static (pair, _) =>
