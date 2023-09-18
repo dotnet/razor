@@ -37,7 +37,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 List<TagHelperDescriptor>? tagHelpersFromCompilation,
                 List<TagHelperDescriptor>? tagHelpersFromReferences)
             {
-                return tagHelpersFromCompilation is [] && tagHelpersFromReferences is []
+                return tagHelpersFromCompilation is null or [] && tagHelpersFromReferences is null or []
                     ? Empty
                     : new(tagHelpersFromCompilation, tagHelpersFromReferences);
             }
