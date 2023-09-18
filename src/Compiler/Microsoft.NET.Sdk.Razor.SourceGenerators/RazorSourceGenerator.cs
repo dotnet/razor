@@ -124,7 +124,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
                     var results = new List<TagHelperDescriptor>();
 
-                    tagHelperFeature.GetDescriptors(compilation.Assembly, results);
+                    tagHelperFeature.CollectDescriptors(compilation.Assembly, results);
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStop();
 
@@ -184,7 +184,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     {
                         if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                         {
-                            tagHelperFeature.GetDescriptors(assembly, results);
+                            tagHelperFeature.CollectDescriptors(assembly, results);
                         }
                     }
 

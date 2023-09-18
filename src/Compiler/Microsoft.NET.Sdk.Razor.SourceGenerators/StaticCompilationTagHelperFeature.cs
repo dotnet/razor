@@ -15,8 +15,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
     {
         private ImmutableArray<ITagHelperDescriptorProvider> _providers;
 
-        public void GetDescriptors(ISymbol? targetSymbol, List<TagHelperDescriptor> results)
+        public void CollectDescriptors(ISymbol? targetSymbol, List<TagHelperDescriptor> results)
         {
+            if (_providers.IsDefault)
+            {
+                return;
+            }
+
             var context = TagHelperDescriptorProviderContext.Create(results);
             context.SetCompilation(compilation);
 
@@ -34,7 +39,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         IReadOnlyList<TagHelperDescriptor> ITagHelperFeature.GetDescriptors()
         {
             var results = new List<TagHelperDescriptor>();
-            GetDescriptors(targetSymbol: null, results);
+            CollectDescriptors(targetSymbol: null, results);
 
             return results;
         }
