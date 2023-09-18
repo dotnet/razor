@@ -164,7 +164,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     }
 
                     // If there aren't any references, we can bail out early.
-                    // Note: compilation.References just enuemrators compilation.ExternalReferences and compilation.DirectiveReferences.
+                    // Note: compilation.References just enumerates compilation.ExternalReferences and compilation.DirectiveReferences.
                     if (compilation.ExternalReferences is [] && compilation.DirectiveReferences is [])
                     {
                         return null;
@@ -172,7 +172,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
 
-                    // Typically a project with Razor files will have maany tag helpers in references/
+                    // Typically a project with Razor files will have many tag helpers in references.
                     // So, we start with a larger capacity to avoid extra array copies.
                     var results = new List<TagHelperDescriptor>(capacity: 128);
 

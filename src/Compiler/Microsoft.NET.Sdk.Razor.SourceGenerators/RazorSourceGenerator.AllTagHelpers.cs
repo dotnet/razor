@@ -11,7 +11,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
     public partial class RazorSourceGenerator
     {
         /// <summary>
-        ///  Helper class that joins together two lists of tag heleprs to avoids allocating
+        ///  Helper class that joins together two lists of tag helpers to avoid allocating
         ///  a new array to copy them to.
         /// </summary>
         private sealed class AllTagHelpers : IReadOnlyList<TagHelperDescriptor>
