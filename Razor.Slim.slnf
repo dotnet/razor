@@ -45,9 +45,9 @@
       "src\\Razor\\test\\Microsoft.VisualStudio.LanguageServices.Razor.Test\\Microsoft.VisualStudio.LanguageServices.Razor.Test.csproj",
       "src\\Razor\\test\\Microsoft.VisualStudio.LiveShare.Razor.Test\\Microsoft.VisualStudio.LiveShare.Razor.Test.csproj",
       "src\\Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared.Test\\Microsoft.AspNetCore.Razor.Utilities.Shared.Test.csproj",
-      "src\\Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj"
-      "src\\Shared\\Razor.Diagnostics.Analyzers\\Razor.Diagnostics.Analyzers.csproj",
+      "src\\Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj",
       "src\\Shared\\Razor.Diagnostics.Analyzers.Test\\Razor.Diagnostics.Analyzers.Test.csproj",
+      "src\\Shared\\Razor.Diagnostics.Analyzers\\Razor.Diagnostics.Analyzers.csproj"
     ]
   }
 }
