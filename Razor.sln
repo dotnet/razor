@@ -172,10 +172,13 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Utilities.Shared.Test", "src\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.Test\Microsoft.AspNetCore.Razor.Utilities.Shared.Test.csproj", "{7275F376-1B63-49D3-8078-0F7CA15CC637}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Utilities.Shared", "src\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj", "{BAFE178B-7AD4-41AE-A75D-9B920B9EA050}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7E1535D1-1896-406D-A58C-E734FBA482FE} = {7E1535D1-1896-406D-A58C-E734FBA482FE}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Razor.Diagnostics.Analyzers", "src\Shared\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj", "{7E1535D1-1896-406D-A58C-E734FBA482FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Diagnostics.Analyzers", "src\Shared\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj", "{7E1535D1-1896-406D-A58C-E734FBA482FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Razor.Diagnostics.Analyzers.Test", "src\Shared\Razor.Diagnostics.Analyzers.Test\Razor.Diagnostics.Analyzers.Test.csproj", "{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Diagnostics.Analyzers.Test", "src\Shared\Razor.Diagnostics.Analyzers.Test\Razor.Diagnostics.Analyzers.Test.csproj", "{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

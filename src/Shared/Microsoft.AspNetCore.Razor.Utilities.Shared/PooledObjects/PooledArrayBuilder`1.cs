@@ -77,7 +77,11 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         // Return _builder to the pool if necessary. Note that we don't need to clear the inline elements here
         // because this type is intended to be allocated on the stack and the GC can reclaim objects from the
         // stack after the last use of a reference to them.
-        ArrayBuilderPool<T>.Default.ReturnAndClear(ref _builder);
+        if (_builder is { } builder)
+        {
+            ArrayBuilderPool<T>.Default.Return(builder);
+            _builder = null;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -299,7 +303,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             return;
         }
 
-        if (index < 0 || index > _inlineCount)
+        if (index < 0 || index >= _inlineCount)
         {
             ThrowIndexOutOfRangeException();
         }
@@ -309,13 +313,27 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         {
             case 0:
                 _element0 = _element1;
-                _element1 = _element2;
-                _element2 = _element3;
+
+                if (_inlineCount > 1)
+                {
+                    _element1 = _element2;
+                }
+
+                if (_inlineCount > 2)
+                {
+                    _element2 = _element3;
+                }
+
                 break;
 
             case 1:
                 _element1 = _element2;
-                _element2 = _element3;
+
+                if (_inlineCount > 2)
+                {
+                    _element2 = _element3;
+                }
+
                 break;
 
             case 2:
@@ -323,7 +341,13 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
                 break;
         }
 
-        ClearInlineElement(_inlineCount);
+        // Clear the last element if necessary.
+        if (_inlineCount > 3)
+        {
+            ClearInlineElement(3);
+        }
+
+        // Decrement the count.
         _inlineCount--;
     }
 

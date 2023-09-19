@@ -495,7 +495,7 @@ internal abstract partial class SyntaxNode
 
                 // Walk backwards until we find a non-whitespace token. We accomplish this by looking up the stack and walking nodes backwards from where we
                 // were located.
-                if (tryWalkBackwards(in stack.AsRef(), out foundToken))
+                if (tryWalkBackwards(ref stack.AsRef(), out foundToken))
                 {
                     return foundToken;
                 }
@@ -504,7 +504,7 @@ internal abstract partial class SyntaxNode
                 return walkForward(ref stack.AsRef());
             }
 
-            bool tryWalkBackwards(in PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack, [NotNullWhen(true)] out SyntaxToken? foundToken)
+            bool tryWalkBackwards(ref PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack, [NotNullWhen(true)] out SyntaxToken? foundToken)
             {
                 // Can't just pop the stack, we may need to rewalk from the start to find the next node if this fails
                 for (var originalStackPosition = stack.Count - 1; originalStackPosition >= 0; originalStackPosition--)
