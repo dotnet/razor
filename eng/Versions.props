@@ -168,7 +168,7 @@
     <!-- Compiler Deps -->
     <DiffPlexVersion>1.5.0</DiffPlexVersion>
     <FluentAssertionsVersion>6.7.0</FluentAssertionsVersion>
-    <MicrosoftAspNetCoreAppVersion>7.0.9</MicrosoftAspNetCoreAppVersion>
+    <MicrosoftAspNetCoreAppVersion>8.0.0-rc.1.23421.29</MicrosoftAspNetCoreAppVersion>
     <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildVersion>17.3.0-preview-22364-05</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>$(MicrosoftBuildVersion)</MicrosoftBuildFrameworkVersion>
