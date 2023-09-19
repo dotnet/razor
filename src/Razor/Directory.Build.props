@@ -9,7 +9,7 @@
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(Tooling_RoslynDiagnosticsAnalyzersPackageVersion)" />
 
     <Analyzer Condition="'$(IsApiShim)' != 'true'"
-              Include="$(ArtifactsBinDir)\Razor.Diagnostics.Analyzers\$(Configuration)\netstandard2.0\Razor.Diagnostics.Analyzers.dll"  />
+              Include="$(ArtifactsBinDir)Razor.Diagnostics.Analyzers\$(Configuration)\netstandard2.0\Razor.Diagnostics.Analyzers.dll"  />
   </ItemGroup>
 
 </Project>

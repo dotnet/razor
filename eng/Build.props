@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectToBuild Include="$(RepoRoot)src\Analyzers\Analyzers.sln" BuildInParallel="false" />
+
     <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\Razor.sln" />
 
     <!-- Exclude VSIX projects on non-Windows -->

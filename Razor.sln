@@ -172,13 +172,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Utilities.Shared.Test", "src\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.Test\Microsoft.AspNetCore.Razor.Utilities.Shared.Test.csproj", "{7275F376-1B63-49D3-8078-0F7CA15CC637}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Utilities.Shared", "src\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj", "{BAFE178B-7AD4-41AE-A75D-9B920B9EA050}"
-	ProjectSection(ProjectDependencies) = postProject
-		{7E1535D1-1896-406D-A58C-E734FBA482FE} = {7E1535D1-1896-406D-A58C-E734FBA482FE}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Diagnostics.Analyzers", "src\Shared\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj", "{7E1535D1-1896-406D-A58C-E734FBA482FE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Diagnostics.Analyzers.Test", "src\Shared\Razor.Diagnostics.Analyzers.Test\Razor.Diagnostics.Analyzers.Test.csproj", "{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -724,22 +717,6 @@ Global
 		{BAFE178B-7AD4-41AE-A75D-9B920B9EA050}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BAFE178B-7AD4-41AE-A75D-9B920B9EA050}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{BAFE178B-7AD4-41AE-A75D-9B920B9EA050}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
-		{7E1535D1-1896-406D-A58C-E734FBA482FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E1535D1-1896-406D-A58C-E734FBA482FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7E1535D1-1896-406D-A58C-E734FBA482FE}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E1535D1-1896-406D-A58C-E734FBA482FE}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
-		{7E1535D1-1896-406D-A58C-E734FBA482FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7E1535D1-1896-406D-A58C-E734FBA482FE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7E1535D1-1896-406D-A58C-E734FBA482FE}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
-		{7E1535D1-1896-406D-A58C-E734FBA482FE}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}.Release|Any CPU.Build.0 = Release|Any CPU
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -819,8 +796,6 @@ Global
 		{4126E0A6-1CA9-44B1-AD22-66EDB9FEE7AD} = {92463391-81BE-462B-AC3C-78C6C760741F}
 		{7275F376-1B63-49D3-8078-0F7CA15CC637} = {3AE210D1-C435-4693-BF79-2EF13ED554B9}
 		{BAFE178B-7AD4-41AE-A75D-9B920B9EA050} = {3AE210D1-C435-4693-BF79-2EF13ED554B9}
-		{7E1535D1-1896-406D-A58C-E734FBA482FE} = {3AE210D1-C435-4693-BF79-2EF13ED554B9}
-		{66744CCD-2F35-494F-9A1C-8FC3CE1EF729} = {3AE210D1-C435-4693-BF79-2EF13ED554B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0035341D-175A-4D05-95E6-F1C2785A1E26}
