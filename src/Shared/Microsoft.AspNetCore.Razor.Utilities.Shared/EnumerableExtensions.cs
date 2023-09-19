@@ -31,7 +31,13 @@ internal static class EnumerableExtensions
     }
 
     public static bool TryGetCount<T>(this IEnumerable<T> sequence, out int count)
-        => TryGetCount<T>((IEnumerable)sequence, out count);
+    {
+#if NET6_0_OR_GREATER
+        return Linq.Enumerable.TryGetNonEnumeratedCount(sequence, out count);
+#else
+        return TryGetCount<T>((IEnumerable)sequence, out count);
+#endif
+    }
 
     public static bool TryGetCount<T>(this IEnumerable sequence, out int count)
     {

@@ -18,7 +18,7 @@ internal static partial class Extensions
     public static void ReturnAndClear<T>(this ObjectPool<T> pool, ref T? obj)
         where T : class
     {
-        if (Interlocked.Exchange(ref obj, null) is { } o)
+        if (Interlocked.Exchange(ref obj, null) is T o)
         {
             pool.Return(o);
         }

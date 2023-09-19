@@ -18,7 +18,8 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 ///
 ///  There is significant effort to avoid retrieving the <see cref="ImmutableArray{T}.Builder"/>.
 ///  For very small arrays of length 4 or less, the elements will be stored on the stack. If the array
-///  grows larger than 4 elements, a builder will be employed.
+///  grows larger than 4 elements, a builder will be employed. Afterward, the build will
+///  continue to be used, even if the arrays shrinks and has fewer than 4 elements.
 /// </summary>
 [NonCopyable]
 internal partial struct PooledArrayBuilder<T> : IDisposable
@@ -31,7 +32,10 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     private const int InlineCapacity = 4;
 
     /// <summary>
-    ///  A builder used as storage when the number of items exceeds 4 elements.
+    ///  A builder to be used as storage after the first time that the number
+    ///  of items exceeds <see cref="InlineCapacity"/>. Once the builder is used,
+    ///  it is still used even if the number of items shrinks below <see cref="InlineCapacity"/>.
+    ///  Essentially, if this field is non-null, it will be used as storage.
     /// </summary>
     private ImmutableArray<T>.Builder? _builder;
 
@@ -145,7 +149,8 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             0 => _element0,
             1 => _element1,
             2 => _element2,
-            _ => _element3,
+            3 => _element3,
+            _ => Assumed.Unreachable<T>()
         };
     }
 
@@ -168,8 +173,12 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
                 _element2 = value;
                 break;
 
-            default:
+            case 3:
                 _element3 = value;
+                break;
+
+            default:
+                Assumed.Unreachable();
                 break;
         }
     }
@@ -224,24 +233,32 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public void AddRange(IEnumerable<T> items)
     {
+        if (_builder is { } builder)
+        {
+            builder.AddRange(items);
+            return;
+        }
+
         if (!items.TryGetCount(out var count))
         {
-            // We can't retrieve a count, so we have to enumerate the elements.
-            AddRangeSlow(ref this, items);
+            // We couldn't retrieve a count, so we have to enumerate the elements.
+            foreach (var item in items)
+            {
+                Add(item);
+            }
+
             return;
         }
 
         if (count == 0)
         {
+            // No items, so there's nothing to do.
             return;
         }
 
-        if (_builder is { } builder)
+        if (_inlineCount + count <= InlineCapacity)
         {
-            builder.AddRange(items);
-        }
-        else if (_inlineCount + count <= InlineCapacity)
-        {
+            // The items can fit into our inline elements.
             foreach (var item in items)
             {
                 SetInlineElement(_inlineCount, item);
@@ -250,23 +267,9 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
         else
         {
+            // The items can't fit into our inline elements, so we switch to a builder.
             MoveInlineItemsToBuilder();
             _builder.AddRange(items);
-        }
-
-        static void AddRangeSlow(ref PooledArrayBuilder<T> @this, IEnumerable<T> items)
-        {
-            if (@this._builder is { } builder)
-            {
-                builder.AddRange(items);
-            }
-            else
-            {
-                foreach (var item in items)
-                {
-                    @this.Add(item);
-                }
-            }
         }
     }
 
