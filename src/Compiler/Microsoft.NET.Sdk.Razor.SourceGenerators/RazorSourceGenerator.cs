@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -161,16 +160,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     {
                         // If there's no razor code in this app, don't do anything.
                         RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStop();
-                        return null;
-                    }
-
-                    // If there aren't any references, we can bail out early.
-                    // Note: compilation.References just enumerates compilation.ExternalReferences and compilation.DirectiveReferences.
-                    if (compilation.ExternalReferences is [] && compilation.DirectiveReferences is [])
-                    {
-                        Debug.Assert(
-                            !compilation.References.Any(),
-                            "Compilation.References returns references other than ExternalReferences and DirectiveReferences");
                         return null;
                     }
 
