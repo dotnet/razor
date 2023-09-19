@@ -8,8 +8,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion)" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(Tooling_RoslynDiagnosticsAnalyzersPackageVersion)" />
 
-    <Analyzer Condition="'$(IsApiShim)' != 'true'"
-              Include="$(ArtifactsBinDir)Razor.Diagnostics.Analyzers\$(Configuration)\netstandard2.0\Razor.Diagnostics.Analyzers.dll"  />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Analyzers\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

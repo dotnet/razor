@@ -41,6 +41,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="All" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="All" />
 
-    <Analyzer Include="$(ArtifactsBinDir)Razor.Diagnostics.Analyzers\$(Configuration)\netstandard2.0\Razor.Diagnostics.Analyzers.dll"  />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Analyzers\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
   </ItemGroup>
 </Project>

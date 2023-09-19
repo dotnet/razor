@@ -2,6 +2,8 @@
   "solution": {
     "path": "Razor.sln",
     "projects": [
+      "src\\Analyzers\\Razor.Diagnostics.Analyzers\\Razor.Diagnostics.Analyzers.csproj",
+      "src\\Analyzers\\Razor.Diagnostics.Analyzers.Test\\Razor.Diagnostics.Analyzers.Test.csproj",
       "src\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\\src\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.csproj",
       "src\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\\test\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.Test.csproj",
       "src\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\\src\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.csproj",
