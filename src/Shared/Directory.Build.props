@@ -19,8 +19,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion)" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(Tooling_RoslynDiagnosticsAnalyzersPackageVersion)" />
 
-    <Analyzer Condition="'$(ProjectName)' != 'Razor.Diagnostics.Analyzers' AND '$(ProjectName)' != 'Razor.Diagnostics.Analyzers.Test'"
-              Include="$(ArtifactsBinDir)Razor.Diagnostics.Analyzers\$(Configuration)\netstandard2.0\Razor.Diagnostics.Analyzers.dll"  />
+    <Analyzer Include="$(ArtifactsBinDir)Razor.Diagnostics.Analyzers\$(Configuration)\netstandard2.0\Razor.Diagnostics.Analyzers.dll"  />
   </ItemGroup>
 
 </Project>
