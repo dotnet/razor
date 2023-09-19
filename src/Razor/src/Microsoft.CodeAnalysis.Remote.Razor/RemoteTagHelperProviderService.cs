@@ -1,65 +1,159 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.ServiceHub.Framework;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemoteTagHelperProviderService
 {
+    private readonly RemoteTagHelperResolver _tagHelperResolver;
     private readonly RemoteTagHelperDeltaProvider _tagHelperDeltaProvider;
 
     internal RemoteTagHelperProviderService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
-        : base(serviceBroker, telemetryReporter)
+        : base(serviceBroker)
     {
+        _tagHelperResolver = new RemoteTagHelperResolver(telemetryReporter);
         _tagHelperDeltaProvider = new RemoteTagHelperDeltaProvider();
     }
 
-    public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, CancellationToken cancellationToken = default)
-        => RazorBrokeredServiceImplementation.RunServiceAsync(cancellationToken => GetTagHelpersCoreAsync(solutionInfo, projectHandle, factoryTypeName, cancellationToken), cancellationToken);
+    public ValueTask<FetchTagHelpersResult> FetchTagHelpersAsync(
+        RazorPinnedSolutionInfoWrapper solutionInfo,
+        ProjectSnapshotHandle projectHandle,
+        string factoryTypeName,
+        ImmutableArray<Checksum> checksums,
+        CancellationToken cancellationToken)
+        => RazorBrokeredServiceImplementation.RunServiceAsync(
+            solutionInfo,
+            ServiceBrokerClient,
+            solution => FetchTagHelpersCoreAsync(solution, projectHandle, factoryTypeName, checksums, cancellationToken),
+            cancellationToken);
 
-    public ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string? factoryTypeName, int lastResultId, CancellationToken cancellationToken)
-        => RazorBrokeredServiceImplementation.RunServiceAsync(cancellationToken => GetTagHelpersDeltaCoreAsync(solutionInfo, projectHandle, factoryTypeName, lastResultId, cancellationToken), cancellationToken);
-
-    private async ValueTask<TagHelperResolutionResult> GetTagHelpersCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string? factoryTypeName, CancellationToken cancellationToken)
+    private async ValueTask<FetchTagHelpersResult> FetchTagHelpersCoreAsync(
+        Solution solution,
+        ProjectSnapshotHandle projectHandle,
+        string factoryTypeName,
+        ImmutableArray<Checksum> checksums,
+        CancellationToken cancellationToken)
     {
-        if (projectHandle is null)
+        if (!TryGetCachedTagHelpers(checksums, out var tagHelpers))
         {
-            throw new ArgumentNullException(nameof(projectHandle));
+            // If one or more of the tag helpers aren't in the cache, we'll need to re-compute them from the project.
+            // In practice, this shouldn't happen because FetchTagHelpersAsync(...) is normally called immediately after
+            // calling GetTagHeleprsDeltaAsync(...), which caches the tag helpers it computes.
+
+            if (solution.GetProject(projectHandle.ProjectId) is not Project workspaceProject)
+            {
+                // This is bad. In this case, we're being asked to retrieve tag helpers for a project that no longer exists.
+                // The best we can do is just return an empty array.
+                return FetchTagHelpersResult.Empty;
+            }
+
+            // Compute the latest tag helpers and add them all to the cache.
+            var latestTagHelpers = await _tagHelperResolver
+                .GetTagHelpersAsync(workspaceProject, projectHandle.Configuration, factoryTypeName, cancellationToken)
+                .ConfigureAwait(false);
+
+            var cache = TagHelperCache.Default;
+
+            foreach (var tagHelper in latestTagHelpers)
+            {
+                cache.TryAdd(tagHelper.GetChecksum(), tagHelper);
+            }
+
+            // Finally, try to retrieve our cached tag helpers
+            if (!TryGetCachedTagHelpers(checksums, out tagHelpers))
+            {
+                // This is extra bad and should not happen. Again, we'll return an empty array and let the client deal with it.
+                return FetchTagHelpersResult.Empty;
+            }
         }
 
-        if (string.IsNullOrEmpty(factoryTypeName))
+        return new FetchTagHelpersResult(tagHelpers);
+
+        static bool TryGetCachedTagHelpers(ImmutableArray<Checksum> checksums, out ImmutableArray<TagHelperDescriptor> tagHelpers)
         {
-            throw new ArgumentException($"'{nameof(factoryTypeName)}' cannot be null or empty.", nameof(factoryTypeName));
+            using var builder = new PooledArrayBuilder<TagHelperDescriptor>(capacity: checksums.Length);
+            var cache = TagHelperCache.Default;
+
+            foreach (var checksum in checksums)
+            {
+                if (!cache.TryGet(checksum, out var tagHelper))
+                {
+                    tagHelpers = ImmutableArray<TagHelperDescriptor>.Empty;
+                    return false;
+                }
+
+                builder.Add(tagHelper);
+            }
+
+            tagHelpers = builder.DrainToImmutable();
+            return true;
         }
-
-        // We should replace the below call: https://github.com/dotnet/razor-tooling/issues/6316
-#pragma warning disable CS0618 // Type or member is obsolete
-        var solution = await solutionInfo.GetSolutionAsync(ServiceBrokerClient, cancellationToken).ConfigureAwait(false);
-#pragma warning restore CS0618 // Type or member is obsolete
-        var workspaceProject = solution.GetProject(projectHandle.ProjectId);
-
-        if (workspaceProject is null)
-        {
-            return TagHelperResolutionResult.Empty;
-        }
-
-        return await RazorServices.TagHelperResolver.GetTagHelpersAsync(workspaceProject, projectHandle.Configuration, factoryTypeName, cancellationToken).ConfigureAwait(false);
     }
 
-    public async ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string? factoryTypeName, int lastResultId, CancellationToken cancellationToken)
-    {
-        var tagHelperResolutionResult = await GetTagHelpersCoreAsync(solutionInfo, projectHandle, factoryTypeName, cancellationToken).ConfigureAwait(false);
-        var currentTagHelpers = tagHelperResolutionResult.Descriptors;
+    public ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaAsync(
+        RazorPinnedSolutionInfoWrapper solutionInfo,
+        ProjectSnapshotHandle projectHandle,
+        string factoryTypeName,
+        int lastResultId,
+        CancellationToken cancellationToken)
+        => RazorBrokeredServiceImplementation.RunServiceAsync(
+            solutionInfo,
+            ServiceBrokerClient,
+            solution => GetTagHelpersDeltaCoreAsync(solution, projectHandle, factoryTypeName, lastResultId, cancellationToken),
+            cancellationToken);
 
-        return _tagHelperDeltaProvider.GetTagHelpersDelta(projectHandle.ProjectId, lastResultId, currentTagHelpers);
+    private async ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaCoreAsync(
+        Solution solution,
+        ProjectSnapshotHandle projectHandle,
+        string factoryTypeName,
+        int lastResultId,
+        CancellationToken cancellationToken)
+    {
+        ImmutableArray<Checksum> checksums;
+
+        if (solution.GetProject(projectHandle.ProjectId) is not Project workspaceProject)
+        {
+            checksums = ImmutableArray<Checksum>.Empty;
+        }
+        else
+        {
+            var tagHelpers = await _tagHelperResolver
+                .GetTagHelpersAsync(workspaceProject, projectHandle.Configuration, factoryTypeName, cancellationToken)
+                .ConfigureAwait(false);
+
+            checksums = GetChecksums(tagHelpers);
+        }
+
+        return _tagHelperDeltaProvider.GetTagHelpersDelta(projectHandle.ProjectId, lastResultId, checksums);
+
+        static ImmutableArray<Checksum> GetChecksums(ImmutableArray<TagHelperDescriptor> tagHelpers)
+        {
+            using var builder = new PooledArrayBuilder<Checksum>(capacity: tagHelpers.Length);
+
+            // Add each tag helpers to the cache so that we can retrieve them later if needed.
+            var cache = TagHelperCache.Default;
+
+            foreach (var tagHelper in tagHelpers)
+            {
+                var checksum = tagHelper.GetChecksum();
+                builder.Add(checksum);
+                cache.TryAdd(checksum, tagHelper);
+            }
+
+            return builder.DrainToImmutable();
+        }
     }
 }

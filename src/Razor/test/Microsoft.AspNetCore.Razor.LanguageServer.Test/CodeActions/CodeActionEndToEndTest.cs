@@ -37,18 +37,22 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     private const string GenerateEventHandlerTitle = "Generate Event Handler 'DoesNotExist'";
     private const string GenerateAsyncEventHandlerTitle = "Generate Async Event Handler 'DoesNotExist'";
     private const string GenerateEventHandlerReturnType = "void";
-    private const string GenerateAsyncEventHandlerReturnType = "System.Threading.Tasks.Task";
+    private const string GenerateAsyncEventHandlerReturnType = "global::System.Threading.Tasks.Task";
     private const string CodeBehindTestReplaceNamespace = "$$Replace_Namespace$$";
 
-    private static GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolversFn(
+    private GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolversFn(
         string filePath,
         RazorCodeDocument codeDocument,
+        IRazorFormattingService razorFormattingService,
         RazorLSPOptionsMonitor? optionsMonitor = null)
             => new[]
             {
                 new GenerateMethodCodeActionResolver(
                     new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
-                    optionsMonitor ?? TestRazorLSPOptionsMonitor.Create())
+                    optionsMonitor ?? TestRazorLSPOptionsMonitor.Create(),
+                    LanguageServer,
+                    new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
+                    razorFormattingService)
             };
 
     public CodeActionEndToEndTest(ITestOutputHelper testOutput)
@@ -375,9 +379,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
-                    throw new System.NotImplementedException();
+                    throw new global::System.NotImplementedException();
                 }
             }
             """;
@@ -404,9 +408,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
-                    throw new System.NotImplementedException();
+                    throw new global::System.NotImplementedException();
                 }
             }
             """;
@@ -434,9 +438,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
-                    throw new System.NotImplementedException();
+                    throw new global::System.NotImplementedException();
                 }
             }
             """;
@@ -464,9 +468,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
-                    throw new System.NotImplementedException();
+                    throw new global::System.NotImplementedException();
                 }
             }
             """;
@@ -503,9 +507,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
                 {
                 }
 
-                private {{returnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private {{returnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
-                    throw new System.NotImplementedException();
+                    throw new global::System.NotImplementedException();
                 }
             }
             """;
@@ -540,9 +544,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
                 {
                 }
 
-                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
-                    throw new System.NotImplementedException();
+                    throw new global::System.NotImplementedException();
                 }
             }
             """;
@@ -650,9 +654,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             {{inputIndentString}}@code {
-            {{initialIndentString}}{{indent}}private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+            {{initialIndentString}}{{indent}}private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
             {{initialIndentString}}{{indent}}{
-            {{initialIndentString}}{{indent}}{{indent}}throw new System.NotImplementedException();
+            {{initialIndentString}}{{indent}}{{indent}}throw new global::System.NotImplementedException();
             {{initialIndentString}}{{indent}}}
             {{inputIndentString}}}
             """;
@@ -698,9 +702,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             {
                 public partial class test
                 {{{spacingOrMethod}}
-                    private {{GenerateEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                    private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                     {
-                        throw new System.NotImplementedException();
+                        throw new global::System.NotImplementedException();
                     }
                 }
             }
@@ -742,9 +746,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             {
                 public partial class test
                 {{{spacingOrMethod}}
-                    private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                    private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                     {
-                        throw new System.NotImplementedException();
+                        throw new global::System.NotImplementedException();
                     }
                 }
             }
@@ -770,9 +774,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var expectedRazorContent = """
             <button @onclick="DoesNotExist"></button>
             @code {
-                private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
-                    throw new System.NotImplementedException();
+                    throw new global::System.NotImplementedException();
                 }
             }
             """;
@@ -807,9 +811,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             namespace {{CodeBehindTestReplaceNamespace}};
             public partial class test
             {
-                private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
-                    throw new System.NotImplementedException();
+                    throw new global::System.NotImplementedException();
                 }
             }
             """;
@@ -854,7 +858,8 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             File.WriteAllText(codeBehindFilePath, initialCodeBehindContent);
 
             var result = await GetCodeActionsAsync(uri, textSpan, razorSourceText, requestContext, razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() }, diagnostics);
-            var changes = await GetEditsAsync(result, requestContext, codeAction, CreateRazorCodeActionResolversFn(razorFilePath, codeDocument));
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync();
+            var changes = await GetEditsAsync(result, requestContext, codeAction, CreateRazorCodeActionResolversFn(razorFilePath, codeDocument, formattingService));
 
             var razorEdits = new List<TextChange>();
             var codeBehindEdits = new List<TextChange>();
@@ -863,11 +868,11 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             {
                 if (FilePathNormalizer.Normalize(change.TextDocument.Uri.GetAbsoluteOrUNCPath()) == codeBehindFilePath)
                 {
-                    codeBehindEdits.AddRange(change.Edits.Select(e => e.AsTextChange(codeBehindSourceText)));
+                    codeBehindEdits.AddRange(change.Edits.Select(e => e.ToTextChange(codeBehindSourceText)));
                 }
                 else
                 {
-                    razorEdits.AddRange(change.Edits.Select(e => e.AsTextChange(razorSourceText)));
+                    razorEdits.AddRange(change.Edits.Select(e => e.ToTextChange(razorSourceText)));
                 }
             }
 
@@ -889,7 +894,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<string, RazorCodeDocument, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? createRazorCodeActionResolversFn = null,
+        Func<string, RazorCodeDocument, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? createRazorCodeActionResolversFn = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -905,16 +910,16 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
         var result = await GetCodeActionsAsync(uri, textSpan, sourceText, requestContext, razorCodeActionProviders, diagnostics);
         Assert.NotEmpty(result);
-
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentContext.Snapshot, LoggerFactory, optionsMonitor?.CurrentValue);
         var razorCodeActionResolvers = createRazorCodeActionResolversFn is null
             ? Array.Empty<IRazorCodeActionResolver>()
-            : createRazorCodeActionResolversFn(razorFilePath, codeDocument, optionsMonitor);
+            : createRazorCodeActionResolversFn(razorFilePath, codeDocument, formattingService, optionsMonitor);
         var changes = await GetEditsAsync(result, requestContext, codeAction, razorCodeActionResolvers, childActionIndex);
 
         var edits = new List<TextChange>();
         foreach (var change in changes)
         {
-            edits.AddRange(change.Edits.Select(e => e.AsTextChange(sourceText)));
+            edits.AddRange(change.Edits.Select(e => e.ToTextChange(sourceText)));
         }
 
         var actual = sourceText.WithChanges(edits).ToString();
@@ -952,7 +957,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var @params = new VSCodeActionParams
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = uri },
-            Range = textSpan.AsRange(sourceText),
+            Range = textSpan.ToRange(sourceText),
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics ?? Array.Empty<Diagnostic>() }
         };
 

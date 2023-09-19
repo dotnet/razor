@@ -3,11 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
@@ -21,14 +21,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 internal sealed class HoverInfoService : IHoverInfoService
 {
-    private readonly TagHelperFactsService _tagHelperFactsService;
+    private readonly ITagHelperFactsService _tagHelperFactsService;
     private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
     private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
     private readonly HtmlFactsService _htmlFactsService;
 
     [ImportingConstructor]
     public HoverInfoService(
-        TagHelperFactsService tagHelperFactsService,
+        ITagHelperFactsService tagHelperFactsService,
         LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
         VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
         HtmlFactsService htmlFactsService)
@@ -68,23 +68,33 @@ internal sealed class HoverInfoService : IHoverInfoService
 
         var syntaxTree = codeDocument.GetSyntaxTree();
 
-        var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
-        var owner = syntaxTree.Root.LocateOwner(change);
-
+        var owner = syntaxTree.Root.FindInnermostNode(location.AbsoluteIndex);
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
             return null;
         }
 
-        var parent = owner.Parent;
+        // For cases where the point in the middle of an attribute,
+        // such as <any tes$$t=""></any>
+        // the node desired is the *AttributeSyntax
+        if (owner.Kind is SyntaxKind.MarkupTextLiteral)
+        {
+            owner = owner.Parent;
+        }
+
         var position = new Position(location.LineIndex, location.CharacterIndex);
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
-        var ancestors = owner.Ancestors();
+        // We want to find the parent tag, but looking up ancestors in the tree can find other things,
+        // for example when hovering over a start tag, the first ancestor is actually the element it
+        // belongs to, or in other words, the exact same tag! To work around this we just make sure we
+        // only check nodes that are at a different location in the file.
+        var ownerStart = owner.SpanStart;
+        var ancestors = owner.Ancestors().Where(n => n.SpanStart != ownerStart);
         var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
 
-        if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
+        if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes) &&
             containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
         {
             // Hovering over HTML tag name
@@ -112,7 +122,7 @@ internal sealed class HoverInfoService : IHoverInfoService
             }
         }
 
-        if (_htmlFactsService.TryGetAttributeInfo(parent, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
+        if (_htmlFactsService.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
             selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true)
         {
             // Hovering over HTML attribute name
@@ -183,14 +193,14 @@ internal sealed class HoverInfoService : IHoverInfoService
         return null;
     }
 
-    private VSInternalHover? AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
+    private VSInternalHover? AttributeInfoToHover(ImmutableArray<BoundAttributeDescriptor> boundAttributes, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
     {
-        var descriptionInfos = descriptors.Select(boundAttribute =>
+        var descriptionInfos = boundAttributes.SelectAsArray(boundAttribute =>
         {
-            var indexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName.AsSpan(), boundAttribute);
-            var descriptionInfo = BoundAttributeDescriptionInfo.From(boundAttribute, indexer);
-            return descriptionInfo;
-        }).ToList().AsReadOnly();
+            var isIndexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName.AsSpan(), boundAttribute);
+            return BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer);
+        });
+
         var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
@@ -232,9 +242,7 @@ internal sealed class HoverInfoService : IHoverInfoService
 
     private VSInternalHover? ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities)
     {
-        var descriptionInfos = descriptors.Select(descriptor => BoundElementDescriptionInfo.From(descriptor))
-            .ToList()
-            .AsReadOnly();
+        var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;

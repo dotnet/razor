@@ -29,7 +29,15 @@ namespace Test
 #line hidden
 #nullable disable
             , -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
-            global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, UpdateValue, ParentValue)));
+            global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                            UpdateValue
+
+#line default
+#line hidden
+#nullable disable
+            , ParentValue)));
             #pragma warning disable BL0005
             __typeInference_CreateMyComponent_0.
 #nullable restore
@@ -78,8 +86,8 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.MyComponent<TValue> CreateMyComponent_0<TValue>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TValue __arg0, int __seq1, global::Microsoft.AspNetCore.Components.EventCallback<TValue> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<TValue>>(seq);
-        __builder.AddComponentParameter(__seq0, "Value", __arg0);
-        __builder.AddComponentParameter(__seq1, "ValueChanged", __arg1);
+        __builder.AddAttribute(__seq0, "Value", (object)__arg0);
+        __builder.AddAttribute(__seq1, "ValueChanged", (object)__arg1);
         __builder.CloseComponent();
         return default;
         }

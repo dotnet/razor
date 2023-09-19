@@ -39,6 +39,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
     private readonly RazorLSPOptions _lspOptions;
+    private readonly ILspServerActivationTracker? _lspServerActivationTracker;
     private readonly ITelemetryReporter _telemetryReporter;
 
     // Cached for testing
@@ -51,6 +52,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer,
         RazorLSPOptions? lspOptions,
+        ILspServerActivationTracker? lspServerActivationTracker,
         ITelemetryReporter telemetryReporter)
         : base(jsonRpc, logger)
     {
@@ -59,9 +61,19 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
+        _lspServerActivationTracker = lspServerActivationTracker;
         _telemetryReporter = telemetryReporter;
 
         Initialize();
+    }
+
+    protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()
+    {
+        var handlerProvider = GetHandlerProvider();
+        var queue = new RazorRequestExecutionQueue(this, _logger, handlerProvider);
+        queue.Start();
+        return queue;
+
     }
 
     protected override ILspServices ConstructLspServices()
@@ -123,7 +135,9 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
 
-        services.AddLifeCycleServices(this, serverManager);
+        services.AddSingleton<FilePathService>();
+
+        services.AddLifeCycleServices(this, serverManager, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices();
@@ -166,10 +180,15 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         static void AddHandlers(IServiceCollection services)
         {
+            // Not calling AddHandler because we want to register this endpoint as an IOnIntialized too
+            services.AddSingleton<RazorConfigurationEndpoint>();
+            services.AddSingleton<IMethodHandler, RazorConfigurationEndpoint>(s => s.GetRequiredService<RazorConfigurationEndpoint>());
+            // Transient because it should only be used once and I'm hoping it doesn't stick around.
+            services.AddTransient<IOnInitialized>(sp => sp.GetRequiredService<RazorConfigurationEndpoint>());
+
             services.AddHandlerWithCapabilities<ImplementationEndpoint>();
             services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
             services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
-            services.AddHandler<RazorConfigurationEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
             services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
             services.AddHandlerWithCapabilities<RenameEndpoint>();
@@ -220,6 +239,11 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         public IHandlerProvider GetHandlerProvider()
         {
             return _server.GetHandlerProvider();
+        }
+
+        public RazorRequestExecutionQueue GetRequestExecutionQueue()
+        {
+            return (RazorRequestExecutionQueue)_server.GetRequestExecutionQueue();
         }
     }
 }

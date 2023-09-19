@@ -20,4 +20,8 @@ internal static class RazorLSPConstants
     public const string CSharpContentTypeName = "CSharp";
 
     public const string HtmlLSPDelegationContentTypeName = "html-delegation";
+
+    public const string RoslynSimplifyMethodEndpointName = "roslyn/simplifyMethod";
+
+    public const string RoslynFormatNewFileEndpointName = "roslyn/formatNewFile";
 }

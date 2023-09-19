@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Serialization.Converters;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -42,6 +41,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
         Action<IServiceCollection>? configure = null,
         LanguageServerFeatureOptions? featureOptions = null,
         RazorLSPOptions? razorLSPOptions = null,
+        ILspServerActivationTracker? lspServerActivationTracker = null,
         TraceSource? traceSource = null)
     {
         var jsonRpc = CreateJsonRpc(input, output);
@@ -59,6 +59,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
             featureOptions,
             configure,
             razorLSPOptions,
+            lspServerActivationTracker,
             telemetryReporter);
 
         var razorLanguageServer = new RazorLanguageServerWrapper(server);
@@ -71,7 +72,6 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
     {
         var messageFormatter = new JsonMessageFormatter();
         messageFormatter.JsonSerializer.AddVSInternalExtensionConverters();
-        messageFormatter.JsonSerializer.Converters.RegisterRazorConverters();
         messageFormatter.JsonSerializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input, messageFormatter));
