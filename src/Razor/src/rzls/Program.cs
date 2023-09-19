@@ -19,8 +19,7 @@ public class Program
         var trace = Trace.Messages;
         var telemetryLevel = string.Empty;
         var sessionId = string.Empty;
-        string? sharedDependenciesPath = null;
-        string? extensionAssemblyPath = null;
+        string? telemetryExtensionPath = null;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -66,21 +65,16 @@ public class Program
                 sessionId = args[++i];
             }
 
-            if (args[i] == "--sharedDependencies" && i + 1 < args.Length)
-            {
-                sharedDependenciesPath = args[++i];
-            }
-
             if (args[i] == "--extension" && i + 1 < args.Length)
             {
-                extensionAssemblyPath = args[++i];
+                telemetryExtensionPath = args[++i];
             }
         }
 
         var languageServerFeatureOptions = new ConfigurableLanguageServerFeatureOptions(args);
 
         using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(
-          extensionAssemblyPath, sharedDependenciesPath).ConfigureAwait(true);
+          telemetryExtensionPath).ConfigureAwait(true);
 
         // Initialize the telemetry reporter if available
         var devKitTelemetryReporter = exportProvider.GetExports<IDevKitTelemetryReporter>().SingleOrDefault()?.Value;

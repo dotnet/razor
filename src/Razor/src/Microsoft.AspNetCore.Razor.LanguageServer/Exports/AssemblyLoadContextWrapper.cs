@@ -4,7 +4,6 @@
 #if !NET472
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -17,8 +16,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Exports;
 
 internal sealed class AssemblyLoadContextWrapper
 {
-    private static readonly ConcurrentDictionary<AssemblyName, Assembly?> s_loadedSharedAssemblies = new(AssemblyNameComparer.Default);
-
     private AssemblyLoadContext? _assemblyLoadContext;
     private readonly ImmutableDictionary<string, Assembly> _loadedAssemblies;
 
@@ -28,13 +25,13 @@ internal sealed class AssemblyLoadContextWrapper
         _loadedAssemblies = loadedFiles;
     }
 
-    public static bool TryLoadExtension(string assemblyFilePath, string? sharedDependenciesPath, [NotNullWhen(true)] out Assembly? assembly)
+    public static bool TryLoadExtension(string assemblyFilePath, [NotNullWhen(true)] out Assembly? assembly)
     {
         var dir = Path.GetDirectoryName(assemblyFilePath);
         var fileName = Path.GetFileName(assemblyFilePath);
         var fileNameNoExt = Path.GetFileNameWithoutExtension(assemblyFilePath);
 
-        var loadContext = TryCreate(fileNameNoExt, dir!, sharedDependenciesPath);
+        var loadContext = TryCreate(fileNameNoExt, dir!);
         if (loadContext != null)
         {
             assembly = loadContext.GetAssembly(fileName);
@@ -45,11 +42,11 @@ internal sealed class AssemblyLoadContextWrapper
         return false;
     }
 
-    public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath, string? sharedDependenciesPath)
+    public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath)
     {
         try
         {
-            var loadContext = CreateLoadContext(name, sharedDependenciesPath);
+            var loadContext = new AssemblyLoadContext(name);
             var directory = new DirectoryInfo(assembliesDirectoryPath);
             var builder = new Dictionary<string, Assembly>();
             foreach (var file in directory.GetFiles("*.dll"))
@@ -70,42 +67,6 @@ internal sealed class AssemblyLoadContextWrapper
         {
             return null;
         }
-    }
-
-    private static AssemblyLoadContext CreateLoadContext(string name, string? sharedDependenciesPath)
-    {
-        var loadContext = new AssemblyLoadContext(name);
-
-        if (sharedDependenciesPath != null)    
-        {
-            loadContext.Resolving += (_, assemblyName) =>
-            {
-                if (assemblyName.Name is null)
-                {
-                    return null;
-                }
-
-                if (s_loadedSharedAssemblies.TryGetValue(assemblyName, out var loadedAssembly))
-                {
-                    return loadedAssembly;
-                }
-
-                var candidatePath = assemblyName.CultureName is not null
-                    ? Path.Combine(sharedDependenciesPath, assemblyName.CultureName, $"{assemblyName.Name}.dll")
-                    : Path.Combine(sharedDependenciesPath, $"{assemblyName.Name}.dll");
-
-                if (File.Exists(candidatePath))
-                {
-                    loadedAssembly = loadContext.LoadFromAssemblyPath(candidatePath);
-                }
-
-                s_loadedSharedAssemblies.TryAdd(assemblyName, loadedAssembly);
-
-                return s_loadedSharedAssemblies[assemblyName];
-            };
-        }
-
-        return loadContext;
     }
 
     public Assembly GetAssembly(string name) => _loadedAssemblies[name];
