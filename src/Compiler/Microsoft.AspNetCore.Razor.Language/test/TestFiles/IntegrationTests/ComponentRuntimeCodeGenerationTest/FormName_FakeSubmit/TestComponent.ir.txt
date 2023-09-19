@@ -15,8 +15,8 @@
                     HtmlAttribute -  - onsubmit=" - "
                         HtmlAttributeValue - (74:1,30 [0] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             LazyIntermediateToken - (74:1,30 [0] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 
-                    HtmlAttribute - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml) - @formname=" - "
-                        HtmlAttributeValue - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                    FormName - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+                        HtmlContent - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml) - Html - named-form-handler
                 HtmlContent - (114:1,70 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (114:1,70 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
@@ -27,6 +27,6 @@
                     HtmlAttribute -  - onsubmit=" - "
                         HtmlAttributeValue - (146:2,30 [0] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             LazyIntermediateToken - (146:2,30 [0] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 
-                    HtmlAttribute - (159:2,43 [23] x:\dir\subdir\Test\TestComponent.cshtml) - @formname=" - "
-                        CSharpExpressionAttributeValue - (161:2,45 [20] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                    FormName - (159:2,43 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+                        CSharpExpression - (161:2,45 [20] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (161:2,45 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "named-form-handler"

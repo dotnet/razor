@@ -20,7 +20,7 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __o = 
+            global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                        "named-form-handler"
@@ -28,7 +28,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
+            );
         }
         #pragma warning restore 1998
     }
