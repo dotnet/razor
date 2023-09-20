@@ -18,11 +18,15 @@ internal class ProvideSemanticTokensRangesParams : SemanticTokensParams
     [DataMember(Name = "correlationId", IsRequired = true)]
     public Guid CorrelationId { get; }
 
-    public ProvideSemanticTokensRangesParams(TextDocumentIdentifier textDocument, long requiredHostDocumentVersion, Range[] ranges, Guid correlationId)
+    [DataMember(Name = "usePreciseRanges", IsRequired = true)]
+    public bool UsePreciseRanges { get; }
+
+    public ProvideSemanticTokensRangesParams(TextDocumentIdentifier textDocument, long requiredHostDocumentVersion, Range[] ranges, Guid correlationId, bool usePreciseRanges)
     {
         TextDocument = textDocument;
         RequiredHostDocumentVersion = requiredHostDocumentVersion;
         Ranges = ranges;
         CorrelationId = correlationId;
+        UsePreciseRanges = usePreciseRanges;
     }
 }

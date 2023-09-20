@@ -312,12 +312,12 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, csharpRanges, correlationId);
+        var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, csharpRanges, correlationId, _languageServerFeatureOptions.UsePreciseSemanticTokenRanges);
 
         var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangesParams, ProvideSemanticTokensResponse>(
-            CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
-            parameter,
-            cancellationToken).ConfigureAwait(false);
+                CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
+                parameter,
+                cancellationToken).ConfigureAwait(false);
 
         if (csharpResponse is null)
         {

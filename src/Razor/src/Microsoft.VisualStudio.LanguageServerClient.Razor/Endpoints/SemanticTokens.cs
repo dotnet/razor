@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -49,13 +50,48 @@ internal partial class RazorCustomMessageTarget
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion ?? -1);
         }
 
-        using var _ = ListPool<Task<ReinvocationResponse<VSSemanticTokensResponse>?>>.GetPooledObject(out var requestTasks);
-
         semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
 
         cancellationToken.ThrowIfCancellationRequested();
+        ReinvocationResponse<VSSemanticTokensResponse?>? result = null;
+        if (semanticTokensParams.UsePreciseRanges)
+        {
+            var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+            var lspMethodName = RazorLSPConstants.RoslynSemanticTokenRangesEndpointName;
+            var newParams = new SemanticTokensRangesParams()
+            {
+                TextDocument = semanticTokensParams.TextDocument,
+                Ranges = semanticTokensParams.Ranges
+            };
 
+            using (var disposable = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId))
+            {
+                result = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangesParams, VSSemanticTokensResponse?>(
+                    textBuffer,
+                    lspMethodName,
+                    languageServerName,
+                    SupportsPreciseRanges,
+                    newParams,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            // Only null if the server doesn't support the new endpoint
+            if (result != null)
+            {
+                if (result?.Response?.Data is null)
+                {
+                    _logger?.LogDebug("Made one semantic token request to Roslyn for {count} ranges but only got null result back, due to sync issues", semanticTokensParams.Ranges.Length);
+                    // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
+                    return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion ?? -1);
+                }
+
+                _logger?.LogDebug("Made one semantic token requests to Roslyn for {count} ranges", semanticTokensParams.Ranges.Length);
+                return new ProvideSemanticTokensResponse(new int[][] { result?.Response?.Data! }, semanticTokensParams.RequiredHostDocumentVersion);
+            }
+        }
+
+        using var _ = ListPool<Task<ReinvocationResponse<VSSemanticTokensResponse>?>>.GetPooledObject(out var requestTasks);
         foreach (var range in semanticTokensParams.Ranges)
         {
             var task = Task.Run(async () =>
@@ -93,5 +129,14 @@ internal partial class RazorCustomMessageTarget
 
         _logger?.LogDebug("Made {count} semantic tokens requests to Roslyn", semanticTokensParams.Ranges.Length);
         return new ProvideSemanticTokensResponse(nonEmptyResults, semanticTokensParams.RequiredHostDocumentVersion);
+    }
+
+    private static bool SupportsPreciseRanges(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+        return serverCapabilities?.Experimental is JObject experimental
+            && experimental.TryGetValue(RazorLSPConstants.RoslynSemanticTokenRangesEndpointName, out var supportsPreciseRanges)
+            && supportsPreciseRanges.ToObject<bool>();
     }
 }
