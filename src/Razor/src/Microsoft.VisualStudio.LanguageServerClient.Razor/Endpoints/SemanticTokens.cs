@@ -79,7 +79,7 @@ internal partial class RazorCustomMessageTarget
             // Only null if the server doesn't support the new endpoint
             if (result != null)
             {
-                if (result?.Response?.Data is null)
+                if (result.Response?.Data is null)
                 {
                     _logger?.LogDebug("Made one semantic token request to Roslyn for {count} ranges but only got null result back, due to sync issues", semanticTokensParams.Ranges.Length);
                     // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
