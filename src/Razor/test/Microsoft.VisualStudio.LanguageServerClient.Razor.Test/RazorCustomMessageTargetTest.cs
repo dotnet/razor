@@ -392,6 +392,7 @@ public class RazorCustomMessageTargetTest : TestBase
             },
             requiredHostDocumentVersion: 1,
             ranges: new[] { new Range() },
+            usePreciseRanges: false,
             correlationId: Guid.Empty);
 
         // Act
@@ -433,6 +434,7 @@ public class RazorCustomMessageTargetTest : TestBase
             },
             requiredHostDocumentVersion: 0,
             ranges: new[] { new Range() },
+            usePreciseRanges: false,
             correlationId: Guid.Empty);
 
         // Act
@@ -494,6 +496,7 @@ public class RazorCustomMessageTargetTest : TestBase
             },
             requiredHostDocumentVersion: 0,
             ranges: new[] { new Range() { Start = It.IsAny<Position>(), End = It.IsAny<Position>() } },
+            usePreciseRanges: false,
             correlationId: Guid.Empty);
 
         // Act
@@ -556,6 +559,7 @@ public class RazorCustomMessageTargetTest : TestBase
             },
             requiredHostDocumentVersion: 0,
             ranges: new[] { new Range() },
+            usePreciseRanges: false,
             correlationId: Guid.Empty);
         var expectedResults = new ProvideSemanticTokensResponse(null, documentVersion);
 
