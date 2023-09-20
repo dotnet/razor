@@ -13,9 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\NullTelemetryScope.cs" Link="NullTelemetryScope.cs" />
-    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\TelemetryHelpers.cs" Link="TelemetryHelpers.cs" />
-    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\TelemetryScope.cs" Link="TelemetryScope.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\NullTelemetryScope.cs" Link="Telemetry\NullTelemetryScope.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\TelemetryHelpers.cs" Link="Telemetry\TelemetryHelpers.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\TelemetryReporter.cs" Link="Telemetry\TelemetryReporter.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\TelemetryScope.cs" Link="Telemetry\TelemetryScope.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,7 +59,7 @@
       </ProjectToPublish>
 
       <ProjectToPublish_PlatformAgnostic Include="$(MSBuildProjectFullPath)">
-        <AdditionalProperties>PublishDir=$(RidsPublishDir)\PlatformAgnostic\;UseAppHost=false;TargetFramework=$(PublishTargetFramework);</AdditionalProperties>
+        <AdditionalProperties>PublishDir=$(RidsPublishDir)\PlatformAgnostic\;UseAppHost=false;TargetFramework=$(PublishTargetFramework)</AdditionalProperties>
       </ProjectToPublish_PlatformAgnostic>
     </ItemGroup>
 

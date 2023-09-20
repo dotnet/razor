@@ -15,7 +15,7 @@ internal class CustomExportAssemblyLoader(string baseDirectory) : IAssemblyLoade
     /// <summary>
     /// Cache assemblies that are already loaded by AssemblyName comparison
     /// </summary>
-    private readonly Dictionary<AssemblyName, Assembly> _loadedAssemblies = new Dictionary<AssemblyName, Assembly>(AssemblyNameComparer.Instance);
+    private readonly Dictionary<AssemblyName, Assembly> _loadedAssemblies = new(AssemblyNameComparer.Instance);
 
     /// <summary>
     /// Base directory to search for <see cref="Assembly.LoadFrom(string)"/> if initial load fails

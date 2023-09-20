@@ -19,7 +19,7 @@ public class Program
         var trace = Trace.Messages;
         var telemetryLevel = string.Empty;
         var sessionId = string.Empty;
-        string? telemetryExtensionPath = null;
+        var telemetryExtensionPath = string.Empty;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -65,7 +65,7 @@ public class Program
                 sessionId = args[++i];
             }
 
-            if (args[i] == "--extension" && i + 1 < args.Length)
+            if (args[i] == "--telemetryExtensionPath" && i + 1 < args.Length)
             {
                 telemetryExtensionPath = args[++i];
             }
@@ -73,19 +73,23 @@ public class Program
 
         var languageServerFeatureOptions = new ConfigurableLanguageServerFeatureOptions(args);
 
-        using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(
-          telemetryExtensionPath).ConfigureAwait(true);
+        ITelemetryReporter? devKitTelemetryReporter = null;
+        if (!telemetryExtensionPath.IsNullOrEmpty())
+        {
+            using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(
+              telemetryExtensionPath).ConfigureAwait(true);
 
-        // Initialize the telemetry reporter if available
-        var devKitTelemetryReporter = exportProvider.GetExports<IDevKitTelemetryReporter>().SingleOrDefault()?.Value;
-        devKitTelemetryReporter?.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
+            // Initialize the telemetry reporter if available
+            devKitTelemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
+            devKitTelemetryReporter?.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
+        }
 
         var logger = new LspLogger(trace);
         var server = RazorLanguageServerWrapper.Create(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput(),
             logger,
-            devKitTelemetryReporter ?? (ITelemetryReporter)NoOpTelemetryReporter.Instance,
+            devKitTelemetryReporter ?? NoOpTelemetryReporter.Instance,
             featureOptions: languageServerFeatureOptions);
 
         logger.LogInformation("Razor Language Server started successfully.");

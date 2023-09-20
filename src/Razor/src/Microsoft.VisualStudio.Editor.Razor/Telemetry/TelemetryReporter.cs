@@ -4,9 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
 
 #if DEBUG
@@ -15,25 +13,16 @@ using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
-[Shared]
-[Export(typeof(ITelemetryReporter))]
-internal class TelemetryReporter : ITelemetryReporter
+internal abstract class TelemetryReporter : ITelemetryReporter
 {
-    private readonly ImmutableArray<TelemetrySession> _telemetrySessions;
-    private readonly IEnumerable<IFaultExceptionHandler> _faultExceptionHandlers;
-    private readonly ILogger? _logger;
+    public ImmutableArray<TelemetrySession> TelemetrySessions { get; set; }
 
-    [ImportingConstructor]
-    public TelemetryReporter(
-        [Import(AllowDefault = true)] ILoggerFactory? loggerFactory = null,
-        [ImportMany] IEnumerable<IFaultExceptionHandler>? faultExceptionHandlers = null)
+    public TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions)
     {
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
         // appinsights keys etc
-        _telemetrySessions = ImmutableArray.Create(TelemetryService.DefaultSession);
-        _faultExceptionHandlers = faultExceptionHandlers ?? Array.Empty<IFaultExceptionHandler>();
-        _logger = loggerFactory?.CreateLogger<TelemetryReporter>();
+        TelemetrySessions = telemetrySessions;
     }
 
     public void ReportEvent(string name, Severity severity)
@@ -81,20 +70,7 @@ internal class TelemetryReporter : ITelemetryReporter
                 return;
             }
 
-            var handled = false;
-            foreach (var handler in _faultExceptionHandlers)
-            {
-                if (handler.HandleException(this, exception, message, @params))
-                {
-                    // This behavior means that each handler still gets a chance
-                    // to respond to the exception. There's no real reason for this other
-                    // than best guess. When it was added, there was only one handler but
-                    // it was intended to be easy to add more.
-                    handled = true;
-                }
-            }
-
-            if (handled)
+            if (HandleException(exception, message, @params))
             {
                 return;
             }
@@ -137,7 +113,7 @@ internal class TelemetryReporter : ITelemetryReporter
         try
         {
 #if !DEBUG
-            foreach (var session in _telemetrySessions)
+            foreach (var session in TelemetrySessions)
             {
                 session.PostEvent(telemetryEvent);
             }
@@ -146,7 +122,7 @@ internal class TelemetryReporter : ITelemetryReporter
             // before we're ready to send them to the cloud
             var name = telemetryEvent.Name;
             var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
-            _logger?.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
+            LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
 
             if (telemetryEvent is FaultEvent)
             {
@@ -163,7 +139,7 @@ internal class TelemetryReporter : ITelemetryReporter
         {
             // No need to do anything here. We failed to report telemetry
             // which isn't good, but not catastrophic for a user
-            _logger?.LogError(e, "Failed logging telemetry event");
+            LogError(e, "Failed logging telemetry event");
         }
     }
 
@@ -191,4 +167,12 @@ internal class TelemetryReporter : ITelemetryReporter
             new("eventscope.correlationid", correlationId),
         }));
     }
+
+    public abstract void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession);
+
+    public abstract bool HandleException(Exception exception, string? message, params object?[] @params);
+
+    public abstract void LogTrace(string? message, params object?[] args);
+
+    public abstract void LogError(Exception exception, string? message, params object?[] args);
 }

@@ -3,9 +3,7 @@
 
 #if !NET472
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Composition;
 
@@ -13,29 +11,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Exports;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(string? extensionPath)
+    public static async Task<ExportProvider> CreateExportProviderAsync(string extensionPath)
     {
-        var baseDirectory = AppContext.BaseDirectory;
-        var resolver = new Resolver(new CustomExportAssemblyLoader(baseDirectory));
+        var baseDirectory = Path.GetDirectoryName(extensionPath);
+        var assemblyLoader = new CustomExportAssemblyLoader(baseDirectory!);
+        var resolver = new Resolver(assemblyLoader);
 
         var discovery = PartDiscovery.Combine(
             resolver,
             new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
             new AttributedPartDiscoveryV1(resolver));
 
-        var assemblies = new List<Assembly>()
-        {
-            typeof(ExportProviderBuilder).Assembly
-        };
-
-        if (extensionPath is not null && AssemblyLoadContextWrapper.TryLoadExtension(extensionPath, out var extensionAssembly))
-        {
-            assemblies.Add(extensionAssembly);
-        }
-
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
+        var parts = await discovery.CreatePartsAsync(new[] { extensionPath! }).ConfigureAwait(true);
         var catalog = ComposableCatalog.Create(resolver)
-            .AddParts(await discovery.CreatePartsAsync(assemblies).ConfigureAwait(true))
+            .AddParts(parts)
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
         // Assemble the parts into a valid graph.
