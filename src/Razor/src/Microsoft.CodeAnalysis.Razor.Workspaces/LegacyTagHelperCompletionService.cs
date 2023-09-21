@@ -97,7 +97,7 @@ internal class LegacyTagHelperCompletionService : TagHelperCompletionService
             {
                 foreach (var attributeDescriptor in descriptor.BoundAttributes)
                 {
-                    if (attributeDescriptor.Name != null)
+                    if (!attributeDescriptor.Name.IsNullOrEmpty())
                     {
                         UpdateCompletions(attributeDescriptor.Name, attributeDescriptor);
                     }

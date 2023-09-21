@@ -46,7 +46,7 @@ public sealed partial class TagMatchingRuleDescriptorBuilder : TagHelperObjectBu
     private protected override TagMatchingRuleDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
         return new TagMatchingRuleDescriptor(
-            TagName!, // TagName is not expected to be null. If it is, a diagnostic will be created for it.
+            TagName ?? string.Empty,
             ParentTag,
             TagStructure,
             CaseSensitive,

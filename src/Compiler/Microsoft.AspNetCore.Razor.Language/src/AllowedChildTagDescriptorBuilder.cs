@@ -30,7 +30,7 @@ public sealed partial class AllowedChildTagDescriptorBuilder : TagHelperObjectBu
         var displayName = DisplayName ?? Name ?? string.Empty;
 
         return new AllowedChildTagDescriptor(
-            Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
+            Name ?? string.Empty,
             displayName,
             diagnostics);
     }

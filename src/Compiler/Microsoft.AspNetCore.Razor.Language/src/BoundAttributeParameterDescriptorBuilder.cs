@@ -63,8 +63,8 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : TagHelper
     {
         return new BoundAttributeParameterDescriptor(
             _kind,
-            Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
-            TypeName!,
+            Name ?? string.Empty,
+            TypeName ?? string.Empty,
             IsEnum,
             _documentationObject,
             GetDisplayName(),

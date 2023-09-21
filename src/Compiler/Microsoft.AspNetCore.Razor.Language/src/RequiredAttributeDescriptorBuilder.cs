@@ -46,7 +46,7 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
         var metadata = _metadata.GetMetadataCollection();
 
         return new RequiredAttributeDescriptor(
-            Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
+            Name ?? string.Empty,
             NameComparisonMode,
             CaseSensitive,
             Value,

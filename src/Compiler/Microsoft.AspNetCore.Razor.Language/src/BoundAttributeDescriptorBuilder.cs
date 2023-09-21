@@ -104,8 +104,8 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
     {
         return new BoundAttributeDescriptor(
             _kind,
-            Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
-            TypeName!,
+            Name ?? string.Empty,
+            TypeName ?? string.Empty,
             IsEnum,
             IsDictionary,
             IndexerAttributeNamePrefix,
