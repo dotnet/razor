@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1252,12 +1253,12 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
 
     private static Range GetRange(string text)
     {
-        var lines = text.Split(Environment.NewLine);
+        var lineCount = text.Count(c => c == '\n') + 1;
 
         var range = new Range
         {
             Start = new Position { Line = 0, Character = 0 },
-            End = new Position { Line = lines.Length, Character = 0 }
+            End = new Position { Line = lineCount, Character = 0 }
         };
 
         return range;
