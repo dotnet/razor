@@ -163,7 +163,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         }
 
         var csharpResponse = await GetMatchingCSharpResponseAsync(
-            textDocumentIdentifier, documentVersion, minimalRange, csharpRanges!, correlationId, cancellationToken).ConfigureAwait(false);
+            textDocumentIdentifier, documentVersion, csharpRanges!, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
         // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
@@ -301,12 +301,11 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     private async Task<int[]?> GetMatchingCSharpResponseAsync(
         TextDocumentIdentifier textDocumentIdentifier,
         long documentVersion,
-        Range minimalRange,
         Range[] csharpRanges,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, minimalRange, csharpRanges, correlationId);
+        var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, csharpRanges, correlationId);
 
         var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangesParams, ProvideSemanticTokensResponse>(
             CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,

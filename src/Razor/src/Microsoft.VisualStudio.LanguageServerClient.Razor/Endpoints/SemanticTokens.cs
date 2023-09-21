@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -26,11 +28,6 @@ internal partial class RazorCustomMessageTarget
         if (semanticTokensParams is null)
         {
             throw new ArgumentNullException(nameof(semanticTokensParams));
-        }
-
-        if (semanticTokensParams.MinimalRange is null)
-        {
-            throw new ArgumentNullException(nameof(semanticTokensParams.MinimalRange));
         }
 
         if (semanticTokensParams.Ranges is null)
@@ -61,11 +58,16 @@ internal partial class RazorCustomMessageTarget
         if (response is null && semanticTokensParams.Ranges.Length > 1)
         {
             // Likely the server doesn't support the new endpoint, fallback to the original one
+            var minimalRange = new Range
+            {
+                Start = semanticTokensParams.Ranges.First().Start,
+                End = semanticTokensParams.Ranges.Last().End
+            };
+
             var newParams = new ProvideSemanticTokensRangesParams(
                 semanticTokensParams.TextDocument,
                 semanticTokensParams.RequiredHostDocumentVersion,
-                semanticTokensParams.MinimalRange,
-                new[] { semanticTokensParams.MinimalRange },
+                new[] { minimalRange },
                 semanticTokensParams.CorrelationId);
 
             return await ProvideSemanticTokensAsync(newParams, cancellationToken);
@@ -91,10 +93,11 @@ internal partial class RazorCustomMessageTarget
 
         var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         var lspMethodName = Methods.TextDocumentSemanticTokensRangeName;
+        Debug.Assert(semanticTokensParams.Ranges.Length == 1);
         var newParams = new SemanticTokensRangeParams
         {
             TextDocument = semanticTokensParams.TextDocument,
-            Range = semanticTokensParams.MinimalRange,
+            Range = semanticTokensParams.Ranges[0],
         };
 
         using (var disposable = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId))
