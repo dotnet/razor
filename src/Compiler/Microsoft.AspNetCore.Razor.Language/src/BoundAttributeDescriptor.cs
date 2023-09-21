@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -46,8 +45,8 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
 
     public bool CaseSensitive => HasFlag(CaseSensitiveBit);
 
-    public MetadataCollection Metadata { get; }
     public ImmutableArray<BoundAttributeParameterDescriptor> Parameters { get; }
+    public MetadataCollection Metadata { get; }
 
     internal BoundAttributeDescriptor(
         string kind,
@@ -64,6 +63,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
         ImmutableArray<BoundAttributeParameterDescriptor> parameters,
         MetadataCollection metadata,
         ImmutableArray<RazorDiagnostic> diagnostics)
+        : base(diagnostics)
     {
         Kind = kind;
         Name = name;
@@ -92,14 +92,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
         DisplayName = displayName;
 
         Parameters = parameters.NullToEmpty();
-
         Metadata = metadata;
-
-        if (!diagnostics.IsDefaultOrEmpty)
-        {
-            SetFlag(ContainsDiagnosticsBit);
-            TagHelperDiagnostics.AddDiagnostics(this, diagnostics);
-        }
     }
 
     public bool IsDirectiveAttribute
@@ -128,15 +121,6 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
     public string? Documentation => _documentationObject.GetText();
 
     internal DocumentationObject DocumentationObject => _documentationObject;
-
-    public ImmutableArray<RazorDiagnostic> Diagnostics
-        => HasFlag(ContainsDiagnosticsBit)
-            ? TagHelperDiagnostics.GetDiagnostics(this)
-            : ImmutableArray<RazorDiagnostic>.Empty;
-
-    public bool HasErrors
-        => HasFlag(ContainsDiagnosticsBit) &&
-           Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
 
     public ImmutableArray<RazorDiagnostic> GetAllDiagnostics()
     {

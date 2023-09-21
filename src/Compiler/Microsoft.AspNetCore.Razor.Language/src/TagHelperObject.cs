@@ -1,15 +1,26 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
+using System.Linq;
+
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public abstract class TagHelperObject
 {
     private int _flags;
+    public ImmutableArray<RazorDiagnostic> Diagnostics { get; }
 
-    private protected const int ContainsDiagnosticsBit = 1 << 0;
-    private protected const int CaseSensitiveBit = 1 << 1;
+    private protected const int CaseSensitiveBit = 1 << 0;
     private protected const int LastFlagBit = CaseSensitiveBit;
+
+    public bool HasErrors
+        => Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
+
+    private protected TagHelperObject(ImmutableArray<RazorDiagnostic> diagnostics)
+    {
+        Diagnostics = diagnostics.NullToEmpty();
+    }
 
     private protected bool HasFlag(int flag) => (_flags & flag) != 0;
     private protected void SetFlag(int toSet) => ThreadSafeFlagOperations.Set(ref _flags, toSet);

@@ -10,7 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObject, IBuilder<BoundAttributeDescriptor>
+public sealed partial class BoundAttributeDescriptorBuilder : IBuilder<BoundAttributeDescriptor>
 {
     private static readonly ObjectPool<BoundAttributeDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
@@ -94,7 +94,8 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObject, I
     public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
         => _metadata.TryGetMetadataValue(key, out value);
 
-    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
+    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics
+        => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 

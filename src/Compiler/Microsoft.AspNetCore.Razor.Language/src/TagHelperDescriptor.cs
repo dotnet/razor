@@ -27,9 +27,19 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
     public string Name { get; }
     public string AssemblyName { get; }
 
+    public string? Documentation => _documentationObject.GetText();
+    internal DocumentationObject DocumentationObject => _documentationObject;
+
+    public string DisplayName { get; }
+    public string? TagOutputHint { get; }
+
+    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+
     public ImmutableArray<AllowedChildTagDescriptor> AllowedChildTags { get; }
     public ImmutableArray<BoundAttributeDescriptor> BoundAttributes { get; }
     public ImmutableArray<TagMatchingRuleDescriptor> TagMatchingRules { get; }
+
+    public MetadataCollection Metadata { get; }
 
     internal TagHelperDescriptor(
         string kind,
@@ -44,6 +54,7 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
         ImmutableArray<AllowedChildTagDescriptor> allowedChildTags,
         MetadataCollection metadata,
         ImmutableArray<RazorDiagnostic> diagnostics)
+        : base(diagnostics)
     {
         Kind = kind;
         Name = name;
@@ -56,23 +67,7 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
         BoundAttributes = attributeDescriptors.NullToEmpty();
         AllowedChildTags = allowedChildTags.NullToEmpty();
         Metadata = metadata;
-
-        if (!diagnostics.IsDefaultOrEmpty)
-        {
-            SetFlag(ContainsDiagnosticsBit);
-            TagHelperDiagnostics.AddDiagnostics(this, diagnostics);
-        }
     }
-
-    public string? Documentation => _documentationObject.GetText();
-    internal DocumentationObject DocumentationObject => _documentationObject;
-
-    public string DisplayName { get; }
-    public string? TagOutputHint { get; }
-
-    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
-
-    public MetadataCollection Metadata { get; }
 
     internal bool? IsComponentFullyQualifiedNameMatchCache
     {
@@ -113,15 +108,6 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
             }
         }
     }
-
-    public ImmutableArray<RazorDiagnostic> Diagnostics
-        => HasFlag(ContainsDiagnosticsBit)
-            ? TagHelperDiagnostics.GetDiagnostics(this)
-            : ImmutableArray<RazorDiagnostic>.Empty;
-
-    public bool HasErrors
-        => HasFlag(ContainsDiagnosticsBit) &&
-           Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
 
     public ImmutableArray<RazorDiagnostic> GetAllDiagnostics()
     {

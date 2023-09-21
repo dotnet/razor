@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -15,9 +14,9 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject, IEquatable<Re
     public ValueComparisonMode ValueComparison { get; }
     public string DisplayName { get; }
 
-    public MetadataCollection Metadata { get; }
-
     public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+
+    public MetadataCollection Metadata { get; }
 
     internal RequiredAttributeDescriptor(
         string name,
@@ -28,6 +27,7 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject, IEquatable<Re
         string displayName,
         ImmutableArray<RazorDiagnostic> diagnostics,
         MetadataCollection metadata)
+        : base(diagnostics)
     {
         Name = name;
         NameComparison = nameComparison;
@@ -36,22 +36,7 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject, IEquatable<Re
         ValueComparison = valueComparison;
         DisplayName = displayName;
         Metadata = metadata;
-
-        if (!diagnostics.IsDefaultOrEmpty)
-        {
-            SetFlag(ContainsDiagnosticsBit);
-            TagHelperDiagnostics.AddDiagnostics(this, diagnostics);
-        }
     }
-
-    public ImmutableArray<RazorDiagnostic> Diagnostics
-        => HasFlag(ContainsDiagnosticsBit)
-            ? TagHelperDiagnostics.GetDiagnostics(this)
-            : ImmutableArray<RazorDiagnostic>.Empty;
-
-    public bool HasErrors
-        => HasFlag(ContainsDiagnosticsBit) &&
-           Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
 
     public override string ToString()
     {

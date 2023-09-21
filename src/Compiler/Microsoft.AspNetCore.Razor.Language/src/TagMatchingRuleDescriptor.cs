@@ -28,33 +28,13 @@ public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagM
         bool caseSensitive,
         ImmutableArray<RequiredAttributeDescriptor> attributes,
         ImmutableArray<RazorDiagnostic> diagnostics)
+        : base(diagnostics)
     {
         TagName = tagName;
         ParentTag = parentTag;
         TagStructure = tagStructure;
         SetOrClearFlag(CaseSensitiveBit, caseSensitive);
         Attributes = attributes.NullToEmpty();
-
-        if (!diagnostics.IsDefaultOrEmpty)
-        {
-            SetFlag(ContainsDiagnosticsBit);
-            TagHelperDiagnostics.AddDiagnostics(this, diagnostics);
-        }
-    }
-
-    public ImmutableArray<RazorDiagnostic> Diagnostics
-        => HasFlag(ContainsDiagnosticsBit)
-            ? TagHelperDiagnostics.GetDiagnostics(this)
-            : ImmutableArray<RazorDiagnostic>.Empty;
-
-    public bool HasErrors
-    {
-        get
-        {
-            var allDiagnostics = GetAllDiagnostics();
-
-            return allDiagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
-        }
     }
 
     public ImmutableArray<RazorDiagnostic> GetAllDiagnostics()

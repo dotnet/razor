@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -13,25 +12,11 @@ public sealed class AllowedChildTagDescriptor : TagHelperObject, IEquatable<Allo
     public string DisplayName { get; }
 
     internal AllowedChildTagDescriptor(string name, string displayName, ImmutableArray<RazorDiagnostic> diagnostics)
+        : base(diagnostics)
     {
         Name = name;
         DisplayName = displayName;
-
-        if (!diagnostics.IsDefaultOrEmpty)
-        {
-            SetFlag(ContainsDiagnosticsBit);
-            TagHelperDiagnostics.AddDiagnostics(this, diagnostics);
-        }
     }
-
-    public ImmutableArray<RazorDiagnostic> Diagnostics
-        => HasFlag(ContainsDiagnosticsBit)
-            ? TagHelperDiagnostics.GetDiagnostics(this)
-            : ImmutableArray<RazorDiagnostic>.Empty;
-
-    public bool HasErrors
-        => HasFlag(ContainsDiagnosticsBit) &&
-           Diagnostics.Any(static d => d.Severity == RazorDiagnosticSeverity.Error);
 
     public override string ToString()
         => DisplayName ?? base.ToString();
