@@ -5,32 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed partial class TagHelperDescriptorBuilder
+public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<TagHelperDescriptor>
 {
-    private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
-        = HashSetPool<AllowedChildTagDescriptor>.Create(AllowedChildTagDescriptorComparer.Default);
-
-    private static readonly ObjectPool<HashSet<BoundAttributeDescriptor>> s_boundAttributeSetPool
-        = HashSetPool<BoundAttributeDescriptor>.Create(BoundAttributeDescriptorComparer.Default);
-
-    private static readonly ObjectPool<HashSet<TagMatchingRuleDescriptor>> s_tagMatchingRuleSetPool
-        = HashSetPool<TagMatchingRuleDescriptor>.Create(TagMatchingRuleDescriptorComparer.Default);
-
     private string? _kind;
     private string? _name;
     private string? _assemblyName;
 
     private DocumentationObject _documentationObject;
-
-    private List<AllowedChildTagDescriptorBuilder>? _allowedChildTags;
-    private List<BoundAttributeDescriptorBuilder>? _attributeBuilders;
-    private List<TagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
-    private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
     private MetadataHolder _metadata;
 
     private TagHelperDescriptorBuilder()
@@ -71,37 +55,14 @@ public sealed partial class TagHelperDescriptorBuilder
     public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
         => _metadata.TryGetMetadataValue(key, out value);
 
-    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
+    public TagHelperObjectBuilderCollection<AllowedChildTagDescriptor, AllowedChildTagDescriptorBuilder> AllowedChildTags { get; }
+        = new(AllowedChildTagDescriptorBuilder.Pool, s_allowedChildTagSetPool);
 
-    public IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags
-    {
-        get
-        {
-            EnsureAllowedChildTags();
+    public TagHelperObjectBuilderCollection<BoundAttributeDescriptor, BoundAttributeDescriptorBuilder> BoundAttributes { get; }
+        = new(BoundAttributeDescriptorBuilder.Pool, s_boundAttributeSetPool);
 
-            return _allowedChildTags;
-        }
-    }
-
-    public IReadOnlyList<BoundAttributeDescriptorBuilder> BoundAttributes
-    {
-        get
-        {
-            EnsureAttributeBuilders();
-
-            return _attributeBuilders;
-        }
-    }
-
-    public IReadOnlyList<TagMatchingRuleDescriptorBuilder> TagMatchingRules
-    {
-        get
-        {
-            EnsureTagMatchingRuleBuilders();
-
-            return _tagMatchingRuleBuilders;
-        }
-    }
+    public TagHelperObjectBuilderCollection<TagMatchingRuleDescriptor, TagMatchingRuleDescriptorBuilder> TagMatchingRules { get; }
+        = new(TagMatchingRuleDescriptorBuilder.Pool, s_tagMatchingRuleSetPool);
 
     public void AllowChildTag(Action<AllowedChildTagDescriptorBuilder> configure)
     {
@@ -110,11 +71,9 @@ public sealed partial class TagHelperDescriptorBuilder
             throw new ArgumentNullException(nameof(configure));
         }
 
-        EnsureAllowedChildTags();
-
         var builder = AllowedChildTagDescriptorBuilder.GetInstance(this);
         configure(builder);
-        _allowedChildTags.Add(builder);
+        AllowedChildTags.Add(builder);
     }
 
     public void BindAttribute(Action<BoundAttributeDescriptorBuilder> configure)
@@ -124,11 +83,9 @@ public sealed partial class TagHelperDescriptorBuilder
             throw new ArgumentNullException(nameof(configure));
         }
 
-        EnsureAttributeBuilders();
-
         var builder = BoundAttributeDescriptorBuilder.GetInstance(this, Kind);
         configure(builder);
-        _attributeBuilders.Add(builder);
+        BoundAttributes.Add(builder);
     }
 
     public void TagMatchingRule(Action<TagMatchingRuleDescriptorBuilder> configure)
@@ -138,11 +95,9 @@ public sealed partial class TagHelperDescriptorBuilder
             throw new ArgumentNullException(nameof(configure));
         }
 
-        EnsureTagMatchingRuleBuilders();
-
         var builder = TagMatchingRuleDescriptorBuilder.GetInstance(this);
         configure(builder);
-        _tagMatchingRuleBuilders.Add(builder);
+        TagMatchingRules.Add(builder);
     }
 
     internal void SetDocumentation(string? text)
@@ -155,20 +110,12 @@ public sealed partial class TagHelperDescriptorBuilder
         _documentationObject = new(documentation);
     }
 
-    public TagHelperDescriptor Build()
+    private protected override TagHelperDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        using var diagnostics = new PooledHashSet<RazorDiagnostic>();
-
-        diagnostics.UnionWith(_diagnostics);
-
-        var allowedChildTags = _allowedChildTags.BuildAllOrEmpty(s_allowedChildTagSetPool);
-        var tagMatchingRules = _tagMatchingRuleBuilders.BuildAllOrEmpty(s_tagMatchingRuleSetPool);
-        var attributes = _attributeBuilders.BuildAllOrEmpty(s_boundAttributeSetPool);
-
         _metadata.AddIfMissing(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
         var metadata = _metadata.GetMetadataCollection();
 
-        var descriptor = new TagHelperDescriptor(
+        return new TagHelperDescriptor(
             Kind,
             Name,
             AssemblyName,
@@ -176,13 +123,11 @@ public sealed partial class TagHelperDescriptorBuilder
             _documentationObject,
             TagOutputHint,
             CaseSensitive,
-            tagMatchingRules,
-            attributes,
-            allowedChildTags,
+            TagMatchingRules.ToImmutable(),
+            BoundAttributes.ToImmutable(),
+            AllowedChildTags.ToImmutable(),
             metadata,
-            diagnostics.ToImmutableArray());
-
-        return descriptor;
+            diagnostics);
     }
 
     internal string GetDisplayName()
@@ -195,24 +140,6 @@ public sealed partial class TagHelperDescriptorBuilder
                 ? value
                 : null;
         }
-    }
-
-    [MemberNotNull(nameof(_allowedChildTags))]
-    private void EnsureAllowedChildTags()
-    {
-        _allowedChildTags ??= new List<AllowedChildTagDescriptorBuilder>();
-    }
-
-    [MemberNotNull(nameof(_attributeBuilders))]
-    private void EnsureAttributeBuilders()
-    {
-        _attributeBuilders ??= new List<BoundAttributeDescriptorBuilder>();
-    }
-
-    [MemberNotNull(nameof(_tagMatchingRuleBuilders))]
-    private void EnsureTagMatchingRuleBuilders()
-    {
-        _tagMatchingRuleBuilders ??= new List<TagMatchingRuleDescriptorBuilder>();
     }
 
     internal MetadataBuilder GetMetadataBuilder(string? runtimeName = null)

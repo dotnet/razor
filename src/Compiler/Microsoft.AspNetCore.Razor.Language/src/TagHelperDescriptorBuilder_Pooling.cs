@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 
@@ -10,6 +11,15 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public partial class TagHelperDescriptorBuilder
 {
     private static readonly ObjectPool<TagHelperDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
+
+    private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
+        = HashSetPool<AllowedChildTagDescriptor>.Create(AllowedChildTagDescriptorComparer.Default);
+
+    private static readonly ObjectPool<HashSet<BoundAttributeDescriptor>> s_boundAttributeSetPool
+        = HashSetPool<BoundAttributeDescriptor>.Create(BoundAttributeDescriptorComparer.Default);
+
+    private static readonly ObjectPool<HashSet<TagMatchingRuleDescriptor>> s_tagMatchingRuleSetPool
+        = HashSetPool<TagMatchingRuleDescriptor>.Create(TagMatchingRuleDescriptorComparer.Default);
 
     internal static TagHelperDescriptorBuilder GetInstance(string name, string assemblyName)
         => GetInstance(TagHelperConventions.DefaultKind, name, assemblyName);
@@ -25,8 +35,34 @@ public partial class TagHelperDescriptorBuilder
         return builder;
     }
 
-    internal static void ReturnInstance(TagHelperDescriptorBuilder builder)
-        => s_pool.Return(builder);
+    private protected override void Reset()
+    {
+        _kind = null;
+        _name = null;
+        _assemblyName = null;
+        _documentationObject = default;
+
+        DisplayName = null;
+        TagOutputHint = null;
+        CaseSensitive = false;
+
+        AllowedChildTags.Clear();
+        BoundAttributes.Clear();
+        TagMatchingRules.Clear();
+
+        _metadata.Clear();
+    }
+
+    private sealed class Policy : PooledBuilderPolicy<TagHelperDescriptorBuilder>
+    {
+        public static readonly Policy Instance = new();
+
+        private Policy()
+        {
+        }
+
+        public override TagHelperDescriptorBuilder Create() => new();
+    }
 
     /// <summary>
     ///  Retrieves a pooled <see cref="TagHelperDescriptorBuilder"/> instance.

@@ -7,30 +7,14 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed partial class RequiredAttributeDescriptorBuilder : IBuilder<RequiredAttributeDescriptor>
+public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObjectBuilder<RequiredAttributeDescriptor>
 {
-    private static readonly ObjectPool<RequiredAttributeDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
-
-    internal static RequiredAttributeDescriptorBuilder GetInstance(TagMatchingRuleDescriptorBuilder parent)
-    {
-        var builder = s_pool.Get();
-
-        builder._parent = parent;
-
-        return builder;
-    }
-
-    internal static void ReturnInstance(RequiredAttributeDescriptorBuilder builder)
-        => s_pool.Return(builder);
-
     [AllowNull]
     private TagMatchingRuleDescriptorBuilder _parent;
-    private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
     private MetadataHolder _metadata;
 
     private RequiredAttributeDescriptorBuilder()
@@ -49,8 +33,6 @@ public sealed partial class RequiredAttributeDescriptorBuilder : IBuilder<Requir
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 
-    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
-
     public IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
 
     public void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
@@ -58,34 +40,20 @@ public sealed partial class RequiredAttributeDescriptorBuilder : IBuilder<Requir
     public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
         => _metadata.TryGetMetadataValue(key, out value);
 
-    public RequiredAttributeDescriptor Build()
+    private protected override RequiredAttributeDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        var diagnostics = new PooledHashSet<RazorDiagnostic>();
-        try
-        {
-            Validate(ref diagnostics);
+        var displayName = GetDisplayName();
+        var metadata = _metadata.GetMetadataCollection();
 
-            diagnostics.UnionWith(_diagnostics);
-
-            var displayName = GetDisplayName();
-            var metadata = _metadata.GetMetadataCollection();
-
-            var descriptor = new RequiredAttributeDescriptor(
-                Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
-                NameComparisonMode,
-                CaseSensitive,
-                Value,
-                ValueComparisonMode,
-                displayName,
-                diagnostics.ToImmutableArray(),
-                metadata);
-
-            return descriptor;
-        }
-        finally
-        {
-            diagnostics.ClearAndFree();
-        }
+        return new RequiredAttributeDescriptor(
+            Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
+            NameComparisonMode,
+            CaseSensitive,
+            Value,
+            ValueComparisonMode,
+            displayName,
+            diagnostics,
+            metadata);
     }
 
     private string GetDisplayName()
@@ -97,7 +65,7 @@ public sealed partial class RequiredAttributeDescriptorBuilder : IBuilder<Requir
         => TryGetMetadataValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
            value == bool.TrueString;
 
-    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
+    private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
         if (Name.IsNullOrWhiteSpace())
         {

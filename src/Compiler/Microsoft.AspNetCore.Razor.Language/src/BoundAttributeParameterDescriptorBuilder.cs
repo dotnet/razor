@@ -6,35 +6,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed partial class BoundAttributeParameterDescriptorBuilder : IBuilder<BoundAttributeParameterDescriptor>
+public sealed partial class BoundAttributeParameterDescriptorBuilder : TagHelperObjectBuilder<BoundAttributeParameterDescriptor>
 {
-    private static readonly ObjectPool<BoundAttributeParameterDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
-
-    internal static BoundAttributeParameterDescriptorBuilder GetInstance(BoundAttributeDescriptorBuilder parent, string kind)
-    {
-        var builder = s_pool.Get();
-
-        builder._parent = parent;
-        builder._kind = kind;
-
-        return builder;
-    }
-
-    internal static void ReturnInstance(BoundAttributeParameterDescriptorBuilder builder)
-        => s_pool.Return(builder);
-
     [AllowNull]
     private BoundAttributeDescriptorBuilder _parent;
     [AllowNull]
     private string _kind;
     private DocumentationObject _documentationObject;
     private MetadataHolder _metadata;
-
-    private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
 
     private BoundAttributeParameterDescriptorBuilder()
     {
@@ -65,8 +47,6 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : IBuilder<
     public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
         => _metadata.TryGetMetadataValue(key, out value);
 
-    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
-
     internal bool CaseSensitive => _parent.CaseSensitive;
 
     internal void SetDocumentation(string? text)
@@ -79,40 +59,24 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : IBuilder<
         _documentationObject = new(documentation);
     }
 
-    public BoundAttributeParameterDescriptor Build()
+    private protected override BoundAttributeParameterDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        var diagnostics = new PooledHashSet<RazorDiagnostic>();
-        try
-        {
-            Validate(ref diagnostics);
-
-            diagnostics.UnionWith(_diagnostics);
-
-            var metadata = _metadata.GetMetadataCollection();
-
-            var descriptor = new BoundAttributeParameterDescriptor(
-                _kind,
-                Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
-                TypeName!,
-                IsEnum,
-                _documentationObject,
-                GetDisplayName(),
-                CaseSensitive,
-                metadata,
-                diagnostics.ToImmutableArray());
-
-            return descriptor;
-        }
-        finally
-        {
-            diagnostics.ClearAndFree();
-        }
+        return new BoundAttributeParameterDescriptor(
+            _kind,
+            Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
+            TypeName!,
+            IsEnum,
+            _documentationObject,
+            GetDisplayName(),
+            CaseSensitive,
+            _metadata.GetMetadataCollection(),
+            diagnostics);
     }
 
     private string GetDisplayName()
         => DisplayName ?? $":{Name}";
 
-    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
+    private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
         if (Name.IsNullOrWhiteSpace())
         {

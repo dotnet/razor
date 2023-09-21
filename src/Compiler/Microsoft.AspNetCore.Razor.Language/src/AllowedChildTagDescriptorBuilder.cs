@@ -5,29 +5,13 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed partial class AllowedChildTagDescriptorBuilder : IBuilder<AllowedChildTagDescriptor>
+public sealed partial class AllowedChildTagDescriptorBuilder : TagHelperObjectBuilder<AllowedChildTagDescriptor>
 {
-    private static readonly ObjectPool<AllowedChildTagDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
-
-    internal static AllowedChildTagDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent)
-    {
-        var builder = s_pool.Get();
-
-        builder._parent = parent;
-
-        return builder;
-    }
-
-    internal static void ReturnInstance(AllowedChildTagDescriptorBuilder builder)
-        => s_pool.Return(builder);
-
     [AllowNull]
     private TagHelperDescriptorBuilder _parent;
-    private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
 
     private AllowedChildTagDescriptorBuilder()
     {
@@ -41,34 +25,17 @@ public sealed partial class AllowedChildTagDescriptorBuilder : IBuilder<AllowedC
     public string? Name { get; set; }
     public string? DisplayName { get; set; }
 
-    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics
-        => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
-
-    public AllowedChildTagDescriptor Build()
+    private protected override AllowedChildTagDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        var diagnostics = new PooledHashSet<RazorDiagnostic>();
-        try
-        {
-            Validate(ref diagnostics);
+        var displayName = DisplayName ?? Name ?? string.Empty;
 
-            diagnostics.UnionWith(_diagnostics);
-
-            var displayName = DisplayName ?? Name ?? string.Empty;
-
-            var descriptor = new AllowedChildTagDescriptor(
-                Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
-                displayName,
-                diagnostics.ToImmutableArray());
-
-            return descriptor;
-        }
-        finally
-        {
-            diagnostics.ClearAndFree();
-        }
+        return new AllowedChildTagDescriptor(
+            Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
+            displayName,
+            diagnostics);
     }
 
-    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
+    private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
         if (Name.IsNullOrWhiteSpace())
         {

@@ -6,30 +6,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed partial class BoundAttributeDescriptorBuilder : IBuilder<BoundAttributeDescriptor>
+public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBuilder<BoundAttributeDescriptor>
 {
-    private static readonly ObjectPool<BoundAttributeDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
-
-    internal static BoundAttributeDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent, string kind)
-    {
-        var builder = s_pool.Get();
-
-        builder._parent = parent;
-        builder._kind = kind;
-
-        return builder;
-    }
-
-    internal static void ReturnInstance(BoundAttributeDescriptorBuilder builder)
-        => s_pool.Return(builder);
-
-    private static readonly ObjectPool<HashSet<BoundAttributeParameterDescriptor>> s_boundAttributeParameterSetPool
-        = HashSetPool<BoundAttributeParameterDescriptor>.Create(BoundAttributeParameterDescriptorComparer.Default);
-
     // PERF: A Dictionary<string, string> is used intentionally here for faster lookup over ImmutableDictionary<string, string>.
     // This should never be mutated.
     private static readonly Dictionary<string, string> s_primitiveDisplayTypeNameLookups = new(StringComparer.Ordinal)
@@ -55,10 +36,8 @@ public sealed partial class BoundAttributeDescriptorBuilder : IBuilder<BoundAttr
     private TagHelperDescriptorBuilder _parent;
     [AllowNull]
     private string _kind;
-    private List<BoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
     private DocumentationObject _documentationObject;
     private MetadataHolder _metadata;
-    private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
 
     private BoundAttributeDescriptorBuilder()
     {
@@ -94,10 +73,10 @@ public sealed partial class BoundAttributeDescriptorBuilder : IBuilder<BoundAttr
     public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
         => _metadata.TryGetMetadataValue(key, out value);
 
-    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics
-        => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
-
     internal bool CaseSensitive => _parent.CaseSensitive;
+
+    private TagHelperObjectBuilderCollection<BoundAttributeParameterDescriptor, BoundAttributeParameterDescriptorBuilder> Parameters { get; }
+        = new(BoundAttributeParameterDescriptorBuilder.Pool, s_boundAttributeParameterSetPool);
 
     public void BindAttributeParameter(Action<BoundAttributeParameterDescriptorBuilder> configure)
     {
@@ -106,11 +85,9 @@ public sealed partial class BoundAttributeDescriptorBuilder : IBuilder<BoundAttr
             throw new ArgumentNullException(nameof(configure));
         }
 
-        EnsureAttributeParameterBuilders();
-
         var builder = BoundAttributeParameterDescriptorBuilder.GetInstance(this, _kind);
         configure(builder);
-        _attributeParameterBuilders.Add(builder);
+        Parameters.Add(builder);
     }
 
     internal void SetDocumentation(string? text)
@@ -123,41 +100,23 @@ public sealed partial class BoundAttributeDescriptorBuilder : IBuilder<BoundAttr
         _documentationObject = new(documentation);
     }
 
-    public BoundAttributeDescriptor Build()
+    private protected override BoundAttributeDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        var diagnostics = new PooledHashSet<RazorDiagnostic>();
-        try
-        {
-            Validate(ref diagnostics);
-
-            diagnostics.UnionWith(_diagnostics);
-
-            var parameters = _attributeParameterBuilders.BuildAllOrEmpty(s_boundAttributeParameterSetPool);
-
-            var metadata = _metadata.GetMetadataCollection();
-
-            var descriptor = new BoundAttributeDescriptor(
-                _kind,
-                Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
-                TypeName!,
-                IsEnum,
-                IsDictionary,
-                IndexerAttributeNamePrefix,
-                IndexerValueTypeName,
-                _documentationObject,
-                GetDisplayName(),
-                CaseSensitive,
-                IsEditorRequired,
-                parameters,
-                metadata,
-                diagnostics.ToImmutableArray());
-
-            return descriptor;
-        }
-        finally
-        {
-            diagnostics.ClearAndFree();
-        }
+        return new BoundAttributeDescriptor(
+            _kind,
+            Name!, // Name is not expected to be null. If it is, a diagnostic will be created for it.
+            TypeName!,
+            IsEnum,
+            IsDictionary,
+            IndexerAttributeNamePrefix,
+            IndexerValueTypeName,
+            _documentationObject,
+            GetDisplayName(),
+            CaseSensitive,
+            IsEditorRequired,
+            Parameters.ToImmutable(),
+            _metadata.GetMetadataCollection(),
+            diagnostics);
     }
 
     private string GetDisplayName()
@@ -193,7 +152,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : IBuilder<BoundAttr
         return Name ?? string.Empty;
     }
 
-    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
+    private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
         // data-* attributes are explicitly not implemented by user agents and are not intended for use on
         // the server; therefore it's invalid for TagHelpers to bind to them.
@@ -304,11 +263,5 @@ public sealed partial class BoundAttributeDescriptorBuilder : IBuilder<BoundAttr
                 }
             }
         }
-    }
-
-    [MemberNotNull(nameof(_attributeParameterBuilders))]
-    private void EnsureAttributeParameterBuilders()
-    {
-        _attributeParameterBuilders ??= new List<BoundAttributeParameterDescriptorBuilder>();
     }
 }

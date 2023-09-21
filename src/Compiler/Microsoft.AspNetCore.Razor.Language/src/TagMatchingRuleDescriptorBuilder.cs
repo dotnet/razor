@@ -2,37 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatchingRuleDescriptor>
+public sealed partial class TagMatchingRuleDescriptorBuilder : TagHelperObjectBuilder<TagMatchingRuleDescriptor>
 {
-    private static readonly ObjectPool<TagMatchingRuleDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
-
-    internal static TagMatchingRuleDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent)
-    {
-        var builder = s_pool.Get();
-
-        builder._parent = parent;
-
-        return builder;
-    }
-
-    internal static void ReturnInstance(TagMatchingRuleDescriptorBuilder builder)
-        => s_pool.Return(builder);
-
-    private static readonly ObjectPool<HashSet<RequiredAttributeDescriptor>> s_requiredAttributeSetPool
-        = HashSetPool<RequiredAttributeDescriptor>.Create(RequiredAttributeDescriptorComparer.Default);
-
     [AllowNull]
     private TagHelperDescriptorBuilder _parent;
-    private List<RequiredAttributeDescriptorBuilder>? _requiredAttributeBuilders;
-    private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
 
     private TagMatchingRuleDescriptorBuilder()
     {
@@ -49,17 +28,8 @@ public sealed partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatch
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 
-    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _diagnostics ??= ImmutableArray.CreateBuilder<RazorDiagnostic>();
-
-    public IReadOnlyList<RequiredAttributeDescriptorBuilder> Attributes
-    {
-        get
-        {
-            EnsureRequiredAttributeBuilders();
-
-            return _requiredAttributeBuilders;
-        }
-    }
+    public TagHelperObjectBuilderCollection<RequiredAttributeDescriptor, RequiredAttributeDescriptorBuilder> Attributes { get; }
+        = new(RequiredAttributeDescriptorBuilder.Pool, s_requiredAttributeSetPool);
 
     public void Attribute(Action<RequiredAttributeDescriptorBuilder> configure)
     {
@@ -68,41 +38,23 @@ public sealed partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatch
             throw new ArgumentNullException(nameof(configure));
         }
 
-        EnsureRequiredAttributeBuilders();
-
         var builder = RequiredAttributeDescriptorBuilder.GetInstance(this);
         configure(builder);
-        _requiredAttributeBuilders.Add(builder);
+        Attributes.Add(builder);
     }
 
-    public TagMatchingRuleDescriptor Build()
+    private protected override TagMatchingRuleDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        var diagnostics = new PooledHashSet<RazorDiagnostic>();
-        try
-        {
-            Validate(ref diagnostics);
-
-            diagnostics.UnionWith(_diagnostics);
-
-            var requiredAttributes = _requiredAttributeBuilders.BuildAllOrEmpty(s_requiredAttributeSetPool);
-
-            var rule = new TagMatchingRuleDescriptor(
-                TagName!, // TagName is not expected to be null. If it is, a diagnostic will be created for it.
-                ParentTag,
-                TagStructure,
-                CaseSensitive,
-                requiredAttributes,
-                diagnostics.ToImmutableArray());
-
-            return rule;
-        }
-        finally
-        {
-            diagnostics.ClearAndFree();
-        }
+        return new TagMatchingRuleDescriptor(
+            TagName!, // TagName is not expected to be null. If it is, a diagnostic will be created for it.
+            ParentTag,
+            TagStructure,
+            CaseSensitive,
+            Attributes.ToImmutable(),
+            diagnostics);
     }
 
-    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
+    private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
         if (TagName.IsNullOrWhiteSpace())
         {
@@ -144,11 +96,5 @@ public sealed partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatch
                 }
             }
         }
-    }
-
-    [MemberNotNull(nameof(_requiredAttributeBuilders))]
-    private void EnsureRequiredAttributeBuilders()
-    {
-        _requiredAttributeBuilders ??= new List<RequiredAttributeDescriptorBuilder>();
     }
 }

@@ -23,7 +23,7 @@ public partial class TagHelperDescriptorBuilder
         {
             if (!_disposed)
             {
-                ReturnInstance(_builder);
+                s_pool.Return(_builder);
                 _disposed = true;
             }
         }
