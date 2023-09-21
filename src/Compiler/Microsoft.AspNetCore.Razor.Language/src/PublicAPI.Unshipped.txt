@@ -32,7 +32,7 @@ Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.CaseSensitive.get -
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.DisplayName.get -> string!
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.Documentation.get -> string?
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.Equals(Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor! other) -> bool
-Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.GetAllDiagnostics() -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!>
+Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.GetAllDiagnostics() -> System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!>!
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.HasIndexer.get -> bool
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.IndexerNamePrefix.get -> string?
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.IndexerTypeName.get -> string?
@@ -176,7 +176,7 @@ Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.CaseSensitive.get -> boo
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.DisplayName.get -> string!
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Documentation.get -> string?
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Equals(Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor! other) -> bool
-Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.GetAllDiagnostics() -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!>
+Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.GetAllDiagnostics() -> System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!>!
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Kind.get -> string!
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Metadata.get -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Name.get -> string!
@@ -224,7 +224,7 @@ Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor
 Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.Attributes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor!>
 Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.CaseSensitive.get -> bool
 Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.Equals(Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor! other) -> bool
-Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.GetAllDiagnostics() -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!>
+Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.GetAllDiagnostics() -> System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!>!
 Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.ParentTag.get -> string?
 Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.TagName.get -> string!
 Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.TagStructure.get -> Microsoft.AspNetCore.Razor.Language.TagStructure

@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -23,7 +23,6 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
     private const int IsEditorRequiredBit = LastFlagBit << 8;
     private const int HasIndexerBit = LastFlagBit << 9;
 
-    private ImmutableArray<RazorDiagnostic>? _allDiagnostics;
     private readonly DocumentationObject _documentationObject;
 
     public string Kind { get; }
@@ -122,22 +121,19 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
 
     internal DocumentationObject DocumentationObject => _documentationObject;
 
-    public ImmutableArray<RazorDiagnostic> GetAllDiagnostics()
+    public IEnumerable<RazorDiagnostic> GetAllDiagnostics()
     {
-        return _allDiagnostics ??= GetAllDiagnosticsCore();
-
-        ImmutableArray<RazorDiagnostic> GetAllDiagnosticsCore()
+        foreach (var parameter in Parameters)
         {
-            using var diagnostics = new PooledArrayBuilder<RazorDiagnostic>();
-
-            foreach (var parameter in Parameters)
+            foreach (var diagnostic in parameter.Diagnostics)
             {
-                diagnostics.AddRange(parameter.Diagnostics);
+                yield return diagnostic;
             }
+        }
 
-            diagnostics.AddRange(Diagnostics);
-
-            return diagnostics.DrainToImmutable();
+        foreach (var diagnostic in Diagnostics)
+        {
+            yield return diagnostic;
         }
     }
 

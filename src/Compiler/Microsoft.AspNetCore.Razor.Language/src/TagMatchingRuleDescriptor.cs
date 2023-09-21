@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -13,7 +14,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagMatchingRuleDescriptor>
 {
     private int? _hashCode;
-    private ImmutableArray<RazorDiagnostic>? _allDiagnostics;
 
     public string TagName { get; }
     public string? ParentTag { get; }
@@ -37,22 +37,19 @@ public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagM
         Attributes = attributes.NullToEmpty();
     }
 
-    public ImmutableArray<RazorDiagnostic> GetAllDiagnostics()
+    public IEnumerable<RazorDiagnostic> GetAllDiagnostics()
     {
-        return _allDiagnostics ??= GetAllDiagnosticsCore();
-
-        ImmutableArray<RazorDiagnostic> GetAllDiagnosticsCore()
-        { 
-            using var diagnostics = new PooledArrayBuilder<RazorDiagnostic>();
-
-            foreach (var attribute in Attributes)
+        foreach (var attribute in Attributes)
+        {
+            foreach (var diagnostic in attribute.Diagnostics)
             {
-                diagnostics.AddRange(attribute.Diagnostics);
+                yield return diagnostic;
             }
+        }
 
-            diagnostics.AddRange(Diagnostics);
-
-            return diagnostics.ToImmutable();
+        foreach (var diagnostic in Diagnostics)
+        {
+            yield return diagnostic;
         }
     }
 

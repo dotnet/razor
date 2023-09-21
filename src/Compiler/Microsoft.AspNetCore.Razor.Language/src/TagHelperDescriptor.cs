@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -20,7 +22,6 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
     private int? _hashCode;
     private readonly DocumentationObject _documentationObject;
 
-    private ImmutableArray<RazorDiagnostic>? _allDiagnostics;
     private ImmutableArray<BoundAttributeDescriptor>? _editorRequiredAttributes;
 
     public string Kind { get; }
@@ -109,32 +110,35 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
         }
     }
 
-    public ImmutableArray<RazorDiagnostic> GetAllDiagnostics()
+    public IEnumerable<RazorDiagnostic> GetAllDiagnostics()
     {
-        return _allDiagnostics ??= GetAllDiagnosticsCore();
-
-        ImmutableArray<RazorDiagnostic> GetAllDiagnosticsCore()
+        foreach (var allowedChildTag in AllowedChildTags)
         {
-            using var diagnostics = new PooledArrayBuilder<RazorDiagnostic>();
-
-            foreach (var allowedChildTag in AllowedChildTags)
+            foreach (var diagnostic in allowedChildTag.Diagnostics)
             {
-                diagnostics.AddRange(allowedChildTag.Diagnostics);
+                yield return diagnostic;
             }
+        }
 
-            foreach (var attribute in BoundAttributes)
+        foreach (var boundAttribute in BoundAttributes)
+        {
+            foreach (var diagnostic in boundAttribute.Diagnostics)
             {
-                diagnostics.AddRange(attribute.Diagnostics);
+                yield return diagnostic;
             }
+        }
 
-            foreach (var rule in TagMatchingRules)
+        foreach (var tagMatchingRule in TagMatchingRules)
+        {
+            foreach (var diagnostic in tagMatchingRule.Diagnostics)
             {
-                diagnostics.AddRange(rule.GetAllDiagnostics());
+                yield return diagnostic;
             }
+        }
 
-            diagnostics.AddRange(Diagnostics);
-
-            return diagnostics.DrainToImmutable();
+        foreach (var diagnostic in Diagnostics)
+        {
+            yield return diagnostic;
         }
     }
 
