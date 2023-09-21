@@ -35,8 +35,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_RazorIfNotReady(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -52,8 +52,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharpBlock_HTML(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -72,8 +72,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_Nested_HTML(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -90,8 +90,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_VSCodeWorks(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -106,8 +106,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_Explicit(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -125,8 +125,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_Implicit(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -144,8 +144,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_VersionMismatch(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -162,8 +162,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_FunctionAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -180,8 +180,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_StaticModifier(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -200,8 +200,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_MultipleBlankLines(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -220,8 +220,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_IncompleteTag(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -237,8 +237,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_MinimizedHTMLAttribute(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -254,8 +254,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_MinimizedHTMLAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -271,8 +271,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_HTMLCommentAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -289,8 +289,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_PartialHTMLCommentAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -307,8 +307,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_HTMLIncludesBang(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -325,8 +325,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_HalfOfCommentAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -343,8 +343,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_NoAttributesAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -361,8 +361,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_WithAttributeAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -379,8 +379,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_MinimizedAttribute_BoundAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -397,8 +397,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_MinimizedAttribute_NotBoundAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -415,8 +415,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_IgnoresNonTagHelperAttributesAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -433,8 +433,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_TagHelpersNotAvailableInRazorAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -451,8 +451,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_DoesNotApplyOnNonTagHelpersAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -469,8 +469,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_MinimizedDirectiveAttributeParameters(bool usePreciseSemanticTokenRanges)
     {
         // Capitalized, non-well-known-HTML elements should not be marked as TagHelpers
@@ -488,8 +488,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_ComponentAttributeAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -506,8 +506,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_ComponentAttribute_DoesntGetABackground(bool usePreciseSemanticTokenRanges)
     {
         // Need C# around the component for the C# range to be valid, to correctly validate the attribute handling
@@ -528,8 +528,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_DirectiveAttributesParametersAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -546,8 +546,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_NonComponentsDoNotShowInRazorAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -564,8 +564,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_DirectivesAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -582,8 +582,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_HandleTransitionEscape(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -599,8 +599,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_DoNotColorNonTagHelpersAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -616,8 +616,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_DoesNotApplyOnNonTagHelpersAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -633,8 +633,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_CodeDirectiveAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -650,8 +650,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_CodeDirectiveBodyAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -672,8 +672,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_UsingDirective(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -689,8 +689,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_FunctionsDirectiveAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -706,8 +706,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_NestedTextDirectives(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -737,8 +737,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_NestedTransitions(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -757,8 +757,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_CommentAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -773,8 +773,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_MultiLineCommentMidlineAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -792,8 +792,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_MultiLineCommentWithBlankLines(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -814,8 +814,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     [WorkItem("https://github.com/dotnet/razor/issues/8176")]
     public async Task GetSemanticTokens_Razor_MultiLineCommentWithBlankLines_LF(bool usePreciseSemanticTokenRanges)
     {
@@ -829,8 +829,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_Razor_MultiLineCommentAsync(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
@@ -847,8 +847,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_Static(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -874,8 +874,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_LargeFile(bool usePreciseSemanticTokenRanges)
     {
         var start = """
@@ -956,8 +956,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_Static_WithBackground(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -984,8 +984,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_Tabs_Static_WithBackground(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -1012,8 +1012,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_WithBackground(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -1039,8 +1039,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_WitRenderFragment(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -1062,8 +1062,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_WitRenderFragmentAndBackground(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -1085,8 +1085,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task GetSemanticTokens_CSharp_ExplicitStatement_WithBackground(bool usePreciseSemanticTokenRanges)
     {
         var documentText = """
@@ -1103,8 +1103,8 @@ public class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+    [InlineData(true)]
+    [InlineData(false)]
     public void GetMappedCSharpRanges_MinimalRangeVsSmallDisjointRanges_DisjointRangesAreSmaller(bool usePreciseSemanticTokenRanges)
     {
         var documentText =
