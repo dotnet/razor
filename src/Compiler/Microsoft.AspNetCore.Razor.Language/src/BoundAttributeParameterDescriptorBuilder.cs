@@ -10,7 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public partial class BoundAttributeParameterDescriptorBuilder : IBuilder<BoundAttributeParameterDescriptor>
+public sealed partial class BoundAttributeParameterDescriptorBuilder : IBuilder<BoundAttributeParameterDescriptor>
 {
     private static readonly ObjectPool<BoundAttributeParameterDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 

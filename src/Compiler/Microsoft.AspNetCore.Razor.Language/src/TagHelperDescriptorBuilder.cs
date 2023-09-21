@@ -10,7 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public partial class TagHelperDescriptorBuilder
+public sealed partial class TagHelperDescriptorBuilder
 {
     private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
         = HashSetPool<AllowedChildTagDescriptor>.Create(AllowedChildTagDescriptorComparer.Default);

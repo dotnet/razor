@@ -12,7 +12,7 @@ using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public partial class RequiredAttributeDescriptorBuilder : IBuilder<RequiredAttributeDescriptor>
+public sealed partial class RequiredAttributeDescriptorBuilder : IBuilder<RequiredAttributeDescriptor>
 {
     private static readonly ObjectPool<RequiredAttributeDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 

@@ -9,7 +9,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public partial class AllowedChildTagDescriptorBuilder : IBuilder<AllowedChildTagDescriptor>
+public sealed partial class AllowedChildTagDescriptorBuilder : IBuilder<AllowedChildTagDescriptor>
 {
     private static readonly ObjectPool<AllowedChildTagDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 

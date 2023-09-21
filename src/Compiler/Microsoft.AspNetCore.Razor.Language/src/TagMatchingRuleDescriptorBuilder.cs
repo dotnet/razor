@@ -10,7 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatchingRuleDescriptor>
+public sealed partial class TagMatchingRuleDescriptorBuilder : IBuilder<TagMatchingRuleDescriptor>
 {
     private static readonly ObjectPool<TagMatchingRuleDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
