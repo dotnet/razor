@@ -36,10 +36,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((AnalyzerConfigOptionsProvider, ParseOptions) pair, CancellationToken ct)
         {
-            Log.ComputeRazorSourceGeneratorOptions();
-
             var (options, parseOptions) = pair;
             var globalOptions = options.GlobalOptions;
+            
+            if(GetSuppressionStatus(options, ct))
+            {
+                return default;
+            }
+
+            Log.ComputeRazorSourceGeneratorOptions();
 
             globalOptions.TryGetValue("build_property.RazorConfiguration", out var configurationName);
             globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);

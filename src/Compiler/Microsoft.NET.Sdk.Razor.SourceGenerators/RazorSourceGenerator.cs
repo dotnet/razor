@@ -114,14 +114,20 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var tagHelpersFromCompilation = declCompilation
                 .Combine(razorSourceGeneratorOptions)
+                .Combine(isGeneratorSuppressed)
                 .Select(static (pair, _) =>
                 {
-                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
 
-                    var (compilation, razorSourceGeneratorOptions) = pair;
-
-                    var tagHelperFeature = GetStaticTagHelperFeature(compilation);
+                    var ((compilation, razorSourceGeneratorOptions), isGeneratorSuppressed) = pair;
                     var results = new List<TagHelperDescriptor>();
+
+                    if (isGeneratorSuppressed)
+                    {
+                        return results;
+                    }
+
+                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
+                    var tagHelperFeature = GetStaticTagHelperFeature(compilation);
 
                     tagHelperFeature.CollectDescriptors(compilation.Assembly, results);
 
@@ -153,16 +159,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .Select(static (pair, _) =>
                 {
-                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStart();
 
                     var ((compilation, razorSourceGeneratorOptions), hasRazorFiles) = pair;
                     if (!hasRazorFiles)
                     {
                         // If there's no razor code in this app, don't do anything.
-                        RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStop();
                         return null;
                     }
 
+                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStart();
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
 
                     // Typically a project with Razor files will have many tag helpers in references.
