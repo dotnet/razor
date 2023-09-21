@@ -36,15 +36,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var parseOptions = context.ParseOptionsProvider;
             var compilation = context.CompilationProvider;
 
-            // determine if we should suppress this run and filter out all the additional files if so
-            var isGeneratorSuppressed = analyzerConfigOptions.Select(GetSuppressionStatus);
-            var additionalTexts = context.AdditionalTextsProvider
-                .Combine(isGeneratorSuppressed)
-                .Where(pair => !pair.Right)
-                .Select((pair, _) => pair.Left);
+            // determine if we should suppress this run and filter out all the additional files and references if so
+            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator");
+            var additionalTexts = context.AdditionalTextsProvider.EmptyWhen(isGeneratorSuppressed, true);
+            var metadataRefs = context.MetadataReferencesProvider.EmptyWhen(isGeneratorSuppressed, true);
 
             var razorSourceGeneratorOptions = analyzerConfigOptions
                 .Combine(parseOptions)
+                .Combine(isGeneratorSuppressed)
                 .Select(ComputeRazorSourceGeneratorOptions)
                 .ReportDiagnostics(context);
 
@@ -199,12 +198,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
                 .Combine(razorSourceGeneratorOptions);
 
-            var withOptionsDesignTime = withOptions
-                .Combine(analyzerConfigOptions.Select(GetHostOutputsEnabledStatus))
-                .Where(pair => pair.Right)
-                .Select((pair, _) => pair.Left);
+            var razorHostOutputsEnabled = analyzerConfigOptions.CheckGlobalFlagSet("EnableRazorHostOutputs");
+            var withOptionsDesignTime = withOptions.EmptyWhen(razorHostOutputsEnabled, false);
 
-            var isAddComponentParameterAvailable = context.MetadataReferencesProvider
+            var isAddComponentParameterAvailable = metadataRefs
                 .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
                 .Collect()
                 .Select((refs, _) =>
