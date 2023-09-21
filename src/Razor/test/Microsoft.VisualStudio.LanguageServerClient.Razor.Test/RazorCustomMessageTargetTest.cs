@@ -6,13 +6,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
@@ -373,6 +371,7 @@ public class RazorCustomMessageTargetTest : TestBase
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
         var outputWindowLogger = new TestOutputWindowLogger();
+        var range = new Range();
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -391,8 +390,8 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 1,
-            ranges: new[] { new Range() },
-            usePreciseRanges: false,
+            minimalRange: range,
+            ranges: new[] { range },
             correlationId: Guid.Empty);
 
         // Act
@@ -415,6 +414,7 @@ public class RazorCustomMessageTargetTest : TestBase
             .Returns(true);
         var documentSynchronizer = GetDocumentSynchronizer();
         var outputWindowLogger = new TestOutputWindowLogger();
+        var range = new Range();
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -433,8 +433,8 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: new[] { new Range() },
-            usePreciseRanges: false,
+            minimalRange: range,
+            ranges: new[] { range },
             correlationId: Guid.Empty);
 
         // Act
@@ -485,6 +485,7 @@ public class RazorCustomMessageTargetTest : TestBase
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
+        var range = new Range() { Start = It.IsAny<Position>(), End = It.IsAny<Position>() };
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
@@ -495,8 +496,8 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: new[] { new Range() { Start = It.IsAny<Position>(), End = It.IsAny<Position>() } },
-            usePreciseRanges: false,
+            minimalRange: range,
+            ranges: new[] { range },
             correlationId: Guid.Empty);
 
         // Act
@@ -504,7 +505,7 @@ public class RazorCustomMessageTargetTest : TestBase
 
         // Assert
         Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
-        Assert.Equal(new int[][] { expectedCSharpResults.Data }, result.Tokens);
+        Assert.Equal(expectedCSharpResults.Data, result.Tokens);
     }
 
     [Fact]
@@ -548,6 +549,7 @@ public class RazorCustomMessageTargetTest : TestBase
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
+        var range = new Range();
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
@@ -558,8 +560,8 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: new[] { new Range() },
-            usePreciseRanges: false,
+            minimalRange: range,
+            ranges: new[] { range },
             correlationId: Guid.Empty);
         var expectedResults = new ProvideSemanticTokensResponse(null, documentVersion);
 
