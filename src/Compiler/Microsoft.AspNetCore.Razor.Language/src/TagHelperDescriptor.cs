@@ -22,7 +22,7 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
     private int? _hashCode;
     private readonly DocumentationObject _documentationObject;
 
-    private ImmutableArray<BoundAttributeDescriptor>? _editorRequiredAttributes;
+    private ImmutableArray<BoundAttributeDescriptor> _editorRequiredAttributes;
 
     public string Kind { get; }
     public string Name { get; }
@@ -86,7 +86,12 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
     {
         get
         {
-            return _editorRequiredAttributes ??= GetEditorRequiredAttributes(BoundAttributes);
+            if (_editorRequiredAttributes.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _editorRequiredAttributes, GetEditorRequiredAttributes(BoundAttributes));
+            }
+
+            return _editorRequiredAttributes;
 
             static ImmutableArray<BoundAttributeDescriptor> GetEditorRequiredAttributes(ImmutableArray<BoundAttributeDescriptor> attributes)
             {
