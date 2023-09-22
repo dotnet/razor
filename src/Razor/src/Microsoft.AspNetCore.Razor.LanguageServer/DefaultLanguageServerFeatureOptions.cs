@@ -24,8 +24,6 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool SingleServerSupport => false;
 
-    public override bool SupportsDelegatedCodeActions => false;
-
     public override bool DelegateToCSharpOnDiagnosticPublish => false;
 
     public override bool UpdateBuffersForClosedDocuments => false;
@@ -38,4 +36,6 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
     public override bool ShowAllCSharpCodeActions => false;
 
     public override bool IncludeProjectKeyInGeneratedFilePath => false;
+
+    public override bool UsePreciseSemanticTokenRanges => false;
 }

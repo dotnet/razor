@@ -44,7 +44,7 @@
       ],
       "vsBranch": "rel/d17.8",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
+      "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[17.8P2]"
     }
   }
