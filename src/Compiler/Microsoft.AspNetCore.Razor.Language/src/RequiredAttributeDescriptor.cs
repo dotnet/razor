@@ -13,8 +13,7 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject, IEquatable<Re
     public string? Value { get; }
     public ValueComparisonMode ValueComparison { get; }
     public string DisplayName { get; }
-
-    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+    public bool CaseSensitive { get; }
 
     public MetadataCollection Metadata { get; }
 
@@ -31,11 +30,11 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject, IEquatable<Re
     {
         Name = name;
         NameComparison = nameComparison;
-        SetOrClearFlag(CaseSensitiveBit, caseSensitive);
+        CaseSensitive = caseSensitive;
         Value = value;
         ValueComparison = valueComparison;
         DisplayName = displayName;
-        Metadata = metadata;
+        Metadata = metadata ?? MetadataCollection.Empty;
     }
 
     public override string ToString()

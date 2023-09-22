@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -79,7 +78,7 @@ namespace Test
         Assert.Equal(ComponentMetadata.Bind.RuntimeName, bind.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(bind.IsDefaultKind());
         Assert.False(bind.KindUsesDefaultTagHelperRuntime());
-        Assert.False(bind.IsComponentOrChildContentTagHelper());
+        Assert.False(bind.IsComponentOrChildContentTagHelper);
         Assert.True(bind.CaseSensitive);
 
         Assert.Equal("MyProperty", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
@@ -232,7 +231,7 @@ namespace Test
         Assert.Equal(ComponentMetadata.Bind.RuntimeName, bind.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(bind.IsDefaultKind());
         Assert.False(bind.KindUsesDefaultTagHelperRuntime());
-        Assert.False(bind.IsComponentOrChildContentTagHelper());
+        Assert.False(bind.IsComponentOrChildContentTagHelper);
         Assert.True(bind.CaseSensitive);
 
         Assert.Equal("MyProperty", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
@@ -416,7 +415,7 @@ namespace Test
         Assert.Equal(ComponentMetadata.Bind.RuntimeName, bind.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(bind.IsDefaultKind());
         Assert.False(bind.KindUsesDefaultTagHelperRuntime());
-        Assert.False(bind.IsComponentOrChildContentTagHelper());
+        Assert.False(bind.IsComponentOrChildContentTagHelper);
         Assert.True(bind.CaseSensitive);
 
         Assert.Equal("myprop", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
@@ -1061,7 +1060,7 @@ namespace Test
         Assert.Equal(ComponentMetadata.Bind.RuntimeName, bind.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(bind.IsDefaultKind());
         Assert.False(bind.KindUsesDefaultTagHelperRuntime());
-        Assert.False(bind.IsComponentOrChildContentTagHelper());
+        Assert.False(bind.IsComponentOrChildContentTagHelper);
         Assert.True(bind.CaseSensitive);
 
         Assert.False(bind.Metadata.ContainsKey(ComponentMetadata.Bind.ValueAttribute));

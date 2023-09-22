@@ -1198,9 +1198,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
             childContent: true);
         var descriptors = new[]
         {
-                componentDescriptor,
-                childContentDescriptor,
-            };
+            componentDescriptor,
+            childContentDescriptor,
+        };
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = @"
 ";

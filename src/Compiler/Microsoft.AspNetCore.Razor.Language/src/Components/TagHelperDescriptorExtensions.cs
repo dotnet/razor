@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -14,7 +13,7 @@ internal static class TagHelperDescriptorExtensions
 {
     public static bool IsAnyComponentDocumentTagHelper(this TagHelperDescriptor tagHelper)
     {
-        return tagHelper.IsComponentTagHelper() || tagHelper.Metadata.ContainsKey(ComponentMetadata.SpecialKindKey);
+        return tagHelper.IsComponentTagHelper || tagHelper.Metadata.ContainsKey(ComponentMetadata.SpecialKindKey);
     }
 
     public static bool IsBindTagHelper(this TagHelperDescriptor tagHelper)
@@ -42,7 +41,7 @@ internal static class TagHelperDescriptorExtensions
     public static bool IsGenericTypedComponent(this TagHelperDescriptor tagHelper)
     {
         return
-            IsComponentTagHelper(tagHelper) &&
+            tagHelper.IsComponentTagHelper &&
             tagHelper.Metadata.TryGetValue(ComponentMetadata.Component.GenericTypedKey, out var value) &&
             string.Equals(bool.TrueString, value);
     }
@@ -107,27 +106,6 @@ internal static class TagHelperDescriptorExtensions
         return result;
     }
 
-    public static bool IsChildContentTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        if (tagHelper.IsChildContentTagHelperCache is bool value)
-        {
-            return value;
-        }
-
-        value = tagHelper.Metadata.TryGetValue(ComponentMetadata.SpecialKindKey, out var specialKey) &&
-            string.Equals(specialKey, ComponentMetadata.ChildContent.TagHelperKind, StringComparison.Ordinal);
-
-        tagHelper.IsChildContentTagHelperCache = value;
-        return value;
-    }
-
-    public static bool IsComponentTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return
-            string.Equals(tagHelper.Kind, ComponentMetadata.Component.TagHelperKind) &&
-            !tagHelper.Metadata.ContainsKey(ComponentMetadata.SpecialKindKey);
-    }
-
     public static bool IsEventHandlerTagHelper(this TagHelperDescriptor tagHelper)
     {
         return
@@ -161,23 +139,6 @@ internal static class TagHelperDescriptorExtensions
         return
             tagHelper.Metadata.TryGetValue(ComponentMetadata.SpecialKindKey, out var kind) &&
             string.Equals(ComponentMetadata.RenderMode.TagHelperKind, kind);
-    }
-
-    /// <summary>
-    /// Gets whether the component matches a tag with a fully qualified name.
-    /// </summary>
-    /// <param name="tagHelper">The <see cref="TagHelperDescriptor"/>.</param>
-    public static bool IsComponentFullyQualifiedNameMatch(this TagHelperDescriptor tagHelper)
-    {
-        if (tagHelper.IsComponentFullyQualifiedNameMatchCache is bool value)
-        {
-            return value;
-        }
-
-        value = tagHelper.Metadata.TryGetValue(ComponentMetadata.Component.NameMatchKey, out var matchType) &&
-            string.Equals(ComponentMetadata.Component.FullyQualifiedNameMatch, matchType);
-        tagHelper.IsComponentFullyQualifiedNameMatchCache = value;
-        return value;
     }
 
     public static string GetEventArgsType(this TagHelperDescriptor tagHelper)

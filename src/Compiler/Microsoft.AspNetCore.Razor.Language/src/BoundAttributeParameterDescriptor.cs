@@ -8,10 +8,16 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed class BoundAttributeParameterDescriptor : TagHelperObject, IEquatable<BoundAttributeParameterDescriptor>
 {
-    private const int IsEnumBit = LastFlagBit << 1;
-    private const int IsStringPropertyBit = LastFlagBit << 2;
-    private const int IsBooleanPropertyBit = LastFlagBit << 3;
+    [Flags]
+    private enum BoundAttributeParameterFlags
+    {
+        CaseSensitive = 1 << 0,
+        IsEnum = 1 << 1,
+        IsStringProperty = 1 << 2,
+        IsBooleanProperty = 1 << 3
+    }
 
+    private readonly BoundAttributeParameterFlags _flags;
     private readonly DocumentationObject _documentationObject;
 
     public string Kind { get; }
@@ -19,11 +25,10 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject, IEquata
     public string TypeName { get; }
     public string DisplayName { get; }
 
-    public bool IsEnum => HasFlag(IsEnumBit);
-    public bool IsStringProperty => HasFlag(IsStringPropertyBit);
-    public bool IsBooleanProperty => HasFlag(IsBooleanPropertyBit);
-
-    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+    public bool CaseSensitive => (_flags & BoundAttributeParameterFlags.CaseSensitive) != 0;
+    public bool IsEnum => (_flags & BoundAttributeParameterFlags.IsEnum) != 0;
+    public bool IsStringProperty => (_flags & BoundAttributeParameterFlags.IsStringProperty) != 0;
+    public bool IsBooleanProperty => (_flags & BoundAttributeParameterFlags.IsBooleanProperty) != 0;
 
     public MetadataCollection Metadata { get; }
 
@@ -42,20 +47,33 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject, IEquata
         Kind = kind;
         Name = name;
         TypeName = typeName;
-
-        SetOrClearFlag(IsEnumBit, isEnum);
-        SetOrClearFlag(CaseSensitiveBit, caseSensitive);
-
-        var isStringProperty = typeName == typeof(string).FullName || typeName == "string";
-        SetOrClearFlag(IsStringPropertyBit, isStringProperty);
-
-        var isBooleanProperty = typeName == typeof(bool).FullName || typeName == "bool";
-        SetOrClearFlag(IsBooleanPropertyBit, isBooleanProperty);
-
         _documentationObject = documentationObject;
         DisplayName = displayName;
+        Metadata = metadata ?? MetadataCollection.Empty;
 
-        Metadata = metadata;
+        BoundAttributeParameterFlags flags = 0;
+
+        if (isEnum)
+        {
+            flags |= BoundAttributeParameterFlags.IsEnum;
+        }
+
+        if (caseSensitive)
+        {
+            flags |= BoundAttributeParameterFlags.CaseSensitive;
+        }
+
+        if (typeName == typeof(string).FullName || typeName == "string")
+        {
+            flags |= BoundAttributeParameterFlags.IsStringProperty;
+        }
+
+        if (typeName == typeof(bool).FullName || typeName == "bool")
+        {
+            flags |= BoundAttributeParameterFlags.IsBooleanProperty;
+        }
+
+        _flags = flags;
     }
 
     public string? Documentation => _documentationObject.GetText();

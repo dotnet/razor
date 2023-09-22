@@ -18,7 +18,7 @@ public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagM
     public string TagName { get; }
     public string? ParentTag { get; }
     public TagStructure TagStructure { get; }
-    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+    public bool CaseSensitive { get; }
     public ImmutableArray<RequiredAttributeDescriptor> Attributes { get; }
 
     internal TagMatchingRuleDescriptor(
@@ -33,7 +33,7 @@ public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagM
         TagName = tagName;
         ParentTag = parentTag;
         TagStructure = tagStructure;
-        SetOrClearFlag(CaseSensitiveBit, caseSensitive);
+        CaseSensitive = caseSensitive;
         Attributes = attributes.NullToEmpty();
     }
 

@@ -13,16 +13,21 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<BoundAttributeDescriptor>
 {
-    private const int IsDirectiveAttributeComputedBit = LastFlagBit << 1;
-    private const int IsDirectiveAttributeBit = LastFlagBit << 2;
-    private const int IsIndexerStringPropertyBit = LastFlagBit << 3;
-    private const int IsIndexerBooleanPropertyBit = LastFlagBit << 4;
-    private const int IsEnumBit = LastFlagBit << 5;
-    private const int IsStringPropertyBit = LastFlagBit << 6;
-    private const int IsBooleanPropertyBit = LastFlagBit << 7;
-    private const int IsEditorRequiredBit = LastFlagBit << 8;
-    private const int HasIndexerBit = LastFlagBit << 9;
+    [Flags]
+    private enum BoundAttributeFlags
+    {
+        CaseSensitive = 1 << 0,
+        HasIndexer = 1 << 1,
+        IsIndexerStringProperty = 1 << 2,
+        IsIndexerBooleanProperty = 1 << 3,
+        IsEnum = 1 << 4,
+        IsStringProperty = 1 << 5,
+        IsBooleanProperty = 1 << 6,
+        IsEditorRequired = 1 << 7,
+        IsDirectiveAttribute = 1 << 8
+    }
 
+    private readonly BoundAttributeFlags _flags;
     private readonly DocumentationObject _documentationObject;
 
     public string Kind { get; }
@@ -33,16 +38,15 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
     public string? IndexerNamePrefix { get; }
     public string? IndexerTypeName { get; }
 
-    public bool IsIndexerStringProperty => HasFlag(IsIndexerStringPropertyBit);
-    public bool IsIndexerBooleanProperty => HasFlag(IsIndexerBooleanPropertyBit);
-    public bool IsEnum => HasFlag(IsEnumBit);
-    public bool IsStringProperty => HasFlag(IsStringPropertyBit);
-    public bool IsBooleanProperty => HasFlag(IsBooleanPropertyBit);
-    internal bool IsEditorRequired => HasFlag(IsEditorRequiredBit);
-
-    public bool HasIndexer => HasFlag(HasIndexerBit);
-
-    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+    public bool CaseSensitive => (_flags & BoundAttributeFlags.CaseSensitive) != 0;
+    public bool HasIndexer => (_flags & BoundAttributeFlags.HasIndexer) != 0;
+    public bool IsIndexerStringProperty => (_flags & BoundAttributeFlags.IsIndexerStringProperty) != 0;
+    public bool IsIndexerBooleanProperty => (_flags & BoundAttributeFlags.IsIndexerBooleanProperty) != 0;
+    public bool IsEnum => (_flags & BoundAttributeFlags.IsEnum) != 0;
+    public bool IsStringProperty => (_flags & BoundAttributeFlags.IsStringProperty) != 0;
+    public bool IsBooleanProperty => (_flags & BoundAttributeFlags.IsBooleanProperty) != 0;
+    internal bool IsEditorRequired => (_flags & BoundAttributeFlags.IsEditorRequired) != 0;
+    public bool IsDirectiveAttribute => (_flags & BoundAttributeFlags.IsDirectiveAttribute) != 0;
 
     public ImmutableArray<BoundAttributeParameterDescriptor> Parameters { get; }
     public MetadataCollection Metadata { get; }
@@ -69,52 +73,59 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
         TypeName = typeName;
         IndexerNamePrefix = indexerNamePrefix;
         IndexerTypeName = indexerTypeName;
-
-        SetOrClearFlag(IsEnumBit, isEnum);
-        SetOrClearFlag(HasIndexerBit, hasIndexer);
-        SetOrClearFlag(CaseSensitiveBit, caseSensitive);
-        SetOrClearFlag(IsEditorRequiredBit, isEditorRequired);
-
-        var isIndexerStringProperty = indexerTypeName == typeof(string).FullName || indexerTypeName == "string";
-        SetOrClearFlag(IsIndexerStringPropertyBit, isIndexerStringProperty);
-
-        var isStringProperty = typeName == typeof(string).FullName || typeName == "string";
-        SetOrClearFlag(IsStringPropertyBit, isStringProperty);
-
-        var isIndexerBooleanProperty = indexerTypeName == typeof(bool).FullName || indexerTypeName == "bool";
-        SetOrClearFlag(IsIndexerBooleanPropertyBit, isIndexerBooleanProperty);
-
-        var isBooleanProperty = typeName == typeof(bool).FullName || typeName == "bool";
-        SetOrClearFlag(IsBooleanPropertyBit, isBooleanProperty);
-
         _documentationObject = documentationObject;
         DisplayName = displayName;
-
         Parameters = parameters.NullToEmpty();
-        Metadata = metadata;
-    }
+        Metadata = metadata ?? MetadataCollection.Empty;
 
-    public bool IsDirectiveAttribute
-    {
-        get
+        BoundAttributeFlags flags = 0;
+
+        if (isEnum)
         {
-            if (!HasFlag(IsDirectiveAttributeComputedBit))
-            {
-                // If we haven't computed this value yet, compute it by checking the metadata.
-                var isDirectiveAttribute = Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) && value == bool.TrueString;
-                if (isDirectiveAttribute)
-                {
-                    SetFlag(IsDirectiveAttributeBit | IsDirectiveAttributeComputedBit);
-                }
-                else
-                {
-                    ClearFlag(IsDirectiveAttributeBit);
-                    SetFlag(IsDirectiveAttributeComputedBit);
-                }
-            }
-
-            return HasFlag(IsDirectiveAttributeBit);
+            flags |= BoundAttributeFlags.IsEnum;
         }
+
+        if (hasIndexer)
+        {
+            flags |= BoundAttributeFlags.HasIndexer;
+        }
+
+        if (caseSensitive)
+        {
+            flags |= BoundAttributeFlags.CaseSensitive;
+        }
+
+        if (isEditorRequired)
+        {
+            flags |= BoundAttributeFlags.IsEditorRequired;
+        }
+
+        if (indexerTypeName == typeof(string).FullName || indexerTypeName == "string")
+        {
+            flags |= BoundAttributeFlags.IsIndexerStringProperty;
+        }
+
+        if (indexerTypeName == typeof(bool).FullName || indexerTypeName == "bool")
+        {
+            flags |= BoundAttributeFlags.IsIndexerBooleanProperty;
+        }
+
+        if (typeName == typeof(string).FullName || typeName == "string")
+        {
+            flags |= BoundAttributeFlags.IsStringProperty;
+        }
+
+        if (typeName == typeof(bool).FullName || typeName == "bool")
+        {
+            flags |= BoundAttributeFlags.IsBooleanProperty;
+        }
+
+        if (Metadata.Contains(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString))
+        {
+            flags |= BoundAttributeFlags.IsDirectiveAttribute;
+        }
+
+        _flags = flags;
     }
 
     public string? Documentation => _documentationObject.GetText();

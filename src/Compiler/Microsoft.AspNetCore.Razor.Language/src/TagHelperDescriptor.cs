@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -14,11 +15,16 @@ namespace Microsoft.AspNetCore.Razor.Language;
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperDescriptor>
 {
-    private const int IsComponentFullyQualifiedNameMatchCacheSetBit = LastFlagBit << 1;
-    private const int IsComponentFullyQualifiedNameMatchCacheBit = LastFlagBit << 2;
-    private const int IsChildContentTagHelperCacheSetBit = LastFlagBit << 3;
-    private const int IsChildContentTagHelperCacheBit = LastFlagBit << 4;
+    [Flags]
+    private enum TagHelperFlags
+    {
+        CaseSensitive = 1 << 0,
+        IsComponent = 1 << 1,
+        IsComponentFullyQualifiedNameMatch = 1 << 2,
+        IsChildContent = 1 << 3
+    }
 
+    private readonly TagHelperFlags _flags;
     private int? _hashCode;
     private readonly DocumentationObject _documentationObject;
 
@@ -34,13 +40,22 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
     public string DisplayName { get; }
     public string? TagOutputHint { get; }
 
-    public bool CaseSensitive => HasFlag(CaseSensitiveBit);
+    public bool CaseSensitive => (_flags & TagHelperFlags.CaseSensitive) != 0;
 
     public ImmutableArray<AllowedChildTagDescriptor> AllowedChildTags { get; }
     public ImmutableArray<BoundAttributeDescriptor> BoundAttributes { get; }
     public ImmutableArray<TagMatchingRuleDescriptor> TagMatchingRules { get; }
 
     public MetadataCollection Metadata { get; }
+
+    internal bool IsComponentTagHelper => (_flags & TagHelperFlags.IsComponent) != 0;
+
+    /// <summary>
+    /// Gets whether the component matches a tag with a fully qualified name.
+    /// </summary>
+    internal bool IsComponentFullyQualifiedNameMatch => (_flags & TagHelperFlags.IsComponentFullyQualifiedNameMatch) != 0;
+    internal bool IsChildContentTagHelper => (_flags & TagHelperFlags.IsChildContent) != 0;
+    internal bool IsComponentOrChildContentTagHelper => IsComponentTagHelper || IsChildContentTagHelper;
 
     internal TagHelperDescriptor(
         string kind,
@@ -63,23 +78,35 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
         DisplayName = displayName;
         _documentationObject = documentationObject;
         TagOutputHint = tagOutputHint;
-        SetOrClearFlag(CaseSensitiveBit, caseSensitive);
         TagMatchingRules = tagMatchingRules.NullToEmpty();
         BoundAttributes = attributeDescriptors.NullToEmpty();
         AllowedChildTags = allowedChildTags.NullToEmpty();
-        Metadata = metadata;
-    }
+        Metadata = metadata ?? MetadataCollection.Empty;
 
-    internal bool? IsComponentFullyQualifiedNameMatchCache
-    {
-        get => GetTriStateFlags(isSetFlag: IsComponentFullyQualifiedNameMatchCacheSetBit, isOnFlag: IsComponentFullyQualifiedNameMatchCacheBit);
-        set => UpdateTriStateFlags(value, isSetFlag: IsComponentFullyQualifiedNameMatchCacheSetBit, isOnFlag: IsComponentFullyQualifiedNameMatchCacheBit);
-    }
+        TagHelperFlags flags = 0;
 
-    internal bool? IsChildContentTagHelperCache
-    {
-        get => GetTriStateFlags(isSetFlag: IsChildContentTagHelperCacheSetBit, isOnFlag: IsChildContentTagHelperCacheBit);
-        set => UpdateTriStateFlags(value, isSetFlag: IsChildContentTagHelperCacheSetBit, isOnFlag: IsChildContentTagHelperCacheBit);
+        if (caseSensitive)
+        {
+            flags |= TagHelperFlags.CaseSensitive;
+        }
+
+        if (kind == ComponentMetadata.Component.TagHelperKind &&
+            !Metadata.ContainsKey(ComponentMetadata.SpecialKindKey))
+        {
+            flags |= TagHelperFlags.IsComponent;
+        }
+
+        if (Metadata.Contains(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch))
+        {
+            flags |= TagHelperFlags.IsComponentFullyQualifiedNameMatch;
+        }
+
+        if (Metadata.Contains(ComponentMetadata.SpecialKindKey, ComponentMetadata.ChildContent.TagHelperKind))
+        {
+            flags |= TagHelperFlags.IsChildContent;
+        }
+
+        _flags = flags;
     }
 
     internal ImmutableArray<BoundAttributeDescriptor> EditorRequiredAttributes

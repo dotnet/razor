@@ -580,7 +580,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
         foreach (var tagHelper in tagHelpers)
         {
-            if (!tagHelper.IsComponentTagHelper())
+            if (!tagHelper.IsComponentTagHelper)
             {
                 continue;
             }
@@ -734,7 +734,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     });
                 });
 
-                if (tagHelper.IsComponentFullyQualifiedNameMatch())
+                if (tagHelper.IsComponentFullyQualifiedNameMatch)
                 {
                     metadata.Add(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch);
                 }

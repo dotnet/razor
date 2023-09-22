@@ -8,7 +8,6 @@ using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -350,7 +349,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
         foreach (var descriptor in possibleChildDescriptors)
         {
-            if (descriptor.IsComponentFullyQualifiedNameMatch())
+            if (descriptor.IsComponentFullyQualifiedNameMatch)
             {
                 fullyQualifiedTagHelpers.Add(descriptor);
             }

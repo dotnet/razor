@@ -774,7 +774,6 @@
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilderExtensions.GetTypeName(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder builder) -> string
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilderExtensions.SetTypeName(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder builder, string typeName) -> void
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorExtensions.GetTypeName(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor tagHelper) -> string
-~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorExtensions.IsComponentOrChildContentTagHelper(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor tagHelper) -> bool
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorExtensions.IsDefaultKind(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor tagHelper) -> bool
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorExtensions.KindUsesDefaultTagHelperRuntime(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor tagHelper) -> bool
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorProviderContext.Create() -> Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorProviderContext
