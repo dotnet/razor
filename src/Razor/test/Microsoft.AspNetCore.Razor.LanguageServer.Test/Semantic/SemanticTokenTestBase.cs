@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -110,10 +111,23 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             return new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion);
         }
 
-        var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangesParams, SemanticTokens>(
+        SemanticTokens? result;
+        try
+        {
+            result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangesParams, SemanticTokens>(
             "roslyn/semanticTokenRanges",
             CreateVSSemanticTokensRangesParams(csharpRanges, csharpDocumentUri),
             DisposalToken);
+        }
+        catch (RemoteMethodNotFoundException)
+        {
+            // The new endpoint is available in version 4.8.0-3.23471.2 or higher of Roslyn packages
+            result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
+            Methods.TextDocumentSemanticTokensRangeName,
+            CreateVSSemanticTokensRangeParams(minimalRange, csharpDocumentUri),
+            DisposalToken);
+        }
+
         return new ProvideSemanticTokensResponse(tokens: result?.Data, hostDocumentSyncVersion);
     }
 
@@ -149,6 +163,13 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri },
             Ranges = ranges
+        };
+
+    internal static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(Range range, Uri uri)
+        => new()
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            Range = range
         };
 
     private static void GenerateSemanticBaseline(string actualFileContents, string baselineFileName)

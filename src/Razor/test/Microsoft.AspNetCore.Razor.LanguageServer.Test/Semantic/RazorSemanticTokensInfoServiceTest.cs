@@ -63,7 +63,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/9312")]
     public async Task GetSemanticTokens_CSharp_Nested_HTML()
     {
         var documentText =
@@ -93,7 +93,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/9312")]
     public async Task GetSemanticTokens_CSharp_Explicit()
     {
         var documentText =
@@ -110,7 +110,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/aspnetcore/issues/9312")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task GetSemanticTokens_CSharp_Implicit(bool serverSupportsPreciseRanges)
@@ -130,8 +130,10 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact]
-    public async Task GetSemanticTokens_CSharp_VersionMismatch()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetSemanticTokens_CSharp_VersionMismatch(bool serverSupportsPreciseRanges)
     {
         var documentText =
             """
@@ -141,12 +143,13 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
 
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
-        await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 21);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 21, serverSupportsPreciseRanges: serverSupportsPreciseRanges);
+        VerifyTimesLanguageServerCalled(serverSupportsPreciseRanges);
         Assert.NotNull(csharpTokens.Tokens);
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/9312")]
     public async Task GetSemanticTokens_CSharp_FunctionAsync()
     {
         var documentText =
@@ -323,7 +326,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/9312")]
     public async Task GetSemanticTokens_WithAttributeAsync()
     {
         var documentText =
@@ -371,7 +374,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/9312")]
     public async Task GetSemanticTokens_IgnoresNonTagHelperAttributesAsync()
     {
         var documentText =
