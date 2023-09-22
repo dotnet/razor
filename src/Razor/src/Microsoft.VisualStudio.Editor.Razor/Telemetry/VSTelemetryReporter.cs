@@ -52,6 +52,7 @@ internal class VSTelemetryReporter : TelemetryReporter
     {
         // We don't need to do anything here. We're using the default session
         // which is already initialized by VS.
+        throw new Exception("InitializeSession should not be called in VS.");
     }
 
     public override void LogTrace(string? message, params object?[] args)
