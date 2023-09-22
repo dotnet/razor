@@ -110,9 +110,9 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             return new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion);
         }
 
-        var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
-            Methods.TextDocumentSemanticTokensRangeName,
-            CreateVSSemanticTokensRangeParams(minimalRange, csharpDocumentUri),
+        var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangesParams, SemanticTokens>(
+            "roslyn/semanticTokenRanges",
+            CreateVSSemanticTokensRangesParams(csharpRanges, csharpDocumentUri),
             DisposalToken);
         return new ProvideSemanticTokensResponse(tokens: result?.Data, hostDocumentSyncVersion);
     }
@@ -144,11 +144,11 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         return new Range[] { minimalRange };
     }
 
-    internal static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(Range range, Uri uri)
+    internal static SemanticTokensRangesParams CreateVSSemanticTokensRangesParams(Range[] ranges, Uri uri)
         => new()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri },
-            Range = range
+            Ranges = ranges
         };
 
     private static void GenerateSemanticBaseline(string actualFileContents, string baselineFileName)
