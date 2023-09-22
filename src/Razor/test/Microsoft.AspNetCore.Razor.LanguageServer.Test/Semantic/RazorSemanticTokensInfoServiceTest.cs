@@ -23,9 +23,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
 {
+    private protected readonly Mock<ClientNotifierServiceBase> _languageServer;
     public RazorSemanticTokensInfoServiceTest(ITestOutputHelper testOutput, bool usePreciseSemanticTokenRanges)
         : base(testOutput, usePreciseSemanticTokenRanges)
     {
+        _languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
     }
 
     [Fact]
@@ -1098,7 +1100,6 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         bool withCSharpBackground,
         bool serverSupportsPreciseRanges)
     {
-        _languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         _languageServer
             .Setup(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
                 CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,

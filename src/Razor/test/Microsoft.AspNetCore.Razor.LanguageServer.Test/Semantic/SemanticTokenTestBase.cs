@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -26,7 +25,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 {
-    private protected Mock<ClientNotifierServiceBase> _languageServer = null!;
     private static readonly AsyncLocal<string?> s_fileName = new();
     private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
 
@@ -116,7 +114,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             Methods.TextDocumentSemanticTokensRangeName,
             CreateVSSemanticTokensRangeParams(minimalRange, csharpDocumentUri),
             DisposalToken);
-        return new ProvideSemanticTokensResponse(tokens: result.Data, hostDocumentSyncVersion);
+        return new ProvideSemanticTokensResponse(tokens: result?.Data, hostDocumentSyncVersion);
     }
 
     protected Range[] GetMappedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, out Range? minimalRange)
