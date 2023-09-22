@@ -51,10 +51,12 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 
     protected int BaselineTestCount { get; set; }
     protected int BaselineEditTestCount { get; set; }
+    protected bool UsePreciseSemanticTokenRanges { get; set; }
 
-    protected SemanticTokenTestBase(ITestOutputHelper testOutput)
+    protected SemanticTokenTestBase(ITestOutputHelper testOutput, bool usePreciseSemanticTokenRanges)
         : base(testOutput)
     {
+        UsePreciseSemanticTokenRanges = usePreciseSemanticTokenRanges;
     }
 
     protected void AssertSemanticTokensMatchesBaseline(SourceText sourceText, int[]? actualSemanticTokens)
@@ -93,11 +95,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     }
 
     private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
-        bool usePreciseSemanticTokenRanges,
-        string documentText,
-        Range razorRange,
-        bool isRazorFile,
-        int hostDocumentSyncVersion = 0)
+        string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
         var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
@@ -106,7 +104,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService, DisposalToken);
 
-        var csharpRanges = GetMappedCSharpRanges(usePreciseSemanticTokenRanges, codeDocument, razorRange, out var minimalRange);
+        var csharpRanges = GetMappedCSharpRanges(codeDocument, razorRange, out var minimalRange);
         if (minimalRange == null)
         {
             return new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion);
@@ -119,7 +117,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         return new ProvideSemanticTokensResponse(tokens: result.Data, hostDocumentSyncVersion);
     }
 
-    protected Range[] GetMappedCSharpRanges(bool usePreciseSemanticTokenRanges, RazorCodeDocument codeDocument, Range razorRange, out Range? minimalRange)
+    protected Range[] GetMappedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, out Range? minimalRange)
     {
         var documentMappingService = new RazorDocumentMappingService(
             FilePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -130,7 +128,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             return Array.Empty<Range>();
         }
 
-        if (!usePreciseSemanticTokenRanges)
+        if (!UsePreciseSemanticTokenRanges)
         {
             return new Range[] { minimalRange };
         }

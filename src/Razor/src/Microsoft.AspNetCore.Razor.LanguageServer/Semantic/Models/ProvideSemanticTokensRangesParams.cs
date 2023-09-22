@@ -12,16 +12,20 @@ internal class ProvideSemanticTokensRangesParams : SemanticTokensParams
     [DataMember(Name = "requiredHostDocumentVersion", IsRequired = true)]
     public long RequiredHostDocumentVersion { get; }
 
+    [DataMember(Name = "minimalRange", IsRequired = true)]
+    public Range MinimalRange { get; }
+
     [DataMember(Name = "ranges", IsRequired = true)]
     public Range[] Ranges { get; }
 
     [DataMember(Name = "correlationId", IsRequired = true)]
     public Guid CorrelationId { get; }
 
-    public ProvideSemanticTokensRangesParams(TextDocumentIdentifier textDocument, long requiredHostDocumentVersion, Range[] ranges, Guid correlationId)
+    public ProvideSemanticTokensRangesParams(TextDocumentIdentifier textDocument, long requiredHostDocumentVersion, Range minimalRange, Range[] ranges, Guid correlationId)
     {
         TextDocument = textDocument;
         RequiredHostDocumentVersion = requiredHostDocumentVersion;
+        MinimalRange = minimalRange;
         Ranges = ranges;
         CorrelationId = correlationId;
     }
