@@ -19,7 +19,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var ((options, parseOptions), isSuppressed) = pair;
             var globalOptions = options.GlobalOptions;
             
-            if(isSuppressed)
+            if (isSuppressed)
             {
                 return default;
             }
