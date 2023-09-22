@@ -142,28 +142,35 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         string? previousResultId = null)
     {
         var generatedDocument = codeDocument.GetCSharpDocument();
-
-        // When the feature flag is disabled, we fallback to computing a single range for the entire document.
-        // This single range is the minimal range that contains all of the C# code in the document.
-        // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
-        // we'll try to find the minimal range ourselves.
-        if (!_documentMappingService.TryMapToGeneratedDocumentRange(generatedDocument, razorRange, out var minimalRange) &&
-            !TryGetMinimalCSharpRange(codeDocument, razorRange, out minimalRange))
-        {
-            // There's no C# in the range.
-            return ImmutableArray<SemanticRange>.Empty;
-        }
+        Range[]? csharpRanges;
 
         // When the feature flag is enabled we try to get a list of precise ranges for the C# code embedded in the Razor document.
         // The feature flag allows to make calls to Roslyn using multiple smaller and disjoint ranges of the document
-        if (!_languageServerFeatureOptions.UsePreciseSemanticTokenRanges ||
-            !TryGetSortedCSharpRanges(codeDocument, razorRange, out var csharpRanges))
+        if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
-            csharpRanges = new Range[] { minimalRange };
+            if (!TryGetSortedCSharpRanges(codeDocument, razorRange, out csharpRanges))
+            {
+                // There's no C# in the range.
+                return ImmutableArray<SemanticRange>.Empty;
+            }
+        }
+        else
+        {
+            // When the feature flag is disabled, we fallback to computing a single range for the entire document.
+            // This single range is the minimal range that contains all of the C# code in the document.
+            // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
+            // we'll try to find the minimal range ourselves.
+            if (!_documentMappingService.TryMapToGeneratedDocumentRange(generatedDocument, razorRange, out var csharpRange) &&
+                !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
+            {
+                // There's no C# in the range.
+                return ImmutableArray<SemanticRange>.Empty;
+            }
+
+            csharpRanges = new Range[] { csharpRange };
         }
 
-        var csharpResponse = await GetMatchingCSharpResponseAsync(
-            textDocumentIdentifier, documentVersion, minimalRange, csharpRanges!, correlationId, cancellationToken).ConfigureAwait(false);
+        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
         // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
@@ -301,17 +308,38 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     private async Task<int[]?> GetMatchingCSharpResponseAsync(
         TextDocumentIdentifier textDocumentIdentifier,
         long documentVersion,
-        Range minimalRange,
         Range[] csharpRanges,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, minimalRange, csharpRanges, correlationId);
+        var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, csharpRanges, correlationId);
+        ProvideSemanticTokensResponse? csharpResponse;
+        if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
+        {
+            csharpResponse = await GetCsharpResponseAsync(parameter, CustomMessageNames.RazorProvidePreciseRangeSemanticTokensEndpoint, cancellationToken).ConfigureAwait(false);
 
-        var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangesParams, ProvideSemanticTokensResponse>(
-            CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
-            parameter,
-            cancellationToken).ConfigureAwait(false);
+            // Likely the server doesn't support the new endpoint, fallback to the original one
+            if (csharpResponse?.Tokens is null && csharpRanges.Length > 1)
+            {
+                var minimalRange = new Range
+                {
+                    Start = csharpRanges.First().Start,
+                    End = csharpRanges.Last().End
+                };
+
+                var newParams = new ProvideSemanticTokensRangesParams(
+                    parameter.TextDocument,
+                    parameter.RequiredHostDocumentVersion,
+                    new[] { minimalRange },
+                    parameter.CorrelationId);
+
+                csharpResponse = await GetCsharpResponseAsync(newParams, CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        else
+        {
+            csharpResponse = await GetCsharpResponseAsync(parameter, CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint, cancellationToken).ConfigureAwait(false);
+        }
 
         if (csharpResponse is null)
         {
@@ -374,6 +402,14 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         // Ensure the C# ranges are sorted
         Array.Sort(ranges, static (r1, r2) => r1.CompareTo(r2));
         return true;
+    }
+
+    private async Task<ProvideSemanticTokensResponse?> GetCsharpResponseAsync(ProvideSemanticTokensRangesParams parameter, string lspMethodName, CancellationToken cancellationToken)
+    {
+        return await _languageServer.SendRequestAsync<ProvideSemanticTokensRangesParams, ProvideSemanticTokensResponse>(
+            lspMethodName,
+            parameter,
+            cancellationToken).ConfigureAwait(false);
     }
 
     private static SemanticRange CSharpDataToSemanticRange(

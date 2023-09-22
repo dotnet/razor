@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,6 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 {
+    private protected Mock<ClientNotifierServiceBase> _languageServer = null!;
     private static readonly AsyncLocal<string?> s_fileName = new();
     private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
 
@@ -121,6 +123,19 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
         var documentMappingService = new RazorDocumentMappingService(
             FilePathService, new TestDocumentContextFactory(), LoggerFactory);
+        if (UsePreciseSemanticTokenRanges)
+        {
+            if (!RazorSemanticTokensInfoService.TryGetSortedCSharpRanges(codeDocument, razorRange, out var csharpRanges))
+            {
+                // No C# in the range.
+                minimalRange = null;
+                return Array.Empty<Range>();
+            }
+
+            minimalRange = new Range { Start = csharpRanges[0].Start, End = csharpRanges.Last().End }; ;
+            return csharpRanges;
+        }
+
         if (!documentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out minimalRange) &&
             !RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out minimalRange))
         {
@@ -128,13 +143,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             return Array.Empty<Range>();
         }
 
-        if (!UsePreciseSemanticTokenRanges)
-        {
-            return new Range[] { minimalRange };
-        }
-
-        Assert.True(RazorSemanticTokensInfoService.TryGetSortedCSharpRanges(codeDocument, razorRange, out var csharpRanges));
-        return csharpRanges;
+        return new Range[] { minimalRange };
     }
 
     internal static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(Range range, Uri uri)

@@ -360,8 +360,10 @@ public class RazorCustomMessageTargetTest : TestBase
         Assert.Equal(expectedCodeAction.Title, result.Title);
     }
 
-    [Fact]
-    public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync(bool isPreciseRange)
     {
         // Arrange
         LSPDocumentSnapshot document;
@@ -371,7 +373,6 @@ public class RazorCustomMessageTargetTest : TestBase
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
         var outputWindowLogger = new TestOutputWindowLogger();
-        var range = new Range();
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -390,19 +391,22 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 1,
-            minimalRange: range,
-            ranges: new[] { range },
+            ranges: new[] { new Range() },
             correlationId: Guid.Empty);
 
         // Act
-        var result = await target.ProvideSemanticTokensAsync(request, DisposalToken);
+        var result = isPreciseRange?
+            await target.ProvidePreciseRangeSemanticTokensAsync(request, DisposalToken):
+            await target.ProvideMinimalRangeSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Null(result);
     }
 
-    [Fact]
-    public async Task ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNullAsync()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNullAsync(bool isPreciseRange)
     {
         // Arrange
         var testDocUri = new Uri("C:/path/to/file.razor");
@@ -414,7 +418,6 @@ public class RazorCustomMessageTargetTest : TestBase
             .Returns(true);
         var documentSynchronizer = GetDocumentSynchronizer();
         var outputWindowLogger = new TestOutputWindowLogger();
-        var range = new Range();
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -433,19 +436,22 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            minimalRange: range,
-            ranges: new[] { range },
+            ranges: new[] { new Range() },
             correlationId: Guid.Empty);
 
         // Act
-        var result = await target.ProvideSemanticTokensAsync(request, DisposalToken);
+        var result = isPreciseRange ?
+            await target.ProvidePreciseRangeSemanticTokensAsync(request, DisposalToken) :
+            await target.ProvideMinimalRangeSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Null(result);
     }
 
-    [Fact]
-    public async Task ProvideSemanticTokensAsync_ContainsRange_ReturnsSemanticTokens()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ProvideSemanticTokensAsync_ContainsRange_ReturnsSemanticTokens(bool isPreciseRange)
     {
         // Arrange
         var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
@@ -485,7 +491,6 @@ public class RazorCustomMessageTargetTest : TestBase
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
-        var range = new Range() { Start = It.IsAny<Position>(), End = It.IsAny<Position>() };
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
@@ -496,20 +501,23 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            minimalRange: range,
-            ranges: new[] { range },
+            ranges: new[] { new Range() { Start = It.IsAny<Position>(), End = It.IsAny<Position>() } },
             correlationId: Guid.Empty);
 
         // Act
-        var result = await target.ProvideSemanticTokensAsync(request, DisposalToken);
+        var result = isPreciseRange ?
+            await target.ProvidePreciseRangeSemanticTokensAsync(request, DisposalToken) :
+            await target.ProvideMinimalRangeSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
         Assert.Equal(expectedCSharpResults.Data, result.Tokens);
     }
 
-    [Fact]
-    public async Task ProvideSemanticTokensAsync_EmptyRange_ReturnsNoSemanticTokens()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ProvideSemanticTokensAsync_EmptyRange_ReturnsNoSemanticTokens(bool isPreciseRange)
     {
         // Arrange
         var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
@@ -549,7 +557,6 @@ public class RazorCustomMessageTargetTest : TestBase
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
-        var range = new Range();
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
@@ -560,13 +567,14 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            minimalRange: range,
-            ranges: new[] { range },
+            ranges: new[] { new Range() },
             correlationId: Guid.Empty);
         var expectedResults = new ProvideSemanticTokensResponse(null, documentVersion);
 
         // Act
-        var result = await target.ProvideSemanticTokensAsync(request, DisposalToken);
+        var result = isPreciseRange ?
+            await target.ProvidePreciseRangeSemanticTokensAsync(request, DisposalToken) :
+            await target.ProvideMinimalRangeSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
