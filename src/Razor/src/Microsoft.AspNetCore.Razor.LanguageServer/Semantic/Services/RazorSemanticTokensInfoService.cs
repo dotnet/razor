@@ -323,8 +323,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             {
                 var minimalRange = new Range
                 {
-                    Start = csharpRanges.First().Start,
-                    End = csharpRanges.Last().End
+                    Start = csharpRanges[0].Start,
+                    End = csharpRanges[^1].End
                 };
 
                 var newParams = new ProvideSemanticTokensRangesParams(
