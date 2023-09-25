@@ -471,11 +471,12 @@ public class RazorCustomMessageTargetTest : TestBase
         var expectedCSharpResults = new VSSemanticTokensResponse() { Data = new int[] { It.IsAny<int>() } };
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
         requestInvoker
-            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, VSSemanticTokensResponse>(
                 _textBuffer,
-                Methods.TextDocumentSemanticTokensRangeName,
+                It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<SemanticTokensRangeParams>(),
+                It.IsAny<Func<JToken, bool>>(),
+                It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedCSharpResults));
 
@@ -537,11 +538,12 @@ public class RazorCustomMessageTargetTest : TestBase
         var expectedCSharpResults = new VSSemanticTokensResponse();
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
         requestInvoker
-            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, VSSemanticTokensResponse>(
                 _textBuffer,
-                Methods.TextDocumentSemanticTokensRangeName,
+                It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<SemanticTokensRangeParams>(),
+                It.IsAny<Func<JToken, bool>>(),
+                It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedCSharpResults));
 
