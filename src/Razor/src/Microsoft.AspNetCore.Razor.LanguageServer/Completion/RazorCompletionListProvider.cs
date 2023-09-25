@@ -11,7 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.Extensions.Logging;
@@ -23,6 +26,8 @@ internal class RazorCompletionListProvider
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
+    private readonly ClientNotifierServiceBase _clientNotifierService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ILogger<RazorCompletionListProvider> _logger;
     private static readonly Command s_retriggerCompletionCommand = new()
     {
@@ -33,10 +38,14 @@ internal class RazorCompletionListProvider
     public RazorCompletionListProvider(
         IRazorCompletionFactsService completionFactsService,
         CompletionListCache completionListCache,
+        ClientNotifierServiceBase clientNotifierService,
+        IRazorDocumentMappingService documentMappingService,
         ILoggerFactory loggerFactory)
     {
         _completionFactsService = completionFactsService;
         _completionListCache = completionListCache;
+        _clientNotifierService = clientNotifierService;
+        _documentMappingService = documentMappingService;
         _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
     }
 
@@ -81,9 +90,13 @@ internal class RazorCompletionListProvider
 
         var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, absoluteIndex, rightAssociative: false);
+        var snippetCompletions = await GetSnippetCompletionsAsync(languageKind, owner, cancellationToken).ConfigureAwait(false);
+
         _logger.LogTrace("Resolved {razorCompletionItemsCount} completion items.", razorCompletionItems.Length);
 
-        var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
+        var completionList = CreateLSPCompletionList(razorCompletionItems, snippetCompletions, clientCapabilities);
 
         var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
 
@@ -94,12 +107,35 @@ internal class RazorCompletionListProvider
         return completionList;
     }
 
+    private async Task<ImmutableArray<CompletionItem>> GetSnippetCompletionsAsync(RazorLanguageKind languageKind, SyntaxNode node, CancellationToken cancellationToken)
+    {
+        if (node is null)
+        {
+            return ImmutableArray<CompletionItem>.Empty;
+        }
+
+        var text = node.ToFullString().Trim();
+
+        var snippetParams = new RazorSnippetCompletionParams(languageKind, text);
+        var completions = await _clientNotifierService.SendRequestAsync<RazorSnippetCompletionParams, CompletionItem[]?>(
+            LanguageServerConstants.RazorSnippetCompletionEndpointName,
+            snippetParams,
+            cancellationToken).ConfigureAwait(false);
+
+        return completions is null
+            ? ImmutableArray<CompletionItem>.Empty
+            : completions.ToImmutableArray();
+    }
+
     // Internal for benchmarking and testing
     internal static VSInternalCompletionList CreateLSPCompletionList(
         ImmutableArray<RazorCompletionItem> razorCompletionItems,
+        ImmutableArray<CompletionItem> snippetCompletions,
         VSInternalClientCapabilities clientCapabilities)
     {
         using var items = new PooledArrayBuilder<CompletionItem>();
+
+        items.AddRange(snippetCompletions);
 
         foreach (var razorCompletionItem in razorCompletionItems)
         {

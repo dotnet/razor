@@ -3,11 +3,15 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.VisualStudio.Editor.Razor.Snippets;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -270,5 +274,67 @@ internal partial class RazorCustomMessageTarget
     {
         var formattingOptions = _formattingOptionsProvider.GetOptions(document.TextDocumentIdentifier.Uri);
         return Task.FromResult(formattingOptions);
+    }
+
+    [JsonRpcMethod(LanguageServerConstants.RazorSnippetCompletionEndpointName, UseSingleObjectParameterDeserialization = true)]
+    public async Task<CompletionItem[]?> GetSnippetCopmletionsAsync(RazorSnippetCompletionParams completionParams, CancellationToken cancellationToken)
+    {
+        // Only provide snippets on text at least 2 characters long
+        if (completionParams.Text.Length < 2)
+        {
+            return null;
+        }
+
+        var snippets = _snippetCache.GetSnippets();
+
+        if (snippets.IsDefaultOrEmpty)
+        {
+            return null;
+        }
+
+        var langSpecificCompletionsEnum = completionParams.LanguageKind switch
+        {
+            RazorLanguageKind.Html => snippets.Where(static s => s.Language == SnippetLanguage.Html),
+            RazorLanguageKind.CSharp => snippets.Where(static s => s.Language == SnippetLanguage.CSharp),
+            _ => null
+        };
+
+        if (langSpecificCompletionsEnum is null)
+        {
+            return null;
+        }
+
+        var completions = langSpecificCompletionsEnum
+            .Where(s => s.Shortcut.StartsWith(completionParams.Text, StringComparison.OrdinalIgnoreCase));
+
+        using var builder = new PooledArrayBuilder<CompletionItem>();
+        foreach (var completion in completions)
+        {
+            var item = await TryConvertToCompletionItemAsync(completion, cancellationToken).ConfigureAwait(false);
+            if (item is not null)
+            {
+                builder.Add(item);
+            }
+        }
+
+        return builder.ToArray();
+
+        static async Task<CompletionItem?> TryConvertToCompletionItemAsync(SnippetInfo info, CancellationToken cancellationToken)
+        {
+            var insertionText = await info.TryGetLSPInsertionTextAsync(cancellationToken).ConfigureAwait(false);
+            if (insertionText is null)
+            {
+                return null;
+            }
+
+            return new()
+            {
+                Kind = CompletionItemKind.Snippet,
+                Label = info.Title,
+                Detail = info.Description,
+                InsertTextFormat = InsertTextFormat.Snippet,
+                InsertText = insertionText
+            };
+        }
     }
 }

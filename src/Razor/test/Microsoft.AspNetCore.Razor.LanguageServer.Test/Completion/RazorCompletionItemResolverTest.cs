@@ -260,5 +260,5 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     }
 
     private VSInternalCompletionList CreateLSPCompletionList(params RazorCompletionItem[] razorCompletionItems)
-        => RazorCompletionListProvider.CreateLSPCompletionList(razorCompletionItems.ToImmutableArray(), _defaultClientCapability);
+        => RazorCompletionListProvider.CreateLSPCompletionList(razorCompletionItems.ToImmutableArray(), ImmutableArray<CompletionItem>.Empty, _defaultClientCapability);
 }
