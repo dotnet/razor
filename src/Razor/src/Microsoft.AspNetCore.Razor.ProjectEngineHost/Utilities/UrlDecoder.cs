@@ -116,7 +116,7 @@ internal static class UrlDecoder
             else if (ch == '%' && i < count - 2)
             {
                 // Get the hex values of the next two characters. These are 'nibble' values (i.e. half-bytes).
-                // So, we need to contruct the real byte out of them.
+                // So, we need to construct the real byte out of them.
                 var h1 = CharToHexValue(Unsafe.Add(ref src, i + 1));
                 var h2 = CharToHexValue(Unsafe.Add(ref src, i + 2));
 
@@ -162,16 +162,9 @@ internal static class UrlDecoder
 
             if (needsDecodingSpaces)
             {
-                // It's possible that we *do* need to decode +'s as spaces.
-                for (var i = 0; i < charsWritten; i++)
-                {
-                    var ch = destination[i];
-
-                    if (ch == '+')
-                    {
-                        destination[i] = ' ';
-                    }
-                }
+                // It's possible that we still need to decode +'s as spaces. However, be sure to
+                // only replace chars in the range that was written.
+                destination[..charsWritten].Replace('+', ' ');
             }
         }
     }
