@@ -305,6 +305,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return false;
     }
 
+    private bool UseOriginalEndpoint = false;
+
     private async Task<int[]?> GetMatchingCSharpResponseAsync(
         TextDocumentIdentifier textDocumentIdentifier,
         long documentVersion,
@@ -314,13 +316,14 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, csharpRanges, correlationId);
         ProvideSemanticTokensResponse? csharpResponse;
-        if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
+        if (!UseOriginalEndpoint && _languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
             csharpResponse = await GetCsharpResponseAsync(parameter, CustomMessageNames.RazorProvidePreciseRangeSemanticTokensEndpoint, cancellationToken).ConfigureAwait(false);
 
             // Likely the server doesn't support the new endpoint, fallback to the original one
             if (csharpResponse?.Tokens is null && csharpRanges.Length > 1)
             {
+                UseOriginalEndpoint = true;
                 var minimalRange = new Range
                 {
                     Start = csharpRanges[0].Start,
