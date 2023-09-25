@@ -63,7 +63,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/razor/issues/9312")]
+    [Fact]
     public async Task GetSemanticTokens_CSharp_Nested_HTML()
     {
         var documentText =
@@ -93,7 +93,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/razor/issues/9312")]
+    [Fact]
     public async Task GetSemanticTokens_CSharp_Explicit()
     {
         var documentText =
@@ -110,7 +110,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Theory(Skip = "https://github.com/dotnet/razor/issues/9312")]
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task GetSemanticTokens_CSharp_Implicit(bool serverSupportsPreciseRanges)
@@ -149,7 +149,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/razor/issues/9312")]
+    [Fact]
     public async Task GetSemanticTokens_CSharp_FunctionAsync()
     {
         var documentText =
@@ -326,7 +326,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/razor/issues/9312")]
+    [Fact]
     public async Task GetSemanticTokens_WithAttributeAsync()
     {
         var documentText =
@@ -374,7 +374,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         Assert.NotEmpty(csharpTokens.Tokens);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/razor/issues/9312")]
+    [Fact]
     public async Task GetSemanticTokens_IgnoresNonTagHelperAttributesAsync()
     {
         var documentText =
