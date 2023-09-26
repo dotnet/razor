@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -26,6 +27,24 @@ internal class SnippetService
 
     private static readonly Guid s_CSharpLanguageId = new("694dd9b6-b865-4c5b-ad85-86356e9c88dc");
     private static readonly Guid s_HtmlLanguageId = new("9bbfd173-9770-47dc-b191-651b7ff493cd");
+
+    private static readonly Dictionary<Guid, ImmutableHashSet<string>> s_ignoredSnippets = new()
+    {
+        {
+            // These are identified as the snippets that are provided by the C# Language Server. The list is found
+            // in https://github.com/dotnet/roslyn/blob/8eb40e64564a2a8d44be2fde9b079605f1f10e0f/src/Features/LanguageServer/Protocol/Handler/InlineCompletions/InlineCompletionsHandler.cs#L41
+            s_CSharpLanguageId,
+            ImmutableHashSet.Create(
+                "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
+                "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
+                "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while")
+        },
+        {
+            // Currently no HTML snippets are ignored
+            s_HtmlLanguageId, ImmutableHashSet<string>.Empty
+        }
+    };
+
     public SnippetService(
             JoinableTaskFactory joinableTaskFactory,
             IAsyncServiceProvider serviceProvider,
@@ -134,7 +153,11 @@ internal class SnippetService
 
             foreach (var (language, expansionEnumerator) in expansionEnumerators)
             {
+                var langGuid = language == SnippetLanguage.CSharp
+                    ? s_CSharpLanguageId
+                    : s_HtmlLanguageId;
 
+                var toIgnore = s_ignoredSnippets[s_HtmlLanguageId];
                 expansionEnumerator.GetCount(out var count);
 
                 for (uint i = 0; i < count; i++)
@@ -145,7 +168,7 @@ internal class SnippetService
                         // Convert the returned blob of data into a structure that can be read in managed code.
                         snippetInfo = ConvertToVsExpansionAndFree(pSnippetInfo[0]);
 
-                        if (!string.IsNullOrEmpty(snippetInfo.shortcut))
+                        if (!string.IsNullOrEmpty(snippetInfo.shortcut) && !toIgnore.Contains(snippetInfo.shortcut))
                         {
                             snippetListBuilder.Add(new SnippetInfo(snippetInfo.shortcut, snippetInfo.title, snippetInfo.description, snippetInfo.path, language));
                         }

@@ -92,7 +92,7 @@ internal class RazorCompletionListProvider
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var languageKind = _documentMappingService.GetLanguageKind(codeDocument, absoluteIndex, rightAssociative: false);
-        var snippetCompletions = await GetSnippetCompletionsAsync(languageKind, owner, cancellationToken).ConfigureAwait(false);
+        var snippetCompletions = await GetSnippetCompletionsAsync(documentContext.Identifier, languageKind, owner, cancellationToken).ConfigureAwait(false);
 
         _logger.LogTrace("Resolved {razorCompletionItemsCount} completion items.", razorCompletionItems.Length);
 
@@ -107,7 +107,7 @@ internal class RazorCompletionListProvider
         return completionList;
     }
 
-    private async Task<ImmutableArray<CompletionItem>> GetSnippetCompletionsAsync(RazorLanguageKind languageKind, SyntaxNode node, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<CompletionItem>> GetSnippetCompletionsAsync(TextDocumentIdentifierAndVersion identifier, RazorLanguageKind languageKind, SyntaxNode? node, CancellationToken cancellationToken)
     {
         if (node is null)
         {
@@ -116,7 +116,7 @@ internal class RazorCompletionListProvider
 
         var text = node.ToFullString().Trim();
 
-        var snippetParams = new RazorSnippetCompletionParams(languageKind, text);
+        var snippetParams = new RazorSnippetCompletionParams(identifier.TextDocumentIdentifier, languageKind, node.Span);
         var completions = await _clientNotifierService.SendRequestAsync<RazorSnippetCompletionParams, CompletionItem[]?>(
             LanguageServerConstants.RazorSnippetCompletionEndpointName,
             snippetParams,

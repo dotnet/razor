@@ -33,6 +33,7 @@ internal partial class RazorCustomMessageTarget
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
     private readonly SnippetCache _snippetCache;
+    private readonly XmlSnippetParser _xmlSnippetParser;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
@@ -51,7 +52,8 @@ internal partial class RazorCustomMessageTarget
         ITelemetryReporter telemetryReporter,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        SnippetCache snippetCache)
+        SnippetCache snippetCache,
+        [Import(AllowDefault = true)] XmlSnippetParser? xmlSnippetParser)
     {
         if (documentManager is null)
         {
@@ -126,6 +128,7 @@ internal partial class RazorCustomMessageTarget
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
         _snippetCache = snippetCache;
+        _xmlSnippetParser = xmlSnippetParser ?? new XmlSnippetParser(null);
     }
 
     internal void SetLogger(ILogger? logger)
