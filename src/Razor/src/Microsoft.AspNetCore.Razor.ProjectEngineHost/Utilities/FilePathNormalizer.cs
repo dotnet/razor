@@ -116,16 +116,28 @@ internal static class FilePathNormalizer
 
     public static string GetDirectory(string filePath)
     {
-        if (string.IsNullOrEmpty(filePath))
+        var filePathSpan = filePath.AsSpanOrDefault();
+        if (filePathSpan.IsEmpty)
         {
-            throw new InvalidOperationException(filePath);
+            throw new ArgumentNullException(nameof(filePath));
         }
 
-        var normalizedPath = Normalize(filePath);
-        var lastSeparatorIndex = normalizedPath.LastIndexOf('/');
+        using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
+        var normalizedSpan = Normalize(filePathSpan, array.AsSpan(0, filePathSpan.Length));
 
-        var directory = normalizedPath[..(lastSeparatorIndex + 1)];
-        return directory;
+        var lastSlashIndex = normalizedSpan.LastIndexOf('/');
+
+        var directoryNameSpan = lastSlashIndex >= 0
+            ? normalizedSpan[..(lastSlashIndex + 1)] // Include trailiing slash
+            : normalizedSpan;
+
+        unsafe
+        {
+            fixed (char* buffer = directoryNameSpan)
+            {
+                return new string(buffer, 0, directoryNameSpan.Length);
+            }
+        }
     }
 
     public static bool FilePathsEquivalent(string? filePath1, string? filePath2)
