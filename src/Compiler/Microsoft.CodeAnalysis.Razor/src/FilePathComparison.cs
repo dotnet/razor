@@ -1,31 +1,33 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class FilePathComparison
 {
-    private static StringComparison? _instance;
+    private static int _instance = -1;
 
     public static StringComparison Instance
     {
         get
         {
-            if (_instance == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (_instance == -1)
             {
-                _instance = StringComparison.Ordinal;
-            }
-            else if (_instance == null)
-            {
-                _instance = StringComparison.OrdinalIgnoreCase;
+                Interlocked.CompareExchange(ref _instance, (int)GetComparison(), -1);
             }
 
-            return _instance.Value;
+            return (StringComparison)_instance;
+
+            static StringComparison GetComparison()
+            {
+                return RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                    ? StringComparison.Ordinal
+                    : StringComparison.OrdinalIgnoreCase;
+            }
         }
     }
 }

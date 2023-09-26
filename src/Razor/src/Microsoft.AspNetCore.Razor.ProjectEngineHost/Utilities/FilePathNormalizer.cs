@@ -33,13 +33,12 @@ internal static class FilePathNormalizer
 
         // Rent a buffer for Normalize to write to.
         using var _ = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
-        var destination = array.AsSpan(0, filePathSpan.Length);
+        var destinationSpan = array.AsSpan(0, filePathSpan.Length);
 
-        Normalize(filePathSpan, destination, out var offset, out var charsWritten);
-        destination = destination.Slice(offset, charsWritten);
+        var normalizedSpan = Normalize(filePathSpan, destinationSpan);
 
         // If we didn't change anything, just return the original string.
-        if (filePathSpan.Equals(destination, StringComparison.Ordinal))
+        if (filePathSpan.Equals(normalizedSpan, StringComparison.Ordinal))
         {
             return filePath.AssumeNotNull();
         }
@@ -47,9 +46,9 @@ internal static class FilePathNormalizer
         // Otherwise, create a new string from our normalized char buffer.
         unsafe
         {
-            fixed (char* buffer = destination)
+            fixed (char* buffer = normalizedSpan)
             {
-                return new string(buffer, 0, destination.Length);
+                return new string(buffer, 0, normalizedSpan.Length);
             }
         }
     }
@@ -59,13 +58,11 @@ internal static class FilePathNormalizer
     /// </summary>
     /// <param name="source">The span to normalize.</param>
     /// <param name="destination">The span to write to.</param>
-    /// <param name="offset">The offset in <paramref name="destination"/> that was written to.</param>
-    /// <param name="charsWritten">The number of characters written to <paramref name="destination"/>.</param>
-    private static void Normalize(ReadOnlySpan<char> source, Span<char> destination, out int offset, out int charsWritten)
+    /// <returns>
+    ///  Returns the normalized span within <paramref name="destination"/>.
+    /// </returns>
+    private static ReadOnlySpan<char> Normalize(ReadOnlySpan<char> source, Span<char> destination)
     {
-        offset = 0;
-        charsWritten = 0;
-
         if (source.IsEmpty)
         {
             if (destination.Length < 1)
@@ -74,8 +71,8 @@ internal static class FilePathNormalizer
             }
 
             destination[0] = '/';
-            charsWritten = 1;
-            return;
+
+            return destination[..1];
         }
 
         if (destination.Length < source.Length)
@@ -83,34 +80,37 @@ internal static class FilePathNormalizer
             throw new ArgumentException("Destination length must be greater or equal to the source length.", nameof(destination));
         }
 
+        Span<char> normalizedSpan;
+
         // Note: We check for '%' characters before calling UrlDecoder.Decode to ensure that we *only*
         // decode when there are '%XX' entities. So, calling Normalize on a path and then calling Normalize
         // on the result will not call Decode twice.
         if (source.Contains("%".AsSpan(), StringComparison.Ordinal))
         {
-            UrlDecoder.Decode(source, destination, out charsWritten);
+            UrlDecoder.Decode(source, destination, out var charsWritten);
+            normalizedSpan = destination[..charsWritten];
         }
         else
         {
             source.CopyTo(destination);
-            charsWritten = source.Length;
+            normalizedSpan = destination[..source.Length];
         }
 
-        // Ensure that we only replace slashes in the range that was written to.
-        destination[..charsWritten].Replace('\\', '/');
+        // Replace slashes in our normalized span.
+        normalizedSpan.Replace('\\', '/');
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-            destination is ['/', ..] &&
-            destination is not ['/', '/', ..])
+            normalizedSpan is ['/', ..] &&
+            normalizedSpan is not ['/', '/', ..])
         {
             // We've been provided a path that probably looks something like /C:/path/to.
-            // So, we adjust offset and charsWritten to inform callers to ignore the first '/'.
-            offset++;
-            charsWritten--;
+            // So, we adjust resulting span to skip the leading '/'.
+            return normalizedSpan[1..];
         }
         else
         {
             // Already a valid path like C:/path or //path
+            return normalizedSpan;
         }
     }
 
@@ -128,11 +128,26 @@ internal static class FilePathNormalizer
         return directory;
     }
 
-    public static bool FilePathsEquivalent(string filePath1, string filePath2)
+    public static bool FilePathsEquivalent(string? filePath1, string? filePath2)
     {
-        var normalizedFilePath1 = Normalize(filePath1);
-        var normalizedFilePath2 = Normalize(filePath2);
+        var filePathSpan1 = filePath1.AsSpanOrDefault();
+        var filePathSpan2 = filePath2.AsSpanOrDefault();
 
-        return FilePathComparer.Instance.Equals(normalizedFilePath1, normalizedFilePath2);
+        if (filePathSpan1.IsEmpty)
+        {
+            return filePathSpan2.IsEmpty;
+        }
+        else if (filePathSpan2.IsEmpty)
+        {
+            return false;
+        }
+
+        using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan1.Length, out var array1);
+        using var _2 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan2.Length, out var array2);
+
+        var normalizedSpan1 = Normalize(filePathSpan1, array1.AsSpan(0, filePathSpan1.Length));
+        var normalizedSpan2 = Normalize(filePathSpan2, array2.AsSpan(0, filePathSpan2.Length));
+
+        return normalizedSpan1.Equals(normalizedSpan2, FilePathComparison.Instance);
     }
 }
