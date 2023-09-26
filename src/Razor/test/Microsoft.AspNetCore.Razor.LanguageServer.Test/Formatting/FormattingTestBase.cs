@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -40,7 +39,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class FormattingTestBase : RazorIntegrationTestBase
 {
     private static readonly AsyncLocal<string> s_fileName = new();
-    private static readonly ImmutableArray<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
 
     public FormattingTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -78,7 +76,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var source = SourceText.From(input);
         var range = spans.IsEmpty
             ? null
-            : spans.Single().AsRange(source);
+            : spans.Single().ToRange(source);
 
         var path = "file:///path/to/Document." + fileKind;
         var uri = new Uri(path);
@@ -230,7 +228,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
 
     private static SourceText ApplyEdits(SourceText source, TextEdit[] edits)
     {
-        var changes = edits.Select(e => e.AsTextChange(source));
+        var changes = edits.Select(e => e.ToTextChange(source));
         return source.WithChanges(changes);
     }
 
@@ -238,9 +236,10 @@ public class FormattingTestBase : RazorIntegrationTestBase
     {
         fileKind ??= FileKinds.Component;
         tagHelpers = tagHelpers.NullToEmpty();
+
         if (fileKind == FileKinds.Component)
         {
-            tagHelpers = tagHelpers.AddRange(s_defaultComponents);
+            tagHelpers = tagHelpers.AddRange(RazorTestResources.BlazorServerAppTagHelpers);
         }
 
         var sourceDocument = text.GetRazorSourceDocument(path, path);
@@ -337,17 +336,5 @@ public class FormattingTestBase : RazorIntegrationTestBase
         while (directoryInfo?.Parent != null);
 
         return null;
-    }
-
-    private static ImmutableArray<TagHelperDescriptor> GetDefaultRuntimeComponents()
-    {
-        var bytes = RazorTestResources.GetResourceBytes(RazorTestResources.BlazorServerAppTagHelpersJson);
-
-        using var stream = new MemoryStream(bytes);
-        using var reader = new StreamReader(stream);
-
-        return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadImmutableArray(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
     }
 }

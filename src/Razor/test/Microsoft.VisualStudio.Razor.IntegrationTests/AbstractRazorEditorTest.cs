@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
+[LogIntegrationTest]
 public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper) : AbstractIntegrationTest
 {
     private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
@@ -28,14 +28,16 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     {
         await base.InitializeAsync();
 
+        await TestServices.Output.SetupIntegrationTestLoggerAsync(_testOutputHelper, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Output.LogStatusAsync("#### Razor integration test initialize.", ControlledHangMitigatingCancellationToken);
+
         VisualStudioLogging.AddCustomLoggers();
 
         var projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
-
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
 
         await TestServices.RazorProjectSystem.WaitForProjectFileAsync(projectFilePath, ControlledHangMitigatingCancellationToken);
 
@@ -47,8 +49,6 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
 
         // Razor extension doesn't launch until a razor file is opened, so wait for it to equalize
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
         EnsureLSPEditorEnabled();
@@ -68,6 +68,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Output.LogStatusAsync("#### Razor integration test initialize finished.", ControlledHangMitigatingCancellationToken);
     }
 
     private async Task<string> CreateAndOpenBlazorProjectAsync(CancellationToken cancellationToken)
@@ -98,8 +100,9 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
     public override async Task DisposeAsync()
     {
-        var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
-        _testOutputHelper.WriteLine($"Razor Output Pane Content:{Environment.NewLine}{paneContent}");
+        await TestServices.Output.LogStatusAsync("#### Razor integration test dispose.", ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Output.ClearIntegrationTestLoggerAsync(ControlledHangMitigatingCancellationToken);
 
         await base.DisposeAsync();
     }
