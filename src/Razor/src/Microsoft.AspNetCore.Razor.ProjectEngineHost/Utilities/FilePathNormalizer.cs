@@ -34,6 +34,11 @@ internal static class FilePathNormalizer
             normalizedSpan = arraySpan.Slice(start, length + 1);
         }
 
+        if (directoryFilePathSpan.Equals(normalizedSpan, StringComparison.Ordinal))
+        {
+            return directoryFilePath.AssumeNotNull();
+        }
+
         return CreateString(normalizedSpan);
     }
 
@@ -62,12 +67,15 @@ internal static class FilePathNormalizer
         return CreateString(normalizedSpan);
     }
 
-    public static string GetDirectory(string filePath)
+    /// <summary>
+    ///  Returns the directory portion of the given file path in normalized form.
+    /// </summary>
+    public static string GetNormalizedDirectoryName(string? filePath)
     {
         var filePathSpan = filePath.AsSpanOrDefault();
         if (filePathSpan.IsEmpty)
         {
-            throw new ArgumentNullException(nameof(filePath));
+            return "/";
         }
 
         using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
@@ -81,6 +89,11 @@ internal static class FilePathNormalizer
         var directoryNameSpan = lastSlashIndex >= 0
             ? normalizedSpan[..(lastSlashIndex + 1)] // Include trailiing slash
             : normalizedSpan;
+
+        if (filePathSpan.Equals(directoryNameSpan, StringComparison.Ordinal))
+        {
+            return filePath.AssumeNotNull();
+        }
 
         return CreateString(directoryNameSpan);
     }
