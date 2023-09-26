@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Components.Web;
             __builder.OpenElement(0, "form");
             string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>("myform");
             __builder.AddAttribute(1, "class", "nice");
+            __builder.AddNamedEvent("onsubmit", __formName);
             __builder.OpenElement(2, "p");
 #nullable restore
 #line (3,8)-(3,20) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -32,7 +33,6 @@ __builder.AddContent(3, DateTime.Now);
 #line hidden
 #nullable disable
             __builder.CloseElement();
-            __builder.AddNamedEvent("onsubmit", __formName);
             __builder.CloseElement();
         }
         #pragma warning restore 1998
