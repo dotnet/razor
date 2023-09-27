@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -18,28 +19,27 @@ internal sealed class TagMatchingRuleDescriptorComparer : IEqualityComparer<TagM
     {
     }
 
-    public bool Equals(TagMatchingRuleDescriptor? ruleX, TagMatchingRuleDescriptor? ruleY)
+    public bool Equals(TagMatchingRuleDescriptor? x, TagMatchingRuleDescriptor? y)
     {
-        if (ReferenceEquals(ruleX, ruleY))
+        if (ReferenceEquals(x, y))
         {
             return true;
         }
 
-        if (ruleX is null)
+        if (x is null)
         {
-            return ruleY is null;
+            return y is null;
         }
-        else if (ruleY is null)
+        else if (y is null)
         {
             return false;
         }
 
-        return
-            ruleX.TagName == ruleY.TagName &&
-            ruleX.ParentTag == ruleY.ParentTag &&
-            ruleX.CaseSensitive == ruleY.CaseSensitive &&
-            ruleX.TagStructure == ruleY.TagStructure &&
-            ComparerUtilities.Equals(ruleX.Attributes, ruleY.Attributes, RequiredAttributeDescriptorComparer.Default);
+        return x.TagName == y.TagName &&
+               x.ParentTag == y.ParentTag &&
+               x.CaseSensitive == y.CaseSensitive &&
+               x.TagStructure == y.TagStructure &&
+               x.Attributes.SequenceEqual(y.Attributes, RequiredAttributeDescriptorComparer.Default);
     }
 
     public int GetHashCode(TagMatchingRuleDescriptor? rule)

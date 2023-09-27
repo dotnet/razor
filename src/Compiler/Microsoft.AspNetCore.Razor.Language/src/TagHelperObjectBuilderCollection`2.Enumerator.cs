@@ -7,31 +7,32 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract partial class MetadataCollection
+public sealed partial class TagHelperObjectBuilderCollection<TObject, TBuilder> where TObject : TagHelperObject
+    where TBuilder : TagHelperObjectBuilder<TObject>
 {
-    public struct Enumerator : IEnumerator<KeyValuePair<string, string?>>
+    public struct Enumerator : IEnumerator<TBuilder>
     {
-        private readonly MetadataCollection _collection;
+        private readonly TagHelperObjectBuilderCollection<TObject, TBuilder> _collection;
+        private TBuilder _current;
         private int _index;
-        private KeyValuePair<string, string?> _current;
 
-        internal Enumerator(MetadataCollection collection)
+        internal Enumerator(TagHelperObjectBuilderCollection<TObject, TBuilder> collection)
         {
             _collection = collection;
             _index = 0;
-            _current = default;
+            _current = default!;
         }
 
-        public readonly KeyValuePair<string, string?> Current => _current;
+        public readonly TBuilder Current => _current;
 
-        readonly object IEnumerator.Current => Current;
+        readonly object IEnumerator.Current => _current;
 
         public bool MoveNext()
         {
             var collection = _collection;
             if (_index < collection.Count)
             {
-                _current = _collection.GetEntry(_index);
+                _current = _collection[_index];
                 _index++;
                 return true;
             }
@@ -42,7 +43,7 @@ public abstract partial class MetadataCollection
         public void Reset()
         {
             _index = 0;
-            _current = default;
+            _current = default!;
         }
 
         readonly void IDisposable.Dispose()

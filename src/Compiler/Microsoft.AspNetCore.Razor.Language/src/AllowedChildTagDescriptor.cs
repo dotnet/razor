@@ -1,75 +1,33 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class AllowedChildTagDescriptor : IEquatable<AllowedChildTagDescriptor>
+public sealed class AllowedChildTagDescriptor : TagHelperObject, IEquatable<AllowedChildTagDescriptor>
 {
-    private bool _containsDiagnostics;
+    public string Name { get; }
+    public string DisplayName { get; }
 
-    public string Name { get; protected set; }
-
-    public string DisplayName { get; protected set; }
-
-    public IReadOnlyList<RazorDiagnostic> Diagnostics
+    internal AllowedChildTagDescriptor(string name, string displayName, ImmutableArray<RazorDiagnostic> diagnostics)
+        : base(diagnostics)
     {
-        get => _containsDiagnostics
-            ? TagHelperDiagnostics.GetDiagnostics(this)
-            : Array.Empty<RazorDiagnostic>();
-
-        protected set
-        {
-            if (value?.Count > 0)
-            {
-                TagHelperDiagnostics.AddDiagnostics(this, value);
-                _containsDiagnostics = true;
-            }
-            else if (_containsDiagnostics)
-            {
-                TagHelperDiagnostics.RemoveDiagnostics(this);
-                _containsDiagnostics = false;
-            }
-        }
-    }
-
-    public bool HasErrors
-    {
-        get
-        {
-            if (!_containsDiagnostics)
-            {
-                return false;
-            }
-
-            var errors = Diagnostics.Any(diagnostic => diagnostic.Severity == RazorDiagnosticSeverity.Error);
-
-            return errors;
-        }
+        Name = name;
+        DisplayName = displayName;
     }
 
     public override string ToString()
-    {
-        return DisplayName ?? base.ToString();
-    }
+        => DisplayName ?? base.ToString();
 
     public bool Equals(AllowedChildTagDescriptor other)
-    {
-        return AllowedChildTagDescriptorComparer.Default.Equals(this, other);
-    }
+        => AllowedChildTagDescriptorComparer.Default.Equals(this, other);
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as AllowedChildTagDescriptor);
-    }
+    public override bool Equals(object? obj)
+        => obj is AllowedChildTagDescriptor other &&
+           Equals(other);
 
     public override int GetHashCode()
-    {
-        return AllowedChildTagDescriptorComparer.Default.GetHashCode(this);
-    }
+        => AllowedChildTagDescriptorComparer.Default.GetHashCode(this);
 }

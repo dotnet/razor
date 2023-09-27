@@ -61,11 +61,9 @@ internal static class TagHelperMatchingConventions
     public static bool SatisfiesAttributes(ImmutableArray<KeyValuePair<string, string>> tagAttributes, TagMatchingRuleDescriptor rule)
     {
         var requiredAttributes = rule.Attributes;
-        var count = requiredAttributes.Count;
 
-        for (var i = 0; i < count; i++)
+        foreach (var requiredAttribute in requiredAttributes)
         {
-            var requiredAttribute = requiredAttributes[i];
             var satisfied = false;
 
             foreach (var (attributeName, attributeValue) in tagAttributes)
@@ -90,7 +88,7 @@ internal static class TagHelperMatchingConventions
     {
         return SatisfiesBoundAttributeName(name.AsSpan(), descriptor) ||
                SatisfiesBoundAttributeIndexer(name.AsSpan(), descriptor) ||
-               GetSatifyingBoundAttributeWithParameter(name, descriptor, descriptor.BoundAttributeParameters) is not null;
+               GetSatifyingBoundAttributeWithParameter(name, descriptor, descriptor.Parameters) is not null;
     }
 
     private static BoundAttributeParameterDescriptor? GetSatifyingBoundAttributeWithParameter(
@@ -195,7 +193,7 @@ internal static class TagHelperMatchingConventions
         // First, check if we have a bound attribute descriptor that matches the parameter if it exists.
         foreach (var attribute in descriptor.BoundAttributes)
         {
-            boundAttributeParameter = GetSatifyingBoundAttributeWithParameter(name, attribute, attribute.BoundAttributeParameters);
+            boundAttributeParameter = GetSatifyingBoundAttributeWithParameter(name, attribute, attribute.Parameters);
 
             if (boundAttributeParameter != null)
             {

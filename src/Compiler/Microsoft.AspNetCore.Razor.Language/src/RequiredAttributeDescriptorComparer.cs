@@ -23,30 +23,28 @@ internal sealed class RequiredAttributeDescriptorComparer : IEqualityComparer<Re
     }
 
     /// <inheritdoc />
-    public bool Equals(
-        RequiredAttributeDescriptor? descriptorX,
-        RequiredAttributeDescriptor? descriptorY)
+    public bool Equals(RequiredAttributeDescriptor? x, RequiredAttributeDescriptor? y)
     {
-        if (ReferenceEquals(descriptorX, descriptorY))
+        if (ReferenceEquals(x, y))
         {
             return true;
         }
 
-        if (descriptorX is null)
+        if (x is null)
         {
-            return descriptorY is null;
+            return y is null;
         }
-        else if (descriptorY is null)
+        else if (y is null)
         {
             return false;
         }
 
-        return descriptorX.CaseSensitive == descriptorY.CaseSensitive &&
-               descriptorX.NameComparison == descriptorY.NameComparison &&
-               descriptorX.ValueComparison == descriptorY.ValueComparison &&
-               descriptorX.Name == descriptorY.Name &&
-               descriptorX.Value == descriptorY.Value &&
-               descriptorX.DisplayName == descriptorY.DisplayName;
+        return x.CaseSensitive == y.CaseSensitive &&
+               x.NameComparison == y.NameComparison &&
+               x.ValueComparison == y.ValueComparison &&
+               x.Name == y.Name &&
+               x.Value == y.Value &&
+               x.DisplayName == y.DisplayName;
     }
 
     /// <inheritdoc />

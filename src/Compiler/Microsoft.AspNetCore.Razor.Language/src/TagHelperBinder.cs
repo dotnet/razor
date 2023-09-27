@@ -98,9 +98,8 @@ internal sealed class TagHelperBinder
             // We're avoiding descriptor.TagMatchingRules.Where and applicableRules.Any() to avoid
             // Enumerator allocations on this hot path
             List<TagMatchingRuleDescriptor> applicableRules = null;
-            for (var i = 0; i < descriptor.TagMatchingRules.Count; i++)
+            foreach (var rule in descriptor.TagMatchingRules)
             {
-                var rule = descriptor.TagMatchingRules[i];
                 if (TagHelperMatchingConventions.SatisfiesRule(tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, rule))
                 {
                     applicableRules ??= new List<TagMatchingRuleDescriptor>();
@@ -132,10 +131,8 @@ internal sealed class TagHelperBinder
 
     private void Register(TagHelperDescriptor descriptor)
     {
-        var count = descriptor.TagMatchingRules.Count;
-        for (var i = 0; i < count; i++)
+        foreach (var rule in descriptor.TagMatchingRules)
         {
-            var rule = descriptor.TagMatchingRules[i];
             var registrationKey =
                 string.Equals(rule.TagName, TagHelperMatchingConventions.ElementCatchAllName, StringComparison.Ordinal) ?
                 TagHelperMatchingConventions.ElementCatchAllName :

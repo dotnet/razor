@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -18,45 +19,30 @@ internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperD
     {
     }
 
-    public bool Equals(TagHelperDescriptor? descriptorX, TagHelperDescriptor? descriptorY)
+    public bool Equals(TagHelperDescriptor? x, TagHelperDescriptor? y)
     {
-        if (ReferenceEquals(descriptorX, descriptorY))
+        if (ReferenceEquals(x, y))
         {
             return true;
         }
 
-        if (descriptorX is null || descriptorY is null)
+        if (x is null || y is null)
         {
             return false;
         }
 
-        if (descriptorX.Kind != descriptorY.Kind ||
-            descriptorX.AssemblyName != descriptorY.AssemblyName ||
-            descriptorX.Name != descriptorY.Name ||
-            descriptorX.CaseSensitive != descriptorY.CaseSensitive ||
-            descriptorX.DisplayName != descriptorY.DisplayName ||
-            descriptorX.DocumentationObject != descriptorY.DocumentationObject ||
-            descriptorX.TagOutputHint != descriptorY.TagOutputHint)
-        {
-            return false;
-        }
-
-        if (!ComparerUtilities.Equals(descriptorX.BoundAttributes, descriptorY.BoundAttributes, BoundAttributeDescriptorComparer.Default) ||
-            !ComparerUtilities.Equals(descriptorX.TagMatchingRules, descriptorY.TagMatchingRules, TagMatchingRuleDescriptorComparer.Default) ||
-            !ComparerUtilities.Equals(descriptorX.AllowedChildTags, descriptorY.AllowedChildTags, AllowedChildTagDescriptorComparer.Default) ||
-            !ComparerUtilities.Equals(descriptorX.Diagnostics, descriptorY.Diagnostics, EqualityComparer<RazorDiagnostic>.Default))
-        {
-            return false;
-        }
-
-        // FAST PATH: If each descriptor has a MetadataCollection, we should use their equality.
-        if (descriptorX.Metadata is MetadataCollection metadataX &&
-            descriptorY.Metadata is MetadataCollection metadataY)
-        {
-            return metadataX.Equals(metadataY);
-        }
-
-        return ComparerUtilities.Equals(descriptorX.Metadata, descriptorY.Metadata, StringComparer.Ordinal);
+        return x.Kind == y.Kind &&
+               x.AssemblyName == y.AssemblyName &&
+               x.Name == y.Name &&
+               x.CaseSensitive == y.CaseSensitive &&
+               x.DisplayName == y.DisplayName &&
+               x.DocumentationObject == y.DocumentationObject &&
+               x.TagOutputHint == y.TagOutputHint &&
+               x.BoundAttributes.SequenceEqual(y.BoundAttributes, BoundAttributeDescriptorComparer.Default) &&
+               x.TagMatchingRules.SequenceEqual(y.TagMatchingRules, TagMatchingRuleDescriptorComparer.Default) &&
+               x.AllowedChildTags.SequenceEqual(y.AllowedChildTags, AllowedChildTagDescriptorComparer.Default) &&
+               ComparerUtilities.Equals(x.Diagnostics, y.Diagnostics, EqualityComparer<RazorDiagnostic>.Default) &&
+               x.Metadata.Equals(y.Metadata);
     }
 
     /// <inheritdoc />
