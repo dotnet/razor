@@ -8,14 +8,11 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal sealed partial record Checksum
 {
-    private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool = DefaultPool.Create(IncrementalHashPoolPolicy.Instance);
-
     internal readonly ref struct Builder
     {
         private enum TypeKind : byte
@@ -36,7 +33,7 @@ internal sealed partial record Checksum
 
         public Builder()
         {
-            _hash = s_incrementalHashPool.Get();
+            _hash = IncrementalHashPool.Default.Get();
         }
 
         static byte[] GetBuffer()
@@ -45,7 +42,7 @@ internal sealed partial record Checksum
         public Checksum FreeAndGetChecksum()
         {
             var result = From(_hash.GetHashAndReset());
-            s_incrementalHashPool.Return(_hash);
+            IncrementalHashPool.Default.Return(_hash);
             return result;
         }
 
