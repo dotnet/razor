@@ -9,25 +9,15 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class FilePathComparison
 {
-    private static int _instance = -1;
+    private static StringComparison? _instance;
 
     public static StringComparison Instance
     {
         get
         {
-            if (_instance == -1)
-            {
-                Interlocked.CompareExchange(ref _instance, (int)GetComparison(), -1);
-            }
-
-            return (StringComparison)_instance;
-
-            static StringComparison GetComparison()
-            {
-                return RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                    ? StringComparison.Ordinal
-                    : StringComparison.OrdinalIgnoreCase;
-            }
+            return _instance ??= RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? StringComparison.Ordinal
+                : StringComparison.OrdinalIgnoreCase;
         }
     }
 }

@@ -15,14 +15,9 @@ internal static class FilePathComparer
     {
         get
         {
-            return _instance ?? InterlockedOperations.Initialize(ref _instance, GetComparer());
-
-            static StringComparer GetComparer()
-            {
-                return RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                    ? StringComparer.Ordinal
-                    : StringComparer.OrdinalIgnoreCase;
-            }
+            return _instance ??= RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? StringComparer.Ordinal
+                : StringComparer.OrdinalIgnoreCase;
         }
     }
 }

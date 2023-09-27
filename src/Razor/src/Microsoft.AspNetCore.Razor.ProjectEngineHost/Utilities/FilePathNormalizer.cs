@@ -81,7 +81,7 @@ internal static class FilePathNormalizer
         using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
         var arraySpan = array.AsSpan(0, filePathSpan.Length);
 
-        var (start, length) = NormalizeCore(filePathSpan, array.AsSpan(0, filePathSpan.Length));
+        var (start, length) = NormalizeCore(filePathSpan, arraySpan);
         var normalizedSpan = arraySpan.Slice(start, length);
 
         var lastSlashIndex = normalizedSpan.LastIndexOf('/');
