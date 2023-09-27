@@ -639,12 +639,12 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.CSharp);
 
-        var outRange = new Range();
+        var outRange = new LinePositionSpan();
         documentMappingServiceMock
-            .Setup(c => c.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out outRange))
+            .Setup(c => c.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<LinePositionSpan>(), out outRange))
             .Returns(true);
 
-        var projectedPosition = new Position(1, 1);
+        var projectedPosition = new LinePosition(1, 1);
         var projectedIndex = 1;
         documentMappingServiceMock.Setup(
             c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
