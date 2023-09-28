@@ -137,6 +137,12 @@ Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.MoveNext() -> 
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.Reset() -> void
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetEnumerator() -> Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.MetadataCollection() -> void
+Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Equals(Microsoft.AspNetCore.Razor.Language.RazorDiagnostic! other) -> bool
+Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.GetMessage() -> string!
+Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.GetMessage(System.IFormatProvider? formatProvider) -> string!
+Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Id.get -> string!
+Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
+Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Span.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Enumerator.Enumerator() -> void
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.CaseSensitive.get -> bool
@@ -252,6 +258,9 @@ override Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNo
 override Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.FormatNode(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeFormatter! formatter) -> void
 override Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.Accept(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeVisitor! visitor) -> void
 override Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.Children.get -> Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection!
+override Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Equals(object? obj) -> bool
+override Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.GetHashCode() -> int
+override Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.ToString() -> string!
 override Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.Equals(object? obj) -> bool
 override Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.ToString() -> string!
@@ -275,6 +284,8 @@ static Microsoft.AspNetCore.Razor.Language.MetadataCollection.CreateOrEmpty(Syst
 static Microsoft.AspNetCore.Razor.Language.MetadataCollection.CreateOrEmpty(System.Collections.Generic.IReadOnlyDictionary<string!, string?>? map) -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
 static Microsoft.AspNetCore.Razor.Language.MetadataCollection.CreateOrEmpty<T>(T? pairs) -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
 static Microsoft.AspNetCore.Razor.Language.RazorCodeDocumentExtensions.TryComputeClassName(this Microsoft.AspNetCore.Razor.Language.RazorCodeDocument! codeDocument, out string? className) -> bool
+static Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Create(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor! descriptor, Microsoft.AspNetCore.Razor.Language.SourceSpan span) -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!
+static Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Create(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor! descriptor, Microsoft.AspNetCore.Razor.Language.SourceSpan span, params object![]! args) -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!
 static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.Create(string! kind, string! name, string! assemblyName) -> Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder!
 static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.Create(string! name, string! assemblyName) -> Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder!
 static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.GetPooledInstance(string! kind, string! name, string! assemblyName, out Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder! builder) -> Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder

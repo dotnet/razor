@@ -1,63 +1,91 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
+using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
+public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
 {
-    internal static readonly RazorDiagnostic[] EmptyArray = Array.Empty<RazorDiagnostic>();
-    internal static readonly object[] EmptyArgs = Array.Empty<object>();
+    // Internal for testing
+    internal RazorDiagnosticDescriptor Descriptor { get; }
 
-    public abstract string Id { get; }
+    // Internal for testing
+    internal object[] Args { get; }
 
-    public abstract RazorDiagnosticSeverity Severity { get; }
+    public string Id => Descriptor.Id;
+    public RazorDiagnosticSeverity Severity => Descriptor.Severity;
+    public SourceSpan Span { get; }
 
-    public abstract SourceSpan Span { get; }
-
-    public abstract string GetMessage(IFormatProvider formatProvider);
-
-    public string GetMessage() => GetMessage(null);
-
-    public abstract bool Equals(RazorDiagnostic other);
-
-    public abstract override int GetHashCode();
-
-    public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan span)
+    private RazorDiagnostic(RazorDiagnosticDescriptor descriptor, SourceSpan span, object[]? args)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        return new DefaultRazorDiagnostic(descriptor, span, EmptyArgs);
+        Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
+        Span = span;
+        Args = args ?? Array.Empty<object>();
     }
 
+    public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan span)
+        => new RazorDiagnostic(descriptor, span, args: null);
+
     public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan span, params object[] args)
+        => new RazorDiagnostic(descriptor, span, args);
+
+    public string GetMessage()
+        => GetMessage(formatProvider: null);
+
+    public string GetMessage(IFormatProvider? formatProvider)
     {
-        if (descriptor == null)
+        var format = Descriptor.GetMessageFormat();
+        return string.Format(formatProvider, format, Args);
+    }
+
+    public override bool Equals(object? obj)
+        => obj is RazorDiagnostic diagnostic
+            ? Equals(diagnostic)
+            : false;
+
+    public bool Equals(RazorDiagnostic other)
+    {
+        if (!Descriptor.Equals(other.Descriptor) ||
+            !Span.Equals(other.Span) ||
+            Args.Length != other.Args.Length)
         {
-            throw new ArgumentNullException(nameof(descriptor));
+            return false;
         }
 
-        return new DefaultRazorDiagnostic(descriptor, span, args);
+        for (var i = 0; i < Args.Length; i++)
+        {
+            if (!Args[i].Equals(other.Args[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = HashCodeCombiner.Start();
+        hash.Add(Descriptor.GetHashCode());
+        hash.Add(Span.GetHashCode());
+
+        for (var i = 0; i < Args.Length; i++)
+        {
+            hash.Add(Args[i]);
+        }
+
+        return hash;
     }
 
     public override string ToString()
     {
-        return ((IFormattable)this).ToString(null, null);
+        return ((IFormattable)this).ToString(format: null, formatProvider: null);
     }
 
-    public override bool Equals(object obj)
-    {
-        var other = obj as RazorDiagnostic;
-        return other == null ? false : Equals(other);
-    }
-
-    string IFormattable.ToString(string ignore, IFormatProvider formatProvider)
+    string IFormattable.ToString(string format, System.IFormatProvider formatProvider)
     {
         // Our indices are 0-based, but we we want to print them as 1-based.
         return $"{Span.FilePath}({Span.LineIndex + 1},{Span.CharacterIndex + 1}): {Severity} {Id}: {GetMessage(formatProvider)}";
