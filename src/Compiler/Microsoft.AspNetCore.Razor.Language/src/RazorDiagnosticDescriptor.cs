@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 [DebuggerDisplay($"{{{nameof(DebuggerToString)}(),nq}}")]
-public record RazorDiagnosticDescriptor
+public sealed record RazorDiagnosticDescriptor
 {
     public string Id { get; }
     public string MessageFormat { get; }
