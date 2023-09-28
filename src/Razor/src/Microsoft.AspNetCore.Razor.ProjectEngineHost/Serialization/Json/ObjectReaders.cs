@@ -70,15 +70,10 @@ internal static partial class ObjectReaders
         var characterIndex = reader.ReadInt32OrZero(nameof(SourceSpan.CharacterIndex));
         var length = reader.ReadInt32OrZero(nameof(SourceSpan.Length));
 
-        var descriptor = new RazorDiagnosticDescriptor(id, MessageFormat(message), severity);
+        var descriptor = new RazorDiagnosticDescriptor(id, message, severity);
         var span = new SourceSpan(filePath, absoluteIndex, lineIndex, characterIndex, length);
 
         return RazorDiagnostic.Create(descriptor, span);
-
-        static Func<string> MessageFormat(string message)
-        {
-            return () => message;
-        }
     }
 
     public static ProjectSnapshotHandle ReadProjectSnapshotHandleFromProperties(JsonDataReader reader)

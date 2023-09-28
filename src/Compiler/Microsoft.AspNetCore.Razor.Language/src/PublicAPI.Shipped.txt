@@ -413,10 +413,6 @@
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Remove(Microsoft.AspNetCore.Razor.Language.RazorDiagnostic item) -> bool
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.this[int index].get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.this[int index].set -> void
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Equals(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor other) -> bool
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.GetMessageFormat() -> string
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Id.get -> string
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.RazorDiagnosticDescriptor(string id, System.Func<string> messageFormat, Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity severity) -> void
 ~Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.Engine.get -> Microsoft.AspNetCore.Razor.Language.RazorEngine
 ~Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.Engine.set -> void
 ~Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.GetRequiredFeature<TFeature>() -> TFeature
@@ -610,7 +606,6 @@
 ~override Microsoft.AspNetCore.Razor.Language.Intermediate.UsingDirectiveIntermediateNode.Children.get -> Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection
 ~override Microsoft.AspNetCore.Razor.Language.Intermediate.UsingDirectiveIntermediateNode.FormatNode(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeFormatter formatter) -> void
 ~override Microsoft.AspNetCore.Razor.Language.RazorConfiguration.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Equals(object obj) -> bool
 ~override Microsoft.AspNetCore.Razor.Language.RazorLanguageVersion.ToString() -> string
 ~override Microsoft.AspNetCore.Razor.Language.SourceChange.Equals(object obj) -> bool
 ~override Microsoft.AspNetCore.Razor.Language.SourceChange.ToString() -> string
@@ -1231,8 +1226,6 @@ Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.GetEnumerator() ->
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.IsReadOnly.get -> bool
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.RazorDiagnosticCollection() -> void
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.RemoveAt(int index) -> void
-Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor
-Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity.Error = 3 -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity.Warning = 2 -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
@@ -1334,7 +1327,6 @@ Microsoft.AspNetCore.Razor.Language.TagStructure.WithoutEndTag = 2 -> Microsoft.
 override Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.DocumentClassifierPassBase.OnInitialized() -> void
 override Microsoft.AspNetCore.Razor.Language.RazorConfiguration.GetHashCode() -> int
-override Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.RazorLanguageVersion.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.SourceChange.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.SourceLocation.GetHashCode() -> int

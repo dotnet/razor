@@ -144,6 +144,11 @@ Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Id.get -> string!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Span.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Enumerator.Enumerator() -> void
+Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor
+Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Id.get -> string!
+Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.MessageFormat.get -> string!
+Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.RazorDiagnosticDescriptor(string! id, string! messageFormat, Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity severity) -> void
+Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.CaseSensitive.get -> bool
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.DisplayName.get -> string!

@@ -599,7 +599,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var originalTree = RazorSyntaxTree.Parse(sourceDocument);
 
         var initialError = RazorDiagnostic.Create(
-            new RazorDiagnosticDescriptor("RZ9999", () => "Initial test error", RazorDiagnosticSeverity.Error),
+            new RazorDiagnosticDescriptor("RZ9999", "Initial test error", RazorDiagnosticSeverity.Error),
             new SourceSpan(SourceLocation.Zero, contentLength: 1));
         var expectedRewritingError = RazorDiagnosticFactory.CreateParsing_TagHelperFoundMalformedTagHelper(
             new SourceSpan(new SourceLocation(Environment.NewLine.Length * 2 + 30, 2, 1), contentLength: 4), "form");

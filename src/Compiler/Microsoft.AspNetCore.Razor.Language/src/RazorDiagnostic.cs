@@ -27,19 +27,16 @@ public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
     }
 
     public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan span)
-        => new RazorDiagnostic(descriptor, span, args: null);
+        => new(descriptor, span, args: null);
 
     public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan span, params object[] args)
-        => new RazorDiagnostic(descriptor, span, args);
+        => new(descriptor, span, args);
 
     public string GetMessage()
         => GetMessage(formatProvider: null);
 
     public string GetMessage(IFormatProvider? formatProvider)
-    {
-        var format = Descriptor.GetMessageFormat();
-        return string.Format(formatProvider, format, Args);
-    }
+        => string.Format(formatProvider, Descriptor.MessageFormat, Args);
 
     public override bool Equals(object? obj)
         => obj is RazorDiagnostic diagnostic

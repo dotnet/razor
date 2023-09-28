@@ -812,7 +812,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             }
         });
 
-        var descriptor = new RazorDiagnosticDescriptor(id, () => message, (RazorDiagnosticSeverity)severity);
+        var descriptor = new RazorDiagnosticDescriptor(id, message, (RazorDiagnosticSeverity)severity);
 
         var diagnostic = RazorDiagnostic.Create(descriptor, sourceSpan);
         diagnostics.Add(diagnostic);
