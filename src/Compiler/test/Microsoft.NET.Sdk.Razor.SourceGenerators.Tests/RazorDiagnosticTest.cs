@@ -13,7 +13,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         public void AsDiagnostic_WithUndefinedSpanWorks()
         {
             // Arrange
-            var diagnostics = RazorDiagnostic.Create(new RazorDiagnosticDescriptor("RZC1001", "Some message", RazorDiagnosticSeverity.Error), SourceSpan.Undefined);
+            var diagnostics = RazorDiagnostic.Create(new RazorDiagnosticDescriptor("RZC1001", "Some message", RazorDiagnosticSeverity.Error));
 
             // Act
             var csharpDiagnostic = diagnostics.AsDiagnostic();

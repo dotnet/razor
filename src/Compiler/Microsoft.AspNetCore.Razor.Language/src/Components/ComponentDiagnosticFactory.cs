@@ -21,7 +21,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_UnsupportedTagHelperDirective(SourceSpan? source)
-        => RazorDiagnostic.Create(UnsupportedTagHelperDirective, source ?? SourceSpan.Undefined);
+        => RazorDiagnostic.Create(UnsupportedTagHelperDirective, source);
 
     public static readonly RazorDiagnosticDescriptor CodeBlockInAttribute =
         new($"{DiagnosticPrefix}9979",
@@ -31,7 +31,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_CodeBlockInAttribute(SourceSpan? source, string expression)
-        => RazorDiagnostic.Create(CodeBlockInAttribute, source ?? SourceSpan.Undefined, expression);
+        => RazorDiagnostic.Create(CodeBlockInAttribute, source, expression);
 
     public static readonly RazorDiagnosticDescriptor UnclosedTag =
         new($"{DiagnosticPrefix}9980",
@@ -39,7 +39,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_UnclosedTag(SourceSpan? span, string tagName)
-        => RazorDiagnostic.Create(UnclosedTag, span ?? SourceSpan.Undefined, tagName);
+        => RazorDiagnostic.Create(UnclosedTag, span, tagName);
 
     public static readonly RazorDiagnosticDescriptor UnexpectedClosingTag =
         new($"{DiagnosticPrefix}9981",
@@ -47,7 +47,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_UnexpectedClosingTag(SourceSpan? span, string tagName)
-        => RazorDiagnostic.Create(UnexpectedClosingTag, span ?? SourceSpan.Undefined, tagName);
+        => RazorDiagnostic.Create(UnexpectedClosingTag, span, tagName);
 
     public static readonly RazorDiagnosticDescriptor UnexpectedClosingTagForVoidElement =
         new($"{DiagnosticPrefix}9983",
@@ -55,7 +55,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_UnexpectedClosingTagForVoidElement(SourceSpan? span, string tagName)
-        => RazorDiagnostic.Create(UnexpectedClosingTagForVoidElement, span ?? SourceSpan.Undefined, tagName);
+        => RazorDiagnostic.Create(UnexpectedClosingTagForVoidElement, span, tagName);
 
     public static readonly RazorDiagnosticDescriptor InvalidHtmlContent =
         new($"{DiagnosticPrefix}9984",
@@ -63,7 +63,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_InvalidHtmlContent(SourceSpan? span, string text)
-        => RazorDiagnostic.Create(InvalidHtmlContent, span ?? SourceSpan.Undefined, text);
+        => RazorDiagnostic.Create(InvalidHtmlContent, span, text);
 
     public static readonly RazorDiagnosticDescriptor MultipleComponents =
         new($"{DiagnosticPrefix}9985",
@@ -73,7 +73,7 @@ internal static class ComponentDiagnosticFactory
     public static RazorDiagnostic Create_MultipleComponents(SourceSpan? span, string tagName, IEnumerable<TagHelperDescriptor> components)
     {
         var componentNames = string.Join(", ", components.Select(c => c.DisplayName));
-        return RazorDiagnostic.Create(MultipleComponents, span ?? SourceSpan.Undefined, tagName, componentNames);
+        return RazorDiagnostic.Create(MultipleComponents, span, tagName, componentNames);
     }
 
     public static readonly RazorDiagnosticDescriptor UnsupportedComplexContent =
@@ -84,7 +84,7 @@ internal static class ComponentDiagnosticFactory
     public static RazorDiagnostic Create_UnsupportedComplexContent(IntermediateNode node, string attributeName)
     {
         var content = string.Join("", node.FindDescendantNodes<IntermediateToken>().Select(t => t.Content));
-        return RazorDiagnostic.Create(UnsupportedComplexContent, node.Source ?? SourceSpan.Undefined, attributeName, content);
+        return RazorDiagnostic.Create(UnsupportedComplexContent, node.Source, attributeName, content);
     }
 
     public static readonly RazorDiagnosticDescriptor PageDirective_CannotBeImported =
@@ -105,7 +105,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreatePageDirective_MustSpecifyRoute(SourceSpan? source)
-        => RazorDiagnostic.Create(PageDirective_MustSpecifyRoute, source ?? SourceSpan.Undefined);
+        => RazorDiagnostic.Create(PageDirective_MustSpecifyRoute, source);
 
     public static readonly RazorDiagnosticDescriptor BindAttribute_Duplicates =
         new($"{DiagnosticPrefix}9989",
@@ -115,7 +115,7 @@ internal static class ComponentDiagnosticFactory
     public static RazorDiagnostic CreateBindAttribute_Duplicates(SourceSpan? source, string attribute, TagHelperDirectiveAttributeIntermediateNode[] attributes)
         => RazorDiagnostic.Create(
             BindAttribute_Duplicates,
-            source ?? SourceSpan.Undefined,
+            source,
             attribute,
             Environment.NewLine + string.Join(Environment.NewLine, attributes.Select(p => p.TagHelper.DisplayName)));
 
@@ -127,7 +127,7 @@ internal static class ComponentDiagnosticFactory
     public static RazorDiagnostic CreateEventHandler_Duplicates(SourceSpan? source, string attribute, TagHelperDirectiveAttributeIntermediateNode[] attributes)
         => RazorDiagnostic.Create(
             EventHandler_Duplicates,
-            source ?? SourceSpan.Undefined,
+            source,
             attribute,
             Environment.NewLine + string.Join(Environment.NewLine, attributes.Select(p => p.TagHelper.DisplayName)));
 
@@ -138,7 +138,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateBindAttribute_InvalidSyntax(SourceSpan? source, string attribute)
-        => RazorDiagnostic.Create(BindAttribute_InvalidSyntax, source ?? SourceSpan.Undefined, attribute);
+        => RazorDiagnostic.Create(BindAttribute_InvalidSyntax, source, attribute);
 
     public static readonly RazorDiagnosticDescriptor DisallowedScriptTag =
         new($"{DiagnosticPrefix}9992",
@@ -148,7 +148,7 @@ internal static class ComponentDiagnosticFactory
     // Reserved: BL9993 Component parameters should not be public
 
     public static RazorDiagnostic Create_DisallowedScriptTag(SourceSpan? source)
-        => RazorDiagnostic.Create(DisallowedScriptTag, source ?? SourceSpan.Undefined);
+        => RazorDiagnostic.Create(DisallowedScriptTag, source);
 
     public static readonly RazorDiagnosticDescriptor TemplateInvalidLocation =
         new($"{DiagnosticPrefix}9994",
@@ -156,7 +156,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_TemplateInvalidLocation(SourceSpan? source)
-        => RazorDiagnostic.Create(TemplateInvalidLocation, source ?? SourceSpan.Undefined);
+        => RazorDiagnostic.Create(TemplateInvalidLocation, source);
 
     public static readonly RazorDiagnosticDescriptor ChildContentSetByAttributeAndBody =
         new($"{DiagnosticPrefix}9995",
@@ -164,7 +164,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_ChildContentSetByAttributeAndBody(SourceSpan? source, string attribute)
-        => RazorDiagnostic.Create(ChildContentSetByAttributeAndBody, source ?? SourceSpan.Undefined, attribute);
+        => RazorDiagnostic.Create(ChildContentSetByAttributeAndBody, source, attribute);
 
     public static readonly RazorDiagnosticDescriptor ChildContentMixedWithExplicitChildContent =
         new($"{DiagnosticPrefix}9996",
@@ -176,7 +176,7 @@ internal static class ComponentDiagnosticFactory
     {
         var supportedElements = string.Join(", ", component.Component.GetChildContentProperties().Select(p => $"'{p.Name}'"));
 
-        return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source ?? SourceSpan.Undefined, component.TagName, supportedElements);
+        return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source, component.TagName, supportedElements);
     }
 
     public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidAttribute =
@@ -185,7 +185,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_ChildContentHasInvalidAttribute(SourceSpan? source, string attribute, string element)
-        => RazorDiagnostic.Create(ChildContentHasInvalidAttribute, source ?? SourceSpan.Undefined, attribute, element);
+        => RazorDiagnostic.Create(ChildContentHasInvalidAttribute, source, attribute, element);
 
     public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidParameter =
         new($"{DiagnosticPrefix}9998",
@@ -193,7 +193,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_ChildContentHasInvalidParameter(SourceSpan? source, string attribute, string element)
-        => RazorDiagnostic.Create(ChildContentHasInvalidParameter, source ?? SourceSpan.Undefined, attribute, element);
+        => RazorDiagnostic.Create(ChildContentHasInvalidParameter, source, attribute, element);
 
     public static readonly RazorDiagnosticDescriptor ChildContentRepeatedParameterName =
         new($"{DiagnosticPrefix}9999",
@@ -214,7 +214,7 @@ internal static class ComponentDiagnosticFactory
 
         return RazorDiagnostic.Create(
             ChildContentRepeatedParameterName,
-            source ?? SourceSpan.Undefined,
+            source,
             childContent1.AttributeName,
             component1.TagName,
             childContent1.ParameterName,
@@ -235,7 +235,7 @@ internal static class ComponentDiagnosticFactory
         Debug.Assert(component.Component.IsGenericTypedComponent());
 
         var attributesText = string.Join(", ", attributes.Select(a => $"'{a.Name}'"));
-        return RazorDiagnostic.Create(GenericComponentMissingTypeArgument, source ?? SourceSpan.Undefined, component.TagName, attributesText);
+        return RazorDiagnostic.Create(GenericComponentMissingTypeArgument, source, component.TagName, attributesText);
     }
 
     public static readonly RazorDiagnosticDescriptor GenericComponentTypeInferenceUnderspecified =
@@ -252,7 +252,7 @@ internal static class ComponentDiagnosticFactory
         Debug.Assert(component.Component.IsGenericTypedComponent());
 
         var attributesText = string.Join(", ", attributes.Select(a => $"'{a.Name}'"));
-        return RazorDiagnostic.Create(GenericComponentTypeInferenceUnderspecified, source ?? SourceSpan.Undefined, component.TagName, attributesText);
+        return RazorDiagnostic.Create(GenericComponentTypeInferenceUnderspecified, source, component.TagName, attributesText);
     }
 
     public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidParameterOnComponent =
@@ -261,7 +261,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_ChildContentHasInvalidParameterOnComponent(SourceSpan? source, string attribute, string element)
-        => RazorDiagnostic.Create(ChildContentHasInvalidParameterOnComponent, source ?? SourceSpan.Undefined, attribute, element);
+        => RazorDiagnostic.Create(ChildContentHasInvalidParameterOnComponent, source, attribute, element);
 
     public static readonly RazorDiagnosticDescriptor UnsupportedComponentImportContent =
         new($"{DiagnosticPrefix}10003",
@@ -269,7 +269,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_UnsupportedComponentImportContent(SourceSpan? source)
-        => RazorDiagnostic.Create(UnsupportedComponentImportContent, source ?? SourceSpan.Undefined);
+        => RazorDiagnostic.Create(UnsupportedComponentImportContent, source);
 
     public static readonly RazorDiagnosticDescriptor BindAttributeParameter_MissingBind =
         new($"{DiagnosticPrefix}10004",
@@ -279,7 +279,7 @@ internal static class ComponentDiagnosticFactory
     public static RazorDiagnostic CreateBindAttributeParameter_MissingBind(SourceSpan? source, string attribute)
         => RazorDiagnostic.Create(
             BindAttributeParameter_MissingBind,
-            source ?? SourceSpan.Undefined,
+            source,
             attribute);
 
     public static readonly RazorDiagnosticDescriptor DuplicateMarkupAttribute =
@@ -288,7 +288,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_DuplicateMarkupAttribute(string attributeName, SourceSpan? source = null)
-        => RazorDiagnostic.Create(DuplicateMarkupAttribute, source ?? SourceSpan.Undefined, attributeName);
+        => RazorDiagnostic.Create(DuplicateMarkupAttribute, source, attributeName);
 
     public static readonly RazorDiagnosticDescriptor DuplicateMarkupAttributeDirective =
         new($"{DiagnosticPrefix}10008",
@@ -297,7 +297,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_DuplicateMarkupAttributeDirective(string attributeName, string directiveAttributeName, SourceSpan? source = null)
-        => RazorDiagnostic.Create(DuplicateMarkupAttributeDirective, source ?? SourceSpan.Undefined, attributeName, directiveAttributeName);
+        => RazorDiagnostic.Create(DuplicateMarkupAttributeDirective, source, attributeName, directiveAttributeName);
 
     public static readonly RazorDiagnosticDescriptor DuplicateComponentParameter =
         new($"{DiagnosticPrefix}10009",
@@ -305,7 +305,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_DuplicateComponentParameter(string attributeName, SourceSpan? source = null)
-        => RazorDiagnostic.Create(DuplicateComponentParameter, source ?? SourceSpan.Undefined, attributeName);
+        => RazorDiagnostic.Create(DuplicateComponentParameter, source, attributeName);
 
     public static readonly RazorDiagnosticDescriptor DuplicateComponentParameterDirective =
         new($"{DiagnosticPrefix}10010",
@@ -314,7 +314,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_DuplicateComponentParameterDirective(string attributeName, string directiveAttributeName, SourceSpan? source = null)
-        => RazorDiagnostic.Create(DuplicateComponentParameterDirective, source ?? SourceSpan.Undefined, attributeName, directiveAttributeName);
+        => RazorDiagnostic.Create(DuplicateComponentParameterDirective, source, attributeName, directiveAttributeName);
 
     public static readonly RazorDiagnosticDescriptor ComponentNamesCannotStartWithLowerCase =
         new($"{DiagnosticPrefix}10011",
@@ -322,7 +322,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_ComponentNamesCannotStartWithLowerCase(string componentName, SourceSpan? source = null)
-        => RazorDiagnostic.Create(ComponentNamesCannotStartWithLowerCase, source ?? SourceSpan.Undefined, componentName);
+        => RazorDiagnostic.Create(ComponentNamesCannotStartWithLowerCase, source, componentName);
 
     public static readonly RazorDiagnosticDescriptor UnexpectedMarkupElement =
         new($"{DiagnosticPrefix}10012",
@@ -330,7 +330,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Warning);
 
     public static RazorDiagnostic Create_UnexpectedMarkupElement(string elementName, SourceSpan? source = null)
-        => RazorDiagnostic.Create(UnexpectedMarkupElement, source ?? SourceSpan.Undefined, elementName);
+        => RazorDiagnostic.Create(UnexpectedMarkupElement, source, elementName);
 
     public static readonly RazorDiagnosticDescriptor InconsistentStartAndEndTagName =
         new($"{DiagnosticPrefix}10013",
@@ -338,7 +338,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic Create_InconsistentStartAndEndTagName(string startTagName, string endTagName, SourceSpan? source = null)
-        => RazorDiagnostic.Create(InconsistentStartAndEndTagName, source ?? SourceSpan.Undefined, startTagName, endTagName);
+        => RazorDiagnostic.Create(InconsistentStartAndEndTagName, source, startTagName, endTagName);
 
     public static readonly RazorDiagnosticDescriptor EventHandlerParameter_Duplicates =
         new($"{DiagnosticPrefix}10014",
@@ -348,7 +348,7 @@ internal static class ComponentDiagnosticFactory
     public static RazorDiagnostic CreateEventHandlerParameter_Duplicates(SourceSpan? source, string attribute, TagHelperDirectiveAttributeParameterIntermediateNode[] attributes)
         => RazorDiagnostic.Create(
             EventHandlerParameter_Duplicates,
-            source ?? SourceSpan.Undefined,
+            source,
             attribute,
             Environment.NewLine + string.Join(Environment.NewLine, attributes.Select(p => p.TagHelper.DisplayName)));
 
@@ -358,7 +358,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateBindAttributeParameter_UseBindGet(SourceSpan? source, string attribute)
-        => RazorDiagnostic.Create(BindAttributeParameter_UseBindGet, source ?? SourceSpan.Undefined, attribute);
+        => RazorDiagnostic.Create(BindAttributeParameter_UseBindGet, source, attribute);
 
     public static readonly RazorDiagnosticDescriptor BindAttributeParameter_MissingBindGet =
         new($"{DiagnosticPrefix}10016",
@@ -367,7 +367,7 @@ internal static class ComponentDiagnosticFactory
 
 
     public static RazorDiagnostic CreateBindAttributeParameter_MissingBindGet(SourceSpan? source, string attribute)
-        => RazorDiagnostic.Create(BindAttributeParameter_MissingBindGet, source ?? SourceSpan.Undefined, attribute);
+        => RazorDiagnostic.Create(BindAttributeParameter_MissingBindGet, source, attribute);
 
     public static readonly RazorDiagnosticDescriptor BindAttribute_MissingBindSet =
     new($"{DiagnosticPrefix}10017",
@@ -375,7 +375,7 @@ internal static class ComponentDiagnosticFactory
         RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateBindAttribute_MissingBindSet(SourceSpan? source, string attributeGet, string attributeSet)
-        => RazorDiagnostic.Create(BindAttribute_MissingBindSet, source ?? SourceSpan.Undefined, attributeGet, attributeSet);
+        => RazorDiagnostic.Create(BindAttribute_MissingBindSet, source, attributeGet, attributeSet);
 
     public static readonly RazorDiagnosticDescriptor BindAttributeParameter_InvalidSyntaxBindAndBindGet =
         new($"{DiagnosticPrefix}10018",
@@ -383,7 +383,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateBindAttributeParameter_InvalidSyntaxBindAndBindGet(SourceSpan? source, string attribute)
-        => RazorDiagnostic.Create(BindAttributeParameter_InvalidSyntaxBindAndBindGet, source ?? SourceSpan.Undefined, attribute);
+        => RazorDiagnostic.Create(BindAttributeParameter_InvalidSyntaxBindAndBindGet, source, attribute);
 
     public static readonly RazorDiagnosticDescriptor BindAttributeParameter_InvalidSyntaxBindSetAfter =
         new($"{DiagnosticPrefix}10019",
@@ -391,7 +391,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateBindAttributeParameter_InvalidSyntaxBindSetAfter(SourceSpan? source, string attribute)
-        => RazorDiagnostic.Create(BindAttributeParameter_InvalidSyntaxBindSetAfter, source ?? SourceSpan.Undefined, attribute);
+        => RazorDiagnostic.Create(BindAttributeParameter_InvalidSyntaxBindSetAfter, source, attribute);
 
     public static readonly RazorDiagnosticDescriptor BindAttributeParameter_UnsupportedSyntaxBindGetSet =
         new($"{DiagnosticPrefix}10020",
@@ -399,7 +399,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateBindAttributeParameter_UnsupportedSyntaxBindGetSet(SourceSpan? source, string attribute)
-        => RazorDiagnostic.Create(BindAttributeParameter_UnsupportedSyntaxBindGetSet, source ?? SourceSpan.Undefined, attribute);
+        => RazorDiagnostic.Create(BindAttributeParameter_UnsupportedSyntaxBindGetSet, source, attribute);
 
     // Removed warning RZ10021: Attribute '@formname' can only be used when '@onsubmit' event handler is also present.
 
@@ -409,7 +409,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Warning);
 
     public static RazorDiagnostic CreateFormName_NotAForm(SourceSpan? source)
-        => RazorDiagnostic.Create(FormName_NotAForm, source ?? SourceSpan.Undefined);
+        => RazorDiagnostic.Create(FormName_NotAForm, source);
 
     public static readonly RazorDiagnosticDescriptor Attribute_ValidOnlyOnComponent =
         new($"{DiagnosticPrefix}10023",
@@ -417,7 +417,7 @@ internal static class ComponentDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateAttribute_ValidOnlyOnComponent(SourceSpan? source, string attribute)
-        => RazorDiagnostic.Create(Attribute_ValidOnlyOnComponent, source ?? SourceSpan.Undefined, attribute);
+        => RazorDiagnostic.Create(Attribute_ValidOnlyOnComponent, source, attribute);
 
     public static readonly RazorDiagnosticDescriptor RenderModeAttribute_ComponentDeclaredRenderMode =
         new($"{DiagnosticPrefix}10024",
@@ -426,6 +426,6 @@ internal static class ComponentDiagnosticFactory
 
     public static RazorDiagnostic CreateRenderModeAttribute_ComponentDeclaredRenderMode(SourceSpan? source, string component)
     {
-        return RazorDiagnostic.Create(RenderModeAttribute_ComponentDeclaredRenderMode, source ?? SourceSpan.Undefined, component);
+        return RazorDiagnostic.Create(RenderModeAttribute_ComponentDeclaredRenderMode, source, component);
     }
 }

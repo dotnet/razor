@@ -20,7 +20,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateDirective_BlockDirectiveCannotBeImported(string directive)
-        => RazorDiagnostic.Create(Directive_BlockDirectiveCannotBeImported, SourceSpan.Undefined, directive);
+        => RazorDiagnostic.Create(Directive_BlockDirectiveCannotBeImported, directive);
 
     #endregion
 
@@ -376,7 +376,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateCodeTarget_UnsupportedExtension(string documentKind, Type extensionType)
-        => RazorDiagnostic.Create(CodeTarget_UnsupportedExtension, SourceSpan.Undefined, documentKind, extensionType.Name);
+        => RazorDiagnostic.Create(CodeTarget_UnsupportedExtension, documentKind, extensionType.Name);
 
     internal static readonly RazorDiagnosticDescriptor Parsing_DuplicateDirective =
         new($"{DiagnosticPrefix}2001",
@@ -423,7 +423,7 @@ internal static class RazorDiagnosticFactory
             Resources.TagHelpers_CodeBlocks_NotSupported_InAttributes,
             RazorDiagnosticSeverity.Error);
 
-    public static RazorDiagnostic CreateTagHelper_CodeBlocksNotSupportedInAttributes(SourceSpan location)
+    public static RazorDiagnostic CreateTagHelper_CodeBlocksNotSupportedInAttributes(SourceSpan? location)
         => RazorDiagnostic.Create(TagHelper_CodeBlocksNotSupportedInAttributes, location);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InlineMarkupBlocksNotSupportedInAttributes =
@@ -431,7 +431,7 @@ internal static class RazorDiagnosticFactory
             Resources.TagHelpers_InlineMarkupBlocks_NotSupported_InAttributes,
             RazorDiagnosticSeverity.Error);
 
-    public static RazorDiagnostic CreateTagHelper_InlineMarkupBlocksNotSupportedInAttributes(SourceSpan location, string expectedTypeName)
+    public static RazorDiagnostic CreateTagHelper_InlineMarkupBlocksNotSupportedInAttributes(SourceSpan? location, string expectedTypeName)
         => RazorDiagnostic.Create(TagHelper_InlineMarkupBlocksNotSupportedInAttributes, location, expectedTypeName);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_EmptyBoundAttribute =
@@ -464,14 +464,20 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InconsistentTagStructure(SourceSpan location, string firstDescriptor, string secondDescriptor, string tagName)
-        => RazorDiagnostic.Create(TagHelper_InconsistentTagStructure, location, firstDescriptor, secondDescriptor, tagName, nameof(TagMatchingRuleDescriptor.TagStructure));
+        => RazorDiagnostic.Create(
+            TagHelper_InconsistentTagStructure,
+            location,
+            firstDescriptor,
+            secondDescriptor,
+            tagName,
+            nameof(TagMatchingRuleDescriptor.TagStructure));
 
     internal static readonly RazorDiagnosticDescriptor Component_EditorRequiredParameterNotSpecified =
         new($"{DiagnosticPrefix}2012",
             Resources.Component_EditorRequiredParameterNotSpecified,
             RazorDiagnosticSeverity.Warning);
 
-    public static RazorDiagnostic CreateComponent_EditorRequiredParameterNotSpecified(SourceSpan location, string tagName, string parameterName)
+    public static RazorDiagnostic CreateComponent_EditorRequiredParameterNotSpecified(SourceSpan? location, string tagName, string parameterName)
         => RazorDiagnostic.Create(Component_EditorRequiredParameterNotSpecified, location, tagName, parameterName);
 
     #endregion
@@ -486,7 +492,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidRestrictedChildNullOrWhitespace(string tagHelperDisplayName)
-        => RazorDiagnostic.Create(TagHelper_InvalidRestrictedChildNullOrWhitespace, SourceSpan.Undefined, tagHelperDisplayName);
+        => RazorDiagnostic.Create(TagHelper_InvalidRestrictedChildNullOrWhitespace, tagHelperDisplayName);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidRestrictedChild =
         new($"{DiagnosticPrefix}3001",
@@ -494,7 +500,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidRestrictedChild(string tagHelperDisplayName, string restrictedChild, char invalidCharacter)
-        => RazorDiagnostic.Create(TagHelper_InvalidRestrictedChild, SourceSpan.Undefined, tagHelperDisplayName, restrictedChild, invalidCharacter);
+        => RazorDiagnostic.Create(TagHelper_InvalidRestrictedChild, tagHelperDisplayName, restrictedChild, invalidCharacter);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundAttributeNullOrWhitespace =
         new($"{DiagnosticPrefix}3002",
@@ -502,7 +508,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidBoundAttributeNullOrWhitespace(string tagHelperDisplayName, string propertyDisplayName)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeNullOrWhitespace, SourceSpan.Undefined, tagHelperDisplayName, propertyDisplayName);
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeNullOrWhitespace, tagHelperDisplayName, propertyDisplayName);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundAttributeName =
         new($"{DiagnosticPrefix}3003",
@@ -510,7 +516,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidBoundAttributeName(string tagHelperDisplayName, string propertyDisplayName, string invalidName, char invalidCharacter)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeName, SourceSpan.Undefined, tagHelperDisplayName, propertyDisplayName, invalidName, invalidCharacter);
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeName, tagHelperDisplayName, propertyDisplayName, invalidName, invalidCharacter);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundAttributeNameStartsWith =
         new($"{DiagnosticPrefix}3004",
@@ -518,7 +524,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidBoundAttributeNameStartsWith(string tagHelperDisplayName, string propertyDisplayName, string invalidName)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeNameStartsWith, SourceSpan.Undefined, tagHelperDisplayName, propertyDisplayName, invalidName, "data-");
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeNameStartsWith, tagHelperDisplayName, propertyDisplayName, invalidName, "data-");
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundAttributePrefix =
         new($"{DiagnosticPrefix}3005",
@@ -526,14 +532,14 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidBoundAttributePrefix(string tagHelperDisplayName, string propertyDisplayName, string invalidName, char invalidCharacter)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributePrefix, SourceSpan.Undefined, tagHelperDisplayName, propertyDisplayName, invalidName, invalidCharacter);
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributePrefix, tagHelperDisplayName, propertyDisplayName, invalidName, invalidCharacter);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundAttributePrefixStartsWith =
         new($"{DiagnosticPrefix}3006",
             Resources.TagHelper_InvalidBoundAttributePrefixStartsWith,
             RazorDiagnosticSeverity.Error);
     public static RazorDiagnostic CreateTagHelper_InvalidBoundAttributePrefixStartsWith(string tagHelperDisplayName, string propertyDisplayName, string invalidName)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributePrefixStartsWith, SourceSpan.Undefined, tagHelperDisplayName, propertyDisplayName, invalidName, "data-");
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributePrefixStartsWith, tagHelperDisplayName, propertyDisplayName, invalidName, "data-");
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidTargetedTagNameNullOrWhitespace =
         new($"{DiagnosticPrefix}3007",
@@ -541,7 +547,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidTargetedTagNameNullOrWhitespace()
-        => RazorDiagnostic.Create(TagHelper_InvalidTargetedTagNameNullOrWhitespace, SourceSpan.Undefined);
+        => RazorDiagnostic.Create(TagHelper_InvalidTargetedTagNameNullOrWhitespace);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidTargetedTagName =
         new($"{DiagnosticPrefix}3008",
@@ -549,7 +555,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidTargetedTagName(string invalidTagName, char invalidCharacter)
-        => RazorDiagnostic.Create(TagHelper_InvalidTargetedTagName, SourceSpan.Undefined, invalidTagName, invalidCharacter);
+        => RazorDiagnostic.Create(TagHelper_InvalidTargetedTagName, invalidTagName, invalidCharacter);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidTargetedParentTagNameNullOrWhitespace =
         new($"{DiagnosticPrefix}3009",
@@ -557,7 +563,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidTargetedParentTagNameNullOrWhitespace()
-        => RazorDiagnostic.Create(TagHelper_InvalidTargetedParentTagNameNullOrWhitespace, SourceSpan.Undefined);
+        => RazorDiagnostic.Create(TagHelper_InvalidTargetedParentTagNameNullOrWhitespace);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidTargetedParentTagName =
         new($"{DiagnosticPrefix}3010",
@@ -565,7 +571,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidTargetedParentTagName(string invalidTagName, char invalidCharacter)
-        => RazorDiagnostic.Create(TagHelper_InvalidTargetedParentTagName, SourceSpan.Undefined, invalidTagName, invalidCharacter);
+        => RazorDiagnostic.Create(TagHelper_InvalidTargetedParentTagName, invalidTagName, invalidCharacter);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidTargetedAttributeNameNullOrWhitespace =
         new($"{DiagnosticPrefix}3011",
@@ -573,7 +579,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidTargetedAttributeNameNullOrWhitespace()
-        => RazorDiagnostic.Create(TagHelper_InvalidTargetedAttributeNameNullOrWhitespace, SourceSpan.Undefined);
+        => RazorDiagnostic.Create(TagHelper_InvalidTargetedAttributeNameNullOrWhitespace);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidTargetedAttributeName =
         new($"{DiagnosticPrefix}3012",
@@ -581,7 +587,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidTargetedAttributeName(string invalidAttributeName, char invalidCharacter)
-        => RazorDiagnostic.Create(TagHelper_InvalidTargetedAttributeName, SourceSpan.Undefined, invalidAttributeName, invalidCharacter);
+        => RazorDiagnostic.Create(TagHelper_InvalidTargetedAttributeName, invalidAttributeName, invalidCharacter);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundAttributeParameterNullOrWhitespace =
         new($"{DiagnosticPrefix}3013",
@@ -589,7 +595,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidBoundAttributeParameterNullOrWhitespace(string attributeName)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeParameterNullOrWhitespace, SourceSpan.Undefined, attributeName);
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeParameterNullOrWhitespace, attributeName);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundAttributeParameterName =
         new($"{DiagnosticPrefix}3014",
@@ -597,7 +603,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidBoundAttributeParameterName(string attributeName, string invalidName, char invalidCharacter)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeParameterName, SourceSpan.Undefined, attributeName, invalidName, invalidCharacter);
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundAttributeParameterName, attributeName, invalidName, invalidCharacter);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundDirectiveAttributeName =
         new($"{DiagnosticPrefix}3015",
@@ -605,7 +611,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidBoundDirectiveAttributeName(string tagHelperDisplayName, string propertyDisplayName, string invalidName)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundDirectiveAttributeName, SourceSpan.Undefined, tagHelperDisplayName, propertyDisplayName, invalidName);
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundDirectiveAttributeName, tagHelperDisplayName, propertyDisplayName, invalidName);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundDirectiveAttributePrefix =
         new($"{DiagnosticPrefix}3015",
@@ -613,7 +619,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidBoundDirectiveAttributePrefix(string tagHelperDisplayName, string propertyDisplayName, string invalidName)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundDirectiveAttributePrefix, SourceSpan.Undefined, tagHelperDisplayName, propertyDisplayName, invalidName);
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundDirectiveAttributePrefix, tagHelperDisplayName, propertyDisplayName, invalidName);
 
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidRequiredDirectiveAttributeName =
         new($"{DiagnosticPrefix}3016",
@@ -621,7 +627,7 @@ internal static class RazorDiagnosticFactory
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateTagHelper_InvalidRequiredDirectiveAttributeName(string propertyDisplayName, string invalidName)
-        => RazorDiagnostic.Create(TagHelper_InvalidRequiredDirectiveAttributeName, SourceSpan.Undefined, propertyDisplayName, invalidName);
+        => RazorDiagnostic.Create(TagHelper_InvalidRequiredDirectiveAttributeName, propertyDisplayName, invalidName);
 
     #endregion
 
@@ -634,7 +640,7 @@ internal static class RazorDiagnosticFactory
             Resources.Rewriter_InsufficientStack,
             RazorDiagnosticSeverity.Error);
 
-    public static RazorDiagnostic CreateRewriter_InsufficientStack(SourceSpan location)
+    public static RazorDiagnostic CreateRewriter_InsufficientStack(SourceSpan? location = null)
         => RazorDiagnostic.Create(Rewriter_InsufficientStack, location);
 
     #endregion

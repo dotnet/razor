@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -19,17 +18,23 @@ public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
     public RazorDiagnosticSeverity Severity => Descriptor.Severity;
     public SourceSpan Span { get; }
 
-    private RazorDiagnostic(RazorDiagnosticDescriptor descriptor, SourceSpan span, object[]? args)
+    private RazorDiagnostic(RazorDiagnosticDescriptor descriptor, SourceSpan? span, object[]? args)
     {
         Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
-        Span = span;
+        Span = span ?? SourceSpan.Undefined;
         Args = args ?? Array.Empty<object>();
     }
 
-    public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan span)
+    public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor)
+        => new(descriptor, span: null, args: null);
+
+    public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan? span)
         => new(descriptor, span, args: null);
 
-    public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan span, params object[] args)
+    public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, params object[] args)
+        => new(descriptor, span: null, args);
+
+    public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor, SourceSpan? span, params object[] args)
         => new(descriptor, span, args);
 
     public string GetMessage()
