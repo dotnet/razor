@@ -23,6 +23,8 @@ internal sealed partial record Checksum
             Int64,
             String,
             Checksum,
+            Byte,
+            Char,
         }
 
         // Small, per-thread array to use as a buffer for appending primitive values to the hash.
@@ -58,6 +60,20 @@ internal sealed partial record Checksum
             var buffer = GetBuffer();
             buffer[0] = (byte)(value ? 1 : 0);
             hash.AppendData(buffer, offset: 0, count: sizeof(bool));
+        }
+
+        private static void AppendByteValue(IncrementalHash hash, byte value)
+        {
+            var buffer = GetBuffer();
+            buffer[0] = value;
+            hash.AppendData(buffer, offset: 0, count: sizeof(byte));
+        }
+
+        private static void AppendCharValue(IncrementalHash hash, char value)
+        {
+            var buffer = GetBuffer();
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(0, sizeof(char)), value);
+            hash.AppendData(buffer, offset: 0, count: sizeof(char));
         }
 
         private static void AppendInt32Value(IncrementalHash hash, int value)
@@ -118,6 +134,18 @@ internal sealed partial record Checksum
             AppendBoolValue(_hash, value);
         }
 
+        public void AppendData(byte value)
+        {
+            AppendTypeKind(_hash, TypeKind.Byte);
+            AppendByteValue(_hash, value);
+        }
+
+        public void AppendData(char value)
+        {
+            AppendTypeKind(_hash, TypeKind.Char);
+            AppendCharValue(_hash, value);
+        }
+
         public void AppendData(int value)
         {
             AppendTypeKind(_hash, TypeKind.Int32);
@@ -146,6 +174,48 @@ internal sealed partial record Checksum
         {
             AppendTypeKind(_hash, TypeKind.Checksum);
             AppendHashDataValue(_hash, value.Data);
+        }
+
+        public void AppendData(object? value)
+        {
+            switch (value)
+            {
+                case null:
+                    AppendNull();
+                    break;
+
+                case string s:
+                    AppendData(s);
+                    break;
+
+                case Checksum c:
+                    AppendData(c);
+                    break;
+
+                case bool b:
+                    AppendData(b);
+                    break;
+
+                case int i:
+                    AppendData(i);
+                    break;
+
+                case long l:
+                    AppendData(l);
+                    break;
+
+                case byte b:
+                    AppendData(b);
+                    break;
+
+                case char c:
+                    AppendData(c);
+                    break;
+
+                default:
+                    throw new ArgumentException(
+                        SR.FormatUnsupported_type_0(value.GetType().FullName), nameof(value));
+            }
         }
     }
 }

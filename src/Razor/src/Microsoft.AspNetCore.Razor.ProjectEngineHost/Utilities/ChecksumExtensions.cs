@@ -48,7 +48,7 @@ internal static class ChecksumExtensions
 
         foreach (var diagnostic in value.Diagnostics)
         {
-            builder.AppendData(GetChecksum(diagnostic));
+            builder.AppendData(diagnostic.Checksum);
         }
 
         return builder.FreeAndGetChecksum();
@@ -69,7 +69,7 @@ internal static class ChecksumExtensions
 
             foreach (var diagnostic in value.Diagnostics)
             {
-                builder.AppendData(GetChecksum(diagnostic));
+                builder.AppendData(diagnostic.Checksum);
             }
 
             return builder.FreeAndGetChecksum();
@@ -99,7 +99,7 @@ internal static class ChecksumExtensions
 
             foreach (var diagnostic in value.Diagnostics)
             {
-                builder.AppendData(GetChecksum(diagnostic));
+                builder.AppendData(diagnostic.Checksum);
             }
 
             return builder.FreeAndGetChecksum();
@@ -128,7 +128,7 @@ internal static class ChecksumExtensions
 
             foreach (var diagnostic in value.Diagnostics)
             {
-                builder.AppendData(GetChecksum(diagnostic));
+                builder.AppendData(diagnostic.Checksum);
             }
 
             return builder.FreeAndGetChecksum();
@@ -172,7 +172,7 @@ internal static class ChecksumExtensions
 
             foreach (var diagnostic in value.Diagnostics)
             {
-                builder.AppendData(GetChecksum(diagnostic));
+                builder.AppendData(diagnostic.Checksum);
             }
 
             return builder.FreeAndGetChecksum();
@@ -204,7 +204,7 @@ internal static class ChecksumExtensions
 
             foreach (var diagnostic in value.Diagnostics)
             {
-                builder.AppendData(GetChecksum(diagnostic));
+                builder.AppendData(diagnostic.Checksum);
             }
 
             return builder.FreeAndGetChecksum();
@@ -264,33 +264,6 @@ internal static class ChecksumExtensions
                         throw new NotSupportedException();
                 }
             }
-
-            return builder.FreeAndGetChecksum();
-        }
-    }
-
-    public static Checksum GetChecksum(this RazorDiagnostic value)
-    {
-        return ChecksumCache.GetOrCreate(value, Create);
-
-        static object Create(object obj)
-        {
-            var builder = new Checksum.Builder();
-
-            var diagnostic = (RazorDiagnostic)obj;
-
-            builder.AppendData(diagnostic.Id);
-            builder.AppendData((int)diagnostic.Severity);
-            builder.AppendData(diagnostic.GetMessage());
-
-            var span = diagnostic.Span;
-            builder.AppendData(span.FilePath);
-            builder.AppendData(span.AbsoluteIndex);
-            builder.AppendData(span.LineIndex);
-            builder.AppendData(span.CharacterIndex);
-            builder.AppendData(span.Length);
-            builder.AppendData(span.LineCount);
-            builder.AppendData(span.EndCharacterIndex);
 
             return builder.FreeAndGetChecksum();
         }

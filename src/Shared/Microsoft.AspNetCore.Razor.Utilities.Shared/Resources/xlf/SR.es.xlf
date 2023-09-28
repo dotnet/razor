@@ -27,6 +27,11 @@
         <target state="translated">Se considera que esta ubicación del programa es inaccesible. Archivo=''{0}'', Línea={1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported_type: '{0}'.</source>
+        <target state="new">Unsupported_type: '{0}'.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

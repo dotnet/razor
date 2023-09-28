@@ -27,6 +27,11 @@
         <target state="translated">此程式位置被認為無法連接。File='{0}', Line={1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported_type: '{0}'.</source>
+        <target state="new">Unsupported_type: '{0}'.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

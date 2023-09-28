@@ -27,6 +27,11 @@
         <target state="translated">Dieser Programmspeicherort wird als nicht erreichbar betrachtet. Datei="{0}", Zeile={1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported_type: '{0}'.</source>
+        <target state="new">Unsupported_type: '{0}'.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

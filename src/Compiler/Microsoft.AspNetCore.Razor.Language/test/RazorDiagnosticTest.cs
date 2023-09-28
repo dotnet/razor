@@ -91,22 +91,6 @@ public class RazorDiagnosticTest
     }
 
     [Fact]
-    public void DefaultRazorDiagnostic_ToString_FormatProvider()
-    {
-        // Arrange
-        var descriptor = new RazorDiagnosticDescriptor("RZ0000", "this is an {0}", RazorDiagnosticSeverity.Error);
-        var span = new SourceSpan("test.cs", 15, 1, 8, 5);
-
-        var diagnostic = RazorDiagnostic.Create(descriptor, span, 1.3m );
-
-        // Act
-        var result = ((IFormattable)diagnostic).ToString("ignored", new CultureInfo("fr-FR"));
-
-        // Assert
-        Assert.Equal("test.cs(2,9): Error RZ0000: this is an 1,3", result);
-    }
-
-    [Fact]
     public void DefaultRazorDiagnostic_Equals()
     {
         // Arrange
