@@ -26,9 +26,11 @@ public class UrlDecoderTests(ITestOutputHelper testOutput) : TestBase(testOutput
             new object[] { "http://example.net/\uD800", "http://example.net/\uD800" },
             new object[] { "http://example.net/\uD800a", "http://example.net/\uD800a" },
             // The "Baz" portion of "http://example.net/Baz" has been double-encoded - one iteration of UrlDecode() should produce a once-encoded string.
-            new object[] { "http://example.net/%42%61%7A", "http://example.net/%2542%2561%257A"},
+            new object[] { "http://example.net/%6A%6B%6C", "http://example.net/%256A%256B%256C"},
             // The second iteration should return the original string
-            new object[] { "http://example.net/Baz", "http://example.net/%42%61%7A"}
+            new object[] { "http://example.net/jkl", "http://example.net/%6A%6B%6C"},
+            // This example uses lowercase hex characters
+            new object[] { "http://example.net/jkl", "http://example.net/%6a%6b%6c"}
         };
 
     [Theory]

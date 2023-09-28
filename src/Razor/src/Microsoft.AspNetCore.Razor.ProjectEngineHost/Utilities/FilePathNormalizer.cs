@@ -12,18 +12,18 @@ internal static class FilePathNormalizer
 {
     public static string NormalizeDirectory(string? directoryFilePath)
     {
-        var directoryFilePathSpan = directoryFilePath.AsSpanOrDefault();
-        if (directoryFilePathSpan.IsEmpty)
+        if (directoryFilePath.IsNullOrEmpty())
         {
             return "/";
         }
+
+        var directoryFilePathSpan = directoryFilePath.AsSpan();
 
         // Ensure that the array is at least 1 character larger, so that we can add
         // a trailing space after normalization if necessary.
         var arrayLength = directoryFilePathSpan.Length + 1;
         using var _ = ArrayPool<char>.Shared.GetPooledArray(arrayLength, out var array);
         var arraySpan = array.AsSpan(0, arrayLength);
-
         var (start, length) = NormalizeCore(directoryFilePathSpan, arraySpan);
         ReadOnlySpan<char> normalizedSpan = arraySpan.Slice(start, length);
 
@@ -36,7 +36,7 @@ internal static class FilePathNormalizer
 
         if (directoryFilePathSpan.Equals(normalizedSpan, StringComparison.Ordinal))
         {
-            return directoryFilePath.AssumeNotNull();
+            return directoryFilePath;
         }
 
         return CreateString(normalizedSpan);
@@ -44,23 +44,21 @@ internal static class FilePathNormalizer
 
     public static string Normalize(string? filePath)
     {
-        var filePathSpan = filePath.AsSpanOrDefault();
-        if (filePathSpan.IsEmpty)
+        if (filePath.IsNullOrEmpty())
         {
             return "/";
         }
 
+        var filePathSpan = filePath.AsSpan();
+
         // Rent a buffer for Normalize to write to.
         using var _ = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
-        var arraySpan = array.AsSpan(0, filePathSpan.Length);
-
-        var (start, length) = NormalizeCore(filePathSpan, arraySpan);
-        var normalizedSpan = arraySpan.Slice(start, length);
+        var normalizedSpan = NormalizeCoreAndGetSpan(filePathSpan, array);
 
         // If we didn't change anything, just return the original string.
         if (filePathSpan.Equals(normalizedSpan, StringComparison.Ordinal))
         {
-            return filePath.AssumeNotNull();
+            return filePath;
         }
 
         // Otherwise, create a new string from our normalized char buffer.
@@ -72,27 +70,25 @@ internal static class FilePathNormalizer
     /// </summary>
     public static string GetNormalizedDirectoryName(string? filePath)
     {
-        var filePathSpan = filePath.AsSpanOrDefault();
-        if (filePathSpan.IsEmpty)
+        if (filePath.IsNullOrEmpty())
         {
             return "/";
         }
 
-        using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
-        var arraySpan = array.AsSpan(0, filePathSpan.Length);
+        var filePathSpan = filePath.AsSpan();
 
-        var (start, length) = NormalizeCore(filePathSpan, arraySpan);
-        var normalizedSpan = arraySpan.Slice(start, length);
+        using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
+        var normalizedSpan = NormalizeCoreAndGetSpan(filePathSpan, array);
 
         var lastSlashIndex = normalizedSpan.LastIndexOf('/');
 
         var directoryNameSpan = lastSlashIndex >= 0
-            ? normalizedSpan[..(lastSlashIndex + 1)] // Include trailiing slash
+            ? normalizedSpan[..(lastSlashIndex + 1)] // Include trailing slash
             : normalizedSpan;
 
         if (filePathSpan.Equals(directoryNameSpan, StringComparison.Ordinal))
         {
-            return filePath.AssumeNotNull();
+            return filePath;
         }
 
         return CreateString(directoryNameSpan);
@@ -113,16 +109,18 @@ internal static class FilePathNormalizer
         }
 
         using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan1.Length, out var array1);
-        var arraySpan1 = array1.AsSpan(0, filePathSpan1.Length);
-        var (start1, length1) = NormalizeCore(filePathSpan1, arraySpan1);
-        ReadOnlySpan<char> normalizedSpan1 = arraySpan1.Slice(start1, length1);
+        var normalizedSpan1 = NormalizeCoreAndGetSpan(filePathSpan1, array1);
 
         using var _2 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan2.Length, out var array2);
-        var arraySpan2 = array2.AsSpan(0, filePathSpan2.Length);
-        var (start2, length2) = NormalizeCore(filePathSpan2, arraySpan2);
-        ReadOnlySpan<char> normalizedSpan2 = arraySpan2.Slice(start2, length2);
+        var normalizedSpan2 = NormalizeCoreAndGetSpan(filePathSpan2, array2);
 
         return normalizedSpan1.Equals(normalizedSpan2, FilePathComparison.Instance);
+    }
+
+    private static ReadOnlySpan<char> NormalizeCoreAndGetSpan(ReadOnlySpan<char> source, Span<char> destination)
+    {
+        var (start, length) = NormalizeCore(source, destination);
+        return destination.Slice(start, length);
     }
 
     /// <summary>
@@ -175,7 +173,7 @@ internal static class FilePathNormalizer
             destination is not ['/', '/', ..])
         {
             // We've been provided a path that probably looks something like /C:/path/to.
-            // So, we adjust result to skip the leading '/'.
+            // So, we adjust the result to skip the leading '/'.
             return (start: 1, length: charsWritten - 1);
         }
         else
