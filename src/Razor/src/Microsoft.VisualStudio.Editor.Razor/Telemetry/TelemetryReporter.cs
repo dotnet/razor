@@ -55,7 +55,6 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         {
             if (exception is OperationCanceledException { InnerException: { } oceInnerException })
             {
-                ReportFault(oceInnerException, message, @params);
                 return;
             }
 
