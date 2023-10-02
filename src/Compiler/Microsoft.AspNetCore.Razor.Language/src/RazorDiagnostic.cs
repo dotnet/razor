@@ -44,13 +44,13 @@ public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
         => string.Format(formatProvider, Descriptor.MessageFormat, Args);
 
     public override bool Equals(object? obj)
-        => obj is RazorDiagnostic diagnostic
-            ? Equals(diagnostic)
-            : false;
+        => obj is RazorDiagnostic diagnostic &&
+           Equals(diagnostic);
 
-    public bool Equals(RazorDiagnostic other)
+    public bool Equals(RazorDiagnostic? other)
     {
-        if (!Descriptor.Equals(other.Descriptor) ||
+        if (other is null ||
+            !Descriptor.Equals(other.Descriptor) ||
             !Span.Equals(other.Span) ||
             Args.Length != other.Args.Length)
         {

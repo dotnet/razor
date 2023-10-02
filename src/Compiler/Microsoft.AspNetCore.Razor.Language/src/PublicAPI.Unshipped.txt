@@ -137,7 +137,7 @@ Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.MoveNext() -> 
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.Reset() -> void
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetEnumerator() -> Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.MetadataCollection() -> void
-Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Equals(Microsoft.AspNetCore.Razor.Language.RazorDiagnostic! other) -> bool
+Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Equals(Microsoft.AspNetCore.Razor.Language.RazorDiagnostic? other) -> bool
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.GetMessage() -> string!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.GetMessage(System.IFormatProvider? formatProvider) -> string!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Id.get -> string!
