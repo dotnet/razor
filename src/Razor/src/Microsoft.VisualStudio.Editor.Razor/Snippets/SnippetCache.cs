@@ -3,6 +3,9 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using static Microsoft.VisualStudio.Editor.Razor.Snippets.XmlSnippetParser;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 
@@ -10,9 +13,46 @@ namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 internal class SnippetCache
 {
     private ImmutableArray<SnippetInfo> _snippets;
+    private readonly XmlSnippetParser _xmlSnippetParser;
+
+    [ImportingConstructor]
+    internal SnippetCache([Import(AllowDefault = true)] XmlSnippetParser? xmlSnippetParser)
+    {
+        _xmlSnippetParser = xmlSnippetParser ?? new(null);
+    }
 
     internal void Update(ImmutableArray<SnippetInfo> snippets)
         => ImmutableInterlocked.InterlockedExchange(ref _snippets, snippets);
 
     public ImmutableArray<SnippetInfo> GetSnippets() => _snippets;
+
+    internal string? TryResolveSnippetString(SnippetCompletionData completionData)
+    {
+        var snippets = GetSnippets();
+        var snippet = snippets.FirstOrDefault(completionData.Matches);
+        if (snippet is null)
+        {
+            return null;
+        }
+
+        var parsedSnippet = _xmlSnippetParser.GetParsedXmlSnippet(snippet);
+        if (parsedSnippet is null)
+        {
+            return null;
+        }
+
+        using var _ = StringBuilderPool.GetPooledObject(out var functionSnippetBuilder);
+
+        foreach (var part in parsedSnippet.Parts)
+        {
+            if (part is SnippetShortcutPart shortcutPart)
+            {
+                shortcutPart.Shortcut = snippet.Shortcut;
+            }
+
+            functionSnippetBuilder.Append(part.ToString());
+        }
+
+        return functionSnippetBuilder.ToString();
+    }
 }

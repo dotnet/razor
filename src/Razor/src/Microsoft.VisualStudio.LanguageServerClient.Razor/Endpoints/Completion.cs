@@ -2,35 +2,25 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor.Snippets;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
-using static Microsoft.VisualStudio.Editor.Razor.Snippets.XmlSnippetParser;
-using RazorTextSpan = Microsoft.AspNetCore.Razor.Language.Syntax.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal partial class RazorCustomMessageTarget
 {
-    private const string SnippetData = "razor/snippet";
-
     // Called by the Razor Language Server to provide inline completions from the platform.
     [JsonRpcMethod(CustomMessageNames.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
@@ -234,7 +224,8 @@ internal partial class RazorCustomMessageTarget
         // Check if we're completing a snippet item that we provided
         if (request.CompletionItem.Data is SnippetCompletionData snippetCompletionData)
         {
-            return ResolveSnippetCompletion(request.CompletionItem, snippetCompletionData);
+            request.CompletionItem.InsertText = _snippetCache.TryResolveSnippetString(snippetCompletionData);
+            return request.CompletionItem;
         }
 
         string languageServerName;
@@ -292,25 +283,6 @@ internal partial class RazorCustomMessageTarget
         return response?.Response;
     }
 
-    private CompletionItem? ResolveSnippetCompletion(VSInternalCompletionItem completionItem, SnippetCompletionData snippetCompletionData)
-    {
-        var snippets = _snippetCache.GetSnippets();
-        var snippet = snippets.FirstOrDefault(s => snippetCompletionData.Matches(s));
-        if (snippet is null)
-        {
-            return null;
-        }
-
-        var completionString = TryGetReplacedSnippetText(snippet);
-        if (completionString is null)
-        {
-            return null;
-        }
-
-        completionItem.InsertText = completionString;
-        return completionItem;
-    }
-
     [JsonRpcMethod(LanguageServerConstants.RazorGetFormattingOptionsEndpointName, UseSingleObjectParameterDeserialization = true)]
     public Task<FormattingOptions?> GetFormattingOptionsAsync(TextDocumentIdentifierAndVersion document, CancellationToken _)
     {
@@ -340,33 +312,8 @@ internal partial class RazorCustomMessageTarget
                 Detail = s.Description,
                 InsertTextFormat = InsertTextFormat.Snippet,
                 InsertText = s.Shortcut,
-                Data = s.CompletionData
+                Data = s.CompletionData,
+                Kind = CompletionItemKind.Snippet
             }));
-    }
-
-    /// <summary>
-    /// Create a snippet that adheres to the https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#snippet_syntax
-    /// </summary>
-    private string? TryGetReplacedSnippetText(SnippetInfo snippetInfo)
-    {
-        var parsedSnippet = _xmlSnippetParser.GetParsedXmlSnippet(snippetInfo);
-        if (parsedSnippet is null)
-        {
-            return null;
-        }
-
-        using var _ = StringBuilderPool.GetPooledObject(out var functionSnippetBuilder);
-
-        foreach (var part in parsedSnippet.Parts)
-        {
-            if (part is SnippetShortcutPart shortcutPart)
-            {
-                shortcutPart.Shortcut = snippetInfo.Shortcut;
-            }
-
-            functionSnippetBuilder.Append(part.ToString());
-        }
-
-        return functionSnippetBuilder.ToString();
     }
 }
