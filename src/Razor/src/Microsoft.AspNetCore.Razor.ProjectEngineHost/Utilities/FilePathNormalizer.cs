@@ -169,8 +169,7 @@ internal static class FilePathNormalizer
         destination[..charsWritten].Replace('\\', '/');
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-            destination is ['/', ..] &&
-            destination is not ['/', '/', ..])
+            destination is ['/', not '/', ..])
         {
             // We've been provided a path that probably looks something like /C:/path/to.
             // So, we adjust the result to skip the leading '/'.
