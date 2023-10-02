@@ -29,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal partial class RazorCustomMessageTarget
 {
+    private const string SnippetData = "razor/snippet";
+
     // Called by the Razor Language Server to provide inline completions from the platform.
     [JsonRpcMethod(CustomMessageNames.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
@@ -69,9 +71,8 @@ internal partial class RazorCustomMessageTarget
         return request?.Response;
     }
 
-    // JToken returning because there's no value in converting the type into its final type because this method serves entirely as a delegation point (immediately re-serializes).
     [JsonRpcMethod(LanguageServerConstants.RazorCompletionEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<JToken?> ProvideCompletionsAsync(
+    public async Task<CompletionItem[]?> ProvideCompletionsAsync(
         DelegatedCompletionParams request,
         CancellationToken cancellationToken)
     {
@@ -133,16 +134,25 @@ internal partial class RazorCustomMessageTarget
 
         try
         {
+            using var _1 = ArrayBuilderPool<CompletionItem>.GetPooledObject(out var builder);
+
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var lspMethodName = Methods.TextDocumentCompletion.Name;
             using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, request.CorrelationId);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, JToken?>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, CompletionItem[]?>(
                 textBuffer,
                 lspMethodName,
                 languageServerName,
                 completionParams,
                 cancellationToken).ConfigureAwait(continueOnCapturedContext);
-            return response?.Response;
+
+            if (response?.Response is CompletionItem[] responseItems)
+            {
+                builder.AddRange(responseItems);
+            }
+
+            AddSnippetCompletions(request.ProjectedKind, builder);
+            return builder.ToArray();
         }
         finally
         {
@@ -219,8 +229,14 @@ internal partial class RazorCustomMessageTarget
     }
 
     [JsonRpcMethod(LanguageServerConstants.RazorCompletionResolveEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<JToken?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
+    public async Task<CompletionItem?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
     {
+        // Check if we're completing a snippet item that we provided
+        if (request.CompletionItem.Data is SnippetCompletionData snippetCompletionData)
+        {
+            return ResolveSnippetCompletion(request.CompletionItem, snippetCompletionData);
+        }
+
         string languageServerName;
         bool synchronized;
         VirtualDocumentSnapshot virtualDocumentSnapshot;
@@ -267,13 +283,32 @@ internal partial class RazorCustomMessageTarget
         var completionResolveParams = request.CompletionItem;
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, JToken?>(
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, CompletionItem?>(
             textBuffer,
             Methods.TextDocumentCompletionResolve.Name,
             languageServerName,
             completionResolveParams,
             cancellationToken).ConfigureAwait(false);
         return response?.Response;
+    }
+
+    private CompletionItem? ResolveSnippetCompletion(VSInternalCompletionItem completionItem, SnippetCompletionData snippetCompletionData)
+    {
+        var snippets = _snippetCache.GetSnippets();
+        var snippet = snippets.FirstOrDefault(s => snippetCompletionData.Matches(s));
+        if (snippet is null)
+        {
+            return null;
+        }
+
+        var completionString = TryGetReplacedSnippetText(snippet);
+        if (completionString is null)
+        {
+            return null;
+        }
+
+        completionItem.InsertText = completionString;
+        return completionItem;
     }
 
     [JsonRpcMethod(LanguageServerConstants.RazorGetFormattingOptionsEndpointName, UseSingleObjectParameterDeserialization = true)]
@@ -283,134 +318,55 @@ internal partial class RazorCustomMessageTarget
         return Task.FromResult(formattingOptions);
     }
 
-    [JsonRpcMethod(LanguageServerConstants.RazorSnippetCompletionEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public CompletionItem[]? GetSnippetCompletions(RazorSnippetCompletionParams completionParams, CancellationToken _)
+    private void AddSnippetCompletions(RazorLanguageKind languageKind, ImmutableArray<CompletionItem>.Builder builder)
     {
-        if (completionParams.TextSpan.Length == 0)
-        {
-            return null;
-        }
-
         var snippets = _snippetCache.GetSnippets();
-
         if (snippets.IsDefaultOrEmpty)
         {
-            return null;
+            return;
         }
 
-        var langSpecificCompletionsEnum = completionParams.LanguageKind switch
+        var languageSpecificCompletions = languageKind switch
         {
             RazorLanguageKind.Html => snippets.Where(static s => s.Language == SnippetLanguage.Html),
             RazorLanguageKind.CSharp => snippets.Where(static s => s.Language == SnippetLanguage.CSharp),
             _ => null
         };
 
-        if (langSpecificCompletionsEnum is null)
-        {
-            return null;
-        }
-
-        if (!_documentManager.TryGetDocument(completionParams.Identifier.Uri, out var snapshot))
-        {
-            return null;
-        }
-
-        var text = snapshot.Snapshot.GetText(completionParams.TextSpan.Start, completionParams.TextSpan.Length);
-
-        var completions = langSpecificCompletionsEnum
-            .Where(s => s.Shortcut.StartsWith(text, StringComparison.OrdinalIgnoreCase))
-            .Select(s => (s, _xmlSnippetParser.GetParsedXmlSnippet(s)))
-            .Select(ConvertToCompletionItem)
-            .WithoutNull();
-
-        return completions.ToArray();
-
-        CompletionItem? ConvertToCompletionItem((SnippetInfo info, ParsedXmlSnippet? parsed) pair)
-        {
-            var (info, parsed) = pair;
-
-            if (info is null || parsed is null)
+        builder.AddRange(languageSpecificCompletions
+            .Select(s => new CompletionItem()
             {
-                return null;
-            }
-
-            return new()
-            {
-                Label = info.Shortcut,
-                Detail = info.Description,
+                Label = s.Shortcut,
+                Detail = s.Description,
                 InsertTextFormat = InsertTextFormat.Snippet,
-                InsertText = GetFormattedLspSnippet(info, parsed, completionParams.TextSpan)
-            };
-        }
+                InsertText = s.Shortcut,
+                Data = s.CompletionData
+            }));
     }
 
     /// <summary>
-    /// Formats the snippet by applying the snippet to the document with the default values / function results for snippet declarations.
-    /// Then converts back into an LSP snippet by replacing the declarations with the appropriate LSP tab stops.
-    /// 
-    /// Note that the operations in this method are sensitive to the context in the document and so must be calculated on each request.
+    /// Create a snippet that adheres to the https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#snippet_syntax
     /// </summary>
-    private static string GetFormattedLspSnippet(
-        SnippetInfo snippetInfo,
-        ParsedXmlSnippet parsedSnippet,
-        RazorTextSpan snippetShortcut)
+    private string? TryGetReplacedSnippetText(SnippetInfo snippetInfo)
     {
-        // Calculate the snippet text with defaults + snippet function results.
-        var (snippetFullText, fields, caretSpan) = GetReplacedSnippetText(snippetInfo, snippetShortcut, parsedSnippet);
-
-        // TODO: use the fields? I believe those end up being tab stops
-        return snippetFullText.ToString();
-    }
-
-    /// <summary>
-    /// Create the snippet with the full default text and functions applied.  Output the spans associated with
-    /// each field and the final caret location in that text so that we can find those locations later.
-    /// </summary>
-    private static (string ReplacedSnippetText, ImmutableDictionary<SnippetFieldPart, ImmutableArray<TextSpan>> Fields, TextSpan? CaretSpan) GetReplacedSnippetText(
-        SnippetInfo snippetInfo,
-        RazorTextSpan snippetSpan,
-        ParsedXmlSnippet parsedSnippet)
-    {
-        // Iterate the snippet parts so that we can do two things:
-        //   1.  Calculate the snippet function result.  This must be done against the document containing the default snippet text
-        //       as the function result is context dependent.
-        //   2.  After inserting the function result, determine the spans associated with each editable snippet field.
-        var fieldOffsets = new Dictionary<SnippetFieldPart, ImmutableArray<TextSpan>>();
-        using var _ = StringBuilderPool.GetPooledObject(out var functionSnippetBuilder);
-        TextSpan? caretSpan = null;
-
-        // This represents the field start location in the context of the snippet without functions replaced (see below).
-        var locationInDefaultSnippet = snippetSpan.Start;
-
-        // This represents the field start location in the context of the snippet with functions replaced.
-        var locationInFinalSnippet = snippetSpan.Start;
-        foreach (var originalPart in parsedSnippet.Parts)
+        var parsedSnippet = _xmlSnippetParser.GetParsedXmlSnippet(snippetInfo);
+        if (parsedSnippet is null)
         {
-            var part = originalPart;
-
-            // Only store spans for editable fields or the cursor location, we don't need to get back to anything else.
-            if (part is SnippetFieldPart fieldPart && fieldPart.EditIndex != null)
-            {
-                var fieldSpan = new TextSpan(locationInFinalSnippet, part.DefaultText.Length);
-                fieldOffsets[fieldPart] = fieldOffsets.GetValueOrDefault(fieldPart, ImmutableArray<TextSpan>.Empty).Add(fieldSpan);
-            }
-            else if (part is SnippetCursorPart cursorPart)
-            {
-                caretSpan = new TextSpan(locationInFinalSnippet, cursorPart.DefaultText.Length);
-            }
-            else if (part is SnippetShortcutPart shortcutPart)
-            {
-                part = new SnippetShortcutPart(snippetInfo.Shortcut);
-            }
-
-            // Append the new snippet part to the text and track the location of the field in the text w/ functions.
-            locationInFinalSnippet += part.DefaultText.Length;
-            functionSnippetBuilder.Append(part.DefaultText);
-
-            // Keep track of the original field location in the text w/out functions.
-            locationInDefaultSnippet += originalPart.DefaultText.Length;
+            return null;
         }
 
-        return (functionSnippetBuilder.ToString(), fieldOffsets.ToImmutableDictionary(), caretSpan);
+        using var _ = StringBuilderPool.GetPooledObject(out var functionSnippetBuilder);
+
+        foreach (var part in parsedSnippet.Parts)
+        {
+            if (part is SnippetShortcutPart shortcutPart)
+            {
+                shortcutPart.Shortcut = snippetInfo.Shortcut;
+            }
+
+            functionSnippetBuilder.Append(part.ToString());
+        }
+
+        return functionSnippetBuilder.ToString();
     }
 }
