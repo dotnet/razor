@@ -3,9 +3,7 @@
 
 namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 
-internal record SnippetInfo(string Shortcut, string Title, string Description, string Path, SnippetLanguage Language)
-{
-}
+internal record SnippetInfo(string Shortcut, string Title, string Description, string Path, SnippetLanguage Language);
 
 internal enum SnippetLanguage
 {
