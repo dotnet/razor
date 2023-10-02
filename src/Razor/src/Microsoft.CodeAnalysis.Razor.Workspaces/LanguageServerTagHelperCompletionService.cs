@@ -190,6 +190,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
         foreach (var possibleDescriptor in possibleChildDescriptors)
         {
             var addRuleCompletions = false;
+            var checkAttributeRules = true;
             var outputHint = possibleDescriptor.TagOutputHint;
 
             foreach (var rule in possibleDescriptor.TagMatchingRules)
@@ -228,10 +229,15 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
                     // The second condition is a workaround for the fact that InHTMLSchema does a case insensitive comparison.
                     // We want completions to not dedupe by casing. E.g, we want to show both <div> and <DIV> completion items separately.
                     addRuleCompletions = true;
+
+                    // If the tag is not in the Html schema, then don't check attribute rules. Normally we want to check them so that
+                    // users don't see html tag and tag helper completions for the same thing, where the tag helper doesn't apply. In
+                    // cases where the tag is not html, we want to show it even if it doesn't apply, as the user could fix that later.
+                    checkAttributeRules = false;
                 }
 
                 // If we think this completion should be added based on tag name, thats great, but lets also make sure the attributes are correct
-                if (addRuleCompletions && TagHelperMatchingConventions.SatisfiesAttributes(tagAttributes, rule))
+                if (addRuleCompletions && (!checkAttributeRules || TagHelperMatchingConventions.SatisfiesAttributes(tagAttributes, rule)))
                 {
                     UpdateCompletions(prefix + rule.TagName, possibleDescriptor, elementCompletions);
                 }
