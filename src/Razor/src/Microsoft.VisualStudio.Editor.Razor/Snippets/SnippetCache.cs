@@ -3,27 +3,16 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.AspNetCore.Razor;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 
 [Export(typeof(SnippetCache)), Shared]
 internal class SnippetCache
 {
-    private ReadWriterLocker _lock = new();
     private ImmutableArray<SnippetInfo> _snippets;
 
     internal void Update(ImmutableArray<SnippetInfo> snippets)
-    {
-        using (_lock.EnterWriteLock())
-        {
-            _snippets = snippets;
-        }
-    }
+        => ImmutableInterlocked.InterlockedExchange(ref _snippets, snippets);
 
-    public ImmutableArray<SnippetInfo> GetSnippets()
-    {
-        using var _ = _lock.EnterReadLock();
-        return _snippets;
-    }
+    public ImmutableArray<SnippetInfo> GetSnippets() => _snippets;
 }
