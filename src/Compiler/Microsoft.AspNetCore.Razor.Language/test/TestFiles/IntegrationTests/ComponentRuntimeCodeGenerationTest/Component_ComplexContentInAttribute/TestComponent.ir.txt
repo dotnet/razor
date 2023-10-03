@@ -8,5 +8,8 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [41] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (29:0,29 [8] x:\dir\subdir\Test\TestComponent.cshtml) - StringProperty - StringProperty - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (30:0,30 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (30:0,30 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - MyEnum
             CSharpCode - (52:2,7 [67] x:\dir\subdir\Test\TestComponent.cshtml)
                 LazyIntermediateToken - (52:2,7 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public enum MyEnum\n    {\n        One,\n        Two\n    }\n

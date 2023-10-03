@@ -20,9 +20,29 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
+            __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                              MyEnum
+
+#line default
+#line hidden
+#nullable disable
+            );
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
+            #pragma warning disable BL0005
+            ((global::Test.MyComponent)default).
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+             StringProperty
+
+#line default
+#line hidden
+#nullable disable
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent);
