@@ -54,6 +54,7 @@ Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.MoveNext() -> 
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.Reset() -> void
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetEnumerator() -> Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.MetadataCollection() -> void
+Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions.RemapDesignTimeLinePragmaPathsOnWindows.get -> bool
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Enumerator.Enumerator() -> void
 Microsoft.AspNetCore.Razor.Language.SourceLocation.SourceLocation() -> void
 Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan() -> void
