@@ -60,12 +60,12 @@ internal class SnippetService
     {
         await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-        // Disable VSSDK006 because we use AssumeNotNull instead
-#pragma warning disable VSSDK006 // Check services exist
         var textManager = (IVsTextManager2?)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
-#pragma warning restore VSSDK006 // Check services exist
+        if (textManager is null)
+        {
+            return;
+        }
 
-        textManager.AssumeNotNull();
         if (textManager.GetExpansionManager(out _vsExpansionManager) == VSConstants.S_OK)
         {
             await PopulateAsync().ConfigureAwait(false);
