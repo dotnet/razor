@@ -60,7 +60,7 @@ internal class SnippetService
     {
         await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-        var textManager = (IVsTextManager2?)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
+        var textManager = (IVsTextManager2?)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
         if (textManager is null)
         {
             return;
@@ -68,15 +68,14 @@ internal class SnippetService
 
         if (textManager.GetExpansionManager(out _vsExpansionManager) == VSConstants.S_OK)
         {
+            // Call the asynchronous IExpansionManager API from a background thread
+            await TaskScheduler.Default;
             await PopulateAsync().ConfigureAwait(false);
         }
     }
 
     private async Task PopulateAsync()
     {
-        // Call the asynchronous IExpansionManager API from a background thread
-        await TaskScheduler.Default;
-
         var csharpExpansionEnumerator = await GetExpandionEnumeratorAsync(s_CSharpLanguageId).ConfigureAwait(false);
         var htmlExpansionEnumerator = await GetExpandionEnumeratorAsync(s_HtmlLanguageId).ConfigureAwait(false);
 
