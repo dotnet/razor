@@ -58,17 +58,13 @@ internal class ComponentComplexAttributeContentPass : ComponentIntermediateNodeP
         var removeNode = false;
         var issueDiagnostic = false;
 
-        if (node.Children.Count == 1 &&
-            node.Children[0] is HtmlAttributeIntermediateNode htmlNode &&
-            htmlNode.Children.Count > 1)
+        if (node.Children is [HtmlAttributeIntermediateNode { Children.Count: > 1 }])
         {
             // This case can be hit for a 'string' attribute
             removeNode = true;
             issueDiagnostic = true;
         }
-        else if (node.Children.Count == 1 &&
-            node.Children[0] is CSharpExpressionIntermediateNode cSharpNode &&
-            cSharpNode.Children.Count > 1)
+        else if (node.Children is [CSharpExpressionIntermediateNode { Children.Count: > 1 } cSharpNode])
         {
             // This case can be hit when the attribute has an explicit @ inside, which
             // 'escapes' any special sugar we provide for codegen.
@@ -86,8 +82,7 @@ internal class ComponentComplexAttributeContentPass : ComponentIntermediateNodeP
                 issueDiagnostic = true;
             }
         }
-        else if (node.Children.Count == 1 &&
-            node.Children[0] is CSharpCodeIntermediateNode)
+        else if (node.Children is [CSharpCodeIntermediateNode])
         {
             // This is the case when an attribute contains a code block @{ ... }
             // We don't support this.
