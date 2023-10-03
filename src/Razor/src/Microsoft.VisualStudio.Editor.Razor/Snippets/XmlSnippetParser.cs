@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
-using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Extensions.Logging;
