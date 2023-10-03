@@ -32,8 +32,7 @@ internal class ProjectContextsEndpoint : IRazorDocumentlessRequestHandler<VSGetP
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        // Disabled for 17.8
-        //serverCapabilities.ProjectContextProvider = true;
+        serverCapabilities.ProjectContextProvider = true;
     }
 
     public async Task<VSProjectContextList> HandleRequestAsync(VSGetProjectContextsParams request, RazorRequestContext context, CancellationToken cancellationToken)
