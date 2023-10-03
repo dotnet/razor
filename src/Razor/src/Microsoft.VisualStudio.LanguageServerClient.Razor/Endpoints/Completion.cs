@@ -126,6 +126,9 @@ internal partial class RazorCustomMessageTarget
         {
             using var _1 = ArrayBuilderPool<CompletionItem>.GetPooledObject(out var builder);
 
+            // Make sure to call our addition to completion before tracking telemetry requests
+            AddSnippetCompletions(request.ProjectedKind, builder);
+
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var lspMethodName = Methods.TextDocumentCompletion.Name;
             using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, request.CorrelationId);
@@ -140,8 +143,7 @@ internal partial class RazorCustomMessageTarget
             {
                 builder.AddRange(responseItems);
             }
-
-            AddSnippetCompletions(request.ProjectedKind, builder);
+            
             return builder.ToArray();
         }
         finally
@@ -292,20 +294,13 @@ internal partial class RazorCustomMessageTarget
 
     private void AddSnippetCompletions(RazorLanguageKind languageKind, ImmutableArray<CompletionItem>.Builder builder)
     {
-        var snippets = _snippetCache.GetSnippets();
+        var snippets = _snippetCache.GetSnippets(ConvertLanguageKind(languageKind));
         if (snippets.IsDefaultOrEmpty)
         {
             return;
         }
 
-        var languageSpecificCompletions = languageKind switch
-        {
-            RazorLanguageKind.Html => snippets.Where(static s => s.Language == SnippetLanguage.Html),
-            RazorLanguageKind.CSharp => snippets.Where(static s => s.Language == SnippetLanguage.CSharp),
-            _ => null
-        };
-
-        builder.AddRange(languageSpecificCompletions
+        builder.AddRange(snippets
             .Select(s => new CompletionItem()
             {
                 Label = s.Shortcut,
@@ -316,4 +311,13 @@ internal partial class RazorCustomMessageTarget
                 Kind = CompletionItemKind.Snippet
             }));
     }
+
+    private static SnippetLanguage ConvertLanguageKind(RazorLanguageKind languageKind)
+        => languageKind switch
+        {
+            RazorLanguageKind.CSharp => SnippetLanguage.CSharp,
+            RazorLanguageKind.Html => SnippetLanguage.Html,
+            RazorLanguageKind.Razor => SnippetLanguage.Razor,
+            _ => throw new InvalidOperationException($"Unexpected value {languageKind}")
+        };
 }

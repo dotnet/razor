@@ -130,15 +130,13 @@ internal class SnippetService
     {
         _joinableTaskFactory.Context.AssertUIThread();
 
-        var updatedSnippets = ExtractSnippetInfo(enumerators);
-
-        lock (_cacheGuard)
+        foreach (var (language, enumerator) in enumerators)
         {
-            _snippetCache.Update(updatedSnippets);
+            _snippetCache.Update(language, ExtractSnippetInfo(language, enumerator));
         }
     }
 
-    private ImmutableArray<SnippetInfo> ExtractSnippetInfo((SnippetLanguage language, IVsExpansionEnumeration expansionEnumerator)[] expansionEnumerators)
+    private ImmutableArray<SnippetInfo> ExtractSnippetInfo(SnippetLanguage language, IVsExpansionEnumeration expansionEnumerator)
     {
         _joinableTaskFactory.Context.AssertUIThread();
 
@@ -151,27 +149,24 @@ internal class SnippetService
             // Allocate enough memory for one VSExpansion structure. This memory is filled in by the Next method.
             pSnippetInfo[0] = Marshal.AllocCoTaskMem(Marshal.SizeOf(snippetInfo));
 
-            foreach (var (language, expansionEnumerator) in expansionEnumerators)
+            var langGuid = language == SnippetLanguage.CSharp
+                ? s_CSharpLanguageId
+                : s_HtmlLanguageId;
+
+            var toIgnore = s_ignoredSnippets[s_HtmlLanguageId];
+            expansionEnumerator.GetCount(out var count);
+
+            for (uint i = 0; i < count; i++)
             {
-                var langGuid = language == SnippetLanguage.CSharp
-                    ? s_CSharpLanguageId
-                    : s_HtmlLanguageId;
-
-                var toIgnore = s_ignoredSnippets[s_HtmlLanguageId];
-                expansionEnumerator.GetCount(out var count);
-
-                for (uint i = 0; i < count; i++)
+                expansionEnumerator.Next(1, pSnippetInfo, out var fetched);
+                if (fetched > 0)
                 {
-                    expansionEnumerator.Next(1, pSnippetInfo, out var fetched);
-                    if (fetched > 0)
-                    {
-                        // Convert the returned blob of data into a structure that can be read in managed code.
-                        snippetInfo = ConvertToVsExpansionAndFree(pSnippetInfo[0]);
+                    // Convert the returned blob of data into a structure that can be read in managed code.
+                    snippetInfo = ConvertToVsExpansionAndFree(pSnippetInfo[0]);
 
-                        if (!string.IsNullOrEmpty(snippetInfo.shortcut) && !toIgnore.Contains(snippetInfo.shortcut))
-                        {
-                            snippetListBuilder.Add(new SnippetInfo(snippetInfo.shortcut, snippetInfo.title, snippetInfo.description, snippetInfo.path, language));
-                        }
+                    if (!string.IsNullOrEmpty(snippetInfo.shortcut) && !toIgnore.Contains(snippetInfo.shortcut))
+                    {
+                        snippetListBuilder.Add(new SnippetInfo(snippetInfo.shortcut, snippetInfo.title, snippetInfo.description, snippetInfo.path, language));
                     }
                 }
             }

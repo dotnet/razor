@@ -33,8 +33,6 @@ internal static class LanguageServerConstants
 
     public const string RazorCompletionEndpointName = "razor/completion";
 
-    public const string RazorSnippetCompletionEndpointName = "razor/snippetCompletion";
-
     public const string RazorCompletionResolveEndpointName = "razor/completionItem/resolve";
 
     public const string RazorGetFormattingOptionsEndpointName = "razor/formatting/options";

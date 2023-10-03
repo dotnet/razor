@@ -90,7 +90,6 @@ public class CompletionListSerializationBenchmark
         var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context);
         var completionList = RazorCompletionListProvider.CreateLSPCompletionList(
             razorCompletionItems,
-            ImmutableArray<CompletionItem>.Empty,
             new VSInternalClientCapabilities()
             {
                 TextDocument = new TextDocumentClientCapabilities()
