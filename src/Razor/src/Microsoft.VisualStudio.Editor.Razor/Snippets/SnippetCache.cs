@@ -13,13 +13,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 internal class SnippetCache
 {
     private ImmutableArray<SnippetInfo> _snippets;
-    private readonly XmlSnippetParser _xmlSnippetParser;
-
-    [ImportingConstructor]
-    internal SnippetCache([Import(AllowDefault = true)] XmlSnippetParser? xmlSnippetParser)
-    {
-        _xmlSnippetParser = xmlSnippetParser ?? new(null);
-    }
 
     internal void Update(ImmutableArray<SnippetInfo> snippets)
         => ImmutableInterlocked.InterlockedExchange(ref _snippets, snippets);
@@ -35,7 +28,7 @@ internal class SnippetCache
             return null;
         }
 
-        var parsedSnippet = _xmlSnippetParser.GetParsedXmlSnippet(snippet);
+        var parsedSnippet = snippet.GetParsedXmlSnippet();
         if (parsedSnippet is null)
         {
             return null;

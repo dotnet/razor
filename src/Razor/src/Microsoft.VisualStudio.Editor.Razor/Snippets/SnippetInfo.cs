@@ -1,11 +1,40 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 
-internal record SnippetInfo(string Shortcut, string Title, string Description, string Path, SnippetLanguage Language)
+internal record SnippetInfo
 {
-    public SnippetCompletionData CompletionData { get; } = new(Path);
+    Lazy<XmlSnippetParser.ParsedXmlSnippet?> _parsedXmlSnippet;
+
+    public SnippetInfo(
+        string shortcut,
+        string title,
+        string description,
+        string path,
+        SnippetLanguage language)
+    {
+        Shortcut = shortcut;
+        Title = title;
+        Description = description;
+        Path = path;
+        Language = language;
+
+        _parsedXmlSnippet = new(() => XmlSnippetParser.GetParsedXmlSnippet(this));
+        CompletionData = new(Path);
+    }
+
+    public string Shortcut { get; }
+    public string Title { get; }
+    public string Description { get; }
+    public string Path { get; }
+    public SnippetLanguage Language { get; }
+    public SnippetCompletionData CompletionData { get; }
+
+    internal XmlSnippetParser.ParsedXmlSnippet? GetParsedXmlSnippet()
+        => _parsedXmlSnippet.Value;
 }
 
 internal record SnippetCompletionData(string Path)
