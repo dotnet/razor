@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -538,7 +539,18 @@ internal static class CodeWriterExtensions
             return NullDisposable.Default;
         }
 
-        return new LinePragmaWriter(writer, span.Value, context, 0, false);
+        var spanValue = span.Value;
+        if (context.Options.RemapDesignTimeLinePragmaPathsOnWindows && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // ISSUE: https://github.com/dotnet/razor/issues/9108
+            // The razor tooling normalizes paths to be forward slash based, regardless of OS.
+            // If you try and use the line pragma in the design time docs to map back to the original file it will fail,
+            // as the path isn't actually valid on windows. As a workaround we apply a simple heuristic to switch the
+            // paths back when writing out the design time paths.
+            spanValue = new SourceSpan(spanValue.FilePath.Replace("/", "\\"), spanValue.AbsoluteIndex, spanValue.LineIndex, spanValue.CharacterIndex, spanValue.Length);
+        }
+
+        return new LinePragmaWriter(writer, spanValue, context, 0, false);
     }
 
     public static IDisposable BuildEnhancedLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, int characterOffset = 0)

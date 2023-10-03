@@ -603,6 +603,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         {
             options.IndentSize = _settings.IndentSize;
             options.IndentWithTabs = _settings.IndentWithTabs;
+            options.RemapDesignTimeLinePragmaPathsOnWindows = true;
         }
     }
 

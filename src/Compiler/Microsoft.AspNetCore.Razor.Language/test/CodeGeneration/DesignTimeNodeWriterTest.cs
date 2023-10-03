@@ -457,6 +457,52 @@ Render Children
             ignoreLineEndingDifferences: true);
     }
 
+    [OSSkipConditionTheory(new[] { "Linux", "osx" })]
+    [InlineData("test.cshtml", "test.cshtml")]
+    [InlineData("pages/test.cshtml", "pages\\test.cshtml")]
+    [InlineData("pages\\test.cshtml", "pages\\test.cshtml")]
+    [InlineData("c:/pages/test.cshtml", "c:\\pages\\test.cshtml")]
+    [InlineData("c:\\pages\\test.cshtml", "c:\\pages\\test.cshtml")]
+    [InlineData("c:/pages with space/test.cshtml", "c:\\pages with space\\test.cshtml")]
+    [InlineData("c:\\pages with space\\test.cshtml", "c:\\pages with space\\test.cshtml")]
+    public void LinePragma_Is_Adjusted_On_Windows(string fileName, string expectedFileName)
+    {
+        // Arrange
+        var writer = new DesignTimeNodeWriter();
+        var context = TestCodeRenderingContext.CreateDesignTime();
+
+        var node = new CSharpExpressionIntermediateNode()
+        {
+            Source = new SourceSpan(fileName, 0, 0, 0, 3),
+        };
+        var builder = IntermediateNodeBuilder.Create(node);
+        builder.Add(new IntermediateToken()
+        {
+            Content = "i++",
+            Kind = TokenKind.CSharp,
+        });
+
+        // Act
+        writer.WriteCSharpExpression(context, node);
+
+        // Assert
+        var csharp = context.CodeWriter.GenerateCode();
+        Assert.Equal(
+            $"""
+
+            #nullable restore
+            #line 1 "{expectedFileName}"
+            __o = i++;
+
+            #line default
+            #line hidden
+            #nullable disable
+
+            """,
+            csharp,
+            ignoreLineEndingDifferences: true);
+    }
+
     private DocumentIntermediateNode Lower(RazorCodeDocument codeDocument)
     {
         var projectEngine = CreateProjectEngine();
