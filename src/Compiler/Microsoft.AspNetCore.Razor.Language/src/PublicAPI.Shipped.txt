@@ -55,9 +55,6 @@
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.GeneratedCode.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.Options.get -> Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.SourceMappings.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.SourceMapping>
-~abstract Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Equals(Microsoft.AspNetCore.Razor.Language.RazorDiagnostic other) -> bool
-~abstract Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.GetMessage(System.IFormatProvider formatProvider) -> string
-~abstract Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Id.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorEngine.Features.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.IRazorEngineFeature>
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorEngine.Phases.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.IRazorEnginePhase>
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorEngine.Process(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument document) -> void
@@ -404,7 +401,6 @@
 ~Microsoft.AspNetCore.Razor.Language.ProvideRazorExtensionInitializerAttribute.ExtensionName.get -> string
 ~Microsoft.AspNetCore.Razor.Language.ProvideRazorExtensionInitializerAttribute.InitializerType.get -> System.Type
 ~Microsoft.AspNetCore.Razor.Language.ProvideRazorExtensionInitializerAttribute.ProvideRazorExtensionInitializerAttribute(string extensionName, System.Type initializerType) -> void
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.GetMessage() -> string
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Add(Microsoft.AspNetCore.Razor.Language.RazorDiagnostic item) -> void
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.AddRange(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection items) -> void
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.AddRange(System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic> items) -> void
@@ -417,10 +413,6 @@
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Remove(Microsoft.AspNetCore.Razor.Language.RazorDiagnostic item) -> bool
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.this[int index].get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic
 ~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.this[int index].set -> void
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Equals(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor other) -> bool
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.GetMessageFormat() -> string
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Id.get -> string
-~Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.RazorDiagnosticDescriptor(string id, System.Func<string> messageFormat, Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity severity) -> void
 ~Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.Engine.get -> Microsoft.AspNetCore.Razor.Language.RazorEngine
 ~Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.Engine.set -> void
 ~Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.GetRequiredFeature<TFeature>() -> TFeature
@@ -614,9 +606,6 @@
 ~override Microsoft.AspNetCore.Razor.Language.Intermediate.UsingDirectiveIntermediateNode.Children.get -> Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection
 ~override Microsoft.AspNetCore.Razor.Language.Intermediate.UsingDirectiveIntermediateNode.FormatNode(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeFormatter formatter) -> void
 ~override Microsoft.AspNetCore.Razor.Language.RazorConfiguration.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.ToString() -> string
-~override Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Equals(object obj) -> bool
 ~override Microsoft.AspNetCore.Razor.Language.RazorLanguageVersion.ToString() -> string
 ~override Microsoft.AspNetCore.Razor.Language.SourceChange.Equals(object obj) -> bool
 ~override Microsoft.AspNetCore.Razor.Language.SourceChange.ToString() -> string
@@ -727,8 +716,6 @@
 ~static Microsoft.AspNetCore.Razor.Language.RazorConfiguration.Create(Microsoft.AspNetCore.Razor.Language.RazorLanguageVersion languageVersion, string configurationName, System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorExtension> extensions, bool useConsolidatedMvcViews = false) -> Microsoft.AspNetCore.Razor.Language.RazorConfiguration
 ~static Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.Create(string generatedCode, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions options, System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic> diagnostics) -> Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument
 ~static Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.Create(string generatedCode, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions options, System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic> diagnostics, System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.SourceMapping> sourceMappings, System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma> linePragmas) -> Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument
-~static Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Create(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor descriptor, Microsoft.AspNetCore.Razor.Language.SourceSpan span) -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic
-~static Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Create(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor descriptor, Microsoft.AspNetCore.Razor.Language.SourceSpan span, params object[] args) -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic
 ~static Microsoft.AspNetCore.Razor.Language.RazorEngine.Create() -> Microsoft.AspNetCore.Razor.Language.RazorEngine
 ~static Microsoft.AspNetCore.Razor.Language.RazorEngine.Create(System.Action<Microsoft.AspNetCore.Razor.Language.IRazorEngineBuilder> configure) -> Microsoft.AspNetCore.Razor.Language.RazorEngine
 ~static Microsoft.AspNetCore.Razor.Language.RazorEngine.CreateDesignTime() -> Microsoft.AspNetCore.Razor.Language.RazorEngine
@@ -922,8 +909,6 @@ abstract Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptionsBuilder.I
 abstract Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptionsBuilder.SuppressChecksum.get -> bool
 abstract Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptionsBuilder.SuppressChecksum.set -> void
 abstract Microsoft.AspNetCore.Razor.Language.RazorConfiguration.UseConsolidatedMvcViews.get -> bool
-abstract Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
-abstract Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Span.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan
 abstract Microsoft.AspNetCore.Razor.Language.RazorParserOptions.DesignTime.get -> bool
 abstract Microsoft.AspNetCore.Razor.Language.RazorParserOptions.ParseLeadingDirectives.get -> bool
 abstract Microsoft.AspNetCore.Razor.Language.RazorParserOptionsBuilder.DesignTime.get -> bool
@@ -1230,7 +1215,6 @@ Microsoft.AspNetCore.Razor.Language.RazorConfiguration.RazorConfiguration() -> v
 Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument
 Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.RazorCSharpDocument() -> void
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic
-Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.RazorDiagnostic() -> void
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Clear() -> void
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Count.get -> int
@@ -1242,8 +1226,6 @@ Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.GetEnumerator() ->
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.IsReadOnly.get -> bool
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.RazorDiagnosticCollection() -> void
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.RemoveAt(int index) -> void
-Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor
-Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity.Error = 3 -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity.Warning = 2 -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
@@ -1342,11 +1324,9 @@ Microsoft.AspNetCore.Razor.Language.TagStructure
 Microsoft.AspNetCore.Razor.Language.TagStructure.NormalOrSelfClosing = 1 -> Microsoft.AspNetCore.Razor.Language.TagStructure
 Microsoft.AspNetCore.Razor.Language.TagStructure.Unspecified = 0 -> Microsoft.AspNetCore.Razor.Language.TagStructure
 Microsoft.AspNetCore.Razor.Language.TagStructure.WithoutEndTag = 2 -> Microsoft.AspNetCore.Razor.Language.TagStructure
-override abstract Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.DocumentClassifierPassBase.OnInitialized() -> void
 override Microsoft.AspNetCore.Razor.Language.RazorConfiguration.GetHashCode() -> int
-override Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.RazorLanguageVersion.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.SourceChange.GetHashCode() -> int
 override Microsoft.AspNetCore.Razor.Language.SourceLocation.GetHashCode() -> int

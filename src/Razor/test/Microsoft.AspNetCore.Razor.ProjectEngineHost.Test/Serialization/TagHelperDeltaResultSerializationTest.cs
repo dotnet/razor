@@ -183,7 +183,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             configureAction: builder => builder.AllowChildTag("allowed-child-one")
                 .Metadata("foo", "bar")
                 .AddDiagnostic(RazorDiagnostic.Create(
-                    new RazorDiagnosticDescriptor("id", () => "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
+                    new RazorDiagnosticDescriptor("id", "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
 
         var expectedResult = new TagHelperDeltaResult(
             IsDelta: true,

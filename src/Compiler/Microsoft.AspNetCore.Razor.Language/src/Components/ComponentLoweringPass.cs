@@ -182,7 +182,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             {
                 intermediateNode.Diagnostics.Add(
                   RazorDiagnosticFactory.CreateComponent_EditorRequiredParameterNotSpecified(
-                      node.Source ?? SourceSpan.Undefined,
+                      node.Source,
                       intermediateNode.TagName,
                       requiredAttribute.Name));
             }
