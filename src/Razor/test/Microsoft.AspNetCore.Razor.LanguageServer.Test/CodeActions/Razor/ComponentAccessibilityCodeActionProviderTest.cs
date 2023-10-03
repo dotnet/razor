@@ -369,7 +369,7 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), tagHelpers);
 
         var cSharpDocument = codeDocument.GetCSharpDocument();
-        var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", string.Empty, RazorDiagnosticSeverity.Error);
+        var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, componentSourceSpan);
         var cSharpDocumentWithDiagnostic = RazorCSharpDocument.Create(codeDocument, cSharpDocument.GeneratedCode, cSharpDocument.Options, new[] { diagnostic });
         codeDocument.SetCSharpDocument(cSharpDocumentWithDiagnostic);

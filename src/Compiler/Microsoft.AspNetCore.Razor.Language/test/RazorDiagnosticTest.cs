@@ -42,21 +42,6 @@ public class RazorDiagnosticTest
     }
 
     [Fact]
-    public void GetMessage_WithNullDescriptorFormat_ReturnsDefaultErrorString()
-    {
-        // Arrange
-        var descriptor = new RazorDiagnosticDescriptor("RZ0001", null!, RazorDiagnosticSeverity.Error);
-        var span = new SourceSpan("test.cs", 15, 1, 8, 5);
-
-        // Act
-        var diagnostic = RazorDiagnostic.Create(descriptor, span, "Hello", "World");
-        var message = diagnostic.GetMessage(CultureInfo.InvariantCulture);
-
-        // Assert
-        Assert.Equal("Encountered diagnostic 'RZ0001'.", message);
-    }
-
-    [Fact]
     public void DefaultRazorDiagnostic_GetMessage_WithArgs()
     {
         // Arrange

@@ -8,21 +8,18 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
 {
-    // Internal for testing
-    internal RazorDiagnosticDescriptor Descriptor { get; }
+    private readonly RazorDiagnosticDescriptor _descriptor;
+    private readonly object[] _args;
 
-    // Internal for testing
-    internal object[] Args { get; }
-
-    public string Id => Descriptor.Id;
-    public RazorDiagnosticSeverity Severity => Descriptor.Severity;
+    public string Id => _descriptor.Id;
+    public RazorDiagnosticSeverity Severity => _descriptor.Severity;
     public SourceSpan Span { get; }
 
     private RazorDiagnostic(RazorDiagnosticDescriptor descriptor, SourceSpan? span, object[]? args)
     {
-        Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
+        _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
         Span = span ?? SourceSpan.Undefined;
-        Args = args ?? Array.Empty<object>();
+        _args = args ?? Array.Empty<object>();
     }
 
     public static RazorDiagnostic Create(RazorDiagnosticDescriptor descriptor)
@@ -41,7 +38,7 @@ public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
         => GetMessage(formatProvider: null);
 
     public string GetMessage(IFormatProvider? formatProvider)
-        => string.Format(formatProvider, Descriptor.MessageFormat, Args);
+        => string.Format(formatProvider, _descriptor.MessageFormat, _args);
 
     public override bool Equals(object? obj)
         => obj is RazorDiagnostic diagnostic &&
@@ -50,16 +47,16 @@ public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
     public bool Equals(RazorDiagnostic? other)
     {
         if (other is null ||
-            !Descriptor.Equals(other.Descriptor) ||
+            !_descriptor.Equals(other._descriptor) ||
             !Span.Equals(other.Span) ||
-            Args.Length != other.Args.Length)
+            _args.Length != other._args.Length)
         {
             return false;
         }
 
-        for (var i = 0; i < Args.Length; i++)
+        for (var i = 0; i < _args.Length; i++)
         {
-            if (!Args[i].Equals(other.Args[i]))
+            if (!_args[i].Equals(other._args[i]))
             {
                 return false;
             }
@@ -71,12 +68,12 @@ public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
     public override int GetHashCode()
     {
         var hash = HashCodeCombiner.Start();
-        hash.Add(Descriptor.GetHashCode());
+        hash.Add(_descriptor.GetHashCode());
         hash.Add(Span.GetHashCode());
 
-        for (var i = 0; i < Args.Length; i++)
+        for (var i = 0; i < _args.Length; i++)
         {
-            hash.Add(Args[i]);
+            hash.Add(_args[i]);
         }
 
         return hash;

@@ -74,16 +74,4 @@ public class RazorDiagnosticDescriptorTest
         // Assert
         Assert.False(result);
     }
-
-    [Fact]
-    public void RazorDiagnosticDescriptor_NullMessage()
-    {
-        // Arrange & Act
-        var descriptor = new RazorDiagnosticDescriptor("RZ0001", null!, RazorDiagnosticSeverity.Error);
-
-        // Assert
-        Assert.Equal("RZ0001", descriptor.Id);
-        Assert.Equal(RazorDiagnosticSeverity.Error, descriptor.Severity);
-        Assert.Equal("Encountered diagnostic 'RZ0001'.", descriptor.MessageFormat);
-    }
 }

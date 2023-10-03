@@ -20,10 +20,13 @@ public sealed record RazorDiagnosticDescriptor
             throw new ArgumentNullException(nameof(id), Resources.ArgumentCannotBeNullOrEmpty);
         }
 
+        if (string.IsNullOrEmpty(messageFormat))
+        {
+            throw new ArgumentNullException(nameof(messageFormat), Resources.ArgumentCannotBeNullOrEmpty);
+        }
+
         Id = id;
-        MessageFormat = messageFormat.IsNullOrEmpty()
-            ? Resources.FormatRazorDiagnosticDescriptor_DefaultError(Id)
-            : messageFormat;
+        MessageFormat = messageFormat;
         Severity = severity;
     }
 
