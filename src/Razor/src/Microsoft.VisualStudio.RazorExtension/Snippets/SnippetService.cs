@@ -76,8 +76,8 @@ internal class SnippetService
 
     private async Task PopulateAsync()
     {
-        var csharpExpansionEnumerator = await GetExsandionEnumeratorAsync(s_CSharpLanguageId).ConfigureAwait(false);
-        var htmlExpansionEnumerator = await GetExsandionEnumeratorAsync(s_HtmlLanguageId).ConfigureAwait(false);
+        var csharpExpansionEnumerator = await GetExpansionEnumeratorAsync(s_CSharpLanguageId).ConfigureAwait(false);
+        var htmlExpansionEnumerator = await GetExpansionEnumeratorAsync(s_HtmlLanguageId).ConfigureAwait(false);
 
         // The rest of the process requires being on the UI thread, see the explanation on
         // PopulateSnippetCacheFromExpansionEnumeration for details
@@ -152,7 +152,7 @@ internal class SnippetService
                 ? s_CSharpLanguageId
                 : s_HtmlLanguageId;
 
-            var toIgnore = s_ignoredSnippets[s_HtmlLanguageId];
+            var toIgnore = s_ignoredSnippets[langGuid];
             expansionEnumerator.GetCount(out var count);
 
             for (uint i = 0; i < count; i++)
