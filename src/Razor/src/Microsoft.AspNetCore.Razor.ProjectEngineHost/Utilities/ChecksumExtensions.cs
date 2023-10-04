@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-#if !NETCOREAPP
-using System.Collections.Generic;
-#endif
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
@@ -44,7 +41,7 @@ internal static class ChecksumExtensions
             builder.AppendData(GetChecksum(descriptor));
         }
 
-        builder.AppendData(GetChecksum(value.Metadata));
+        builder.AppendData(value.Metadata.Checksum);
 
         foreach (var diagnostic in value.Diagnostics)
         {
@@ -124,7 +121,7 @@ internal static class ChecksumExtensions
 
             builder.AppendData(value.CaseSensitive);
 
-            builder.AppendData(GetChecksum(value.Metadata));
+            builder.AppendData(value.Metadata.Checksum);
 
             foreach (var diagnostic in value.Diagnostics)
             {
@@ -168,7 +165,7 @@ internal static class ChecksumExtensions
                 builder.AppendData(GetChecksum(descriptor));
             }
 
-            builder.AppendData(GetChecksum(value.Metadata));
+            builder.AppendData(value.Metadata.Checksum);
 
             foreach (var diagnostic in value.Diagnostics)
             {
@@ -200,7 +197,7 @@ internal static class ChecksumExtensions
             builder.AppendData(value.IsEnum);
             builder.AppendData(value.IsBooleanProperty);
             builder.AppendData(value.IsStringProperty);
-            builder.AppendData(GetChecksum(value.Metadata));
+            builder.AppendData(value.Metadata.Checksum);
 
             foreach (var diagnostic in value.Diagnostics)
             {
@@ -263,24 +260,6 @@ internal static class ChecksumExtensions
                     default:
                         throw new NotSupportedException();
                 }
-            }
-
-            return builder.FreeAndGetChecksum();
-        }
-    }
-
-    public static Checksum GetChecksum(this MetadataCollection value)
-    {
-        return ChecksumCache.GetOrCreate(value, Create);
-
-        static object Create(object obj)
-        {
-            var builder = new Checksum.Builder();
-
-            foreach (var (key, value) in (MetadataCollection)obj)
-            {
-                builder.AppendData(key);
-                builder.AppendData(value);
             }
 
             return builder.FreeAndGetChecksum();

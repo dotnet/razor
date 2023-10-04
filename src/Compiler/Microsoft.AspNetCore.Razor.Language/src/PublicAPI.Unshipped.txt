@@ -9,10 +9,8 @@
 *REMOVED*~Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.Attributes.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor>
 *REMOVED*~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.BoundAttributeParameters.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor>
 abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.AddSourceMappingFor(Microsoft.AspNetCore.Razor.Language.SourceSpan node) -> void
-abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.ComputeHashCode() -> int
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.ContainsKey(string! key) -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Count.get -> int
-abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Equals(Microsoft.AspNetCore.Razor.Language.MetadataCollection! other) -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetEntry(int index) -> System.Collections.Generic.KeyValuePair<string!, string?>
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Keys.get -> System.Collections.Generic.IEnumerable<string!>!
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.this[string! key].get -> string?
@@ -135,6 +133,7 @@ Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.Current.get ->
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.Enumerator() -> void
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.MoveNext() -> bool
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator.Reset() -> void
+Microsoft.AspNetCore.Razor.Language.MetadataCollection.Equals(Microsoft.AspNetCore.Razor.Language.MetadataCollection? other) -> bool
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetEnumerator() -> Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.MetadataCollection() -> void
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Equals(Microsoft.AspNetCore.Razor.Language.RazorDiagnostic? other) -> bool
@@ -274,7 +273,7 @@ override Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.GetHashCode() -
 override Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.ToString() -> string!
 override Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.Equals(object? obj) -> bool
 override Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.GetHashCode() -> int
-override sealed Microsoft.AspNetCore.Razor.Language.MetadataCollection.Equals(object! obj) -> bool
+override sealed Microsoft.AspNetCore.Razor.Language.MetadataCollection.Equals(object? obj) -> bool
 override sealed Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetHashCode() -> int
 static Microsoft.AspNetCore.Razor.Language.CommonMetadata.PropertyName(string! value) -> System.Collections.Generic.KeyValuePair<string!, string?>
 static Microsoft.AspNetCore.Razor.Language.CommonMetadata.TypeName(string! value) -> System.Collections.Generic.KeyValuePair<string!, string?>
