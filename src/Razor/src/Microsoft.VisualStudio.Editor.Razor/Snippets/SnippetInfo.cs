@@ -2,6 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 
@@ -39,6 +42,22 @@ internal record SnippetInfo
 
 internal record SnippetCompletionData(string Path)
 {
+    internal static bool TryParse(object? data, [NotNullWhen(true)] out SnippetCompletionData? snippetCompletionData)
+    {
+        snippetCompletionData = data as SnippetCompletionData;
+
+        if (data is JObject jObject)
+        {
+            try
+            {
+                snippetCompletionData = jObject.ToObject<SnippetCompletionData>();
+            }
+            catch { }
+        }
+
+        return snippetCompletionData is not null;
+    }
+
     internal bool Matches(SnippetInfo s)
     {
         return s.Path == Path;

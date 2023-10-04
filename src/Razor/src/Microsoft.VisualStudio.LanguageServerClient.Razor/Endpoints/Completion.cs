@@ -62,7 +62,7 @@ internal partial class RazorCustomMessageTarget
     }
 
     [JsonRpcMethod(LanguageServerConstants.RazorCompletionEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<CompletionItem[]?> ProvideCompletionsAsync(
+    public async Task<VSInternalCompletionList?> ProvideCompletionsAsync(
         DelegatedCompletionParams request,
         CancellationToken cancellationToken)
     {
@@ -132,19 +132,28 @@ internal partial class RazorCustomMessageTarget
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var lspMethodName = Methods.TextDocumentCompletion.Name;
             using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, request.CorrelationId);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, CompletionItem[]?>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, VSInternalCompletionList?>(
                 textBuffer,
                 lspMethodName,
                 languageServerName,
                 completionParams,
                 cancellationToken).ConfigureAwait(continueOnCapturedContext);
 
-            if (response?.Response is CompletionItem[] responseItems)
+            var completionList = response?.Response;
+            if (completionList is not null)
             {
-                builder.AddRange(responseItems);
+                builder.AddRange(completionList.Items);
+                completionList.Items = builder.ToArray();
+            }
+            else
+            {
+                completionList = new VSInternalCompletionList()
+                {
+                    Items = builder.ToArray(),
+                };
             }
             
-            return builder.ToArray();
+            return completionList;
         }
         finally
         {
@@ -224,7 +233,7 @@ internal partial class RazorCustomMessageTarget
     public async Task<CompletionItem?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
     {
         // Check if we're completing a snippet item that we provided
-        if (request.CompletionItem.Data is SnippetCompletionData snippetCompletionData)
+        if (SnippetCompletionData.TryParse(request.CompletionItem.Data, out var snippetCompletionData))
         {
             request.CompletionItem.InsertText = _snippetCache.TryResolveSnippetString(snippetCompletionData);
             return request.CompletionItem;

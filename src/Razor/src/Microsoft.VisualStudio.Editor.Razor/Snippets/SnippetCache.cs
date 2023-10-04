@@ -56,7 +56,7 @@ internal class SnippetCache
                 shortcutPart.Shortcut = snippet.Shortcut;
             }
 
-            functionSnippetBuilder.Append(part.ToString());
+            functionSnippetBuilder.Append(part.GetInsertionString());
         }
 
         return functionSnippetBuilder.ToString();

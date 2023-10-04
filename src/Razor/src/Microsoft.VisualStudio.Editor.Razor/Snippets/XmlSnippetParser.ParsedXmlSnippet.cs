@@ -31,7 +31,7 @@ internal partial class XmlSnippetParser
 
     internal abstract record SnippetPart(string DefaultText)
     {
-        public override string ToString()
+        public virtual string GetInsertionString()
         {
             return DefaultText;
         }
@@ -50,7 +50,7 @@ internal partial class XmlSnippetParser
     {
         public string Shortcut { get; set; } = "";
 
-        public override string ToString()
+        public override string GetInsertionString()
         {
             if (string.IsNullOrEmpty(Shortcut))
             {
