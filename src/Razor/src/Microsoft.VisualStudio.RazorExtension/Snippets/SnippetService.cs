@@ -87,7 +87,7 @@ internal class SnippetService
             (SnippetLanguage.Html, htmlExpansionEnumerator));
     }
 
-    private Task<IVsExpansionEnumeration> GetExsandionEnumeratorAsync(Guid languageGuid)
+    private Task<IVsExpansionEnumeration> GetExpansionEnumeratorAsync(Guid languageGuid)
     {
         _vsExpansionManager.AssumeNotNull();
         var expansionManager = (IExpansionManager)_vsExpansionManager;
