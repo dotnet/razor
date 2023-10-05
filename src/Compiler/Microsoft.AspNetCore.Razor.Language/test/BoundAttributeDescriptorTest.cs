@@ -15,10 +15,10 @@ public class BoundAttributeDescriptorTest
     {
         var expectedPropertyName = "PropertyName";
 
-        var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
+        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
         _ = tagHelperBuilder.Metadata(TypeName("TestTagHelper"));
 
-        var intBuilder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
+        var intBuilder = new BoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         _ = intBuilder
             .Name("test")
             .Metadata(PropertyName(expectedPropertyName))
@@ -26,7 +26,7 @@ public class BoundAttributeDescriptorTest
 
         var intDescriptor = intBuilder.Build();
 
-        var stringBuilder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
+        var stringBuilder = new BoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         _ = stringBuilder
             .Name("test")
             .Metadata(PropertyName(expectedPropertyName))

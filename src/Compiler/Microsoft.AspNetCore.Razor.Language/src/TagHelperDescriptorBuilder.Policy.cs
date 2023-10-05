@@ -3,7 +3,6 @@
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal interface IBuilder<T>
+public partial class TagHelperDescriptorBuilder
 {
-    T Build();
 }

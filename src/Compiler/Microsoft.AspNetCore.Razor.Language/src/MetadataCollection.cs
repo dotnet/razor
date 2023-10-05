@@ -36,6 +36,8 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
     public abstract bool ContainsKey(string key);
     public abstract bool TryGetValue(string key, out string? value);
 
+    public bool Contains(string key, string? value) => TryGetValue(key, out var v) && v == value;
+
     protected abstract KeyValuePair<string, string?> GetEntry(int index);
 
     public Enumerator GetEnumerator() => new(this);
