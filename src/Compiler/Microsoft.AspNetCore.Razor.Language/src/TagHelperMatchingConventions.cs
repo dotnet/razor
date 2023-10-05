@@ -60,9 +60,7 @@ internal static class TagHelperMatchingConventions
 
     public static bool SatisfiesAttributes(ImmutableArray<KeyValuePair<string, string>> tagAttributes, TagMatchingRuleDescriptor rule)
     {
-        var requiredAttributes = rule.Attributes;
-
-        foreach (var requiredAttribute in requiredAttributes)
+        foreach (var requiredAttribute in rule.Attributes)
         {
             var satisfied = false;
 
@@ -94,14 +92,13 @@ internal static class TagHelperMatchingConventions
     private static BoundAttributeParameterDescriptor? GetSatifyingBoundAttributeWithParameter(
         string name,
         BoundAttributeDescriptor descriptor,
-        IReadOnlyList<BoundAttributeParameterDescriptor> boundAttributeParameters)
+        ImmutableArray<BoundAttributeParameterDescriptor> boundAttributeParameters)
     {
-        var count = boundAttributeParameters.Count;
-        for (var i = 0; i < count; i++)
+        foreach (var parameter in boundAttributeParameters)
         {
-            if (SatisfiesBoundAttributeWithParameter(name, descriptor, boundAttributeParameters[i]))
+            if (SatisfiesBoundAttributeWithParameter(name, descriptor, parameter))
             {
-                return boundAttributeParameters[i];
+                return parameter;
             }
         }
 

@@ -34,7 +34,7 @@ public class TagHelperBinderTest
             parentIsTagHelper: false);
 
         // Assert
-        Assert.Equal(expectedDescriptors, bindingResult.Descriptors, TagHelperDescriptorComparer.Default);
+        Assert.Equal(expectedDescriptors, bindingResult.Descriptors);
         Assert.Equal("th:div", bindingResult.TagName);
         Assert.Equal("body", bindingResult.ParentTagName);
         Assert.Equal(expectedAttributes, bindingResult.Attributes);
@@ -78,7 +78,7 @@ public class TagHelperBinderTest
             else
             {
                 Assert.NotNull(bindingResult);
-                Assert.Equal(expectedDescriptors, bindingResult.Descriptors, TagHelperDescriptorComparer.Default);
+                Assert.Equal(expectedDescriptors, bindingResult.Descriptors);
 
                 Assert.Equal(tagName, bindingResult.TagName);
                 var mapping = Assert.Single(bindingResult.Mappings[multiTagHelper]);
@@ -130,7 +130,7 @@ public class TagHelperBinderTest
             else
             {
                 Assert.NotNull(bindingResult);
-                Assert.Equal(expectedDescriptors, bindingResult.Descriptors, TagHelperDescriptorComparer.Default);
+                Assert.Equal(expectedDescriptors, bindingResult.Descriptors);
 
                 Assert.Equal(tagName, bindingResult.TagName);
 
@@ -217,7 +217,7 @@ public class TagHelperBinderTest
             parentIsTagHelper: false);
 
         // Assert
-        Assert.Equal((IEnumerable<TagHelperDescriptor>)expectedDescriptors, bindingResult.Descriptors, TagHelperDescriptorComparer.Default);
+        Assert.Equal((IEnumerable<TagHelperDescriptor>)expectedDescriptors, bindingResult.Descriptors);
     }
 
     public static TheoryData RequiredAttributeData
@@ -380,7 +380,7 @@ public class TagHelperBinderTest
         var bindingResult = tagHelperBinder.GetBinding(tagName, providedAttributes, parentTagName: "p", parentIsTagHelper: false);
 
         // Assert
-        Assert.Equal((IEnumerable<TagHelperDescriptor>)expectedDescriptors, bindingResult?.Descriptors, TagHelperDescriptorComparer.Default);
+        Assert.Equal((IEnumerable<TagHelperDescriptor>)expectedDescriptors, bindingResult?.Descriptors);
     }
 
     [Fact]

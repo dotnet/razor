@@ -63,7 +63,7 @@ public class DefaultTagHelperOptimizationPassTest
         var create = Assert.IsType<DefaultTagHelperCreateIntermediateNode>(tagHelper.Children[1]);
         Assert.Equal("__TestTagHelper", create.FieldName);
         Assert.Equal("TestTagHelper", create.TypeName);
-        Assert.Equal(tagHelpers[0], create.TagHelper, TagHelperDescriptorComparer.Default);
+        Assert.Equal(tagHelpers[0], create.TagHelper);
 
         var property = Assert.IsType<DefaultTagHelperPropertyIntermediateNode>(tagHelper.Children[2]);
         Assert.Equal("foo", property.AttributeName);
@@ -72,7 +72,7 @@ public class DefaultTagHelperOptimizationPassTest
         Assert.Equal("__TestTagHelper", property.FieldName);
         Assert.False(property.IsIndexerNameMatch);
         Assert.Equal("FooProp", property.PropertyName);
-        Assert.Equal(tagHelpers[0], property.TagHelper, TagHelperDescriptorComparer.Default);
+        Assert.Equal(tagHelpers[0], property.TagHelper);
 
         var htmlAttribute = Assert.IsType<DefaultTagHelperHtmlAttributeIntermediateNode>(tagHelper.Children[3]);
         Assert.Equal("attr", htmlAttribute.AttributeName);
