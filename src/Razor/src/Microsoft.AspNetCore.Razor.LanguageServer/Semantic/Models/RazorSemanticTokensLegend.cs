@@ -14,6 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal class RazorSemanticTokensLegend
 {
+    // TODO remove
 #pragma warning disable IDE1006 // Naming Styles - These names are queried with reflection below
     private static readonly string MarkupAttributeQuoteType = "markupAttributeQuote";
     private static readonly string MarkupAttributeType = "markupAttribute";

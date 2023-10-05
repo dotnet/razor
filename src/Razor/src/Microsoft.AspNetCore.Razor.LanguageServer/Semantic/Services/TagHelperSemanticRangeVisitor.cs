@@ -496,6 +496,19 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
     private void AddSemanticRange(SyntaxNode node, int semanticKind)
     {
+        if (semanticKind == _razorSemanticTokensLegend.MarkupAttribute
+            || semanticKind == _razorSemanticTokensLegend.MarkupAttributeQuote
+            || semanticKind == _razorSemanticTokensLegend.MarkupAttributeValue
+            || semanticKind == _razorSemanticTokensLegend.MarkupComment
+            || semanticKind == _razorSemanticTokensLegend.MarkupCommentPunctuation
+            || semanticKind == _razorSemanticTokensLegend.MarkupElement
+            || semanticKind == _razorSemanticTokensLegend.MarkupOperator
+            || semanticKind == _razorSemanticTokensLegend.MarkupTagDelimiter
+            || semanticKind == _razorSemanticTokensLegend.MarkupTextLiteral)
+        {
+            return;
+        }
+
         if (node is null)
         {
             // This can happen in situations like "<p class='", where the trailing ' hasn't been typed yet.

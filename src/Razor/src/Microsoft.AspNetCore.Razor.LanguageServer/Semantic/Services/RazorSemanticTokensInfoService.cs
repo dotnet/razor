@@ -25,6 +25,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 {
+    // TODO: add feature flag to be toggle by flight experiment
+    private readonly bool _skipHtmlSyntaxSemanticTokenDetection = false;
     private const int TokenSize = 5;
 
     private readonly IRazorDocumentMappingService _documentMappingService;
@@ -206,7 +208,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                     if (colorBackground)
                     {
                         tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode;
-                        AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, originalRange, _logger);
+                        if (!_skipHtmlSyntaxSemanticTokenDetection)
+                        {
+                            AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, originalRange, _logger);
+                        }
                     }
 
                     razorRanges.Add(new SemanticRange(semanticRange.Kind, originalRange.Start.Line, originalRange.Start.Character, originalRange.End.Line, originalRange.End.Character, tokenModifiers, fromRazor: false));
