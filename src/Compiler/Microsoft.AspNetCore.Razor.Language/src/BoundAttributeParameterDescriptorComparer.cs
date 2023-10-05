@@ -18,40 +18,29 @@ internal sealed class BoundAttributeParameterDescriptorComparer : IEqualityCompa
     {
     }
 
-    public bool Equals(BoundAttributeParameterDescriptor? descriptorX, BoundAttributeParameterDescriptor? descriptorY)
+    public bool Equals(BoundAttributeParameterDescriptor? x, BoundAttributeParameterDescriptor? y)
     {
-        if (ReferenceEquals(descriptorX, descriptorY))
+        if (ReferenceEquals(x, y))
         {
             return true;
         }
 
-        if (descriptorX is null)
+        if (x is null)
         {
-            return descriptorY is null;
+            return y is null;
         }
-        else if (descriptorY is null)
-        {
-            return false;
-        }
-
-        if (descriptorX.Kind != descriptorY.Kind ||
-            descriptorX.IsEnum != descriptorY.IsEnum ||
-            descriptorX.Name != descriptorY.Name ||
-            descriptorX.TypeName != descriptorY.TypeName ||
-            descriptorX.DocumentationObject != descriptorY.DocumentationObject ||
-            descriptorX.DisplayName != descriptorY.DisplayName)
+        else if (y is null)
         {
             return false;
         }
 
-        // FAST PATH: If each descriptor has a MetadataCollection, we should use their equality.
-        if (descriptorX.Metadata is MetadataCollection metadataX &&
-            descriptorY.Metadata is MetadataCollection metadataY)
-        {
-            return metadataX.Equals(metadataY);
-        }
-
-        return ComparerUtilities.Equals(descriptorX.Metadata, descriptorY.Metadata, StringComparer.Ordinal);
+        return x.Kind == y.Kind &&
+               x.IsEnum == y.IsEnum &&
+               x.Name == y.Name &&
+               x.TypeName == y.TypeName &&
+               x.DocumentationObject == y.DocumentationObject &&
+               x.DisplayName == y.DisplayName &&
+               x.Metadata.Equals(y.Metadata);
     }
 
     public int GetHashCode(BoundAttributeParameterDescriptor? descriptor)

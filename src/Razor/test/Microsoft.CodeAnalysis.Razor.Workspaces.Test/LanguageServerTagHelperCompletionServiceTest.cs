@@ -1355,7 +1355,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
         var attributes = ImmutableArray.Create(
             KeyValuePair.Create("asp-route-id", "123"));
 
-        var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div", attributes: attributes);
+        var completionContext = BuildElementCompletionContext(documentDescriptors, existingCompletions: ["form"], containingTagName: "", containingParentTagName: "div", attributes: attributes);
         var service = CreateTagHelperCompletionFactsService();
 
         // Act
@@ -1382,6 +1382,37 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .Build(),
         };
         var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>());
+
+        var completionContext = BuildElementCompletionContext(documentDescriptors, existingCompletions: ["form"], containingTagName: "", containingParentTagName: "div");
+        var service = CreateTagHelperCompletionFactsService();
+
+        // Act
+        var completions = service.GetElementCompletions(completionContext);
+
+        // Assert
+        AssertCompletionsAreEquivalent(expectedCompletions, completions);
+    }
+
+    [Fact]
+    public void GetElementCompletions_MustSatisfyAttributeRules_NoAttributes_AllowedIfNotHtml()
+    {
+        // Arrange
+        var documentDescriptors = new[]
+        {
+            TagHelperDescriptorBuilder.Create("ComponentTagHelper", "TestAssembly")
+                .TagMatchingRuleDescriptor(rule => rule
+                    .RequireTagName("component")
+                .RequireAttributeDescriptor(builder =>
+                    {
+                        builder.Name = "type";
+                        builder.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                    }))
+                .Build(),
+        };
+        var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
+        {
+            ["component"] = new HashSet<TagHelperDescriptor>() { documentDescriptors[0] },
+        });
 
         var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
         var service = CreateTagHelperCompletionFactsService();
@@ -1444,7 +1475,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
             attributes,
             containingParentTagName: containingParentTagName,
             containingParentIsTagHelper: containingParentIsTagHelper,
-            inHTMLSchema: (tag) => tag == "strong" || tag == "b" || tag == "bold" || tag == "li" || tag == "div");
+            inHTMLSchema: (tag) => tag == "strong" || tag == "b" || tag == "bold" || tag == "li" || tag == "div" || tag == "form");
 
         return completionContext;
     }

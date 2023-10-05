@@ -19,26 +19,24 @@ internal sealed class AllowedChildTagDescriptorComparer : IEqualityComparer<Allo
     }
 
     /// <inheritdoc />
-    public bool Equals(
-        AllowedChildTagDescriptor? descriptorX,
-        AllowedChildTagDescriptor? descriptorY)
+    public bool Equals(AllowedChildTagDescriptor? x, AllowedChildTagDescriptor? y)
     {
-        if (ReferenceEquals(descriptorX, descriptorY))
+        if (ReferenceEquals(x, y))
         {
             return true;
         }
 
-        if (descriptorX is null)
+        if (x is null)
         {
-            return descriptorY is null;
+            return y is null;
         }
-        else if (descriptorY is null)
+        else if (y is null)
         {
             return false;
         }
 
-        return descriptorX.Name == descriptorY.Name &&
-               descriptorX.DisplayName == descriptorY.DisplayName;
+        return x.Name == y.Name &&
+               x.DisplayName == y.DisplayName;
     }
 
     /// <inheritdoc />

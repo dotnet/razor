@@ -130,7 +130,7 @@ public class TagHelperDescriptorComparerTest
         string tagMatchingRuleName = null,
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null)
     {
-        var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName) as DefaultTagHelperDescriptorBuilder;
+        var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
         builder.Metadata(TypeName(typeName));
 
         if (attributes != null)
