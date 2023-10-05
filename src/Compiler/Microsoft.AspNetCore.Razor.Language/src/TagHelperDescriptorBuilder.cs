@@ -60,7 +60,7 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
         = new(AllowedChildTagDescriptorBuilder.Pool, HashSetPool<AllowedChildTagDescriptor>.Default);
 
     public TagHelperObjectBuilderCollection<BoundAttributeDescriptor, BoundAttributeDescriptorBuilder> BoundAttributes { get; }
-        = new(BoundAttributeDescriptorBuilder.Pool, s_boundAttributeSetPool);
+        = new(BoundAttributeDescriptorBuilder.Pool, HashSetPool<BoundAttributeDescriptor>.Default);
 
     public TagHelperObjectBuilderCollection<TagMatchingRuleDescriptor, TagMatchingRuleDescriptorBuilder> TagMatchingRules { get; }
         = new(TagMatchingRuleDescriptorBuilder.Pool, s_tagMatchingRuleSetPool);

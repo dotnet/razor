@@ -116,7 +116,7 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : Te
         var tagHelperAttributes = service.GetBoundTagHelperAttributes(documentContext, "asp-route-something", binding);
 
         // Assert
-        Assert.Equal(expectedAttributeDescriptors, tagHelperAttributes, BoundAttributeDescriptorComparer.Default);
+        Assert.Equal(expectedAttributeDescriptors, tagHelperAttributes);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : Te
         var tagHelperAttributes = service.GetBoundTagHelperAttributes(documentContext, "asp-for", binding);
 
         // Assert
-        Assert.Equal(expectedAttributeDescriptors, tagHelperAttributes, BoundAttributeDescriptorComparer.Default);
+        Assert.Equal(expectedAttributeDescriptors, tagHelperAttributes);
     }
 
     [Fact]

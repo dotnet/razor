@@ -68,7 +68,7 @@ public class DefaultTagHelperOptimizationPassTest
         var property = Assert.IsType<DefaultTagHelperPropertyIntermediateNode>(tagHelper.Children[2]);
         Assert.Equal("foo", property.AttributeName);
         Assert.Equal(AttributeStructure.DoubleQuotes, property.AttributeStructure);
-        Assert.Equal(tagHelpers[0].BoundAttributes[0], property.BoundAttribute, BoundAttributeDescriptorComparer.Default);
+        Assert.Equal(tagHelpers[0].BoundAttributes[0], property.BoundAttribute);
         Assert.Equal("__TestTagHelper", property.FieldName);
         Assert.False(property.IsIndexerNameMatch);
         Assert.Equal("FooProp", property.PropertyName);

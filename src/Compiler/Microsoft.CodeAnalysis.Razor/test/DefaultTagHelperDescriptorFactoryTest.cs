@@ -1572,10 +1572,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var descriptor = factory.CreateDescriptor(typeSymbol);
 
         // Assert
-        Assert.Equal(
-            expectedAttributeDescriptors,
-            descriptor.BoundAttributes,
-            BoundAttributeDescriptorComparer.Default);
+        Assert.Equal(expectedAttributeDescriptors, descriptor.BoundAttributes);
 
         var id = AspNetCore.Razor.Language.RazorDiagnosticFactory.TagHelper_InvalidBoundAttributeNameStartsWith.Id;
         foreach (var attribute in descriptor.BoundAttributes.Where(a => a.Name.StartsWith("data-", StringComparison.OrdinalIgnoreCase)))
@@ -2110,10 +2107,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var descriptor = factory.CreateDescriptor(typeSymbol);
 
         // Assert
-        Assert.Equal(
-            expectedAttributeDescriptors,
-            descriptor.BoundAttributes,
-            BoundAttributeDescriptorComparer.Default);
+        Assert.Equal(expectedAttributeDescriptors, descriptor.BoundAttributes);
         Assert.Equal(expectedDiagnostics, descriptor.GetAllDiagnostics());
     }
 
