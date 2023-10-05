@@ -76,7 +76,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
     internal bool CaseSensitive => _parent.CaseSensitive;
 
     private TagHelperObjectBuilderCollection<BoundAttributeParameterDescriptor, BoundAttributeParameterDescriptorBuilder> Parameters { get; }
-        = new(BoundAttributeParameterDescriptorBuilder.Pool, s_boundAttributeParameterSetPool);
+        = new(BoundAttributeParameterDescriptorBuilder.Pool, HashSetPool<BoundAttributeParameterDescriptor>.Default);
 
     public void BindAttributeParameter(Action<BoundAttributeParameterDescriptorBuilder> configure)
     {
