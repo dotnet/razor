@@ -12,9 +12,6 @@ public partial class TagHelperDescriptorBuilder
 {
     private static readonly ObjectPool<TagHelperDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
-        = HashSetPool<AllowedChildTagDescriptor>.Create(AllowedChildTagDescriptorComparer.Default);
-
     private static readonly ObjectPool<HashSet<BoundAttributeDescriptor>> s_boundAttributeSetPool
         = HashSetPool<BoundAttributeDescriptor>.Create(BoundAttributeDescriptorComparer.Default);
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -56,7 +57,7 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
         => _metadata.TryGetMetadataValue(key, out value);
 
     public TagHelperObjectBuilderCollection<AllowedChildTagDescriptor, AllowedChildTagDescriptorBuilder> AllowedChildTags { get; }
-        = new(AllowedChildTagDescriptorBuilder.Pool, s_allowedChildTagSetPool);
+        = new(AllowedChildTagDescriptorBuilder.Pool, HashSetPool<AllowedChildTagDescriptor>.Default);
 
     public TagHelperObjectBuilderCollection<BoundAttributeDescriptor, BoundAttributeDescriptorBuilder> BoundAttributes { get; }
         = new(BoundAttributeDescriptorBuilder.Pool, s_boundAttributeSetPool);
