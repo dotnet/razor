@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
@@ -70,7 +69,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
             completionContext.CurrentParentTagName,
             completionContext.CurrentParentIsTagHelper);
 
-        var applicableDescriptors = new HashSet<TagHelperDescriptor>(TagHelperChecksumComparer.Instance);
+        using var _ = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var applicableDescriptors);
 
         if (applicableTagHelperBinding is { Descriptors: var descriptors })
         {
@@ -338,7 +337,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
                 if (!elementCompletions.TryGetValue(prefixedName, out var existingRuleDescriptors))
                 {
-                    existingRuleDescriptors = new HashSet<TagHelperDescriptor>(TagHelperChecksumComparer.Instance);
+                    existingRuleDescriptors = new HashSet<TagHelperDescriptor>();
                     elementCompletions[prefixedName] = existingRuleDescriptors;
                 }
 
