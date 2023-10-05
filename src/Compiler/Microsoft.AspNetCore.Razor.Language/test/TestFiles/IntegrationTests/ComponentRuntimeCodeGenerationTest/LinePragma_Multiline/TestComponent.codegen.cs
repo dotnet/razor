@@ -14,7 +14,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (1,2)-(2,0) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,3)-(2,1) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
 __builder.AddContent(0, "text"
 );
 
