@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.AspNetCore.Razor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
@@ -61,17 +60,16 @@ internal partial class XmlSnippetParser
         {
             var document = XDocument.Load(filePath);
             var snippets = ReadSnippets(document);
-            snippets.AssumeNotNull();
 
-            var matchingSnippet = snippets.Value.Single(s => string.Equals(s.Title, snippetTitle, StringComparison.OrdinalIgnoreCase));
+            var matchingSnippet = snippets.Single(s => string.Equals(s.Title, snippetTitle, StringComparison.OrdinalIgnoreCase));
             return matchingSnippet;
         }
 
-        private static ImmutableArray<XElement>? ReadCodeSnippetElements(XDocument document)
+        private static ImmutableArray<XElement> ReadCodeSnippetElements(XDocument document)
         {
             var codeSnippetsElement = document.Root;
             if (codeSnippetsElement is null)
-                return null;
+                return ImmutableArray<XElement>.Empty;
 
             if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippets", StringComparison.OrdinalIgnoreCase))
             {
@@ -82,7 +80,7 @@ internal partial class XmlSnippetParser
                 return ImmutableArray.Create(codeSnippetsElement);
             }
 
-            return null;
+            return ImmutableArray<XElement>.Empty;
         }
 
         public static IEnumerable<XElement> GetElementsWithoutNamespace(XElement element, string localName)
@@ -101,10 +99,7 @@ internal partial class XmlSnippetParser
             return subElement == null ? string.Empty : subElement.Value.Trim();
         }
 
-        /// <summary>
-        /// Visible for testing.
-        /// </summary>
-        internal static ImmutableArray<CodeSnippet>? ReadSnippets(XDocument document)
+        private static ImmutableArray<CodeSnippet> ReadSnippets(XDocument document)
         {
             return ReadCodeSnippetElements(document).SelectAsArray(element => new CodeSnippet(element));
         }

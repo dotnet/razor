@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +9,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 
 internal static partial class XmlSnippetParser
 {
-
     internal static ParsedXmlSnippet? GetParsedXmlSnippet(SnippetInfo matchingSnippetInfo, ILogger? logger = null)
     {
         ParsedXmlSnippet? parsedSnippet = null;
@@ -31,12 +29,9 @@ internal static partial class XmlSnippetParser
     {
         // Read the XML file to get the snippet and snippet metadata.
         var matchingSnippet = RetrieveSnippetXmlFromFile(snippetInfo);
-
-        Debug.Assert(matchingSnippet.IsExpansionSnippet(), "Only expansion snippets are supported");
-
         if (!matchingSnippet.IsExpansionSnippet())
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Only expansion snippets are supported");
         }
 
         var expansion = new ExpansionTemplate(matchingSnippet);

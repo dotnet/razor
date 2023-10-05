@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -31,10 +30,6 @@ internal partial class XmlSnippetParser
 
     internal abstract record SnippetPart(string DefaultText)
     {
-        public virtual string GetInsertionString()
-        {
-            return DefaultText;
-        }
     }
 
     internal record SnippetFieldPart(string FieldName, string DefaultText, int? EditIndex) : SnippetPart(DefaultText);
@@ -44,20 +39,14 @@ internal partial class XmlSnippetParser
     {
     }
 
-    internal record SnippetCursorPart() : SnippetPart("$0");
+    internal record SnippetCursorPart() : SnippetPart("$0")
+    {
+        public static SnippetCursorPart Instance = new();
+    }
+
     internal record SnippetStringPart(string Text) : SnippetPart(Text);
     internal record SnippetShortcutPart() : SnippetPart("$shortcut$")
     {
-        public string Shortcut { get; set; } = "";
-
-        public override string GetInsertionString()
-        {
-            if (string.IsNullOrEmpty(Shortcut))
-            {
-                throw new InvalidOperationException("Must set the Shortcut that was used before calling ToString");
-            }
-
-            return Shortcut;
-        }
+        public static SnippetShortcutPart Instance = new();
     }
 }

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -32,7 +31,8 @@ internal partial class XmlSnippetParser
         private readonly List<ExpansionField> _tokens = new();
 
         private readonly string? _code;
-        private readonly string _delimiter = "$";
+        private readonly char _delimiter = '$';
+        private readonly SnippetStringPart _delimiterPart;
 
         public ExpansionTemplate(CodeSnippet snippet)
         {
@@ -47,10 +47,12 @@ internal partial class XmlSnippetParser
 
             _code = Regex.Replace(code.Value, "(?<!\r)\n", "\r\n");
             var delimiterAttribute = code.Attributes().FirstOrDefault(a => a.Name.LocalName.Equals("Delimiter", StringComparison.OrdinalIgnoreCase));
-            if (delimiterAttribute != null)
+            if (delimiterAttribute.Value is string { Length: 1 } && !string.IsNullOrWhiteSpace(delimiterAttribute.Value))
             {
-                _delimiter = delimiterAttribute.Value;
+                _delimiter = delimiterAttribute.Value[0];
             }
+
+            _delimiterPart = new(_delimiter.ToString());
         }
 
         private void ReadDeclarations(XElement? declarations)
@@ -79,10 +81,10 @@ internal partial class XmlSnippetParser
             int iTokenLen;
             var currentCharIndex = 0;
             var currentTokenCharIndex = 0;
-            var sps = SnippetParseState.Code;
+            var parserState = SnippetParseState.Code;
 
             // Associate the field id to the index of the field in the snippet.
-            var fieldNameToSnippetIndex = new Dictionary<string, int>();
+            using var fieldNameToSnippetIndex = new PooledDictionaryBuilder<string, int>();
             var currentTabStopIndex = 1;
 
             using var snippetParts = new PooledArrayBuilder<SnippetPart>();
@@ -92,13 +94,13 @@ internal partial class XmlSnippetParser
             {
                 iTokenLen = currentCharIndex - currentTokenCharIndex;
 
-                switch (sps)
+                switch (parserState)
                 {
                     case SnippetParseState.Code:
-                        if (string.Equals(_code[currentCharIndex].ToString(CultureInfo.CurrentCulture), _delimiter, StringComparison.Ordinal))
+                        if (_code[currentCharIndex] == _delimiter)
                         {
                             // we just hit a $, denoting a literal
-                            sps = SnippetParseState.Literal;
+                            parserState = SnippetParseState.Literal;
 
                             // copy anything from the previous token into our string
                             if (currentCharIndex > currentTokenCharIndex)
@@ -116,18 +118,15 @@ internal partial class XmlSnippetParser
                         break;
 
                     case SnippetParseState.Literal:
-                        if (string.Equals(_code[currentCharIndex].ToString(CultureInfo.CurrentCulture), _delimiter, StringComparison.Ordinal))
+                        if (_code[currentCharIndex] == _delimiter)
                         {
                             // we just hit the $, ending the literal
-                            sps = SnippetParseState.Code;
+                            parserState = SnippetParseState.Code;
 
                             // if we have any token, it's a literal, otherwise it's an escaped '$'
                             if (iTokenLen > 0)
                             {
-                                // allocate a buffer and get the string name of this literal
-                                var fieldNameLength = currentCharIndex - currentTokenCharIndex;
-
-                                var fieldName = _code.Substring(currentTokenCharIndex, fieldNameLength);
+                                var fieldName = _code[currentTokenCharIndex..currentCharIndex];
 
                                 // first check to see if this is a "special" literal
                                 if (string.Equals(fieldName, Selected, StringComparison.Ordinal))
@@ -138,11 +137,11 @@ internal partial class XmlSnippetParser
                                 }
                                 else if (string.Equals(fieldName, End, StringComparison.Ordinal))
                                 {
-                                    snippetParts.Add(new SnippetCursorPart());
+                                    snippetParts.Add(SnippetCursorPart.Instance);
                                 }
                                 else if (string.Equals(fieldName, Shortcut, StringComparison.Ordinal))
                                 {
-                                    snippetParts.Add(new SnippetShortcutPart());
+                                    snippetParts.Add(SnippetShortcutPart.Instance);
                                 }
                                 else
                                 {
@@ -152,8 +151,8 @@ internal partial class XmlSnippetParser
                                         // If we have an editable field we need to know its order in the snippet so we can place the appropriate tab stop indices.
                                         int? fieldIndex = field.IsEditable ? fieldNameToSnippetIndex.GetOrAdd(field.ID, (key) => currentTabStopIndex++) : null;
                                         var fieldPart = string.IsNullOrEmpty(field.FunctionName)
-                                                    ? new SnippetFieldPart(field.ID, field.Default, fieldIndex)
-                                                    : new SnippetFunctionPart(field.ID, field.Default, fieldIndex, field.FunctionName!, field.FunctionParam);
+                                            ? new SnippetFieldPart(field.ID, field.Default, fieldIndex)
+                                            : new SnippetFunctionPart(field.ID, field.Default, fieldIndex, field.FunctionName!, field.FunctionParam);
                                         snippetParts.Add(fieldPart);
                                     }
                                 }
@@ -161,7 +160,7 @@ internal partial class XmlSnippetParser
                             else
                             {
                                 // simply append a '$'    
-                                snippetParts.Add(new SnippetStringPart(_delimiter));
+                                snippetParts.Add(_delimiterPart);
                             }
 
                             // start the new token at the next character
@@ -176,7 +175,7 @@ internal partial class XmlSnippetParser
             }
 
             // do we have any remaining text to be copied?
-            if (sps == SnippetParseState.Code && (currentCharIndex > currentTokenCharIndex))
+            if (parserState == SnippetParseState.Code && (currentCharIndex > currentTokenCharIndex))
             {
                 var remaining = _code[currentTokenCharIndex..currentCharIndex];
                 snippetParts.Add(new SnippetStringPart(remaining));
@@ -200,9 +199,9 @@ internal partial class XmlSnippetParser
         /// Parse the XML snippet function attribute to determine the function name and parameter.
         /// </summary>
         private static bool TryGetSnippetFunctionInfo(
-                string? xmlFunctionText,
-                [NotNullWhen(true)] out string? snippetFunctionName,
-                [NotNullWhen(true)] out string? param)
+            string? xmlFunctionText,
+            [NotNullWhen(true)] out string? snippetFunctionName,
+            [NotNullWhen(true)] out string? param)
         {
             if (string.IsNullOrEmpty(xmlFunctionText))
             {

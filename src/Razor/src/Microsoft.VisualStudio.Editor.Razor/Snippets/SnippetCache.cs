@@ -12,7 +12,7 @@ using static Microsoft.VisualStudio.Editor.Razor.Snippets.XmlSnippetParser;
 namespace Microsoft.VisualStudio.Editor.Razor.Snippets;
 
 [Export(typeof(SnippetCache)), Shared]
-internal class SnippetCache
+internal sealed class SnippetCache
 {
     private Dictionary<SnippetLanguage, ImmutableArray<SnippetInfo>> _snippetCache = new();
     private ReadWriterLocker _lock = new();
@@ -33,9 +33,14 @@ internal class SnippetCache
 
     internal string? TryResolveSnippetString(SnippetCompletionData completionData)
     {
+        ImmutableArray<SnippetInfo> snippets;
+        using (_lock.EnterReadLock())
+        {
+            snippets = _snippetCache.Values.SelectManyAsArray(v => v);
+        }
+
         // Search through all the snippets to find a match
-        var snippets = _snippetCache.Values;
-        var snippet = snippets.SelectMany(v => v).FirstOrDefault(completionData.Matches);
+        var snippet = snippets.FirstOrDefault(completionData.Matches);
         if (snippet is null)
         {
             return null;
@@ -51,12 +56,11 @@ internal class SnippetCache
 
         foreach (var part in parsedSnippet.Parts)
         {
-            if (part is SnippetShortcutPart shortcutPart)
-            {
-                shortcutPart.Shortcut = snippet.Shortcut;
-            }
+            var toAppend = part is SnippetShortcutPart
+                ? snippet.Shortcut
+                : part.DefaultText;
 
-            functionSnippetBuilder.Append(part.GetInsertionString());
+            functionSnippetBuilder.Append(toAppend);
         }
 
         return functionSnippetBuilder.ToString();

@@ -7,9 +7,11 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Snippets;
+using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -46,9 +48,9 @@ internal class SnippetService
     };
 
     public SnippetService(
-            JoinableTaskFactory joinableTaskFactory,
-            IAsyncServiceProvider serviceProvider,
-            SnippetCache snippetCache)
+        JoinableTaskFactory joinableTaskFactory,
+        IAsyncServiceProvider serviceProvider,
+        SnippetCache snippetCache)
     {
         _joinableTaskFactory = joinableTaskFactory;
         _serviceProvider = serviceProvider;
@@ -139,7 +141,6 @@ internal class SnippetService
     {
         _joinableTaskFactory.Context.AssertUIThread();
 
-        var snippetListBuilder = ImmutableArray.CreateBuilder<SnippetInfo>();
         var snippetInfo = new VsExpansion();
         var pSnippetInfo = new IntPtr[1];
 
@@ -153,11 +154,22 @@ internal class SnippetService
                 : s_HtmlLanguageId;
 
             var toIgnore = s_ignoredSnippets[langGuid];
-            expansionEnumerator.GetCount(out var count);
+            var result = expansionEnumerator.GetCount(out var count);
+            if (result != HResult.OK)
+            {
+                return ImmutableArray<SnippetInfo>.Empty;
+            }
+
+            using var snippetListBuilder = new PooledArrayBuilder<SnippetInfo>();
 
             for (uint i = 0; i < count; i++)
             {
-                expansionEnumerator.Next(1, pSnippetInfo, out var fetched);
+                result = expansionEnumerator.Next(1, pSnippetInfo, out var fetched);
+                if (result != HResult.OK)
+                {
+                    continue;
+                }
+
                 if (fetched > 0)
                 {
                     // Convert the returned blob of data into a structure that can be read in managed code.
@@ -169,13 +181,13 @@ internal class SnippetService
                     }
                 }
             }
+
+            return snippetListBuilder.ToImmutable();
         }
         finally
         {
             Marshal.FreeCoTaskMem(pSnippetInfo[0]);
         }
-
-        return snippetListBuilder.ToImmutable();
     }
 
     private static VsExpansion ConvertToVsExpansionAndFree(IntPtr expansionPtr)
