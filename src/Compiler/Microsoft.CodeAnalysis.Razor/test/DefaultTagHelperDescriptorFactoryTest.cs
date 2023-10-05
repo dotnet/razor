@@ -221,7 +221,7 @@ public class DefaultTagHelperDescriptorFactoryTest
 
         // Assert
         var descriptors = ruleBuilder.Build().Attributes;
-        Assert.Equal(expectedRules, descriptors, RequiredAttributeDescriptorComparer.Default);
+        Assert.Equal(expectedRules, descriptors);
     }
 
     public static TheoryData RequiredAttributeParserData
@@ -316,7 +316,7 @@ public class DefaultTagHelperDescriptorFactoryTest
 
         // Assert
         var descriptors = ruleBuilder.Build().Attributes;
-        Assert.Equal(expectedRules, descriptors, RequiredAttributeDescriptorComparer.Default);
+        Assert.Equal(expectedRules, descriptors);
     }
 
     public static TheoryData IsEnumData
