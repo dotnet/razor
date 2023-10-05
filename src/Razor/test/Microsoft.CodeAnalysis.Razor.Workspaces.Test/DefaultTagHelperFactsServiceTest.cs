@@ -80,7 +80,7 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : Te
         var descriptor = Assert.Single(binding.Descriptors);
         Assert.Equal(documentDescriptors[0], descriptor);
         var boundRule = Assert.Single(binding.Mappings[descriptor]);
-        Assert.Equal(documentDescriptors[0].TagMatchingRules.First(), boundRule, TagMatchingRuleDescriptorComparer.Default);
+        Assert.Equal(documentDescriptors[0].TagMatchingRules.First(), boundRule);
     }
 
     [Fact]

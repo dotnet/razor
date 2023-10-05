@@ -39,7 +39,7 @@ public class TagHelperBinderTest
         Assert.Equal("body", bindingResult.ParentTagName);
         Assert.Equal(expectedAttributes, bindingResult.Attributes);
         Assert.Equal("th:", bindingResult.TagHelperPrefix);
-        Assert.Equal(divTagHelper.TagMatchingRules, bindingResult.Mappings[divTagHelper], TagMatchingRuleDescriptorComparer.Default);
+        Assert.Equal<TagMatchingRuleDescriptor>(divTagHelper.TagMatchingRules, bindingResult.Mappings[divTagHelper]);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class TagHelperBinderTest
 
                 Assert.Equal(tagName, bindingResult.TagName);
                 var mapping = Assert.Single(bindingResult.Mappings[multiTagHelper]);
-                Assert.Equal(expectedBindingResult, mapping, TagMatchingRuleDescriptorComparer.Default);
+                Assert.Equal(expectedBindingResult, mapping);
             }
         }
     }
@@ -137,7 +137,7 @@ public class TagHelperBinderTest
                 for (int i = 0; i < expectedDescriptors.Length; i++)
                 {
                     var mapping = Assert.Single(bindingResult.Mappings[expectedDescriptors[i]]);
-                    Assert.Equal(expectedBindingResults[i], mapping, TagMatchingRuleDescriptorComparer.Default);
+                    Assert.Equal(expectedBindingResults[i], mapping);
                 }
             }
         }

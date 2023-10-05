@@ -63,7 +63,7 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
         = new(BoundAttributeDescriptorBuilder.Pool, HashSetPool<BoundAttributeDescriptor>.Default);
 
     public TagHelperObjectBuilderCollection<TagMatchingRuleDescriptor, TagMatchingRuleDescriptorBuilder> TagMatchingRules { get; }
-        = new(TagMatchingRuleDescriptorBuilder.Pool, s_tagMatchingRuleSetPool);
+        = new(TagMatchingRuleDescriptorBuilder.Pool, HashSetPool<TagMatchingRuleDescriptor>.Default);
 
     public void AllowChildTag(Action<AllowedChildTagDescriptorBuilder> configure)
     {
