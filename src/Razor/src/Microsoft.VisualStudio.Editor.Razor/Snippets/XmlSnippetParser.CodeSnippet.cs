@@ -106,7 +106,7 @@ internal partial class XmlSnippetParser
         /// </summary>
         internal static ImmutableArray<CodeSnippet>? ReadSnippets(XDocument document)
         {
-            return ReadCodeSnippetElements(document)?.Select(element => new CodeSnippet(element)).ToImmutableArray();
+            return ReadCodeSnippetElements(document).SelectAsArray(element => new CodeSnippet(element));
         }
     }
 }
