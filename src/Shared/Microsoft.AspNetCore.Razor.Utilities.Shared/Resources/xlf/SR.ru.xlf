@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Destination_is_too_short">
         <source>Destination is too short.</source>
-        <target state="new">Destination is too short.</target>
+        <target state="translated">Имя назначения слишком короткое.</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_negative_number_required">
