@@ -487,7 +487,7 @@ internal static class TagHelperBlockRewriter
                         name.Length == firstBoundAttribute.IndexerNamePrefix.Length;
                 }
 
-                isDirectiveAttribute = firstBoundAttribute.IsDirectiveAttribute();
+                isDirectiveAttribute = firstBoundAttribute.IsDirectiveAttribute;
 
                 break;
             }

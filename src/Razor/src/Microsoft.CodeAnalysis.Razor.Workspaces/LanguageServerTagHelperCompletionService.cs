@@ -267,7 +267,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
         static void UpdateCompletions(string tagName, TagHelperDescriptor possibleDescriptor, Dictionary<string, HashSet<TagHelperDescriptor>> elementCompletions, HashSet<TagHelperDescriptor>? tagHelperDescriptors = null)
         {
-            if (possibleDescriptor.BoundAttributes.Any(boundAttribute => boundAttribute.IsDirectiveAttribute()))
+            if (possibleDescriptor.BoundAttributes.Any(static boundAttribute => boundAttribute.IsDirectiveAttribute))
             {
                 // This is a TagHelper that ultimately represents a DirectiveAttribute. In classic Razor TagHelper land TagHelpers with bound attribute descriptors
                 // are valuable to show in the completion list to understand what was possible for a certain tag; however, with Blazor directive attributes stand

@@ -110,7 +110,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         {
             foreach (var attributeDescriptor in descriptor.BoundAttributes)
             {
-                if (!attributeDescriptor.IsDirectiveAttribute())
+                if (!attributeDescriptor.IsDirectiveAttribute)
                 {
                     // We don't care about non-directive attributes
                     continue;
