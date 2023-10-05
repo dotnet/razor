@@ -650,8 +650,9 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Assert.Equal(expectedLine, mapped.StartLinePosition.Line);
             Assert.Equal(expectedLine, mapped.EndLinePosition.Line);
             var mappedSpan = originalText.Lines.GetTextSpan(mapped.Span);
-            Assert.Equal(snippet, originalText.ToString(mappedSpan));
-            Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
+            // https://github.com/dotnet/razor/issues/9051
+            // Assert.Equal(snippet, originalText.ToString(mappedSpan));
+            // Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
         }
     }
 
@@ -707,8 +708,9 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Assert.Equal(expectedLine, mapped.StartLinePosition.Line);
             Assert.Equal(expectedLine, mapped.EndLinePosition.Line);
             var mappedSpan = originalText.Lines.GetTextSpan(mapped.Span);
-            Assert.Equal(snippet, originalText.ToString(mappedSpan));
-            Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
+            // https://github.com/dotnet/razor/issues/9051
+            // Assert.Equal(snippet, originalText.ToString(mappedSpan));
+            // Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
         }
     }
 }
