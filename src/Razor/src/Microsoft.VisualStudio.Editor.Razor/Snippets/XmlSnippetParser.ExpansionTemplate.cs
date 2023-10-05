@@ -47,7 +47,7 @@ internal partial class XmlSnippetParser
 
             _code = Regex.Replace(code.Value, "(?<!\r)\n", "\r\n");
             var delimiterAttribute = code.Attributes().FirstOrDefault(a => a.Name.LocalName.Equals("Delimiter", StringComparison.OrdinalIgnoreCase));
-            if (delimiterAttribute.Value is string { Length: 1 } && !string.IsNullOrWhiteSpace(delimiterAttribute.Value))
+            if (delimiterAttribute?.Value is string { Length: 1 } && !string.IsNullOrWhiteSpace(delimiterAttribute.Value))
             {
                 _delimiter = delimiterAttribute.Value[0];
             }

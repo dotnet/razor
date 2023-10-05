@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -126,7 +127,7 @@ internal partial class RazorCustomMessageTarget
             using var builder = new PooledArrayBuilder<CompletionItem>();
 
             // Make sure to call our addition to completion before tracking telemetry requests
-            AddSnippetCompletions(request.ProjectedKind, builder);
+            AddSnippetCompletions(request.ProjectedKind, ref builder.AsRef());
 
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var lspMethodName = Methods.TextDocumentCompletion.Name;
@@ -300,7 +301,7 @@ internal partial class RazorCustomMessageTarget
         return Task.FromResult(formattingOptions);
     }
 
-    private void AddSnippetCompletions(RazorLanguageKind languageKind, in PooledArrayBuilder<CompletionItem> builder)
+    private void AddSnippetCompletions(RazorLanguageKind languageKind, ref PooledArrayBuilder<CompletionItem> builder)
     {
         var snippets = _snippetCache.GetSnippets(ConvertLanguageKind(languageKind));
         if (snippets.IsDefaultOrEmpty)
