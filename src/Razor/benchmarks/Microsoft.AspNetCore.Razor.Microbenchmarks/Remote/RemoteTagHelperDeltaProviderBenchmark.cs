@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote.Razor;
-using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
@@ -40,10 +39,10 @@ public class RemoteTagHelperDeltaProviderBenchmark
             .ToHashSet()
             .ToImmutableArray();
 
-        DefaultTagHelperChecksumsSet = DefaultTagHelperSet.SelectAsArray(t => t.GetChecksum());
-        Added50PercentMoreDefaultTagHelpersChecksums = Added50PercentMoreDefaultTagHelpers.SelectAsArray(t => t.GetChecksum());
-        RemovedHalfOfDefaultTagHelpersChecksums = RemovedHalfOfDefaultTagHelpers.SelectAsArray(t => t.GetChecksum());
-        MutatedTwoDefaultTagHelpersChecksums = MutatedTwoDefaultTagHelpers.SelectAsArray(t => t.GetChecksum());
+        DefaultTagHelperChecksumsSet = DefaultTagHelperSet.SelectAsArray(t => t.Checksum);
+        Added50PercentMoreDefaultTagHelpersChecksums = Added50PercentMoreDefaultTagHelpers.SelectAsArray(t => t.Checksum);
+        RemovedHalfOfDefaultTagHelpersChecksums = RemovedHalfOfDefaultTagHelpers.SelectAsArray(t => t.Checksum);
+        MutatedTwoDefaultTagHelpersChecksums = MutatedTwoDefaultTagHelpers.SelectAsArray(t => t.Checksum);
 
         ProjectId = ProjectId.CreateNewId();
     }

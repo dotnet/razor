@@ -10,7 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed partial class TagHelperObjectBuilderCollection<TObject, TBuilder> : IEnumerable<TBuilder>
-    where TObject : TagHelperObject
+    where TObject : TagHelperObject<TObject>
     where TBuilder : TagHelperObjectBuilder<TObject>
 {
     private readonly ObjectPool<TBuilder> _builderPool;

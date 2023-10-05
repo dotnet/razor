@@ -7,7 +7,8 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed partial class TagHelperObjectBuilderCollection<TObject, TBuilder> where TObject : TagHelperObject
+public sealed partial class TagHelperObjectBuilderCollection<TObject, TBuilder>
+    where TObject : TagHelperObject<TObject>
     where TBuilder : TagHelperObjectBuilder<TObject>
 {
     public struct Enumerator : IEnumerator<TBuilder>

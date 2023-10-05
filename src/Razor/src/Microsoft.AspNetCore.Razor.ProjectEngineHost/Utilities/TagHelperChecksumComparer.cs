@@ -15,8 +15,8 @@ internal sealed class TagHelperChecksumComparer : IEqualityComparer<TagHelperDes
     }
 
     public bool Equals(TagHelperDescriptor? x, TagHelperDescriptor? y)
-        => EqualityComparer<Checksum?>.Default.Equals(x?.GetChecksum(), y?.GetChecksum());
+        => EqualityComparer<Checksum?>.Default.Equals(x?.Checksum, y?.Checksum);
 
     public int GetHashCode(TagHelperDescriptor obj)
-        => obj.GetChecksum().GetHashCode();
+        => obj.Checksum.GetHashCode();
 }

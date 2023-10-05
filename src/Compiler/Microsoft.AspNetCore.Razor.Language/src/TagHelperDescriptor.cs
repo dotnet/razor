@@ -8,12 +8,13 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperDescriptor>
+public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
 {
     [Flags]
     private enum TagHelperFlags
@@ -25,7 +26,6 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
     }
 
     private readonly TagHelperFlags _flags;
-    private int? _hashCode;
     private readonly DocumentationObject _documentationObject;
 
     private ImmutableArray<BoundAttributeDescriptor> _editorRequiredAttributes;
@@ -109,6 +109,36 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
         _flags = flags;
     }
 
+    private protected override void BuildChecksum(in Checksum.Builder builder)
+    {
+        builder.AppendData(Kind);
+        builder.AppendData(Name);
+        builder.AppendData(AssemblyName);
+        builder.AppendData(DisplayName);
+        builder.AppendData(TagOutputHint);
+
+        DocumentationObject.AppendToChecksum(in builder);
+
+        builder.AppendData(CaseSensitive);
+
+        foreach (var descriptor in AllowedChildTags)
+        {
+            builder.AppendData(descriptor.Checksum);
+        }
+
+        foreach (var descriptor in BoundAttributes)
+        {
+            builder.AppendData(descriptor.Checksum);
+        }
+
+        foreach (var descriptor in TagMatchingRules)
+        {
+            builder.AppendData(descriptor.Checksum);
+        }
+
+        builder.AppendData(Metadata.Checksum);
+    }
+
     internal ImmutableArray<BoundAttributeDescriptor> EditorRequiredAttributes
     {
         get
@@ -177,23 +207,6 @@ public sealed class TagHelperDescriptor : TagHelperObject, IEquatable<TagHelperD
     public override string ToString()
     {
         return DisplayName ?? base.ToString();
-    }
-
-    public bool Equals(TagHelperDescriptor other)
-    {
-        return TagHelperDescriptorComparer.Default.Equals(this, other);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is TagHelperDescriptor other &&
-               Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        // TagHelperDescriptors are immutable instances and it should be safe to cache it's hashes once.
-        return _hashCode ??= TagHelperDescriptorComparer.Default.GetHashCode(this);
     }
 
     private string GetDebuggerDisplay()

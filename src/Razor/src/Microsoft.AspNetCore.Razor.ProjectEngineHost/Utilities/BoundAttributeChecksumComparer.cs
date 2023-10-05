@@ -15,8 +15,8 @@ internal sealed class BoundAttributeChecksumComparer : IEqualityComparer<BoundAt
     }
 
     public bool Equals(BoundAttributeDescriptor? x, BoundAttributeDescriptor? y)
-        => EqualityComparer<Checksum?>.Default.Equals(x?.GetChecksum(), y?.GetChecksum());
+        => EqualityComparer<Checksum?>.Default.Equals(x?.Checksum, y?.Checksum);
 
     public int GetHashCode(BoundAttributeDescriptor obj)
-        => obj.GetChecksum().GetHashCode();
+        => obj.Checksum.GetHashCode();
 }
