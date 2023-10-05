@@ -614,6 +614,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
+        result.VerifyOutputsMatchBaseline();
 
         var original = project.AdditionalDocuments.Single();
         var originalText = await original.GetTextAsync();
@@ -679,6 +680,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
+        result.VerifyOutputsMatchBaseline();
 
         var original = project.AdditionalDocuments.Single();
         var originalText = await original.GetTextAsync();
