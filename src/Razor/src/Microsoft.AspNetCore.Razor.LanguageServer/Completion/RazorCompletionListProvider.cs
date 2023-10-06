@@ -23,6 +23,7 @@ internal class RazorCompletionListProvider
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
+    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
     private readonly ILogger<RazorCompletionListProvider> _logger;
     private static readonly Command s_retriggerCompletionCommand = new()
     {
@@ -33,10 +34,12 @@ internal class RazorCompletionListProvider
     public RazorCompletionListProvider(
         IRazorCompletionFactsService completionFactsService,
         CompletionListCache completionListCache,
+        RazorLSPOptionsMonitor razorLSPOptionsMonitor,
         ILoggerFactory loggerFactory)
     {
         _completionFactsService = completionFactsService;
         _completionListCache = completionListCache;
+        _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
         _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
     }
 
@@ -65,7 +68,7 @@ internal class RazorCompletionListProvider
             _ => CompletionReason.Typing,
         };
 
-        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
+        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true, _razorLSPOptionsMonitor.CurrentValue.CommitElementsWithSpace);
         var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
         var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);

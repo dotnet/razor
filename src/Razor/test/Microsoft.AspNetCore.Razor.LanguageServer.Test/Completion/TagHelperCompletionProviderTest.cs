@@ -158,7 +158,6 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
         Assert.Empty(completions);
     }
 
-
     [Fact]
     public void GetCompletionAt_SelfClosingTag_ReturnsCompletions()
     {
@@ -305,7 +304,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     {
         // Arrange
         var service = CreateTagHelperCompletionProvider();
-        var options = new RazorCompletionOptions(SnippetsSupported: true);
+        var options = new RazorCompletionOptions(SnippetsSupported: true, CommitElementsWithSpace: true);
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -763,7 +762,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
                 <test2 int-$$val=''>
                 """,
             isRazorFile: false,
-            options: new(SnippetsSupported: true),
+            options: new(SnippetsSupported: true, CommitElementsWithSpace: true),
             tagHelpers: DefaultTagHelpers);
 
         // Act

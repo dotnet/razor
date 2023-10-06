@@ -3,4 +3,4 @@
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal record struct RazorCompletionOptions(bool SnippetsSupported);
+internal record struct RazorCompletionOptions(bool SnippetsSupported, bool CommitElementsWithSpace);

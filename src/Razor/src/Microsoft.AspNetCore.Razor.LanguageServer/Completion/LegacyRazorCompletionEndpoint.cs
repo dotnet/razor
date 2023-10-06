@@ -26,6 +26,7 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
+    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
     private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = "editor.action.triggerSuggest",
@@ -35,10 +36,11 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
 
     public bool MutatesSolutionState => false;
 
-    public LegacyRazorCompletionEndpoint(IRazorCompletionFactsService completionFactsService, CompletionListCache completionListCache)
+    public LegacyRazorCompletionEndpoint(IRazorCompletionFactsService completionFactsService, CompletionListCache completionListCache, RazorLSPOptionsMonitor razorLSPOptionsMonitor)
     {
         _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
         _completionListCache = completionListCache ?? throw new ArgumentNullException(nameof(completionListCache));
+        _razorLSPOptionsMonitor = razorLSPOptionsMonitor ?? throw new ArgumentNullException(nameof(razorLSPOptionsMonitor));
     }
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
@@ -89,7 +91,7 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
             CompletionTriggerKind.TriggerCharacter => CompletionReason.Typing,
             _ => CompletionReason.Typing,
         };
-        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
+        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true, _razorLSPOptionsMonitor.CurrentValue.CommitElementsWithSpace);
         var queryableChange = new SourceChange(hostDocumentIndex, length: 0, newText: string.Empty);
         var owner = syntaxTree.Root.LocateOwner(queryableChange);
         var completionContext = new RazorCompletionContext(hostDocumentIndex, owner, syntaxTree, tagHelperDocumentContext, reason, completionOptions);
