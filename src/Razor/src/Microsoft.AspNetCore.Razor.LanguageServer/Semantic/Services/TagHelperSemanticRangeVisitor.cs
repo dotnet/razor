@@ -18,19 +18,21 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
     private readonly RazorCodeDocument _razorCodeDocument;
     private readonly RazorSemanticTokensLegend _razorSemanticTokensLegend;
     private readonly bool _colorCodeBackground;
+    private readonly bool _skipHtmlSyntaxSemanticTokens;
 
     private bool _addRazorCodeModifier;
 
-    private TagHelperSemanticRangeVisitor(ImmutableArray<SemanticRange>.Builder semanticRanges, RazorCodeDocument razorCodeDocument, TextSpan? range, RazorSemanticTokensLegend razorSemanticTokensLegend, bool colorCodeBackground)
+    private TagHelperSemanticRangeVisitor(ImmutableArray<SemanticRange>.Builder semanticRanges, RazorCodeDocument razorCodeDocument, TextSpan? range, RazorSemanticTokensLegend razorSemanticTokensLegend, bool colorCodeBackground, bool skipHtmlSyntaxSemanticTokens)
         : base(range)
     {
         _semanticRanges = semanticRanges;
         _razorCodeDocument = razorCodeDocument;
         _razorSemanticTokensLegend = razorSemanticTokensLegend;
         _colorCodeBackground = colorCodeBackground;
+        _skipHtmlSyntaxSemanticTokens = skipHtmlSyntaxSemanticTokens;
     }
 
-    public static ImmutableArray<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range? range, RazorSemanticTokensLegend razorSemanticTokensLegend, bool colorCodeBackground)
+    public static ImmutableArray<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range? range, RazorSemanticTokensLegend razorSemanticTokensLegend, bool colorCodeBackground, bool skipHtmlSyntaxSemanticTokens)
     {
         TextSpan? rangeAsTextSpan = null;
         if (range is not null)
@@ -41,7 +43,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var builder);
 
-        var visitor = new TagHelperSemanticRangeVisitor(builder, razorCodeDocument, rangeAsTextSpan, razorSemanticTokensLegend, colorCodeBackground);
+        var visitor = new TagHelperSemanticRangeVisitor(builder, razorCodeDocument, rangeAsTextSpan, razorSemanticTokensLegend, colorCodeBackground, skipHtmlSyntaxSemanticTokens);
 
         visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
@@ -496,7 +498,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
     private void AddSemanticRange(SyntaxNode node, int semanticKind)
     {
-        if (semanticKind == _razorSemanticTokensLegend.MarkupAttribute
+        if (_skipHtmlSyntaxSemanticTokens &&
+            (semanticKind == _razorSemanticTokensLegend.MarkupAttribute
             || semanticKind == _razorSemanticTokensLegend.MarkupAttributeQuote
             || semanticKind == _razorSemanticTokensLegend.MarkupAttributeValue
             || semanticKind == _razorSemanticTokensLegend.MarkupComment
@@ -504,7 +507,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
             || semanticKind == _razorSemanticTokensLegend.MarkupElement
             || semanticKind == _razorSemanticTokensLegend.MarkupOperator
             || semanticKind == _razorSemanticTokensLegend.MarkupTagDelimiter
-            || semanticKind == _razorSemanticTokensLegend.MarkupTextLiteral)
+            || semanticKind == _razorSemanticTokensLegend.MarkupTextLiteral))
         {
             return;
         }

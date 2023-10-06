@@ -21,6 +21,8 @@ internal abstract class LanguageServerFeatureOptions
 
     public abstract bool UsePreciseSemanticTokenRanges { get; }
 
+    public abstract bool SkipHtmlSyntaxSemanticTokens { get; }
+    
     public abstract bool ShowAllCSharpCodeActions { get; }
 
     public abstract bool UpdateBuffersForClosedDocuments { get; }

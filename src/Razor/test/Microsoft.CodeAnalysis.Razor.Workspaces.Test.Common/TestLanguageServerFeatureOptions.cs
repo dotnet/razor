@@ -37,6 +37,8 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool UsePreciseSemanticTokenRanges => true;
 
+    public override bool SkipHtmlSyntaxSemanticTokens => false;
+
     public override bool UpdateBuffersForClosedDocuments => false;
 
     public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath;

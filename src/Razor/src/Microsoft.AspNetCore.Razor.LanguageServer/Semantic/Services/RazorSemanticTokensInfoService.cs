@@ -25,7 +25,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 {
-    // TODO: add feature flag to be toggle by flight experiment
     private readonly bool _skipHtmlSyntaxSemanticTokenDetection = false;
     private const int TokenSize = 5;
 
@@ -66,7 +65,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend, _razorLSPOptionsMonitor.CurrentValue.ColorBackground);
+        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend, _razorLSPOptionsMonitor.CurrentValue.ColorBackground, _languageServerFeatureOptions.SkipHtmlSyntaxSemanticTokens);
         ImmutableArray<SemanticRange>? csharpSemanticRangesResult = null;
 
         try
