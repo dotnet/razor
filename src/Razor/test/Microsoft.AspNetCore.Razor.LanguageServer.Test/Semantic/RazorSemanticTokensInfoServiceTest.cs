@@ -1140,7 +1140,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         var featureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.DelegateToCSharpOnDiagnosticPublish == true &&
             options.UsePreciseSemanticTokenRanges == UsePreciseSemanticTokenRanges &&
-            options.SkipHtmlSyntaxSemanticTokens == true &&
+            options.SkipHtmlSyntaxSemanticTokens == false &&
             options.CSharpVirtualDocumentSuffix == ".ide.g.cs" &&
             options.HtmlVirtualDocumentSuffix == "__virtual.html",
             MockBehavior.Strict);
