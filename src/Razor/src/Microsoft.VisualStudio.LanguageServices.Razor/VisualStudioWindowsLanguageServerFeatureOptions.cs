@@ -15,7 +15,6 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private const string ShowAllCSharpCodeActionsFeatureFlag = "Razor.LSP.ShowAllCSharpCodeActions";
     private const string IncludeProjectKeyInGeneratedFilePathFeatureFlag = "Razor.LSP.IncludeProjectKeyInGeneratedFilePath";
     private const string UsePreciseSemanticTokenRangesFeatureFlag = "Razor.LSP.UsePreciseSemanticTokenRanges";
-    private const string SkipHtmlSyntaxSemanticTokensFeatureFlag = "Razor.LSP.SkipHtmlSyntaxSemanticTokens";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
@@ -56,12 +55,8 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
 
         _skipHtmlSyntaxSemanticTokens = new Lazy<bool>(() =>
         {
-            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
             var experimentationService = (IVsExperimentationService)AsyncPackage.GetGlobalService(typeof(SVsExperimentationService));
-            var defaultValue = experimentationService.IsCachedFlightEnabled("skiphtmlsyntaxflight");
-
-            var skipHtmlSyntaxSemanticTokens = featureFlags.IsFeatureEnabled(SkipHtmlSyntaxSemanticTokensFeatureFlag, defaultValue);
-            return skipHtmlSyntaxSemanticTokens;
+            return experimentationService.IsCachedFlightEnabled("skiphtmlsyntaxflight");
         });
     }
 
