@@ -26,7 +26,6 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
-    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
     private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = "editor.action.triggerSuggest",
@@ -36,11 +35,10 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
 
     public bool MutatesSolutionState => false;
 
-    public LegacyRazorCompletionEndpoint(IRazorCompletionFactsService completionFactsService, CompletionListCache completionListCache, RazorLSPOptionsMonitor razorLSPOptionsMonitor)
+    public LegacyRazorCompletionEndpoint(IRazorCompletionFactsService completionFactsService, CompletionListCache completionListCache)
     {
         _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
         _completionListCache = completionListCache ?? throw new ArgumentNullException(nameof(completionListCache));
-        _razorLSPOptionsMonitor = razorLSPOptionsMonitor ?? throw new ArgumentNullException(nameof(razorLSPOptionsMonitor));
     }
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
