@@ -249,7 +249,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         var completionResult = _tagHelperCompletionService.GetElementCompletions(elementCompletionContext);
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
 
-        var commitChars = context.Options.CommitElementsWithSpace
+        var commitChars = _optionsMonitor.CurrentValue.CommitElementsWithSpace
             ? s_elementCommitCharacters
             : s_elementCommitCharacters_WithoutSpace;
 

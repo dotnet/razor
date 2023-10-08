@@ -91,7 +91,7 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
             CompletionTriggerKind.TriggerCharacter => CompletionReason.Typing,
             _ => CompletionReason.Typing,
         };
-        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true, _razorLSPOptionsMonitor.CurrentValue.CommitElementsWithSpace);
+        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
         var queryableChange = new SourceChange(hostDocumentIndex, length: 0, newText: string.Empty);
         var owner = syntaxTree.Root.LocateOwner(queryableChange);
         var completionContext = new RazorCompletionContext(hostDocumentIndex, owner, syntaxTree, tagHelperDocumentContext, reason, completionOptions);

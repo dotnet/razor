@@ -304,7 +304,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     {
         // Arrange
         var service = CreateTagHelperCompletionProvider();
-        var options = new RazorCompletionOptions(SnippetsSupported: true, CommitElementsWithSpace: true);
+        var options = new RazorCompletionOptions(SnippetsSupported: true);
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -762,7 +762,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
                 <test2 int-$$val=''>
                 """,
             isRazorFile: false,
-            options: new(SnippetsSupported: true, CommitElementsWithSpace: true),
+            options: new(SnippetsSupported: true),
             tagHelpers: DefaultTagHelpers);
 
         // Act

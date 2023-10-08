@@ -68,7 +68,7 @@ internal class RazorCompletionListProvider
             _ => CompletionReason.Typing,
         };
 
-        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true, _razorLSPOptionsMonitor.CurrentValue.CommitElementsWithSpace);
+        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
         var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
         var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
