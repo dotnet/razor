@@ -23,7 +23,6 @@ internal class RazorCompletionListProvider
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
-    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
     private readonly ILogger<RazorCompletionListProvider> _logger;
     private static readonly Command s_retriggerCompletionCommand = new()
     {
@@ -34,12 +33,10 @@ internal class RazorCompletionListProvider
     public RazorCompletionListProvider(
         IRazorCompletionFactsService completionFactsService,
         CompletionListCache completionListCache,
-        RazorLSPOptionsMonitor razorLSPOptionsMonitor,
         ILoggerFactory loggerFactory)
     {
         _completionFactsService = completionFactsService;
         _completionListCache = completionListCache;
-        _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
         _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
     }
 
