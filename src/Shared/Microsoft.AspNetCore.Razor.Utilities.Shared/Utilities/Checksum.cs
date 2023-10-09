@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-#if NETCOREAPP
+#if NETCOREAPP && !NET8_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
 using System.Runtime.InteropServices;
@@ -45,7 +45,7 @@ internal sealed partial record Checksum
 #if NETCOREAPP
         Span<byte> bytes = stackalloc byte[HashSize];
 #if NET8_0_OR_GREATER
-        MemoryMarshal.TryWrite(bytes, in Unsafe.AsRef(in Data));
+        MemoryMarshal.TryWrite(bytes, in Data);
 #else
         MemoryMarshal.TryWrite(bytes, ref Unsafe.AsRef(in Data));
 #endif
