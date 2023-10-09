@@ -28,8 +28,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_type_0">
-        <source>Unsupported_type: '{0}'.</source>
-        <target state="new">Unsupported_type: '{0}'.</target>
+        <source>Unsupported type: '{0}'.</source>
+        <target state="new">Unsupported type: '{0}'.</target>
         <note />
       </trans-unit>
     </body>

@@ -133,6 +133,6 @@
     <value>This program location is thought to be unreachable. File='{0}', Line={1}</value>
   </data>
   <data name="Unsupported_type_0" xml:space="preserve">
-    <value>Unsupported_type: '{0}'.</value>
+    <value>Unsupported type: '{0}'.</value>
   </data>
 </root>
