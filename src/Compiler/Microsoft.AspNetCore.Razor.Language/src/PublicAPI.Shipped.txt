@@ -55,9 +55,6 @@
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.GeneratedCode.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.Options.get -> Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.SourceMappings.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.SourceMapping>
-~abstract Microsoft.AspNetCore.Razor.Language.RazorEngine.Features.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.IRazorEngineFeature>
-~abstract Microsoft.AspNetCore.Razor.Language.RazorEngine.Phases.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.IRazorEnginePhase>
-~abstract Microsoft.AspNetCore.Razor.Language.RazorEngine.Process(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument document) -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorEnginePhaseBase.ExecuteCore(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument) -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorExtension.ExtensionName.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorExtensionInitializer.Initialize(Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilder builder) -> void
@@ -375,9 +372,6 @@
 ~Microsoft.AspNetCore.Razor.Language.IRazorDirectiveClassifierPass.Execute(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument, Microsoft.AspNetCore.Razor.Language.Intermediate.DocumentIntermediateNode documentNode) -> void
 ~Microsoft.AspNetCore.Razor.Language.IRazorDirectiveFeature.Directives.get -> System.Collections.Generic.ICollection<Microsoft.AspNetCore.Razor.Language.DirectiveDescriptor>
 ~Microsoft.AspNetCore.Razor.Language.IRazorDocumentClassifierPass.Execute(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument, Microsoft.AspNetCore.Razor.Language.Intermediate.DocumentIntermediateNode documentNode) -> void
-~Microsoft.AspNetCore.Razor.Language.IRazorEngineBuilder.Build() -> Microsoft.AspNetCore.Razor.Language.RazorEngine
-~Microsoft.AspNetCore.Razor.Language.IRazorEngineBuilder.Features.get -> System.Collections.Generic.ICollection<Microsoft.AspNetCore.Razor.Language.IRazorEngineFeature>
-~Microsoft.AspNetCore.Razor.Language.IRazorEngineBuilder.Phases.get -> System.Collections.Generic.IList<Microsoft.AspNetCore.Razor.Language.IRazorEnginePhase>
 ~Microsoft.AspNetCore.Razor.Language.IRazorEngineFeature.Engine.get -> Microsoft.AspNetCore.Razor.Language.RazorEngine
 ~Microsoft.AspNetCore.Razor.Language.IRazorEngineFeature.Engine.set -> void
 ~Microsoft.AspNetCore.Razor.Language.IRazorEnginePhase.Engine.get -> Microsoft.AspNetCore.Razor.Language.RazorEngine
@@ -1162,8 +1156,6 @@ Microsoft.AspNetCore.Razor.Language.IRazorDirectiveFeature
 Microsoft.AspNetCore.Razor.Language.IRazorDocumentClassifierPass
 Microsoft.AspNetCore.Razor.Language.IRazorDocumentClassifierPass.Order.get -> int
 Microsoft.AspNetCore.Razor.Language.IRazorDocumentClassifierPhase
-Microsoft.AspNetCore.Razor.Language.IRazorEngineBuilder
-Microsoft.AspNetCore.Razor.Language.IRazorEngineBuilder.DesignTime.get -> bool
 Microsoft.AspNetCore.Razor.Language.IRazorEngineFeature
 Microsoft.AspNetCore.Razor.Language.IRazorEnginePhase
 Microsoft.AspNetCore.Razor.Language.IRazorFeature
@@ -1211,8 +1203,6 @@ Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.RemoveAt(int index
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity.Error = 3 -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity.Warning = 2 -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
-Microsoft.AspNetCore.Razor.Language.RazorEngine
-Microsoft.AspNetCore.Razor.Language.RazorEngine.RazorEngine() -> void
 Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase
 Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.RazorEngineFeatureBase() -> void
 Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.ThrowForMissingDocumentDependency<TDocumentDependency>(TDocumentDependency value) -> void

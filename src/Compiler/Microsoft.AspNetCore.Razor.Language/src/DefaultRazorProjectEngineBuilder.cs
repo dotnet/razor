@@ -36,7 +36,7 @@ internal class DefaultRazorProjectEngineBuilder : RazorProjectEngineBuilder
     {
         var engineFeatures = Features.OfType<IRazorEngineFeature>().ToArray();
         var phases = Phases.ToArray();
-        var engine = new DefaultRazorEngine(engineFeatures, phases);
+        var engine = new RazorEngine(engineFeatures, phases);
 
         var projectFeatures = Features.OfType<IRazorProjectEngineFeature>().ToArray();
         var projectEngine = new DefaultRazorProjectEngine(Configuration, engine, FileSystem, projectFeatures);

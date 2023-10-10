@@ -3,16 +3,55 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class RazorEngine
+public sealed class RazorEngine
 {
-    public abstract IReadOnlyList<IRazorEngineFeature> Features { get; }
-    public abstract IReadOnlyList<IRazorEnginePhase> Phases { get; }
+    public IReadOnlyList<IRazorEngineFeature> Features { get; }
+    public IReadOnlyList<IRazorEnginePhase> Phases { get; }
 
-    public abstract void Process(RazorCodeDocument document);
+    internal RazorEngine(IRazorEngineFeature[] features, IRazorEnginePhase[] phases)
+    {
+        if (features == null)
+        {
+            throw new ArgumentNullException(nameof(features));
+        }
+
+        if (phases == null)
+        {
+            throw new ArgumentNullException(nameof(phases));
+        }
+
+        Features = features;
+        Phases = phases;
+
+        for (var i = 0; i < features.Length; i++)
+        {
+            features[i].Engine = this;
+        }
+
+        for (var i = 0; i < phases.Length; i++)
+        {
+            phases[i].Engine = this;
+        }
+    }
+
+    public void Process(RazorCodeDocument document)
+    {
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        for (var i = 0; i < Phases.Count; i++)
+        {
+            var phase = Phases[i];
+            phase.Execute(document);
+        }
+    }
 
 #nullable restore
     internal TFeature? GetFeature<TFeature>()

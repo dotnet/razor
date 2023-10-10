@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Moq;
@@ -135,7 +136,7 @@ public class NamespaceDirectiveTest
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("ignored", "/Account/Manage/AddUser.cshtml"));
 
         var pass = new NamespaceDirective.Pass();
-        pass.Engine = Mock.Of<RazorEngine>();
+        pass.Engine = new RazorEngine(Array.Empty<IRazorEngineFeature>(), Array.Empty<IRazorEnginePhase>());
 
         // Act
         pass.Execute(codeDocument, document);
@@ -182,7 +183,7 @@ public class NamespaceDirectiveTest
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("ignored", "/Account/Manage/AddUser.cshtml"));
 
         var pass = new NamespaceDirective.Pass();
-        pass.Engine = Mock.Of<RazorEngine>();
+        pass.Engine = new RazorEngine(Array.Empty<IRazorEngineFeature>(), Array.Empty<IRazorEnginePhase>());
 
         // Act
         pass.Execute(codeDocument, document);
@@ -220,7 +221,7 @@ public class NamespaceDirectiveTest
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("ignored", "/Account/Manage-Info/Add+User.cshtml"));
 
         var pass = new NamespaceDirective.Pass();
-        pass.Engine = Mock.Of<RazorEngine>();
+        pass.Engine = new RazorEngine(Array.Empty<IRazorEngineFeature>(), Array.Empty<IRazorEnginePhase>());
 
         // Act
         pass.Execute(codeDocument, document);
@@ -267,7 +268,7 @@ public class NamespaceDirectiveTest
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("ignored", "/Account/Manage/AddUser.cshtml"));
 
         var pass = new NamespaceDirective.Pass();
-        pass.Engine = Mock.Of<RazorEngine>();
+        pass.Engine = new RazorEngine(Array.Empty<IRazorEngineFeature>(), Array.Empty<IRazorEnginePhase>());
 
         // Act
         pass.Execute(codeDocument, document);
@@ -305,7 +306,7 @@ public class NamespaceDirectiveTest
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("ignored", "/Account/Manage/AddUser.cshtml"));
 
         var pass = new NamespaceDirective.Pass();
-        pass.Engine = Mock.Of<RazorEngine>();
+        pass.Engine = new RazorEngine(Array.Empty<IRazorEngineFeature>(), Array.Empty<IRazorEnginePhase>());
 
         // Act
         pass.Execute(codeDocument, document);
@@ -341,7 +342,7 @@ public class NamespaceDirectiveTest
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("ignored", "/Account/Manage/AddUser.cshtml"));
 
         var pass = new NamespaceDirective.Pass();
-        pass.Engine = Mock.Of<RazorEngine>();
+        pass.Engine = new RazorEngine(Array.Empty<IRazorEngineFeature>(), Array.Empty<IRazorEnginePhase>());
 
         // Act
         pass.Execute(codeDocument, document);

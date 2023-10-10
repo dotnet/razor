@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public class DefaultRazorEngineTest
+public class RazorEngineTest
 {
     [Fact]
     public void Ctor_InitializesPhasesAndFeatures()
@@ -16,28 +16,28 @@ public class DefaultRazorEngineTest
         // Arrange
         var features = new IRazorEngineFeature[]
         {
-                Mock.Of<IRazorEngineFeature>(),
-                Mock.Of<IRazorEngineFeature>(),
+            Mock.Of<IRazorEngineFeature>(),
+            Mock.Of<IRazorEngineFeature>(),
         };
 
         var phases = new IRazorEnginePhase[]
         {
-                Mock.Of<IRazorEnginePhase>(),
-                Mock.Of<IRazorEnginePhase>(),
+            Mock.Of<IRazorEnginePhase>(),
+            Mock.Of<IRazorEnginePhase>(),
         };
 
         // Act
-        var engine = new DefaultRazorEngine(features, phases);
+        var engine = new RazorEngine(features, phases);
 
         // Assert
-        for (var i = 0; i < features.Length; i++)
+        foreach (var feature in features)
         {
-            Assert.Same(engine, features[i].Engine);
+            Assert.Same(engine, feature.Engine);
         }
 
-        for (var i = 0; i < phases.Length; i++)
+        foreach (var phase in phases)
         {
-            Assert.Same(engine, phases[i].Engine);
+            Assert.Same(engine, phase.Engine);
         }
     }
 
@@ -47,26 +47,26 @@ public class DefaultRazorEngineTest
         // Arrange
         var features = new IRazorEngineFeature[]
         {
-                Mock.Of<IRazorEngineFeature>(),
-                Mock.Of<IRazorEngineFeature>(),
+            Mock.Of<IRazorEngineFeature>(),
+            Mock.Of<IRazorEngineFeature>(),
         };
 
         var phases = new IRazorEnginePhase[]
         {
-                Mock.Of<IRazorEnginePhase>(),
-                Mock.Of<IRazorEnginePhase>(),
+            Mock.Of<IRazorEnginePhase>(),
+            Mock.Of<IRazorEnginePhase>(),
         };
 
-        var engine = new DefaultRazorEngine(features, phases);
+        var engine = new RazorEngine(features, phases);
         var document = TestRazorCodeDocument.CreateEmpty();
 
         // Act
         engine.Process(document);
 
         // Assert
-        for (var i = 0; i < phases.Length; i++)
+        foreach (var phase in phases)
         {
-            var mock = Mock.Get(phases[i]);
+            var mock = Mock.Get(phase);
             mock.Verify(p => p.Execute(document), Times.Once());
         }
     }
