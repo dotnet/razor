@@ -1,1 +1,7 @@
 ﻿#nullable enable
+Microsoft.VisualStudio.Editor.Razor.DefaultRazorEditorFactoryService
+Microsoft.VisualStudio.Editor.Razor.DefaultRazorEditorFactoryService
+Microsoft.VisualStudio.Editor.Razor.DefaultRazorEditorFactoryService.DefaultRazorEditorFactoryService(Microsoft.VisualStudio.Editor.Razor.VisualStudioWorkspaceAccessor! workspaceAccessor) -> void
+Microsoft.VisualStudio.Editor.Razor.DefaultRazorEditorFactoryService.TryInitializeTextBuffer(Microsoft.VisualStudio.Text.ITextBuffer! textBuffer) -> bool
+override Microsoft.VisualStudio.Editor.Razor.DefaultRazorEditorFactoryService.TryGetDocumentTracker(Microsoft.VisualStudio.Text.ITextBuffer! textBuffer, out Microsoft.VisualStudio.Editor.Razor.VisualStudioDocumentTracker? documentTracker) -> bool
+override Microsoft.VisualStudio.Editor.Razor.DefaultRazorEditorFactoryService.TryGetParser(Microsoft.VisualStudio.Text.ITextBuffer! textBuffer, out Microsoft.VisualStudio.Editor.Razor.VisualStudioRazorParser? parser) -> bool
