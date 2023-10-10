@@ -335,25 +335,14 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             }
             else if (compareKeys_1_3 < 0)
             {
-                // If key1 is less than key3 but not key2, it must go in the middle.
+                // If key1 is less than key3 but not key2, it must go in the middle with
+                // key2 in the first slot
+                // - slot 1: pair 2
                 // - slot 2: pair 1
+                // - slot 3: pair 3
+                (_key1, _value1) = pair2;
                 (_key2, _value2) = pair1;
-
-                // With key1 in slot 2, we can determine the other two slots by comparing key2 and key3. 
-                if (compareKeys_2_3 < 0)
-                {
-                    // - slot 1: pair 2
-                    // - slot 3: pair 3
-                    (_key1, _value1) = pair2;
-                    (_key3, _value3) = pair3;
-                }
-                else
-                {
-                    // - slot 1: pair 3
-                    // - slot 3: pair 2
-                    (_key1, _value1) = pair3;
-                    (_key3, _value3) = pair2;
-                }
+                (_key3, _value3) = pair3;
             }
             else
             {
@@ -361,7 +350,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
                 // - slot 3: pair 1
                 (_key3, _value3) = pair1;
 
-                // With key1 in slot 1, we can determine the other two slots by comparing key2 and key3. 
+                // With key1 in slot 3, we can determine the other two slots by comparing key2 and key3. 
                 if (compareKeys_2_3 < 0)
                 {
                     // - slot 1: pair 2
