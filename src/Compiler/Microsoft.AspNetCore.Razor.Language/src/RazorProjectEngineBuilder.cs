@@ -36,7 +36,7 @@ public sealed class RazorProjectEngineBuilder
         var engine = new RazorEngine(engineFeatures, phases);
 
         var projectFeatures = Features.OfType<IRazorProjectEngineFeature>().ToArray();
-        var projectEngine = new DefaultRazorProjectEngine(Configuration, engine, FileSystem, projectFeatures);
+        var projectEngine = new RazorProjectEngine(Configuration, engine, FileSystem, projectFeatures);
 
         return projectEngine;
     }

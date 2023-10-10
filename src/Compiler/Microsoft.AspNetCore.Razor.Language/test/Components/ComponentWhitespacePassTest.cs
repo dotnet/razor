@@ -16,7 +16,7 @@ public class ComponentWhitespacePassTest
     public ComponentWhitespacePassTest()
     {
         Pass = new ComponentWhitespacePass();
-        ProjectEngine = (DefaultRazorProjectEngine)RazorProjectEngine.Create(
+        ProjectEngine = RazorProjectEngine.Create(
             RazorConfiguration.Default,
             RazorProjectFileSystem.Create(Environment.CurrentDirectory),
             b =>
@@ -31,7 +31,7 @@ public class ComponentWhitespacePassTest
         Pass.Engine = Engine;
     }
 
-    private DefaultRazorProjectEngine ProjectEngine { get; }
+    private RazorProjectEngine ProjectEngine { get; }
 
     private RazorEngine Engine { get; }
 

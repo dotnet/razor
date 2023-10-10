@@ -17,7 +17,7 @@ public class ComponentMarkupBlockPassTest
     public ComponentMarkupBlockPassTest()
     {
         Pass = new ComponentMarkupBlockPass();
-        ProjectEngine = (DefaultRazorProjectEngine)RazorProjectEngine.Create(
+        ProjectEngine = RazorProjectEngine.Create(
             RazorConfiguration.Default,
             RazorProjectFileSystem.Create(Environment.CurrentDirectory),
             b =>
@@ -32,7 +32,7 @@ public class ComponentMarkupBlockPassTest
         Pass.Engine = Engine;
     }
 
-    private DefaultRazorProjectEngine ProjectEngine { get; }
+    private RazorProjectEngine ProjectEngine { get; }
 
     private RazorEngine Engine { get; }
 

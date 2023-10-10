@@ -10,13 +10,13 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
-internal sealed class SourceGeneratorProjectEngine : DefaultRazorProjectEngine
+internal sealed class SourceGeneratorProjectEngine : RazorProjectEngine
 {
     private readonly int _discoveryPhaseIndex = -1;
 
     private readonly int _rewritePhaseIndex = -1;
 
-    public SourceGeneratorProjectEngine(DefaultRazorProjectEngine projectEngine)
+    public SourceGeneratorProjectEngine(RazorProjectEngine projectEngine)
         : base(projectEngine.Configuration, projectEngine.Engine, projectEngine.FileSystem, projectEngine.ProjectFeatures)
     {
         for (int i = 0; i < Engine.Phases.Count; i++)
