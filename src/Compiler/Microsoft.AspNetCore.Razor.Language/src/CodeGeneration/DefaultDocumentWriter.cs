@@ -139,11 +139,9 @@ internal class DefaultDocumentWriter : DocumentWriter
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
         {
-            using (Context.CodeWriter.BuildNamespace(node.Content))
-            {
+                Context.CodeWriter.WriteFileScopedNamespace(node.Content);
                 Context.CodeWriter.WriteLine("#line hidden");
                 VisitDefault(node);
-            }
         }
 
         public override void VisitClassDeclaration(ClassDeclarationIntermediateNode node)

@@ -362,6 +362,12 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
+    public static CodeWriter WriteFileScopedNamespace(this CodeWriter writer, string name)
+    {
+        writer.Write("namespace ").Write(name).WriteLine(";");
+        return writer;
+    }
+
     public static CSharpCodeWritingScope BuildScope(this CodeWriter writer)
     {
         return new CSharpCodeWritingScope(writer);

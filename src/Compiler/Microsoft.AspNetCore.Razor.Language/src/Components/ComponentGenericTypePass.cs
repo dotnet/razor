@@ -430,21 +430,20 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
         private void CreateTypeInferenceMethod(DocumentIntermediateNode documentNode, ComponentIntermediateNode node, List<CascadingGenericTypeParameter>? receivesCascadingGenericTypes)
         {
             var @namespace = documentNode.FindPrimaryNamespace().Content;
-            @namespace = string.IsNullOrEmpty(@namespace) ? "__Blazor" : "__Blazor." + @namespace;
-            @namespace += "." + documentNode.FindPrimaryClass().ClassName;
 
             var genericTypeConstraints = node.Component.BoundAttributes
                 .Where(t => t.Metadata.ContainsKey(ComponentMetadata.Component.TypeParameterConstraintsKey))
                 .Select(t => t.Metadata[ComponentMetadata.Component.TypeParameterConstraintsKey]);
 
+            var sanitizedIdentifier = $"{CSharpIdentifier.SanitizeIdentifier(node.TagName.AsSpanOrDefault())}_{_id++}";
             var typeInferenceNode = new ComponentTypeInferenceMethodIntermediateNode()
             {
                 Component = node,
 
                 // Method name is generated and guaranteed not to collide, since it's unique for each
                 // component call site.
-                MethodName = $"Create{CSharpIdentifier.SanitizeIdentifier(node.TagName.AsSpanOrDefault())}_{_id++}",
-                FullTypeName = @namespace + ".TypeInference",
+                MethodName = $"Create{sanitizedIdentifier}",
+                FullTypeName = $"__TypeInference{sanitizedIdentifier}",
 
                 ReceivesCascadingGenericTypes = receivesCascadingGenericTypes,
                 GenericTypeConstraints = genericTypeConstraints
@@ -455,7 +454,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             // Now we need to insert the type inference node into the tree.
             var namespaceNode = documentNode.Children
                 .OfType<NamespaceDeclarationIntermediateNode>()
-                .FirstOrDefault(n => n.Annotations.Contains(new KeyValuePair<object, object>(ComponentMetadata.Component.GenericTypedKey, bool.TrueString)));
+                .FirstOrDefault();
             if (namespaceNode == null)
             {
                 namespaceNode = new NamespaceDeclarationIntermediateNode()
@@ -472,12 +471,12 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
             var classNode = namespaceNode.Children
                 .OfType<ClassDeclarationIntermediateNode>()
-                .FirstOrDefault(n => n.ClassName == "TypeInference");
+                .FirstOrDefault(n => n.ClassName == typeInferenceNode.FullTypeName);
             if (classNode == null)
             {
                 classNode = new ClassDeclarationIntermediateNode()
                 {
-                    ClassName = "TypeInference",
+                    ClassName = typeInferenceNode.FullTypeName,
                     Modifiers =
                         {
                             "internal",
