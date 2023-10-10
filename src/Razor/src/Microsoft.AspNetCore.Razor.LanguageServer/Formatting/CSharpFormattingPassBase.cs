@@ -129,7 +129,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
                 continue;
             }
 
-            var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(originalLocation, 0, string.Empty));
+            var scopeOwner = syntaxTreeRoot.FindInnermostNode(originalLocation);
             sourceMappingIndentations[originalLocation] = new IndentationData(indentation);
 
             // For @section blocks we have special handling to add a fake source mapping/significant location at the end of the
