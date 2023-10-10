@@ -300,8 +300,6 @@ static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.GetPooledI
 static readonly Microsoft.AspNetCore.Razor.Language.MetadataCollection.Empty -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.CodeDocument.get -> Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
 ~Microsoft.AspNetCore.Razor.Language.TagHelperObjectBuilderCollection<TObject, TBuilder>.GetEnumerator() -> Microsoft.AspNetCore.Razor.Language.TagHelperObjectBuilderCollection<TObject, TBuilder>.Enumerator
-~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetBindAttributeGetSet(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder builder) -> void
-~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetGloballyQualifiedTypeName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetMetadata(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, System.Collections.Generic.KeyValuePair<string, string> pair) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.GetGloballyQualifiedTypeName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor attribute) -> string
 ~static Microsoft.AspNetCore.Razor.Language.DirectiveDescriptorBuilderExtensions.AddIdentifierOrExpression(this Microsoft.AspNetCore.Razor.Language.IDirectiveDescriptorBuilder builder, string name, string description) -> Microsoft.AspNetCore.Razor.Language.IDirectiveDescriptorBuilder

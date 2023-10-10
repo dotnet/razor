@@ -617,11 +617,7 @@
 ~override Microsoft.AspNetCore.Razor.Language.SourceSpan.ToString() -> string
 ~override sealed Microsoft.AspNetCore.Razor.Language.DocumentClassifierPassBase.ExecuteCore(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument, Microsoft.AspNetCore.Razor.Language.Intermediate.DocumentIntermediateNode documentNode) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.AsDictionary(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string attributeNamePrefix, string valueTypeName) -> void
-~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.GetPropertyName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder) -> string
-~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.GetPropertyName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder builder) -> string
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.IsDirectiveAttribute(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder) -> bool
-~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetPropertyName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string propertyName) -> void
-~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetPropertyName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder builder, string propertyName) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.GetPropertyName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor attribute) -> string
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.GetPropertyName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor parameter) -> string
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.IsDefaultKind(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor attribute) -> bool
