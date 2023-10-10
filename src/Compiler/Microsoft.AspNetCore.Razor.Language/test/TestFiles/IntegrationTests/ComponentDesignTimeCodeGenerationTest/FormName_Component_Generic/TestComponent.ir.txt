@@ -52,7 +52,7 @@
                     LazyIntermediateToken - (261:3,103 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml)
                 LazyIntermediateToken - (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public T Parameter { get; set; }\n
-    NamespaceDeclaration -  - __Blazor.Test.TestComponent
-        ClassDeclaration -  - internal static - TypeInference -  - 
-            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0
-            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_1
+        ClassDeclaration -  - internal static - __TypeInferenceTestComponent_0 -  - 
+            ComponentTypeInferenceMethod -  - __TypeInferenceTestComponent_0 - CreateTestComponent_0
+        ClassDeclaration -  - internal static - __TypeInferenceTestComponent_1 -  - 
+            ComponentTypeInferenceMethod -  - __TypeInferenceTestComponent_1 - CreateTestComponent_1
