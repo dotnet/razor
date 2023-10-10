@@ -11,6 +11,4 @@ internal abstract class RazorEditorFactoryService
     public abstract bool TryGetDocumentTracker(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out VisualStudioDocumentTracker? documentTracker);
 
     public abstract bool TryGetParser(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out VisualStudioRazorParser? parser);
-
-    internal abstract bool TryGetSmartIndenter(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out BraceSmartIndenter? braceSmartIndenter);
 }

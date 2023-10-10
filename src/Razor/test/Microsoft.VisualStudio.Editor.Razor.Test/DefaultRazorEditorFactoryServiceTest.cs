@@ -189,37 +189,6 @@ public class DefaultRazorEditorFactoryServiceTest : TestBase
     }
 
     [Fact]
-    public void TryGetSmartIndenter_ForRazorTextBuffer_ReturnsTrue()
-    {
-        // Arrange
-        var expectedSmartIndenter = Mock.Of<BraceSmartIndenter>(MockBehavior.Strict);
-        var factoryService = CreateFactoryService(smartIndenter: expectedSmartIndenter);
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
-
-        // Act
-        var result = factoryService.TryGetSmartIndenter(textBuffer, out var smartIndenter);
-
-        // Assert
-        Assert.True(result);
-        Assert.Same(expectedSmartIndenter, smartIndenter);
-    }
-
-    [Fact]
-    public void TryGetSmartIndenter_NonRazorBuffer_ReturnsFalse()
-    {
-        // Arrange
-        var factoryService = CreateFactoryService();
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == _nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
-
-        // Act
-        var result = factoryService.TryGetSmartIndenter(textBuffer, out var smartIndenter);
-
-        // Assert
-        Assert.False(result);
-        Assert.Null(smartIndenter);
-    }
-
-    [Fact]
     public void TryInitializeTextBuffer_StoresSmartIndenter_ReturnsTrue()
     {
         // Arrange

@@ -88,35 +88,6 @@ internal class DefaultRazorEditorFactoryService : RazorEditorFactoryService
         return true;
     }
 
-    internal override bool TryGetSmartIndenter(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out BraceSmartIndenter? braceSmartIndenter)
-    {
-        if (textBuffer is null)
-        {
-            throw new ArgumentNullException(nameof(textBuffer));
-        }
-
-        if (!textBuffer.IsLegacyCoreRazorBuffer())
-        {
-            braceSmartIndenter = null;
-            return false;
-        }
-
-        var textBufferInitialized = TryInitializeTextBuffer(textBuffer);
-        if (!textBufferInitialized)
-        {
-            braceSmartIndenter = null;
-            return false;
-        }
-
-        if (!textBuffer.Properties.TryGetProperty(typeof(BraceSmartIndenter), out braceSmartIndenter!))
-        {
-            Debug.Fail("Brace smart indenter should have been stored on the text buffer during initialization.");
-            return false;
-        }
-
-        return true;
-    }
-
     // Internal for testing
     internal bool TryInitializeTextBuffer(ITextBuffer textBuffer)
     {
