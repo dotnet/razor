@@ -3,11 +3,7 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -89,9 +85,8 @@ public class CreateNewOnMetadataUpdateAttributePassTest : RazorProjectEngineTest
 
     private static DocumentIntermediateNode CreateIRDocument(RazorEngine engine, RazorCodeDocument codeDocument)
     {
-        for (var i = 0; i < engine.Phases.Count; i++)
+        foreach (var phase in engine.Phases)
         {
-            var phase = engine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorIntermediateNodeLoweringPhase)

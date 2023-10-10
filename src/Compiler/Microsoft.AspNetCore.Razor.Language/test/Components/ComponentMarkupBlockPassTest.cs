@@ -455,9 +455,8 @@ public class ComponentMarkupBlockPassTest
 
     private DocumentIntermediateNode Lower(RazorCodeDocument codeDocument)
     {
-        for (var i = 0; i < Engine.Phases.Count; i++)
+        foreach (var phase in Engine.Phases)
         {
-            var phase = Engine.Phases[i];
             if (phase is IRazorCSharpLoweringPhase)
             {
                 break;

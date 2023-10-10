@@ -1,41 +1,30 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed class RazorEngine
 {
-    public IReadOnlyList<IRazorEngineFeature> Features { get; }
-    public IReadOnlyList<IRazorEnginePhase> Phases { get; }
+    public ImmutableArray<IRazorEngineFeature> Features { get; }
+    public ImmutableArray<IRazorEnginePhase> Phases { get; }
 
-    internal RazorEngine(IRazorEngineFeature[] features, IRazorEnginePhase[] phases)
+    internal RazorEngine(ImmutableArray<IRazorEngineFeature> features, ImmutableArray<IRazorEnginePhase> phases)
     {
-        if (features == null)
-        {
-            throw new ArgumentNullException(nameof(features));
-        }
-
-        if (phases == null)
-        {
-            throw new ArgumentNullException(nameof(phases));
-        }
-
         Features = features;
         Phases = phases;
 
-        for (var i = 0; i < features.Length; i++)
+        foreach (var feature in features)
         {
-            features[i].Engine = this;
+            feature.Engine = this;
         }
 
-        for (var i = 0; i < phases.Length; i++)
+        foreach (var phase in phases)
         {
-            phases[i].Engine = this;
+            phase.Engine = this;
         }
     }
 
@@ -46,27 +35,25 @@ public sealed class RazorEngine
             throw new ArgumentNullException(nameof(document));
         }
 
-        for (var i = 0; i < Phases.Count; i++)
+        foreach (var phase in Phases)
         {
-            var phase = Phases[i];
             phase.Execute(document);
         }
     }
 
-#nullable restore
-    internal TFeature? GetFeature<TFeature>()
+    internal bool TryGetFeature<TFeature>([NotNullWhen(true)] out TFeature? feature)
+        where TFeature : class, IRazorEngineFeature
     {
-        var count = Features.Count;
-        for (var i = 0; i < count; i++)
+        foreach (var item in Features)
         {
-            if (Features[i] is TFeature feature)
+            if (item is TFeature result)
             {
-                return feature;
+                feature = result;
+                return true;
             }
         }
 
-        return default;
+        feature = null;
+        return false;
     }
-#nullable disable
 }
-

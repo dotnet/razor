@@ -19,13 +19,15 @@ internal sealed class SourceGeneratorProjectEngine : RazorProjectEngine
     public SourceGeneratorProjectEngine(RazorProjectEngine projectEngine)
         : base(projectEngine.Configuration, projectEngine.Engine, projectEngine.FileSystem, projectEngine.ProjectFeatures)
     {
-        for (int i = 0; i < Engine.Phases.Count; i++)
+        var phases = Engine.Phases;
+
+        for (int i = 0; i < phases.Length; i++)
         {
-            if (Engine.Phases[i] is DefaultRazorTagHelperContextDiscoveryPhase)
+            if (phases[i] is DefaultRazorTagHelperContextDiscoveryPhase)
             {
                 _discoveryPhaseIndex = i;
             }
-            else if (Engine.Phases[i] is DefaultRazorTagHelperRewritePhase)
+            else if (phases[i] is DefaultRazorTagHelperRewritePhase)
             {
                 _rewritePhaseIndex = i;
             }
@@ -106,13 +108,13 @@ internal sealed class SourceGeneratorProjectEngine : RazorProjectEngine
         var codeDocument = sgDocument.CodeDocument;
         Debug.Assert(codeDocument.GetReferencedTagHelpers() is not null);
 
-        ProcessPartial(sgDocument.CodeDocument, _rewritePhaseIndex, Engine.Phases.Count);
+        ProcessPartial(sgDocument.CodeDocument, _rewritePhaseIndex, Engine.Phases.Length);
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
     private void ProcessPartial(RazorCodeDocument codeDocument, int startIndex, int endIndex)
     {
-        Debug.Assert(startIndex >= 0 && startIndex <= endIndex && endIndex <= Engine.Phases.Count);
+        Debug.Assert(startIndex >= 0 && startIndex <= endIndex && endIndex <= Engine.Phases.Length);
         for (var i = startIndex; i < endIndex; i++)
         {
             Engine.Phases[i].Execute(codeDocument);

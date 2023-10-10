@@ -1,10 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,47 +17,26 @@ public class RazorProjectEngine
     public RazorConfiguration Configuration { get; }
     public RazorProjectFileSystem FileSystem { get; }
     public RazorEngine Engine { get; }
-    public IReadOnlyList<IRazorEngineFeature> EngineFeatures => Engine.Features;
-    public IReadOnlyList<IRazorEnginePhase> Phases => Engine.Phases;
-    public IReadOnlyList<IRazorProjectEngineFeature> ProjectFeatures { get; }
+    public ImmutableArray<IRazorEngineFeature> EngineFeatures => Engine.Features;
+    public ImmutableArray<IRazorEnginePhase> Phases => Engine.Phases;
+    public ImmutableArray<IRazorProjectEngineFeature> ProjectFeatures { get; }
 
     internal RazorProjectEngine(
         RazorConfiguration configuration,
         RazorEngine engine,
         RazorProjectFileSystem fileSystem,
-        IReadOnlyList<IRazorProjectEngineFeature> projectFeatures)
+        ImmutableArray<IRazorProjectEngineFeature> projectFeatures)
     {
-        if (configuration == null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
-
-        if (engine == null)
-        {
-            throw new ArgumentNullException(nameof(engine));
-        }
-
-        if (fileSystem == null)
-        {
-            throw new ArgumentNullException(nameof(fileSystem));
-        }
-
-        if (projectFeatures == null)
-        {
-            throw new ArgumentNullException(nameof(projectFeatures));
-        }
-
-        Configuration = configuration;
-        Engine = engine;
-        FileSystem = fileSystem;
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        Engine = engine ?? throw new ArgumentNullException(nameof(engine));
+        FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         ProjectFeatures = projectFeatures;
 
-        for (var i = 0; i < projectFeatures.Count; i++)
+        foreach (var projectFeature in projectFeatures)
         {
-            projectFeatures[i].ProjectEngine = this;
+            projectFeature.ProjectEngine = this;
         }
     }
-
 
     public RazorCodeDocument Process(RazorProjectItem projectItem)
     {
@@ -116,7 +94,11 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    public RazorCodeDocument ProcessDesignTime(RazorSourceDocument source, string fileKind, IReadOnlyList<RazorSourceDocument> importSources, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+    public RazorCodeDocument ProcessDesignTime(
+        RazorSourceDocument source,
+        string? fileKind,
+        IReadOnlyList<RazorSourceDocument>? importSources,
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
     {
         if (source == null)
         {
@@ -152,8 +134,8 @@ public class RazorProjectEngine
 
     private RazorCodeDocument CreateCodeDocumentCore(
         RazorProjectItem projectItem,
-        Action<RazorParserOptionsBuilder> configureParser,
-        Action<RazorCodeGenerationOptionsBuilder> configureCodeGeneration)
+        Action<RazorParserOptionsBuilder>? configureParser,
+        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
         if (projectItem == null)
         {
@@ -175,12 +157,12 @@ public class RazorProjectEngine
 
     internal RazorCodeDocument CreateCodeDocumentCore(
         RazorSourceDocument sourceDocument,
-        string fileKind = null,
-        IReadOnlyList<RazorSourceDocument> importSourceDocuments = null,
-        IReadOnlyList<TagHelperDescriptor> tagHelpers = null,
-        Action<RazorParserOptionsBuilder> configureParser = null,
-        Action<RazorCodeGenerationOptionsBuilder> configureCodeGeneration = null,
-        string cssScope = null)
+        string? fileKind = null,
+        IReadOnlyList<RazorSourceDocument>? importSourceDocuments = null,
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
+        Action<RazorParserOptionsBuilder>? configureParser = null,
+        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null,
+        string? cssScope = null)
     {
         if (sourceDocument == null)
         {
@@ -228,8 +210,8 @@ public class RazorProjectEngine
 
     private RazorCodeDocument CreateCodeDocumentDesignTimeCore(
         RazorProjectItem projectItem,
-        Action<RazorParserOptionsBuilder> configureParser,
-        Action<RazorCodeGenerationOptionsBuilder> configureCodeGeneration)
+        Action<RazorParserOptionsBuilder>? configureParser,
+        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
         if (projectItem == null)
         {
@@ -251,11 +233,11 @@ public class RazorProjectEngine
 
     private RazorCodeDocument CreateCodeDocumentDesignTimeCore(
         RazorSourceDocument sourceDocument,
-        string fileKind,
-        IReadOnlyList<RazorSourceDocument> importSourceDocuments,
-        IReadOnlyList<TagHelperDescriptor> tagHelpers,
-        Action<RazorParserOptionsBuilder> configureParser,
-        Action<RazorCodeGenerationOptionsBuilder> configureCodeGeneration)
+        string? fileKind,
+        IReadOnlyList<RazorSourceDocument>? importSourceDocuments,
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        Action<RazorParserOptionsBuilder>? configureParser,
+        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
         if (sourceDocument == null)
         {
@@ -297,19 +279,21 @@ public class RazorProjectEngine
     private TFeature GetRequiredFeature<TFeature>()
         where TFeature : IRazorProjectEngineFeature
     {
-        var feature = ProjectFeatures.OfType<TFeature>().FirstOrDefault();
-        if (feature == null)
+        foreach (var projectFeature in ProjectFeatures)
         {
-            throw new InvalidOperationException(
-                Resources.FormatRazorProjectEngineMissingFeatureDependency(
-                    typeof(RazorProjectEngine).FullName,
-                    typeof(TFeature).FullName));
+            if (projectFeature is TFeature result)
+            {
+                return result;
+            }
         }
 
-        return feature;
+        throw new InvalidOperationException(
+            Resources.FormatRazorProjectEngineMissingFeatureDependency(
+                typeof(RazorProjectEngine).FullName,
+                typeof(TFeature).FullName));
     }
 
-    internal static RazorProjectEngine CreateEmpty(Action<RazorProjectEngineBuilder> configure = null)
+    internal static RazorProjectEngine CreateEmpty(Action<RazorProjectEngineBuilder>? configure = null)
     {
         var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, RazorProjectFileSystem.Empty);
 
@@ -327,7 +311,7 @@ public class RazorProjectEngine
     public static RazorProjectEngine Create(
         RazorConfiguration configuration,
         RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure)
+        Action<RazorProjectEngineBuilder>? configure)
     {
         if (fileSystem == null)
         {
@@ -373,7 +357,7 @@ public class RazorProjectEngine
         return builder.Build();
     }
 
-    private static void AddDefaultPhases(IList<IRazorEnginePhase> phases)
+    private static void AddDefaultPhases(ImmutableArray<IRazorEnginePhase>.Builder phases)
     {
         phases.Add(new DefaultRazorParsingPhase());
         phases.Add(new DefaultRazorSyntaxTreePhase());
@@ -386,7 +370,7 @@ public class RazorProjectEngine
         phases.Add(new DefaultRazorCSharpLoweringPhase());
     }
 
-    private static void AddDefaultFeatures(ICollection<IRazorFeature> features)
+    private static void AddDefaultFeatures(ImmutableArray<IRazorFeature>.Builder features)
     {
         features.Add(new DefaultImportProjectFeature());
 

@@ -1,8 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
+using System.Collections.Immutable;
 using Moq;
 using Xunit;
 
@@ -14,17 +13,13 @@ public class RazorEngineTest
     public void Ctor_InitializesPhasesAndFeatures()
     {
         // Arrange
-        var features = new IRazorEngineFeature[]
-        {
+        var features = ImmutableArray.Create(
             Mock.Of<IRazorEngineFeature>(),
-            Mock.Of<IRazorEngineFeature>(),
-        };
+            Mock.Of<IRazorEngineFeature>());
 
-        var phases = new IRazorEnginePhase[]
-        {
+        var phases = ImmutableArray.Create(
             Mock.Of<IRazorEnginePhase>(),
-            Mock.Of<IRazorEnginePhase>(),
-        };
+            Mock.Of<IRazorEnginePhase>());
 
         // Act
         var engine = new RazorEngine(features, phases);
@@ -45,17 +40,13 @@ public class RazorEngineTest
     public void Process_CallsAllPhases()
     {
         // Arrange
-        var features = new IRazorEngineFeature[]
-        {
+        var features = ImmutableArray.Create(
             Mock.Of<IRazorEngineFeature>(),
-            Mock.Of<IRazorEngineFeature>(),
-        };
+            Mock.Of<IRazorEngineFeature>());
 
-        var phases = new IRazorEnginePhase[]
-        {
+        var phases = ImmutableArray.Create(
             Mock.Of<IRazorEnginePhase>(),
-            Mock.Of<IRazorEnginePhase>(),
-        };
+            Mock.Of<IRazorEnginePhase>());
 
         var engine = new RazorEngine(features, phases);
         var document = TestRazorCodeDocument.CreateEmpty();

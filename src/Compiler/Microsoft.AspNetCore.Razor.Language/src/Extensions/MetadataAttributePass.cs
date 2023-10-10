@@ -5,7 +5,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -19,7 +18,7 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
 
     protected override void OnInitialized()
     {
-        _identifierFeature = Engine.GetFeature<IMetadataIdentifierFeature>();
+        Engine.TryGetFeature(out _identifierFeature);
     }
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)

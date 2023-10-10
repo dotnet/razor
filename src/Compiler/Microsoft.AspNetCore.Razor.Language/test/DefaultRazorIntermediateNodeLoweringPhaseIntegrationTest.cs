@@ -476,9 +476,8 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
 
         var projectEngine = RazorProjectEngine.Create(configureEngine);
 
-        for (var i = 0; i < projectEngine.Phases.Count; i++)
+        foreach (var phase in projectEngine.Phases)
         {
-            var phase = projectEngine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorIntermediateNodeLoweringPhase)

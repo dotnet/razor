@@ -1151,27 +1151,10 @@ private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeMana
         ((DefaultCodeRenderingContext)context).AncestorsInternal.Push(node);
     }
 
-    private DocumentIntermediateNode Lower(RazorCodeDocument codeDocument)
-    {
-        var projectEngine = CreateProjectEngine();
-        return Lower(codeDocument, projectEngine);
-    }
-
-    private DocumentIntermediateNode LowerDesignTime(RazorCodeDocument codeDocument)
-    {
-        var projectEngine = RazorProjectEngine.Create(b =>
-        {
-            b.Features.Add(new DesignTimeOptionsFeature(designTime: true));
-        });
-
-        return Lower(codeDocument, projectEngine);
-    }
-
     private static DocumentIntermediateNode Lower(RazorCodeDocument codeDocument, RazorProjectEngine engine)
     {
-        for (var i = 0; i < engine.Phases.Count; i++)
+        foreach (var phase in engine.Phases)
         {
-            var phase = engine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorIntermediateNodeLoweringPhase)

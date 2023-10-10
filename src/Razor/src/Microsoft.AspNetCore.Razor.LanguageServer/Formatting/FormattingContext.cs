@@ -284,9 +284,11 @@ internal class FormattingContext : IDisposable
             await InitializeProjectEngineAsync().ConfigureAwait(false);
         }
 
+        Assumes.NotNull(_engine);
+
         var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
 
-        var codeDocument = _engine!.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, _importSources, OriginalSnapshot.Project.TagHelpers);
+        var codeDocument = _engine.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, _importSources, OriginalSnapshot.Project.TagHelpers);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 

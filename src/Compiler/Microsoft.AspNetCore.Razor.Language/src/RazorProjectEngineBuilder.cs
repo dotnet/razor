@@ -1,11 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -13,30 +11,39 @@ public sealed class RazorProjectEngineBuilder
 {
     public RazorConfiguration Configuration { get; }
     public RazorProjectFileSystem FileSystem { get; }
-    public ICollection<IRazorFeature> Features { get; }
-    public IList<IRazorEnginePhase> Phases { get; }
+    public ImmutableArray<IRazorFeature>.Builder Features { get; }
+    public ImmutableArray<IRazorEnginePhase>.Builder Phases { get; }
 
     internal RazorProjectEngineBuilder(RazorConfiguration configuration, RazorProjectFileSystem fileSystem)
     {
-        if (fileSystem == null)
-        {
-            throw new ArgumentNullException(nameof(fileSystem));
-        }
-
-        Configuration = configuration;
-        FileSystem = fileSystem;
-        Features = new List<IRazorFeature>();
-        Phases = new List<IRazorEnginePhase>();
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        Features = ImmutableArray.CreateBuilder<IRazorFeature>();
+        Phases = ImmutableArray.CreateBuilder<IRazorEnginePhase>();
     }
 
     public RazorProjectEngine Build()
     {
-        var engineFeatures = Features.OfType<IRazorEngineFeature>().ToArray();
-        var phases = Phases.ToArray();
-        var engine = new RazorEngine(engineFeatures, phases);
+        using var engineFeatures = new PooledArrayBuilder<IRazorEngineFeature>(Features.Count);
+        using var projectEngineFeatures = new PooledArrayBuilder<IRazorProjectEngineFeature>(Features.Count);
 
-        var projectFeatures = Features.OfType<IRazorProjectEngineFeature>().ToArray();
-        var projectEngine = new RazorProjectEngine(Configuration, engine, FileSystem, projectFeatures);
+        foreach (var feature in Features)
+        {
+            switch (feature)
+            {
+                case IRazorEngineFeature engineFeature:
+                    engineFeatures.Add(engineFeature);
+                    break;
+
+                case IRazorProjectEngineFeature projectEngineFeature:
+                    projectEngineFeatures.Add(projectEngineFeature);
+                    break;
+            }
+        }
+
+        var engine = new RazorEngine(engineFeatures.DrainToImmutable(), Phases.DrainToImmutable());
+
+        var projectEngine = new RazorProjectEngine(Configuration, engine, FileSystem, projectEngineFeatures.DrainToImmutable());
 
         return projectEngine;
     }
