@@ -117,10 +117,9 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
 
         // Now process the checksums of the imports
         Debug.Assert(_identifierFeature != null);
-        for (var i = 0; i < codeDocument.Imports.Count; i++)
-        {
-            var import = codeDocument.Imports[i];
 
+        foreach (var import in codeDocument.Imports)
+        {
             checksum = import.GetChecksum();
             checksumAlgorithm = import.GetChecksumAlgorithm();
             identifier = _identifierFeature.GetIdentifier(codeDocument, import);

@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -50,7 +50,11 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    public RazorCodeDocument Process(RazorSourceDocument source, string fileKind, IReadOnlyList<RazorSourceDocument> importSources, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+    public RazorCodeDocument Process(
+        RazorSourceDocument source,
+        string fileKind,
+        ImmutableArray<RazorSourceDocument> importSources,
+        IReadOnlyList<TagHelperDescriptor> tagHelpers)
     {
         if (source == null)
         {
@@ -78,7 +82,11 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    public RazorCodeDocument ProcessDeclarationOnly(RazorSourceDocument source, string fileKind, IReadOnlyList<RazorSourceDocument> importSources, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+    public RazorCodeDocument ProcessDeclarationOnly(
+        RazorSourceDocument source,
+        string fileKind,
+        ImmutableArray<RazorSourceDocument> importSources,
+        IReadOnlyList<TagHelperDescriptor> tagHelpers)
     {
         if (source == null)
         {
@@ -94,22 +102,6 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    public RazorCodeDocument ProcessDesignTime(
-        RazorSourceDocument source,
-        string? fileKind,
-        IReadOnlyList<RazorSourceDocument>? importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
-    {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        var codeDocument = CreateCodeDocumentDesignTimeCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
-        ProcessCore(codeDocument);
-        return codeDocument;
-    }
-
     public RazorCodeDocument ProcessDesignTime(RazorProjectItem projectItem)
     {
         if (projectItem == null)
@@ -118,6 +110,22 @@ public class RazorProjectEngine
         }
 
         var codeDocument = CreateCodeDocumentDesignTimeCore(projectItem);
+        ProcessCore(codeDocument);
+        return codeDocument;
+    }
+
+    public RazorCodeDocument ProcessDesignTime(
+        RazorSourceDocument source,
+        string? fileKind,
+        ImmutableArray<RazorSourceDocument> importSources,
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        var codeDocument = CreateCodeDocumentDesignTimeCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
         ProcessCore(codeDocument);
         return codeDocument;
     }
@@ -144,21 +152,24 @@ public class RazorProjectEngine
 
         var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
 
-        var importItems = new List<RazorProjectItem>();
-        var features = ProjectFeatures.OfType<IImportProjectFeature>();
-        foreach (var feature in features)
+        using var importItems = new PooledArrayBuilder<RazorProjectItem>();
+
+        foreach (var feature in ProjectFeatures)
         {
-            importItems.AddRange(feature.GetImports(projectItem));
+            if (feature is IImportProjectFeature importProjectFeature)
+            {
+                importItems.AddRange(importProjectFeature.GetImports(projectItem));
+            }
         }
 
-        var importSourceDocuments = GetImportSourceDocuments(importItems);
+        var importSourceDocuments = GetImportSourceDocuments(importItems.DrainToImmutable());
         return CreateCodeDocumentCore(sourceDocument, projectItem.FileKind, importSourceDocuments, tagHelpers: null, configureParser, configureCodeGeneration, cssScope: projectItem.CssScope);
     }
 
     internal RazorCodeDocument CreateCodeDocumentCore(
         RazorSourceDocument sourceDocument,
         string? fileKind = null,
-        IReadOnlyList<RazorSourceDocument>? importSourceDocuments = null,
+        ImmutableArray<RazorSourceDocument> importSourceDocuments = default,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
         Action<RazorParserOptionsBuilder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null,
@@ -168,8 +179,6 @@ public class RazorProjectEngine
         {
             throw new ArgumentNullException(nameof(sourceDocument));
         }
-
-        importSourceDocuments ??= Array.Empty<RazorSourceDocument>();
 
         var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
         {
@@ -220,21 +229,24 @@ public class RazorProjectEngine
 
         var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
 
-        var importItems = new List<RazorProjectItem>();
-        var features = ProjectFeatures.OfType<IImportProjectFeature>();
-        foreach (var feature in features)
+        using var importItems = new PooledArrayBuilder<RazorProjectItem>();
+
+        foreach (var feature in ProjectFeatures)
         {
-            importItems.AddRange(feature.GetImports(projectItem));
+            if (feature is IImportProjectFeature importProjectFeature)
+            {
+                importItems.AddRange(importProjectFeature.GetImports(projectItem));
+            }
         }
 
-        var importSourceDocuments = GetImportSourceDocuments(importItems, suppressExceptions: true);
+        var importSourceDocuments = GetImportSourceDocuments(importItems.DrainToImmutable(), suppressExceptions: true);
         return CreateCodeDocumentDesignTimeCore(sourceDocument, projectItem.FileKind, importSourceDocuments, tagHelpers: null, configureParser, configureCodeGeneration);
     }
 
     private RazorCodeDocument CreateCodeDocumentDesignTimeCore(
         RazorSourceDocument sourceDocument,
         string? fileKind,
-        IReadOnlyList<RazorSourceDocument>? importSourceDocuments,
+        ImmutableArray<RazorSourceDocument> importSourceDocuments,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers,
         Action<RazorParserOptionsBuilder>? configureParser,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
@@ -505,15 +517,14 @@ public class RazorProjectEngine
     }
 
     // Internal for testing
-    internal static IReadOnlyList<RazorSourceDocument> GetImportSourceDocuments(
-        IReadOnlyList<RazorProjectItem> importItems,
+    internal static ImmutableArray<RazorSourceDocument> GetImportSourceDocuments(
+        ImmutableArray<RazorProjectItem> importItems,
         bool suppressExceptions = false)
     {
-        var imports = new List<RazorSourceDocument>();
-        for (var i = 0; i < importItems.Count; i++)
-        {
-            var importItem = importItems[i];
+        using var imports = new PooledArrayBuilder<RazorSourceDocument>(importItems.Length);
 
+        foreach (var importItem in importItems)
+        {
             if (importItem.Exists)
             {
                 try
@@ -530,7 +541,7 @@ public class RazorProjectEngine
             }
         }
 
-        return imports;
+        return imports.DrainToImmutable();
     }
 
     private static void ConfigureParserOptions(RazorParserOptionsBuilder builder)

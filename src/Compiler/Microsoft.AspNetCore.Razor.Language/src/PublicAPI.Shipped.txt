@@ -44,9 +44,6 @@
 ~abstract Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeFormatter.WriteContent(string content) -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeFormatter.WriteProperty(string key, string value) -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.IntermediateNodePassBase.ExecuteCore(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument, Microsoft.AspNetCore.Razor.Language.Intermediate.DocumentIntermediateNode documentNode) -> void
-~abstract Microsoft.AspNetCore.Razor.Language.RazorCodeDocument.Imports.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.RazorSourceDocument>
-~abstract Microsoft.AspNetCore.Razor.Language.RazorCodeDocument.Items.get -> Microsoft.AspNetCore.Razor.Language.ItemCollection
-~abstract Microsoft.AspNetCore.Razor.Language.RazorCodeDocument.Source.get -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptionsBuilder.Build() -> Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorConfiguration.ConfigurationName.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorConfiguration.Extensions.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.RazorExtension>
@@ -660,9 +657,6 @@
 ~static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeExtensions.FindDescendantNodes<TNode>(this Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNode node) -> System.Collections.Generic.IReadOnlyList<TNode>
 ~static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeExtensions.GetAllDiagnostics(this Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNode node) -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.RazorDiagnostic>
 ~static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeExtensions.IsImported(this Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNode node) -> bool
-~static Microsoft.AspNetCore.Razor.Language.RazorCodeDocument.Create(Microsoft.AspNetCore.Razor.Language.RazorSourceDocument source) -> Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
-~static Microsoft.AspNetCore.Razor.Language.RazorCodeDocument.Create(Microsoft.AspNetCore.Razor.Language.RazorSourceDocument source, System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorSourceDocument> imports) -> Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
-~static Microsoft.AspNetCore.Razor.Language.RazorCodeDocument.Create(Microsoft.AspNetCore.Razor.Language.RazorSourceDocument source, System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.RazorSourceDocument> imports, Microsoft.AspNetCore.Razor.Language.RazorParserOptions parserOptions, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions codeGenerationOptions) -> Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
 ~static Microsoft.AspNetCore.Razor.Language.RazorCodeDocumentExtensions.GetCodeGenerationOptions(this Microsoft.AspNetCore.Razor.Language.RazorCodeDocument document) -> Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions
 ~static Microsoft.AspNetCore.Razor.Language.RazorCodeDocumentExtensions.GetCSharpDocument(this Microsoft.AspNetCore.Razor.Language.RazorCodeDocument document) -> Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument
 ~static Microsoft.AspNetCore.Razor.Language.RazorCodeDocumentExtensions.GetCssScope(this Microsoft.AspNetCore.Razor.Language.RazorCodeDocument document) -> string
@@ -1155,8 +1149,6 @@ Microsoft.AspNetCore.Razor.Language.ItemCollection.Count.get -> int
 Microsoft.AspNetCore.Razor.Language.ItemCollection.IsReadOnly.get -> bool
 Microsoft.AspNetCore.Razor.Language.ItemCollection.ItemCollection() -> void
 Microsoft.AspNetCore.Razor.Language.ProvideRazorExtensionInitializerAttribute
-Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
-Microsoft.AspNetCore.Razor.Language.RazorCodeDocument.RazorCodeDocument() -> void
 Microsoft.AspNetCore.Razor.Language.RazorCodeDocumentExtensions
 Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions
 Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions.RazorCodeGenerationOptions() -> void
@@ -1184,7 +1176,6 @@ Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity.Warning = 2 -> Micro
 Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase
 Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.RazorEngineFeatureBase() -> void
 Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.ThrowForMissingDocumentDependency<TDocumentDependency>(TDocumentDependency value) -> void
-Microsoft.AspNetCore.Razor.Language.RazorEngineFeatureBase.ThrowForMissingFeatureDependency<TEngineDependency>(TEngineDependency value) -> void
 Microsoft.AspNetCore.Razor.Language.RazorEnginePhaseBase
 Microsoft.AspNetCore.Razor.Language.RazorEnginePhaseBase.GetRequiredFeature<T>() -> T
 Microsoft.AspNetCore.Razor.Language.RazorEnginePhaseBase.RazorEnginePhaseBase() -> void

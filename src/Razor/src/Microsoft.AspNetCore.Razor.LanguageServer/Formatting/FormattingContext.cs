@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -26,7 +28,7 @@ internal class FormattingContext : IDisposable
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
     private RazorProjectEngine? _engine;
-    private IReadOnlyList<RazorSourceDocument>? _importSources;
+    private ImmutableArray<RazorSourceDocument> _importSources;
 
     private FormattingContext(AdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
         bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
@@ -42,7 +44,7 @@ internal class FormattingContext : IDisposable
         TriggerCharacter = triggerCharacter;
     }
 
-    private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
+    private FormattingContext(RazorProjectEngine engine, ImmutableArray<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
         bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
         : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings, hostDocumentIndex, triggerCharacter)
     {
@@ -311,7 +313,7 @@ internal class FormattingContext : IDisposable
     private async Task InitializeProjectEngineAsync()
     {
         var engine = OriginalSnapshot.Project.GetProjectEngine();
-        var importSources = new List<RazorSourceDocument>();
+        using var importSources = new PooledArrayBuilder<RazorSourceDocument>();
 
         var imports = OriginalSnapshot.GetImports();
         foreach (var import in imports)
@@ -322,7 +324,7 @@ internal class FormattingContext : IDisposable
         }
 
         _engine = engine;
-        _importSources = importSources;
+        _importSources = importSources.DrainToImmutable();
     }
 
     /// <summary>

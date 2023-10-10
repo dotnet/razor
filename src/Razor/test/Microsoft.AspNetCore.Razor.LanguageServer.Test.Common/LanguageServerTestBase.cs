@@ -94,7 +94,7 @@ public abstract class LanguageServerTestBase : TestBase
                 @using Microsoft.AspNetCore.Components.Web
                 """,
             new RazorSourceDocumentProperties(importDocumentName, importDocumentName));
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { defaultImportDocument }, tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, ImmutableArray.Create(defaultImportDocument), tagHelpers);
         return codeDocument;
     }
 

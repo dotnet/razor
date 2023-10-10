@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -126,7 +127,7 @@ public class RazorProjectEngineTest
         // Arrange
         var existingItem = new TestRazorProjectItem("Index.cshtml");
         var nonExistentItem = Mock.Of<RazorProjectItem>(item => item.Exists == false);
-        var items = new[] { existingItem, nonExistentItem };
+        var items = ImmutableArray.Create(existingItem, nonExistentItem);
 
         // Act
         var sourceDocuments = RazorProjectEngine.GetImportSourceDocuments(items);
@@ -144,7 +145,7 @@ public class RazorProjectEngineTest
         projectItem.SetupGet(p => p.Exists).Returns(true);
         projectItem.SetupGet(p => p.PhysicalPath).Returns("path/to/file.cshtml");
         projectItem.Setup(p => p.Read()).Throws(new IOException("Couldn't read file."));
-        var items = new[] { projectItem.Object };
+        var items = ImmutableArray.Create(projectItem.Object);
 
         // Act & Assert
         var exception = Assert.Throws<IOException>(() => RazorProjectEngine.GetImportSourceDocuments(items));
@@ -161,7 +162,7 @@ public class RazorProjectEngineTest
         projectItem.SetupGet(p => p.FilePath).Returns("path/to/file.cshtml");
         projectItem.SetupGet(p => p.RelativePhysicalPath).Returns("path/to/file.cshtml");
         projectItem.Setup(p => p.Read()).Throws(new IOException("Couldn't read file."));
-        var items = new[] { projectItem.Object };
+        var items = ImmutableArray.Create(projectItem.Object);
 
         // Act
         var sourceDocuments = RazorProjectEngine.GetImportSourceDocuments(items, suppressExceptions: true);

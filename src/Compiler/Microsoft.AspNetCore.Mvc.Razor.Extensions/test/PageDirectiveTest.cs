@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
@@ -37,7 +38,7 @@ public class PageDirectiveTest
         var content = "Hello world";
         var sourceDocument = RazorSourceDocument.Create(content, "file");
         var importDocument = RazorSourceDocument.Create("@page", "imports.cshtml");
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { importDocument });
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, ImmutableArray.Create(importDocument));
         var engine = CreateEngine();
         var irDocument = CreateIRDocument(engine, codeDocument);
 

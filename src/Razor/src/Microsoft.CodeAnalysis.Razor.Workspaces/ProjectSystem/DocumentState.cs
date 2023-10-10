@@ -485,7 +485,7 @@ internal class DocumentState
             }
 
             // OK we have to generate the code.
-            var importSources = new List<RazorSourceDocument>();
+            using var importSources = new PooledArrayBuilder<RazorSourceDocument>();
             var projectEngine = project.GetProjectEngine();
             foreach (var item in imports)
             {
@@ -497,7 +497,7 @@ internal class DocumentState
             var projectItem = document.FilePath is null ? null : projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
             var documentSource = await GetRazorSourceDocumentAsync(document, projectItem).ConfigureAwait(false);
 
-            var codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
+            var codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources.DrainToImmutable(), project.TagHelpers);
             return (codeDocument, inputVersion);
         }
 

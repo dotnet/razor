@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
@@ -333,7 +334,7 @@ public class MetadataAttributePassTest
 
         var sourceDocument = TestRazorSourceDocument.Create("", new RazorSourceDocumentProperties(null, "Foo\\Bar.cshtml"));
         var import = TestRazorSourceDocument.Create("@using System", new RazorSourceDocumentProperties(null, "Foo\\Import.cshtml"));
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { import, });
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, ImmutableArray.Create(import));
 
         var irDocument = new DocumentIntermediateNode()
         {
@@ -395,7 +396,7 @@ public class MetadataAttributePassTest
 
         var sourceDocument = TestRazorSourceDocument.Create("", new RazorSourceDocumentProperties(null, "Foo\\Bar.cshtml"));
         var import = TestRazorSourceDocument.Create("@using System", new RazorSourceDocumentProperties(null, "Foo\\Import.cshtml"));
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { import, });
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, ImmutableArray.Create(import));
 
         var irDocument = new DocumentIntermediateNode()
         {

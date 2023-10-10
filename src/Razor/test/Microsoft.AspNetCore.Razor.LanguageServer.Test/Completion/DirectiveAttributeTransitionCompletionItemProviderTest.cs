@@ -309,7 +309,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : TestBase
         fileKind ??= FileKinds.Component;
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder => { });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, Array.Empty<TagHelperDescriptor>());
         var syntaxTree = codeDocument.GetSyntaxTree();
 
         return syntaxTree;
