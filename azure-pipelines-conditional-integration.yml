@@ -1,4 +1,4 @@
-﻿#
+#
 # See https://docs.microsoft.com/azure/devops/pipelines/yaml-schema for reference.
 #
 
@@ -20,7 +20,7 @@ variables:
 trigger: none
 
 schedules:
-- cron: * */12 * * *
+- cron: '* */12 * * *'
   displayName: Every 12 hours
   branches:
     include:
