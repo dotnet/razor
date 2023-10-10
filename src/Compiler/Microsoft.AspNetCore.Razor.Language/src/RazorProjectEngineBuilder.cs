@@ -3,19 +3,41 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class RazorProjectEngineBuilder
+public sealed class RazorProjectEngineBuilder
 {
-    public abstract RazorConfiguration Configuration { get; }
+    public RazorConfiguration Configuration { get; }
+    public RazorProjectFileSystem FileSystem { get; }
+    public ICollection<IRazorFeature> Features { get; }
+    public IList<IRazorEnginePhase> Phases { get; }
 
-    public abstract RazorProjectFileSystem FileSystem { get; }
+    internal RazorProjectEngineBuilder(RazorConfiguration configuration, RazorProjectFileSystem fileSystem)
+    {
+        if (fileSystem == null)
+        {
+            throw new ArgumentNullException(nameof(fileSystem));
+        }
 
-    public abstract ICollection<IRazorFeature> Features { get; }
+        Configuration = configuration;
+        FileSystem = fileSystem;
+        Features = new List<IRazorFeature>();
+        Phases = new List<IRazorEnginePhase>();
+    }
 
-    public abstract IList<IRazorEnginePhase> Phases { get; }
+    public RazorProjectEngine Build()
+    {
+        var engineFeatures = Features.OfType<IRazorEngineFeature>().ToArray();
+        var phases = Phases.ToArray();
+        var engine = new RazorEngine(engineFeatures, phases);
 
-    public abstract RazorProjectEngine Build();
+        var projectFeatures = Features.OfType<IRazorProjectEngineFeature>().ToArray();
+        var projectEngine = new DefaultRazorProjectEngine(Configuration, engine, FileSystem, projectFeatures);
+
+        return projectEngine;
+    }
 }

@@ -71,11 +71,6 @@
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectEngine.FileSystem.get -> Microsoft.AspNetCore.Razor.Language.RazorProjectFileSystem
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectEngine.ProcessCore(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument) -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectEngine.ProjectFeatures.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.IRazorProjectEngineFeature>
-~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilder.Build() -> Microsoft.AspNetCore.Razor.Language.RazorProjectEngine
-~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilder.Configuration.get -> Microsoft.AspNetCore.Razor.Language.RazorConfiguration
-~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilder.Features.get -> System.Collections.Generic.ICollection<Microsoft.AspNetCore.Razor.Language.IRazorFeature>
-~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilder.FileSystem.get -> Microsoft.AspNetCore.Razor.Language.RazorProjectFileSystem
-~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilder.Phases.get -> System.Collections.Generic.IList<Microsoft.AspNetCore.Razor.Language.IRazorEnginePhase>
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectItem.BasePath.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectItem.FilePath.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorProjectItem.PhysicalPath.get -> string
@@ -1227,8 +1222,6 @@ Microsoft.AspNetCore.Razor.Language.RazorProject
 Microsoft.AspNetCore.Razor.Language.RazorProject.RazorProject() -> void
 Microsoft.AspNetCore.Razor.Language.RazorProjectEngine
 Microsoft.AspNetCore.Razor.Language.RazorProjectEngine.RazorProjectEngine() -> void
-Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilder
-Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilder.RazorProjectEngineBuilder() -> void
 Microsoft.AspNetCore.Razor.Language.RazorProjectEngineBuilderExtensions
 Microsoft.AspNetCore.Razor.Language.RazorProjectEngineFeatureBase
 Microsoft.AspNetCore.Razor.Language.RazorProjectEngineFeatureBase.RazorProjectEngineFeatureBase() -> void

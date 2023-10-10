@@ -77,7 +77,7 @@ public abstract class RazorProjectEngine
 
     internal static RazorProjectEngine CreateEmpty(Action<RazorProjectEngineBuilder> configure = null)
     {
-        var builder = new DefaultRazorProjectEngineBuilder(RazorConfiguration.Default, RazorProjectFileSystem.Empty);
+        var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, RazorProjectFileSystem.Empty);
 
         configure?.Invoke(builder);
 
@@ -103,7 +103,7 @@ public abstract class RazorProjectEngine
             throw new ArgumentNullException(nameof(configuration));
         }
 
-        var builder = new DefaultRazorProjectEngineBuilder(configuration, fileSystem);
+        var builder = new RazorProjectEngineBuilder(configuration, fileSystem);
 
         // The initialization order is somewhat important.
         //
