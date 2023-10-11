@@ -11,6 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="TestFiles\**\*" />
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="..\OSSkipConditionFactAttribute.cs" LinkBase="Shared" />
   </ItemGroup>
