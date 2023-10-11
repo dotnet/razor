@@ -8,8 +8,10 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal abstract class TagHelperCollector
+internal abstract class TagHelperCollector<T>
+    where T : ITagHelperDescriptorProvider
 {
+    // This type is generic to ensure that each descendent gets its own instance of this field.
     private static readonly ConditionalWeakTable<IAssemblySymbol, TagHelperDescriptor[]> s_perAssemblyTagHelperCache = new();
 
     private readonly Compilation _compilation;

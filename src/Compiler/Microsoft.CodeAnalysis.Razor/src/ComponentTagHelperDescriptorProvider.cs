@@ -47,7 +47,8 @@ internal partial class ComponentTagHelperDescriptorProvider : RazorEngineFeature
         collector.Collect(context.Results);
     }
 
-    private sealed class Collector(Compilation compilation, ISymbol targetSymbol) : TagHelperCollector(compilation, targetSymbol)
+    private sealed class Collector(Compilation compilation, ISymbol targetSymbol)
+        : TagHelperCollector<ComponentTagHelperDescriptorProvider>(compilation, targetSymbol)
     {
         protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
         {
