@@ -467,7 +467,7 @@ namespace Microsoft.AspNetCore.Components.Rendering
         public void SetKey(object value) { }
 #nullable enable
         public void AddComponentRenderMode(IComponentRenderMode? renderMode) { }
-#nullable restore
+#nullable disable
         public void SetUpdatesAttributeName(string updatesAttributeName) { }
         void System.IDisposable.Dispose() { }
     }
