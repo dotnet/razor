@@ -1,4 +1,4 @@
-﻿#
+#
 # See https://docs.microsoft.com/azure/devops/pipelines/yaml-schema for reference.
 #
 
@@ -20,7 +20,7 @@ variables:
 trigger: none
 
 schedules:
-- cron: * */12 * * *
+- cron: '* */12 * * *'
   displayName: Every 12 hours
   branches:
     include:
@@ -126,7 +126,7 @@ stages:
             -nobl
           name: Run_Unit_Tests
           displayName: Run Unit Tests
-          condition: and(succeeded(), in(variables['Build.Reason'], 'PullRequest'))
+          condition: succeeded()
 
         - script: eng\CIBuild.cmd
             -configuration $(_BuildConfig)
@@ -134,7 +134,7 @@ stages:
             -integrationTest
           name: Run_Integration_Tests
           displayName: Run Integration Tests
-          condition: and(succeeded(), in(variables['Build.Reason'], 'PullRequest'))
+          condition: succeeded()
 
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
@@ -149,4 +149,4 @@ stages:
         - publish: artifacts/TestResults/$(_BuildConfig)
           artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Artifacts
-          condition: in(variables['Build.Reason'], 'PullRequest')
+          condition: always()
