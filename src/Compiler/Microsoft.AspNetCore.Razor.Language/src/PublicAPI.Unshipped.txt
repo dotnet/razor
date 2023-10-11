@@ -123,6 +123,9 @@ Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ConstraintsSource
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ConstraintsSource.init -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ParameterNameSource.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ParameterNameSource.init -> void
+Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider
+Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider.Execute(Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorProviderContext! context) -> void
+Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider.Order.get -> int
 Microsoft.AspNetCore.Razor.Language.MetadataCollection
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.Contains(string! key, string? value) -> bool
 Microsoft.AspNetCore.Razor.Language.MetadataCollection.Enumerator

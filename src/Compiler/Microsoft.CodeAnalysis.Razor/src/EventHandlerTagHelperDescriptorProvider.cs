@@ -256,12 +256,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
 
             public override void VisitAssembly(IAssemblySymbol symbol)
             {
-                // This as a simple yet high-value optimization that excludes the vast majority of
-                // assemblies that (by definition) can't contain a component.
-                if (symbol.Name != null && !symbol.Name.StartsWith("System.", StringComparison.Ordinal))
-                {
-                    Visit(symbol.GlobalNamespace);
-                }
+                Visit(symbol.GlobalNamespace);
             }
         }
     }

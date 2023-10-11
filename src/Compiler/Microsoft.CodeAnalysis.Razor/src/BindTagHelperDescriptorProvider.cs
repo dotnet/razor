@@ -238,10 +238,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
     }
 
     private class Collector(
-        Compilation compilation,
-        ISymbol targetSymbol,
-        INamedTypeSymbol bindElementAttribute,
-        INamedTypeSymbol bindInputElementAttribute)
+        Compilation compilation, ISymbol targetSymbol, INamedTypeSymbol bindElementAttribute, INamedTypeSymbol bindInputElementAttribute)
         : TagHelperCollector<BindTagHelperDescriptorProvider>(compilation, targetSymbol)
     {
         protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
@@ -749,12 +746,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
             public override void VisitAssembly(IAssemblySymbol symbol)
             {
-                // This as a simple yet high-value optimization that excludes the vast majority of
-                // assemblies that (by definition) can't contain a component.
-                if (symbol.Name != null && !symbol.Name.StartsWith("System.", StringComparison.Ordinal))
-                {
-                    Visit(symbol.GlobalNamespace);
-                }
+                Visit(symbol.GlobalNamespace);
             }
         }
     }

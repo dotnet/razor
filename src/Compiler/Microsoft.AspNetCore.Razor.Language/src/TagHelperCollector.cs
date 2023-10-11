@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -23,6 +24,13 @@ internal abstract class TagHelperCollector<T>
         TargetSymbol = targetSymbol;
     }
 
+    private static bool IsTagHelperAssembly(IAssemblySymbol assembly)
+    {
+        // This as a simple yet high-value optimization that excludes the vast majority of
+        // assemblies that (by definition) can't contain a component.
+        return assembly.Name != null && !assembly.Name.StartsWith("System.", StringComparison.Ordinal);
+    }
+
     protected abstract void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results);
 
     public void Collect(ICollection<TagHelperDescriptor> results)
@@ -39,6 +47,11 @@ internal abstract class TagHelperCollector<T>
             {
                 if (Compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
+                    if (!IsTagHelperAssembly(assembly))
+                    {
+                        continue;
+                    }
+
                     TagHelperDescriptor[] tagHelpers;
 
                     lock (s_perAssemblyTagHelperCache)
