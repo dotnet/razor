@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -17,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, ITagHelperDescriptorProvider
 {
+    private static readonly ConditionalWeakTable<IAssemblySymbol, TagHelperDescriptor[]> s_perAssemblyTagHelperCache = new();
+
     private static readonly SymbolDisplayFormat GloballyQualifiedFullNameTypeDisplayFormat =
         SymbolDisplayFormat.FullyQualifiedFormat
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)
@@ -40,26 +44,53 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             return;
         }
 
-        using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
-        var visitor = new ComponentTypeVisitor(types);
-
         var targetSymbol = context.Items.GetTargetSymbol();
         if (targetSymbol is not null)
         {
-            visitor.Visit(targetSymbol);
+            CollectTagHelpers(targetSymbol, context.Results);
         }
         else
         {
-            visitor.Visit(compilation.Assembly.GlobalNamespace);
+            CollectTagHelpers(compilation.Assembly.GlobalNamespace, context.Results);
 
             foreach (var reference in compilation.References)
             {
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    visitor.Visit(assembly.GlobalNamespace);
+                    TagHelperDescriptor[] tagHelpers;
+
+                    lock (s_perAssemblyTagHelperCache)
+                    {
+                        // Check to see if we already have tag helpers cached for this assembly
+                        // and use them cached versions if we do. Roslyn shares PE assembly symbols
+                        // across compilations, so this ensures that we don't produce new tag helpers
+                        // for the same assemblies over and over again.
+                        if (!s_perAssemblyTagHelperCache.TryGetValue(assembly, out tagHelpers))
+                        {
+                            using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
+                            CollectTagHelpers(assembly.GlobalNamespace, referenceTagHelpers);
+
+                            tagHelpers = referenceTagHelpers.ToArrayOrEmpty();
+
+                            s_perAssemblyTagHelperCache.Add(assembly, tagHelpers);
+                        }
+                    }
+
+                    foreach (var tagHelper in tagHelpers)
+                    {
+                        context.Results.Add(tagHelper);
+                    }
                 }
             }
         }
+    }
+
+    private static void CollectTagHelpers(ISymbol symbol, ICollection<TagHelperDescriptor> results)
+    {
+        using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
+        var visitor = new ComponentTypeVisitor(types);
+
+        visitor.Visit(symbol);
 
         foreach (var type in types)
         {
@@ -72,16 +103,16 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             var properties = GetProperties(type);
 
             var shortNameMatchingDescriptor = CreateShortNameMatchingDescriptor(type, properties);
-            context.Results.Add(shortNameMatchingDescriptor);
+            results.Add(shortNameMatchingDescriptor);
 
             var fullyQualifiedNameMatchingDescriptor = CreateFullyQualifiedNameMatchingDescriptor(type, properties);
-            context.Results.Add(fullyQualifiedNameMatchingDescriptor);
+            results.Add(fullyQualifiedNameMatchingDescriptor);
 
             foreach (var childContent in shortNameMatchingDescriptor.GetChildContentProperties())
             {
                 // Synthesize a separate tag helper for each child content property that's declared.
-                context.Results.Add(CreateChildContentDescriptor(shortNameMatchingDescriptor, childContent));
-                context.Results.Add(CreateChildContentDescriptor(fullyQualifiedNameMatchingDescriptor, childContent));
+                results.Add(CreateChildContentDescriptor(shortNameMatchingDescriptor, childContent));
+                results.Add(CreateChildContentDescriptor(fullyQualifiedNameMatchingDescriptor, childContent));
             }
         }
     }
@@ -727,14 +758,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         EventCallback,
     }
 
-    private class ComponentTypeVisitor : SymbolVisitor
+    private class ComponentTypeVisitor(List<INamedTypeSymbol> results) : SymbolVisitor
     {
-        private readonly List<INamedTypeSymbol> _results;
-
-        public ComponentTypeVisitor(List<INamedTypeSymbol> results)
-        {
-            _results = results;
-        }
+        private readonly List<INamedTypeSymbol> _results = results;
 
         public override void VisitNamedType(INamedTypeSymbol symbol)
         {
