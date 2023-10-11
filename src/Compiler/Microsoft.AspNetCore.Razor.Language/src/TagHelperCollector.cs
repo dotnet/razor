@@ -14,30 +14,30 @@ internal abstract class TagHelperCollector<T>
     // This type is generic to ensure that each descendent gets its own instance of this field.
     private static readonly ConditionalWeakTable<IAssemblySymbol, TagHelperDescriptor[]> s_perAssemblyTagHelperCache = new();
 
-    private readonly Compilation _compilation;
-    private readonly ISymbol? _targetSymbol;
+    protected readonly Compilation Compilation;
+    protected readonly ISymbol? TargetSymbol;
 
     protected TagHelperCollector(Compilation compilation, ISymbol? targetSymbol)
     {
-        _compilation = compilation;
-        _targetSymbol = targetSymbol;
+        Compilation = compilation;
+        TargetSymbol = targetSymbol;
     }
 
     protected abstract void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results);
 
     public void Collect(ICollection<TagHelperDescriptor> results)
     {
-        if (_targetSymbol is not null)
+        if (TargetSymbol is not null)
         {
-            Collect(_targetSymbol, results);
+            Collect(TargetSymbol, results);
         }
         else
         {
-            Collect(_compilation.Assembly.GlobalNamespace, results);
+            Collect(Compilation.Assembly.GlobalNamespace, results);
 
-            foreach (var reference in _compilation.References)
+            foreach (var reference in Compilation.References)
             {
-                if (_compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
+                if (Compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
                     TagHelperDescriptor[] tagHelpers;
 
