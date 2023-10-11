@@ -52,7 +52,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
         }
 
         // Assert
-        Assert.Equal(expectedTagHelpers, actualTagHelpers, TagHelperDescriptorComparer.Default);
+        Assert.Equal<TagHelperDescriptor>(expectedTagHelpers, actualTagHelpers);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
         var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
 
         // Assert
-        Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
+        Assert.Equal(expectedDescriptor, descriptor);
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
         var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
 
         // Assert
-        Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
+        Assert.Equal(expectedDescriptor, descriptor);
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
         var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
 
         // Assert
-        Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
+        Assert.Equal(expectedDescriptor, descriptor);
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
         var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
 
         // Assert
-        Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
+        Assert.Equal(expectedDescriptor, descriptor);
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
 
         // Assert
         Assert.NotNull(descriptor);
-        Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
+        Assert.Equal(expectedDescriptor, descriptor);
 
         var boundAttribute = Assert.Single(descriptor.BoundAttributes);
         Assert.False(boundAttribute.IsEditorRequired);
@@ -288,7 +288,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
 
         // Assert
         Assert.NotNull(descriptor);
-        Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
+        Assert.Equal(expectedDescriptor, descriptor);
 
         var boundAttribute = Assert.Single(descriptor.BoundAttributes);
         Assert.True(boundAttribute.IsEditorRequired);

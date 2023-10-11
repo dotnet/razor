@@ -1,12 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed class RequiredAttributeDescriptor : TagHelperObject, IEquatable<RequiredAttributeDescriptor>
+public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttributeDescriptor>
 {
     public string Name { get; }
     public NameComparisonMode NameComparison { get; }
@@ -37,25 +37,20 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject, IEquatable<Re
         Metadata = metadata ?? MetadataCollection.Empty;
     }
 
+    private protected override void BuildChecksum(in Checksum.Builder builder)
+    {
+        builder.AppendData(Name);
+        builder.AppendData((int)NameComparison);
+        builder.AppendData(Value);
+        builder.AppendData((int)ValueComparison);
+        builder.AppendData(DisplayName);
+        builder.AppendData(CaseSensitive);
+        builder.AppendData(Metadata.Checksum);
+    }
+
     public override string ToString()
     {
         return DisplayName ?? base.ToString();
-    }
-
-    public bool Equals(RequiredAttributeDescriptor other)
-    {
-        return RequiredAttributeDescriptorComparer.Default.Equals(this, other);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is RequiredAttributeDescriptor other &&
-               Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return RequiredAttributeDescriptorComparer.Default.GetHashCode(this);
     }
 
     /// <summary>

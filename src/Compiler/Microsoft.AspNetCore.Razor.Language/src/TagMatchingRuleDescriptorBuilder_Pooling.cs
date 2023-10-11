@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 
@@ -10,9 +9,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public partial class TagMatchingRuleDescriptorBuilder
 {
     internal static readonly ObjectPool<TagMatchingRuleDescriptorBuilder> Pool = DefaultPool.Create(Policy.Instance);
-
-    private static readonly ObjectPool<HashSet<RequiredAttributeDescriptor>> s_requiredAttributeSetPool
-        = HashSetPool<RequiredAttributeDescriptor>.Create(RequiredAttributeDescriptorComparer.Default);
 
     internal static TagMatchingRuleDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent)
     {

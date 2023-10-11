@@ -1440,7 +1440,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
         {
             var actualValue = actual.Completions[expectedCompletion.Key];
             Assert.NotNull(actualValue);
-            Assert.Equal(expectedCompletion.Value, actualValue, TagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedCompletion.Value, actualValue);
         }
     }
 
@@ -1452,7 +1452,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
         {
             var actualValue = actual.Completions[expectedCompletion.Key];
             Assert.NotNull(actualValue);
-            Assert.Equal(expectedCompletion.Value, actualValue, BoundAttributeDescriptorComparer.Default);
+            Assert.Equal(expectedCompletion.Value, actualValue);
         }
     }
 

@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
@@ -70,7 +69,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
             completionContext.CurrentParentTagName,
             completionContext.CurrentParentIsTagHelper);
 
-        var applicableDescriptors = new HashSet<TagHelperDescriptor>(TagHelperChecksumComparer.Instance);
+        using var _ = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var applicableDescriptors);
 
         if (applicableTagHelperBinding is { Descriptors: var descriptors })
         {
@@ -268,7 +267,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
         static void UpdateCompletions(string tagName, TagHelperDescriptor possibleDescriptor, Dictionary<string, HashSet<TagHelperDescriptor>> elementCompletions, HashSet<TagHelperDescriptor>? tagHelperDescriptors = null)
         {
-            if (possibleDescriptor.BoundAttributes.Any(boundAttribute => boundAttribute.IsDirectiveAttribute()))
+            if (possibleDescriptor.BoundAttributes.Any(static boundAttribute => boundAttribute.IsDirectiveAttribute))
             {
                 // This is a TagHelper that ultimately represents a DirectiveAttribute. In classic Razor TagHelper land TagHelpers with bound attribute descriptors
                 // are valuable to show in the completion list to understand what was possible for a certain tag; however, with Blazor directive attributes stand
@@ -338,7 +337,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
                 if (!elementCompletions.TryGetValue(prefixedName, out var existingRuleDescriptors))
                 {
-                    existingRuleDescriptors = new HashSet<TagHelperDescriptor>(TagHelperChecksumComparer.Instance);
+                    existingRuleDescriptors = new HashSet<TagHelperDescriptor>();
                     elementCompletions[prefixedName] = existingRuleDescriptors;
                 }
 
