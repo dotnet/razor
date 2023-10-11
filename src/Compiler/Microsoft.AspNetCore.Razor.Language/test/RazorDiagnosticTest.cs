@@ -97,7 +97,7 @@ public class RazorDiagnosticTest
         var descriptor = new RazorDiagnosticDescriptor("RZ0000", "this is an {0}", RazorDiagnosticSeverity.Error);
         var span = new SourceSpan("test.cs", 15, 1, 8, 5);
 
-        var diagnostic = RazorDiagnostic.Create(descriptor, span, 1.3m );
+        var diagnostic = RazorDiagnostic.Create(descriptor, span, 1.3m);
 
         // Act
         var result = ((IFormattable)diagnostic).ToString("ignored", new CultureInfo("fr-FR"));

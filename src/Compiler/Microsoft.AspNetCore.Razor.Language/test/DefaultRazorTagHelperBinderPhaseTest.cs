@@ -900,7 +900,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         foreach (var expectedDescriptor in expected)
         {
-            Assert.Contains(expectedDescriptor, visitor.Matches, TagHelperDescriptorComparer.Default);
+            Assert.Contains(expectedDescriptor, visitor.Matches);
         }
     }
 

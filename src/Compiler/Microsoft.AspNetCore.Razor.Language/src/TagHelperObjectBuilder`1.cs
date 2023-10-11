@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public abstract partial class TagHelperObjectBuilder<T>
-    where T : TagHelperObject
+    where T : TagHelperObject<T>
 {
     private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
     private bool _isBuilt;

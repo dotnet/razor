@@ -9,7 +9,6 @@ using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
@@ -90,7 +89,7 @@ internal static class ObjectWriters
 
     public static void WriteProperties(JsonDataWriter writer, TagHelperDescriptor value)
     {
-        writer.WriteObject(WellKnownPropertyNames.Checksum, value.GetChecksum(), WriteProperties);
+        writer.WriteObject(WellKnownPropertyNames.Checksum, value.Checksum, WriteProperties);
         writer.Write(nameof(value.Kind), value.Kind);
         writer.Write(nameof(value.Name), value.Name);
         writer.Write(nameof(value.AssemblyName), value.AssemblyName);

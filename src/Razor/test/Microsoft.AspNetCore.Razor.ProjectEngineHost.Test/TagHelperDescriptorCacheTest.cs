@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
-using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
@@ -44,10 +43,10 @@ public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBa
         var stringTagHelper = stringTagHelperBuilder.Build();
 
         // Act
-        _tagHelperCache.TryAdd(intTagHelper.GetChecksum(), intTagHelper);
+        _tagHelperCache.TryAdd(intTagHelper.Checksum, intTagHelper);
 
         // Assert
-        Assert.False(_tagHelperCache.TryGet(stringTagHelper.GetChecksum(), out _));
+        Assert.False(_tagHelperCache.TryGet(stringTagHelper.Checksum, out _));
     }
 
     [Fact]
@@ -66,7 +65,7 @@ public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBa
         }
 
         // Act
-        var hashes = new HashSet<Checksum>(tagHelpers.Select(t => t.GetChecksum()));
+        var hashes = new HashSet<Checksum>(tagHelpers.Select(t => t.Checksum));
 
         // Assert
         // Only 1 batch of taghelpers should remain after we filter by cache id
@@ -80,7 +79,7 @@ public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBa
         var tagHelpers = RazorTestResources.BlazorServerAppTagHelpers;
 
         // Act
-        var hashes = new HashSet<Checksum>(tagHelpers.Select(t => t.GetChecksum()));
+        var hashes = new HashSet<Checksum>(tagHelpers.Select(t => t.Checksum));
 
         // Assert
         Assert.Equal(hashes.Count, tagHelpers.Length);

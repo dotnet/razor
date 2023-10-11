@@ -594,12 +594,10 @@
 ~override Microsoft.AspNetCore.Razor.Language.SourceSpan.ToString() -> string
 ~override sealed Microsoft.AspNetCore.Razor.Language.DocumentClassifierPassBase.ExecuteCore(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument, Microsoft.AspNetCore.Razor.Language.Intermediate.DocumentIntermediateNode documentNode) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.AsDictionary(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string attributeNamePrefix, string valueTypeName) -> void
-~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.IsDirectiveAttribute(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder) -> bool
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.GetPropertyName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor attribute) -> string
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.GetPropertyName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor parameter) -> string
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.IsDefaultKind(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor attribute) -> bool
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.IsDefaultKind(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor parameter) -> bool
-~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.IsDirectiveAttribute(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor attribute) -> bool
 ~static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTarget.CreateDefault(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions options) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTarget
 ~static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTarget.CreateDefault(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions options, System.Action<Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTargetBuilder> configure) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTarget
 ~static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTarget.CreateEmpty(Microsoft.AspNetCore.Razor.Language.RazorCodeDocument codeDocument, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions options, System.Action<Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTargetBuilder> configure) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeTarget
@@ -711,7 +709,6 @@
 ~static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.ReadFrom(System.IO.Stream stream, System.Text.Encoding encoding, Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties properties) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument
 ~static Microsoft.AspNetCore.Razor.Language.RazorSyntaxTree.Parse(Microsoft.AspNetCore.Razor.Language.RazorSourceDocument source) -> Microsoft.AspNetCore.Razor.Language.RazorSyntaxTree
 ~static Microsoft.AspNetCore.Razor.Language.RazorSyntaxTree.Parse(Microsoft.AspNetCore.Razor.Language.RazorSourceDocument source, Microsoft.AspNetCore.Razor.Language.RazorParserOptions options) -> Microsoft.AspNetCore.Razor.Language.RazorSyntaxTree
-~static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorExtensions.IsDirectiveAttribute(this Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor descriptor) -> bool
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilderExtensions.GetTypeName(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder builder) -> string
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilderExtensions.SetTypeName(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder builder, string typeName) -> void
 ~static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorExtensions.GetTypeName(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor tagHelper) -> string
@@ -1210,7 +1207,6 @@ Microsoft.AspNetCore.Razor.Language.RazorSourceLineCollection.RazorSourceLineCol
 Microsoft.AspNetCore.Razor.Language.RazorSyntaxTree
 Microsoft.AspNetCore.Razor.Language.RazorSyntaxTree.RazorSyntaxTree() -> void
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilderExtensions
-Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorExtensions
 Microsoft.AspNetCore.Razor.Language.SourceChange
 Microsoft.AspNetCore.Razor.Language.SourceChange.IsDelete.get -> bool
 Microsoft.AspNetCore.Razor.Language.SourceChange.IsInsert.get -> bool

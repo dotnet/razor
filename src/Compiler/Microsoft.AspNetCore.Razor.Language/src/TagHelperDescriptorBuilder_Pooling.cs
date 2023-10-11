@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 
@@ -11,15 +10,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public partial class TagHelperDescriptorBuilder
 {
     private static readonly ObjectPool<TagHelperDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
-
-    private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
-        = HashSetPool<AllowedChildTagDescriptor>.Create(AllowedChildTagDescriptorComparer.Default);
-
-    private static readonly ObjectPool<HashSet<BoundAttributeDescriptor>> s_boundAttributeSetPool
-        = HashSetPool<BoundAttributeDescriptor>.Create(BoundAttributeDescriptorComparer.Default);
-
-    private static readonly ObjectPool<HashSet<TagMatchingRuleDescriptor>> s_tagMatchingRuleSetPool
-        = HashSetPool<TagMatchingRuleDescriptor>.Create(TagMatchingRuleDescriptorComparer.Default);
 
     internal static TagHelperDescriptorBuilder GetInstance(string name, string assemblyName)
         => GetInstance(TagHelperConventions.DefaultKind, name, assemblyName);

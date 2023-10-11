@@ -3,10 +3,11 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed class BoundAttributeParameterDescriptor : TagHelperObject, IEquatable<BoundAttributeParameterDescriptor>
+public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAttributeParameterDescriptor>
 {
     [Flags]
     private enum BoundAttributeParameterFlags
@@ -76,20 +77,26 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject, IEquata
         _flags = flags;
     }
 
+    private protected override void BuildChecksum(in Checksum.Builder builder)
+    {
+        builder.AppendData(Kind);
+        builder.AppendData(Name);
+        builder.AppendData(TypeName);
+        builder.AppendData(DisplayName);
+
+        DocumentationObject.AppendToChecksum(in builder);
+
+        builder.AppendData(CaseSensitive);
+        builder.AppendData(IsEnum);
+        builder.AppendData(IsBooleanProperty);
+        builder.AppendData(IsStringProperty);
+        builder.AppendData(Metadata.Checksum);
+    }
+
     public string? Documentation => _documentationObject.GetText();
 
     internal DocumentationObject DocumentationObject => _documentationObject;
 
     public override string ToString()
         => DisplayName ?? base.ToString();
-
-    public bool Equals(BoundAttributeParameterDescriptor other)
-        => BoundAttributeParameterDescriptorComparer.Default.Equals(this, other);
-
-    public override bool Equals(object? obj)
-        => obj is BoundAttributeParameterDescriptor other &&
-           Equals(other);
-
-    public override int GetHashCode()
-        => BoundAttributeParameterDescriptorComparer.Default.GetHashCode(this);
 }
