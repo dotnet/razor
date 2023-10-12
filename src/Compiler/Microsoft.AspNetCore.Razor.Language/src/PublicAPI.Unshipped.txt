@@ -180,7 +180,7 @@ Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilder.ValueComp
 Microsoft.AspNetCore.Razor.Language.SourceLocation.SourceLocation() -> void
 Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan() -> void
 Microsoft.AspNetCore.Razor.Language.TagHelperCollector<T>
-Microsoft.AspNetCore.Razor.Language.TagHelperCollector<T>.Collect(System.Collections.Generic.ICollection<Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor!>! results) -> void
+Microsoft.AspNetCore.Razor.Language.TagHelperCollector<T>.Collect(Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorProviderContext! context) -> void
 Microsoft.AspNetCore.Razor.Language.TagHelperCollector<T>.TagHelperCollector(Microsoft.CodeAnalysis.Compilation! compilation, Microsoft.CodeAnalysis.ISymbol? targetSymbol) -> void
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.AllowedChildTags.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor!>
@@ -267,8 +267,6 @@ override sealed Microsoft.AspNetCore.Razor.Language.MetadataCollection.Equals(ob
 override sealed Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetHashCode() -> int
 override sealed Microsoft.AspNetCore.Razor.Language.TagHelperObject<T>.Equals(object? obj) -> bool
 override sealed Microsoft.AspNetCore.Razor.Language.TagHelperObject<T>.GetHashCode() -> int
-readonly Microsoft.AspNetCore.Razor.Language.TagHelperCollector<T>.Compilation -> Microsoft.CodeAnalysis.Compilation!
-readonly Microsoft.AspNetCore.Razor.Language.TagHelperCollector<T>.TargetSymbol -> Microsoft.CodeAnalysis.ISymbol?
 static Microsoft.AspNetCore.Razor.Language.CommonMetadata.PropertyName(string! value) -> System.Collections.Generic.KeyValuePair<string!, string?>
 static Microsoft.AspNetCore.Razor.Language.CommonMetadata.TypeName(string! value) -> System.Collections.Generic.KeyValuePair<string!, string?>
 static Microsoft.AspNetCore.Razor.Language.MetadataCollection.Create(params System.Collections.Generic.KeyValuePair<string!, string?>[]! pairs) -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!

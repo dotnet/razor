@@ -38,7 +38,7 @@ public sealed class DefaultTagHelperDescriptorProvider : RazorEngineFeatureBase,
         var targetSymbol = context.Items.GetTargetSymbol();
         var factory = new DefaultTagHelperDescriptorFactory(compilation, context.IncludeDocumentation, context.ExcludeHidden);
         var collector = new Collector(compilation, targetSymbol, factory, tagHelperTypeSymbol);
-        collector.Collect(context.Results);
+        collector.Collect(context);
     }
 
     private class Collector(

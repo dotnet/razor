@@ -125,8 +125,9 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             return;
         }
 
-        var collector = new Collector(compilation, targetSymbol, bindElementAttribute, bindInputElementAttribute);
-        collector.Collect(context.Results);
+        var collector = new Collector(
+            compilation, targetSymbol, bindElementAttribute, bindInputElementAttribute);
+        collector.Collect(context);
     }
 
     private static TagHelperDescriptor GetOrCreateFallbackBindTagHelper()

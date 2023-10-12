@@ -44,7 +44,7 @@ internal partial class ComponentTagHelperDescriptorProvider : RazorEngineFeature
         var targetSymbol = context.Items.GetTargetSymbol();
 
         var collector = new Collector(compilation, targetSymbol);
-        collector.Collect(context.Results);
+        collector.Collect(context);
     }
 
     private sealed class Collector(Compilation compilation, ISymbol targetSymbol)

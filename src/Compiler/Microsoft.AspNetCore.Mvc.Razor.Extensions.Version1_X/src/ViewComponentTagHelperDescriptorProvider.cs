@@ -41,7 +41,7 @@ public sealed class ViewComponentTagHelperDescriptorProvider : RazorEngineFeatur
         var factory = new ViewComponentTagHelperDescriptorFactory(compilation);
         var collector = new Collector(compilation, factory, vcAttribute, nonVCAttribute);
 
-        collector.Collect(context.Results);
+        collector.Collect(context);
     }
 
     private class Collector(

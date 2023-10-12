@@ -9,19 +9,19 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class TagHelperCollector<T>
+public abstract partial class TagHelperCollector<T>
     where T : ITagHelperDescriptorProvider
 {
     // This type is generic to ensure that each descendent gets its own instance of this field.
-    private static readonly ConditionalWeakTable<IAssemblySymbol, TagHelperDescriptor[]> s_perAssemblyTagHelperCache = new();
+    private static readonly ConditionalWeakTable<IAssemblySymbol, Cache> s_perAssemblyCaches = new();
 
-    protected readonly Compilation Compilation;
-    protected readonly ISymbol? TargetSymbol;
+    private readonly Compilation _compilation;
+    private readonly ISymbol? _targetSymbol;
 
     protected TagHelperCollector(Compilation compilation, ISymbol? targetSymbol)
     {
-        Compilation = compilation;
-        TargetSymbol = targetSymbol;
+        _compilation = compilation;
+        _targetSymbol = targetSymbol;
     }
 
     private static bool IsTagHelperAssembly(IAssemblySymbol assembly)
@@ -33,47 +33,54 @@ public abstract class TagHelperCollector<T>
 
     protected abstract void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results);
 
-    public void Collect(ICollection<TagHelperDescriptor> results)
+    public void Collect(TagHelperDescriptorProviderContext context)
     {
-        if (TargetSymbol is not null)
+        if (_targetSymbol is not null)
         {
-            Collect(TargetSymbol, results);
+            Collect(_targetSymbol, context.Results);
         }
         else
         {
-            Collect(Compilation.Assembly.GlobalNamespace, results);
+            Collect(_compilation.Assembly.GlobalNamespace, context.Results);
 
-            foreach (var reference in Compilation.References)
+            foreach (var reference in _compilation.References)
             {
-                if (Compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
+                if (_compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
                     if (!IsTagHelperAssembly(assembly))
                     {
                         continue;
                     }
 
-                    TagHelperDescriptor[] tagHelpers;
+                    TagHelperDescriptor[]? tagHelpers;
 
-                    lock (s_perAssemblyTagHelperCache)
+                    lock (s_perAssemblyCaches)
                     {
                         // Check to see if we already have tag helpers cached for this assembly
                         // and use them cached versions if we do. Roslyn shares PE assembly symbols
                         // across compilations, so this ensures that we don't produce new tag helpers
                         // for the same assemblies over and over again.
-                        if (!s_perAssemblyTagHelperCache.TryGetValue(assembly, out tagHelpers))
+                        if (!s_perAssemblyCaches.TryGetValue(assembly, out var cache) ||
+                            !cache.TryGet(context.IncludeDocumentation, context.ExcludeHidden, out tagHelpers))
                         {
                             using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
                             Collect(assembly.GlobalNamespace, referenceTagHelpers);
 
                             tagHelpers = referenceTagHelpers.ToArrayOrEmpty();
 
-                            s_perAssemblyTagHelperCache.Add(assembly, tagHelpers);
+                            if (cache is null)
+                            {
+                                cache = new();
+                                s_perAssemblyCaches.Add(assembly, cache);
+                            }
+
+                            cache.Add(tagHelpers, context.IncludeDocumentation, context.ExcludeHidden);
                         }
                     }
 
                     foreach (var tagHelper in tagHelpers)
                     {
-                        results.Add(tagHelper);
+                        context.Results.Add(tagHelper);
                     }
                 }
             }
