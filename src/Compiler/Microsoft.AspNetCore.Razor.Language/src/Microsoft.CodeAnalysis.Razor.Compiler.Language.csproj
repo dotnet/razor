@@ -7,6 +7,7 @@
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Microsoft.AspNetCore.Razor.Language</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
