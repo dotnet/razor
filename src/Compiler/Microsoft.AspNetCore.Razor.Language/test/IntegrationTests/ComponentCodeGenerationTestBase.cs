@@ -10300,7 +10300,7 @@ Time: @DateTime.Now
         CompileToAssembly(generated, throwOnFailure: true);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
     public void RenderMode_With_Null_Nullable_Disabled()
     {
         var generated = CompileToCSharp($$"""
@@ -10313,7 +10313,7 @@ Time: @DateTime.Now
         CompileToAssembly(generated, throwOnFailure: true);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
     public void RenderMode_With_Null_Nullable_Enabled()
     {
         var generated = CompileToCSharp($$"""
@@ -10326,7 +10326,7 @@ Time: @DateTime.Now
         CompileToAssembly(generated, throwOnFailure: true);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
     public void RenderMode_With_Nullable_Receiver()
     {
         var generated = CompileToCSharp($$"""
