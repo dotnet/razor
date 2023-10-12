@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -34,7 +35,7 @@ internal class RazorHtmlWriter : SyntaxWalker
     private SourceSpan _lastOriginalSourceSpan = SourceSpan.Undefined;
     private SourceSpan _lastGeneratedSourceSpan = SourceSpan.Undefined;
 
-    private RazorHtmlWriter(RazorSourceDocument source)
+    private RazorHtmlWriter(RazorSourceDocument source, ImmutableArray<SourceMapping>.Builder sourceMappings)
     {
         if (source is null)
         {
@@ -43,7 +44,7 @@ internal class RazorHtmlWriter : SyntaxWalker
 
         Source = source;
         Builder = new CodeWriter();
-        SourceMappings = new List<SourceMapping>();
+        SourceMappings = sourceMappings;
         _isHtml = true;
 
         _baseVisitRazorCommentBlock = base.VisitRazorCommentBlock;
@@ -66,7 +67,7 @@ internal class RazorHtmlWriter : SyntaxWalker
 
     public CodeWriter Builder { get; }
 
-    public List<SourceMapping> SourceMappings { get; }
+    public ImmutableArray<SourceMapping>.Builder SourceMappings { get; }
 
     public static RazorHtmlDocument? GetHtmlDocument(RazorCodeDocument codeDocument)
     {
@@ -77,7 +78,9 @@ internal class RazorHtmlWriter : SyntaxWalker
             return null;
         }
 
-        var writer = new RazorHtmlWriter(codeDocument.Source);
+        using var _ = ArrayBuilderPool<SourceMapping>.GetPooledObject(out var sourceMappingsBuilder);
+
+        var writer = new RazorHtmlWriter(codeDocument.Source, sourceMappingsBuilder);
         var syntaxTree = codeDocument.GetSyntaxTree();
 
         writer.Visit(syntaxTree);
@@ -89,7 +92,7 @@ internal class RazorHtmlWriter : SyntaxWalker
 
         var sourceMappings = writer.SourceMappings.ToArray();
 
-        var razorHtmlDocument = new DefaultRazorHtmlDocument(codeDocument, generatedHtml, options, sourceMappings);
+        var razorHtmlDocument = new DefaultRazorHtmlDocument(codeDocument, generatedHtml, options, sourceMappings.ToImmutableArray());
         return razorHtmlDocument;
     }
 

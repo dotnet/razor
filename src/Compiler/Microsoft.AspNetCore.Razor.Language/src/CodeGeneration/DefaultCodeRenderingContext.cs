@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -21,7 +22,8 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
         IntermediateNodeWriter nodeWriter,
         RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode,
-        RazorCodeGenerationOptions options)
+        RazorCodeGenerationOptions options,
+        ImmutableArray<SourceMapping>.Builder sourceMappingsBuilder)
     {
         if (codeWriter == null)
         {
@@ -56,7 +58,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
         _ancestors = new Stack<IntermediateNode>();
         Diagnostics = new RazorDiagnosticCollection();
         Items = new ItemCollection();
-        SourceMappings = new List<SourceMapping>();
+        SourceMappings = sourceMappingsBuilder;
         LinePragmas = new List<LinePragma>();
 
         var diagnostics = _documentNode.GetAllDiagnostics();
@@ -94,7 +96,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
 
     public override ItemCollection Items { get; }
 
-    public List<SourceMapping> SourceMappings { get; }
+    public ImmutableArray<SourceMapping>.Builder SourceMappings { get; }
 
     internal List<LinePragma> LinePragmas { get; }
 

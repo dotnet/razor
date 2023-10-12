@@ -70,10 +70,8 @@ internal class RazorSpanMappingService : IRazorSpanMappingService
     // Internal for testing.
     internal static bool TryGetMappedSpans(TextSpan span, SourceText source, RazorCSharpDocument output, out LinePositionSpan linePositionSpan, out TextSpan mappedSpan)
     {
-        var mappings = output.SourceMappings;
-        for (var i = 0; i < mappings.Count; i++)
+        foreach (var mapping in output.SourceMappings)
         {
-            var mapping = mappings[i];
             var original = mapping.OriginalSpan.AsTextSpan();
             var generated = mapping.GeneratedSpan.AsTextSpan();
 

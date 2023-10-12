@@ -133,9 +133,8 @@ public class RazorDocumentMappingBenchmark : RazorLanguageServerBenchmarkBase
             throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
         }
 
-        for (var i = 0; i < generatedDocument.SourceMappings.Count; i++)
+        foreach (var mapping in generatedDocument.SourceMappings)
         {
-            var mapping = generatedDocument.SourceMappings[i];
             var generatedSpan = mapping.GeneratedSpan;
             var generatedAbsoluteIndex = generatedSpan.AbsoluteIndex;
             if (generatedAbsoluteIndex <= generatedDocumentIndex)

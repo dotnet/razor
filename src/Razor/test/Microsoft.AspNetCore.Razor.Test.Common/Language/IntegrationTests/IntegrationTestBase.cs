@@ -528,9 +528,8 @@ public abstract class IntegrationTestBase
             }
 
             var found = false;
-            for (var j = 0; j < csharpDocument.SourceMappings.Count; j++)
+            foreach (var mapping in csharpDocument.SourceMappings)
             {
-                var mapping = csharpDocument.SourceMappings[j];
                 if (mapping.OriginalSpan == sourceSpan)
                 {
                     var actualSpan = csharpDocument.GeneratedCode.Substring(

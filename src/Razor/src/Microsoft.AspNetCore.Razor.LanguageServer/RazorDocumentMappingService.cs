@@ -297,15 +297,13 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
         }
 
+        var sourceMappings = generatedDocument.SourceMappings;
+
         // We expect source mappings to be ordered by their generated document absolute index, because that is how the compiler creates them: As it
         // outputs the generated file to the text write.
-        Debug.Assert(generatedDocument.SourceMappings.SequenceEqual(generatedDocument.SourceMappings.OrderBy(s => s.GeneratedSpan.AbsoluteIndex)));
+        Debug.Assert(sourceMappings.SequenceEqual(sourceMappings.OrderBy(s => s.GeneratedSpan.AbsoluteIndex)));
 
-        // We can't change the compiler API type for SourceMappings (yet!), but its always an array: The constructor for DefaultRazorCSharpDocument literally
-        // takes an array and just exposes it as an IReadOnlyList to satisfy the interface.
-        var arr = (SourceMapping[])generatedDocument.SourceMappings;
-
-        var index = arr.BinarySearchBy(generatedDocumentIndex, static (mapping, generatedDocumentIndex) =>
+        var index = sourceMappings.BinarySearchBy(generatedDocumentIndex, static (mapping, generatedDocumentIndex) =>
         {
             var generatedSpan = mapping.GeneratedSpan;
             var generatedAbsoluteIndex = generatedSpan.AbsoluteIndex;
@@ -325,7 +323,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         if (index >= 0)
         {
-            var mapping = arr[index];
+            var mapping = sourceMappings[index];
 
             var generatedAbsoluteIndex = mapping.GeneratedSpan.AbsoluteIndex;
             var distanceIntoGeneratedSpan = generatedDocumentIndex - generatedAbsoluteIndex;
@@ -715,7 +713,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         SourceMapping? mappingBeforeGeneratedRange = null;
         SourceMapping? mappingAfterGeneratedRange = null;
 
-        for (var i = generatedDocument.SourceMappings.Count - 1; i >= 0; i--)
+        for (var i = generatedDocument.SourceMappings.Length - 1; i >= 0; i--)
         {
             var sourceMapping = generatedDocument.SourceMappings[i];
             var sourceMappingEnd = sourceMapping.GeneratedSpan.AbsoluteIndex + sourceMapping.GeneratedSpan.Length;
@@ -724,7 +722,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                 // This is the source mapping that's before us!
                 mappingBeforeGeneratedRange = sourceMapping;
 
-                if (i + 1 < generatedDocument.SourceMappings.Count)
+                if (i + 1 < generatedDocument.SourceMappings.Length)
                 {
                     // We're not at the end of the document there's another source mapping after us
                     mappingAfterGeneratedRange = generatedDocument.SourceMappings[i + 1];

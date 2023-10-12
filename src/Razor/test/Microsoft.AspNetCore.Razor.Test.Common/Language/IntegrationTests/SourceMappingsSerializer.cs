@@ -18,10 +18,8 @@ public static class SourceMappingsSerializer
         sourceDocument.CopyTo(0, charBuffer, 0, sourceDocument.Length);
         var sourceContent = new string(charBuffer);
 
-        for (var i = 0; i < csharpDocument.SourceMappings.Count; i++)
+        foreach (var sourceMapping in csharpDocument.SourceMappings)
         {
-            var sourceMapping = csharpDocument.SourceMappings[i];
-
             builder.Append("Source Location: ");
             AppendMappingLocation(builder, sourceMapping.OriginalSpan, sourceContent);
 
