@@ -1,20 +1,18 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagMatchingRuleDescriptor>
+public sealed class TagMatchingRuleDescriptor : TagHelperObject<TagMatchingRuleDescriptor>
 {
-    private int? _hashCode;
-
     public string TagName { get; }
     public string? ParentTag { get; }
     public TagStructure TagStructure { get; }
@@ -37,6 +35,20 @@ public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagM
         Attributes = attributes.NullToEmpty();
     }
 
+    private protected override void BuildChecksum(in Checksum.Builder builder)
+    {
+        builder.AppendData(TagName);
+        builder.AppendData(ParentTag);
+        builder.AppendData((int)TagStructure);
+
+        builder.AppendData(CaseSensitive);
+
+        foreach (var descriptor in Attributes)
+        {
+            builder.AppendData(descriptor.Checksum);
+        }
+    }
+
     public IEnumerable<RazorDiagnostic> GetAllDiagnostics()
     {
         foreach (var attribute in Attributes)
@@ -51,21 +63,6 @@ public sealed class TagMatchingRuleDescriptor : TagHelperObject, IEquatable<TagM
         {
             yield return diagnostic;
         }
-    }
-
-    public bool Equals(TagMatchingRuleDescriptor other)
-    {
-        return TagMatchingRuleDescriptorComparer.Default.Equals(this, other);
-    }
-
-    public override bool Equals(object? obj)
-        => obj is TagMatchingRuleDescriptor other &&
-           Equals(other);
-
-    public override int GetHashCode()
-    {
-        _hashCode ??= TagMatchingRuleDescriptorComparer.Default.GetHashCode(this);
-        return _hashCode.GetValueOrDefault();
     }
 
     internal string GetDebuggerDisplay()

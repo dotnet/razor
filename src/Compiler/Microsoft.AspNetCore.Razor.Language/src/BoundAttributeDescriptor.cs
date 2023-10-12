@@ -5,13 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 /// <summary>
 /// A metadata class describing a tag helper attribute.
 /// </summary>
-public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<BoundAttributeDescriptor>
+public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDescriptor>
 {
     [Flags]
     private enum BoundAttributeFlags
@@ -128,6 +129,34 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
         _flags = flags;
     }
 
+    private protected override void BuildChecksum(in Checksum.Builder builder)
+    {
+        builder.AppendData(Kind);
+        builder.AppendData(Name);
+        builder.AppendData(TypeName);
+        builder.AppendData(IndexerNamePrefix);
+        builder.AppendData(IndexerTypeName);
+        builder.AppendData(DisplayName);
+
+        DocumentationObject.AppendToChecksum(in builder);
+
+        builder.AppendData(CaseSensitive);
+        builder.AppendData(IsEditorRequired);
+        builder.AppendData(IsEnum);
+        builder.AppendData(HasIndexer);
+        builder.AppendData(IsBooleanProperty);
+        builder.AppendData(IsStringProperty);
+        builder.AppendData(IsIndexerBooleanProperty);
+        builder.AppendData(IsIndexerStringProperty);
+
+        foreach (var descriptor in Parameters)
+        {
+            builder.AppendData(descriptor.Checksum);
+        }
+
+        builder.AppendData(Metadata.Checksum);
+    }
+
     public string? Documentation => _documentationObject.GetText();
 
     internal DocumentationObject DocumentationObject => _documentationObject;
@@ -152,14 +181,4 @@ public sealed class BoundAttributeDescriptor : TagHelperObject, IEquatable<Bound
     {
         return DisplayName ?? base.ToString();
     }
-
-    public bool Equals(BoundAttributeDescriptor other)
-        => BoundAttributeDescriptorComparer.Default.Equals(this, other);
-
-    public override bool Equals(object? obj)
-        => obj is BoundAttributeDescriptor other &&
-           Equals(other);
-
-    public override int GetHashCode()
-        => BoundAttributeDescriptorComparer.Default.GetHashCode(this);
 }
