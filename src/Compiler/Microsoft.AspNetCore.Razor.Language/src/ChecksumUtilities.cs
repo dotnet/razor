@@ -6,10 +6,11 @@
 using System;
 using System.Globalization;
 using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal static class Checksum
+internal static class ChecksumUtilities
 {
     public static string BytesToString(byte[] bytes)
     {
@@ -18,13 +19,15 @@ internal static class Checksum
             throw new ArgumentNullException(nameof(bytes));
         }
 
-        var result = new StringBuilder(bytes.Length);
-        for (var i = 0; i < bytes.Length; i++)
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        builder.EnsureCapacity(bytes.Length);
+
+        foreach (var b in bytes)
         {
             // The x2 format means lowercase hex, where each byte is a 2-character string.
-            result.Append(bytes[i].ToString("x2", CultureInfo.InvariantCulture));
+            builder.Append(b.ToString("x2", CultureInfo.InvariantCulture));
         }
 
-        return result.ToString();
+        return builder.ToString();
     }
 }

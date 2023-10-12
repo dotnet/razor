@@ -28,7 +28,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Blocks_Run
 #nullable disable
         WriteLiteral("    <p>Hello from C#, #");
 #nullable restore
-#line (6,25)-(6,26) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Blocks.cshtml"
+#line (6,26)-(6,27) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Blocks.cshtml"
 Write(i);
 
 #line default
@@ -96,7 +96,7 @@ Write(i);
 #nullable disable
         WriteLiteral("    <p>Hello again from C#, #");
 #nullable restore
-#line (24,31)-(24,32) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Blocks.cshtml"
+#line (24,32)-(24,33) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Blocks.cshtml"
 Write(j);
 
 #line default
@@ -128,7 +128,7 @@ Write(j);
 #nullable disable
         WriteLiteral("    <p>Oh no! An error occurred: ");
 #nullable restore
-#line (30,35)-(30,45) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Blocks.cshtml"
+#line (30,36)-(30,46) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Blocks.cshtml"
 Write(ex.Message);
 
 #line default
@@ -144,7 +144,7 @@ Write(ex.Message);
 #nullable disable
         WriteLiteral("\r\n<p>i is now ");
 #nullable restore
-#line (33,13)-(33,14) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Blocks.cshtml"
+#line (33,14)-(33,15) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Blocks.cshtml"
 Write(i);
 
 #line default

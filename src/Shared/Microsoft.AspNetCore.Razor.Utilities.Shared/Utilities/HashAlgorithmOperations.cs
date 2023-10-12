@@ -3,7 +3,7 @@
 
 using System.Security.Cryptography;
 
-namespace System;
+namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal static class HashAlgorithmOperations
 {

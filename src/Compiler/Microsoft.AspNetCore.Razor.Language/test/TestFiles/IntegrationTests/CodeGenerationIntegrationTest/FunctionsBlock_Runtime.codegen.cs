@@ -13,7 +13,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_FunctionsB
         WriteLiteral("\r\n");
         WriteLiteral("\r\nHere\'s a random number: ");
 #nullable restore
-#line (12,25)-(12,36) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlock.cshtml"
+#line (12,26)-(12,37) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlock.cshtml"
 Write(RandomInt());
 
 #line default

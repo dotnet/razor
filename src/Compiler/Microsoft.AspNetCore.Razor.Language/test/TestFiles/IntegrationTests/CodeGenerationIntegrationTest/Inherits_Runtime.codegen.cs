@@ -12,7 +12,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inherits_R
     {
         WriteLiteral("\r\n");
 #nullable restore
-#line (3,1)-(3,6) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml"
+#line (3,2)-(3,7) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml"
 Write(foo());
 
 #line default

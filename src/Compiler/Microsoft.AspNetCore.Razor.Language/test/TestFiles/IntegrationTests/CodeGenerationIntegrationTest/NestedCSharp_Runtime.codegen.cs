@@ -20,7 +20,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_NestedCSha
 #nullable disable
         WriteLiteral("        <div>\r\n            ");
 #nullable restore
-#line (5,13)-(5,29) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
+#line (5,14)-(5,30) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
 Write(result.SomeValue);
 
 #line default

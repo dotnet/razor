@@ -24,7 +24,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Sections_R
             BeginWriteAttribute("class", " class=\"", 109, "\"", 128, 2);
             WriteAttributeValue("", 117, "some", 117, 4, true);
 #nullable restore
-#line (8,20)-(8,27) 30 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
+#line (8,21)-(8,28) 30 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 WriteAttributeValue(" ", 121, thing, 122, 6, false);
 
 #line default
@@ -53,7 +53,7 @@ WriteAttributeValue(" ", 121, thing, 122, 6, false);
                 PushWriter(__razor_template_writer);
                 WriteLiteral("<span>");
 #nullable restore
-#line (16,41)-(16,45) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
+#line (16,42)-(16,46) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 Write(item);
 
 #line default

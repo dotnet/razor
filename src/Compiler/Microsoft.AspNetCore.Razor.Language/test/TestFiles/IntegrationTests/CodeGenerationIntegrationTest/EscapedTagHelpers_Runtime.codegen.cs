@@ -36,7 +36,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EscapedTag
         WriteLiteral("div class=\"randomNonTagHelperAttribute\">\r\n    <");
         WriteLiteral("p class=\"Hello World\" ");
 #nullable restore
-#line (4,29)-(4,41) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml"
+#line (4,30)-(4,42) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml"
 Write(DateTime.Now);
 
 #line default
@@ -55,7 +55,7 @@ Write(DateTime.Now);
         __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
         BeginWriteTagHelperAttribute();
 #nullable restore
-#line (6,51)-(6,63) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml"
+#line (6,52)-(6,64) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml"
 WriteLiteral(DateTime.Now);
 
 #line default

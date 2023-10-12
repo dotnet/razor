@@ -56,13 +56,13 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
         => _metadata.TryGetMetadataValue(key, out value);
 
     public TagHelperObjectBuilderCollection<AllowedChildTagDescriptor, AllowedChildTagDescriptorBuilder> AllowedChildTags { get; }
-        = new(AllowedChildTagDescriptorBuilder.Pool, s_allowedChildTagSetPool);
+        = new(AllowedChildTagDescriptorBuilder.Pool);
 
     public TagHelperObjectBuilderCollection<BoundAttributeDescriptor, BoundAttributeDescriptorBuilder> BoundAttributes { get; }
-        = new(BoundAttributeDescriptorBuilder.Pool, s_boundAttributeSetPool);
+        = new(BoundAttributeDescriptorBuilder.Pool);
 
     public TagHelperObjectBuilderCollection<TagMatchingRuleDescriptor, TagMatchingRuleDescriptorBuilder> TagMatchingRules { get; }
-        = new(TagMatchingRuleDescriptorBuilder.Pool, s_tagMatchingRuleSetPool);
+        = new(TagMatchingRuleDescriptorBuilder.Pool);
 
     public void AllowChildTag(Action<AllowedChildTagDescriptorBuilder> configure)
     {

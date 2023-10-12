@@ -12,7 +12,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExplicitEx
     {
         WriteLiteral("<div>");
 #nullable restore
-#line (1,8)-(1,14) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpressionWithMarkup.cshtml"
+#line (1,9)-(1,15) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpressionWithMarkup.cshtml"
 Write(item => new Template(async(__razor_template_writer) => {
     PushWriter(__razor_template_writer);
     WriteLiteral("</div>");

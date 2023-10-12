@@ -10,19 +10,15 @@ using Microsoft.Extensions.ObjectPool;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed partial class TagHelperObjectBuilderCollection<TObject, TBuilder> : IEnumerable<TBuilder>
-    where TObject : TagHelperObject
+    where TObject : TagHelperObject<TObject>
     where TBuilder : TagHelperObjectBuilder<TObject>
 {
     private readonly ObjectPool<TBuilder> _builderPool;
-    private readonly ObjectPool<HashSet<TObject>> _setPool;
     private List<TBuilder>? _builders;
 
-    internal TagHelperObjectBuilderCollection(
-        ObjectPool<TBuilder> builderPool,
-        ObjectPool<HashSet<TObject>> setPool)
+    internal TagHelperObjectBuilderCollection(ObjectPool<TBuilder> builderPool)
     {
         _builderPool = builderPool;
-        _setPool = setPool;
     }
 
     public int Count
@@ -68,7 +64,7 @@ public sealed partial class TagHelperObjectBuilderCollection<TObject, TBuilder> 
         }
 
         using var result = new PooledArrayBuilder<TObject>(capacity: builders.Count);
-        using var set = new PooledHashSet<TObject>(_setPool, capacity: builders.Count);
+        using var set = new PooledHashSet<TObject>(capacity: builders.Count);
 
         foreach (var builder in builders)
         {

@@ -11,7 +11,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Unfinished
     public async System.Threading.Tasks.Task ExecuteAsync()
     {
 #nullable restore
-#line (2,1)-(2,10) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UnfinishedExpressionInCode.cshtml"
+#line (2,2)-(2,11) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UnfinishedExpressionInCode.cshtml"
 Write(DateTime.);
 
 #line default

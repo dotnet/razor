@@ -65,7 +65,7 @@ internal sealed class TagHelperBinder
         // Ensure there's a HashSet to use.
         if (!_registrations.TryGetValue(TagHelperMatchingConventions.ElementCatchAllName, out HashSet<TagHelperDescriptor> catchAllDescriptors))
         {
-            descriptors = new HashSet<TagHelperDescriptor>(TagHelperDescriptorComparer.Default);
+            descriptors = new HashSet<TagHelperDescriptor>();
         }
         else
         {
@@ -141,7 +141,7 @@ internal sealed class TagHelperBinder
             // Ensure there's a HashSet to add the descriptor to.
             if (!_registrations.TryGetValue(registrationKey, out HashSet<TagHelperDescriptor> descriptorSet))
             {
-                descriptorSet = new HashSet<TagHelperDescriptor>(TagHelperDescriptorComparer.Default);
+                descriptorSet = new HashSet<TagHelperDescriptor>();
                 _registrations[registrationKey] = descriptorSet;
             }
 

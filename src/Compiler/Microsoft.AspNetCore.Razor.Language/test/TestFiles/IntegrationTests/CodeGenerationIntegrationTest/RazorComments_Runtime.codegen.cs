@@ -40,7 +40,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorComme
 #nullable disable
         WriteLiteral("<p>But this should show the comment syntax: ");
 #nullable restore
-#line (13,45)-(13,48) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml"
+#line (13,46)-(13,49) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml"
 Write(bar);
 
 #line default
@@ -48,7 +48,7 @@ Write(bar);
 #nullable disable
         WriteLiteral("</p>\r\n\r\n");
 #nullable restore
-#line (15,2)-(15,3) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml"
+#line (15,3)-(15,4) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml"
 Write(ab);
 
 #line default

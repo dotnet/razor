@@ -12,7 +12,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExplicitEx
     {
         WriteLiteral("1 + 1 = ");
 #nullable restore
-#line (1,10)-(1,13) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpression.cshtml"
+#line (1,11)-(1,14) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpression.cshtml"
 Write(1+1);
 
 #line default

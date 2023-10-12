@@ -35,7 +35,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_TagHelpers
         WriteLiteral("\r\n");
 #nullable restore
 #line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
-  
+
     var code = "some code";
 
 #line default
@@ -49,12 +49,61 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_TagHelpers
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("nestedtaghelper", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                     WriteLiteral("Some buffered values with ");
 #nullable restore
-#line (11,56)-(11,60) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
+#line (11,57)-(11,61) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
 Write(code);
 
 #line default
 #line hidden
 #nullable disable
+                    }
+                    );
+                    __TestNamespace_NestedTagHelper = CreateTagHelper<global::TestNamespace.NestedTagHelper>();
+                    __tagHelperExecutionContext.Add(__TestNamespace_NestedTagHelper);
+                    await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+                    if (!__tagHelperExecutionContext.Output.IsContentModified)
+                    {
+                        await __tagHelperExecutionContext.SetOutputContentAsync();
+                    }
+                    Write(__tagHelperExecutionContext.Output);
+                    __tagHelperExecutionContext = __tagHelperScopeManager.End();
+                    WriteLiteral("\r\n        ");
+                }
+                );
+                __TestNamespace_MyTagHelper = CreateTagHelper<global::TestNamespace.MyTagHelper>();
+                __tagHelperExecutionContext.Add(__TestNamespace_MyTagHelper);
+                BeginWriteTagHelperAttribute();
+                WriteLiteral("Current Time: ");
+#nullable restore
+#line (9,52)-(9,64) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
+WriteLiteral(DateTime.Now);
+
+#line default
+#line hidden
+#nullable disable
+                __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
+                __TestNamespace_MyTagHelper.BoundProperty = __tagHelperStringValueBuffer;
+                __tagHelperExecutionContext.AddTagHelperAttribute("boundproperty", __TestNamespace_MyTagHelper.BoundProperty, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+                BeginAddHtmlAttributeValues(__tagHelperExecutionContext, "unboundproperty", 3, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+                AddHtmlAttributeValue("", 188, "Current", 188, 7, true);
+                AddHtmlAttributeValue(" ", 195, "Time:", 196, 6, true);
+#nullable restore
+#line (9,96)-(9,110) 32 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
+AddHtmlAttributeValue(" ", 201, DateTime.Now, 202, 13, false);
+
+#line default
+#line hidden
+#nullable disable
+                EndAddHtmlAttributeValues(__tagHelperExecutionContext);
+                await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+                if (!__tagHelperExecutionContext.Output.IsContentModified)
+                {
+                    await __tagHelperExecutionContext.SetOutputContentAsync();
+                }
+                Write(__tagHelperExecutionContext.Output);
+                __tagHelperExecutionContext = __tagHelperScopeManager.End();
+                WriteLiteral("\r\n    </div>\r\n\r\n");
+                WriteLiteral("\r\n        <div>\r\n            ");
+                __tagHelperExecutionContext = __tagHelperScopeManager.Begin("nestedtaghelper", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 }
                 );
                 __TestNamespace_NestedTagHelper = CreateTagHelper<global::TestNamespace.NestedTagHelper>();

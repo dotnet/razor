@@ -29,7 +29,7 @@ public sealed partial class TagMatchingRuleDescriptorBuilder : TagHelperObjectBu
     internal bool CaseSensitive => _parent.CaseSensitive;
 
     public TagHelperObjectBuilderCollection<RequiredAttributeDescriptor, RequiredAttributeDescriptorBuilder> Attributes { get; }
-        = new(RequiredAttributeDescriptorBuilder.Pool, s_requiredAttributeSetPool);
+        = new(RequiredAttributeDescriptorBuilder.Pool);
 
     public void Attribute(Action<RequiredAttributeDescriptorBuilder> configure)
     {

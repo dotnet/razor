@@ -54,7 +54,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_TagHelpers
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                     WriteLiteral("<h3>");
 #nullable restore
-#line (16,40)-(16,44) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersWithTemplate.cshtml"
+#line (16,41)-(16,45) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersWithTemplate.cshtml"
 Write(item);
 
 #line default

@@ -11,7 +11,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EmptyImpli
     public async System.Threading.Tasks.Task ExecuteAsync()
     {
 #nullable restore
-#line (2,5)-(2,5) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpressionInCode.cshtml"
+#line (2,6)-(2,6) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpressionInCode.cshtml"
 Write();
 
 #line default

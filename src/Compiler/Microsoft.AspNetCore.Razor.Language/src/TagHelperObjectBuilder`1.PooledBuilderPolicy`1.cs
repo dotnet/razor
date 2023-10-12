@@ -6,7 +6,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public abstract partial class TagHelperObjectBuilder<T>
-    where T : TagHelperObject
+    where T : TagHelperObject<T>
 {
     private protected abstract class PooledBuilderPolicy<TBuilder> : IPooledObjectPolicy<TBuilder>
         where TBuilder : TagHelperObjectBuilder<T>

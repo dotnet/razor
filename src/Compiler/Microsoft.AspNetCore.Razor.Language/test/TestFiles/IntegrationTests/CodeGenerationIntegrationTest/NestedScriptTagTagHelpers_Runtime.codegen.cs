@@ -57,7 +57,7 @@ public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_NestedScri
             BeginWriteTagHelperAttribute();
             WriteLiteral("2000 + ");
 #nullable restore
-#line (8,50)-(8,73) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
+#line (8,51)-(8,74) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
 Write(ViewBag.DefaultInterval);
 
 #line default
