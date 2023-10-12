@@ -25,7 +25,7 @@ internal static class UriExtensions
         // Absolute paths are usually encoded.
         var absolutePath = uri.AbsolutePath.Contains("%") ? WebUtility.UrlDecode(uri.AbsolutePath) : uri.AbsolutePath;
 
-        if (uri.Scheme.ToLower() == "git")
+        if (string.Equals(uri.Scheme, "git", StringComparison.OrdinalIgnoreCase))
         {
             // return a normalized path when we want to add to a fake git directory path (hacky fix for https://github.com/dotnet/razor/issues/9365)
             return AddToFakeGitDirectoryAtRoot(absolutePath);
@@ -44,6 +44,6 @@ internal static class UriExtensions
             return decodedAbsolutePath;
         }
 
-        return normalizedPath[..(firstSeparatorIndex + 1)] + "_git_" + normalizedPath[firstSeparatorIndex..];
+        return normalizedPath.Insert(firstSeparatorIndex + 1, "_git_/");
     }
 }
