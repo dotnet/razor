@@ -93,4 +93,17 @@ public class UriExtensionsTest : TestBase
         // Assert
         Assert.Equal(@"\\some\path\to\file path.cshtml", path);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9365")]
+    public void GetAbsoluteAndUNCPath_HasGitScheme_ReturnsANormalizedFakeGitFilePath()
+    {
+        // Arrange
+        var uri = new Uri("git:/c%3A/myFolder/Index.cshtml?%7B%22path%22%3A%22c%3A%5C%5CmyFolder%5C%5CIndex.cshtml%22%2C%22ref%22%3A%22~%22%7D");
+
+        // Act
+        var path = uri.GetAbsoluteOrUNCPath();
+
+        // Assert
+        Assert.Equal("c:/_git_/myFolder/Index.cshtml", path);
+    }
 }
