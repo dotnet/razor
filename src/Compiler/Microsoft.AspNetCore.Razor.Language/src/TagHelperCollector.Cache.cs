@@ -1,8 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -23,17 +23,15 @@ public abstract partial class TagHelperCollector<T>
         {
             var index = CalculateIndex(includeDocumentation, excludeHidden);
 
-            tagHelpers = _tagHelpers[index];
+            tagHelpers = Volatile.Read(ref _tagHelpers[index]);
             return tagHelpers is not null;
         }
 
-        public void Add(TagHelperDescriptor[] tagHelpers, bool includeDocumentation, bool excludeHidden)
+        public TagHelperDescriptor[] Add(TagHelperDescriptor[] tagHelpers, bool includeDocumentation, bool excludeHidden)
         {
             var index = CalculateIndex(includeDocumentation, excludeHidden);
 
-            Debug.Assert(_tagHelpers[index] is null);
-
-            _tagHelpers[index] = tagHelpers;
+            return InterlockedOperations.Initialize(ref _tagHelpers[index], tagHelpers);
         }
 
         private static int CalculateIndex(bool includeDocumentation, bool excludeHidden)

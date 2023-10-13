@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -24,11 +25,15 @@ public abstract partial class TagHelperCollector<T>
         _targetSymbol = targetSymbol;
     }
 
-    private static bool IsTagHelperAssembly(IAssemblySymbol assembly)
+    private static bool MightContainTagHelpers(IAssemblySymbol assembly)
     {
-        // This as a simple yet high-value optimization that excludes the vast majority of
-        // assemblies that (by definition) can't contain a component.
-        return assembly.Name != null && !assembly.Name.StartsWith("System.", StringComparison.Ordinal);
+        // In order to contain tag helpers, components, or anything else we might want to find,
+        // the assembly must start with "Microsoft.AspNetCore." or reference an assembly that
+        // starts with "Microsoft.AspNetCore."
+
+        return assembly.Name.StartsWith("Microsoft.AspNetCore.", StringComparison.Ordinal) ||
+               assembly.Modules.First().ReferencedAssemblies.Any(
+                   a => a.Name.StartsWith("Microsoft.AspNetCore.", StringComparison.Ordinal));
     }
 
     protected abstract void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results);
@@ -47,35 +52,27 @@ public abstract partial class TagHelperCollector<T>
             {
                 if (_compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    if (!IsTagHelperAssembly(assembly))
+                    if (!MightContainTagHelpers(assembly))
                     {
                         continue;
                     }
 
-                    TagHelperDescriptor[]? tagHelpers;
+                    // Check to see if we already have tag helpers cached for this assembly
+                    // and use the cached versions if we do. Roslyn shares PE assembly symbols
+                    // across compilations, so this ensures that we don't produce new tag helpers
+                    // for the same assemblies over and over again.
 
-                    lock (s_perAssemblyCaches)
+                    var cache = s_perAssemblyCaches.GetOrCreateValue(assembly);
+
+                    var includeDocumentation = context.IncludeDocumentation;
+                    var excludeHidden = context.ExcludeHidden;
+
+                    if (!cache.TryGet(includeDocumentation, excludeHidden, out var tagHelpers))
                     {
-                        // Check to see if we already have tag helpers cached for this assembly
-                        // and use them cached versions if we do. Roslyn shares PE assembly symbols
-                        // across compilations, so this ensures that we don't produce new tag helpers
-                        // for the same assemblies over and over again.
-                        if (!s_perAssemblyCaches.TryGetValue(assembly, out var cache) ||
-                            !cache.TryGet(context.IncludeDocumentation, context.ExcludeHidden, out tagHelpers))
-                        {
-                            using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
-                            Collect(assembly.GlobalNamespace, referenceTagHelpers);
+                        using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
+                        Collect(assembly.GlobalNamespace, referenceTagHelpers);
 
-                            tagHelpers = referenceTagHelpers.ToArrayOrEmpty();
-
-                            if (cache is null)
-                            {
-                                cache = new();
-                                s_perAssemblyCaches.Add(assembly, cache);
-                            }
-
-                            cache.Add(tagHelpers, context.IncludeDocumentation, context.ExcludeHidden);
-                        }
+                        tagHelpers = cache.Add(referenceTagHelpers.ToArrayOrEmpty(), includeDocumentation, excludeHidden);
                     }
 
                     foreach (var tagHelper in tagHelpers)
