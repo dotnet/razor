@@ -71,7 +71,7 @@ public class UriExtensionsTest : TestBase
         Assert.Equal(expected, path);
     }
 
-    [OSSkipConditionFact(new[] { "OSX", "Linux" })]
+    [OSSkipConditionTheory(new[] { "OSX", "Linux" })]
     [InlineData(@"file:///c:/path/to/dir/Index.cshtml", @"c:/path/to/dir/Index.cshtml")]
     [InlineData(@"file:///c:\path/to\dir/Index.cshtml", @"c:/path/to/dir/Index.cshtml")]
     [InlineData(@"file:///C:\path\to\dir\Index.cshtml", @"C:/path/to/dir/Index.cshtml")]
