@@ -302,6 +302,14 @@ internal partial class RazorCustomMessageTarget
 
     private void AddSnippetCompletions(RazorLanguageKind languageKind, ref PooledArrayBuilder<CompletionItem> builder)
     {
+        // Temporary fix: snippets are broken in CSharp. We're investigating
+        // but this is very disruptive. This quick fix unblocks things.
+        // TODO: Add an option to enable this. 
+        if (languageKind != RazorLanguageKind.Html)
+        {
+            return;
+        }
+
         var snippets = _snippetCache.GetSnippets(ConvertLanguageKind(languageKind));
         if (snippets.IsDefaultOrEmpty)
         {
@@ -316,7 +324,8 @@ internal partial class RazorCustomMessageTarget
                 InsertTextFormat = InsertTextFormat.Snippet,
                 InsertText = s.Shortcut,
                 Data = s.CompletionData,
-                Kind = CompletionItemKind.Snippet
+                Kind = CompletionItemKind.Snippet,
+                CommitCharacters = []
             }));
     }
 
