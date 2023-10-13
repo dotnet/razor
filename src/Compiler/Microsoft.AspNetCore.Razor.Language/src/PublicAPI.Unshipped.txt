@@ -9,6 +9,7 @@
 *REMOVED*~Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.Attributes.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor>
 *REMOVED*~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.BoundAttributeParameters.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor>
 abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.AddSourceMappingFor(Microsoft.AspNetCore.Razor.Language.SourceSpan node) -> void
+abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.Dispose() -> void
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.ContainsKey(string! key) -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Count.get -> int
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetEntry(int index) -> System.Collections.Generic.KeyValuePair<string!, string?>

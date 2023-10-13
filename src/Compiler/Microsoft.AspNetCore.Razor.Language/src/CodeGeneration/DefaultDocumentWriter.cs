@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -35,15 +34,12 @@ internal class DefaultDocumentWriter : DocumentWriter
             throw new ArgumentNullException(nameof(documentNode));
         }
 
-        using var _ = ArrayBuilderPool<SourceMapping>.GetPooledObject(out var sourceMappingsBuilder);
-
-        var context = new DefaultCodeRenderingContext(
+        using var context = new DefaultCodeRenderingContext(
             new CodeWriter(Environment.NewLine, _options),
             _codeTarget.CreateNodeWriter(),
             codeDocument,
             documentNode,
-            _options,
-            sourceMappingsBuilder);
+            _options);
         context.Visitor = new Visitor(_codeTarget, context);
 
         context.Visitor.VisitDocument(documentNode);
@@ -56,7 +52,7 @@ internal class DefaultDocumentWriter : DocumentWriter
             cSharp,
             _options,
             allOrderedDiagnostics.ToArray(),
-            context.SourceMappings.ToImmutableArray(),
+            context.SourceMappings.DrainToImmutable(),
             context.LinePragmas.ToArray());
     }
 

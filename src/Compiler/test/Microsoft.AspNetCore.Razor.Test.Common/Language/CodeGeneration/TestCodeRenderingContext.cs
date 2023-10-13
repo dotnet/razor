@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -41,8 +40,7 @@ public static class TestCodeRenderingContext
             nodeWriter = new DesignTimeNodeWriter();
         }
 
-        var sourceMappingsBuilder = ImmutableArray.CreateBuilder<SourceMapping>();
-        var context = new DefaultCodeRenderingContext(codeWriter, nodeWriter, codeDocument, documentNode, options, sourceMappingsBuilder);
+        var context = new DefaultCodeRenderingContext(codeWriter, nodeWriter, codeDocument, documentNode, options);
         context.Visitor = new RenderChildrenVisitor(context);
 
         return context;
@@ -79,8 +77,7 @@ public static class TestCodeRenderingContext
             nodeWriter = new RuntimeNodeWriter();
         }
 
-        var sourceMappingsBuilder = ImmutableArray.CreateBuilder<SourceMapping>();
-        var context = new DefaultCodeRenderingContext(codeWriter, nodeWriter, codeDocument, documentNode, options, sourceMappingsBuilder);
+        var context = new DefaultCodeRenderingContext(codeWriter, nodeWriter, codeDocument, documentNode, options);
         context.Visitor = new RenderChildrenVisitor(context);
 
         return context;
