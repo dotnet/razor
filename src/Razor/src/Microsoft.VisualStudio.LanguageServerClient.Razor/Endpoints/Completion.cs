@@ -151,7 +151,7 @@ internal partial class RazorCustomMessageTarget
                     Items = builder.ToArray(),
                 };
             }
-            
+
             return completionList;
         }
         finally
@@ -232,9 +232,10 @@ internal partial class RazorCustomMessageTarget
     public async Task<CompletionItem?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
     {
         // Check if we're completing a snippet item that we provided
-        if (SnippetCompletionData.TryParse(request.CompletionItem.Data, out var snippetCompletionData))
+        if (SnippetCompletionData.TryParse(request.CompletionItem.Data, out var snippetCompletionData) &&
+            _snippetCache.TryResolveSnippetString(snippetCompletionData) is { } snippetInsertText)
         {
-            request.CompletionItem.InsertText = _snippetCache.TryResolveSnippetString(snippetCompletionData);
+            request.CompletionItem.InsertText = snippetInsertText;
             return request.CompletionItem;
         }
 
