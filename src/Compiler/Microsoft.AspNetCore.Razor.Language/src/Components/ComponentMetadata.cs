@@ -126,6 +126,7 @@ internal static class ComponentMetadata
         public const string FullyQualifiedNameMatch = "Components.FullyQualifiedNameMatch";
 
         public const string InitOnlyProperty = "Components.InitOnlyProperty";
+        public const string CaptureUnmatchedValues = "Components.CaptureUnmatchedValues";
     }
 
     public static class EventHandler

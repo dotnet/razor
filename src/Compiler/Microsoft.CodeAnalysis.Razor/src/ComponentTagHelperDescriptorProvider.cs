@@ -208,6 +208,19 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             pb.IsEditorRequired = property.GetAttributes().Any(
                 static a => a.AttributeClass.HasFullName("Microsoft.AspNetCore.Components.EditorRequiredAttribute"));
 
+            // Check if the parameter sets 'CaptureUnmatchedValues' to 'true'
+            var propertyAttribute = property.GetAttributes()
+                .FirstOrDefault(a => a.AttributeClass.HasFullName("Microsoft.AspNetCore.Components.ParameterAttribute"));
+            if (propertyAttribute != null)
+            {
+                var captureUnmatchedValuesParameter = propertyAttribute.NamedArguments
+                    .FirstOrDefault(a => a.Key == "CaptureUnmatchedValues");
+                if (captureUnmatchedValuesParameter is { Value.Value: true })
+                {
+                    metadata.Add(MakeTrue(ComponentMetadata.Component.CaptureUnmatchedValues));
+                }
+            }
+
             metadata.Add(PropertyName(property.Name));
             metadata.Add(GloballyQualifiedTypeName(property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat)));
 

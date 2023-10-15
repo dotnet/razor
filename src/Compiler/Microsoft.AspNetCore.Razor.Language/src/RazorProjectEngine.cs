@@ -269,6 +269,7 @@ public abstract class RazorProjectEngine
         builder.Features.Add(new ComponentMarkupDiagnosticPass());
         builder.Features.Add(new ComponentMarkupBlockPass());
         builder.Features.Add(new ComponentMarkupEncodingPass());
+        builder.Features.Add(new ComponentUnknownAttributeDiagnosticPass());
     }
 
     private static void LoadExtensions(RazorProjectEngineBuilder builder, IReadOnlyList<RazorExtension> extensions)

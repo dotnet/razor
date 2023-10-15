@@ -70,6 +70,7 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<ComponentRenderModeLoweringPass>(feature),
             feature => Assert.IsType<ComponentSplatLoweringPass>(feature),
             feature => Assert.IsType<ComponentTemplateDiagnosticPass>(feature),
+            feature => Assert.IsType<ComponentUnknownAttributeDiagnosticPass>(feature),
             feature => Assert.IsType<ComponentWhitespacePass>(feature),
             feature => Assert.IsType<DefaultDirectiveSyntaxTreePass>(feature),
             feature => Assert.IsType<DefaultDocumentClassifierPass>(feature),
