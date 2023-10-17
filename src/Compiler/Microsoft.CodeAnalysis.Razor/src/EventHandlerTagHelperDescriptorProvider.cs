@@ -44,7 +44,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
     }
 
     private class Collector(Compilation compilation, ISymbol targetSymbol, INamedTypeSymbol eventHandlerAttribute)
-        : TagHelperCollector<EventHandlerTagHelperDescriptorProvider>(compilation, targetSymbol)
+        : TagHelperCollector<Collector>(compilation, targetSymbol)
     {
         private readonly INamedTypeSymbol _eventHandlerAttribute = eventHandlerAttribute;
 

@@ -43,7 +43,7 @@ public sealed class DefaultTagHelperDescriptorProvider : RazorEngineFeatureBase,
 
     private class Collector(
         Compilation compilation, ISymbol targetSymbol, DefaultTagHelperDescriptorFactory factory, INamedTypeSymbol tagHelperTypeSymbol)
-        : TagHelperCollector<DefaultTagHelperDescriptorProvider>(compilation, targetSymbol)
+        : TagHelperCollector<Collector>(compilation, targetSymbol)
     {
         private readonly DefaultTagHelperDescriptorFactory _factory = factory;
         private readonly INamedTypeSymbol _tagHelperTypeSymbol = tagHelperTypeSymbol;

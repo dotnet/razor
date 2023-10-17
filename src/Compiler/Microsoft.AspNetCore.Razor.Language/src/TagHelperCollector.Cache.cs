@@ -7,7 +7,7 @@ using System.Threading;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public abstract partial class TagHelperCollector<T>
-    where T : ITagHelperDescriptorProvider
+    where T : TagHelperCollector<T>
 {
     private class Cache
     {

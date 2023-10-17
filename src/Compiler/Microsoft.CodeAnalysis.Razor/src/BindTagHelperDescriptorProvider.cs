@@ -240,7 +240,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
     private class Collector(
         Compilation compilation, ISymbol targetSymbol, INamedTypeSymbol bindElementAttribute, INamedTypeSymbol bindInputElementAttribute)
-        : TagHelperCollector<BindTagHelperDescriptorProvider>(compilation, targetSymbol)
+        : TagHelperCollector<Collector>(compilation, targetSymbol)
     {
         protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
         {

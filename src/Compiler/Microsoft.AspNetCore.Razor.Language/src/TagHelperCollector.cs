@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public abstract partial class TagHelperCollector<T>
-    where T : ITagHelperDescriptorProvider
+    where T : TagHelperCollector<T>
 {
     // This type is generic to ensure that each descendent gets its own instance of this field.
     private static readonly ConditionalWeakTable<IAssemblySymbol, Cache> s_perAssemblyCaches = new();

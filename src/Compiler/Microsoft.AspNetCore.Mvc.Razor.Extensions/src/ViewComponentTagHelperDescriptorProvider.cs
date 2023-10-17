@@ -49,7 +49,7 @@ public sealed class ViewComponentTagHelperDescriptorProvider : RazorEngineFeatur
         ViewComponentTagHelperDescriptorFactory factory,
         INamedTypeSymbol vcAttribute,
         INamedTypeSymbol nonVCAttribute)
-        : TagHelperCollector<ViewComponentTagHelperDescriptorProvider>(compilation, targetSymbol: null)
+        : TagHelperCollector<Collector>(compilation, targetSymbol: null)
     {
         private readonly ViewComponentTagHelperDescriptorFactory _factory = factory;
         private readonly INamedTypeSymbol _vcAttribute = vcAttribute;
