@@ -10058,6 +10058,21 @@ Time: @DateTime.Now
         CompileToAssembly(generated, throwOnFailure: false);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9359")]
+    public void LinePragma_Multiline()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @("text"
+            )
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region RenderMode
@@ -10668,6 +10683,23 @@ Time: @DateTime.Now
             @code {
                 [Parameter] public RenderFragment ChildContent { get; set; }
             }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9323")]
+    public void FormName_ChildContent()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components.Web
+            <form @formname="myform" class="nice">
+                <p>@DateTime.Now</p>
+            </form>
             """);
 
         // Assert

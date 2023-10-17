@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
@@ -128,11 +126,11 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
 
         for (var i = 0; i < tagHelpers.Length; i++)
         {
-            var current = tagHelpers[i].GetChecksum();
+            var current = tagHelpers[i].Checksum;
 
             for (var j = 0; j < tagHelpers.Length; j++)
             {
-                var other = tagHelpers[j].GetChecksum();
+                var other = tagHelpers[j].Checksum;
 
                 if (i == j)
                 {

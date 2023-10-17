@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -36,15 +35,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var parseOptions = context.ParseOptionsProvider;
             var compilation = context.CompilationProvider;
 
-            // determine if we should suppress this run and filter out all the additional files if so
-            var isGeneratorSuppressed = analyzerConfigOptions.Select(GetSuppressionStatus);
-            var additionalTexts = context.AdditionalTextsProvider
-                .Combine(isGeneratorSuppressed)
-                .Where(pair => !pair.Right)
-                .Select((pair, _) => pair.Left);
+            // determine if we should suppress this run and filter out all the additional files and references if so
+            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator");
+            var additionalTexts = context.AdditionalTextsProvider.EmptyWhen(isGeneratorSuppressed, true);
+            var metadataRefs = context.MetadataReferencesProvider.EmptyWhen(isGeneratorSuppressed, true);
 
             var razorSourceGeneratorOptions = analyzerConfigOptions
                 .Combine(parseOptions)
+                .Combine(isGeneratorSuppressed)
                 .Select(ComputeRazorSourceGeneratorOptions)
                 .ReportDiagnostics(context);
 
@@ -114,14 +112,20 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var tagHelpersFromCompilation = declCompilation
                 .Combine(razorSourceGeneratorOptions)
+                .Combine(isGeneratorSuppressed)
                 .Select(static (pair, _) =>
                 {
-                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
 
-                    var (compilation, razorSourceGeneratorOptions) = pair;
-
-                    var tagHelperFeature = GetStaticTagHelperFeature(compilation);
+                    var ((compilation, razorSourceGeneratorOptions), isGeneratorSuppressed) = pair;
                     var results = new List<TagHelperDescriptor>();
+
+                    if (isGeneratorSuppressed)
+                    {
+                        return results;
+                    }
+
+                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
+                    var tagHelperFeature = GetStaticTagHelperFeature(compilation);
 
                     tagHelperFeature.CollectDescriptors(compilation.Assembly, results);
 
@@ -153,16 +157,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .Select(static (pair, _) =>
                 {
-                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStart();
 
                     var ((compilation, razorSourceGeneratorOptions), hasRazorFiles) = pair;
                     if (!hasRazorFiles)
                     {
                         // If there's no razor code in this app, don't do anything.
-                        RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStop();
                         return null;
                     }
 
+                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStart();
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
 
                     // Typically a project with Razor files will have many tag helpers in references.
@@ -194,12 +197,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
                 .Combine(razorSourceGeneratorOptions);
 
-            var withOptionsDesignTime = withOptions
-                .Combine(analyzerConfigOptions.Select(GetHostOutputsEnabledStatus))
-                .Where(pair => pair.Right)
-                .Select((pair, _) => pair.Left);
+            var razorHostOutputsEnabled = analyzerConfigOptions.CheckGlobalFlagSet("EnableRazorHostOutputs");
+            var withOptionsDesignTime = withOptions.EmptyWhen(razorHostOutputsEnabled, false);
 
-            var isAddComponentParameterAvailable = context.MetadataReferencesProvider
+            var isAddComponentParameterAvailable = metadataRefs
                 .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
                 .Collect()
                 .Select((refs, _) =>
@@ -302,13 +303,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 context.AddSource(hintName, csharpDocument.GeneratedCode);
             });
 
-            context.RegisterHostOutput(processed(designTime: true), static (context, pair, _) =>
-            {
-                var (filePath, document) = pair;
-                var hintName = GetIdentifierFromPath(filePath);
-                context.AddOutput(hintName + ".rsg.cs", document.CodeDocument.GetCSharpDocument().GeneratedCode);
-                context.AddOutput(hintName + ".rsg.html", document.CodeDocument.GetHtmlDocument().GeneratedCode);
-            });
+            // ExternalAccess.RazorCompiler does not have IVT to the new assembly.
+            // https://github.com/dotnet/razor/issues/8400
+            // context.RegisterHostOutput(processed(designTime: true), static (context, pair, _) =>
+            // {
+            //     var (filePath, document) = pair;
+            //     var hintName = GetIdentifierFromPath(filePath);
+            //     context.AddOutput(hintName + ".rsg.cs", document.CodeDocument.GetCSharpDocument().GeneratedCode);
+            //     context.AddOutput(hintName + ".rsg.html", document.CodeDocument.GetHtmlDocument().GeneratedCode);
+            // });
         }
     }
 }
