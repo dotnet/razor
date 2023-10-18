@@ -388,6 +388,7 @@
 ~Microsoft.AspNetCore.Razor.Language.IRazorProjectEngineFeature.ProjectEngine.get -> Microsoft.AspNetCore.Razor.Language.RazorProjectEngine
 ~Microsoft.AspNetCore.Razor.Language.IRazorProjectEngineFeature.ProjectEngine.set -> void
 ~Microsoft.AspNetCore.Razor.Language.IRazorTargetExtensionFeature.TargetExtensions.get -> System.Collections.Generic.ICollection<Microsoft.AspNetCore.Razor.Language.CodeGeneration.ICodeTargetExtension>
+~Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider.Execute(Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorProviderContext context) -> void
 ~Microsoft.AspNetCore.Razor.Language.ITagHelperFeature.GetDescriptors() -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor>
 ~Microsoft.AspNetCore.Razor.Language.ItemCollection.Add(object key, object value) -> void
 ~Microsoft.AspNetCore.Razor.Language.ItemCollection.Add(System.Collections.Generic.KeyValuePair<object, object> item) -> void
@@ -1190,6 +1191,8 @@ Microsoft.AspNetCore.Razor.Language.IRazorParsingPhase
 Microsoft.AspNetCore.Razor.Language.IRazorProjectEngineFeature
 Microsoft.AspNetCore.Razor.Language.IRazorTagHelperBinderPhase
 Microsoft.AspNetCore.Razor.Language.IRazorTargetExtensionFeature
+Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider
+Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider.Order.get -> int
 Microsoft.AspNetCore.Razor.Language.ITagHelperFeature
 Microsoft.AspNetCore.Razor.Language.ItemCollection
 Microsoft.AspNetCore.Razor.Language.ItemCollection.Clear() -> void

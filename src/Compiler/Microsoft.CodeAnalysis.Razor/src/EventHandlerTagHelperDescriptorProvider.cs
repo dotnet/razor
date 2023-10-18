@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -37,90 +38,111 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
             return;
         }
 
-        var targetSymbol = context.Items.GetTargetSymbol();
+        var eventHandlerData = GetEventHandlerData(context, compilation, eventHandlerAttribute);
 
-        var collector = new Collector(compilation, targetSymbol, eventHandlerAttribute);
-        collector.Collect(context);
+        foreach (var tagHelper in CreateEventHandlerTagHelpers(eventHandlerData))
+        {
+            context.Results.Add(tagHelper);
+        }
     }
 
-    private class Collector(Compilation compilation, ISymbol targetSymbol, INamedTypeSymbol eventHandlerAttribute)
-        : TagHelperCollector<Collector>(compilation, targetSymbol)
+    private static ImmutableArray<EventHandlerData> GetEventHandlerData(TagHelperDescriptorProviderContext context, Compilation compilation, INamedTypeSymbol eventHandlerAttribute)
     {
-        private readonly INamedTypeSymbol _eventHandlerAttribute = eventHandlerAttribute;
+        using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
+        var visitor = new EventHandlerDataVisitor(types);
 
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
+        var targetSymbol = context.Items.GetTargetSymbol();
+        if (targetSymbol is not null)
         {
-            using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
-            var visitor = new EventHandlerDataVisitor(types);
-
-            visitor.Visit(symbol);
-
-            foreach (var type in types)
+            visitor.Visit(targetSymbol);
+        }
+        else
+        {
+            visitor.Visit(compilation.Assembly.GlobalNamespace);
+            foreach (var reference in compilation.References)
             {
-                // Create helper to delay computing display names for this type when we need them.
-                var displayNames = new DisplayNameHelper(type);
-
-                // Not handling duplicates here for now since we're the primary ones extending this.
-                // If we see users adding to the set of event handler constructs we will want to add deduplication
-                // and potentially diagnostics.
-                foreach (var attribute in type.GetAttributes())
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _eventHandlerAttribute))
-                    {
-                        var enablePreventDefault = false;
-                        var enableStopPropagation = false;
-                        if (attribute.ConstructorArguments.Length == 4)
-                        {
-                            enablePreventDefault = (bool)attribute.ConstructorArguments[2].Value;
-                            enableStopPropagation = (bool)attribute.ConstructorArguments[3].Value;
-                        }
-
-                        var (typeName, namespaceName) = displayNames.GetNames();
-                        var constructorArguments = attribute.ConstructorArguments;
-
-                        results.Add(CreateTagHelper(
-                            typeName,
-                            namespaceName,
-                            type.Name,
-                            (string)constructorArguments[0].Value,
-                            (INamedTypeSymbol)constructorArguments[1].Value,
-                            enablePreventDefault,
-                            enableStopPropagation));
-                    }
+                    visitor.Visit(assembly.GlobalNamespace);
                 }
             }
         }
 
-        /// <summary>
-        ///  Helper to avoid computing various type-based names until necessary.
-        /// </summary>
-        private ref struct DisplayNameHelper(INamedTypeSymbol type)
+        using var results = new PooledArrayBuilder<EventHandlerData>();
+
+        foreach (var type in types)
         {
-            private readonly INamedTypeSymbol _type = type;
-            private (string Type, string Namespace)? _names;
+            // Create helper to delay computing display names for this type when we need them.
+            var displayNames = new DisplayNameHelper(type);
 
-            public (string Type, string Namespace) GetNames()
+            // Not handling duplicates here for now since we're the primary ones extending this.
+            // If we see users adding to the set of event handler constructs we will want to add deduplication
+            // and potentially diagnostics.
+            foreach (var attribute in type.GetAttributes())
             {
-                _names ??= (_type.ToDisplayString(), _type.ContainingNamespace.ToDisplayString());
+                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, eventHandlerAttribute))
+                {
+                    var enablePreventDefault = false;
+                    var enableStopPropagation = false;
+                    if (attribute.ConstructorArguments.Length == 4)
+                    {
+                        enablePreventDefault = (bool)attribute.ConstructorArguments[2].Value;
+                        enableStopPropagation = (bool)attribute.ConstructorArguments[3].Value;
+                    }
 
-                return _names.GetValueOrDefault();
+                    var (assemblyName, typeName, namespaceName) = displayNames.GetNames();
+                    var constructorArguments = attribute.ConstructorArguments;
+
+                    results.Add(new EventHandlerData(
+                        assemblyName,
+                        typeName,
+                        namespaceName,
+                        type.Name,
+                        (string)constructorArguments[0].Value,
+                        (INamedTypeSymbol)constructorArguments[1].Value,
+                        enablePreventDefault,
+                        enableStopPropagation));
+                }
             }
         }
 
-        private static TagHelperDescriptor CreateTagHelper(
-            string typeName,
-            string typeNamespace,
-            string typeNameIdentifier,
-            string attribute,
-            INamedTypeSymbol eventArgsType,
-            bool enablePreventDefault,
-            bool enableStopPropagation)
+        return results.DrainToImmutable();
+    }
+
+    /// <summary>
+    ///  Helper to avoid computing various type-based names until necessary.
+    /// </summary>
+    private ref struct DisplayNameHelper
+    {
+        private readonly INamedTypeSymbol _type;
+        private (string Assembly, string Type, string Namespace)? _names;
+
+        public DisplayNameHelper(INamedTypeSymbol type)
         {
-            var attributeName = "@" + attribute;
-            var eventArgType = eventArgsType.ToDisplayString();
-            _ = TagHelperDescriptorBuilder.GetPooledInstance(
-                ComponentMetadata.EventHandler.TagHelperKind, attribute, ComponentsApi.AssemblyName,
+            _type = type;
+        }
+
+        public (string Assembly, string Type, string Namespace) GetNames()
+        {
+            _names ??= (_type.ContainingAssembly.Name, _type.ToDisplayString(), _type.ContainingNamespace.ToDisplayString());
+
+            return _names.GetValueOrDefault();
+        }
+    }
+
+    private static ImmutableArray<TagHelperDescriptor> CreateEventHandlerTagHelpers(ImmutableArray<EventHandlerData> data)
+    {
+        using var results = new PooledArrayBuilder<TagHelperDescriptor>();
+
+        foreach (var entry in data)
+        {
+            var attributeName = "@" + entry.Attribute;
+            var eventArgType = entry.EventArgsType.ToDisplayString();
+
+            using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+                ComponentMetadata.EventHandler.TagHelperKind, entry.Attribute, ComponentsApi.AssemblyName,
                 out var builder);
+
             builder.CaseSensitive = true;
             builder.SetDocumentation(
                 DocumentationDescriptor.From(
@@ -133,9 +155,9 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                 new(ComponentMetadata.EventHandler.EventArgsType, eventArgType),
                 MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                 RuntimeName(ComponentMetadata.EventHandler.RuntimeName),
-                TypeName(typeName),
-                TypeNamespace(typeNamespace),
-                TypeNameIdentifier(typeNameIdentifier));
+                TypeName(entry.TypeName),
+                TypeNamespace(entry.TypeNamespace),
+                TypeNameIdentifier(entry.TypeNameIdentifier));
 
             builder.TagMatchingRule(rule =>
             {
@@ -149,7 +171,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                 });
             });
 
-            if (enablePreventDefault)
+            if (entry.EnablePreventDefault)
             {
                 builder.TagMatchingRule(rule =>
                 {
@@ -164,7 +186,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                 });
             }
 
-            if (enableStopPropagation)
+            if (entry.EnableStopPropagation)
             {
                 builder.TagMatchingRule(rule =>
                 {
@@ -197,9 +219,9 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                     // logic that we don't want to interfere with.
                     IsWeaklyTyped,
                     IsDirectiveAttribute,
-                    PropertyName(attribute));
+                    PropertyName(entry.Attribute));
 
-                if (enablePreventDefault)
+                if (entry.EnablePreventDefault)
                 {
                     a.BindAttributeParameter(parameter =>
                     {
@@ -214,7 +236,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                     });
                 }
 
-                if (enableStopPropagation)
+                if (entry.EnableStopPropagation)
                 {
                     a.BindAttributeParameter(parameter =>
                     {
@@ -230,31 +252,52 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                 }
             });
 
-            return builder.Build();
+            results.Add(builder.Build());
         }
 
-        private class EventHandlerDataVisitor(List<INamedTypeSymbol> results) : SymbolVisitor
+        return results.DrainToImmutable();
+    }
+
+    private readonly record struct EventHandlerData(
+        string Assembly,
+        string TypeName,
+        string TypeNamespace,
+        string TypeNameIdentifier,
+        string Attribute,
+        INamedTypeSymbol EventArgsType,
+        bool EnablePreventDefault,
+        bool EnableStopPropagation);
+
+    private class EventHandlerDataVisitor : SymbolVisitor
+    {
+        private readonly List<INamedTypeSymbol> _results;
+
+        public EventHandlerDataVisitor(List<INamedTypeSymbol> results)
         {
-            private readonly List<INamedTypeSymbol> _results = results;
+            _results = results;
+        }
 
-            public override void VisitNamedType(INamedTypeSymbol symbol)
+        public override void VisitNamedType(INamedTypeSymbol symbol)
+        {
+            if (symbol.Name == "EventHandlers" && symbol.DeclaredAccessibility == Accessibility.Public)
             {
-                if (symbol.DeclaredAccessibility == Accessibility.Public &&
-                    symbol.Name == "EventHandlers")
-                {
-                    _results.Add(symbol);
-                }
+                _results.Add(symbol);
             }
+        }
 
-            public override void VisitNamespace(INamespaceSymbol symbol)
+        public override void VisitNamespace(INamespaceSymbol symbol)
+        {
+            foreach (var member in symbol.GetMembers())
             {
-                foreach (var member in symbol.GetMembers())
-                {
-                    Visit(member);
-                }
+                Visit(member);
             }
+        }
 
-            public override void VisitAssembly(IAssemblySymbol symbol)
+        public override void VisitAssembly(IAssemblySymbol symbol)
+        {
+            // This as a simple yet high-value optimization that excludes the vast majority of
+            // assemblies that (by definition) can't contain a component.
+            if (symbol.Name != null && !symbol.Name.StartsWith("System.", StringComparison.Ordinal))
             {
                 Visit(symbol.GlobalNamespace);
             }
