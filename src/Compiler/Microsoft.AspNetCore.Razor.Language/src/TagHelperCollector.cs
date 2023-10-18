@@ -1,9 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -25,15 +23,10 @@ public abstract partial class TagHelperCollector<T>
         _targetSymbol = targetSymbol;
     }
 
-    private static bool MightContainTagHelpers(IAssemblySymbol assembly)
+    private static bool ShouldConsiderAssembly(IAssemblySymbol assembly)
     {
-        // In order to contain tag helpers, components, or anything else we might want to find,
-        // the assembly must start with "Microsoft.AspNetCore." or reference an assembly that
-        // starts with "Microsoft.AspNetCore."
-
-        return assembly.Name.StartsWith("Microsoft.AspNetCore.", StringComparison.Ordinal) ||
-               assembly.Modules.First().ReferencedAssemblies.Any(
-                   a => a.Name.StartsWith("Microsoft.AspNetCore.", StringComparison.Ordinal));
+        // This is just a simple check to avoid walking BCL assemblies.
+        return !assembly.Name.StartsWith("System.", System.StringComparison.Ordinal);
     }
 
     protected abstract void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results);
@@ -52,7 +45,7 @@ public abstract partial class TagHelperCollector<T>
             {
                 if (_compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    if (!MightContainTagHelpers(assembly))
+                    if (!ShouldConsiderAssembly(assembly))
                     {
                         continue;
                     }
@@ -69,7 +62,9 @@ public abstract partial class TagHelperCollector<T>
 
                     if (!cache.TryGet(includeDocumentation, excludeHidden, out var tagHelpers))
                     {
-                        using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
+                        using var pooledList = ListPool<TagHelperDescriptor>.GetPooledObject();
+                        var referenceTagHelpers = pooledList.Object;
+
                         Collect(assembly.GlobalNamespace, referenceTagHelpers);
 
                         tagHelpers = cache.Add(referenceTagHelpers.ToArrayOrEmpty(), includeDocumentation, excludeHidden);
