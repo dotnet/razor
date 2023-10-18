@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -47,7 +48,7 @@ internal sealed class TagHelperBinder
     /// Will return <c>null</c> if no <see cref="TagHelperDescriptor"/>s are a match.</returns>
     public TagHelperBinding GetBinding(
         string tagName,
-        IReadOnlyList<KeyValuePair<string, string>> attributes,
+        ImmutableArray<KeyValuePair<string, string>> attributes,
         string parentTagName,
         bool parentIsTagHelper)
     {
@@ -64,7 +65,7 @@ internal sealed class TagHelperBinder
         // Ensure there's a HashSet to use.
         if (!_registrations.TryGetValue(TagHelperMatchingConventions.ElementCatchAllName, out HashSet<TagHelperDescriptor> catchAllDescriptors))
         {
-            descriptors = new HashSet<TagHelperDescriptor>(TagHelperDescriptorComparer.Default);
+            descriptors = new HashSet<TagHelperDescriptor>();
         }
         else
         {
@@ -97,9 +98,8 @@ internal sealed class TagHelperBinder
             // We're avoiding descriptor.TagMatchingRules.Where and applicableRules.Any() to avoid
             // Enumerator allocations on this hot path
             List<TagMatchingRuleDescriptor> applicableRules = null;
-            for (var i = 0; i < descriptor.TagMatchingRules.Count; i++)
+            foreach (var rule in descriptor.TagMatchingRules)
             {
-                var rule = descriptor.TagMatchingRules[i];
                 if (TagHelperMatchingConventions.SatisfiesRule(tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, rule))
                 {
                     applicableRules ??= new List<TagMatchingRuleDescriptor>();
@@ -131,10 +131,8 @@ internal sealed class TagHelperBinder
 
     private void Register(TagHelperDescriptor descriptor)
     {
-        var count = descriptor.TagMatchingRules.Count;
-        for (var i = 0; i < count; i++)
+        foreach (var rule in descriptor.TagMatchingRules)
         {
-            var rule = descriptor.TagMatchingRules[i];
             var registrationKey =
                 string.Equals(rule.TagName, TagHelperMatchingConventions.ElementCatchAllName, StringComparison.Ordinal) ?
                 TagHelperMatchingConventions.ElementCatchAllName :
@@ -143,7 +141,7 @@ internal sealed class TagHelperBinder
             // Ensure there's a HashSet to add the descriptor to.
             if (!_registrations.TryGetValue(registrationKey, out HashSet<TagHelperDescriptor> descriptorSet))
             {
-                descriptorSet = new HashSet<TagHelperDescriptor>(TagHelperDescriptorComparer.Default);
+                descriptorSet = new HashSet<TagHelperDescriptor>();
                 _registrations[registrationKey] = descriptorSet;
             }
 

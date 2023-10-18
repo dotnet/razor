@@ -109,7 +109,7 @@ internal class DefaultDocumentWriter : DocumentWriter
 
                 var sourceDocument = Context.SourceDocument;
 
-                var checksum = Checksum.BytesToString(sourceDocument.GetChecksum());
+                var checksum = ChecksumUtilities.BytesToString(sourceDocument.GetChecksum());
                 if (!string.IsNullOrEmpty(checksum))
                 {
                     Context.CodeWriter
@@ -312,6 +312,16 @@ internal class DefaultDocumentWriter : DocumentWriter
         public override void VisitSplat(SplatIntermediateNode node)
         {
             Context.NodeWriter.WriteSplat(Context, node);
+        }
+
+        public override void VisitRenderMode(RenderModeIntermediateNode node)
+        {
+            Context.NodeWriter.WriteRenderMode(Context, node);
+        }
+
+        public override void VisitFormName(FormNameIntermediateNode node)
+        {
+            Context.NodeWriter.WriteFormName(Context, node);
         }
 
         public override void VisitDefault(IntermediateNode node)

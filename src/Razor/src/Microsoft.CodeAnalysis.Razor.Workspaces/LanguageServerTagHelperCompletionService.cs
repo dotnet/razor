@@ -3,22 +3,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class LanguageServerTagHelperCompletionService : TagHelperCompletionService
 {
-    private readonly TagHelperFactsService _tagHelperFactsService;
+    private readonly ITagHelperFactsService _tagHelperFactsService;
     private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
     [ImportingConstructor]
-    public LanguageServerTagHelperCompletionService(TagHelperFactsService tagHelperFactsService)
+    public LanguageServerTagHelperCompletionService(ITagHelperFactsService tagHelperFactsService)
     {
         if (tagHelperFactsService is null)
         {
@@ -52,11 +53,10 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
         var documentContext = completionContext.DocumentContext;
         var descriptorsForTag = _tagHelperFactsService.GetTagHelpersGivenTag(documentContext, completionContext.CurrentTagName, completionContext.CurrentParentTagName);
-        if (descriptorsForTag.Count == 0)
+        if (descriptorsForTag.Length == 0)
         {
             // If the current tag has no possible descriptors then we can't have any additional attributes.
-            var defaultResult = AttributeCompletionResult.Create(attributeCompletions);
-            return defaultResult;
+            return AttributeCompletionResult.Create(attributeCompletions);
         }
 
         var prefix = documentContext.Prefix ?? string.Empty;
@@ -69,7 +69,13 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
             completionContext.CurrentParentTagName,
             completionContext.CurrentParentIsTagHelper);
 
-        var applicableDescriptors = applicableTagHelperBinding?.Descriptors ?? Enumerable.Empty<TagHelperDescriptor>();
+        using var _ = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var applicableDescriptors);
+
+        if (applicableTagHelperBinding is { Descriptors: var descriptors })
+        {
+            applicableDescriptors.UnionWith(descriptors);
+        }
+
         var unprefixedTagName = completionContext.CurrentTagName[prefix.Length..];
 
         if (!completionContext.InHTMLSchema(unprefixedTagName) &&
@@ -79,15 +85,13 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
             attributeCompletions.Clear();
         }
 
-        for (var i = 0; i < descriptorsForTag.Count; i++)
+        foreach (var descriptor in descriptorsForTag)
         {
-            var descriptor = descriptorsForTag[i];
-
             if (applicableDescriptors.Contains(descriptor))
             {
                 foreach (var attributeDescriptor in descriptor.BoundAttributes)
                 {
-                    if (attributeDescriptor.Name != null)
+                    if (!attributeDescriptor.Name.IsNullOrEmpty())
                     {
                         UpdateCompletions(attributeDescriptor.Name, attributeDescriptor);
                     }
@@ -108,7 +112,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
                         htmlNameToBoundAttribute[attributeDescriptor.Name] = attributeDescriptor;
                     }
 
-                    if (!string.IsNullOrEmpty(attributeDescriptor.IndexerNamePrefix))
+                    if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
                     {
                         htmlNameToBoundAttribute[attributeDescriptor.IndexerNamePrefix] = attributeDescriptor;
                     }
@@ -176,7 +180,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
             return emptyResult;
         }
 
-        var tagAttributes = completionContext.Attributes.ToList();
+        var tagAttributes = completionContext.Attributes;
 
         var catchAllDescriptors = new HashSet<TagHelperDescriptor>();
         var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
@@ -185,6 +189,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
         foreach (var possibleDescriptor in possibleChildDescriptors)
         {
             var addRuleCompletions = false;
+            var checkAttributeRules = true;
             var outputHint = possibleDescriptor.TagOutputHint;
 
             foreach (var rule in possibleDescriptor.TagMatchingRules)
@@ -223,10 +228,15 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
                     // The second condition is a workaround for the fact that InHTMLSchema does a case insensitive comparison.
                     // We want completions to not dedupe by casing. E.g, we want to show both <div> and <DIV> completion items separately.
                     addRuleCompletions = true;
+
+                    // If the tag is not in the Html schema, then don't check attribute rules. Normally we want to check them so that
+                    // users don't see html tag and tag helper completions for the same thing, where the tag helper doesn't apply. In
+                    // cases where the tag is not html, we want to show it even if it doesn't apply, as the user could fix that later.
+                    checkAttributeRules = false;
                 }
 
                 // If we think this completion should be added based on tag name, thats great, but lets also make sure the attributes are correct
-                if (addRuleCompletions && TagHelperMatchingConventions.SatisfiesAttributes(tagAttributes, rule))
+                if (addRuleCompletions && (!checkAttributeRules || TagHelperMatchingConventions.SatisfiesAttributes(tagAttributes, rule)))
                 {
                     UpdateCompletions(prefix + rule.TagName, possibleDescriptor, elementCompletions);
                 }
@@ -257,7 +267,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
         static void UpdateCompletions(string tagName, TagHelperDescriptor possibleDescriptor, Dictionary<string, HashSet<TagHelperDescriptor>> elementCompletions, HashSet<TagHelperDescriptor>? tagHelperDescriptors = null)
         {
-            if (possibleDescriptor.BoundAttributes.Any(boundAttribute => boundAttribute.IsDirectiveAttribute()))
+            if (possibleDescriptor.BoundAttributes.Any(static boundAttribute => boundAttribute.IsDirectiveAttribute))
             {
                 // This is a TagHelper that ultimately represents a DirectiveAttribute. In classic Razor TagHelper land TagHelpers with bound attribute descriptors
                 // are valuable to show in the completion list to understand what was possible for a certain tag; however, with Blazor directive attributes stand
@@ -315,7 +325,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
                     prefixedName,
                     completionContext.ContainingParentTagName);
 
-                if (descriptors.Count == 0)
+                if (descriptors.Length == 0)
                 {
                     if (!elementCompletions.ContainsKey(prefixedName))
                     {
@@ -331,21 +341,20 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
                     elementCompletions[prefixedName] = existingRuleDescriptors;
                 }
 
-                existingRuleDescriptors.UnionWith(descriptors);
+                existingRuleDescriptors.AddRange(descriptors);
             }
         }
     }
 
-    private static IReadOnlyList<TagHelperDescriptor> FilterFullyQualifiedCompletions(IReadOnlyList<TagHelperDescriptor> possibleChildDescriptors)
+    private static ImmutableArray<TagHelperDescriptor> FilterFullyQualifiedCompletions(ImmutableArray<TagHelperDescriptor> possibleChildDescriptors)
     {
         // Iterate once through the list to tease apart fully qualified and short name TagHelpers
-        var fullyQualifiedTagHelpers = new List<TagHelperDescriptor>();
+        using var fullyQualifiedTagHelpers = new PooledArrayBuilder<TagHelperDescriptor>();
         var shortNameTagHelpers = new HashSet<TagHelperDescriptor>(ShortNameToFullyQualifiedComparer.Instance);
-        for (var i = 0; i < possibleChildDescriptors.Count; i++)
-        {
-            var descriptor = possibleChildDescriptors[i];
 
-            if (descriptor.IsComponentFullyQualifiedNameMatch())
+        foreach (var descriptor in possibleChildDescriptors)
+        {
+            if (descriptor.IsComponentFullyQualifiedNameMatch)
             {
                 fullyQualifiedTagHelpers.Add(descriptor);
             }
@@ -357,11 +366,11 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
         // Re-combine the short named & fully qualified TagHelpers but filter out any fully qualified TagHelpers that have a short
         // named representation already.
-        var filteredList = new List<TagHelperDescriptor>(shortNameTagHelpers);
-        for (var i = 0; i < fullyQualifiedTagHelpers.Count; i++)
-        {
-            var fullyQualifiedTagHelper = fullyQualifiedTagHelpers[i];
+        using var filteredList = new PooledArrayBuilder<TagHelperDescriptor>(capacity: shortNameTagHelpers.Count);
+        filteredList.AddRange(shortNameTagHelpers);
 
+        foreach (var fullyQualifiedTagHelper in fullyQualifiedTagHelpers)
+        {
             if (!shortNameTagHelpers.Contains(fullyQualifiedTagHelper))
             {
                 // Unimported completion item that isn't represented in a short named form.
@@ -373,6 +382,6 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
             }
         }
 
-        return filteredList;
+        return filteredList.DrainToImmutable();
     }
 }

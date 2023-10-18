@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -328,5 +329,174 @@ internal static class SyntaxNodeExtensions
     }
 
     public static SyntaxNode? FindInnermostNode(this SyntaxNode node, int index, bool includeWhitespace = false)
-        => node.FindToken(index, includeWhitespace)?.Parent;
+    {
+        var token = node.FindToken(index, includeWhitespace);
+
+        // If the index is EOF but the node has index-1,
+        // then try to get a token to the left of the index.
+        // patterns like
+        // <button></button>$$
+        // should get the button node instead of the razor document (which is the parent
+        // of the EOF token)
+        if (token.Kind == SyntaxKind.EndOfFile && node.Span.Contains(index - 1))
+        {
+            token = node.FindToken(index - 1, includeWhitespace);
+        }
+
+        return token.Parent;
+    }
+
+    public static SyntaxNode? FindNode(this SyntaxNode @this, Language.Syntax.TextSpan span, bool includeWhitespace = false, bool getInnermostNodeForTie = false)
+    {
+        if (!@this.FullSpan.Contains(span))
+        {
+            throw new ArgumentOutOfRangeException(nameof(span));
+        }
+
+        var node = @this.FindToken(span.Start, includeWhitespace)
+            .Parent
+            !.FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
+
+        node.AssumeNotNull();
+
+        // Tie-breaking.
+        if (!getInnermostNodeForTie)
+        {
+            var cuRoot = node.Ancestors().Last();
+
+            while (true)
+            {
+                var parent = node.Parent;
+                // NOTE: We care about FullSpan equality, but FullWidth is cheaper and equivalent.
+                if (parent == null || parent.FullWidth != node.FullWidth)
+                {
+                    break;
+                }
+
+                // prefer child over compilation unit
+                if (parent == cuRoot)
+                {
+                    break;
+                }
+
+                node = parent;
+            }
+        }
+
+        return node;
+    }
+
+    public static bool ExistsOnTarget(this SyntaxNode node, SyntaxNode target)
+    {
+        var matchingNode = target.DescendantNodesAndSelf()
+            // Empty new lines can affect our comparison so we remove them since they're insignificant.
+            .Where(n => n.RemoveEmptyNewLines().ToFullString() == node.RemoveEmptyNewLines().ToFullString())
+            .FirstOrDefault();
+
+        return matchingNode is not null;
+    }
+
+    public static SyntaxNode RemoveEmptyNewLines(this SyntaxNode node)
+    {
+        if (node is MarkupTextLiteralSyntax markupTextLiteral)
+        {
+            var literalTokensWithoutLines = new SyntaxList<SyntaxToken>(markupTextLiteral.LiteralTokens.Where(t => t.Kind != SyntaxKind.NewLine));
+            var updatedLiteral = markupTextLiteral.WithLiteralTokens(literalTokensWithoutLines);
+            return updatedLiteral;
+        }
+
+        return node;
+    }
+
+    public static bool IsCSharpNode(this SyntaxNode node, [NotNullWhen(true)] out CSharpCodeBlockSyntax? csharpCodeBlock)
+    {
+        csharpCodeBlock = null;
+
+        if (node is CSharpCodeBlockSyntax outerCSharpCodeBlock)
+        {
+            var innerCsharpStatement = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(n => n is CSharpStatementSyntax);
+            if (innerCsharpStatement is not null)
+            {
+                return innerCsharpStatement.IsCSharpNode(out csharpCodeBlock);
+            }
+
+            var innerRazorDirective = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(n => n is RazorDirectiveSyntax);
+            if (innerRazorDirective is not null)
+            {
+                return innerRazorDirective.IsCSharpNode(out csharpCodeBlock);
+            }
+
+            var innerCSharpExplicitExpression = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(n => n is CSharpExplicitExpressionSyntax);
+            if (innerCSharpExplicitExpression is not null)
+            {
+                return innerCSharpExplicitExpression.IsCSharpNode(out csharpCodeBlock);
+            }
+
+            var innerCSharpImplicitExpression = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(n => n is CSharpImplicitExpressionSyntax);
+            if (innerCSharpImplicitExpression is not null)
+            {
+                return innerCSharpImplicitExpression.IsCSharpNode(out csharpCodeBlock);
+            }
+        }
+        // @code {
+        //    var foo = "bar";
+        // }
+        else if (node is RazorDirectiveSyntax razorDirective)
+        {
+            // code {
+            //    var foo = "bar";
+            // }
+            var razorDirectiveBody = razorDirective.Body as RazorDirectiveBodySyntax;
+            if (razorDirectiveBody is not null)
+            {
+                // {
+                //    var foo = "bar";
+                // }
+                csharpCodeBlock = razorDirectiveBody.CSharpCode;
+
+                // var foo = "bar";
+                var innerCodeBlock = csharpCodeBlock.ChildNodes().FirstOrDefault(n => n is CSharpCodeBlockSyntax);
+                if (innerCodeBlock is not null)
+                {
+                    csharpCodeBlock = innerCodeBlock as CSharpCodeBlockSyntax;
+                }
+            }
+        }
+        // @(x)
+        else if (node is CSharpExplicitExpressionSyntax csharpExplicitExpression)
+        {
+            // (x)
+            var body = csharpExplicitExpression.Body as CSharpExplicitExpressionBodySyntax;
+            if (body is not null)
+            {
+                // x
+                csharpCodeBlock = body.CSharpCode;
+            }
+        }
+        // @x
+        else if (node is CSharpImplicitExpressionSyntax csharpImplicitExpression)
+        {
+            var csharpImplicitExpressionBody = csharpImplicitExpression.Body as CSharpImplicitExpressionBodySyntax;
+            if (csharpImplicitExpressionBody is not null)
+            {
+                // x
+                csharpCodeBlock = csharpImplicitExpressionBody.CSharpCode;
+            }
+        }
+        // @{
+        //    var x = 1;
+        // }
+        else if (node is CSharpStatementSyntax csharpStatement)
+        {
+            // {
+            //    var x = 1;
+            // }
+            var csharpStatementBody = csharpStatement.Body;
+
+            // var x = 1;
+            csharpCodeBlock = csharpStatementBody.ChildNodes().FirstOrDefault(n => n is CSharpCodeBlockSyntax) as CSharpCodeBlockSyntax;
+        }
+
+        return csharpCodeBlock is not null;
+    }
 }

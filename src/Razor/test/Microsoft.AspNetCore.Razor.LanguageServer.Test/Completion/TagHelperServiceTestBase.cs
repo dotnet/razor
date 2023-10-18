@@ -29,9 +29,9 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
     protected const string RazorFile = "test.razor";
 
     protected ImmutableArray<TagHelperDescriptor> DefaultTagHelpers { get; }
-    protected RazorTagHelperCompletionService RazorTagHelperCompletionService { get; }
+    private protected RazorTagHelperCompletionService RazorTagHelperCompletionService { get; }
     internal HtmlFactsService HtmlFactsService { get; }
-    protected TagHelperFactsService TagHelperFactsService { get; }
+    private protected ITagHelperFactsService TagHelperFactsService { get; }
 
     public TagHelperServiceTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -59,6 +59,12 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             rule.ParentTag = "test1";
         });
         builder1WithRequiredParent.SetMetadata(TypeName("Test1TagHelper.SomeChild"));
+        builder1WithRequiredParent.BindAttribute(attribute =>
+        {
+            attribute.Name = "attribute";
+            attribute.SetMetadata(PropertyName("Attribute"));
+            attribute.TypeName = typeof(string).FullName;
+        });
 
         var builder2 = TagHelperDescriptorBuilder.Create("Test2TagHelper", "TestAssembly");
         builder2.TagMatchingRule(rule => rule.TagName = "test2");
@@ -205,7 +211,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             htmlTagMutator.Build());
 
         HtmlFactsService = new DefaultHtmlFactsService();
-        TagHelperFactsService = new DefaultTagHelperFactsService();
+        TagHelperFactsService = new TagHelperFactsService();
         RazorTagHelperCompletionService = new DefaultRazorTagHelperCompletionService(TagHelperFactsService);
     }
 

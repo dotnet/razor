@@ -4,9 +4,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.Internal;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -19,10 +21,15 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 {
     public static readonly MetadataCollection Empty = NoItems.Instance;
 
-    private int? _hashCode;
+    private Checksum? _checksum;
 
     protected MetadataCollection()
     {
+    }
+
+    private protected MetadataCollection(Checksum? checksum)
+    {
+        _checksum = checksum;
     }
 
     public abstract string? this[string key] { get; }
@@ -34,6 +41,8 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
     public abstract bool ContainsKey(string key);
     public abstract bool TryGetValue(string key, out string? value);
 
+    public bool Contains(string key, string? value) => TryGetValue(key, out var v) && v == value;
+
     protected abstract KeyValuePair<string, string?> GetEntry(int index);
 
     public Enumerator GetEnumerator() => new(this);
@@ -41,14 +50,32 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     IEnumerator<KeyValuePair<string, string?>> IEnumerable<KeyValuePair<string, string?>>.GetEnumerator() => GetEnumerator();
 
-    public sealed override bool Equals(object obj)
-        => obj is MetadataCollection other && Equals(other);
+    internal Checksum Checksum
+        => _checksum ?? InterlockedOperations.Initialize(ref _checksum, ComputeChecksum());
 
-    public abstract bool Equals(MetadataCollection other);
+    private Checksum ComputeChecksum()
+    {
+        var builder = new Checksum.Builder();
 
-    protected abstract int ComputeHashCode();
+        foreach (var (key, value) in this)
+        {
+            builder.AppendData(key);
+            builder.AppendData(value);
+        }
 
-    public sealed override int GetHashCode() => _hashCode ??= ComputeHashCode();
+        return builder.FreeAndGetChecksum();
+    }
+
+    public sealed override bool Equals(object? obj)
+        => obj is MetadataCollection other &&
+           Equals(other);
+
+    public bool Equals(MetadataCollection? other)
+        => other is not null &&
+           Checksum.Equals(other.Checksum);
+
+    public sealed override int GetHashCode()
+        => Checksum.GetHashCode();
 
     public static MetadataCollection Create(KeyValuePair<string, string?> pair)
         => new OneToThreeItems(pair.Key, pair.Value);
@@ -69,7 +96,8 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             _ => new FourOrMoreItems(pairs),
         };
 
-    public static MetadataCollection Create(IReadOnlyList<KeyValuePair<string, string?>> pairs)
+    public static MetadataCollection Create<T>(T pairs)
+        where T : IReadOnlyList<KeyValuePair<string, string?>>
         => pairs switch
         {
             [] => Empty,
@@ -79,93 +107,106 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             _ => new FourOrMoreItems(pairs),
         };
 
-    public static MetadataCollection Create(IReadOnlyDictionary<string, string?> map)
+    public static MetadataCollection Create(Dictionary<string, string?> map)
     {
-        switch (map.Count)
+        var count = map.Count;
+
+        if (count == 0)
         {
-            case 0:
-                return Empty;
-
-            case 1:
-                {
-                    using var enumerable = map.GetEnumerator();
-
-                    if (!enumerable.MoveNext())
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    var pair = enumerable.Current;
-
-                    return new OneToThreeItems(pair.Key, pair.Value);
-                }
-
-            case 2:
-                {
-                    using var enumerable = map.GetEnumerator();
-
-                    if (!enumerable.MoveNext())
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    var pair1 = enumerable.Current;
-
-
-                    if (!enumerable.MoveNext())
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    var pair2 = enumerable.Current;
-
-                    return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value);
-                }
-
-            case 3:
-                {
-                    using var enumerable = map.GetEnumerator();
-
-                    if (!enumerable.MoveNext())
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    var pair1 = enumerable.Current;
-
-                    if (!enumerable.MoveNext())
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    var pair2 = enumerable.Current;
-
-                    if (!enumerable.MoveNext())
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    var pair3 = enumerable.Current;
-
-                    return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value);
-                }
-
-            default:
-                return new FourOrMoreItems(map);
+            return Empty;
         }
+
+        if (count < 4)
+        {
+            // Optimize for the 1-3 case. On this path, we use the enumerator
+            // to acquire key/value pairs.
+
+            // Get the first pair.
+            using var enumerator = map.GetEnumerator();
+
+            if (!enumerator.MoveNext())
+            {
+                Assumed.Unreachable();
+            }
+
+            var pair1 = enumerator.Current;
+
+            if (count == 1)
+            {
+                return new OneToThreeItems(pair1.Key, pair1.Value);
+            }
+
+            // We know there are at least two pairs, so get the second one.
+            if (!enumerator.MoveNext())
+            {
+                Assumed.Unreachable();
+            }
+
+            var pair2 = enumerator.Current;
+
+            if (count == 2)
+            {
+                return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value);
+            }
+
+            // We know that there are three pairs, so get the final one.
+            if (!enumerator.MoveNext())
+            {
+                Assumed.Unreachable();
+            }
+
+            var pair3 = enumerator.Current;
+
+            return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value);
+        }
+
+        // Finally, if there are four or more items, add the pairs to a list in order to construct
+        // a FourOrMoreItems instance. Note that the constructor will copy the key-value pairs and won't
+        // hold onto the list we're passing, so it's safe to use a pooled list.
+        using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var list);
+        list.SetCapacityIfLarger(count);
+
+        foreach (var pair in map)
+        {
+            list.Add(pair);
+        }
+
+        return Create(list);
     }
 
-    public static MetadataCollection CreateOrEmpty(IReadOnlyList<KeyValuePair<string, string?>>? pairs)
-        => pairs is not null ? Create(pairs) : Empty;
+    public static MetadataCollection Create(IReadOnlyDictionary<string, string?> map)
+    {
+        // Take a faster path if Dictionary<string, string?> is passed to us. This ensures that
+        // we use Dictionary's struct-based enumerator rather than going through
+        // IEnumerable<KeyValuePair<string, string>>.ToArray() below.
+
+        if (map is Dictionary<string, string?> dictionary)
+        {
+            return Create(dictionary);
+        }
+
+        return Create(map.ToArray());
+    }
+
+    public static MetadataCollection CreateOrEmpty<T>(T? pairs)
+        where T : IReadOnlyList<KeyValuePair<string, string?>>
+        => pairs is { } realPairs ? Create(realPairs) : Empty;
+
+    public static MetadataCollection CreateOrEmpty(Dictionary<string, string?>? map)
+        => map is not null ? Create(map) : Empty;
 
     public static MetadataCollection CreateOrEmpty(IReadOnlyDictionary<string, string?>? map)
         => map is not null ? Create(map) : Empty;
 
-    private class NoItems : MetadataCollection
+    /// <summary>
+    ///  This implementation represents an empty MetadataCollection.
+    /// </summary>
+    private sealed class NoItems : MetadataCollection
     {
         public static readonly NoItems Instance = new();
 
         private NoItems()
+            : base(Checksum.Null)
         {
         }
 
@@ -185,12 +226,13 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             value = null!;
             return false;
         }
-
-        protected override int ComputeHashCode() => 0;
-        public override bool Equals(MetadataCollection other) => ReferenceEquals(this, other);
     }
 
-    private class OneToThreeItems : MetadataCollection
+    /// <summary>
+    ///  This implementation represents a MetadataCollection with 1, 2, or 3 key/value pairs that are
+    ///  stored in explicit fields.
+    /// </summary>
+    private sealed class OneToThreeItems : MetadataCollection
     {
         private readonly string _key1;
         private readonly string? _value1;
@@ -210,29 +252,119 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
         public OneToThreeItems(string key1, string? value1, string key2, string? value2, string key3, string? value3)
         {
-            _key1 = key1 ?? throw new ArgumentNullException(nameof(key1));
-            _value1 = value1;
-            _key2 = key2 ?? throw new ArgumentNullException(nameof(key2));
-            _value2 = value2;
-            _key3 = key3 ?? throw new ArgumentNullException(nameof(key3));
-            _value3 = value3;
+            if (key1 is null)
+            {
+                throw new ArgumentNullException(nameof(key1));
+            }
 
-            if (key1 == key2)
+            if (key2 is null)
+            {
+                throw new ArgumentNullException(nameof(key2));
+            }
+
+            if (key3 is null)
+            {
+                throw new ArgumentNullException(nameof(key3));
+            }
+
+            var compareKeys_1_2 = string.CompareOrdinal(key1, key2);
+
+            if (compareKeys_1_2 == 0)
             {
                 throw new ArgumentException(
                     Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key2), nameof(key2));
             }
 
-            if (key1 == key3)
+            var compareKeys_1_3 = string.CompareOrdinal(key1, key3);
+
+            if (compareKeys_1_3 == 0)
             {
                 throw new ArgumentException(
                     Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key3), nameof(key3));
             }
 
-            if (key2 == key3)
+            var compareKeys_2_3 = string.CompareOrdinal(key2, key3);
+
+            if (compareKeys_2_3 == 0)
             {
                 throw new ArgumentException(
                     Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key3), nameof(key3));
+            }
+
+            // We ensure that the key/value pairs are assigned to their fields in sorted order to ensure
+            // that MetadataCollections created with the same data in a different order are equal.
+
+            var pair1 = (key1, value1);
+            var pair2 = (key2, value2);
+            var pair3 = (key3, value3);
+
+            if (compareKeys_1_2 < 0)
+            {
+                if (compareKeys_1_3 < 0)
+                {
+                    // If key1 is less than both key2 and key3, it must go first.
+                    // - slot 1: pair 1
+                    (_key1, _value1) = pair1;
+
+                    // Now that key1 is handled, we can determine the other two slots by comparing key2 and key3.
+                    if (compareKeys_2_3 < 0)
+                    {
+                        // - slot 2: pair 2
+                        // - slot 3: pair 3
+                        (_key2, _value2) = pair2;
+                        (_key3, _value3) = pair3;
+                    }
+                    else
+                    {
+                        // - slot 2: pair 3
+                        // - slot 3: pair 2
+                        (_key2, _value2) = pair3;
+                        (_key3, _value3) = pair2;
+                    }
+                }
+                else
+                {
+                    // If key1 is less than key2 but not key3, it must go in the middle.
+                    // - slot 1: pair 3
+                    // - slot 2: pair 1
+                    // - slot 3: pair 2
+                    (_key1, _value1) = pair3;
+                    (_key2, _value2) = pair1;
+                    (_key3, _value3) = pair2;
+                }
+            }
+            else if (compareKeys_1_3 < 0)
+            {
+                // If key1 is less than key3 but not key2, it must go in the middle with
+                // key2 in the first slot
+                // - slot 1: pair 2
+                // - slot 2: pair 1
+                // - slot 3: pair 3
+                (_key1, _value1) = pair2;
+                (_key2, _value2) = pair1;
+                (_key3, _value3) = pair3;
+            }
+            else
+            {
+                // Finally, key1 isn't less than key2 or key3, so it must go last.
+                // - slot 3: pair 1
+                (_key3, _value3) = pair1;
+
+                // With key1 in slot 3, we can determine the other two slots by comparing key2 and key3. 
+                if (compareKeys_2_3 < 0)
+                {
+                    // - slot 1: pair 2
+                    // - slot 2: pair 3
+                    (_key1, _value1) = pair2;
+                    (_key2, _value2) = pair3;
+                }
+                else
+                {
+                    // - slot 1: pair 3
+                    // - slot 2: pair 2
+                    (_key1, _value1) = pair3;
+                    (_key2, _value2) = pair2;
+                }
             }
 
             _count = 3;
@@ -240,15 +372,43 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
         public OneToThreeItems(string key1, string? value1, string key2, string? value2)
         {
-            _key1 = key1 ?? throw new ArgumentNullException(nameof(key1));
-            _value1 = value1;
-            _key2 = key2 ?? throw new ArgumentNullException(nameof(key2));
-            _value2 = value2;
+            if (key1 is null)
+            {
+                throw new ArgumentNullException(nameof(key1));
+            }
 
-            if (key1 == key2)
+            if (key2 is null)
+            {
+                throw new ArgumentNullException(nameof(key2));
+            }
+
+            var compareKeys = string.CompareOrdinal(key1, key2);
+
+            if (compareKeys == 0)
             {
                 throw new ArgumentException(
                     Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key2), nameof(key2));
+            }
+
+            // We ensure that the key/value pairs are assigned to their fields in sorted order to ensure
+            // that MetadataCollections created with the same data in a different order are equal.
+
+            var pair1 = (key1, value1);
+            var pair2 = (key2, value2);
+
+            if (compareKeys < 0)
+            {
+                // - slot 1: pair 1
+                // - slot 2: pair 2
+                (_key1, _value1) = pair1;
+                (_key2, _value2) = pair2;
+            }
+            else
+            {
+                // - slot 1: pair 2
+                // - slot 2: pair 1
+                (_key1, _value1) = pair2;
+                (_key2, _value2) = pair1;
             }
 
             _count = 2;
@@ -360,218 +520,18 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             value = null;
             return false;
         }
-
-        public override bool Equals(MetadataCollection other)
-        {
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other is not OneToThreeItems otherCollection)
-            {
-                return false;
-            }
-
-            if (_count != otherCollection._count)
-            {
-                return false;
-            }
-
-            if (_count == 1)
-            {
-                return _key1 == otherCollection._key1 && _value1 == otherCollection._value1;
-            }
-
-            if (_count == 2)
-            {
-                if (_key1 == otherCollection._key1)
-                {
-                    return _value1 == otherCollection._value1 &&
-                           _key2 == otherCollection._key2 &&
-                           _value2 == otherCollection._value2;
-                }
-
-                return _key1 == otherCollection._key2 &&
-                       _value1 == otherCollection._value2 &&
-                       _key2 == otherCollection._key1 &&
-                       _value2 == otherCollection._value1;
-            }
-
-            if (_count == 3)
-            {
-                return otherCollection.TryGetValue(_key1, out var otherValue1) &&
-                       _value1 == otherValue1 &&
-                       otherCollection.TryGetValue(_key2, out var otherValue2) &&
-                       _value2 == otherValue2 &&
-                       otherCollection.TryGetValue(_key3, out var otherValue3) &&
-                       _value3 == otherValue3;
-            }
-
-            return false;
-        }
-
-        protected override int ComputeHashCode()
-        {
-            return _count switch
-            {
-                1 => ComputeHashCodeForOneItem(),
-                2 => ComputeHashCodeForTwoItems(),
-                _ => ComputeHashCodeForThreeItems()
-            };
-
-            int ComputeHashCodeForOneItem()
-            {
-                var hash = HashCodeCombiner.Start();
-
-                hash.Add(_key1, StringComparer.Ordinal);
-                hash.Add(_value1, StringComparer.Ordinal);
-
-                return hash.CombinedHash;
-            }
-
-            int ComputeHashCodeForTwoItems()
-            {
-                var hash = HashCodeCombiner.Start();
-
-                if (string.CompareOrdinal(_key1, _key2) < 0)
-                {
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
-                }
-                else
-                {
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
-                }
-
-                return hash.CombinedHash;
-            }
-
-            int ComputeHashCodeForThreeItems()
-            {
-                var hash = HashCodeCombiner.Start();
-
-                // Note: Because we've already eliminated duplicate strings, all of the
-                // CompareOrdinal calls below should be either less than zero or greater
-                // than zero.
-                var key1LessThanKey2 = string.CompareOrdinal(_key1, _key2) < 0;
-                var key1LessThanKey3 = string.CompareOrdinal(_key1, _key3) < 0;
-                var key2LessThanKey3 = string.CompareOrdinal(_key2, _key3) < 0;
-
-                var key1Added = false;
-                var key2Added = false;
-
-                // Add the first item
-                if (key1LessThanKey2 && key1LessThanKey3)
-                {
-                    // If key1 is less than key2 and key3, it must go first.
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
-                    key1Added = true;
-                }
-                else if (!key1LessThanKey2 && key2LessThanKey3)
-                {
-                    // Since key1 isn't first, add key2 if it is less than key1 and key3
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
-                    key2Added = true;
-                }
-                else
-                {
-                    // Otherwise, key3 must go first.
-                    hash.Add(_key3, StringComparer.Ordinal);
-                    hash.Add(_value3, StringComparer.Ordinal);
-                }
-
-                // Add the second item
-                if (!key1Added && (key1LessThanKey2 || key1LessThanKey3))
-                {
-                    // If we haven't added key1 and it is less than key2 or key3, it must be second.
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
-                    key1Added = true;
-                }
-                else if (!key2Added && (!key1LessThanKey2 || key2LessThanKey3))
-                {
-                    // If we haven't added key2 and it is less than key1 or key3, it must be second.
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
-                    key2Added = true;
-                }
-                else
-                {
-                    // Otherwise, key3 must be go first.
-                    hash.Add(_key3, StringComparer.Ordinal);
-                    hash.Add(_value3, StringComparer.Ordinal);
-                }
-
-                // Add the final item
-                if (!key1Added)
-                {
-                    // If we haven't added key, it must go last.
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
-                }
-                else if (!key2Added)
-                {
-                    // If we haven't added key2, it must go last.
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
-                }
-                else
-                {
-                    // Otherwise, key3 must go last.
-                    hash.Add(_key3, StringComparer.Ordinal);
-                    hash.Add(_value3, StringComparer.Ordinal);
-                }
-
-                return hash.CombinedHash;
-            }
-        }
     }
 
-    private class FourOrMoreItems : MetadataCollection
+    /// <summary>
+    ///  This implementation represents a MetadataCollection with 4 or more items that are stored
+    ///  in a pair of arrays. The keys are sorted so that lookup is O(log n).
+    /// </summary>
+    private sealed class FourOrMoreItems : MetadataCollection
     {
         private readonly string[] _keys;
         private readonly string?[] _values;
 
         private readonly int _count;
-
-        public FourOrMoreItems(IReadOnlyDictionary<string, string?> map)
-        {
-            if (map is null)
-            {
-                throw new ArgumentNullException(nameof(map));
-            }
-
-            using var _1 = ListPool<string>.GetPooledObject(out var keys);
-            using var _2 = ListPool<string?>.GetPooledObject(out var values);
-
-            var count = map.Count;
-            keys.SetCapacityIfLarger(count);
-            values.SetCapacityIfLarger(count);
-
-            foreach (var (key, value) in map)
-            {
-                // Because the keys are strings that are already in a dictionary, we are
-                // guaranteed that there won't ever be a match. So, we can assume that
-                // the result of BinarySearch will always be negative and can immediately
-                // convert from the bitwise complement.
-                var index = ~keys.BinarySearch(key);
-
-                keys.Insert(index, key);
-                values.Insert(index, value);
-            }
-
-            _keys = keys.ToArrayOrEmpty();
-            _values = values.ToArrayOrEmpty();
-            _count = count;
-        }
 
         public FourOrMoreItems(IReadOnlyList<KeyValuePair<string, string?>> pairs)
         {
@@ -580,31 +540,45 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
                 throw new ArgumentNullException(nameof(pairs));
             }
 
-            using var _1 = ListPool<string>.GetPooledObject(out var keys);
-            using var _2 = ListPool<string?>.GetPooledObject(out var values);
-
             var count = pairs.Count;
-            keys.SetCapacityIfLarger(count);
-            values.SetCapacityIfLarger(count);
 
-            foreach (var (key, value) in pairs)
+            // Create a sorted array of keys.
+            var keys = new string[count];
+
+            for (var i = 0; i < count; i++)
             {
-                var index = keys.BinarySearch(key);
-
-                if (index >= 0)
-                {
-                    throw new ArgumentException(
-                        Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key), nameof(pairs));
-                }
-
-                index = ~index;
-
-                keys.Insert(index, key);
-                values.Insert(index, value);
+                keys[i] = pairs[i].Key;
             }
 
-            _keys = keys.ToArrayOrEmpty();
-            _values = values.ToArrayOrEmpty();
+            Array.Sort(keys, StringComparer.Ordinal);
+
+            // Ensure that there are no duplicate keys.
+            for (var i = 1; i < count; i++)
+            {
+                if (keys[i] == keys[i - 1])
+                {
+                    throw new ArgumentException(
+                        Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(keys[i]), nameof(pairs));
+                }
+            }
+
+            // Create an array for the values.
+            var values = new string?[count];
+
+            // Loop through our pairs and add each value at the correct index.
+            for (var i = 0; i < count; i++)
+            {
+                var (key, value) = pairs[i];
+                var index = Array.BinarySearch(keys, key, StringComparer.Ordinal);
+
+                // We know that every key is in the array, so we can assume that index is >= 0.
+                Debug.Assert(index >= 0);
+
+                values[index] = value;
+            }
+
+            _keys = keys;
+            _values = values;
             _count = count;
         }
 
@@ -612,7 +586,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
         {
             get
             {
-                var index = Array.BinarySearch(_keys, key);
+                var index = Array.BinarySearch(_keys, key, StringComparer.Ordinal);
 
                 return index >= 0
                     ? _values[index]
@@ -627,7 +601,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
         public override bool ContainsKey(string key)
         {
-            var index = Array.BinarySearch(_keys, key);
+            var index = Array.BinarySearch(_keys, key, StringComparer.Ordinal);
 
             return index >= 0;
         }
@@ -637,7 +611,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
         public override bool TryGetValue(string key, out string? value)
         {
-            var index = Array.BinarySearch(_keys, key);
+            var index = Array.BinarySearch(_keys, key, StringComparer.Ordinal);
 
             if (index >= 0)
             {
@@ -647,67 +621,6 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
             value = null;
             return false;
-        }
-
-        public override bool Equals(MetadataCollection other)
-        {
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other is not FourOrMoreItems)
-            {
-                return false;
-            }
-
-            if (_count != other.Count)
-            {
-                return false;
-            }
-
-            var keys = _keys;
-            var values = _values;
-            var count = keys.Length;
-
-            for (var i = 0; i < count; i++)
-            {
-                if (!other.TryGetValue(keys[i], out var otherValue) ||
-                    values[i] != otherValue)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        protected override int ComputeHashCode()
-        {
-            var hash = HashCodeCombiner.Start();
-
-            var keys = _keys;
-            var values = _values;
-            var count = keys.Length;
-
-            using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var list);
-
-            list.SetCapacityIfLarger(count);
-
-            for (var i = 0; i < count; i++)
-            {
-                list.Add(new(keys[i], values[i]));
-            }
-
-            list.Sort((kvp1, kvp2) => string.CompareOrdinal(kvp1.Key, kvp2.Key));
-
-            foreach (var (key, value) in list)
-            {
-                hash.Add(key, StringComparer.Ordinal);
-                hash.Add(value, StringComparer.Ordinal);
-            }
-
-            return hash.CombinedHash;
         }
     }
 }

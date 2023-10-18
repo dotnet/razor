@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
@@ -35,20 +34,18 @@ internal partial class RazorCustomMessageTarget
         string languageServerName;
         if (codeActionParams.LanguageKind == RazorLanguageKind.Html)
         {
-            (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-                _documentManager,
+            (synchronized, virtualDocumentSnapshot) = await TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else if (codeActionParams.LanguageKind == RazorLanguageKind.CSharp)
         {
-            (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-                _documentManager,
+            (synchronized, virtualDocumentSnapshot) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
             languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         }
         else
@@ -76,8 +73,13 @@ internal partial class RazorCustomMessageTarget
             cancellationToken).ConfigureAwait(false);
 
         var codeActions = new List<VSInternalCodeAction>();
-        await foreach (var response in requests)
+        await foreach (var response in requests.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+
             if (response.Response != null)
             {
                 codeActions.AddRange(response.Response);
@@ -96,29 +98,21 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(resolveCodeActionParams));
         }
 
-        if (!_documentManager.TryGetDocument(resolveCodeActionParams.Uri, out var documentSnapshot))
-        {
-            // Couldn't resolve the document associated with the code action bail out.
-            return null;
-        }
-
         bool synchronized;
         VirtualDocumentSnapshot virtualDocumentSnapshot;
         if (resolveCodeActionParams.LanguageKind == RazorLanguageKind.Html)
         {
-            // TODO: Need to get project context to pass to the synchronizer
-            (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            (synchronized, virtualDocumentSnapshot) = await TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 resolveCodeActionParams.HostDocumentVersion,
-                resolveCodeActionParams.Uri,
-                cancellationToken);
+                resolveCodeActionParams.Identifier,
+                cancellationToken).ConfigureAwait(false);
         }
         else if (resolveCodeActionParams.LanguageKind == RazorLanguageKind.CSharp)
         {
-            // TODO: Need to get project context to pass to the synchronizer
-            (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            (synchronized, virtualDocumentSnapshot) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 resolveCodeActionParams.HostDocumentVersion,
-                resolveCodeActionParams.Uri,
-                cancellationToken);
+                resolveCodeActionParams.Identifier,
+                cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -141,7 +135,7 @@ internal partial class RazorCustomMessageTarget
             codeAction,
             cancellationToken).ConfigureAwait(false);
 
-        await foreach (var response in requests)
+        await foreach (var response in requests.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (response.Response is not null)
             {

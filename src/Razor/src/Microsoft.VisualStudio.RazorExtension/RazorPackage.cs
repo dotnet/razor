@@ -10,8 +10,10 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
+using Microsoft.VisualStudio.Editor.Razor.Snippets;
 using Microsoft.VisualStudio.LanguageServices.Razor;
 using Microsoft.VisualStudio.RazorExtension.Options;
+using Microsoft.VisualStudio.RazorExtension.Snippets;
 using Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
 [ProvideLanguageEditorOptionPage(typeof(AdvancedOptionPage), RazorConstants.RazorLSPContentTypeName, category: null, "Advanced", pageNameResourceId: "#1050", keywordListResourceId: 1060)]
 [Guid(PackageGuidString)]
-public sealed class RazorPackage : AsyncPackage
+internal sealed class RazorPackage : AsyncPackage
 {
     public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
 
@@ -72,6 +74,17 @@ public sealed class RazorPackage : AsyncPackage
             var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
             mcs.AddCommand(menuToolWin);
         }
+
+        CreateSnippetService();
+    }
+
+    private SnippetService CreateSnippetService()
+    {
+        var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
+        var joinableTaskContext = componentModel.GetService<JoinableTaskContext>();
+        var cache = componentModel.GetService<SnippetCache>();
+
+        return new SnippetService(joinableTaskContext.Factory, this, cache);
     }
 
     /// <summary>

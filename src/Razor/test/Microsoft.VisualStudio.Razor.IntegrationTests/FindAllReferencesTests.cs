@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-public class FindAllReferencesTests : AbstractRazorEditorTest
+public class FindAllReferencesTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
     [IdeFact]
     public async Task FindAllReferences_CSharpInRazor()
@@ -89,7 +90,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
         );
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
+    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8036")]
     public async Task FindAllReferences_ComponentAttribute_FromCSharpInRazor()
     {
         // Open the file
@@ -128,7 +129,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
         );
     }
 
-    [IdeFact]
+    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8036")]
     public async Task FindAllReferences_ComponentAttribute_FromCSharpInCSharp()
     {
         // Create the file

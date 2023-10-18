@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -17,7 +17,7 @@ internal static class TagHelperMatchingConventions
     public static bool SatisfiesRule(
         ReadOnlySpan<char> tagNameWithoutPrefix,
         ReadOnlySpan<char> parentTagNameWithoutPrefix,
-        IReadOnlyList<KeyValuePair<string, string>> tagAttributes,
+        ImmutableArray<KeyValuePair<string, string>> tagAttributes,
         TagMatchingRuleDescriptor rule)
     {
         return SatisfiesTagName(tagNameWithoutPrefix, rule) &&
@@ -58,15 +58,25 @@ internal static class TagHelperMatchingConventions
         return true;
     }
 
-    public static bool SatisfiesAttributes(IReadOnlyList<KeyValuePair<string, string>> tagAttributes, TagMatchingRuleDescriptor rule)
+    public static bool SatisfiesAttributes(ImmutableArray<KeyValuePair<string, string>> tagAttributes, TagMatchingRuleDescriptor rule)
     {
-        if (!rule.Attributes.All(
-            static (requiredAttribute, tagAttributes) => tagAttributes.Any(
-                static (attribute, requiredAttribute) => SatisfiesRequiredAttribute(attribute.Key, attribute.Value, requiredAttribute),
-                requiredAttribute),
-            tagAttributes))
+        foreach (var requiredAttribute in rule.Attributes)
         {
-            return false;
+            var satisfied = false;
+
+            foreach (var (attributeName, attributeValue) in tagAttributes)
+            {
+                if (SatisfiesRequiredAttribute(attributeName, attributeValue, requiredAttribute))
+                {
+                    satisfied = true;
+                    break;
+                }
+            }
+
+            if (!satisfied)
+            {
+                return false;
+            }
         }
 
         return true;
@@ -76,20 +86,19 @@ internal static class TagHelperMatchingConventions
     {
         return SatisfiesBoundAttributeName(name.AsSpan(), descriptor) ||
                SatisfiesBoundAttributeIndexer(name.AsSpan(), descriptor) ||
-               GetSatifyingBoundAttributeWithParameter(name, descriptor, descriptor.BoundAttributeParameters) is not null;
+               GetSatifyingBoundAttributeWithParameter(name, descriptor, descriptor.Parameters) is not null;
     }
 
     private static BoundAttributeParameterDescriptor? GetSatifyingBoundAttributeWithParameter(
         string name,
         BoundAttributeDescriptor descriptor,
-        IReadOnlyList<BoundAttributeParameterDescriptor> boundAttributeParameters)
+        ImmutableArray<BoundAttributeParameterDescriptor> boundAttributeParameters)
     {
-        var count = boundAttributeParameters.Count;
-        for (var i = 0; i < count; i++)
+        foreach (var parameter in boundAttributeParameters)
         {
-            if (SatisfiesBoundAttributeWithParameter(name, descriptor, boundAttributeParameters[i]))
+            if (SatisfiesBoundAttributeWithParameter(name, descriptor, parameter))
             {
-                return boundAttributeParameters[i];
+                return parameter;
             }
         }
 
@@ -181,7 +190,7 @@ internal static class TagHelperMatchingConventions
         // First, check if we have a bound attribute descriptor that matches the parameter if it exists.
         foreach (var attribute in descriptor.BoundAttributes)
         {
-            boundAttributeParameter = GetSatifyingBoundAttributeWithParameter(name, attribute, attribute.BoundAttributeParameters);
+            boundAttributeParameter = GetSatifyingBoundAttributeWithParameter(name, attribute, attribute.Parameters);
 
             if (boundAttributeParameter != null)
             {

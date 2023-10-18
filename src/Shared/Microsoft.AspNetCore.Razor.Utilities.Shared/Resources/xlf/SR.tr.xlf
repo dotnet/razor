@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../SR.resx">
     <body>
+      <trans-unit id="Cannot_advance_past_end_of_the_buffer_which_has_a_size_of_0">
+        <source>Cannot advance past the end of the buffer, which has a size of {0}.</source>
+        <target state="translated">Boyutu {0} olan arabelleğin sonuna ilerlenemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_allocate_a_buffer_of_size_0">
+        <source>Cannot allocate a buffer of size {0}.</source>
+        <target state="translated">Boyutu {0} olan arabellek ayrılamıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_is_too_short">
+        <source>Destination is too short.</source>
+        <target state="translated">Hedef çok kısa.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_negative_number_required">
         <source>Non-negative number required.</source>
         <target state="translated">Negatif olmayan sayı gerekiyor.</target>
@@ -10,6 +25,11 @@
       <trans-unit id="This_program_location_is_thought_to_be_unreachable_File_0_Line_1">
         <source>This program location is thought to be unreachable. File='{0}', Line={1}</source>
         <target state="translated">Bu program konumu erişilemez olarak görülüyor. Dosya='{0}', Satır={1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="translated">Desteklenmeyen tür: '{0}'.</target>
         <note />
       </trans-unit>
     </body>

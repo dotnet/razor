@@ -49,6 +49,12 @@ internal record DelegatedCompletionParams(
     TextEdit? ProvisionalTextEdit,
     Guid CorrelationId) : IDelegatedParams;
 
+internal record DelegatedMapCodeParams(
+    TextDocumentIdentifierAndVersion Identifier,
+    RazorLanguageKind ProjectedKind,
+    string[] Contents,
+    Location[][] FocusLocations) : IDelegatedParams;
+
 internal record DelegatedCompletionResolutionContext(
     DelegatedCompletionParams OriginalRequestParams,
     object? OriginalCompletionListData);
@@ -59,7 +65,7 @@ internal record DelegatedCompletionItemResolveParams(
     RazorLanguageKind OriginatingKind);
 
 internal record DelegatedProjectContextsParams(
-    TextDocumentIdentifierAndVersion Identifier);
+    Uri Uri);
 
 internal record DelegatedDocumentSymbolParams(
     TextDocumentIdentifierAndVersion Identifier);

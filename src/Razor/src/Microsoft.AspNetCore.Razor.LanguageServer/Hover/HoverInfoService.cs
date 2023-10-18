@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -20,14 +21,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 internal sealed class HoverInfoService : IHoverInfoService
 {
-    private readonly TagHelperFactsService _tagHelperFactsService;
+    private readonly ITagHelperFactsService _tagHelperFactsService;
     private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
     private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
     private readonly HtmlFactsService _htmlFactsService;
 
     [ImportingConstructor]
     public HoverInfoService(
-        TagHelperFactsService tagHelperFactsService,
+        ITagHelperFactsService tagHelperFactsService,
         LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
         VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
         HtmlFactsService htmlFactsService)
@@ -85,13 +86,18 @@ internal sealed class HoverInfoService : IHoverInfoService
         var position = new Position(location.LineIndex, location.CharacterIndex);
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
-        var ancestors = owner.Ancestors();
-        var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
+        // We want to find the parent tag, but looking up ancestors in the tree can find other things,
+        // for example when hovering over a start tag, the first ancestor is actually the element it
+        // belongs to, or in other words, the exact same tag! To work around this we just make sure we
+        // only check nodes that are at a different location in the file.
+        var ownerStart = owner.SpanStart;
 
         if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes) &&
             containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
         {
             // Hovering over HTML tag name
+            var ancestors = owner.Ancestors().Where(n => n.SpanStart != ownerStart);
+            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
             var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
             var binding = _tagHelperFactsService.GetTagHelperBinding(
                 tagHelperDocumentContext,
@@ -119,6 +125,12 @@ internal sealed class HoverInfoService : IHoverInfoService
         if (_htmlFactsService.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
             selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true)
         {
+            // When finding parents for attributes, we make sure to find the parent of the containing tag, otherwise these methods
+            // would return the parent of the attribute, which is not helpful, as its just going to be the containing element
+            var containingTag = containingTagNameToken.Parent;
+            var ancestors = containingTag.Ancestors().Where<SyntaxNode>(n => n.SpanStart != containingTag.SpanStart);
+            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
+
             // Hovering over HTML attribute name
             var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
 
@@ -172,7 +184,7 @@ internal sealed class HoverInfoService : IHoverInfoService
                         attributeName = "@" + attributeName;
                         break;
                     case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                        var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTagNameToken.Parent;
+                        var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTag;
                         range.Start.Character -= minimizedAttribute.Transition.FullWidth;
                         attributeName = "@" + attributeName;
                         break;
@@ -187,14 +199,14 @@ internal sealed class HoverInfoService : IHoverInfoService
         return null;
     }
 
-    private VSInternalHover? AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
+    private VSInternalHover? AttributeInfoToHover(ImmutableArray<BoundAttributeDescriptor> boundAttributes, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
     {
-        var descriptionInfos = descriptors.Select(boundAttribute =>
+        var descriptionInfos = boundAttributes.SelectAsArray(boundAttribute =>
         {
-            var indexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName.AsSpan(), boundAttribute);
-            var descriptionInfo = BoundAttributeDescriptionInfo.From(boundAttribute, indexer);
-            return descriptionInfo;
-        }).ToList().AsReadOnly();
+            var isIndexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName.AsSpan(), boundAttribute);
+            return BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer);
+        });
+
         var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
@@ -236,9 +248,7 @@ internal sealed class HoverInfoService : IHoverInfoService
 
     private VSInternalHover? ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities)
     {
-        var descriptionInfos = descriptors.Select(descriptor => BoundElementDescriptionInfo.From(descriptor))
-            .ToList()
-            .AsReadOnly();
+        var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;

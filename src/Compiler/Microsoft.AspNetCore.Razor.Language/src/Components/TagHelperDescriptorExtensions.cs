@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -14,7 +13,7 @@ internal static class TagHelperDescriptorExtensions
 {
     public static bool IsAnyComponentDocumentTagHelper(this TagHelperDescriptor tagHelper)
     {
-        return tagHelper.IsComponentTagHelper() || tagHelper.Metadata.ContainsKey(ComponentMetadata.SpecialKindKey);
+        return tagHelper.IsComponentTagHelper || tagHelper.Metadata.ContainsKey(ComponentMetadata.SpecialKindKey);
     }
 
     public static bool IsBindTagHelper(this TagHelperDescriptor tagHelper)
@@ -32,10 +31,17 @@ internal static class TagHelperDescriptorExtensions
             string.Equals(bool.TrueString, fallback);
     }
 
+    public static bool IsFormNameTagHelper(this TagHelperDescriptor tagHelper)
+    {
+        return
+            tagHelper.Metadata.TryGetValue(ComponentMetadata.SpecialKindKey, out var kind) &&
+            kind == ComponentMetadata.FormName.TagHelperKind;
+    }
+
     public static bool IsGenericTypedComponent(this TagHelperDescriptor tagHelper)
     {
         return
-            IsComponentTagHelper(tagHelper) &&
+            tagHelper.IsComponentTagHelper &&
             tagHelper.Metadata.TryGetValue(ComponentMetadata.Component.GenericTypedKey, out var value) &&
             string.Equals(bool.TrueString, value);
     }
@@ -44,7 +50,7 @@ internal static class TagHelperDescriptorExtensions
     {
         return
             tagHelper.IsBindTagHelper() &&
-            tagHelper.TagMatchingRules.Count == 2 &&
+            tagHelper.TagMatchingRules.Length == 2 &&
             string.Equals("input", tagHelper.TagMatchingRules[0].TagName);
     }
 
@@ -100,27 +106,6 @@ internal static class TagHelperDescriptorExtensions
         return result;
     }
 
-    public static bool IsChildContentTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        if (tagHelper.IsChildContentTagHelperCache is bool value)
-        {
-            return value;
-        }
-
-        value = tagHelper.Metadata.TryGetValue(ComponentMetadata.SpecialKindKey, out var specialKey) &&
-            string.Equals(specialKey, ComponentMetadata.ChildContent.TagHelperKind, StringComparison.Ordinal);
-
-        tagHelper.IsChildContentTagHelperCache = value;
-        return value;
-    }
-
-    public static bool IsComponentTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return
-            string.Equals(tagHelper.Kind, ComponentMetadata.Component.TagHelperKind) &&
-            !tagHelper.Metadata.ContainsKey(ComponentMetadata.SpecialKindKey);
-    }
-
     public static bool IsEventHandlerTagHelper(this TagHelperDescriptor tagHelper)
     {
         return
@@ -149,21 +134,11 @@ internal static class TagHelperDescriptorExtensions
             string.Equals(ComponentMetadata.Ref.TagHelperKind, kind);
     }
 
-    /// <summary>
-    /// Gets whether the component matches a tag with a fully qualified name.
-    /// </summary>
-    /// <param name="tagHelper">The <see cref="TagHelperDescriptor"/>.</param>
-    public static bool IsComponentFullyQualifiedNameMatch(this TagHelperDescriptor tagHelper)
+    public static bool IsRenderModeTagHelper(this TagHelperDescriptor tagHelper)
     {
-        if (tagHelper.IsComponentFullyQualifiedNameMatchCache is bool value)
-        {
-            return value;
-        }
-
-        value = tagHelper.Metadata.TryGetValue(ComponentMetadata.Component.NameMatchKey, out var matchType) &&
-            string.Equals(ComponentMetadata.Component.FullyQualifiedNameMatch, matchType);
-        tagHelper.IsComponentFullyQualifiedNameMatchCache = value;
-        return value;
+        return
+            tagHelper.Metadata.TryGetValue(ComponentMetadata.SpecialKindKey, out var kind) &&
+            string.Equals(ComponentMetadata.RenderMode.TagHelperKind, kind);
     }
 
     public static string GetEventArgsType(this TagHelperDescriptor tagHelper)
@@ -179,9 +154,8 @@ internal static class TagHelperDescriptorExtensions
     /// <returns>The child content attributes</returns>
     public static IEnumerable<BoundAttributeDescriptor> GetChildContentProperties(this TagHelperDescriptor tagHelper)
     {
-        for (var i = 0; i < tagHelper.BoundAttributes.Count; i++)
+        foreach (var attribute in tagHelper.BoundAttributes)
         {
-            var attribute = tagHelper.BoundAttributes[i];
             if (attribute.IsChildContentProperty())
             {
                 yield return attribute;
@@ -196,9 +170,8 @@ internal static class TagHelperDescriptorExtensions
     /// <returns>The type parameter attributes</returns>
     public static IEnumerable<BoundAttributeDescriptor> GetTypeParameters(this TagHelperDescriptor tagHelper)
     {
-        for (var i = 0; i < tagHelper.BoundAttributes.Count; i++)
+        foreach (var attribute in tagHelper.BoundAttributes)
         {
-            var attribute = tagHelper.BoundAttributes[i];
             if (attribute.IsTypeParameterProperty())
             {
                 yield return attribute;
@@ -214,9 +187,8 @@ internal static class TagHelperDescriptorExtensions
     /// <returns>True if it does supply one or more generic type parameters to descendants; false otherwise.</returns>
     public static bool SuppliesCascadingGenericParameters(this TagHelperDescriptor tagHelper)
     {
-        for (var i = 0; i < tagHelper.BoundAttributes.Count; i++)
+        foreach (var attribute in tagHelper.BoundAttributes)
         {
-            var attribute = tagHelper.BoundAttributes[i];
             if (attribute.IsCascadingTypeParameterProperty())
             {
                 return true;
