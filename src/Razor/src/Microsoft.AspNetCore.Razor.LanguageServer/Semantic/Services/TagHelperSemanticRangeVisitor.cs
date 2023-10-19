@@ -525,9 +525,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                 for (var lineNumber = range.Start.Line; lineNumber <= range.End.Line; lineNumber++)
                 {
                     var originalCharPosition = charPosition;
-                    // NOTE: GetLineLength includes newlines but we don't report tokens for newlines so
-                    // need to account for them.
-                    var lineLength = source.SourceText.Lines[lineNumber].Span.Length;
+                    // NOTE: We don't report tokens for newlines so need to account for them.
+                    var lineLength = source.SourceText.Lines[lineNumber].SpanIncludingLineBreak.Length;
 
                     // For the last line, we end where the syntax tree tells us to. For all other lines, we end at the
                     // last non-newline character
@@ -575,7 +574,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         void AddRange(SemanticRange semanticRange)
         {
             var linePositionSpan = semanticRange.AsLinePositionSpan();
-            if (linePositionSpan.Start != linePositionSpan.End)
+            if (linePositionSpan.Start == linePositionSpan.End)
             {
                 return;
             }
