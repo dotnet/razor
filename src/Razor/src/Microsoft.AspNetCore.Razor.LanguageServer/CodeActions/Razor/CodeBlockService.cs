@@ -55,7 +55,7 @@ internal static class CodeBlockService
             if (!IsLineEmpty(lastCharacterLocation))
             {
                 // The last line of the file is not empty so we need to place the code at the end of that line with a new line at the beginning.
-                insertCharacterIndex = lastCharacterLocation.End + 1;
+                insertCharacterIndex = lastCharacterLocation.EndIncludingLineBreak - lastCharacterLocation.Start;
                 codeBlockStartText = $"{Environment.NewLine}{codeBlockStartText}";
             }
 
@@ -170,16 +170,5 @@ internal static class CodeBlockService
     /// </summary>
     /// <param name="textLine">The line to check.</param>
     /// <returns>true if the line is empty, otherwise false.</returns>
-    private static bool IsLineEmpty(TextLine textLine)
-    {
-        for(var i = textLine.Start; i <= textLine.End; i++)
-        {
-            if (!char.IsWhiteSpace(textLine.Text![i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+    private static bool IsLineEmpty(TextLine textLine) => textLine.Start == textLine.End;
 }
