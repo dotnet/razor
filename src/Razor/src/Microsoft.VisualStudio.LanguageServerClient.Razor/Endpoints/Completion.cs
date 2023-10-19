@@ -126,7 +126,7 @@ internal partial class RazorCustomMessageTarget
             using var builder = new PooledArrayBuilder<CompletionItem>();
 
             // Make sure to call our addition to completion before tracking telemetry requests
-            AddSnippetCompletions(request.ProjectedKind, ref builder.AsRef());
+            AddSnippetCompletions(request, ref builder.AsRef());
 
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var lspMethodName = Methods.TextDocumentCompletion.Name;
@@ -306,17 +306,23 @@ internal partial class RazorCustomMessageTarget
         return Task.FromResult(formattingOptions);
     }
 
-    private void AddSnippetCompletions(RazorLanguageKind languageKind, ref PooledArrayBuilder<CompletionItem> builder)
+    private void AddSnippetCompletions(DelegatedCompletionParams request, ref PooledArrayBuilder<CompletionItem> builder)
     {
         // Temporary fix: snippets are broken in CSharp. We're investigating
         // but this is very disruptive. This quick fix unblocks things.
         // TODO: Add an option to enable this. 
-        if (languageKind != RazorLanguageKind.Html)
+        if (request.ProjectedKind != RazorLanguageKind.Html)
         {
             return;
         }
 
-        var snippets = _snippetCache.GetSnippets(ConvertLanguageKind(languageKind));
+        // Don't add snippets for deletion of a character
+        if (request.Context.InvokeKind == VSInternalCompletionInvokeKind.Deletion)
+        {
+            return;
+        }
+
+        var snippets = _snippetCache.GetSnippets(ConvertLanguageKind(request.ProjectedKind));
         if (snippets.IsDefaultOrEmpty)
         {
             return;
