@@ -72,7 +72,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
     }
 
-    [Fact(Skip = "C# needs to implement + merge their LSP-based mapper before this test will pass")]
+    [Fact(Skip = "C# needs to implement + merge their LSP-based mapper before this test can pass (note the edit's text and range may be slightly different)")]
     public async Task HandleCSharpInsertionAsync()
     {
         var originalCode = """
@@ -292,6 +292,47 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         };
 
         await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit, locations: locations);
+    }
+
+    [Fact]
+    public async Task HandleFocusLocationInMiddleOfNodeAsync()
+    {
+        var originalCode = """
+                <h3>Component</h$$3>
+
+                @code {
+
+                }
+                
+                """;
+
+        var codeToMap = """
+            <PageTitle>Title</PageTitle>
+            """;
+
+        var expectedEdit = new WorkspaceEdit
+        {
+            DocumentChanges = new TextDocumentEdit[]
+            {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
+                    Edits =
+                    [
+                        new()
+                        {
+                            NewText = "<PageTitle>Title</PageTitle>",
+                            Range = new Range
+                            {
+                                Start = new Position(0, 18),
+                                End = new Position(0, 18)
+                            }
+                        }
+                    ]
+                }
+            }
+        };
+
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
     }
 
     private async Task VerifyCodeMappingAsync(

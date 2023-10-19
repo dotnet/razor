@@ -17,7 +17,7 @@ internal static class InsertMapper
     {
         // If there's an specific focus area, or caret provided, we should try to insert as close as possible.
         // As long as the focused area is not empty.
-        if (TryGetFocusedInsertionPoint(focusArea, sourceText, out var focusedInsertionPoint))
+        if (TryGetFocusedInsertionPoint(documentRoot, sourceText, focusArea, out var focusedInsertionPoint))
         {
             return focusedInsertionPoint;
         }
@@ -32,8 +32,9 @@ internal static class InsertMapper
     }
 
     private static bool TryGetFocusedInsertionPoint(
-        LSP.Location focusArea,
+        SyntaxNode documentRoot,
         SourceText sourceText,
+        LSP.Location focusArea,
         out int insertionPoint)
     {
         // If there's an specific focus area, or caret provided, we should try to insert as close as possible.
@@ -47,13 +48,34 @@ internal static class InsertMapper
 
         // Verify that the focus area is within the document.
         if (focusArea.Range.Start.Line >= sourceText.Lines.Count ||
-            (focusArea.Range.Start.Line == sourceText.Lines.Count - 1 && focusArea.Range.Start.Character > sourceText.Lines[focusArea.Range.Start.Line].Span.Length))
+           (focusArea.Range.Start.Line == sourceText.Lines.Count - 1
+                && focusArea.Range.Start.Character > sourceText.Lines[focusArea.Range.Start.Line].Span.Length))
         {
             insertionPoint = 0;
             return false;
         }
 
-        insertionPoint = focusArea.Range.ToTextSpan(sourceText).Start;
+        // Ensure we don't insert in the middle of a node.
+        var node = documentRoot.FindNode(focusArea.Range.ToRazorTextSpan(sourceText), includeWhitespace: true);
+        if (node is null)
+        {
+            insertionPoint = 0;
+            return false;
+        }
+
+        // If the node is a MarkupTextLiteral, we can probably insert in the middle as long as we're
+        // on a blank line.
+        if (node is MarkupTextLiteralSyntax)
+        {
+            var line = sourceText.Lines[focusArea.Range.Start.Line];
+            if (line.GetFirstNonWhitespaceOffset() is null)
+            {
+                insertionPoint = focusArea.Range.ToTextSpan(sourceText).Start;
+                return true;
+            }
+        }
+
+        insertionPoint = node.Span.End;
         return true;
     }
 

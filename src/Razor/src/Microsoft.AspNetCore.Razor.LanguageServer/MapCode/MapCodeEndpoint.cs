@@ -404,13 +404,12 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                 // The edits we receive from C# can contain preprocessor directives, which we'll ignore
                 // so we're successfully able to map back to the host document.
                 // For example, C# can send back something like this, but we only care about the
-                // non-preprocessor content:
+                // non-preprocessor content, especially since mapping can fail if they're included:
                 //     #pragma warning restore 1998
                 //     #nullable restore
                 //     #line 12 "C:/path/to/razor/file.razor"
                 //     
                 //     int x2 = 1;
-
                 var updatedEdit = await RemoveStartingPreprocessorDirectivesAsync(generatedUri, documentEdit, cancellationToken).ConfigureAwait(false);
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
                     generatedUri, updatedEdit.Range, cancellationToken).ConfigureAwait(false);
@@ -467,6 +466,8 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                 return documentEdit;
             }
 
+            // We need to look the source mappings to figure out where the C# starting boundary within the line is, since
+            // sometimes C# source mappings don't start at the beginning of a line.
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             var csharpDocument = codeDocument.GetCSharpDocument();
             var sourceMapping = csharpDocument.SourceMappings.Where(
