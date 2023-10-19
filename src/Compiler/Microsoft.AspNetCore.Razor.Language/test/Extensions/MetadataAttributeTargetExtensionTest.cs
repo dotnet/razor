@@ -19,7 +19,7 @@ public class MetadataAttributeTargetExtensionTest
         {
             CompiledItemAttributeName = "global::TestItem",
         };
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new RazorCompiledItemAttributeIntermediateNode()
         {
@@ -48,7 +48,7 @@ public class MetadataAttributeTargetExtensionTest
         {
             SourceChecksumAttributeName = "global::TestChecksum",
         };
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new RazorSourceChecksumAttributeIntermediateNode()
         {
@@ -77,7 +77,7 @@ public class MetadataAttributeTargetExtensionTest
         {
             CompiledItemMetadataAttributeName = "global::TestItemMetadata",
         };
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new RazorCompiledItemMetadataAttributeIntermediateNode
         {
@@ -104,7 +104,7 @@ public class MetadataAttributeTargetExtensionTest
         {
             CompiledItemMetadataAttributeName = "global::TestItemMetadata",
         };
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new RazorCompiledItemMetadataAttributeIntermediateNode
         {

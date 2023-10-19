@@ -15,10 +15,8 @@ public static class SourceMappingsSerializer
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
         var sourceContent = sourceDocument.Text.ToString();
 
-        for (var i = 0; i < csharpDocument.SourceMappings.Count; i++)
+        foreach (var sourceMapping in csharpDocument.SourceMappings)
         {
-            var sourceMapping = csharpDocument.SourceMappings[i];
-
             builder.Append("Source Location: ");
             AppendMappingLocation(builder, sourceMapping.OriginalSpan, sourceContent);
 

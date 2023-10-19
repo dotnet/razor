@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -29,7 +30,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     private RazorRequestContext RazorRequestContext { get; set; }
     private RazorCodeDocument? RazorCodeDocument { get; set; }
     private SourceText? SourceText { get; set; }
-    private SourceMapping[]? SourceMappings { get; set; }
+    private ImmutableArray<SourceMapping> SourceMappings { get; set; }
     private string? GeneratedCode { get; set; }
     private object? Diagnostics { get; set; }
     private VersionedDocumentContext? VersionedDocumentContext { get; set; }
@@ -324,10 +325,10 @@ using Microsoft.AspNetCore.Components.Web;
 
 """;
 
-    private SourceMapping[] GetSourceMappings()
-        => new SourceMapping[] {
+    private ImmutableArray<SourceMapping> GetSourceMappings()
+        => ImmutableArray<SourceMapping>.Empty.Add(
             new SourceMapping(
                 originalSpan: new SourceSpan(filePath: "test.cshtml", absoluteIndex: 28, lineIndex: 3, characterIndex: 1, length: 58, lineCount: 5, endCharacterIndex: 0),
                 generatedSpan: new SourceSpan(filePath: null, absoluteIndex: 2026, lineIndex: 82, characterIndex: 1, length: 58, lineCount: 1, endCharacterIndex: 0)
-    )};
+        ));
 }
