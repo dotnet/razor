@@ -8,7 +8,7 @@
 #       apply to all branches.
 
 queue:
-  name: VSEngSS-MicroBuild2022-1ES
+  name: VSEngSS-MicroBuild2022Preview-1ES
   demands: Cmd
   timeoutInMinutes: 90
 variables:
