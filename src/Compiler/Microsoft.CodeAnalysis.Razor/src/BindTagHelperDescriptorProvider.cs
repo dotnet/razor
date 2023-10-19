@@ -125,8 +125,9 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             return;
         }
 
+        // We want to walk the compilation and its references, not the target symbol.
         var collector = new Collector(
-            compilation, targetSymbol, bindElementAttribute, bindInputElementAttribute);
+            compilation, targetSymbol: null, bindElementAttribute, bindInputElementAttribute);
         collector.Collect(context);
     }
 
