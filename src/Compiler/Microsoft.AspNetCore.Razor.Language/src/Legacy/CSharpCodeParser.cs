@@ -1000,7 +1000,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             var lineStart = CurrentStart.AbsoluteIndex - CurrentStart.CharacterIndex;
             while (--index >= lineStart)
             {
-                var @char = Context.SourceDocument.SourceText[index];
+                var @char = Context.SourceDocument.Text[index];
 
                 if (!char.IsWhiteSpace(@char))
                 {

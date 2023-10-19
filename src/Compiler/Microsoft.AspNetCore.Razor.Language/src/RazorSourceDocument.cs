@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +20,7 @@ public sealed class RazorSourceDocument
     /// <summary>
     /// Gets the source text of the document.
     /// </summary>
-    public SourceText SourceText { get; }
+    public SourceText Text { get; }
 
     /// <summary>
     /// Gets the file path of the original source document.
@@ -276,10 +275,7 @@ public sealed class RazorSourceDocument
 
     private RazorSourceDocument(SourceText sourceText, RazorSourceDocumentProperties properties)
     {
-        Debug.Assert(sourceText != null);
-        Debug.Assert(properties != null);
-
-        SourceText = sourceText!;
-        _properties = properties!;
+        Text = sourceText;
+        _properties = properties;
     }
 }

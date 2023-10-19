@@ -526,7 +526,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                 {
                     var originalCharPosition = charPosition;
                     // NOTE: We don't report tokens for newlines so need to account for them.
-                    var lineLength = source.SourceText.Lines[lineNumber].SpanIncludingLineBreak.Length;
+                    var lineLength = source.Text.Lines[lineNumber].SpanIncludingLineBreak.Length;
 
                     // For the last line, we end where the syntax tree tells us to. For all other lines, we end at the
                     // last non-newline character
@@ -593,7 +593,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                 return lineLength;
             }
 
-            return source.SourceText[lineEndAbsoluteIndex - 1] is '\n' or '\r'
+            return source.Text[lineEndAbsoluteIndex - 1] is '\n' or '\r'
                 ? lineLength - 1
                 : lineLength;
         }

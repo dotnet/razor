@@ -24,13 +24,13 @@ internal sealed class SeekableTextReader : TextReader, ITextDocument
     {
         _sourceDocument = source;
         _filePath = source.FilePath;
-        _cachedLineInfo = (_sourceDocument.SourceText.Lines[0].Span, 0);
+        _cachedLineInfo = (_sourceDocument.Text.Lines[0].Span, 0);
         UpdateState();
     }
 
     public SourceLocation Location => _location;
 
-    public int Length => _sourceDocument.SourceText.Length;
+    public int Length => _sourceDocument.Text.Length;
 
     public int Position
     {
@@ -60,24 +60,24 @@ internal sealed class SeekableTextReader : TextReader, ITextDocument
         if (_cachedLineInfo.Span.Contains(_position))
         {
             _location = new SourceLocation(_filePath, _position, _cachedLineInfo.LineIndex, _position - _cachedLineInfo.Span.Start);
-            _current = _sourceDocument.SourceText[_location.AbsoluteIndex];
+            _current = _sourceDocument.Text[_location.AbsoluteIndex];
 
             return;
         }
 
-        if (_position < _sourceDocument.SourceText.Length)
+        if (_position < _sourceDocument.Text.Length)
         {
             if (_position >= _cachedLineInfo.Span.End)
             {
                 // Try to avoid the GetLocation call by checking if the next line contains the position
                 var nextLineIndex = _cachedLineInfo.LineIndex + 1;
-                var nextLineSpan = _sourceDocument.SourceText.Lines[nextLineIndex].Span;
+                var nextLineSpan = _sourceDocument.Text.Lines[nextLineIndex].Span;
 
                 if (nextLineSpan.Contains(_position))
                 {
                     _cachedLineInfo = (nextLineSpan, nextLineIndex);
                     _location = new SourceLocation(_filePath, _position, nextLineIndex, _position - nextLineSpan.Start);
-                    _current = _sourceDocument.SourceText[_location.AbsoluteIndex];
+                    _current = _sourceDocument.Text[_location.AbsoluteIndex];
 
                     return;
                 }
@@ -86,30 +86,30 @@ internal sealed class SeekableTextReader : TextReader, ITextDocument
             {
                 // Try to avoid the GetLocation call by checking if the previous line contains the position
                 var prevLineIndex = _cachedLineInfo.LineIndex - 1;
-                var prevLineSpan = _sourceDocument.SourceText.Lines[prevLineIndex].Span;
+                var prevLineSpan = _sourceDocument.Text.Lines[prevLineIndex].Span;
 
                 if (prevLineSpan.Contains(_position))
                 {
                     _cachedLineInfo = (prevLineSpan, prevLineIndex);
                     _location = new SourceLocation(_filePath, _position, prevLineIndex, _position - prevLineSpan.Start);
-                    _current = _sourceDocument.SourceText[_location.AbsoluteIndex];
+                    _current = _sourceDocument.Text[_location.AbsoluteIndex];
 
                     return;
                 }
             }
 
             // The call to GetLocation is expensive
-            _location = new SourceLocation(_sourceDocument.FilePath, _position, _sourceDocument.SourceText.Lines.GetLinePosition(_position));
+            _location = new SourceLocation(_sourceDocument.FilePath, _position, _sourceDocument.Text.Lines.GetLinePosition(_position));
 
-            var lineSpan = _sourceDocument.SourceText.Lines[_location.LineIndex].Span;
+            var lineSpan = _sourceDocument.Text.Lines[_location.LineIndex].Span;
             _cachedLineInfo = (lineSpan, _location.LineIndex);
 
-            _current = _sourceDocument.SourceText[_location.AbsoluteIndex];
+            _current = _sourceDocument.Text[_location.AbsoluteIndex];
 
             return;
         }
 
-        if (_sourceDocument.SourceText.Length == 0)
+        if (_sourceDocument.Text.Length == 0)
         {
             _location = SourceLocation.Zero;
             _current = -1;
@@ -117,8 +117,8 @@ internal sealed class SeekableTextReader : TextReader, ITextDocument
             return;
         }
 
-        var lineNumber = _sourceDocument.SourceText.Lines.Count - 1;
-        _location = new SourceLocation(_filePath, Length, lineNumber, _sourceDocument.SourceText.Lines[lineNumber].Span.Length);
+        var lineNumber = _sourceDocument.Text.Lines.Count - 1;
+        _location = new SourceLocation(_filePath, Length, lineNumber, _sourceDocument.Text.Lines[lineNumber].Span.Length);
 
         _current = -1;
     }

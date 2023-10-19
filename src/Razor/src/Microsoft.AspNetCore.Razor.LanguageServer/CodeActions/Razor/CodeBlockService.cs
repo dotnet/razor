@@ -49,7 +49,7 @@ internal static class CodeBlockService
             // No well-formed @code block exists. Generate the method within an @code block at the end of the file and conduct manual formatting.
             var indentedMethod = FormattingUtilities.AddIndentationToMethod(templateWithMethodSignature, options, startingIndent: 0);
             var codeBlockStartText = "@code {" + Environment.NewLine;
-            var sourceText = code.Source.SourceText;
+            var sourceText = code.Source.Text;
             var lastCharacterLocation = sourceText.Lines[^1];
             var insertCharacterIndex = 0;
             if (!IsLineEmpty(lastCharacterLocation))
@@ -87,10 +87,10 @@ internal static class CodeBlockService
         var openBraceLocation = openBrace.GetSourceLocation(code.Source);
         var closeBraceLocation = closeBrace.GetSourceLocation(code.Source);
         var previousLineAbsoluteIndex = closeBraceLocation.AbsoluteIndex - closeBraceLocation.CharacterIndex - 1;
-        var previousLine = code.Source.SourceText.Lines.GetLinePosition(previousLineAbsoluteIndex);
+        var previousLine = code.Source.Text.Lines.GetLinePosition(previousLineAbsoluteIndex);
 
         var insertLineLocation =
-            openBraceLocation.LineIndex == closeBraceLocation.LineIndex || !IsLineEmpty(code.Source.SourceText.Lines[previousLine.Line])
+            openBraceLocation.LineIndex == closeBraceLocation.LineIndex || !IsLineEmpty(code.Source.Text.Lines[previousLine.Line])
             ? closeBraceLocation
             : new SourceLocation(previousLineAbsoluteIndex, previousLine.Line, previousLine.Character);
 
@@ -156,7 +156,7 @@ internal static class CodeBlockService
 
         // There is other code that exists in the @code block. Look at what is above the line we are going to insert at.
         // If there is code above it, we need to add a new line at the beginning the generated code.
-        var previousLine = source.SourceText.Lines.GetLineFromPosition(insertLocation.AbsoluteIndex - insertLocation.CharacterIndex - 1);
+        var previousLine = source.Text.Lines.GetLineFromPosition(insertLocation.AbsoluteIndex - insertLocation.CharacterIndex - 1);
         if (!IsLineEmpty(previousLine))
         {
             formattedGeneratedMethod = $"{Environment.NewLine}{formattedGeneratedMethod}";

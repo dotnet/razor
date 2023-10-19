@@ -127,7 +127,7 @@ internal static class SyntaxNodeExtensions
 
         var start = node.Position;
         var end = node.EndPosition;
-        var sourceText = source.SourceText;
+        var sourceText = source.Text;
 
         Debug.Assert(start <= sourceText.Length && end <= sourceText.Length, "Node position exceeds source length.");
 
@@ -238,7 +238,7 @@ internal static class SyntaxNodeExtensions
                 throw new ArgumentNullException(nameof(source));
             }
 
-            var sourceText = source.SourceText;
+            var sourceText = source.Text;
 
             var start = node.Position + parentStart;
             var end = node.EndPosition + parentStart;

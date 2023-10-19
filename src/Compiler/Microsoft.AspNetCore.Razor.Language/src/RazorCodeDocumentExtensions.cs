@@ -286,13 +286,13 @@ public static class RazorCodeDocumentExtensions
     public static bool TryComputeClassName(this RazorCodeDocument codeDocument, [NotNullWhen(true)] out string? className)
     {
         var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;
-        if (string.IsNullOrEmpty(filePath))
+        if (filePath.IsNullOrEmpty())
         {
             className = null;
             return false;
         }
 
-        className = CSharpIdentifier.GetClassNameFromPath(filePath!);
+        className = CSharpIdentifier.GetClassNameFromPath(filePath);
         return className is not null;
     }
 #nullable disable

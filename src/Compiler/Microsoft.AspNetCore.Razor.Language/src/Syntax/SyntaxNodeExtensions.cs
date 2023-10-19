@@ -69,17 +69,17 @@ internal static class SyntaxNodeExtensions
     {
         try
         {
-            if (source.SourceText.Length == 0)
+            if (source.Text.Length == 0)
             {
                 // Just a marker symbol
                 return new SourceLocation(source.FilePath, 0, 0, 0);
             }
-            if (node.Position == source.SourceText.Length)
+            if (node.Position == source.Text.Length)
             {
                 // E.g. Marker symbol at the end of the document
-                var lastPosition = source.SourceText.Length - 1;
-                var endsWithLineBreak = SyntaxFacts.IsNewLine(source.SourceText[lastPosition]);
-                var lastLocation = source.SourceText.Lines.GetLinePosition(lastPosition);
+                var lastPosition = source.Text.Length - 1;
+                var endsWithLineBreak = SyntaxFacts.IsNewLine(source.Text[lastPosition]);
+                var lastLocation = source.Text.Lines.GetLinePosition(lastPosition);
                 return new SourceLocation(
                     source.FilePath, // GetLocation prefers RelativePath but we want FilePath.
                     lastPosition + 1,
@@ -87,7 +87,7 @@ internal static class SyntaxNodeExtensions
                     endsWithLineBreak ? 0 : lastLocation.Character + 1);
             }
 
-            var location = source.SourceText.Lines.GetLinePosition(node.Position);
+            var location = source.Text.Lines.GetLinePosition(node.Position);
             return new SourceLocation(
                 source.FilePath, // GetLocation prefers RelativePath but we want FilePath.
                 node.Position,
@@ -103,7 +103,7 @@ internal static class SyntaxNodeExtensions
     public static SourceSpan GetSourceSpan(this SyntaxNode node, RazorSourceDocument source)
     {
         var location = node.GetSourceLocation(source);
-        var endLocation = source.SourceText.Lines.GetLinePosition(node.EndPosition);
+        var endLocation = source.Text.Lines.GetLinePosition(node.EndPosition);
         var lineCount = endLocation.Line - location.LineIndex;
         return new SourceSpan(location.FilePath, location.AbsoluteIndex, location.LineIndex, location.CharacterIndex, node.FullWidth, lineCount, endLocation.Character);
     }

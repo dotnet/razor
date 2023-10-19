@@ -331,7 +331,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var distanceIntoGeneratedSpan = generatedDocumentIndex - generatedAbsoluteIndex;
 
             hostDocumentIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
-            var originalLocation = codeDocument.Source.SourceText.Lines.GetLinePosition(hostDocumentIndex);
+            var originalLocation = codeDocument.Source.Text.Lines.GetLinePosition(hostDocumentIndex);
             hostDocumentPosition = new LinePosition(originalLocation.Line, originalLocation.Character);
             return true;
         }
@@ -414,7 +414,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         var classifiedSpans = GetClassifiedSpans(codeDocument);
         var tagHelperSpans = GetTagHelperSpans(codeDocument);
-        var documentLength = codeDocument.Source.SourceText.Length;
+        var documentLength = codeDocument.Source.Text.Length;
         var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, hostDocumentIndex, documentLength, rightAssociative);
 
         return languageKind;
@@ -679,8 +679,8 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         static LinePositionSpan ConvertMapping(RazorSourceDocument sourceDocument, SourceMapping mapping)
         {
-            var startLocation = sourceDocument.SourceText.Lines.GetLinePosition(mapping.OriginalSpan.AbsoluteIndex);
-            var endLocation = sourceDocument.SourceText.Lines.GetLinePosition(mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length);
+            var startLocation = sourceDocument.Text.Lines.GetLinePosition(mapping.OriginalSpan.AbsoluteIndex);
+            var endLocation = sourceDocument.Text.Lines.GetLinePosition(mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length);
             var convertedRange = new LinePositionSpan(startLocation, endLocation);
             return convertedRange;
         }
@@ -741,7 +741,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         var sourceDocument = codeDocument.Source;
         var originalSpanBeforeGeneratedRange = mappingBeforeGeneratedRange.OriginalSpan;
         var originalEndBeforeGeneratedRange = originalSpanBeforeGeneratedRange.AbsoluteIndex + originalSpanBeforeGeneratedRange.Length;
-        var originalEndPositionBeforeGeneratedRange = sourceDocument.SourceText.Lines.GetLinePosition(originalEndBeforeGeneratedRange);
+        var originalEndPositionBeforeGeneratedRange = sourceDocument.Text.Lines.GetLinePosition(originalEndBeforeGeneratedRange);
         var inferredStartPosition = new LinePosition(originalEndPositionBeforeGeneratedRange.Line, originalEndPositionBeforeGeneratedRange.Character);
 
         if (mappingAfterGeneratedRange != null)
@@ -749,7 +749,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             // There's a mapping after the "generated range" lets use its start position as our inferred end position.
 
             var originalSpanAfterGeneratedRange = mappingAfterGeneratedRange.OriginalSpan;
-            var originalStartPositionAfterGeneratedRange = sourceDocument.SourceText.Lines.GetLinePosition(originalSpanAfterGeneratedRange.AbsoluteIndex);
+            var originalStartPositionAfterGeneratedRange = sourceDocument.Text.Lines.GetLinePosition(originalSpanAfterGeneratedRange.AbsoluteIndex);
 
             hostDocumentRange = new LinePositionSpan(inferredStartPosition, originalStartPositionAfterGeneratedRange);
             return true;
@@ -758,9 +758,9 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         // There was no projection after the "generated range". Therefore, lets fallback to the end-document location.
 
-        Debug.Assert(sourceDocument.SourceText.Length > 0, "Source document length should be greater than 0 here because there's a mapping before us");
+        Debug.Assert(sourceDocument.Text.Length > 0, "Source document length should be greater than 0 here because there's a mapping before us");
 
-        var endOfDocumentLocation = sourceDocument.SourceText.Lines.GetLinePosition(sourceDocument.SourceText.Length);
+        var endOfDocumentLocation = sourceDocument.Text.Lines.GetLinePosition(sourceDocument.Text.Length);
 
         hostDocumentRange = new LinePositionSpan(inferredStartPosition, endOfDocumentLocation);
         return true;

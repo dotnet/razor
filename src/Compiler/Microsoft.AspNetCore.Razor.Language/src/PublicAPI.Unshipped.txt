@@ -145,12 +145,12 @@ Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Enumerator.Enumera
 Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.GetFilePathForDisplay() -> string?
 Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.FilePath.get -> string?
 Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.RelativePath.get -> string?
-Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.SourceText.get -> Microsoft.CodeAnalysis.Text.SourceText!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Id.get -> string!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.MessageFormat.get -> string!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.RazorDiagnosticDescriptor(string! id, string! messageFormat, Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity severity) -> void
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
+Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.Text.get -> Microsoft.CodeAnalysis.Text.SourceText!
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.CaseSensitive.get -> bool
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.DisplayName.get -> string!

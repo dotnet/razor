@@ -69,7 +69,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         mockRazorCodeDocument.Setup(r => r.Items).Returns(itemCollection);
         RazorCodeDocument = mockRazorCodeDocument.Object;
 
-        SourceText = RazorCodeDocument.Source.SourceText;
+        SourceText = RazorCodeDocument.Source.Text;
         var documentContext = new Mock<VersionedDocumentContext>(
             MockBehavior.Strict,
             new object[] { It.IsAny<Uri>(), It.IsAny<IDocumentSnapshot>(), It.IsAny<VSProjectContext>(), It.IsAny<int>() });

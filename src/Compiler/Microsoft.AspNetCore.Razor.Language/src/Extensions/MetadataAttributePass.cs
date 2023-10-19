@@ -101,8 +101,8 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
         }
 
         // Checksum of the main source
-        var checksum = codeDocument.Source.SourceText.GetChecksum();
-        var checksumAlgorithm = codeDocument.Source.SourceText.ChecksumAlgorithm;
+        var checksum = codeDocument.Source.Text.GetChecksum();
+        var checksumAlgorithm = codeDocument.Source.Text.ChecksumAlgorithm;
         if (checksum == null || checksum.Length == 0 || checksumAlgorithm is CodeAnalysis.Text.SourceHashAlgorithm.None)
         {
             // Don't generate anything unless we have all of the required information.
@@ -122,8 +122,8 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
         {
             var import = codeDocument.Imports[i];
 
-            checksum = import.SourceText.GetChecksum();
-            checksumAlgorithm = import.SourceText.ChecksumAlgorithm;
+            checksum = import.Text.GetChecksum();
+            checksumAlgorithm = import.Text.ChecksumAlgorithm;
             identifier = _identifierFeature.GetIdentifier(codeDocument, import);
 
             if (checksum == null || checksum.Length == 0 || checksumAlgorithm == CodeAnalysis.Text.SourceHashAlgorithm.None || identifier == null)

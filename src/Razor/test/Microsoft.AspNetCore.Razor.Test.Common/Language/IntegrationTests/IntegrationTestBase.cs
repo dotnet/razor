@@ -491,7 +491,7 @@ public abstract class IntegrationTestBase
         var visitor = new CodeSpanVisitor();
         visitor.Visit(syntaxTree.Root);
 
-        var sourceContent = codeDocument.Source.SourceText.ToString();
+        var sourceContent = codeDocument.Source.Text.ToString();
 
         var spans = visitor.CodeSpans;
         for (var i = 0; i < spans.Count; i++)
@@ -591,7 +591,7 @@ public abstract class IntegrationTestBase
         else
         {
             var syntaxTree = codeDocument.GetSyntaxTree();
-            var sourceContent = syntaxTree.Source.SourceText.ToString();
+            var sourceContent = syntaxTree.Source.Text.ToString();
             var classifiedSpans = syntaxTree.GetClassifiedSpans();
             foreach (var classifiedSpan in classifiedSpans)
             {

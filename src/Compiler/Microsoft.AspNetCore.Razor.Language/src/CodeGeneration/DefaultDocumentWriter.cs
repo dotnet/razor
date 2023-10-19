@@ -78,7 +78,7 @@ internal class DefaultDocumentWriter : DocumentWriter
                 // We only support algorithms that the debugger understands, which is currently SHA1 and SHA256.
 
                 string algorithmId;
-                var algorithm = Context.SourceDocument.SourceText.ChecksumAlgorithm;
+                var algorithm = Context.SourceDocument.Text.ChecksumAlgorithm;
                 if (algorithm == CodeAnalysis.Text.SourceHashAlgorithm.Sha256)
                 {
                     algorithmId = "{8829d00f-11b8-4213-878b-770e8597ac16}";
@@ -105,7 +105,7 @@ internal class DefaultDocumentWriter : DocumentWriter
 
                 var sourceDocument = Context.SourceDocument;
 
-                var checksum = ChecksumUtilities.BytesToString(sourceDocument.SourceText.GetChecksum());
+                var checksum = ChecksumUtilities.BytesToString(sourceDocument.Text.GetChecksum());
                 if (!string.IsNullOrEmpty(checksum))
                 {
                     Context.CodeWriter

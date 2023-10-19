@@ -83,8 +83,8 @@ internal class RazorHtmlWriter : SyntaxWalker
         writer.Visit(syntaxTree);
 
         Debug.Assert(
-            writer.Source.SourceText.Length == writer.Builder.Length,
-            $"The backing HTML document should be the same length as the original document. Expected: {writer.Source.SourceText.Length} Actual: {writer.Builder.Length}");
+            writer.Source.Text.Length == writer.Builder.Length,
+            $"The backing HTML document should be the same length as the original document. Expected: {writer.Source.Text.Length} Actual: {writer.Builder.Length}");
         var generatedHtml = writer.Builder.GenerateCode();
 
         var sourceMappings = writer.SourceMappings.ToArray();

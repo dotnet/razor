@@ -21,7 +21,7 @@ public class RazorSourceDocumentTest
 
         // Assert
         Assert.Equal("file.cshtml", document.FilePath);
-        Assert.Same(Encoding.UTF8, document.SourceText.Encoding);
+        Assert.Same(Encoding.UTF8, document.Text.Encoding);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class RazorSourceDocumentTest
 
         // Assert
         Assert.Equal("file.cshtml", document.FilePath);
-        Assert.Same(Encoding.UTF32, document.SourceText.Encoding);
+        Assert.Same(Encoding.UTF32, document.Text.Encoding);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class RazorSourceDocumentTest
         // Assert
         Assert.Equal("c:\\myapp\\filePath.cshtml", document.FilePath);
         Assert.Equal("filePath.cshtml", document.RelativePath);
-        Assert.Same(Encoding.UTF32, document.SourceText.Encoding);
+        Assert.Same(Encoding.UTF32, document.Text.Encoding);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class RazorSourceDocumentTest
 
         // Assert
         Assert.Equal("file.cshtml", document.FilePath);
-        Assert.Same(Encoding.UTF32, document.SourceText.Encoding);
+        Assert.Same(Encoding.UTF32, document.Text.Encoding);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class RazorSourceDocumentTest
         // Assert
         Assert.Equal(fileName, document.FilePath);
         Assert.Equal(content, ReadContent(document));
-        Assert.Same(Encoding.UTF8, document.SourceText.Encoding);
+        Assert.Same(Encoding.UTF8, document.Text.Encoding);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class RazorSourceDocumentTest
         // Assert
         Assert.Equal(fileName, document.FilePath);
         Assert.Equal(content, ReadContent(document));
-        Assert.Same(encoding, document.SourceText.Encoding);
+        Assert.Same(encoding, document.Text.Encoding);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class RazorSourceDocumentTest
         Assert.Equal("c:\\myapp\\filePath.cshtml", document.FilePath);
         Assert.Equal("filePath.cshtml", document.RelativePath);
         Assert.Equal(content, ReadContent(document));
-        Assert.Same(Encoding.UTF32, document.SourceText.Encoding);
+        Assert.Same(Encoding.UTF32, document.Text.Encoding);
     }
 
     [Fact]
@@ -209,5 +209,5 @@ public class RazorSourceDocumentTest
         Assert.Equal(relativePhysicalPath, document.RelativePath);
     }
 
-    private static string ReadContent(RazorSourceDocument razorSourceDocument) => razorSourceDocument.SourceText.ToString();
+    private static string ReadContent(RazorSourceDocument razorSourceDocument) => razorSourceDocument.Text.ToString();
 }

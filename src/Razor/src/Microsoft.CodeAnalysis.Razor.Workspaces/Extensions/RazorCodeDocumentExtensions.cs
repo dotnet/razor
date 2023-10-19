@@ -19,7 +19,7 @@ internal static class RazorCodeDocumentExtensions
             throw new ArgumentNullException(nameof(document));
         }
 
-        return document.Source.SourceText;
+        return document.Source.Text;
     }
 
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
