@@ -754,7 +754,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var originalStartPositionAfterGeneratedRange = sourceDocument.Text.Lines.GetLinePosition(originalSpanAfterGeneratedRange.AbsoluteIndex);
 
             // The mapping in the generated file is after the start, but when mapped back to the host file that may not be true
-            if (inferredEndPosition >= inferredStartPosition)
+            if (originalStartPositionAfterGeneratedRange >= inferredStartPosition)
             {
                 hostDocumentRange = new LinePositionSpan(inferredStartPosition, originalStartPositionAfterGeneratedRange);
                 return true;
@@ -765,11 +765,11 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         Debug.Assert(sourceDocument.Text.Length > 0, "Source document length should be greater than 0 here because there's a mapping before us");
 
-        var endOfDocumentLocation = sourceDocument.Text.Lines.GetLinePosition(sourceDocument.Text.Length);
+        var endOfDocumentPosition = sourceDocument.Text.Lines.GetLinePosition(sourceDocument.Text.Length);
 
         Debug.Assert(endOfDocumentPosition >= inferredStartPosition, "Some how we found a start position that is after the end of the document?");
 
-        hostDocumentRange = new LinePositionSpan(inferredStartPosition, endOfDocumentLocation);
+        hostDocumentRange = new LinePositionSpan(inferredStartPosition, endOfDocumentPosition);
         return true;
     }
 
