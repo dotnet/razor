@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -33,7 +34,7 @@ internal class DefaultDocumentWriter : DocumentWriter
             throw new ArgumentNullException(nameof(documentNode));
         }
 
-        var context = new DefaultCodeRenderingContext(
+        using var context = new DefaultCodeRenderingContext(
             new CodeWriter(Environment.NewLine, _options),
             _codeTarget.CreateNodeWriter(),
             codeDocument,
@@ -51,7 +52,7 @@ internal class DefaultDocumentWriter : DocumentWriter
             cSharp,
             _options,
             allOrderedDiagnostics.ToArray(),
-            context.SourceMappings.ToArray(),
+            context.SourceMappings.DrainToImmutable(),
             context.LinePragmas.ToArray());
     }
 

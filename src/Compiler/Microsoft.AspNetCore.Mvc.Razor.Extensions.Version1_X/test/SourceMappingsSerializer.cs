@@ -19,9 +19,8 @@ public static class SourceMappingsSerializer
         sourceDocument.CopyTo(0, charBuffer, 0, sourceDocument.Length);
         var sourceContent = new string(charBuffer);
 
-        for (var i = 0; i < csharpDocument.SourceMappings.Count; i++)
+        foreach (var sourceMapping in csharpDocument.SourceMappings)
         {
-            var sourceMapping = csharpDocument.SourceMappings[i];
             if (!string.Equals(sourceMapping.OriginalSpan.FilePath, sourceFilePath, StringComparison.Ordinal))
             {
                 continue;
