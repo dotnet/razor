@@ -210,7 +210,6 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                     [
                         new()
                         {
-                            // Code mapper isn't responsible for formatting
                             NewText = """
                                       <button>Click me</button>
                                       """,
@@ -325,6 +324,90 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                             {
                                 Start = new Position(0, 18),
                                 End = new Position(0, 18)
+                            }
+                        }
+                    ]
+                }
+            }
+        };
+
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+    }
+
+    [Fact]
+    public async Task HandleCodeBlockInsertionAsync()
+    {
+        var originalCode = """
+                $$
+                """;
+
+        var codeToMap = """
+            @code {
+                public string Title { get; set; }
+            }
+            """;
+
+        var expectedEdit = new WorkspaceEdit
+        {
+            DocumentChanges = new TextDocumentEdit[]
+            {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
+                    Edits =
+                    [
+                        new()
+                        {
+                            NewText = """
+                                      @code {
+                                          public string Title { get; set; }
+                                      }
+                                      """,
+                            Range = new Range
+                            {
+                                Start = new Position(0, 0),
+                                End = new Position(0, 0)
+                            }
+                        }
+                    ]
+                }
+            }
+        };
+
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+    }
+
+    [Fact]
+    public async Task HandleRazorDirectiveAttributeAsync()
+    {
+        var originalCode = """
+                @page "/fetchdata"
+                @using Microsoft.AspNetCore.Authorization
+                $$
+                """;
+
+        var codeToMap = """
+            @attribute [Authorize]
+
+            """;
+
+        var expectedEdit = new WorkspaceEdit
+        {
+            DocumentChanges = new TextDocumentEdit[]
+            {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
+                    Edits =
+                    [
+                        new()
+                        {
+                            NewText = """
+                                      @attribute [Authorize]
+
+                                      """,
+                            Range = new Range
+                            {
+                                Start = new Position(2, 0),
+                                End = new Position(2, 0)
                             }
                         }
                     ]
