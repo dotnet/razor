@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,9 +15,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode.Mappers;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
@@ -34,15 +39,18 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly ClientNotifierServiceBase _languageServer;
+    private readonly FilePathService _filePathService;
 
     public MapCodeEndpoint(
         IRazorDocumentMappingService documentMappingService,
         DocumentContextFactory documentContextFactory,
-        ClientNotifierServiceBase languageServer)
+        ClientNotifierServiceBase languageServer,
+        FilePathService filePathService)
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
     }
 
     public bool MutatesSolutionState => false;
@@ -60,7 +68,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
             return null;
         }
 
-        var changes = new Dictionary<string, List<LSP.TextEdit>>();
+        using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var changes);
         foreach (var mapping in request.Mappings)
         {
             if (mapping.TextDocument is null || mapping.FocusLocations is null)
@@ -94,18 +102,9 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
             }
         }
 
-        var finalizedChanges = new Dictionary<string, LSP.TextEdit[]>();
-        foreach (var change in changes)
-        {
-            finalizedChanges.Add(change.Key, [.. change.Value]);
-        }
-
         var workspaceEdits = new LSP.WorkspaceEdit
         {
-            Changes = finalizedChanges,
-
-            // There's currently a bug on the client side that forces us to always return a non-null DocumentChanges.
-            DocumentChanges = Array.Empty<LSP.TextDocumentEdit>()
+            DocumentChanges = changes.ToArray()
         };
 
         return workspaceEdits;
@@ -114,7 +113,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
     private async Task MapCodeAsync(
         RazorCodeDocument codeToMap,
         LSP.Location[][] locations,
-        Dictionary<string, List<LSP.TextEdit>> changes,
+        ImmutableArray<TextDocumentEdit>.Builder changes,
         CancellationToken cancellationToken)
     {
         var syntaxTree = codeToMap.GetSyntaxTree();
@@ -136,7 +135,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
     private async Task MapCodeAsync(
         LSP.Location[][] focusLocations,
         SyntaxNode[] nodesToMap,
-        Dictionary<string, List<LSP.TextEdit>> changes,
+        ImmutableArray<TextDocumentEdit>.Builder changes,
         CancellationToken cancellationToken)
     {
         var didCalculateCSharpFocusLocations = false;
@@ -146,6 +145,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         // The outer array is an ordered priority list (from highest to lowest priority),
         // and the inner array is a list of locations that have the same priority.
         // If we can successfully map using the first location, we'll stop and return.
+        var mappingSuccess = false;
         foreach (var locationByPriority in focusLocations)
         {
             foreach (var location in locationByPriority)
@@ -186,6 +186,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                             return;
                         }
 
+                        mappingSuccess = true;
                         continue;
                     }
 
@@ -198,12 +199,6 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                     razorNodesToMap.Add(nodeToMap);
                 }
 
-                if (!changes.TryGetValue(documentContext.Uri.AbsolutePath, out var textEdits))
-                {
-                    textEdits = [];
-                    changes[documentContext.Uri.AbsolutePath] = textEdits;
-                }
-
                 var sourceText = await documentContext.Snapshot.GetTextAsync().ConfigureAwait(false);
 
                 foreach (var nodeToMap in razorNodesToMap)
@@ -213,12 +208,23 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                     {
                         var textSpan = new TextSpan(insertionSpan.Value, 0);
                         var edit = new LSP.TextEdit { NewText = nodeToMap.ToFullString(), Range = textSpan.ToRange(sourceText) };
-                        textEdits.Add(edit);
+
+                        var textDocumentEdit = new TextDocumentEdit
+                        {
+                            TextDocument = new OptionalVersionedTextDocumentIdentifier
+                            {
+                                Uri = documentContext.Identifier.TextDocumentIdentifier.Uri
+                            },
+                            Edits = [edit],
+                        };
+
+                        changes.Add(textDocumentEdit);
+                        mappingSuccess = true;
                     }
                 }
 
                 // We were able to successfully map using this focusLocation.
-                if (textEdits.Count > 0)
+                if (mappingSuccess)
                 {
                     return;
                 }
@@ -284,7 +290,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         TextDocumentIdentifierAndVersion textDocumentIdentifier,
         SyntaxNode nodeToMap,
         LSP.Location[][] focusLocations,
-        Dictionary<string, List<LSP.TextEdit>> changes,
+        ImmutableArray<TextDocumentEdit>.Builder changes,
         CancellationToken cancellationToken)
     {
         var delegatedRequest = new DelegatedMapCodeParams(
@@ -346,7 +352,8 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                 {
                     var csharpLocation = new LSP.Location
                     {
-                        // We convert the URI to the C# generated document URI later on
+                        // We convert the URI to the C# generated document URI later on in
+                        // LanguageServer.Client since we're unable to retrieve it here.
                         Uri = potentialLocation.Uri,
                         Range = generatedDocumentRange.ToRange()
                     };
@@ -364,12 +371,12 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
     // Map C# code back to Razor file
     private async Task HandleDelegatedResponseAsync(
         LSP.WorkspaceEdit edits,
-        Dictionary<string, List<LSP.TextEdit>> changes,
+        ImmutableArray<TextDocumentEdit>.Builder changes,
         CancellationToken cancellationToken)
     {
         if (edits.DocumentChanges is not null && edits.DocumentChanges.Value.TryGetFirst(out var documentEdits))
         {
-            // We only support document edits for now. In the future once Copilot supports it, we should look
+            // We only support document edits for now. In the future once the client supports it, we should look
             // into also supporting file creation/deletion/rename.
             foreach (var edit in documentEdits)
             {
@@ -388,53 +395,138 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
 
         async Task ProcessEdit(
             Uri generatedUri,
-            LSP.TextEdit[] textEdits,
-            Dictionary<string, List<LSP.TextEdit>> changes,
+            TextEdit[] textEdits,
+            ImmutableArray<TextDocumentEdit>.Builder changes,
             CancellationToken cancellationToken)
         {
-            var docChanges = changes[generatedUri.AbsolutePath];
-            if (docChanges is null)
-            {
-                docChanges = [];
-                changes[generatedUri.AbsolutePath] = docChanges;
-            }
-
             foreach (var documentEdit in textEdits)
             {
+                // The edits we receive from C# can contain preprocessor directives, which we'll ignore
+                // so we're successfully able to map back to the host document.
+                // For example, C# can send back something like this, but we only care about the
+                // non-preprocessor content:
+                //     #pragma warning restore 1998
+                //     #nullable restore
+                //     #line 12 "C:/path/to/razor/file.razor"
+                //     
+                //     int x2 = 1;
+
+                var updatedEdit = await RemoveStartingPreprocessorDirectivesAsync(generatedUri, documentEdit, cancellationToken).ConfigureAwait(false);
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
-                    generatedUri, documentEdit.Range, cancellationToken).ConfigureAwait(false);
+                    generatedUri, updatedEdit.Range, cancellationToken).ConfigureAwait(false);
 
                 if (hostDocumentUri != generatedUri)
                 {
                     var textEdit = new LSP.TextEdit
                     {
                         Range = hostDocumentRange,
-                        NewText = documentEdit.NewText
+                        NewText = updatedEdit.NewText
                     };
 
-                    docChanges.Add(textEdit);
+                    var textDocumentEdit = new TextDocumentEdit
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = hostDocumentUri },
+                        Edits = [textEdit]
+                    };
+                    changes.Add(textDocumentEdit);
                 }
             }
+        }
+
+        async Task<TextEdit> RemoveStartingPreprocessorDirectivesAsync(
+            Uri generatedUri,
+            TextEdit documentEdit,
+            CancellationToken cancellationToken)
+        {
+            // We assume C# always sends back full lines of code (which they do seem to be doing currently)
+            var lines = documentEdit.NewText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+            var removedStartLines = 0;
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                if (line.StartsWith("#"))
+                {
+                    removedStartLines++;
+                    continue;
+                }
+
+                break;
+            }
+
+            // Don't need to make any adjustments.
+            if (removedStartLines == 0)
+            {
+                return documentEdit;
+            }
+
+            var razorDocumentUri = _filePathService.GetRazorDocumentUri(generatedUri);
+            var documentContext = _documentContextFactory.TryCreateForOpenDocument(razorDocumentUri);
+            if (documentContext is null)
+            {
+                return documentEdit;
+            }
+
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var csharpDocument = codeDocument.GetCSharpDocument();
+            var sourceMapping = csharpDocument.SourceMappings.Where(
+                mapping => mapping.GeneratedSpan.LineIndex == documentEdit.Range.Start.Line + removedStartLines).FirstOrDefault();
+            if (sourceMapping is null)
+            {
+                return documentEdit;
+            }
+
+            var newText = string.Join(Environment.NewLine, new ArraySegment<string>(lines, offset: removedStartLines, lines.Length - removedStartLines));
+            var newRange = new Range
+            {
+                Start = new Position(
+                    documentEdit.Range.Start.Line + removedStartLines, sourceMapping.GeneratedSpan.CharacterIndex),
+                End = documentEdit.Range.End
+            };
+
+            var updatedTextEdit = new TextEdit
+            {
+                NewText = newText,
+                Range = newRange
+            };
+
+            return updatedTextEdit;
         }
     }
 
     // Resolve edits that are at the same start location by merging them together.
-    private static void MergeEdits(Dictionary<string, List<LSP.TextEdit>> changes)
+    private static void MergeEdits(ImmutableArray<TextDocumentEdit>.Builder changes)
     {
-        foreach (var document in changes.Keys)
+        var groupedChanges = changes.GroupBy(c => c.TextDocument.Uri);
+        foreach (var documentChanges in groupedChanges)
         {
-            var edits = changes[document];
-            edits.Sort((x, y) => x.Range.Start.CompareTo(y.Range.Start));
+            var edits = documentChanges.ToList();
+            edits.Sort((x, y) => x.Edits.Single().Range.Start.CompareTo(y.Edits.Single().Range.Start));
+
             for (var i = edits.Count - 1; i < edits.Count && i > 0; i--)
             {
-                if (edits[i].Range.Start == edits[i - 1].Range.Start)
+                var previousEdit = edits[i - 1].Edits.Single();
+                var currentEdit = edits[i].Edits.Single();
+                if (currentEdit.Range.Start == previousEdit.Range.Start)
                 {
                     // Append the text of the current edit to the previous edit
-                    edits[i - 1].NewText += edits[i].NewText;
-                    edits[i - 1].Range.End = edits[i].Range.End;
+                    previousEdit.NewText += currentEdit.NewText;
+                    previousEdit.Range.End = currentEdit.Range.End;
                     edits.RemoveAt(i);
                 }
             }
+
+            var finalEditsForDoc = new TextDocumentEdit
+            {
+                TextDocument = new OptionalVersionedTextDocumentIdentifier
+                {
+                    Uri = documentChanges.Key,
+                },
+                Edits = edits.SelectMany(e => e.Edits).ToArray()
+            };
+
+            changes.Clear();
+            changes.Add(finalEditsForDoc);
         }
     }
 }

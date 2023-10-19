@@ -47,6 +47,7 @@ internal partial class RazorCustomMessageTarget
                 delegationDetails.Value.LanguageServerName,
                 mapCodeParams,
                 cancellationToken).ConfigureAwait(false);
+
             return response?.Response;
         }
         catch (RemoteMethodNotFoundException)
@@ -58,7 +59,7 @@ internal partial class RazorCustomMessageTarget
 
     private void ConvertCSharpFocusLocationUris(Location[][] focusLocations)
     {
-        // If the focus locations are in a C# context, map them to the C# document.
+        // Focus locations should be in a C# context. Map from Razor URI -> C# URI.
         foreach (var locationsByPriority in focusLocations)
         {
             foreach (var location in locationsByPriority)

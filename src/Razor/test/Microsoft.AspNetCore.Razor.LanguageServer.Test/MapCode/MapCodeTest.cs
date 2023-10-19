@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -48,12 +49,12 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
         var expectedEdit = new WorkspaceEdit
         {
-            Changes = new Dictionary<string, TextEdit[]>
+            DocumentChanges = new TextDocumentEdit[]
             {
-                {
-                    RazorFilePath,
-                    new TextEdit[]
-                    {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
+                    Edits =
+                    [
                         new()
                         {
                             NewText = "<PageTitle>Title</PageTitle>",
@@ -63,7 +64,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                                 End = new Position(1, 0)
                             }
                         }
-                    }
+                    ]
                 }
             }
         };
@@ -97,12 +98,12 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
         var expectedEdit = new WorkspaceEdit
         {
-            Changes = new Dictionary<string, TextEdit[]>
+            DocumentChanges = new TextDocumentEdit[]
             {
-                {
-                    RazorFilePath,
-                    new TextEdit[]
-                    {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
+                    Edits =
+                    [
                         new()
                         {
                             NewText = """
@@ -117,7 +118,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                                 End = new Position(2, 37)
                             }
                         }
-                    }
+                    ]
                 }
             }
         };
@@ -144,12 +145,12 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
         var expectedEdit = new WorkspaceEdit
         {
-            Changes = new Dictionary<string, TextEdit[]>
+            DocumentChanges = new TextDocumentEdit[]
             {
-                {
-                    RazorFilePath,
-                    new TextEdit[]
-                    {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
+                    Edits =
+                    [
                         new()
                         {
                             // Code mapper isn't responsible for formatting
@@ -162,7 +163,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                                 End = new Position(1, 0)
                             }
                         }
-                    }
+                    ]
                 }
             }
         };
@@ -201,12 +202,12 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
         var expectedEdit = new WorkspaceEdit
         {
-            Changes = new Dictionary<string, TextEdit[]>
+            DocumentChanges = new TextDocumentEdit[]
             {
-                {
-                    RazorFilePath,
-                    new TextEdit[]
-                    {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
+                    Edits =
+                    [
                         new()
                         {
                             // Code mapper isn't responsible for formatting
@@ -219,7 +220,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                                 End = new Position(6, 0)
                             }
                         }
-                    }
+                    ]
                 }
             }
         };
@@ -270,12 +271,12 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
         var expectedEdit = new WorkspaceEdit
         {
-            Changes = new Dictionary<string, TextEdit[]>
+            DocumentChanges = new TextDocumentEdit[]
             {
-                {
-                    RazorFilePath,
-                    new TextEdit[]
-                    {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
+                    Edits =
+                    [
                         new()
                         {
                             NewText = "<PageTitle>Title</PageTitle>",
@@ -285,7 +286,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                                 End = new Position(1, 0)
                             }
                         }
-                    }
+                    ]
                 }
             }
         };
@@ -312,8 +313,9 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
         var languageServer = new MapCodeServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
+        var filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
 
-        var endpoint = new MapCodeEndpoint(documentMappingService, documentContextFactory, languageServer);
+        var endpoint = new MapCodeEndpoint(documentMappingService, documentContextFactory, languageServer, filePathService);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
 
@@ -419,26 +421,14 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
     {
         public bool Equals(WorkspaceEdit? x, WorkspaceEdit? y)
         {
-            if (x!.Changes is not null || y!.Changes is not null)
+            if (x!.DocumentChanges is not null || y!.DocumentChanges is not null)
             {
-                foreach (var doc in x!.Changes!.Keys)
-                {
-                    var xEdits = x!.Changes[doc];
-                    var yEdits = y!.Changes![doc];
-                    if (!xEdits.SequenceEqual(yEdits, new TextEditComparer()))
-                    {
-                        return false;
-                    }
-                }
+                var xEdits = (TextDocumentEdit[])x.DocumentChanges!.Value;
+                var yEdits = (TextDocumentEdit[])y!.DocumentChanges!.Value;
 
-                foreach (var doc in y!.Changes!.Keys)
+                if (!xEdits.SequenceEqual(yEdits, new TextDocumentEditComparer()))
                 {
-                    var xEdits = x!.Changes![doc];
-                    var yEdits = y!.Changes![doc];
-                    if (!xEdits.SequenceEqual(yEdits, new TextEditComparer()))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
                 return true;
@@ -449,6 +439,26 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
         public int GetHashCode([DisallowNull] WorkspaceEdit? obj)
             => throw new NotImplementedException();
+    }
+
+    private class TextDocumentEditComparer : IEqualityComparer<TextDocumentEdit>
+    {
+        public bool Equals(TextDocumentEdit? x, TextDocumentEdit? y)
+        {
+            if (x?.TextDocument != y?.TextDocument)
+            {
+                return false;
+            }
+
+            if (!x!.Edits.SequenceEqual(y!.Edits, new TextEditComparer()))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public int GetHashCode([DisallowNull] TextDocumentEdit obj) => throw new NotImplementedException();
     }
 
     private class TextEditComparer : IEqualityComparer<TextEdit>
