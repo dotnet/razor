@@ -131,7 +131,7 @@ namespace MyApp.Pages
             Assert.Equal(2, result.GeneratedSources.Length);
         }
 
-        [Fact(Skip = "Host outputs disabled - https://github.com/dotnet/razor/issues/8400")]
+        [Fact]
         public async Task SourceGenerator_RazorFiles_DesignTime()
         {
             // Arrange
