@@ -23,6 +23,7 @@ internal static class CustomMessageNames
     public const string RazorProjectContextsEndpoint = "razor/projectContexts";
     public const string RazorPullDiagnosticEndpointName = "razor/pullDiagnostics";
     public const string RazorProvidePreciseRangeSemanticTokensEndpoint = "razor/provideSemanticTokensRanges";
+    public const string RazorMapCodeEndpoint = "razor/mapCode";
 
     // VS Windows and VS Code
     public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
@@ -35,7 +36,6 @@ internal static class CustomMessageNames
     public const string RazorFoldingRangeEndpoint = "razor/foldingRange";
     public const string RazorHtmlFormattingEndpoint = "razor/htmlFormatting";
     public const string RazorHtmlOnTypeFormattingEndpoint = "razor/htmlOnTypeFormatting";
-    public const string RazorMapCodeEndpoint = "razor/mapCode";
     public const string RazorSimplifyMethodEndpointName = "razor/simplifyMethod";
     public const string RazorFormatNewFileEndpointName = "razor/formatNewFile";
 

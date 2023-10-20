@@ -362,7 +362,7 @@ internal static class SyntaxNodeExtensions
         // Tie-breaking.
         if (!getInnermostNodeForTie)
         {
-            var cuRoot = node.Ancestors().Last();
+            var cuRoot = node.Ancestors().LastOrDefault();
 
             while (true)
             {
@@ -388,9 +388,10 @@ internal static class SyntaxNodeExtensions
 
     public static bool ExistsOnTarget(this SyntaxNode node, SyntaxNode target)
     {
+        var nodeString = node.RemoveEmptyNewLines().ToFullString();
         var matchingNode = target.DescendantNodesAndSelf()
             // Empty new lines can affect our comparison so we remove them since they're insignificant.
-            .Where(n => n.RemoveEmptyNewLines().ToFullString() == node.RemoveEmptyNewLines().ToFullString())
+            .Where(n => n.RemoveEmptyNewLines().ToFullString() == nodeString)
             .FirstOrDefault();
 
         return matchingNode is not null;
@@ -412,30 +413,17 @@ internal static class SyntaxNodeExtensions
     {
         csharpCodeBlock = null;
 
+        // Any piece of C# code can potentially be surrounded by a CSharpCodeBlockSyntax.
         if (node is CSharpCodeBlockSyntax outerCSharpCodeBlock)
         {
-            var innerCsharpStatement = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(n => n is CSharpStatementSyntax);
-            if (innerCsharpStatement is not null)
+            var innerCSharpNode = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(
+                n => n is CSharpStatementSyntax ||
+                n is RazorDirectiveSyntax ||
+                n is CSharpExplicitExpressionSyntax ||
+                n is CSharpImplicitExpressionSyntax);
+            if (innerCSharpNode is not null)
             {
-                return innerCsharpStatement.IsCSharpNode(out csharpCodeBlock);
-            }
-
-            var innerRazorDirective = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(n => n is RazorDirectiveSyntax);
-            if (innerRazorDirective is not null)
-            {
-                return innerRazorDirective.IsCSharpNode(out csharpCodeBlock);
-            }
-
-            var innerCSharpExplicitExpression = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(n => n is CSharpExplicitExpressionSyntax);
-            if (innerCSharpExplicitExpression is not null)
-            {
-                return innerCSharpExplicitExpression.IsCSharpNode(out csharpCodeBlock);
-            }
-
-            var innerCSharpImplicitExpression = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(n => n is CSharpImplicitExpressionSyntax);
-            if (innerCSharpImplicitExpression is not null)
-            {
-                return innerCSharpImplicitExpression.IsCSharpNode(out csharpCodeBlock);
+                return innerCSharpNode.IsCSharpNode(out csharpCodeBlock);
             }
         }
         // @code {
@@ -449,6 +437,12 @@ internal static class SyntaxNodeExtensions
             var razorDirectiveBody = razorDirective.Body as RazorDirectiveBodySyntax;
             if (razorDirectiveBody is not null)
             {
+                var directive = razorDirectiveBody.Keyword.ToFullString();
+                if (directive == "attribute")
+                {
+                    return false;
+                }
+
                 // {
                 //    var foo = "bar";
                 // }

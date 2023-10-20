@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -39,22 +40,15 @@ internal partial class RazorCustomMessageTarget
 
         var textBuffer = delegationDetails.Value.TextBuffer;
 
-        try
-        {
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<MapCodeParams, WorkspaceEdit?>(
-                textBuffer,
-                MapperMethods.WorkspaceMapCodeName,
-                delegationDetails.Value.LanguageServerName,
-                mapCodeParams,
-                cancellationToken).ConfigureAwait(false);
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<MapCodeParams, WorkspaceEdit?>(
+            textBuffer,
+            MapperMethods.WorkspaceMapCodeName,
+            delegationDetails.Value.LanguageServerName,
+            SupportsMapCode,
+            mapCodeParams,
+            cancellationToken).ConfigureAwait(false);
 
-            return response?.Response;
-        }
-        catch (RemoteMethodNotFoundException)
-        {
-            // C# and/or HTML haven't implemented handlers yet.
-            return null;
-        }
+        return response?.Response;
     }
 
     private void ConvertCSharpFocusLocationUris(Location[][] focusLocations)
@@ -82,5 +76,14 @@ internal partial class RazorCustomMessageTarget
                 location.Uri = virtualDocument.Uri;
             }
         }
+    }
+
+    private static bool SupportsMapCode(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+        return serverCapabilities?.Experimental is JObject experimental
+            && experimental.TryGetValue(MapperMethods.WorkspaceMapCodeName, out var supportsMapCode)
+            && supportsMapCode.ToObject<bool>();
     }
 }

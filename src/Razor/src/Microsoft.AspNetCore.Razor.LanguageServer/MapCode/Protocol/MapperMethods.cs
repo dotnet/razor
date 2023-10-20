@@ -12,8 +12,4 @@ internal static class MapperMethods
     /// Method name for 'workspace/mapCode'.
     /// </summary>
     public const string WorkspaceMapCodeName = "workspace/mapCode";
-    /// <summary>
-    /// Strongly typed message object for 'workspace/mapCode'
-    /// </summary>
-    public readonly static LspRequest<MapCodeParams, WorkspaceEdit?> WorkspaceMapCode = new(WorkspaceMapCodeName);
 }

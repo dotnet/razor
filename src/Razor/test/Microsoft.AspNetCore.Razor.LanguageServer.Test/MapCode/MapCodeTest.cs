@@ -2,10 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -20,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -47,32 +45,19 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             <PageTitle>Title</PageTitle>
             """;
 
-        var expectedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
-            {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
-                    Edits =
-                    [
-                        new()
-                        {
-                            NewText = "<PageTitle>Title</PageTitle>",
-                            Range = new Range
-                            {
-                                Start = new Position(1, 0),
-                                End = new Position(1, 0)
-                            }
-                        }
-                    ]
-                }
-            }
-        };
+        var expectedCode = """
+            <h3>Component</h3>
+            <PageTitle>Title</PageTitle>
+            @code {
 
-        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+            }
+            
+            """;
+
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
-    [Fact(Skip = "C# needs to implement + merge their LSP-based mapper before this test can pass (note the edit's text and range may be slightly different)")]
+    [Fact(Skip = "C# needs to implement + merge their LSP-based mapper before this test can pass")]
     public async Task HandleCSharpInsertionAsync()
     {
         var originalCode = """
@@ -96,34 +81,20 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
             """;
 
-        var expectedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
+        var expectedCode = """
+            @code
             {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
-                    Edits =
-                    [
-                        new()
-                        {
-                            NewText = """
-                                      void M()
-                                      {
-                                          var x = 1;
-                                      }
-                                      """,
-                            Range = new Range
-                            {
-                                Start = new Position(2, 37),
-                                End = new Position(2, 37)
-                            }
-                        }
-                    ]
+                public string Title { get; set; }
+            
+                void M()
+                {
+                    var x = 1;
                 }
             }
-        };
+            
+            """;
 
-        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
     [Fact]
@@ -143,32 +114,16 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             <h2>Subtitle</h2>
             """;
 
-        var expectedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
-            {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
-                    Edits =
-                    [
-                        new()
-                        {
-                            // Code mapper isn't responsible for formatting
-                            NewText = """
-                                      <h1>Title</h1><h2>Subtitle</h2>
-                                      """,
-                            Range = new Range
-                            {
-                                Start = new Position(1, 0),
-                                End = new Position(1, 0)
-                            }
-                        }
-                    ]
-                }
-            }
-        };
+        var expectedCode = """
+            <h3>Component</h3>
+            <h1>Title</h1><h2>Subtitle</h2>
+            @code {
 
-        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+            }
+            
+            """;
+
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
     [Fact]
@@ -200,31 +155,20 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             
             """;
 
-        var expectedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
-            {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
-                    Edits =
-                    [
-                        new()
-                        {
-                            NewText = """
-                                      <button>Click me</button>
-                                      """,
-                            Range = new Range
-                            {
-                                Start = new Position(6, 0),
-                                End = new Position(6, 0)
-                            }
-                        }
-                    ]
-                }
-            }
-        };
+        var expectedCode = """
+            @page "/"
+            
+            <PageTitle>Index</PageTitle>
+            
+            <h1>Hello, world!</h1>
+            
+            <button>Click me</button>
+            
+            Welcome to your new app.
+            
+            """;
 
-        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
     [Fact]
@@ -268,29 +212,16 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             ]
         ];
 
-        var expectedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
-            {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
-                    Edits =
-                    [
-                        new()
-                        {
-                            NewText = "<PageTitle>Title</PageTitle>",
-                            Range = new Range
-                            {
-                                Start = new Position(1, 0),
-                                End = new Position(1, 0)
-                            }
-                        }
-                    ]
-                }
+        var expectedCode = """
+            <h3>Component</h3>
+            <PageTitle>Title</PageTitle>
+            @code {
+            
             }
-        };
+            
+            """;
 
-        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit, locations: locations);
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
     [Fact]
@@ -309,29 +240,17 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             <PageTitle>Title</PageTitle>
             """;
 
-        var expectedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
-            {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
-                    Edits =
-                    [
-                        new()
-                        {
-                            NewText = "<PageTitle>Title</PageTitle>",
-                            Range = new Range
-                            {
-                                Start = new Position(0, 18),
-                                End = new Position(0, 18)
-                            }
-                        }
-                    ]
-                }
+        // Code mapper isn't responsible for formatting
+        var expectedCode = """
+            <h3>Component</h3><PageTitle>Title</PageTitle>
+            
+            @code {
+            
             }
-        };
+            
+            """;
 
-        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
     [Fact]
@@ -347,33 +266,13 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             }
             """;
 
-        var expectedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
-            {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
-                    Edits =
-                    [
-                        new()
-                        {
-                            NewText = """
-                                      @code {
-                                          public string Title { get; set; }
-                                      }
-                                      """,
-                            Range = new Range
-                            {
-                                Start = new Position(0, 0),
-                                End = new Position(0, 0)
-                            }
-                        }
-                    ]
-                }
+        var expectedCode = """
+            @code {
+                public string Title { get; set; }
             }
-        };
+            """;
 
-        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
     [Fact]
@@ -390,38 +289,20 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
             """;
 
-        var expectedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
-            {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(RazorFilePath) },
-                    Edits =
-                    [
-                        new()
-                        {
-                            NewText = """
-                                      @attribute [Authorize]
+        var expectedCode = """
+            @page "/fetchdata"
+            @using Microsoft.AspNetCore.Authorization
+            @attribute [Authorize]
 
-                                      """,
-                            Range = new Range
-                            {
-                                Start = new Position(2, 0),
-                                End = new Position(2, 0)
-                            }
-                        }
-                    ]
-                }
-            }
-        };
+            """;
 
-        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedEdit);
+        await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
     private async Task VerifyCodeMappingAsync(
         string originalCode,
         string[] codeToMap,
-        LSP.WorkspaceEdit expectedEdit,
+        string expectedCode,
         string razorFilePath = RazorFilePath,
         LSP.Location[][]? locations = null)
     {
@@ -441,7 +322,8 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
         var endpoint = new MapCodeEndpoint(documentMappingService, documentContextFactory, languageServer, filePathService);
 
-        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var sourceText = codeDocument.GetSourceText();
+        sourceText.GetLineAndOffset(cursorPosition, out var line, out var offset);
 
         var mappings = new MapCodeMapping[]
         {
@@ -479,7 +361,10 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
-        Assert.Equal(expectedEdit, result, new WorkspaceEditComparer());
+        Assert.NotNull(result);
+
+        var actualCode = ApplyWorkspaceEdit(result, new Uri(razorFilePath), sourceText);
+        AssertEx.EqualOrDiff(expectedCode, actualCode.ToString());
     }
 
     private class MapCodeServer : ClientNotifierServiceBase
@@ -540,69 +425,21 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         }
     }
 
-    // WorkspaceEdit doesn't have a built in comparer so we have to build our own for testing.
-    private class WorkspaceEditComparer : IEqualityComparer<WorkspaceEdit?>
+    private static SourceText ApplyWorkspaceEdit(WorkspaceEdit workspaceEdit, Uri documentUri, SourceText sourceText)
     {
-        public bool Equals(WorkspaceEdit? x, WorkspaceEdit? y)
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        var edits = workspaceEdit.DocumentChanges.Value.First;
+
+        foreach (var edit in edits)
         {
-            if (x!.DocumentChanges is not null || y!.DocumentChanges is not null)
+            Assert.Equal(documentUri, edit.TextDocument.Uri);
+
+            foreach (var currentEdit in edit.Edits)
             {
-                var xEdits = (TextDocumentEdit[])x.DocumentChanges!.Value;
-                var yEdits = (TextDocumentEdit[])y!.DocumentChanges!.Value;
-
-                if (!xEdits.SequenceEqual(yEdits, new TextDocumentEditComparer()))
-                {
-                    return false;
-                }
-
-                return true;
+                sourceText = sourceText.WithChanges(currentEdit.ToTextChange(sourceText));
             }
-
-            return x.Equals(y);
         }
 
-        public int GetHashCode([DisallowNull] WorkspaceEdit? obj)
-            => throw new NotImplementedException();
-    }
-
-    private class TextDocumentEditComparer : IEqualityComparer<TextDocumentEdit>
-    {
-        public bool Equals(TextDocumentEdit? x, TextDocumentEdit? y)
-        {
-            if (x?.TextDocument != y?.TextDocument)
-            {
-                return false;
-            }
-
-            if (!x!.Edits.SequenceEqual(y!.Edits, new TextEditComparer()))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public int GetHashCode([DisallowNull] TextDocumentEdit obj) => throw new NotImplementedException();
-    }
-
-    private class TextEditComparer : IEqualityComparer<TextEdit>
-    {
-        public bool Equals(TextEdit? x, TextEdit? y)
-        {
-            if (x?.NewText != y?.NewText)
-            {
-                return false;
-            }
-
-            if (x?.Range != y?.Range)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public int GetHashCode([DisallowNull] TextEdit obj)
-            => throw new NotImplementedException();
+        return sourceText;
     }
 }

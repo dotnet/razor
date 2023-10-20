@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode.Mappers;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -96,9 +98,9 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
 
                 // We create a new Razor file based on each mapping's content in order to get the syntax tree that we'll later use to map.
                 var sourceDocument = RazorSourceDocument.Create(content, "Test" + extension);
-                var codeToMap = projectEngine.Process(sourceDocument, fileKind, importSources, tagHelperContext.TagHelpers);
+                var codeToMap = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources, tagHelperContext.TagHelpers);
 
-                await MapCodeAsync(codeToMap, mapping.FocusLocations, changes, cancellationToken).ConfigureAwait(false);
+                await MapCodeAsync(codeToMap, mapping.FocusLocations, changes, documentContext, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -114,6 +116,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         RazorCodeDocument codeToMap,
         LSP.Location[][] locations,
         ImmutableArray<TextDocumentEdit>.Builder changes,
+        VersionedDocumentContext documentContext,
         CancellationToken cancellationToken)
     {
         var syntaxTree = codeToMap.GetSyntaxTree();
@@ -128,7 +131,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
             return;
         }
 
-        await MapCodeAsync(locations, [.. nodesToMap], changes, cancellationToken).ConfigureAwait(false);
+        await MapCodeAsync(locations, [.. nodesToMap], changes, documentContext, cancellationToken).ConfigureAwait(false);
         MergeEdits(changes);
     }
 
@@ -136,6 +139,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         LSP.Location[][] focusLocations,
         SyntaxNode[] nodesToMap,
         ImmutableArray<TextDocumentEdit>.Builder changes,
+        VersionedDocumentContext documentContext,
         CancellationToken cancellationToken)
     {
         var didCalculateCSharpFocusLocations = false;
@@ -152,12 +156,9 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
             {
                 // The current assumption is that all focus locations will always be in the same document
                 // as the code to map. The client is currently implemented using this behavior, but if it
-                // ever changes, we'll need to update this code to account for it.
-                var documentContext = _documentContextFactory.TryCreateForOpenDocument(location.Uri);
-                if (documentContext is null)
-                {
-                    continue;
-                }
+                // ever changes, we'll need to update this code to account for it (i.e., take into account
+                // focus location URIs).
+                Debug.Equals(location.Uri, documentContext.Uri);
 
                 var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (syntaxTree is null)
@@ -177,13 +178,19 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                             didCalculateCSharpFocusLocations = true;
                         }
 
-                        var csharpMappingSuccessful = await SendCSharpDelegatedMappingRequestAsync(
+                        var csharpMappingSuccessful = await TrySendCSharpDelegatedMappingRequestAsync(
                             documentContext.Identifier, csharpBody, csharpFocusLocations, changes, cancellationToken).ConfigureAwait(false);
+
+                        // If C# delegation fails, we'll try mapping ourselves.
                         if (!csharpMappingSuccessful)
                         {
-                            // An error occurred during C# mapping. Let the client handle the mapping.
-                            changes.Clear();
-                            return;
+                            if (nodeToMap.ExistsOnTarget(syntaxTree.Root))
+                            {
+                                continue;
+                            }
+
+                            razorNodesToMap.Add(nodeToMap);
+                            continue;
                         }
 
                         mappingSuccess = true;
@@ -213,7 +220,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                         {
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                Uri = documentContext.Identifier.TextDocumentIdentifier.Uri
+                                Uri = documentContext.Uri
                             },
                             Edits = [edit],
                         };
@@ -286,7 +293,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         typeof(RazorDirectiveSyntax),
     ];
 
-    private async Task<bool> SendCSharpDelegatedMappingRequestAsync(
+    private async Task<bool> TrySendCSharpDelegatedMappingRequestAsync(
         TextDocumentIdentifierAndVersion textDocumentIdentifier,
         SyntaxNode nodeToMap,
         LSP.Location[][] focusLocations,
@@ -309,7 +316,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         } catch
         {
             // C# hasn't implemented + merged their C# code mapper yet.
-            return true;
+            return false;
         }
 
         if (edits is null)
@@ -318,8 +325,8 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
             return false;
         }
 
-        await HandleDelegatedResponseAsync(edits, changes, cancellationToken).ConfigureAwait(false);
-        return true;
+        var success = await TryHandleDelegatedResponseAsync(edits, changes, cancellationToken).ConfigureAwait(false);
+        return success;
     }
 
     private async Task<LSP.Location[][]> GetCSharpFocusLocationsAsync(LSP.Location[][] focusLocations, CancellationToken cancellationToken)
@@ -369,18 +376,23 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
     }
 
     // Map C# code back to Razor file
-    private async Task HandleDelegatedResponseAsync(
+    private async Task<bool> TryHandleDelegatedResponseAsync(
         LSP.WorkspaceEdit edits,
         ImmutableArray<TextDocumentEdit>.Builder changes,
         CancellationToken cancellationToken)
     {
+        using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var csharpChanges);
         if (edits.DocumentChanges is not null && edits.DocumentChanges.Value.TryGetFirst(out var documentEdits))
         {
             // We only support document edits for now. In the future once the client supports it, we should look
             // into also supporting file creation/deletion/rename.
             foreach (var edit in documentEdits)
             {
-                await ProcessEdit(edit.TextDocument.Uri, edit.Edits, changes, cancellationToken).ConfigureAwait(false);
+                var success = await TryProcessEditAsync(edit.TextDocument.Uri, edit.Edits, csharpChanges, cancellationToken).ConfigureAwait(false);
+                if (!success)
+                {
+                    return false;
+                }
             }
         }
 
@@ -389,14 +401,21 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
             foreach (var edit in edits.Changes)
             {
                 var generatedUri = new Uri(edit.Key);
-                await ProcessEdit(generatedUri, edit.Value, changes, cancellationToken).ConfigureAwait(false);
+                var success = await TryProcessEditAsync(generatedUri, edit.Value, csharpChanges, cancellationToken).ConfigureAwait(false);
+                if (!success)
+                {
+                    return false;
+                }
             }
         }
 
-        async Task ProcessEdit(
+        changes.AddRange(csharpChanges);
+        return true;
+
+        async Task<bool> TryProcessEditAsync(
             Uri generatedUri,
             TextEdit[] textEdits,
-            ImmutableArray<TextDocumentEdit>.Builder changes,
+            ImmutableArray<TextDocumentEdit>.Builder csharpChanges,
             CancellationToken cancellationToken)
         {
             foreach (var documentEdit in textEdits)
@@ -414,22 +433,27 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
                     generatedUri, updatedEdit.Range, cancellationToken).ConfigureAwait(false);
 
-                if (hostDocumentUri != generatedUri)
+                if (hostDocumentUri == generatedUri)
                 {
-                    var textEdit = new LSP.TextEdit
-                    {
-                        Range = hostDocumentRange,
-                        NewText = updatedEdit.NewText
-                    };
-
-                    var textDocumentEdit = new TextDocumentEdit
-                    {
-                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = hostDocumentUri },
-                        Edits = [textEdit]
-                    };
-                    changes.Add(textDocumentEdit);
+                    return false;
                 }
+
+                var textEdit = new LSP.TextEdit
+                {
+                    Range = hostDocumentRange,
+                    NewText = updatedEdit.NewText
+                };
+
+                var textDocumentEdit = new TextDocumentEdit
+                {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = hostDocumentUri },
+                    Edits = [textEdit]
+                };
+
+                csharpChanges.Add(textDocumentEdit);
             }
+
+            return true;
         }
 
         async Task<TextEdit> RemoveStartingPreprocessorDirectivesAsync(
