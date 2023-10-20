@@ -484,7 +484,7 @@ internal class DocumentState
             }
 
             // OK we have to generate the code.
-            using var importSources = new PooledArrayBuilder<RazorSourceDocument>();
+            using var importSources = new PooledArrayBuilder<RazorSourceDocument>(imports.Count);
             var projectEngine = project.GetProjectEngine();
             foreach (var item in imports)
             {

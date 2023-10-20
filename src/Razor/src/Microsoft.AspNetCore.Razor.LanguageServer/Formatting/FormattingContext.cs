@@ -313,9 +313,10 @@ internal class FormattingContext : IDisposable
     private async Task InitializeProjectEngineAsync()
     {
         var engine = OriginalSnapshot.Project.GetProjectEngine();
-        using var importSources = new PooledArrayBuilder<RazorSourceDocument>();
 
         var imports = OriginalSnapshot.GetImports();
+        using var importSources = new PooledArrayBuilder<RazorSourceDocument>(imports.Length);
+
         foreach (var import in imports)
         {
             var sourceText = await import.GetTextAsync().ConfigureAwait(false);
