@@ -197,7 +197,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "/Views/Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -244,7 +244,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "/Views/Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -297,7 +297,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "\\test\\\"Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "\\test\\\"Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -356,7 +356,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "/Views/Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -411,7 +411,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "test\\\"Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "test\\\"Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act

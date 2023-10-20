@@ -33,7 +33,6 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     private ImmutableArray<SourceMapping> SourceMappings { get; set; }
     private string? GeneratedCode { get; set; }
     private object? Diagnostics { get; set; }
-    private SourceText? CSharpSourceText { get; set; }
     private VersionedDocumentContext? VersionedDocumentContext { get; set; }
     private VSInternalDocumentDiagnosticsParams? Request { get; set; }
     private IEnumerable<VSInternalDiagnosticReport?>? Response { get; set; }
@@ -53,7 +52,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri }
         };
-        var stringSourceDocument = new StringSourceDocument(GetFileContents(), UTF8Encoding.UTF8, new RazorSourceDocumentProperties());
+        var stringSourceDocument = RazorSourceDocument.Create(GetFileContents(), UTF8Encoding.UTF8, RazorSourceDocumentProperties.Default);
         var mockRazorCodeDocument = new Mock<RazorCodeDocument>(MockBehavior.Strict);
 
         var mockRazorCSharpDocument = RazorCSharpDocument.Create(
@@ -71,8 +70,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         mockRazorCodeDocument.Setup(r => r.Items).Returns(itemCollection);
         RazorCodeDocument = mockRazorCodeDocument.Object;
 
-        SourceText = RazorCodeDocument.GetSourceText();
-        CSharpSourceText = RazorCodeDocument.GetCSharpSourceText();
+        SourceText = RazorCodeDocument.Source.Text;
         var documentContext = new Mock<VersionedDocumentContext>(
             MockBehavior.Strict,
             new object[] { It.IsAny<Uri>(), It.IsAny<IDocumentSnapshot>(), It.IsAny<VSProjectContext>(), It.IsAny<int>() });

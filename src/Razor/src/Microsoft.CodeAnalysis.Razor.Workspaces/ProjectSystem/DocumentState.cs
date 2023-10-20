@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -505,7 +504,7 @@ internal class DocumentState
         private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(IDocumentSnapshot document, RazorProjectItem? projectItem)
         {
             var sourceText = await document.GetTextAsync().ConfigureAwait(false);
-            return sourceText.GetRazorSourceDocument(document.FilePath, projectItem?.RelativePhysicalPath);
+            return RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath));
         }
 
         private static async Task<IReadOnlyList<ImportItem>> GetImportsAsync(IDocumentSnapshot document)

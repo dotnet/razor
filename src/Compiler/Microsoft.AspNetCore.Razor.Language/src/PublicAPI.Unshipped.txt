@@ -17,6 +17,8 @@ abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Keys.get -> Syst
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.this[string! key].get -> string?
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.TryGetValue(string! key, out string? value) -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Values.get -> System.Collections.Generic.IEnumerable<string?>!
+abstract Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties.FilePath.get -> string?
+abstract Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties.RelativePath.get -> string?
 abstract Microsoft.AspNetCore.Razor.Language.TagHelperCollector<T>.Collect(Microsoft.CodeAnalysis.ISymbol! symbol, System.Collections.Generic.ICollection<Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor!>! results) -> void
 Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor
 Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptor.DisplayName.get -> string!
@@ -145,11 +147,15 @@ Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Id.get -> string!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
 Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Span.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection.Enumerator.Enumerator() -> void
+Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.GetFilePathForDisplay() -> string?
+Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.FilePath.get -> string?
+Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.RelativePath.get -> string?
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Id.get -> string!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.MessageFormat.get -> string!
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.RazorDiagnosticDescriptor(string! id, string! messageFormat, Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity severity) -> void
 Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor.Severity.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticSeverity
+Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.Text.get -> Microsoft.CodeAnalysis.Text.SourceText!
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.CaseSensitive.get -> bool
 Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.DisplayName.get -> string!
@@ -281,6 +287,15 @@ static Microsoft.AspNetCore.Razor.Language.MetadataCollection.CreateOrEmpty(Syst
 static Microsoft.AspNetCore.Razor.Language.MetadataCollection.CreateOrEmpty(System.Collections.Generic.IReadOnlyDictionary<string!, string?>? map) -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
 static Microsoft.AspNetCore.Razor.Language.MetadataCollection.CreateOrEmpty<T>(T? pairs) -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
 static Microsoft.AspNetCore.Razor.Language.RazorCodeDocumentExtensions.TryComputeClassName(this Microsoft.AspNetCore.Razor.Language.RazorCodeDocument! codeDocument, out string? className) -> bool
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.Create(Microsoft.CodeAnalysis.Text.SourceText! text, Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties! properties) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.Create(string! content, Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties! properties) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.Create(string! content, string! fileName) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.Create(string! content, string! fileName, System.Text.Encoding! encoding) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.Create(string! content, System.Text.Encoding! encoding, Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties! properties) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.ReadFrom(Microsoft.AspNetCore.Razor.Language.RazorProjectItem! projectItem) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.ReadFrom(System.IO.Stream! stream, string! fileName) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.ReadFrom(System.IO.Stream! stream, string! fileName, System.Text.Encoding! encoding) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
+static Microsoft.AspNetCore.Razor.Language.RazorSourceDocument.ReadFrom(System.IO.Stream! stream, System.Text.Encoding! encoding, Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties! properties) -> Microsoft.AspNetCore.Razor.Language.RazorSourceDocument!
 static Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Create(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor! descriptor) -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!
 static Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Create(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor! descriptor, Microsoft.AspNetCore.Razor.Language.SourceSpan? span) -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!
 static Microsoft.AspNetCore.Razor.Language.RazorDiagnostic.Create(Microsoft.AspNetCore.Razor.Language.RazorDiagnosticDescriptor! descriptor, Microsoft.AspNetCore.Razor.Language.SourceSpan? span, params object![]! args) -> Microsoft.AspNetCore.Razor.Language.RazorDiagnostic!
@@ -293,6 +308,7 @@ static readonly Microsoft.AspNetCore.Razor.Language.MetadataCollection.Empty -> 
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.CodeDocument.get -> Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.SourceMappings.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.SourceMapping>
 ~Microsoft.AspNetCore.Razor.Language.TagHelperObjectBuilderCollection<TObject, TBuilder>.GetEnumerator() -> Microsoft.AspNetCore.Razor.Language.TagHelperObjectBuilderCollection<TObject, TBuilder>.Enumerator
+~Microsoft.AspNetCore.Razor.Language.SourceLocation.SourceLocation(string filePath, int absoluteIndex, Microsoft.CodeAnalysis.Text.LinePosition linePosition) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetBindAttributeGetSet(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder builder) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetGloballyQualifiedTypeName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetMetadata(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, System.Collections.Generic.KeyValuePair<string, string> pair) -> void

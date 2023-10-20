@@ -262,7 +262,7 @@ public abstract class IntegrationTestBase
 
         var syntaxTrees = new[]
         {
-                (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(cSharpDocument.GeneratedCode, CSharpParseOptions, path: code.CodeDocument.Source.FilePath),
+                (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(cSharpDocument.GeneratedCode, CSharpParseOptions, path: code.CodeDocument.Source.FilePath ?? string.Empty),
             };
 
         var compilation = code.BaseCompilation.AddSyntaxTrees(syntaxTrees);
@@ -494,8 +494,8 @@ public abstract class IntegrationTestBase
         var visitor = new CodeSpanVisitor();
         visitor.Visit(syntaxTree.Root);
 
-        var charBuffer = new char[codeDocument.Source.Length];
-        codeDocument.Source.CopyTo(0, charBuffer, 0, codeDocument.Source.Length);
+        var charBuffer = new char[codeDocument.Source.Text.Length];
+        codeDocument.Source.Text.CopyTo(0, charBuffer, 0, codeDocument.Source.Text.Length);
         var sourceContent = new string(charBuffer);
 
         var spans = visitor.CodeSpans;
@@ -585,8 +585,8 @@ public abstract class IntegrationTestBase
 
         AssertEx.AssertEqualToleratingWhitespaceDifferences(baseline, serializedMappings);
 
-        var charBuffer = new char[codeDocument.Source.Length];
-        codeDocument.Source.CopyTo(0, charBuffer, 0, codeDocument.Source.Length);
+        var charBuffer = new char[codeDocument.Source.Text.Length];
+        codeDocument.Source.Text.CopyTo(0, charBuffer, 0, codeDocument.Source.Text.Length);
         var sourceContent = new string(charBuffer);
 
         var problems = new List<string>();
@@ -644,8 +644,8 @@ public abstract class IntegrationTestBase
         else
         {
             var syntaxTree = codeDocument.GetSyntaxTree();
-            var sourceBuffer = new char[syntaxTree.Source.Length];
-            syntaxTree.Source.CopyTo(0, sourceBuffer, 0, syntaxTree.Source.Length);
+            var sourceBuffer = new char[syntaxTree.Source.Text.Length];
+            syntaxTree.Source.Text.CopyTo(0, sourceBuffer, 0, syntaxTree.Source.Text.Length);
             var sourceContent = new string(sourceBuffer);
             var classifiedSpans = syntaxTree.GetClassifiedSpans();
             foreach (var classifiedSpan in classifiedSpans)

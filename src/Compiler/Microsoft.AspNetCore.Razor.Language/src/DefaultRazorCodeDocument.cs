@@ -21,7 +21,7 @@ internal class DefaultRazorCodeDocument : RazorCodeDocument
         }
 
         Source = source;
-        Imports = imports?.ToArray() ?? RazorSourceDocument.EmptyArray;
+        Imports = imports?.ToArray() ?? Array.Empty<RazorSourceDocument>();
 
         Items = new ItemCollection();
     }

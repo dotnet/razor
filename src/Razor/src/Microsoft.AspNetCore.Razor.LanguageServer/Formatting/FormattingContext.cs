@@ -161,8 +161,8 @@ internal class FormattingContext : IDisposable
                     // Couldn't find a corresponding FormattingSpan. Happens if it is a 0 length line.
                     // Let's create a 0 length span to represent this and default it to HTML.
                     var placeholderSpan = new FormattingSpan(
-                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
-                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
+                        new TextSpan(nonWsPos.Value, 0),
+                        new TextSpan(nonWsPos.Value, 0),
                         FormattingSpanKind.Markup,
                         FormattingBlockKind.Markup,
                         razorIndentationLevel: 0,
@@ -284,7 +284,7 @@ internal class FormattingContext : IDisposable
             await InitializeProjectEngineAsync().ConfigureAwait(false);
         }
 
-        var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
+        var changedSourceDocument = RazorSourceDocument.Create(changedText, RazorSourceDocumentProperties.Create(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath));
 
         var codeDocument = _engine!.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, _importSources, OriginalSnapshot.Project.TagHelpers);
 
@@ -315,7 +315,7 @@ internal class FormattingContext : IDisposable
         foreach (var import in imports)
         {
             var sourceText = await import.GetTextAsync().ConfigureAwait(false);
-            var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
+            var source = RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(import.FilePath, import.TargetPath));
             importSources.Add(source);
         }
 
