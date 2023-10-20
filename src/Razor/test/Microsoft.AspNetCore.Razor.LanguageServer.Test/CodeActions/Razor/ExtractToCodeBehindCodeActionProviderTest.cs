@@ -370,7 +370,7 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
     {
-        var sourceDocument = RazorSourceDocument.Create(text, new RazorSourceDocumentProperties(filePath, relativePath));
+        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
         var options = RazorParserOptions.Create(o =>
         {
             o.Directives.Add(ComponentCodeDirective.Directive);

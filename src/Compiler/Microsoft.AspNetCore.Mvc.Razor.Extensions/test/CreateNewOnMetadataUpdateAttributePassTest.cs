@@ -19,7 +19,7 @@ public class CreateNewOnMetadataUpdateAttributePassTest : RazorProjectEngineTest
     public void Execute_AddsAttributes()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: "ignored", relativePath: "Test.cshtml");
+        var properties = RazorSourceDocumentProperties.Create(filePath: "ignored", relativePath: "Test.cshtml");
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("Hello world", properties));
 
         var engine = CreateProjectEngine(b =>
@@ -58,7 +58,7 @@ public class CreateNewOnMetadataUpdateAttributePassTest : RazorProjectEngineTest
     public void Execute_NoOpsForBlazorComponents()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: "ignored", relativePath: "Test.razor");
+        var properties = RazorSourceDocumentProperties.Create(filePath: "ignored", relativePath: "Test.razor");
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("Hello world", properties));
         codeDocument.SetFileKind(FileKinds.Component);
 

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -204,7 +205,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_SetsClass()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: "ignored", relativePath: "Test.cshtml");
+        var properties = RazorSourceDocumentProperties.Create(filePath: "ignored", relativePath: "Test.cshtml");
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateRuntimeEngine();
@@ -229,7 +230,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_NullFilePath_SetsClass()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: null, relativePath: null);
+        var properties = RazorSourceDocumentProperties.Create(filePath: null, relativePath: null);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateRuntimeEngine();
@@ -247,7 +248,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
         // Assert
         Assert.Equal("global::Microsoft.AspNetCore.Mvc.RazorPages.Page", visitor.Class.BaseType);
         Assert.Equal(new[] { "public" }, visitor.Class.Modifiers);
-        Assert.Equal("AspNetCore_d73aeb762894dcfb9bbaa0e591f8a46be56f978ed801b6f93caf3dfa797acf4e", visitor.Class.ClassName);
+        AssertEx.Equal("AspNetCore_c3b458108610c1a2aa6eede0a5685ede853e036732db515609b2a23ca15359e1", visitor.Class.ClassName);
     }
 
     [Theory]
@@ -256,7 +257,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_UsesRelativePathToGenerateTypeName(string relativePath, string expected)
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: "ignored", relativePath: relativePath);
+        var properties = RazorSourceDocumentProperties.Create(filePath: "ignored", relativePath: relativePath);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateRuntimeEngine();
@@ -279,7 +280,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_UsesAbsolutePath_IfRelativePathIsNotSet()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: @"x::\application\Views\Home\Index.cshtml", relativePath: null);
+        var properties = RazorSourceDocumentProperties.Create(filePath: @"x::\application\Views\Home\Index.cshtml", relativePath: null);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateRuntimeEngine();
@@ -302,7 +303,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_SanitizesClassName()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: @"x:\Test.cshtml", relativePath: "path.with+invalid-chars");
+        var properties = RazorSourceDocumentProperties.Create(filePath: @"x:\Test.cshtml", relativePath: "path.with+invalid-chars");
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateRuntimeEngine();
@@ -349,7 +350,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_AddsRouteTemplateMetadata()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: "ignored", relativePath: "Test.cshtml");
+        var properties = RazorSourceDocumentProperties.Create(filePath: "ignored", relativePath: "Test.cshtml");
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page \"some-route\"", properties));
 
         var engine = CreateRuntimeEngine();
