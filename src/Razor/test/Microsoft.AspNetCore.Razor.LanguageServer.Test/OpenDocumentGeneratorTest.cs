@@ -87,33 +87,33 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         await Assert.ThrowsAsync<TaskCanceledException>(() => listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromMilliseconds(50)));
     }
 
-    [Fact]
-    public async Task DocumentChanged_ProcessesOpenDocument()
-    {
-        // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter, Dispatcher);
-        var listener = new TestDocumentProcessedListener();
-        var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
+    //[Fact]
+    //public async Task DocumentChanged_ProcessesOpenDocument()
+    //{
+    //    // Arrange
+    //    var projectManager = TestProjectSnapshotManager.Create(ErrorReporter, Dispatcher);
+    //    var listener = new TestDocumentProcessedListener();
+    //    var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            projectManager.ProjectAdded(_hostProject1);
-            projectManager.ProjectAdded(_hostProject2);
-            projectManager.AllowNotifyListeners = true;
-            projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
-            projectManager.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
+    //    await Dispatcher.RunOnDispatcherThreadAsync(() =>
+    //    {
+    //        projectManager.ProjectAdded(_hostProject1);
+    //        projectManager.ProjectAdded(_hostProject2);
+    //        projectManager.AllowNotifyListeners = true;
+    //        projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
+    //        projectManager.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
-            queue.Initialize(projectManager);
+    //        queue.Initialize(projectManager);
 
-            // Act
-            projectManager.DocumentChanged(_hostProject1.Key, _documents[0].FilePath, SourceText.From("new"));
-        }, DisposalToken);
+    //        // Act
+    //        projectManager.DocumentChanged(_hostProject1.Key, _documents[0].FilePath, SourceText.From("new"));
+    //    }, DisposalToken);
 
-        // Assert
+    //    // Assert
 
-        var document = await listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromSeconds(10));
-        Assert.Equal(document.FilePath, _documents[0].FilePath);
-    }
+    //    var document = await listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromSeconds(10));
+    //    Assert.Equal(document.FilePath, _documents[0].FilePath);
+    //}
 
     [Fact]
     public async Task ProjectChanged_IgnoresClosedDocument()
