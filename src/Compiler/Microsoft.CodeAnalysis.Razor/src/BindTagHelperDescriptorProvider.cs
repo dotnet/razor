@@ -127,7 +127,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
         // We want to walk the compilation and its references, not the target symbol.
         var collector = new Collector(
-            compilation, targetSymbol: null, bindElementAttribute, bindInputElementAttribute);
+            compilation, bindElementAttribute, bindInputElementAttribute);
         collector.Collect(context);
     }
 
@@ -240,8 +240,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
     }
 
     private class Collector(
-        Compilation compilation, ISymbol targetSymbol, INamedTypeSymbol bindElementAttribute, INamedTypeSymbol bindInputElementAttribute)
-        : TagHelperCollector<Collector>(compilation, targetSymbol)
+        Compilation compilation, INamedTypeSymbol bindElementAttribute, INamedTypeSymbol bindInputElementAttribute)
+        : TagHelperCollector<Collector>(compilation, targetSymbol: null)
     {
         protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
         {
