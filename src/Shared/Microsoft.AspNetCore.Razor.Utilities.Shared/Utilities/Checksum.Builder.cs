@@ -2,35 +2,36 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-#if !NET
+#if !NET5_0_OR_GREATER
 using System.Buffers;
 #endif
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
+
+// PERFORMANCE: Care has been taken to avoid using IncrementalHash on .NET Framework, which can cause
+// threadpool starvation. Essentially, on .NET Framework, IncrementalHash ends up using the OS implementation
+// of SHA-256, which creates several finalizable objects in the form of safe handles. By creating instances
+// of SHA256 for .NET Framework (and netstandard2.0), we get the managed code version of SHA-256, which
+// doesn't have the overhead of using the OS implementations.
+//
+// See https://github.com/dotnet/roslyn/issues/67995 for more detail.
+
+#if NET5_0_OR_GREATER
+using HashingType = System.Security.Cryptography.IncrementalHash;
+#else
+using HashingType = System.Security.Cryptography.SHA256;
+#endif
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal sealed partial record Checksum
 {
-    // PERFORMANCE: Care has been taken to avoid using IncrementalHash on .NET Framework, which can cause
-    // threadpool starvation. Essentially, on .NET Framework, IncrementalHash ends up using the OS implementation
-    // of SHA-256, which creates several finalizable objects in the form of safe handles. By creating instances
-    // of SHA256 for .NET Framework (and netstandard2.0), we get the managed code version of SHA-256, which
-    // doesn't have the overhead of using the OS implementations.
-    //
-    // See https://github.com/dotnet/roslyn/issues/67995 for more detail.
-
     internal readonly ref partial struct Builder
     {
-#if NET
-        private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool = DefaultPool.Create(Policy.Instance);
-#else
-        private static readonly ObjectPool<SHA256> s_incrementalHashPool = DefaultPool.Create(Policy.Instance);
-#endif
+        private static readonly ObjectPool<HashingType> s_hashPool = DefaultPool.Create(Policy.Instance);
 
         private enum TypeKind : byte
         {
@@ -48,15 +49,11 @@ internal sealed partial record Checksum
         [ThreadStatic]
         private static byte[]? s_buffer;
 
-#if NET5_0_OR_GREATER
-        private readonly IncrementalHash _hash;
-#else
-        private readonly SHA256 _hash;
-#endif
+        private readonly HashingType _hash;
 
         public Builder()
         {
-            _hash = s_incrementalHashPool.Get();
+            _hash = s_hashPool.Get();
 
 #if !NET5_0_OR_GREATER
             _hash.Initialize();
@@ -68,16 +65,16 @@ internal sealed partial record Checksum
 
         public Checksum FreeAndGetChecksum()
         {
-#if NET
+#if NET5_0_OR_GREATER
             Span<byte> hash = stackalloc byte[HashSize];
             _hash.GetHashAndReset(hash);
             var result = From(hash);
 #else
-            _hash.TransformFinalBlock(inputBuffer: Array.Empty<byte>(), inputOffset: 0, inputCount: 0);
+            _hash.TransformFinalBlock(inputBuffer: [], inputOffset: 0, inputCount: 0);
             var result = From(_hash.Hash);
 #endif
 
-            s_incrementalHashPool.Return(_hash);
+            s_hashPool.Return(_hash);
             return result;
         }
 
@@ -85,7 +82,7 @@ internal sealed partial record Checksum
         {
             Debug.Assert(s_buffer is not null);
 
-#if NET
+#if NET5_0_OR_GREATER
             _hash.AppendData(s_buffer, offset: 0, count);
 #else
             _hash.TransformBlock(s_buffer, inputOffset: 0, inputCount: count, outputBuffer: null, outputOffset: 0);
@@ -134,7 +131,7 @@ internal sealed partial record Checksum
 
         private void AppendStringValue(string value)
         {
-#if NET
+#if NET5_0_OR_GREATER
             _hash.AppendData(MemoryMarshal.AsBytes(value.AsSpan()));
             _hash.AppendData(MemoryMarshal.AsBytes("\0".AsSpan()));
 #else
@@ -143,7 +140,7 @@ internal sealed partial record Checksum
             AppendData(_hash, buffer, value);
             AppendData(_hash, buffer, "\0");
 
-            static void AppendData(SHA256 hash, byte[] buffer, string value)
+            static void AppendData(HashingType hash, byte[] buffer, string value)
             {
                 var stringBytes = MemoryMarshal.AsBytes(value.AsSpan());
                 Debug.Assert(stringBytes.Length == value.Length * 2);

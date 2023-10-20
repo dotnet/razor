@@ -2,10 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.Extensions.ObjectPool;
-#if NET
+#if NET5_0_OR_GREATER
 using System.Diagnostics;
 #endif
-using System.Security.Cryptography;
+
+#if NET5_0_OR_GREATER
+using HashAlgorithmName = System.Security.Cryptography.HashAlgorithmName;
+using HashingType = System.Security.Cryptography.IncrementalHash;
+#else
+using HashingType = System.Security.Cryptography.SHA256;
+#endif
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
@@ -13,9 +19,7 @@ internal sealed partial record Checksum
 {
     internal readonly ref partial struct Builder
     {
-
-#if NET
-        private sealed class Policy : IPooledObjectPolicy<IncrementalHash>
+        private sealed class Policy : IPooledObjectPolicy<HashingType>
         {
             public static readonly Policy Instance = new();
 
@@ -23,33 +27,21 @@ internal sealed partial record Checksum
             {
             }
 
-            public IncrementalHash Create()
-                => IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-
-            public bool Return(IncrementalHash hash)
-            {
-                Debug.Assert(hash.AlgorithmName == HashAlgorithmName.SHA256);
-
-                return true;
-            }
-        }
+            public HashingType Create()
+#if NET5_0_OR_GREATER
+                => HashingType.CreateHash(HashAlgorithmName.SHA256);
 #else
-        private sealed class Policy : IPooledObjectPolicy<SHA256>
-        {
-            public static readonly Policy Instance = new();
+                => HashingType.Create();
+#endif
 
-            private Policy()
+            public bool Return(HashingType hash)
             {
-            }
+#if NET5_0_OR_GREATER
+                Debug.Assert(hash.AlgorithmName == HashAlgorithmName.SHA256);
+#endif
 
-            public SHA256 Create()
-                => SHA256.Create();
-
-            public bool Return(SHA256 hash)
-            {
                 return true;
             }
         }
-#endif
     }
 }
