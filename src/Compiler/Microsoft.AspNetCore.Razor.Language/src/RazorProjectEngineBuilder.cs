@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -37,6 +38,10 @@ public sealed class RazorProjectEngineBuilder
 
                 case IRazorProjectEngineFeature projectEngineFeature:
                     projectEngineFeatures.Add(projectEngineFeature);
+                    break;
+
+                default:
+                    Debug.Fail($"Encountered an {nameof(IRazorFeature)} that is not an {nameof(IRazorEngineFeature)} or {nameof(IRazorProjectEngineFeature)}.");
                     break;
             }
         }

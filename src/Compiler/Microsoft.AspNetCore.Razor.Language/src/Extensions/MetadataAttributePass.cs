@@ -19,6 +19,7 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
     protected override void OnInitialized()
     {
         Engine.TryGetFeature(out _identifierFeature);
+        Debug.Assert(_identifierFeature is not null);
     }
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
