@@ -128,6 +128,11 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
                 continue;
             }
 
+            if (originalLocation > syntaxTreeRoot.EndPosition)
+            {
+                continue;
+            }
+
             var scopeOwner = syntaxTreeRoot.FindInnermostNode(originalLocation);
             sourceMappingIndentations[originalLocation] = new IndentationData(indentation);
 
