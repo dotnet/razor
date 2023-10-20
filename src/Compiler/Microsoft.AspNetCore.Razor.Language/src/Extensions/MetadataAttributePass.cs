@@ -5,7 +5,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -19,7 +18,8 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
 
     protected override void OnInitialized()
     {
-        _identifierFeature = Engine.GetFeature<IMetadataIdentifierFeature>();
+        Engine.TryGetFeature(out _identifierFeature);
+        Debug.Assert(_identifierFeature is not null);
     }
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
@@ -118,10 +118,9 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
 
         // Now process the checksums of the imports
         Debug.Assert(_identifierFeature != null);
-        for (var i = 0; i < codeDocument.Imports.Count; i++)
-        {
-            var import = codeDocument.Imports[i];
 
+        foreach (var import in codeDocument.Imports)
+        {
             checksum = import.Text.GetChecksum();
             checksumAlgorithm = import.Text.ChecksumAlgorithm;
             identifier = _identifierFeature.GetIdentifier(codeDocument, import);

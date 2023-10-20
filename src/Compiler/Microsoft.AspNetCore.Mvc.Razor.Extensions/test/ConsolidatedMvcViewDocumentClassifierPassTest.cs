@@ -138,9 +138,8 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
 
     private static DocumentIntermediateNode CreateIRDocument(RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
     {
-        for (var i = 0; i < projectEngine.Phases.Count; i++)
+        foreach (var phase in projectEngine.Phases)
         {
-            var phase = projectEngine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorIntermediateNodeLoweringPhase)

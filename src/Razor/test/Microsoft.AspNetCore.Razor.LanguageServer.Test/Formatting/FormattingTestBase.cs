@@ -274,7 +274,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             builder.Features.Add(new DefaultTypeNameFeature());
             RazorExtensions.Register(builder);
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { importsDocument }, tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, ImmutableArray.Create(importsDocument), tagHelpers);
 
         if (!allowDiagnostics)
         {

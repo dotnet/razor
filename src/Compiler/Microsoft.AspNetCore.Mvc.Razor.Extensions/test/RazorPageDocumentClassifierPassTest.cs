@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -31,7 +32,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
         var expectedDiagnostic = RazorExtensionsDiagnosticFactory.CreatePageDirective_CannotBeImported(sourceSpan);
         var importDocument = RazorSourceDocument.Create("@page", "import.cshtml");
         var sourceDocument = RazorSourceDocument.Create("<p>Hello World</p>", "main.cshtml");
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { importDocument });
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, ImmutableArray.Create(importDocument));
         var engine = CreateRuntimeEngine();
         var irDocument = CreateIRDocument(engine, codeDocument);
         var pass = new RazorPageDocumentClassifierPass
@@ -380,9 +381,8 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
 
     private static DocumentIntermediateNode CreateIRDocument(RazorEngine engine, RazorCodeDocument codeDocument)
     {
-        for (var i = 0; i < engine.Phases.Count; i++)
+        foreach (var phase in engine.Phases)
         {
-            var phase = engine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorIntermediateNodeLoweringPhase)
