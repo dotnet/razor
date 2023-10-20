@@ -124,18 +124,18 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
 
             case ProjectChangeKind.DocumentChanged:
                 {
-                    var newProject = args.Newer.AssumeNotNull();
-                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
+                    //var newProject = args.Newer.AssumeNotNull();
+                    //var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    if (newProject.GetDocument(documentFilePath) is { } document)
-                    {
-                        TryEnqueue(document);
+                    //if (newProject.GetDocument(documentFilePath) is { } document)
+                    //{
+                    //    TryEnqueue(document);
 
-                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
-                        {
-                            TryEnqueue(relatedDocument);
-                        }
-                    }
+                    //    foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                    //    {
+                    //        TryEnqueue(relatedDocument);
+                    //    }
+                    //}
 
                     break;
                 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
@@ -22,13 +23,22 @@ internal class DocumentDidChangeEndpoint : IRazorNotificationHandler<DidChangeTe
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _projectService;
+    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly ISnapshotResolver _snapshotResolver;
+    private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
 
     public DocumentDidChangeEndpoint(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        RazorProjectService razorProjectService)
+        RazorProjectService razorProjectService,
+        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        ISnapshotResolver snapshotResolver,
+        IEnumerable<DocumentProcessedListener> documentProcessedListeners)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = razorProjectService;
+        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+        _snapshotResolver = snapshotResolver;
+        _documentProcessedListeners = documentProcessedListeners;
     }
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
@@ -59,7 +69,26 @@ internal class DocumentDidChangeEndpoint : IRazorNotificationHandler<DidChangeTe
         sourceText = ApplyContentChanges(request.ContentChanges, sourceText, requestContext.Logger);
 
         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-            () => _projectService.UpdateDocument(documentContext.FilePath, sourceText, request.TextDocument.Version),
+            async () =>
+            {
+                _projectService.UpdateDocument(documentContext.FilePath, sourceText, request.TextDocument.Version);
+
+                if (!_snapshotResolver.TryResolveAllProjects(documentContext.FilePath, out var projects))
+                {
+                    Assumed.Unreachable();
+                }
+
+                foreach (var project in projects)
+                {
+                    var document = project.GetDocument(documentContext.FilePath).AssumeNotNull();
+                    var generatedDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(true);
+
+                    foreach (var listener in _documentProcessedListeners)
+                    {
+                        listener.DocumentProcessed(generatedDocument, document);
+                    }
+                }
+            },
             cancellationToken).ConfigureAwait(false);
     }
 
