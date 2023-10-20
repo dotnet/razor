@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -116,6 +116,34 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         AssertEx.EqualOrDiff(expected, text);
     }
 
+    [IdeFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9427")]
+    public async Task Snippets_DoNotTrigger_OnDelete()
+    {
+        await TestServices.SolutionExplorer.AddFileAsync(
+            RazorProjectConstants.BlazorProjectName,
+            "Test.razor",
+            """
+            @page "Test"
+
+            <PageTitle>Test</PageTitle>
+
+            <div></div>
+            """,
+            open: true,
+            ControlledHangMitigatingCancellationToken);
+
+        var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("<di", charsOffset: 1, ControlledHangMitigatingCancellationToken);
+        TestServices.Input.Send("{DELETE}");
+
+        // Make sure completion doesn't come up for 15 seconds
+        var completionSession = await WaitForCompletionSessionAsync(textView, TimeSpan.FromSeconds(15));
+        Assert.Null(completionSession);
+    }
+
     private async Task CommitCompletionAndVerifyAsync(string expected)
     {
         var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
@@ -131,15 +159,21 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, text);
     }
 
-    private async Task<IAsyncCompletionSession> WaitForCompletionSessionAsync(IWpfTextView textView)
+    private async Task<IAsyncCompletionSession?> WaitForCompletionSessionAsync(IWpfTextView textView, TimeSpan? timeOut = null)
     {
+        var stopWatch = Stopwatch.StartNew();
         var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(HangMitigatingCancellationToken);
         var session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, HangMitigatingCancellationToken);
 
         // Loop until completion comes up
         while (session is null || session.IsDismissed)
         {
-            await Task.Delay(TimeSpan.FromSeconds(5), HangMitigatingCancellationToken);
+            if (timeOut is not null && stopWatch.ElapsedMilliseconds >= timeOut.Value.TotalMilliseconds)
+            {
+                return null;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(1), HangMitigatingCancellationToken);
             session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, HangMitigatingCancellationToken);
         }
 
