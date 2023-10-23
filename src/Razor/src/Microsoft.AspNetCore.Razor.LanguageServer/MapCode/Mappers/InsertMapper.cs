@@ -54,7 +54,7 @@ internal static class InsertMapper
         }
 
         // Ensure we don't insert in the middle of a node.
-        var node = documentRoot.FindNode(focusArea.Range.ToRazorTextSpan(sourceText), includeWhitespace: true);
+        var node = documentRoot.FindNode(focusArea.Range.ToTextSpan(sourceText), includeWhitespace: true);
         if (node is null)
         {
             insertionPoint = 0;

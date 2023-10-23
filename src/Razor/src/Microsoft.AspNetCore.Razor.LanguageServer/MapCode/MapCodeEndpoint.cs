@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -251,20 +251,22 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         return false;
     }
 
-    private static async Task<(RazorProjectEngine projectEngine, List<RazorSourceDocument> importSources)> InitializeProjectEngineAsync(IDocumentSnapshot originalSnapshot)
+    private static async Task<(RazorProjectEngine projectEngine, ImmutableArray<RazorSourceDocument> importSources)> InitializeProjectEngineAsync(
+        IDocumentSnapshot originalSnapshot)
     {
         var engine = originalSnapshot.Project.GetProjectEngine();
-        var importSources = new List<RazorSourceDocument>();
 
         var imports = originalSnapshot.GetImports();
+        using var importSources = new PooledArrayBuilder<RazorSourceDocument>(imports.Length);
+
         foreach (var import in imports)
         {
             var sourceText = await import.GetTextAsync().ConfigureAwait(false);
-            var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
+            var source = RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(import.FilePath, import.TargetPath));
             importSources.Add(source);
         }
 
-        return (engine, importSources);
+        return (engine, importSources.DrainToImmutable());
     }
 
     private static List<SyntaxNode> ExtractValidNodesToMap(SyntaxNode rootNode)
