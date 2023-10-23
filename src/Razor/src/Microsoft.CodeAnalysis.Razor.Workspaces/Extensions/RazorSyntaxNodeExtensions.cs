@@ -7,9 +7,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
@@ -261,70 +261,6 @@ internal static class RazorSyntaxNodeExtensions
                 return new LinePosition(location.LineIndex, location.CharacterIndex);
             }
         }
-    }
-
-    public static int GetLeadingWhitespaceLength(this SyntaxNode node, FormattingContext context)
-    {
-        var tokens = node.GetTokens();
-        var whitespaceLength = 0;
-
-        foreach (var token in tokens)
-        {
-            if (token.IsWhitespace())
-            {
-                if (token.Kind == SyntaxKind.NewLine)
-                {
-                    // We need to reset when we move to a new line.
-                    whitespaceLength = 0;
-                }
-                else if (token.IsSpace())
-                {
-                    whitespaceLength++;
-                }
-                else if (token.IsTab())
-                {
-                    whitespaceLength += (int)context.Options.TabSize;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return whitespaceLength;
-    }
-
-    public static int GetTrailingWhitespaceLength(this SyntaxNode node, FormattingContext context)
-    {
-        var tokens = node.GetTokens();
-        var whitespaceLength = 0;
-
-        for (var i = tokens.Count - 1; i >= 0; i--)
-        {
-            var token = tokens[i];
-            if (token.IsWhitespace())
-            {
-                if (token.Kind == SyntaxKind.NewLine)
-                {
-                    whitespaceLength = 0;
-                }
-                else if (token.IsSpace())
-                {
-                    whitespaceLength++;
-                }
-                else if (token.IsTab())
-                {
-                    whitespaceLength += (int)context.Options.TabSize;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return whitespaceLength;
     }
 
     public static SyntaxNode? FindInnermostNode(this SyntaxNode node, int index, bool includeWhitespace = false)
