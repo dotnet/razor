@@ -253,7 +253,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
-    [Fact]
+    [Fact(Skip = "C# needs to implement + merge their LSP-based mapper before this test can pass")]
     public async Task HandleCodeBlockInsertionAsync()
     {
         var originalCode = """

@@ -65,6 +65,8 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         // TO-DO: Apply updates to the workspace before doing mapping. This is currently
         // unimplemented by the client, so we won't bother doing anything for now until
         // we determine what kinds of updates the client will actually send us.
+        Debug.Assert(request.Updates is null);
+
         if (request.Updates is not null)
         {
             return null;
@@ -96,11 +98,18 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                     continue;
                 }
 
-                // We create a new Razor file based on each mapping's content in order to get the syntax tree that we'll later use to map.
+                // We create a new Razor file based on each content in each mapping order to get the syntax tree that we'll later use to map.
                 var sourceDocument = RazorSourceDocument.Create(content, "Test" + extension);
                 var codeToMap = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources, tagHelperContext.TagHelpers);
 
-                await MapCodeAsync(codeToMap, mapping.FocusLocations, changes, documentContext, cancellationToken).ConfigureAwait(false);
+                var mappingSuccess = await TryMapCodeAsync(
+                    codeToMap, mapping.FocusLocations, changes, documentContext, cancellationToken).ConfigureAwait(false);
+
+                // Mapping failed. Let the client's built-in fallback mapper handle mapping.
+                if (!mappingSuccess)
+                {
+                    return null;
+                }
             }
         }
 
@@ -112,7 +121,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         return workspaceEdits;
     }
 
-    private async Task MapCodeAsync(
+    private async Task<bool> TryMapCodeAsync(
         RazorCodeDocument codeToMap,
         LSP.Location[][] locations,
         ImmutableArray<TextDocumentEdit>.Builder changes,
@@ -122,22 +131,29 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         var syntaxTree = codeToMap.GetSyntaxTree();
         if (syntaxTree is null)
         {
-            return;
+            return false;
         }
 
         var nodesToMap = ExtractValidNodesToMap(syntaxTree.Root);
         if (nodesToMap.Count == 0)
         {
-            return;
+            return false;
         }
 
-        await MapCodeAsync(locations, [.. nodesToMap], changes, documentContext, cancellationToken).ConfigureAwait(false);
+        var mappingSuccess = await TryMapCodeAsync(
+            locations, nodesToMap, changes, documentContext, cancellationToken).ConfigureAwait(false);
+        if (!mappingSuccess)
+        {
+            return false;
+        }
+
         MergeEdits(changes);
+        return true;
     }
 
-    private async Task MapCodeAsync(
+    private async Task<bool> TryMapCodeAsync(
         LSP.Location[][] focusLocations,
-        SyntaxNode[] nodesToMap,
+        List<SyntaxNode> nodesToMap,
         ImmutableArray<TextDocumentEdit>.Builder changes,
         VersionedDocumentContext documentContext,
         CancellationToken cancellationToken)
@@ -158,7 +174,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                 // as the code to map. The client is currently implemented using this behavior, but if it
                 // ever changes, we'll need to update this code to account for it (i.e., take into account
                 // focus location URIs).
-                Debug.Equals(location.Uri, documentContext.Uri);
+                Debug.Assert(location.Uri == documentContext.Uri);
 
                 var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (syntaxTree is null)
@@ -181,16 +197,10 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                         var csharpMappingSuccessful = await TrySendCSharpDelegatedMappingRequestAsync(
                             documentContext.Identifier, csharpBody, csharpFocusLocations, changes, cancellationToken).ConfigureAwait(false);
 
-                        // If C# delegation fails, we'll try mapping ourselves.
+                        // If C# delegation fails, we'll default to the client's fallback mapper.
                         if (!csharpMappingSuccessful)
                         {
-                            if (nodeToMap.ExistsOnTarget(syntaxTree.Root))
-                            {
-                                continue;
-                            }
-
-                            razorNodesToMap.Add(nodeToMap);
-                            continue;
+                            return false;
                         }
 
                         mappingSuccess = true;
@@ -233,10 +243,12 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                 // We were able to successfully map using this focusLocation.
                 if (mappingSuccess)
                 {
-                    return;
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     private static async Task<(RazorProjectEngine projectEngine, List<RazorSourceDocument> importSources)> InitializeProjectEngineAsync(IDocumentSnapshot originalSnapshot)
@@ -523,6 +535,8 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
     private static void MergeEdits(ImmutableArray<TextDocumentEdit>.Builder changes)
     {
         var groupedChanges = changes.GroupBy(c => c.TextDocument.Uri);
+        using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var mergedChanges);
+
         foreach (var documentChanges in groupedChanges)
         {
             var edits = documentChanges.ToList();
@@ -550,8 +564,10 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                 Edits = edits.SelectMany(e => e.Edits).ToArray()
             };
 
-            changes.Clear();
-            changes.Add(finalEditsForDoc);
+            mergedChanges.Add(finalEditsForDoc);
         }
+
+        changes.Clear();
+        changes.AddRange(mergedChanges);
     }
 }

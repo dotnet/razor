@@ -47,9 +47,7 @@ internal static class InsertMapper
         }
 
         // Verify that the focus area is within the document.
-        if (focusArea.Range.Start.Line >= sourceText.Lines.Count ||
-           (focusArea.Range.Start.Line == sourceText.Lines.Count - 1
-                && focusArea.Range.Start.Character > sourceText.Lines[focusArea.Range.Start.Line].Span.Length))
+        if (!focusArea.Range.Start.IsValid(sourceText))
         {
             insertionPoint = 0;
             return false;
