@@ -92,14 +92,14 @@ internal class LegacyRazorCompletionResolveEndpoint : IVSCompletionResolveEndpoi
             return Task.FromResult(completionItem);
         }
 
-        if (cachedCompletionItems.Context is not IReadOnlyList<RazorCompletionItem> razorCompletionItems)
+        if (cachedCompletionItems.Context is not RazorCompletionResolveContext razorCompletionResolveContext)
         {
             // Can't recognize the original request context, bail.
             return Task.FromResult(completionItem);
         }
 
         var labelQuery = completionItem.Label;
-        var associatedRazorCompletion = razorCompletionItems.FirstOrDefault(completion => string.Equals(labelQuery, completion.DisplayText, StringComparison.Ordinal));
+        var associatedRazorCompletion = razorCompletionResolveContext.CompletionItems.FirstOrDefault(completion => string.Equals(labelQuery, completion.DisplayText, StringComparison.Ordinal));
         if (associatedRazorCompletion is null)
         {
             _logger.LogError("Could not find an associated razor completion item. This should never happen since we were able to look up the cached completion list.");
@@ -166,11 +166,11 @@ internal class LegacyRazorCompletionResolveEndpoint : IVSCompletionResolveEndpoi
 
                 if (useDescriptionProperty)
                 {
-                    _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
+                    _vsLspTagHelperTooltipFactory.TryCreateTooltip(razorCompletionResolveContext.FilePath, descriptionInfo, out tagHelperClassifiedTextTooltip);
                 }
                 else
                 {
-                    _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, _documentationKind, out tagHelperMarkupTooltip);
+                    _lspTagHelperTooltipFactory.TryCreateTooltip(razorCompletionResolveContext.FilePath, descriptionInfo, _documentationKind, out tagHelperMarkupTooltip);
                 }
 
                 break;
