@@ -7,7 +7,7 @@ using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
-internal static class SyntaxTokenExtensions
+internal static class RazorSyntaxTokenExtensions
 {
     public static bool IsWhitespace(this SyntaxToken token)
     {
