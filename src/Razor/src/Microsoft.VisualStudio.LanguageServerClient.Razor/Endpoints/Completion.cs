@@ -325,7 +325,7 @@ internal partial class RazorCustomMessageTarget
 
         // Don't add snippets if the trigger characters contain whitespace
         if (request.Context.TriggerCharacter is not null
-            && request.Context.TriggerCharacter.Any(c => c == ' '))
+            && request.Context.TriggerCharacter.Contains(' '))
         {
             return;
         }
