@@ -9862,6 +9862,40 @@ Welcome to your new app.
     }
 
     [Fact]
+    public void Component_ComplexContentInAttribute()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter] public string StringProperty { get; set; }
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent StringProperty="@MyEnum." />
+
+            @code {
+                public enum MyEnum
+                {
+                    One,
+                    Two
+                }
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
+    }
+
+    [Fact]
     public void Component_TextTagsAreNotRendered()
     {
         // Arrange
@@ -10313,6 +10347,60 @@ Time: @DateTime.Now
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
+    public void RenderMode_With_Null_Nullable_Disabled()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="null" />
+                """, throwOnFailure: true, nullableEnable: false);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
+    public void RenderMode_With_Null_Nullable_Enabled()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="null" />
+                """, throwOnFailure: true, nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
+    public void RenderMode_With_Nullable_Receiver()
+    {
+        var generated = CompileToCSharp($$"""
+                @code
+                {
+                    public class RenderModeContainer
+                    {
+                        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.Server;
+                    }
+
+                    RenderModeContainer? Container => null;
+                }
+                <{{ComponentName}} @rendermode="@(Container.RenderMode)" />
+                """, throwOnFailure: true, nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        result.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(10,29): warning CS8602: Dereference of a possibly null reference.
+            //                             Container.RenderMode
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Container").WithLocation(10, 29)
+            );
     }
 
     #endregion

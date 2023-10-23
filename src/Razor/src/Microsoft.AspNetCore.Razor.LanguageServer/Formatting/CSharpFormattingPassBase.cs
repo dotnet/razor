@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -129,7 +128,12 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
                 continue;
             }
 
-            var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(originalLocation, 0, string.Empty));
+            if (originalLocation > syntaxTreeRoot.EndPosition)
+            {
+                continue;
+            }
+
+            var scopeOwner = syntaxTreeRoot.FindInnermostNode(originalLocation);
             sourceMappingIndentations[originalLocation] = new IndentationData(indentation);
 
             // For @section blocks we have special handling to add a fake source mapping/significant location at the end of the
