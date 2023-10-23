@@ -59,7 +59,7 @@ internal sealed class HoverInfoService : IHoverInfoService
         _htmlFactsService = htmlFactsService;
     }
 
-    public VSInternalHover? GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities)
+    public VSInternalHover? GetHoverInfo(string documentFilePath, RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities)
     {
         if (codeDocument is null)
         {
@@ -117,7 +117,7 @@ internal sealed class HoverInfoService : IHoverInfoService
 
                 var range = containingTagNameToken.GetRange(codeDocument.Source);
 
-                var result = ElementInfoToHover(binding.Descriptors, range, clientCapabilities);
+                var result = ElementInfoToHover(documentFilePath, binding.Descriptors, range, clientCapabilities);
                 return result;
             }
         }
@@ -246,13 +246,13 @@ internal sealed class HoverInfoService : IHoverInfoService
         }
     }
 
-    private VSInternalHover? ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities)
+    private VSInternalHover? ElementInfoToHover(string documentFilePath, IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities)
     {
         var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
-        if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out ContainerElement? classifiedTextElement))
+        if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(documentFilePath, elementDescriptionInfo, out ContainerElement? classifiedTextElement))
         {
             var vsHover = new VSInternalHover
             {
@@ -267,7 +267,7 @@ internal sealed class HoverInfoService : IHoverInfoService
         {
             var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
 
-            if (!_lspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
+            if (!_lspTagHelperTooltipFactory.TryCreateTooltip(documentFilePath, elementDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
             {
                 return null;
             }
