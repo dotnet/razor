@@ -5,17 +5,24 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+
+#pragma warning disable IDE0065 // Misplaced using directive
+using SyntaxKind = AspNetCore.Razor.Language.SyntaxKind;
+using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using SyntaxToken = AspNetCore.Razor.Language.Syntax.SyntaxToken;
+#pragma warning restore IDE0065 // Misplaced using directive
 
 internal static class RazorSyntaxNodeExtensions
 {
-    internal static bool IsUsingDirective(this SyntaxNode node, [NotNullWhen(true)] out SyntaxList<SyntaxNode>? children)
+    internal static bool IsUsingDirective(this SyntaxNode node, [NotNullWhen(true)] out AspNetCore.Razor.Language.Syntax.SyntaxList<SyntaxNode>? children)
     {
         // Using directives are weird, because the directive keyword ("using") is part of the C# statement it represents
         if (node is RazorDirectiveSyntax razorDirective &&
