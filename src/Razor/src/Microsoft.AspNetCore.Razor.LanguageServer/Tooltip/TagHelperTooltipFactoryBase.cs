@@ -60,7 +60,10 @@ internal abstract class TagHelperTooltipFactoryBase
             return null;
         }
 
-        return string.Join(", ", availability);
+        return $"""
+
+                ⚠️ {SR.Not_Available_In}: {string.Join(", ", availability)}
+                """;
     }
 
     // Internal for testing

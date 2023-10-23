@@ -56,23 +56,19 @@ internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResol
             StartOrEndBold(descriptionBuilder, markupKind);
 
             var documentation = descriptionInfo.Documentation;
-            if (!TryExtractSummary(documentation, out var summaryContent))
+            if (TryExtractSummary(documentation, out var summaryContent))
             {
-                continue;
+                descriptionBuilder.AppendLine();
+                descriptionBuilder.AppendLine();
+                var finalSummaryContent = CleanSummaryContent(summaryContent);
+                descriptionBuilder.Append(finalSummaryContent);
             }
-
-            descriptionBuilder.AppendLine();
-            descriptionBuilder.AppendLine();
-            var finalSummaryContent = CleanSummaryContent(summaryContent);
-            descriptionBuilder.Append(finalSummaryContent);
 
             var availability = GetProjectAvailability(documentFilePath, tagHelperType);
             if (availability is not null)
             {
                 descriptionBuilder.AppendLine();
-                descriptionBuilder.AppendLine();
-                descriptionBuilder.Append("⚠️ Not available in: ");
-                descriptionBuilder.AppendLine(availability);
+                descriptionBuilder.Append(availability);
             }
         }
 

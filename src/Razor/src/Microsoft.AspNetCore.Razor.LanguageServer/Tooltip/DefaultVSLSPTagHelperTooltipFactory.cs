@@ -166,10 +166,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(ISnapshotResolver snapshotRes
 
         if (availability is not null)
         {
-            documentationRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, $"""
-
-                ⚠️ Not available in: {availability}
-                """));
+            documentationRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, availability));
         }
     }
 
