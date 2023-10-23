@@ -434,18 +434,8 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
         {
             foreach (var documentEdit in textEdits)
             {
-                // The edits we receive from C# can contain preprocessor directives, which we'll ignore
-                // so we're successfully able to map back to the host document.
-                // For example, C# can send back something like this, but we only care about the
-                // non-preprocessor content, especially since mapping can fail if they're included:
-                //     #pragma warning restore 1998
-                //     #nullable restore
-                //     #line 12 "C:/path/to/razor/file.razor"
-                //     
-                //     int x2 = 1;
-                var updatedEdit = await RemoveStartingPreprocessorDirectivesAsync(generatedUri, documentEdit, cancellationToken).ConfigureAwait(false);
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
-                    generatedUri, updatedEdit.Range, cancellationToken).ConfigureAwait(false);
+                    generatedUri, documentEdit.Range, cancellationToken).ConfigureAwait(false);
 
                 if (hostDocumentUri == generatedUri)
                 {
@@ -455,7 +445,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
                 var textEdit = new LSP.TextEdit
                 {
                     Range = hostDocumentRange,
-                    NewText = updatedEdit.NewText
+                    NewText = documentEdit.NewText
                 };
 
                 var textDocumentEdit = new TextDocumentEdit
@@ -468,68 +458,6 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
             }
 
             return true;
-        }
-
-        async Task<TextEdit> RemoveStartingPreprocessorDirectivesAsync(
-            Uri generatedUri,
-            TextEdit documentEdit,
-            CancellationToken cancellationToken)
-        {
-            // We assume C# always sends back full lines of code (which they do seem to be doing currently)
-            var lines = documentEdit.NewText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-
-            var removedStartLines = 0;
-            for (var i = 0; i < lines.Length; i++)
-            {
-                var line = lines[i];
-                if (line.StartsWith("#"))
-                {
-                    removedStartLines++;
-                    continue;
-                }
-
-                break;
-            }
-
-            // Don't need to make any adjustments.
-            if (removedStartLines == 0)
-            {
-                return documentEdit;
-            }
-
-            var razorDocumentUri = _filePathService.GetRazorDocumentUri(generatedUri);
-            var documentContext = _documentContextFactory.TryCreateForOpenDocument(razorDocumentUri);
-            if (documentContext is null)
-            {
-                return documentEdit;
-            }
-
-            // We need to look the source mappings to figure out where the C# starting boundary within the line is, since
-            // sometimes C# source mappings don't start at the beginning of a line.
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var csharpDocument = codeDocument.GetCSharpDocument();
-            var sourceMapping = csharpDocument.SourceMappings.Where(
-                mapping => mapping.GeneratedSpan.LineIndex == documentEdit.Range.Start.Line + removedStartLines).FirstOrDefault();
-            if (sourceMapping is null)
-            {
-                return documentEdit;
-            }
-
-            var newText = string.Join(Environment.NewLine, new ArraySegment<string>(lines, offset: removedStartLines, lines.Length - removedStartLines));
-            var newRange = new Range
-            {
-                Start = new Position(
-                    documentEdit.Range.Start.Line + removedStartLines, sourceMapping.GeneratedSpan.CharacterIndex),
-                End = documentEdit.Range.End
-            };
-
-            var updatedTextEdit = new TextEdit
-            {
-                NewText = newText,
-                Range = newRange
-            };
-
-            return updatedTextEdit;
         }
     }
 
