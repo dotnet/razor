@@ -404,7 +404,9 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
 
                     // This cancellation token is the one passed in from the call-site that needs to synchronize an LSP document with a virtual document.
                     // Meaning, if the outer token is cancelled we need to fail to synchronize.
-                    _cts.Token.Register(() => SetSynchronized(false));
+                    //
+                    // Note that we use a pre-allocated delegate here to avoid unneeded Action delegate allocations.
+                    _cts.Token.Register(s_setSynchonizedToFalse, state: this);
                     _cts.CancelAfter(timeout);
                 }
                 catch (ObjectDisposedException)
@@ -418,6 +420,11 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             public int RequiredHostDocumentVersion { get; }
 
             public Task<bool> OnSynchronizedAsync => _onSynchronizedSource.Task;
+
+            private static readonly Action<object> s_setSynchonizedToFalse = obj =>
+            {
+                ((DocumentSynchronizingContext)obj).SetSynchronized(false);
+            };
 
             public void SetSynchronized(bool result)
             {
