@@ -54,45 +54,60 @@ internal sealed class DevKitTelemetryReporter : TelemetryReporter, ITelemetryRep
 
         builder.Append('{');
 
-        AppendNameValuePair(builder, "Id", StringToJsonValue(sessionId));
-        AppendNameValuePair(builder, "HostName", StringToJsonValue("Default"));
+        AppendNameValuePair(builder, "Id", sessionId);
+        AppendNameValuePair(builder, "HostName", "Default");
 
         // Insert Telemetry Level instead of Opt-Out status. The telemetry service handles
         // validation of this value so there is no need to do so on this end. If it's invalid,
         // it defaults to off.
-        AppendNameValuePair(builder, "TelemetryLevel", StringToJsonValue(telemetryLevel));
+        AppendNameValuePair(builder, "TelemetryLevel", telemetryLevel);
 
         // this sets the Telemetry Session Created by LSP Server to be the Root Initial session
         // This means that the SessionID set here by "Id" will be the SessionID used by cloned session
         // further down stream
-        AppendNameValuePair(builder, "IsInitialSession", "true");
-        AppendNameValuePair(builder, "CollectorApiKey", StringToJsonValue(CollectorApiKey));
+        AppendNameValuePair(builder, "IsInitialSession", "true", quoteValue: false);
+        AppendNameValuePair(builder, "CollectorApiKey", CollectorApiKey);
 
         // using 1010 to indicate VS Code and not to match it to devenv 1000
-        AppendNameValuePair(builder, "AppId", "1010");
+        AppendNameValuePair(builder, "AppId", "1010", quoteValue: false);
 
         // Don't add a comma to the last property.
-        AppendNameValuePair(builder, "ProcessStartTime", processStartTime, addComma: false);
+        AppendNameValuePair(builder, "ProcessStartTime", processStartTime, quoteValue: false, addComma: false);
 
         builder.Append('}');
 
         return builder.ToString();
 
-        static void AppendNameValuePair(StringBuilder builder, string name, string? value, bool addComma = true)
+        static void AppendNameValuePair(StringBuilder builder, string name, string? value, bool quoteValue = true, bool addComma = true)
         {
-            builder.Append($"\"{name}\":{value}");
+            builder.Append('"');
+            builder.Append(name);
+            builder.Append('"');
+            builder.Append(':');
+
+            if (value is string s)
+            {
+                if (quoteValue)
+                {
+                    builder.Append('"');
+                }
+
+                builder.Append(value);
+
+                if (quoteValue)
+                {
+                    builder.Append('"');
+                }
+            }
+            else
+            {
+                builder.Append("null");
+            }
 
             if (addComma)
             {
                 builder.Append(',');
             }
-        }
-
-        static string StringToJsonValue(string? value)
-        {
-            return value is null
-                ? "null"
-                : $"\"{value}\"";
         }
     }
 }

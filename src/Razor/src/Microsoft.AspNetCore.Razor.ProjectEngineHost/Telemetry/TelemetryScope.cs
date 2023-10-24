@@ -21,6 +21,9 @@ internal sealed class TelemetryScope : IDisposable
 
     private TelemetryScope()
     {
+        // This constructor is only called to initialize the Null instance
+        // above. Rather than make _name, _properties, and _stopwatch
+        // nullable, we use a ! to initialize them to null for this case only.
         _reporter = null;
         _name = null!;
         _properties = null!;
