@@ -20,6 +20,7 @@ internal class AdvancedOptionPage : DialogPage
     private bool? _autoInsertAttributeQuotes;
     private bool? _colorBackground;
     private bool? _commitElementsWithSpace;
+    private SnippetSetting? _snippets;
 
     public AdvancedOptionPage()
     {
@@ -77,6 +78,15 @@ internal class AdvancedOptionPage : DialogPage
         set => _colorBackground = value;
     }
 
+    [LocCategory(nameof(VSPackage.Completion))]
+    [LocDescription(nameof(VSPackage.Setting_SnippetsDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_SnippetsDisplayName))]
+    public SnippetSetting Snippets
+    {
+        get => _snippets ?? (SnippetSetting)_optionsStorage.Value.Snippets;
+        set => _snippets = value;
+    }
+
     protected override void OnApply(PageApplyEventArgs e)
     {
         if (_formatOnType is not null)
@@ -103,6 +113,11 @@ internal class AdvancedOptionPage : DialogPage
         {
             _optionsStorage.Value.CommitElementsWithSpace = _commitElementsWithSpace.Value;
         }
+
+        if (_snippets is not null)
+        {
+            _optionsStorage.Value.Snippets = _snippets.Value;
+        }
     }
 
     protected override void OnClosed(EventArgs e)
@@ -112,5 +127,6 @@ internal class AdvancedOptionPage : DialogPage
         _autoInsertAttributeQuotes = null;
         _colorBackground = null;
         _commitElementsWithSpace = null;
+        _snippets = null;
     }
 }
