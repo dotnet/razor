@@ -58,6 +58,7 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
         static void ExecuteProviders(ITagHelperDescriptorProvider[] providers, TagHelperDescriptorProviderContext context, ITelemetryReporter? telemetryReporter)
         {
             using var _ = StopwatchPool.GetPooledObject(out var watch);
+
             using var properties = new PooledArrayBuilder<Property>(providers.Length);
 
             foreach (var provider in providers)
@@ -73,7 +74,7 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
                 }
             }
 
-            telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, properties.DrainToImmutable());
+            telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, properties.ToArray());
         }
     }
 }

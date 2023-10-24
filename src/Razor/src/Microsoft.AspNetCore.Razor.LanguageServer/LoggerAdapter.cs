@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.Extensions.Logging;
 
@@ -89,16 +88,16 @@ internal class LoggerAdapter : IRazorLogger
 
         if (_telemetryReporter is not null)
         {
-            using var properties = new PooledArrayBuilder<Property>(@params.Length + 1);
+            var properties = new Property[@params.Length + 1];
 
             for (var i = 0; i < @params.Length; i++)
             {
-                properties.Add(new("param" + i, @params[i]));
+                properties[i] = new("param" + i, @params[i]);
             }
 
-            properties.Add(new("message", message));
+            properties[^1] = new("message", message);
 
-            _telemetryReporter.ReportEvent("lsperror", Severity.High, properties.DrainToImmutable());
+            _telemetryReporter.ReportEvent("lsperror", Severity.High, properties);
         }
     }
 

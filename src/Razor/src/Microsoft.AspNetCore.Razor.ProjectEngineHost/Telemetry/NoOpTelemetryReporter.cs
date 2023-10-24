@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
@@ -26,7 +25,7 @@ internal class NoOpTelemetryReporter : ITelemetryReporter
     public TelemetryScope BeginBlock(string name, Severity severity, Property property1, Property property2, Property property3)
         => TelemetryScope.Null;
 
-    public TelemetryScope BeginBlock(string name, Severity severity, ImmutableArray<Property> properties)
+    public TelemetryScope BeginBlock(string name, Severity severity, params Property[] properties)
         => TelemetryScope.Null;
 
     public void ReportEvent(string name, Severity severity)
@@ -45,7 +44,7 @@ internal class NoOpTelemetryReporter : ITelemetryReporter
     {
     }
 
-    public void ReportEvent(string name, Severity severity, ImmutableArray<Property> properties)
+    public void ReportEvent(string name, Severity severity, params Property[] properties)
     {
     }
 

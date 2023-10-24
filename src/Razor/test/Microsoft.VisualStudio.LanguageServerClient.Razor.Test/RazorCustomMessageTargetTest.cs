@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -496,7 +495,7 @@ public class RazorCustomMessageTargetTest : TestBase
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = new TestOutputWindowLogger();
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableArray<Property>>())).Returns(TelemetryScope.Null);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<Property[]>())).Returns(TelemetryScope.Null);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 
@@ -563,7 +562,7 @@ public class RazorCustomMessageTargetTest : TestBase
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = new TestOutputWindowLogger();
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableArray<Property>>())).Returns(TelemetryScope.Null);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<Property[]>())).Returns(TelemetryScope.Null);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 

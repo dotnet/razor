@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -15,7 +14,7 @@ internal sealed class TelemetryScope : IDisposable
     private readonly ITelemetryReporter? _reporter;
     private readonly string _name;
     private readonly Severity _severity;
-    private readonly ImmutableArray<Property>.Builder _properties;
+    private readonly Property[] _properties;
     private readonly Stopwatch _stopwatch;
     private bool _disposed;
 
@@ -34,7 +33,7 @@ internal sealed class TelemetryScope : IDisposable
         ITelemetryReporter reporter,
         string name,
         Severity severity,
-        ImmutableArray<Property>.Builder properties)
+        Property[] properties)
     {
         _reporter = reporter;
         _name = name;
@@ -59,70 +58,55 @@ internal sealed class TelemetryScope : IDisposable
         _disposed = true;
 
         _stopwatch.Stop();
-        _properties.Add(new("eventscope.ellapsedms", _stopwatch.ElapsedMilliseconds));
 
-        _reporter.ReportEvent(
-            _name,
-            _severity,
-            _properties.DrainToImmutable());
+        // We know that we were created with an array of at least length one.
+        _properties[^1] = new("eventscope.ellapsedms", _stopwatch.ElapsedMilliseconds);
 
-        ArrayBuilderPool<Property>.Default.Return(_properties);
+        _reporter.ReportEvent(_name, _severity, _properties);
+
         StopwatchPool.Default.Return(_stopwatch);
     }
 
     public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity)
     {
-        var builder = ArrayBuilderPool<Property>.Default.Get();
-        builder.SetCapacityIfLarger(1);
+        var array = new Property[1];
 
-        return new(reporter, name, severity, builder);
+        return new(reporter, name, severity, array);
     }
 
     public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, Property property)
     {
-        var builder = ArrayBuilderPool<Property>.Default.Get();
-        builder.SetCapacityIfLarger(2);
-        builder.Add(property);
+        var array = new Property[2];
+        array[0] = property;
 
-        return new(reporter, name, severity, builder);
+        return new(reporter, name, severity, array);
     }
 
     public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, Property property1, Property property2)
     {
-        var builder = ArrayBuilderPool<Property>.Default.Get();
-        builder.SetCapacityIfLarger(3);
-        builder.Add(property1);
-        builder.Add(property2);
+        var array = new Property[3];
+        array[0] = property1;
+        array[1] = property2;
 
-        return new(reporter, name, severity, builder);
+        return new(reporter, name, severity, array);
     }
 
     public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, Property property1, Property property2, Property property3)
     {
-        var builder = ArrayBuilderPool<Property>.Default.Get();
-        builder.SetCapacityIfLarger(4);
-        builder.Add(property1);
-        builder.Add(property2);
-        builder.Add(property3);
+        var array = new Property[3];
+        array[0] = property1;
+        array[1] = property2;
+        array[2] = property3;
 
-        return new(reporter, name, severity, builder);
-    }
-
-    public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, ImmutableArray<Property> properties)
-    {
-        var builder = ArrayBuilderPool<Property>.Default.Get();
-        builder.SetCapacityIfLarger(properties.Length + 1);
-        builder.AddRange(properties);
-
-        return new(reporter, name, severity, builder);
+        return new(reporter, name, severity, array);
     }
 
     public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, Property[] properties)
     {
-        var builder = ArrayBuilderPool<Property>.Default.Get();
-        builder.SetCapacityIfLarger(properties.Length + 1);
-        builder.AddRange(properties);
+        var array = new Property[properties.Length + 1];
 
-        return new(reporter, name, severity, builder);
+        Array.Copy(properties, array, properties.Length);
+
+        return new(reporter, name, severity, array);
     }
 }

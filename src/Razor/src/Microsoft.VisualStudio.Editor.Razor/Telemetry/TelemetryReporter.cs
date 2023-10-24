@@ -71,7 +71,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         Report(telemetryEvent);
     }
 
-    public void ReportEvent(string name, Severity severity, ImmutableArray<Property> properties)
+    public void ReportEvent(string name, Severity severity, params Property[] properties)
     {
         var telemetryEvent = new TelemetryEvent(GetEventName(name), ConvertSeverity(severity));
 
@@ -267,7 +267,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
     public TelemetryScope BeginBlock(string name, Severity severity, Property property1, Property property2, Property property3)
         => TelemetryScope.Create(this, name, severity, property1, property2, property3);
 
-    public TelemetryScope BeginBlock(string name, Severity severity, ImmutableArray<Property> properties)
+    public TelemetryScope BeginBlock(string name, Severity severity, params Property[] properties)
         => TelemetryScope.Create(this, name, severity, properties);
 
     public TelemetryScope TrackLspRequest(string lspMethodName, string languageServerName, Guid correlationId)
