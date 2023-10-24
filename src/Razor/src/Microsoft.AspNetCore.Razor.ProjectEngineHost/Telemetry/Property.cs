@@ -3,4 +3,4 @@
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
-readonly record struct Property(string Name, object? Value);
+internal readonly record struct Property(string Name, object? Value);
