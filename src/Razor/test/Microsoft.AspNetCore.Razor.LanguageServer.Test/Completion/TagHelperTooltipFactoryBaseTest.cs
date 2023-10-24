@@ -420,14 +420,16 @@ There is no xml, but I got you this < and the >.
             @"C:\path\to\obj\1",
             documentFilePaths: new[] { razorFilePath },
             RazorConfiguration.Default,
-            projectWorkspaceState);
+            projectWorkspaceState,
+            displayName: "project1");
 
         var project2 = TestProjectSnapshot.Create(
            @"C:\path\to\project.csproj",
            @"C:\path\to\obj\2",
            documentFilePaths: new[] { razorFilePath },
            RazorConfiguration.Default,
-           projectWorkspaceState: null);
+           projectWorkspaceState: null,
+            displayName: "project2");
 
         var snapshotResolver = new TestSnapshotResolver(razorFilePath, project1, project2);
         var service = new TestTagHelperToolTipFactory(snapshotResolver);
@@ -436,7 +438,8 @@ There is no xml, but I got you this < and the >.
 
         AssertEx.EqualOrDiff("""
 
-            ⚠️ Not available in: C:\path\to\obj\2
+            ⚠️ Not available in:
+                project2
             """, availability);
     }
 
@@ -449,14 +452,16 @@ There is no xml, but I got you this < and the >.
             @"C:\path\to\obj\1",
             documentFilePaths: new[] { razorFilePath },
             RazorConfiguration.Default,
-            projectWorkspaceState: null);
+            projectWorkspaceState: null,
+            displayName: "project1");
 
         var project2 = TestProjectSnapshot.Create(
            @"C:\path\to\project.csproj",
            @"C:\path\to\obj\2",
            documentFilePaths: new[] { razorFilePath },
            RazorConfiguration.Default,
-           projectWorkspaceState: null);
+           projectWorkspaceState: null,
+           displayName: "project2");
 
         var snapshotResolver = new TestSnapshotResolver(razorFilePath, project1, project2);
         var service = new TestTagHelperToolTipFactory(snapshotResolver);
@@ -465,7 +470,9 @@ There is no xml, but I got you this < and the >.
 
         AssertEx.EqualOrDiff("""
 
-            ⚠️ Not available in: C:\path\to\obj\1, C:\path\to\obj\2
+            ⚠️ Not available in:
+                project1
+                project2
             """, availability);
     }
 }
