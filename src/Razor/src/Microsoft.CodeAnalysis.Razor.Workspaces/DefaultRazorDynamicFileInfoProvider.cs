@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -48,7 +46,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
     }
 
-    public event EventHandler<string> Updated;
+    public event EventHandler<string>? Updated;
 
     public override void Initialize(ProjectSnapshotManagerBase projectManager)
     {
@@ -231,7 +229,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         }
     }
 
-    public Task<RazorDynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
+    public Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         if (projectFilePath is null)
         {
@@ -243,12 +241,20 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
             throw new ArgumentNullException(nameof(filePath));
         }
 
+        // We are activated for all Roslyn projects that have a .cshtml or .razor file, but they are not necessarily
+        // C# projects that we expect.
+        var projectKey = TryFindProjectKeyForProjectId(projectId);
+        if (!projectKey.HasValue)
+        {
+            return Task.FromResult<RazorDynamicFileInfo?>(null);
+        }
+
         var key = new Key(projectId, filePath);
         var entry = _entries.GetOrAdd(key, _createEmptyEntry);
-        return Task.FromResult(entry.Current);
+        return Task.FromResult<RazorDynamicFileInfo?>(entry.Current);
     }
 
-    public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
+    public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         if (projectFilePath is null)
         {
@@ -277,7 +283,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
 
     public TestAccessor GetTestAccessor() => new(this);
 
-    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         if (args.SolutionIsClosing)
         {
@@ -289,7 +295,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         {
             case ProjectChangeKind.ProjectRemoved:
                 {
-                    var removedProject = args.Older;
+                    var removedProject = args.Older.AssumeNotNull();
 
                     if (TryFindProjectIdForProjectKey(removedProject.Key) is { } projectId)
                     {
@@ -305,7 +311,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         }
     }
 
-    private ProjectId TryFindProjectIdForProjectKey(ProjectKey key)
+    private ProjectId? TryFindProjectIdForProjectKey(ProjectKey key)
     {
         if (_projectSnapshotManagerAccessor.Instance.Workspace is not { } workspace)
         {
@@ -331,7 +337,8 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         }
 
         var project = workspace.CurrentSolution.GetProject(projectId);
-        if (project is null)
+        if (project is null ||
+            project.Language != LanguageNames.CSharp)
         {
             return null;
         }
@@ -343,10 +350,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
 
     private RazorDynamicFileInfo CreateEmptyInfo(Key key)
     {
-        // We have to allow null here, because we are activated for all Roslyn projects that have a .cshtml or .razor file
-        // and our Roslyn EA doesn't allow null returns, so we need to return something. In these situations we end up
-        // reporting a dynamic file of Foo.cshtml.p.cs, which is never updated with any content. Not ideal, but best we can do.
-        var projectKey = TryFindProjectKeyForProjectId(key.ProjectId) ?? default;
+        var projectKey = TryFindProjectKeyForProjectId(key.ProjectId).AssumeNotNull();
         var filename = _filePathService.GetRazorCSharpFilePath(projectKey, key.FilePath);
         var textLoader = new EmptyTextLoader(filename);
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.CreateEmpty());
@@ -362,35 +366,15 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
 
     // Using a separate handle to the 'current' file info so that can allow Roslyn to send
     // us the add/remove operations, while we process the update operations.
-    public class Entry
+    private class Entry
     {
-        // Can't ever be null for thread-safety reasons
-        private RazorDynamicFileInfo _current;
-
         public Entry(RazorDynamicFileInfo current)
         {
-            if (current is null)
-            {
-                throw new ArgumentNullException(nameof(current));
-            }
-
             Current = current;
             Lock = new object();
         }
 
-        public RazorDynamicFileInfo Current
-        {
-            get => _current;
-            set
-            {
-                if (value is null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _current = value;
-            }
-        }
+        public RazorDynamicFileInfo Current { get; set; }
 
         public object Lock { get; }
 
@@ -421,7 +405,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
                 FilePathComparer.Instance.Equals(FilePath, other.FilePath);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Key other && Equals(other);
         }
@@ -458,35 +442,17 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     {
         private readonly Uri _documentUri;
         private readonly IRazorDocumentPropertiesService _documentPropertiesService;
-        private readonly IRazorDocumentExcerptServiceImplementation _documentExcerptService;
-        private readonly IRazorSpanMappingService _spanMappingService;
+        private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService;
+        private readonly IRazorSpanMappingService? _spanMappingService;
         private readonly TextLoader _textLoader;
 
         public PromotedDynamicDocumentContainer(
             Uri documentUri,
             IRazorDocumentPropertiesService documentPropertiesService,
-            IRazorDocumentExcerptServiceImplementation documentExcerptService,
-            IRazorSpanMappingService spanMappingService,
+            IRazorDocumentExcerptServiceImplementation? documentExcerptService,
+            IRazorSpanMappingService? spanMappingService,
             TextLoader textLoader)
         {
-            // It's valid for the excerpt service and span mapping service to be null in this class,
-            // so we purposefully don't null check them below.
-
-            if (documentUri is null)
-            {
-                throw new ArgumentNullException(nameof(documentUri));
-            }
-
-            if (documentPropertiesService is null)
-            {
-                throw new ArgumentNullException(nameof(documentPropertiesService));
-            }
-
-            if (textLoader is null)
-            {
-                throw new ArgumentNullException(nameof(textLoader));
-            }
-
             _documentUri = documentUri;
             _documentPropertiesService = documentPropertiesService;
             _documentExcerptService = documentExcerptService;
@@ -498,9 +464,9 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
 
         public override IRazorDocumentPropertiesService GetDocumentPropertiesService() => _documentPropertiesService;
 
-        public override IRazorDocumentExcerptServiceImplementation GetExcerptService() => _documentExcerptService;
+        public override IRazorDocumentExcerptServiceImplementation? GetExcerptService() => _documentExcerptService;
 
-        public override IRazorSpanMappingService GetMappingService() => _spanMappingService;
+        public override IRazorSpanMappingService? GetMappingService() => _spanMappingService;
 
         public override TextLoader GetTextLoader(string filePath) => _textLoader;
     }
@@ -514,9 +480,14 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
             _provider = provider;
         }
 
-        public async Task<TestDynamicFileInfoResult> GetDynamicFileInfoAsync(ProjectId projectId, string filePath, CancellationToken cancellationToken)
+        public async Task<TestDynamicFileInfoResult?> GetDynamicFileInfoAsync(ProjectId projectId, string filePath, CancellationToken cancellationToken)
         {
             var result = await _provider.GetDynamicFileInfoAsync(projectId, projectFilePath: string.Empty, filePath, cancellationToken).ConfigureAwait(false);
+            if (result is null)
+            {
+                return null;
+            }
+
             return new TestDynamicFileInfoResult(result.FilePath, result.TextLoader);
         }
 
