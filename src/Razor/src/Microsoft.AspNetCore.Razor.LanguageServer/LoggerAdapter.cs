@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -90,16 +89,16 @@ internal class LoggerAdapter : IRazorLogger
 
         if (_telemetryReporter is not null)
         {
-            using var _ = DictionaryPool<string, object?>.GetPooledObject(out var props);
+            using var properties = new PooledArrayBuilder<Property>(@params.Length + 1);
 
-            var index = 0;
-            foreach (var param in @params)
+            for (var i = 0; i < @params.Length; i++)
             {
-                props.Add("param" + index++, param);
+                properties.Add(new("param" + i, @params[i]));
             }
 
-            props.Add("message", message);
-            _telemetryReporter.ReportEvent("lsperror", Severity.High, props.ToImmutableDictionary());
+            properties.Add(new("message", message));
+
+            _telemetryReporter.ReportEvent("lsperror", Severity.High, properties.DrainToImmutable());
         }
     }
 
@@ -150,10 +149,10 @@ internal class LoggerAdapter : IRazorLogger
 #pragma warning restore CA2254 // Template should be a static expression
     }
 
-    private class CompositeDisposable : IDisposable
+    private sealed class CompositeDisposable : IDisposable
     {
         private bool _disposed = false;
-        private readonly IList<IDisposable> _disposables = new List<IDisposable>();
+        private readonly List<IDisposable> _disposables = [];
 
         public void AddDisposable(IDisposable disposable)
         {
@@ -168,6 +167,7 @@ internal class LoggerAdapter : IRazorLogger
         public void Dispose()
         {
             _disposed = true;
+
             foreach (var disposable in _disposables)
             {
                 disposable.Dispose();

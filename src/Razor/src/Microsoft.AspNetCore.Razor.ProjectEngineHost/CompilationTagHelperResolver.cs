@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,7 +58,7 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
         static void ExecuteProviders(ITagHelperDescriptorProvider[] providers, TagHelperDescriptorProviderContext context, ITelemetryReporter? telemetryReporter)
         {
             using var _ = StopwatchPool.GetPooledObject(out var watch);
-            using var timingDictionary = new PooledDictionaryBuilder<string, object?>();
+            using var properties = new PooledArrayBuilder<Property>(providers.Length);
 
             foreach (var provider in providers)
             {
@@ -67,12 +66,14 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
                 provider.Execute(context);
                 watch.Stop();
 
-                var propertyName = $"{provider.GetType().Name}.elapsedtimems";
-                Debug.Assert(!timingDictionary.ContainsKey(propertyName));
-                timingDictionary.Add(propertyName, watch.ElapsedMilliseconds);
+                if (telemetryReporter is not null)
+                {
+                    var propertyName = $"{provider.GetType().Name}.elapsedtimems";
+                    properties.Add(new(propertyName, watch.ElapsedMilliseconds));
+                }
             }
 
-            telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, timingDictionary.ToImmutable());
+            telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, properties.DrainToImmutable());
         }
     }
 }

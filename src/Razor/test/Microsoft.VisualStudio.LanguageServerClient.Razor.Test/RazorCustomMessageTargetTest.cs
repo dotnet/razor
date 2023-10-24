@@ -268,7 +268,7 @@ public class RazorCustomMessageTargetTest : TestBase
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
         var outputWindowLogger = new TestOutputWindowLogger();
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 
         var target = new RazorCustomMessageTarget(
@@ -496,8 +496,8 @@ public class RazorCustomMessageTargetTest : TestBase
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = new TestOutputWindowLogger();
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
-        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableArray<Property>>())).Returns(TelemetryScope.Null);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 
         var target = new RazorCustomMessageTarget(
@@ -563,8 +563,8 @@ public class RazorCustomMessageTargetTest : TestBase
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = new TestOutputWindowLogger();
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
-        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableArray<Property>>())).Returns(TelemetryScope.Null);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 
         var target = new RazorCustomMessageTarget(
