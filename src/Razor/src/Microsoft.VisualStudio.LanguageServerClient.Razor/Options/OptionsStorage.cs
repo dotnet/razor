@@ -77,7 +77,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
 
     public event EventHandler<ClientAdvancedSettingsChangedEventArgs>? Changed;
 
-    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CommitElementsWithSpace);
+    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CommitElementsWithSpace, Snippets);
 
     public bool GetBool(string name, bool defaultValue)
     {
