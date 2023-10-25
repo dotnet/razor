@@ -27,15 +27,8 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class DefaultRazorProjectServiceTest : LanguageServerTestBase
+public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly ImmutableArray<DocumentSnapshotHandle> _emptyDocuments = ImmutableArray<DocumentSnapshotHandle>.Empty;
-
-    public DefaultRazorProjectServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void UpdateProject_UpdatesProjectWorkspaceState()
     {
@@ -47,7 +40,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.LatestMajor);
 
         // Act
-        projectService.UpdateProject(hostProject.Key, hostProject.Configuration, hostProject.RootNamespace, hostProject.DisplayName, projectWorkspaceState, _emptyDocuments);
+        projectService.UpdateProject(hostProject.Key, hostProject.Configuration, hostProject.RootNamespace, hostProject.DisplayName, projectWorkspaceState, ImmutableArray<DocumentSnapshotHandle>.Empty);
 
         // Assert
         var project = projectManager.GetLoadedProject(hostProject.Key);
@@ -228,7 +221,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act
-        projectService.UpdateProject(ownerProject.Key, ownerProject.Configuration, expectedRootNamespace, ownerProject.DisplayName, ProjectWorkspaceState.Default, _emptyDocuments);
+        projectService.UpdateProject(ownerProject.Key, ownerProject.Configuration, expectedRootNamespace, ownerProject.DisplayName, ProjectWorkspaceState.Default, ImmutableArray<DocumentSnapshotHandle>.Empty);
 
         // Assert
         projectSnapshotManager.VerifyAll();
@@ -249,7 +242,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act & Assert
-        projectService.UpdateProject(ownerProject.Key, ownerProject.Configuration, "TestRootNamespace", displayName: "", ProjectWorkspaceState.Default, _emptyDocuments);
+        projectService.UpdateProject(ownerProject.Key, ownerProject.Configuration, "TestRootNamespace", displayName: "", ProjectWorkspaceState.Default, ImmutableArray<DocumentSnapshotHandle>.Empty);
     }
 
     [Fact]
@@ -271,7 +264,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act
-        projectService.UpdateProject(ownerProject.Key, configuration: null, "TestRootNamespace", displayName: "", ProjectWorkspaceState.Default, _emptyDocuments);
+        projectService.UpdateProject(ownerProject.Key, configuration: null, "TestRootNamespace", displayName: "", ProjectWorkspaceState.Default, ImmutableArray<DocumentSnapshotHandle>.Empty);
 
         // Assert
         projectSnapshotManager.VerifyAll();
@@ -296,7 +289,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act
-        projectService.UpdateProject(ownerProject.Key, FallbackRazorConfiguration.MVC_1_1, "TestRootNamespace", displayName: "", ProjectWorkspaceState.Default, _emptyDocuments);
+        projectService.UpdateProject(ownerProject.Key, FallbackRazorConfiguration.MVC_1_1, "TestRootNamespace", displayName: "", ProjectWorkspaceState.Default, ImmutableArray<DocumentSnapshotHandle>.Empty);
 
         // Assert
         projectSnapshotManager.VerifyAll();
@@ -315,7 +308,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act & Assert
-        projectService.UpdateProject(projectKey, FallbackRazorConfiguration.MVC_1_1, "TestRootNamespace", displayName: "", ProjectWorkspaceState.Default, _emptyDocuments);
+        projectService.UpdateProject(projectKey, FallbackRazorConfiguration.MVC_1_1, "TestRootNamespace", displayName: "", ProjectWorkspaceState.Default, ImmutableArray<DocumentSnapshotHandle>.Empty);
     }
 
     [Fact]

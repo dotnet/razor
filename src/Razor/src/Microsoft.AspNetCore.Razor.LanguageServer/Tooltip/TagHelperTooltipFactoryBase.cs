@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.VisualStudio.Utilities;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
@@ -34,7 +34,7 @@ internal abstract class TagHelperTooltipFactoryBase
             return null;
         }
 
-        PooledStringBuilder? builder = null;
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         foreach (var project in projectSnapshots)
         {
@@ -50,25 +50,24 @@ internal abstract class TagHelperTooltipFactoryBase
 
             if (!found)
             {
-                if (builder is null)
+                if (builder.Length == 0)
                 {
-                    builder = PooledStringBuilder.GetInstance();
-                    builder.Builder.AppendLine();
-                    builder.Builder.Append($"⚠️ {SR.Not_Available_In}:");
+                    builder.AppendLine();
+                    builder.Append($"⚠️ {SR.Not_Available_In}:");
                 }
 
-                builder.Builder.AppendLine();
-                builder.Builder.Append("    ");
-                builder.Builder.Append(project.DisplayName);
+                builder.AppendLine();
+                builder.Append("    ");
+                builder.Append(project.DisplayName);
             }
         }
 
-        if (builder is null)
+        if (builder.Length == 0)
         {
             return null;
         }
 
-        return builder.ToStringAndFree();
+        return builder.ToString();
     }
 
     // Internal for testing
