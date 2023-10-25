@@ -11,7 +11,6 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -458,8 +457,6 @@ internal abstract partial class SyntaxNode
             throw new ArgumentOutOfRangeException(nameof(position));
         }
 
-        // Stack for walking efficiently back up the tree. Only used when includeWhitespace is false.
-        using var stack = new PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)>();
         SyntaxNode curNode = this;
 
         while (true)
@@ -470,10 +467,6 @@ internal abstract partial class SyntaxNode
             if (!curNode.IsToken)
             {
                 curNode = ChildSyntaxList.ChildThatContainsPosition(curNode, position, out var nodeIndexInParent);
-                if (!includeWhitespace)
-                {
-                    stack.Push((curNode, nodeIndexInParent));
-                }
             }
             else
             {
@@ -494,63 +487,58 @@ internal abstract partial class SyntaxNode
                     return foundToken;
                 }
 
+                var originalFoundToken = foundToken;
+
                 // Walk backwards until we find a non-whitespace token. We accomplish this by looking up the stack and walking nodes backwards from where we
                 // were located.
-                if (tryWalkBackwards(ref stack.AsRef(), out foundToken))
+                if (tryWalkBackwards(originalFoundToken, out foundToken))
                 {
                     return foundToken;
                 }
 
                 // Encountered a newline while backtracking, so we need to walk forward instead.
-                return walkForward(ref stack.AsRef());
+                return walkForward(originalFoundToken);
             }
 
-            bool tryWalkBackwards(ref PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack, [NotNullWhen(true)] out SyntaxToken? foundToken)
+            bool tryWalkBackwards(SyntaxToken originalFoundToken, [NotNullWhen(true)] out SyntaxToken? foundToken)
             {
-                // Can't just pop the stack, we may need to rewalk from the start to find the next node if this fails
-                for (var originalStackPosition = stack.Count - 1; originalStackPosition >= 0; originalStackPosition--)
+                foundToken = originalFoundToken;
+                do
                 {
-                    var (node, nodeIndexInParent) = stack[originalStackPosition];
-
-                    switch (walkNodeChildren(node.Parent, nodeIndexInParent, walkBackwards: true, stopOnNewline: true, out foundToken))
+                    foundToken = SyntaxNavigator.GetPreviousToken(foundToken, includeZeroWidth: true);
+                    if (foundToken is null or { Kind: SyntaxKind.NewLine })
                     {
-                        case true:
-                            return true;
-                        case false:
-                            return false;
-                        case null:
-                            // Didn't find anything in this node, keep walking
-                            continue;
+                        return false;
+                    }
+
+                    if (foundToken.SpanStart < this.SpanStart)
+                    {
+                        // User requested a position that is out of range of the root token requested.
+                        throw new ArgumentOutOfRangeException(nameof(position));
                     }
                 }
+                while (foundToken.Kind is SyntaxKind.Whitespace);
 
-                // Walked all the way back to the end of the node that was requested and did not find either a newline or non-whitespace token. The user requested
-                // something out of range.
-                throw new ArgumentOutOfRangeException(nameof(position));
+                return true;
             }
 
-            SyntaxToken walkForward(ref PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack)
+            SyntaxToken walkForward(SyntaxToken originalFoundToken)
             {
-                while (stack.TryPop(out var entry))
+                var currentToken = originalFoundToken;
+                do
                 {
-                    var (node, nodeIndexInParent) = entry;
+                    currentToken = SyntaxNavigator.GetNextToken(currentToken, includeZeroWidth: true);
 
-                    switch (walkNodeChildren(node.Parent, nodeIndexInParent, walkBackwards: false, stopOnNewline: false, out var foundToken))
+                    if (currentToken is null || currentToken.Span.End > this.Span.End)
                     {
-                        case true:
-                            return foundToken;
-                        case null:
-                            // Didn't find anything in this node, keep walking
-                            continue;
-                        case false:
-                            // False is only returned when stopOnNewline is true
-                            return Assumed.Unreachable<SyntaxToken>();
+                        // Walked all the way forward to the end of the root that was requested and did not find any non-whitespace tokens. The user requested
+                        // something out of range.
+                        throw new ArgumentOutOfRangeException(nameof(position));
                     }
                 }
+                while (currentToken is { Kind: SyntaxKind.NewLine or SyntaxKind.Whitespace });
 
-                // Walked all the way forward to the end of the root that was requested and did not find any non-whitespace tokens. The user requested
-                // something out of range.
-                throw new ArgumentOutOfRangeException(nameof(position));
+                return currentToken;
             }
 
             static bool? walkNodeChildren(SyntaxNode parent, int startIndex, bool walkBackwards, bool stopOnNewline, [NotNullWhen(true)] out SyntaxToken? foundToken)

@@ -5,14 +5,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal class SyntaxToken : RazorSyntaxNode
 {
+    internal static readonly Func<SyntaxToken, bool> NonZeroWidth = t => t.Width > 0;
+    internal static readonly Func<SyntaxToken, bool> Any = t => true;
+
     internal SyntaxToken(GreenNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
     {
