@@ -59,22 +59,24 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
         {
             using var _ = StopwatchPool.GetPooledObject(out var watch);
 
-            using var properties = new PooledArrayBuilder<Property>(providers.Length);
+            Property[]? properties = null;
 
-            foreach (var provider in providers)
+            for (var i = 0; i < providers.Length; i++)
             {
+                var provider = providers[i];
                 watch.Restart();
                 provider.Execute(context);
                 watch.Stop();
 
                 if (telemetryReporter is not null)
                 {
+                    properties ??= new Property[providers.Length];
                     var propertyName = $"{provider.GetType().Name}.elapsedtimems";
-                    properties.Add(new(propertyName, watch.ElapsedMilliseconds));
+                    properties[i] = new(propertyName, watch.ElapsedMilliseconds);
                 }
             }
 
-            telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, properties.ToArray());
+            telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, properties.AssumeNotNull());
         }
     }
 }
