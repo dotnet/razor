@@ -35,7 +35,7 @@ First you need to locally download and extract the build artifacts that you want
     ![image](images/blobartifacts.png)
 4. Unzip the BlobArtifacts.zip file you end up with and delete:
     - Any file that doesn't start with "RazorLanguageServer" or "DevKitTelemetry"
-    - The file that starts with "RazorLanguageServer-PlatformAgnostic"
+    - Any file that contains "PlatformAgnostic"
 
 At the end of this process you should have a folder containing 18 files. Rename the folder to the version number, pulled from any one of the file names in the folder.
 
