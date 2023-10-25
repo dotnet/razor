@@ -34,11 +34,10 @@ First you need to locally download and extract the build artifacts that you want
 
     ![image](images/blobartifacts.png)
 4. Unzip the BlobArtifacts.zip file you end up with and delete:
-    - Any file that doesn't start with "RazorLanguageServer"
+    - Any file that doesn't start with "RazorLanguageServer" or "DevKitTelemetry"
     - The file that starts with "RazorLanguageServer-PlatformAgnostic"
-    - **Note:** If you are making any changes to [VS Code telemetry](https://github.com/dotnet/razor/tree/main/src/Razor/src/Microsoft.VisualStudio.DevKit.Razor/), you will likely need to **keep** files that start with "DevKitTelemetry"
 
-At the end of this process you should have a folder containing 9 files (18 if you're also making VS Code telemetry changes). Rename the folder to the version number, pulled from any one of the file names in the folder.
+At the end of this process you should have a folder containing 18 files. Rename the folder to the version number, pulled from any one of the file names in the folder.
 
 ![image](images/remaining_files.png)
 
@@ -93,15 +92,14 @@ You need to put that in your text editor of choice, remove everything but the `h
 6. Paste the version of the packages into the `NEW_DEPS_VERSION` environment variable
 7. Run the task
 8. It takes a while to run, as it has to download and compute hashes for each file, but when finished it will have changed the package.json file.
-9. Commit both files, push your branch, and create a PR.
-
-### (optional) Updating Razor telemetry
-
-If making updates to Razor VS Code telemetry, follow the steps in the last two sections. However, the CDN URLs should instead look something like:
+9. Repeat the steps in the previous section and this section, but for Razor DevKit telemetry. The CDN URLs should instead look something like:
 ```
 2023-06-29T01:16:17.9751735Z release\DDPublish\vscode-razor\7.0.0-preview.23328.2\DevKitTelemetry-linux-arm64-7.0.0-preview.23328.2.zip -> https://download.visualstudio.microsoft.com/download/pr/51d2bf3c-cb3c-4385-b59f-d4d6c9a96743/c74964f4e130b50f9aef47d430c34a97/devkittelemetry-linux-arm64-7.0.0-preview.23328.2.zip
 ```
 and the task mentioned in the previous section (step 4) is instead "Update razor telemetry package dependencies".
+
+10. Update `CHANGELOG.md` with the changes from these updates.
+11. Commit all files, push your branch, and create a PR.
 
 ## Testing
 
