@@ -27,7 +27,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-public abstract class LanguageServerTestBase : TestBase
+public abstract class LanguageServerTestBase : ToolingTestBase
 {
     // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
     // synchronization context from the constructing thread and binds to that. We've seen in XUnit how this can unexpectedly lead to flaky

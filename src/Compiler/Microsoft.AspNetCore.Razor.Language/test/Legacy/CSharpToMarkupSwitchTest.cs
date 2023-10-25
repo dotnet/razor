@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpToMarkupSwitchTest : ParserTestBase
+public class CSharpToMarkupSwitchTest() : ParserTestBase(layerName: "Compiler")
 {
     [Fact]
     public void SingleAngleBracketDoesNotCauseSwitchIfOuterBlockIsTerminated()

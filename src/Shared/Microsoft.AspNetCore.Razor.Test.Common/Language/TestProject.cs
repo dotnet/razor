@@ -11,40 +11,46 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class TestProject
 {
-    public static string GetProjectDirectory(string directoryHint, bool testDirectoryFirst = false)
+    public static string GetProjectDirectory(string directoryHint, string layerFolderName, bool testDirectoryFirst = false)
     {
         var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json");
-        if (repoRoot == null)
-        {
-            repoRoot = AppContext.BaseDirectory;
-        }
 
         var projectDirectory = testDirectoryFirst
-            ? Path.Combine(repoRoot, "src", "Compiler", "test", directoryHint)
-            : Path.Combine(repoRoot, "src", "Compiler", directoryHint, "test");
+            ? Path.Combine(repoRoot, "src", layerFolderName, "test", directoryHint)
+            : Path.Combine(repoRoot, "src", layerFolderName, directoryHint, "test");
 
         if (string.Equals(directoryHint, "Microsoft.AspNetCore.Razor.Language.Test", StringComparison.Ordinal))
         {
             Debug.Assert(!testDirectoryFirst);
+            Debug.Assert(layerFolderName == "Compiler");
             projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "Microsoft.AspNetCore.Razor.Language", "test");
+        }
+
+        if (!Directory.Exists(projectDirectory))
+        {
+            throw new InvalidOperationException(
+                $@"Could not locate project directory for type {directoryHint}. Directory probe path: {projectDirectory}.");
         }
 
         return projectDirectory;
     }
 
-    public static string GetProjectDirectory(Type type)
+    public static string GetProjectDirectory(Type type, string layerFolderName, bool useCurrentDirectory = false)
     {
-        var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json");
-        if (repoRoot == null)
-        {
-            repoRoot = AppContext.BaseDirectory;
-        }
-
+        var baseDir = useCurrentDirectory ? Directory.GetCurrentDirectory() : AppContext.BaseDirectory;
+        var repoRoot = SearchUp(baseDir, "global.json");
         var assemblyName = type.Assembly.GetName().Name;
-        var projectDirectory = Path.Combine(repoRoot, "src", "Compiler", assemblyName, "test");
+        var projectDirectory = Path.Combine(repoRoot, "src", layerFolderName, assemblyName, "test");
         if (string.Equals(assemblyName, "Microsoft.AspNetCore.Razor.Language.Test", StringComparison.Ordinal))
         {
+            Debug.Assert(layerFolderName == "Compiler");
             projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "Microsoft.AspNetCore.Razor.Language", "test");
+        }
+
+        if (!Directory.Exists(projectDirectory))
+        {
+            throw new InvalidOperationException(
+                $@"Could not locate project directory for type {type.FullName}. Directory probe path: {projectDirectory}.");
         }
 
         return projectDirectory;
@@ -64,6 +70,6 @@ public static class TestProject
         }
         while (directoryInfo.Parent != null);
 
-        return null;
+        throw new Exception($"File {fileName} could not be found in {baseDirectory} or its parent directories.");
     }
 }

@@ -223,7 +223,6 @@ dotnet_diagnostic.IDE0161.severity = warning
 # RS0041: Public members should not use oblivious types
 dotnet_diagnostic.RS0041.severity = none
 
-[**{test,samples,perf}/**.{cs,vb}]
 # CA1018: Mark attributes with AttributeUsageAttribute
 dotnet_diagnostic.CA1018.severity = suggestion
 # CA1507: Use nameof to express symbol names

@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public class DefaultRazorProjectItemTest
 {
     private static string TestFolder { get; } = Path.Combine(
-        TestProject.GetProjectDirectory(typeof(DefaultRazorProjectItemTest)),
+        TestProject.GetProjectDirectory(typeof(DefaultRazorProjectFileSystemTest), layerFolderName: "Compiler"),
         "TestFiles",
         "DefaultRazorProjectFileSystem");
 

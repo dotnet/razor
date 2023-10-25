@@ -16,7 +16,7 @@ internal class TestRazorProjectFileSystem : DefaultRazorProjectFileSystem
     private readonly Dictionary<string, RazorProjectItem> _lookup;
 
     public TestRazorProjectFileSystem()
-        : this(new RazorProjectItem[0])
+        : this(Array.Empty<RazorProjectItem>())
     {
     }
 

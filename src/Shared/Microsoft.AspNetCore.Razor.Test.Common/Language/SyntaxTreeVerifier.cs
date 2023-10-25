@@ -79,8 +79,6 @@ $@"Could not locate Syntax Node owner at position '{i}':
             _source = source;
         }
 
-        // public SourceLocationTracker SourceLocationTracker => _tracker;
-
         public override void VisitToken(SyntaxToken token)
         {
             if (token != null && !token.IsMissing && token.Kind != SyntaxKind.Marker)

@@ -30,7 +30,7 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
     internal override string DefaultFileName => ComponentName + ".cshtml";
 
     protected ComponentCodeGenerationTestBase()
-        : base(generateBaselines: null)
+        : base(layerName: "Compiler", generateBaselines: null)
     {
     }
 

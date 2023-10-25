@@ -9,11 +9,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class RazorProjectEngineTestBase : TestBase
+public abstract class RazorToolingProjectEngineTestBase : ToolingTestBase
 {
     protected abstract RazorLanguageVersion Version { get; }
 
-    protected RazorProjectEngineTestBase(ITestOutputHelper testOutput)
+    protected RazorToolingProjectEngineTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }

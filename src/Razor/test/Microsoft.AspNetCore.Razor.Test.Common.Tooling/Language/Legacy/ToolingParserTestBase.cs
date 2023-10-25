@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -24,15 +25,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 // These tests must be run serially due to the test specific FileName static var.
 [Collection("ParserTestSerialRuns")]
-public abstract class ParserTestBase : TestBase
+public abstract class ToolingParserTestBase : ToolingTestBase
 {
     private static readonly AsyncLocal<string> s_fileName = new();
     private static readonly AsyncLocal<bool> s_isTheory = new();
 
-    protected ParserTestBase(ITestOutputHelper testOutput)
+    protected ToolingParserTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        TestProjectRoot = TestProject.GetProjectDirectory(GetType());
+        TestProjectRoot = TestProject.GetProjectDirectory(GetType(), layerFolderName: "Razor");
     }
 
     /// <summary>
@@ -132,8 +133,9 @@ public abstract class ParserTestBase : TestBase
             throw new XunitException($"The resource {baselineFileName} was not found.");
         }
 
-        var baseline = stFile.ReadAllText().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        SyntaxNodeVerifier.Verify(root, baseline);
+        var syntaxNodeBaseline = stFile.ReadAllText();
+        var actualSyntaxNodes = SyntaxNodeSerializer.Serialize(root);
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(syntaxNodeBaseline, actualSyntaxNodes);
 
         // Verify diagnostics
         var baselineDiagnostics = string.Empty;
@@ -154,18 +156,18 @@ public abstract class ParserTestBase : TestBase
         }
         else
         {
-            var classifiedSpanBaseline = Array.Empty<string>();
-            classifiedSpanBaseline = classifiedSpanFile.ReadAllText().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            ClassifiedSpanVerifier.Verify(syntaxTree, classifiedSpanBaseline);
+            var classifiedSpanBaseline = classifiedSpanFile.ReadAllText();
+            var actualClassifiedSpans = ClassifiedSpanSerializer.Serialize(syntaxTree);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(classifiedSpanBaseline, actualClassifiedSpans);
         }
 
         // Verify tag helper spans
         var tagHelperSpanFile = TestFile.Create(baselineTagHelperSpansFileName, GetType().GetTypeInfo().Assembly);
-        var tagHelperSpanBaseline = Array.Empty<string>();
         if (tagHelperSpanFile.Exists())
         {
-            tagHelperSpanBaseline = tagHelperSpanFile.ReadAllText().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            TagHelperSpanVerifier.Verify(syntaxTree, tagHelperSpanBaseline);
+            var tagHelperSpanBaseline = tagHelperSpanFile.ReadAllText();
+            var actualTagHelperSpans = TagHelperSpanSerializer.Serialize(syntaxTree);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(tagHelperSpanBaseline, actualTagHelperSpans);
         }
     }
 

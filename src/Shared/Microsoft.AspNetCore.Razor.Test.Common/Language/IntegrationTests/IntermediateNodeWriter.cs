@@ -281,7 +281,7 @@ public class IntermediateNodeWriter :
         var typeName = node.GetType().Name;
         if (typeName.EndsWith("IntermediateNode", StringComparison.Ordinal))
         {
-            _writer.Write(typeName.Substring(0, typeName.Length - "IntermediateNode".Length));
+            _writer.Write(typeName[..^"IntermediateNode".Length]);
         }
         else
         {
@@ -311,7 +311,7 @@ public class IntermediateNodeWriter :
 
         if (sourceRange.FilePath != null)
         {
-            var fileName = sourceRange.FilePath.Substring(sourceRange.FilePath.LastIndexOf('/') + 1);
+            var fileName = sourceRange.FilePath[(sourceRange.FilePath.LastIndexOf('/') + 1)..];
             _writer.Write(fileName);
         }
 

@@ -61,7 +61,7 @@ public static class TestRazorSourceDocument
     public static MemoryStream CreateStreamContent(string content = "Hello, World!", Encoding encoding = null, bool normalizeNewLines = false)
     {
         var stream = new MemoryStream();
-        encoding = encoding ?? Encoding.UTF8;
+        encoding ??= Encoding.UTF8;
         using (var writer = new StreamWriter(stream, encoding, bufferSize: 1024, leaveOpen: true))
         {
             if (normalizeNewLines)

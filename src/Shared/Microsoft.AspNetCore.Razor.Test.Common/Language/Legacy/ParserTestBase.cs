@@ -26,9 +26,9 @@ public abstract class ParserTestBase
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
-    internal ParserTestBase()
+    internal ParserTestBase(string layerName)
     {
-        TestProjectRoot = TestProject.GetProjectDirectory(GetType());
+        TestProjectRoot = TestProject.GetProjectDirectory(GetType(), layerName);
     }
 
     /// <summary>

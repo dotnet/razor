@@ -23,6 +23,8 @@ using Xunit.Sdk;
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 [InitializeTestFile]
+// These tests must be run serially due to the test specific FileName static var.
+[Collection("IntegrationTestSerialRuns")]
 public abstract class IntegrationTestBase
 {
     private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
@@ -52,9 +54,9 @@ public abstract class IntegrationTestBase
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
-    protected IntegrationTestBase(bool? generateBaselines = null, string? projectDirectoryHint = null)
+    protected IntegrationTestBase(string layerName, bool? generateBaselines = null, string? projectDirectoryHint = null)
     {
-        TestProjectRoot = projectDirectoryHint == null ? TestProject.GetProjectDirectory(GetType()) : TestProject.GetProjectDirectory(projectDirectoryHint);
+        TestProjectRoot = projectDirectoryHint == null ? TestProject.GetProjectDirectory(GetType(), layerName) : TestProject.GetProjectDirectory(projectDirectoryHint, layerName);
 
         if (generateBaselines.HasValue)
         {
@@ -185,7 +187,7 @@ public abstract class IntegrationTestBase
         }
 
         var suffixIndex = FileName.LastIndexOf("_", StringComparison.Ordinal);
-        var normalizedFileName = suffixIndex == -1 ? FileName : FileName.Substring(0, suffixIndex);
+        var normalizedFileName = suffixIndex == -1 ? FileName : FileName[..suffixIndex];
         var sourceFileName = Path.ChangeExtension(normalizedFileName, FileExtension);
         var testFile = TestFile.Create(sourceFileName, GetType().GetTypeInfo().Assembly);
         if (!testFile.Exists())
@@ -203,7 +205,7 @@ public abstract class IntegrationTestBase
         sourceFileName = sourceFileName.Replace('\\', '/');
 
         // FilePaths in Razor are **always** are of the form '/a/b/c.cshtml'
-        filePath = filePath ?? sourceFileName;
+        filePath ??= sourceFileName;
         if (!filePath.StartsWith("/", StringComparison.Ordinal))
         {
             filePath = '/' + filePath;
@@ -262,8 +264,8 @@ public abstract class IntegrationTestBase
 
         var syntaxTrees = new[]
         {
-                (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(cSharpDocument.GeneratedCode, CSharpParseOptions, path: code.CodeDocument.Source.FilePath ?? string.Empty),
-            };
+            (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(cSharpDocument.GeneratedCode, CSharpParseOptions, path: code.CodeDocument.Source.FilePath ?? string.Empty),
+        };
 
         var compilation = code.BaseCompilation.AddSyntaxTrees(syntaxTrees);
 
@@ -494,9 +496,7 @@ public abstract class IntegrationTestBase
         var visitor = new CodeSpanVisitor();
         visitor.Visit(syntaxTree.Root);
 
-        var charBuffer = new char[codeDocument.Source.Text.Length];
-        codeDocument.Source.Text.CopyTo(0, charBuffer, 0, codeDocument.Source.Text.Length);
-        var sourceContent = new string(charBuffer);
+        var sourceContent = codeDocument.Source.Text.ToString();
 
         var spans = visitor.CodeSpans;
         for (var i = 0; i < spans.Count; i++)
@@ -644,9 +644,7 @@ public abstract class IntegrationTestBase
         else
         {
             var syntaxTree = codeDocument.GetSyntaxTree();
-            var sourceBuffer = new char[syntaxTree.Source.Text.Length];
-            syntaxTree.Source.Text.CopyTo(0, sourceBuffer, 0, syntaxTree.Source.Text.Length);
-            var sourceContent = new string(sourceBuffer);
+            var sourceContent = syntaxTree.Source.Text.ToString();
             var classifiedSpans = syntaxTree.GetClassifiedSpans();
             foreach (var classifiedSpan in classifiedSpans)
             {

@@ -9,12 +9,16 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 [InitializeTestFile]
+
+// These tests must be run serially due to the test specific FileName static var.
+[Collection("RazorBaselineIntegrationTestSerialRuns")]
 public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBase
 {
     private static readonly AsyncLocal<string> _directoryPath = new AsyncLocal<string>();
@@ -22,9 +26,9 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
-    protected RazorBaselineIntegrationTestBase(bool? generateBaselines = null)
+    protected RazorBaselineIntegrationTestBase(string layerName, bool? generateBaselines = null)
     {
-        TestProjectRoot = TestProject.GetProjectDirectory(GetType());
+        TestProjectRoot = TestProject.GetProjectDirectory(GetType(), layerName);
 
         if (generateBaselines.HasValue)
         {
@@ -84,7 +88,9 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         }
 
         // Normalize newlines by splitting into an array.
-        var baseline = irFile.ReadAllText().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var irText = irFile.ReadAllText();
+        var baseline = irText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(irText, IntermediateNodeSerializer.Serialize(document));
         IntermediateNodeVerifier.Verify(document, baseline);
     }
 
@@ -196,9 +202,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         else
         {
             var syntaxTree = codeDocument.GetSyntaxTree();
-            var sourceBuffer = new char[syntaxTree.Source.Text.Length];
-            syntaxTree.Source.Text.CopyTo(0, sourceBuffer, 0, syntaxTree.Source.Text.Length);
-            var sourceContent = new string(sourceBuffer);
+            var sourceContent = syntaxTree.Source.Text.ToString();
             var classifiedSpans = syntaxTree.GetClassifiedSpans();
             foreach (var classifiedSpan in classifiedSpans)
             {
@@ -237,8 +241,8 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
             throw new ArgumentNullException(nameof(extension));
         }
 
-        var lastSlash = codeDocument.Source.FilePath.LastIndexOfAny(new[] { '/', '\\' });
-        var fileName = lastSlash == -1 ? null : codeDocument.Source.FilePath.Substring(lastSlash + 1);
+        var lastSlash = codeDocument.Source.FilePath.LastIndexOfAny(['/', '\\']);
+        var fileName = lastSlash == -1 ? null : codeDocument.Source.FilePath[(lastSlash + 1)..];
         if (string.IsNullOrEmpty(fileName))
         {
             var message = "Integration tests require a filename";

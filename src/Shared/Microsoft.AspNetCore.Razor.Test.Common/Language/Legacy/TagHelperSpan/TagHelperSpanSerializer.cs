@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.IO;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;

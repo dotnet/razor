@@ -96,5 +96,4 @@ public static class TestCodeRenderingContext
             _context.CodeWriter.WriteLine("Render Children");
         }
     }
-
 }

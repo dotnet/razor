@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion;
 
-public class TagHelperTooltipFactoryBaseTest : TestBase
+public class TagHelperTooltipFactoryBaseTest : ToolingTestBase
 {
     public TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput)
         : base(testOutput)

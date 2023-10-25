@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-public abstract partial class TestBase
+public abstract partial class ToolingTestBase
 {
     private class TestErrorReporter : IErrorReporter
     {

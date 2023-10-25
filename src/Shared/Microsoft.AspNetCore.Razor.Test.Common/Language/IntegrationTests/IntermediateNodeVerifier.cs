@@ -7,8 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
 using Xunit.Sdk;
 
@@ -89,7 +89,7 @@ public static class IntermediateNodeVerifier
             throw new InvalidOperationException("We can't figure out HOW these two things are different. This is a bug.");
         }
 
-        private void AssertNestingEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+        private static void AssertNestingEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
         {
             var i = 0;
             for (; i < expected.Length; i++)
@@ -125,7 +125,7 @@ public static class IntermediateNodeVerifier
             charsVerified = j;
         }
 
-        private void AssertNameEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+        private static void AssertNameEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
         {
             var expectedName = GetName(expected, charsVerified);
             var actualName = GetName(actual, charsVerified);
@@ -140,7 +140,7 @@ public static class IntermediateNodeVerifier
         }
 
         // Either both strings need to have a delimiter next or neither should.
-        private void AssertDelimiter(IntermediateNode node, string expected, string actual, bool required, ref int charsVerified)
+        private static void AssertDelimiter(IntermediateNode node, string expected, string actual, bool required, ref int charsVerified)
         {
             if (charsVerified == expected.Length && required)
             {
@@ -174,7 +174,7 @@ public static class IntermediateNodeVerifier
             charsVerified += 3;
         }
 
-        private void AssertLocationEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+        private static void AssertLocationEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
         {
             var expectedLocation = GetLocation(expected, charsVerified);
             var actualLocation = GetLocation(actual, charsVerified);
@@ -188,7 +188,7 @@ public static class IntermediateNodeVerifier
             charsVerified += expectedLocation.Length;
         }
 
-        private void AssertContentEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+        private static void AssertContentEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
         {
             var expectedContent = GetContent(expected, charsVerified);
             var actualContent = GetContent(actual, charsVerified);
@@ -202,7 +202,7 @@ public static class IntermediateNodeVerifier
             charsVerified += expectedContent.Length;
         }
 
-        private string GetName(string text, int start)
+        private static string GetName(string text, int start)
         {
             var delimiter = text.IndexOf(" - ", start, StringComparison.Ordinal);
             if (delimiter == -1)
@@ -213,15 +213,15 @@ public static class IntermediateNodeVerifier
             return text.Substring(start, delimiter - start);
         }
 
-        private string GetLocation(string text, int start)
+        private static string GetLocation(string text, int start)
         {
             var delimiter = text.IndexOf(" - ", start, StringComparison.Ordinal);
-            return delimiter == -1 ? text.Substring(start) : text.Substring(start, delimiter - start);
+            return delimiter == -1 ? text[start..] : text[start..delimiter];
         }
 
-        private string GetContent(string text, int start)
+        private static string GetContent(string text, int start)
         {
-            return start == text.Length ? string.Empty : text.Substring(start);
+            return start == text.Length ? string.Empty : text[start..];
         }
 
         private class IntermediateNodeBaselineException : XunitException
@@ -242,7 +242,8 @@ public static class IntermediateNodeVerifier
 
             private static string Format(IntermediateNode node, IntermediateNode[] ancestors, string expected, string actual, string userMessage)
             {
-                var builder = new StringBuilder();
+                using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
                 builder.AppendLine(userMessage);
                 builder.AppendLine();
 

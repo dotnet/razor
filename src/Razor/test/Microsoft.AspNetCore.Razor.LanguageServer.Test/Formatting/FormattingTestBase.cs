@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 // These tests must be run serially due to the test specific FileName static var.
 [Collection("FormattingTestSerialRuns")]
-public class FormattingTestBase : RazorIntegrationTestBase
+public class FormattingTestBase : RazorToolingIntegrationTestBase
 {
     private static readonly AsyncLocal<string> s_fileName = new();
 

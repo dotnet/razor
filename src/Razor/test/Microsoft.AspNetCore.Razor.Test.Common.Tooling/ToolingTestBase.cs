@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 ///   to provide custom initialization and disposal for tests.</item>
 ///  </list>
 /// </summary>
-public abstract partial class TestBase : IAsyncLifetime
+public abstract partial class ToolingTestBase : IAsyncLifetime
 {
     private readonly JoinableTaskCollection _joinableTaskCollection;
     private readonly CancellationTokenSource _disposalTokenSource;
@@ -76,7 +76,7 @@ public abstract partial class TestBase : IAsyncLifetime
 
     private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 
-    protected TestBase(ITestOutputHelper testOutput)
+    protected ToolingTestBase(ITestOutputHelper testOutput)
     {
         JoinableTaskContext = new();
         _joinableTaskCollection = JoinableTaskContext.CreateCollection();

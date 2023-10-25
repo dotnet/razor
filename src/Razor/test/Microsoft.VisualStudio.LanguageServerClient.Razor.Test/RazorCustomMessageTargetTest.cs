@@ -36,7 +36,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-public class RazorCustomMessageTargetTest : TestBase
+public class RazorCustomMessageTargetTest : ToolingTestBase
 {
     private readonly ITextBuffer _textBuffer;
     private readonly IClientSettingsManager _editorSettingsManager;

@@ -24,7 +24,7 @@ using Xunit.Sdk;
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 [UseExportProvider]
-public class RazorIntegrationTestBase : TestBase
+public class RazorToolingIntegrationTestBase : ToolingTestBase
 {
     internal const string ArbitraryWindowsPath = "x:\\dir\\subdir\\Test";
     internal const string ArbitraryMacLinuxPath = "/dir/subdir/Test";
@@ -35,7 +35,7 @@ public class RazorIntegrationTestBase : TestBase
 
     private static CSharpParseOptions CSharpParseOptions { get; }
 
-    static RazorIntegrationTestBase()
+    static RazorToolingIntegrationTestBase()
     {
         var referenceAssemblyRoots = new[]
         {
@@ -60,7 +60,7 @@ public class RazorIntegrationTestBase : TestBase
         CSharpParseOptions = new CSharpParseOptions(LanguageVersion.Preview);
     }
 
-    public RazorIntegrationTestBase(ITestOutputHelper testOutput)
+    public RazorToolingIntegrationTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         AdditionalSyntaxTrees = new List<SyntaxTree>();

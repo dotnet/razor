@@ -3,12 +3,11 @@
 
 #nullable disable
 
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-public class BasicIntegrationTest : IntegrationTestBase
+public class BasicIntegrationTest() : IntegrationTestBase("Compiler")
 {
     [Fact]
     public void Empty()
