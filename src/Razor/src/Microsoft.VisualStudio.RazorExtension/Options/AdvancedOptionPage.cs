@@ -115,9 +115,9 @@ internal class AdvancedOptionPage : DialogPage
             _optionsStorage.Value.CommitElementsWithSpace = _commitElementsWithSpace.Value;
         }
 
-        if (_snippets is not null)
+        if (_snippets is SnippetSetting snippets)
         {
-            _optionsStorage.Value.Snippets = _snippets.Value;
+            _optionsStorage.Value.Snippets = snippets;
         }
     }
 

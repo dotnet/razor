@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -32,7 +33,7 @@ internal class SnippetService
     private static readonly Guid s_CSharpLanguageId = new("694dd9b6-b865-4c5b-ad85-86356e9c88dc");
     private static readonly Guid s_HtmlLanguageId = new("9bbfd173-9770-47dc-b191-651b7ff493cd");
 
-    private static readonly Dictionary<Guid, ImmutableHashSet<string>> s_inboxSnippets = new()
+    private static readonly Dictionary<Guid, ImmutableHashSet<string>> s_builtInSnippets = new()
     {
         {
             s_CSharpLanguageId,
@@ -163,18 +164,13 @@ internal class SnippetService
             // Allocate enough memory for one VSExpansion structure. This memory is filled in by the Next method.
             pSnippetInfo[0] = Marshal.AllocCoTaskMem(Marshal.SizeOf(snippetInfo));
 
-            var inboxSnippets = language == SnippetLanguage.CSharp
-                ? s_inboxSnippets[s_CSharpLanguageId]   // C# in box snippets are handled by the C# language service
-                : snippetSetting == SnippetSetting.All
-                    ? ImmutableHashSet<string>.Empty
-                    : s_inboxSnippets[s_HtmlLanguageId];
-
             var result = expansionEnumerator.GetCount(out var count);
             if (result != HResult.OK)
             {
                 return ImmutableArray<SnippetInfo>.Empty;
             }
 
+            var ignoredSnippets = GetIgnoredSnippets(language, snippetSetting);
             using var snippetListBuilder = new PooledArrayBuilder<SnippetInfo>();
 
             for (uint i = 0; i < count; i++)
@@ -190,7 +186,7 @@ internal class SnippetService
                     // Convert the returned blob of data into a structure that can be read in managed code.
                     snippetInfo = ConvertToVsExpansionAndFree(pSnippetInfo[0]);
 
-                    if (!string.IsNullOrEmpty(snippetInfo.shortcut) && !inboxSnippets.Contains(snippetInfo.shortcut))
+                    if (!string.IsNullOrEmpty(snippetInfo.shortcut) && !ignoredSnippets.Contains(snippetInfo.shortcut))
                     {
                         snippetListBuilder.Add(new SnippetInfo(snippetInfo.shortcut, snippetInfo.title, snippetInfo.description, snippetInfo.path, language));
                     }
@@ -203,6 +199,25 @@ internal class SnippetService
         {
             Marshal.FreeCoTaskMem(pSnippetInfo[0]);
         }
+    }
+
+    private static ImmutableHashSet<string> GetIgnoredSnippets(SnippetLanguage language, SnippetSetting snippetSetting)
+    {
+        if (language == SnippetLanguage.CSharp)
+        {
+            // In call cases for C# we want to filter out the built in snippets. The C#
+            // language server will handle returning these and isn't required for the
+            // Razor code to add them.
+            return s_builtInSnippets[s_CSharpLanguageId];
+        }
+
+        if (snippetSetting == SnippetSetting.All)
+        {
+            return ImmutableHashSet<string>.Empty;
+        }
+
+        Debug.Assert(language == SnippetLanguage.Html);
+        return s_builtInSnippets[s_HtmlLanguageId];
     }
 
     private static VsExpansion ConvertToVsExpansionAndFree(IntPtr expansionPtr)
