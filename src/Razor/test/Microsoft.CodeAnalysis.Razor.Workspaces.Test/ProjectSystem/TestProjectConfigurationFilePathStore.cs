@@ -12,7 +12,7 @@ internal class TestProjectConfigurationFilePathStore : ProjectConfigurationFileP
 {
     private Dictionary<ProjectKey, string> _mappings = new();
 
-    public override event EventHandler<ProjectConfigurationFilePathChangedEventArgs>? Changed;
+    public override event EventHandler<ProjectConfigurationFilePathChangedEventArgs>? Changed { add { } remove { } }
 
     public override IReadOnlyDictionary<ProjectKey, string> GetMappings()
         => _mappings;
