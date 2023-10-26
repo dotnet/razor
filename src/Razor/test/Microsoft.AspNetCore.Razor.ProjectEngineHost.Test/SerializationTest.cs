@@ -44,6 +44,7 @@ public class SerializationTest : ToolingTestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -76,6 +77,7 @@ public class SerializationTest : ToolingTestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -110,6 +112,7 @@ public class SerializationTest : ToolingTestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray.Create(legacyDocument, componentDocument));
 

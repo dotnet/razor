@@ -83,7 +83,12 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
             await UpdateAsync(() =>
             {
-                var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName: sliceDimensions);
+                var projectFileName = Path.GetFileNameWithoutExtension(CommonServices.UnconfiguredProject.FullPath);
+                var displayName = sliceDimensions is { Length: > 0 }
+                    ? $"{projectFileName} ({sliceDimensions})"
+                    : projectFileName;
+
+                var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
 
                 if (_languageServerFeatureOptions is not null)
                 {
