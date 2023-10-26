@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.CodeAnalysis.Razor.TestProjectData;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test.ProjectSystem;
 
@@ -34,16 +36,15 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
     [Fact]
     public void DynamicFileAdded_KnownProject_DoesNothing()
     {
-        var projectFilePath = @"C:\path\to\project.csproj";
-        var hostProject = new HostProject(projectFilePath, @"C:\path\to\obj", RazorConfiguration.Default, "RootNamespace", "DisplayName");
+        var hostProject = new HostProject(SomeProject.FilePath, SomeProject.IntermediateOutputPath, RazorConfiguration.Default, "RootNamespace", "DisplayName");
         _projectSnapshotManager.ProjectAdded(hostProject);
 
         var projectId = ProjectId.CreateNewId();
-        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: projectFilePath)
-            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(@"C:\path\to\obj\project.dll"));
+        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: SomeProject.FilePath)
+            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(SomeProject.IntermediateOutputPath, "SomeProject.dll")));
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        _fallbackProjectManger.DynamicFileAdded(projectId, hostProject.Key, projectFilePath, @"C:\path\to\file.razor");
+        _fallbackProjectManger.DynamicFileAdded(projectId, hostProject.Key, SomeProject.FilePath, SomeProjectFile1.FilePath);
 
         Assert.Empty(_fallbackProjectManger.GetTestAccessor().ProjectIds);
     }
@@ -51,17 +52,14 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
     [Fact]
     public void DynamicFileAdded_UnknownProject_Adds()
     {
-        var projectFilePath = @"C:\path\to\project.csproj";
         var projectId = ProjectId.CreateNewId();
-        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: projectFilePath)
-            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(@"C:\path\to\obj\project.dll"))
+        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: SomeProject.FilePath)
+            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(SomeProject.IntermediateOutputPath, "SomeProject.dll")))
             .WithDefaultNamespace("RootNamespace");
 
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        var projectKey = TestProjectKey.Create(@"C:\path\to\obj");
-
-        _fallbackProjectManger.DynamicFileAdded(projectId, projectKey, projectFilePath, @"C:\path\to\file.razor");
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectFile1.FilePath);
 
         var actualId = Assert.Single(_fallbackProjectManger.GetTestAccessor().ProjectIds);
         Assert.Equal(projectId, actualId);
@@ -71,53 +69,47 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
         Assert.Equal("RootNamespace", project.RootNamespace);
 
         var documentFilePath = Assert.Single(project.DocumentFilePaths);
-        Assert.Equal(@"C:\path\to\file.razor", documentFilePath);
+        Assert.Equal(SomeProjectFile1.FilePath, documentFilePath);
     }
 
     [Fact]
     public void DynamicFileAdded_TrackedProject_AddsDocuments()
     {
-        var projectFilePath = @"C:\path\to\project.csproj";
         var projectId = ProjectId.CreateNewId();
-        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: projectFilePath)
-            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(@"C:\path\to\obj\project.dll"))
+        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: SomeProject.FilePath)
+            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(SomeProject.IntermediateOutputPath, "SomeProject.dll")))
             .WithDefaultNamespace("RootNamespace");
 
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        var projectKey = TestProjectKey.Create(@"C:\path\to\obj");
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectFile1.FilePath);
 
-        _fallbackProjectManger.DynamicFileAdded(projectId, projectKey, projectFilePath, @"C:\path\to\file.razor");
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectFile2.FilePath);
 
-        _fallbackProjectManger.DynamicFileAdded(projectId, projectKey, projectFilePath, @"C:\path\to\new_file.razor");
-
-        _fallbackProjectManger.DynamicFileAdded(projectId, projectKey, projectFilePath, @"C:\path\to\file.cshtml");
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectComponentFile1.FilePath);
 
         var project = Assert.Single(_projectSnapshotManager.GetProjects());
 
-        Assert.Collection(project.DocumentFilePaths.OrderBy(f => f),
-            f => Assert.Equal(@"C:\path\to\file.cshtml", f),
-            f => Assert.Equal(@"C:\path\to\file.razor", f),
-            f => Assert.Equal(@"C:\path\to\new_file.razor", f));
+        Assert.Collection(project.DocumentFilePaths.OrderBy(f => f), // DocumentFilePaths comes from a dictionary, so no sort guarantee
+            f => Assert.Equal(SomeProjectFile1.FilePath, f),
+            f => Assert.Equal(SomeProjectComponentFile1.FilePath, f),
+            f => Assert.Equal(SomeProjectFile2.FilePath, f));
     }
 
     [Fact]
     public void DynamicFileAdded_UnknownProject_SetsConfigurationFileStore()
     {
-        var projectFilePath = @"C:\path\to\project.csproj";
         var projectId = ProjectId.CreateNewId();
-        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: projectFilePath)
-            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(@"C:\path\to\obj\project.dll"))
+        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: SomeProject.FilePath)
+            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(SomeProject.IntermediateOutputPath, "SomeProject.dll")))
             .WithDefaultNamespace("RootNamespace");
 
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        var projectKey = TestProjectKey.Create(@"C:\path\to\obj");
-
-        _fallbackProjectManger.DynamicFileAdded(projectId, projectKey, projectFilePath, @"C:\path\to\file.razor");
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectFile1.FilePath);
 
         var kvp = Assert.Single(_projectConfigurationFilePathStore.GetMappings());
-        Assert.Equal(projectKey, kvp.Key);
-        Assert.Equal(@"C:\path\to\obj\project.razor.bin", kvp.Value);
+        Assert.Equal(SomeProject.Key, kvp.Key);
+        Assert.Equal(Path.Combine(SomeProject.IntermediateOutputPath, "project.razor.bin"), kvp.Value);
     }
 }
