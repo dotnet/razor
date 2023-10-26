@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -495,16 +496,16 @@ internal abstract partial class SyntaxNode
 
                 // Walk backwards until we find a non-whitespace token. We accomplish this by looking up the stack and walking nodes backwards from where we
                 // were located.
-                if (tryWalkBackwards(stack, out foundToken))
+                if (tryWalkBackwards(ref stack.AsRef(), out foundToken))
                 {
                     return foundToken;
                 }
 
                 // Encountered a newline while backtracking, so we need to walk forward instead.
-                return walkForward(stack);
+                return walkForward(ref stack.AsRef());
             }
 
-            bool tryWalkBackwards(PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack, [NotNullWhen(true)] out SyntaxToken? foundToken)
+            bool tryWalkBackwards(ref PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack, [NotNullWhen(true)] out SyntaxToken? foundToken)
             {
                 // Can't just pop the stack, we may need to rewalk from the start to find the next node if this fails
                 for (var originalStackPosition = stack.Count - 1; originalStackPosition >= 0; originalStackPosition--)
@@ -528,7 +529,7 @@ internal abstract partial class SyntaxNode
                 throw new ArgumentOutOfRangeException(nameof(position));
             }
 
-            SyntaxToken walkForward(PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack)
+            SyntaxToken walkForward(ref PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack)
             {
                 while (stack.TryPop(out var entry))
                 {

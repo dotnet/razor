@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"c9cc7d097735e4074bc4f71cd46101fc821fdb0592f90d491f09fdecddf3caf3", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"c9cc7d097735e4074bc4f71cd46101fc821fdb0592f90d491f09fdecddf3caf3", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExpressionsInCode_Runtime
     {
         #pragma warning disable 1998
@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #line hidden
 #nullable disable
 #nullable restore
-#line (7,5)-(7,8) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+#line (7,6)-(7,9) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
 Write(foo);
 
 #line default
@@ -62,7 +62,7 @@ Write(foo);
 #line hidden
 #nullable disable
 #nullable restore
-#line (14,6)-(14,27) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+#line (14,7)-(14,28) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
 Write(bar.Replace("F", "B"));
 
 #line default

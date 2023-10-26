@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"87718d380117c487f66665bd4c191fcab3bbf6821e64caa809bf2fd1ad6af664", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlock.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"87718d380117c487f66665bd4c191fcab3bbf6821e64caa809bf2fd1ad6af664", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlock.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_FunctionsBlock_Runtime
     {
         #pragma warning disable 1998
@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             WriteLiteral("\r\n");
             WriteLiteral("\r\nHere\'s a random number: ");
 #nullable restore
-#line (12,25)-(12,36) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlock.cshtml"
+#line (12,26)-(12,37) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlock.cshtml"
 Write(RandomInt());
 
 #line default

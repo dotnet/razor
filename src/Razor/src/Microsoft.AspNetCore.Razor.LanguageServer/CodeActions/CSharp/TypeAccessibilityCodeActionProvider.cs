@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -98,7 +99,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 continue;
             }
 
-            var diagnosticSpan = diagnostic.Range.AsTextSpan(context.SourceText);
+            var diagnosticSpan = diagnostic.Range.ToTextSpan(context.SourceText);
 
             // Based on how we compute `Range.AsTextSpan` it's possible to have a span
             // which goes beyond the end of the source text. Something likely changed

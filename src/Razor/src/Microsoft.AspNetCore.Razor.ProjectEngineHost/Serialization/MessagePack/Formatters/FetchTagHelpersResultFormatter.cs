@@ -15,15 +15,15 @@ internal sealed class FetchTagHelpersResultFormatter : TopLevelFormatter<FetchTa
     {
     }
 
-    protected override FetchTagHelpersResult Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override FetchTagHelpersResult Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         var tagHelpers = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(options);
 
         return new(tagHelpers);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, FetchTagHelpersResult value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, FetchTagHelpersResult value, SerializerCachingOptions options)
     {
-        writer.SerializeObject(value.TagHelpers, options);
+        writer.Serialize(value.TagHelpers, options);
     }
 }

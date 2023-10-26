@@ -10,15 +10,15 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class MetadataCollectionFormatter : TopLevelFormatter<MetadataCollection>
+internal sealed class MetadataCollectionFormatter : ValueFormatter<MetadataCollection>
 {
-    public static readonly TopLevelFormatter<MetadataCollection> Instance = new MetadataCollectionFormatter();
+    public static readonly ValueFormatter<MetadataCollection> Instance = new MetadataCollectionFormatter();
 
     private MetadataCollectionFormatter()
     {
     }
 
-    protected override MetadataCollection Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override MetadataCollection Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         if (reader.NextMessagePackType == MessagePackType.Integer)
         {
@@ -46,7 +46,7 @@ internal sealed class MetadataCollectionFormatter : TopLevelFormatter<MetadataCo
         return result;
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, MetadataCollection value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, MetadataCollection value, SerializerCachingOptions options)
     {
         if (options.Metadata.TryGetReferenceId(value, out var referenceId))
         {
@@ -65,5 +65,31 @@ internal sealed class MetadataCollectionFormatter : TopLevelFormatter<MetadataCo
             CachedStringFormatter.Instance.Serialize(ref writer, k, options);
             CachedStringFormatter.Instance.Serialize(ref writer, v, options);
         }
+    }
+
+    public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        if (reader.NextMessagePackType == MessagePackType.Integer)
+        {
+            reader.Skip(); // Reference Id
+            return;
+        }
+
+        // Divide the number of array elements by two because each key/value pair is stored as two elements.
+        var count = reader.ReadArrayHeader() / 2;
+
+        using var builder = new MetadataBuilder();
+
+        for (var i = 0; i < count; i++)
+        {
+            var key = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+            var value = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+
+            builder.Add(key, value);
+        }
+
+        var result = builder.Build();
+
+        options.Metadata.Add(result);
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -76,7 +77,7 @@ internal class HtmlFormattingPass : FormattingPassBase
 
         if (htmlEdits.Length > 0)
         {
-            var changes = htmlEdits.Select(e => e.AsTextChange(originalText));
+            var changes = htmlEdits.Select(e => e.ToTextChange(originalText));
             changedText = originalText.WithChanges(changes);
             // Create a new formatting context for the changed razor document.
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
@@ -98,7 +99,7 @@ internal class HtmlFormattingPass : FormattingPassBase
         }
 
         var finalChanges = changedText.GetTextChanges(originalText);
-        var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
+        var finalEdits = finalChanges.Select(f => f.ToTextEdit(originalText)).ToArray();
 
         return new FormattingResult(finalEdits);
     }

@@ -93,8 +93,8 @@ public abstract class LanguageServerTestBase : TestBase
                 @using Microsoft.AspNetCore.Components.Routing
                 @using Microsoft.AspNetCore.Components.Web
                 """,
-            new RazorSourceDocumentProperties(importDocumentName, importDocumentName));
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { defaultImportDocument }, tagHelpers);
+            RazorSourceDocumentProperties.Create(importDocumentName, importDocumentName));
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, ImmutableArray.Create(defaultImportDocument), tagHelpers);
         return codeDocument;
     }
 
@@ -134,10 +134,10 @@ public abstract class LanguageServerTestBase : TestBase
         return new VersionedDocumentContext(uri, snapshot, projectContext: null, version: 0);
     }
 
-    internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false)
+    internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false, bool commitElementsWithSpace = true)
     {
         var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
-        monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, true, InsertSpaces: true, TabSize: 4, formatOnType, autoInsertAttributeQuotes, colorBackground));
+        monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, true, InsertSpaces: true, TabSize: 4, formatOnType, autoInsertAttributeQuotes, colorBackground, commitElementsWithSpace));
         return monitor.Object;
     }
 

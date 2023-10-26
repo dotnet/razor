@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"c38f4efc9c710292c9fc20d2f5c4cc6e8a91f4fa3ee60ec96c16617f506312b8", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"c38f4efc9c710292c9fc20d2f5c4cc6e8a91f4fa3ee60ec96c16617f506312b8", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Markup_InCodeBlocks_Runtime
     {
         #pragma warning disable 1998
@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #nullable disable
             WriteLiteral("        <div>");
 #nullable restore
-#line (10,14)-(10,25) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml"
+#line (10,15)-(10,26) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml"
 Write(person.Name);
 
 #line default
@@ -72,7 +72,7 @@ Write(person.Name);
 #nullable disable
         WriteLiteral("        <div>\r\n            <h3>Happy birthday ");
 #nullable restore
-#line (22,33)-(22,42) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml"
+#line (22,34)-(22,43) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml"
 Write(formatted);
 
 #line default
@@ -90,7 +90,7 @@ Write(formatted);
 #nullable disable
         WriteLiteral("            <li>");
 #nullable restore
-#line (28,18)-(28,19) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml"
+#line (28,19)-(28,20) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml"
 Write(i);
 
 #line default

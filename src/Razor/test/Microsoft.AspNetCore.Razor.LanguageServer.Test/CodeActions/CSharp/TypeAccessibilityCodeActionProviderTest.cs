@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
@@ -467,10 +466,10 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
             builder.AddTagHelpers(tagHelpers);
             builder.AddDirective(InjectDirective.Directive);
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
 
         var cSharpDocument = codeDocument.GetCSharpDocument();
-        var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", () => "", RazorDiagnosticSeverity.Error);
+        var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, componentSourceSpan);
         var cSharpDocumentWithDiagnostic = RazorCSharpDocument.Create(codeDocument, cSharpDocument.GeneratedCode, cSharpDocument.Options, new[] { diagnostic });
         codeDocument.SetCSharpDocument(cSharpDocumentWithDiagnostic);

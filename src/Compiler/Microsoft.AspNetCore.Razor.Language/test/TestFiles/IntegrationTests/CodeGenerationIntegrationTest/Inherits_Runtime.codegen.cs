@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"f2e8261f6a1dc47ca6ea0cb9335f0a2b8b0b18bc9f1fc43b6c3a7764e3ac7f75", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"f2e8261f6a1dc47ca6ea0cb9335f0a2b8b0b18bc9f1fc43b6c3a7764e3ac7f75", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inherits_Runtime : foo.bar<baz<biz>>.boz
     {
         #pragma warning disable 1998
@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
         {
             WriteLiteral("\r\n");
 #nullable restore
-#line (3,1)-(3,6) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml"
+#line (3,2)-(3,7) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml"
 Write(foo());
 
 #line default

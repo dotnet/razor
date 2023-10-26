@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
@@ -38,11 +38,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 10),
-            End = new Position(0, 19),
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 10), new LinePosition(0, 19));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -65,11 +61,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 0),
-            End = new Position(0, 12),
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 12));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -92,16 +84,8 @@ public class RazorDocumentMappingServiceTest : TestBase
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 6),
-            End = new Position(0, 18),
-        };
-        var expectedOriginalRange = new Range()
-        {
-            Start = new Position(0, 4),
-            End = new Position(0, 16)
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 6), new LinePosition(0, 18));
+        var expectedOriginalRange = new LinePositionSpan(new LinePosition(0, 4), new LinePosition(0, 16));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -124,16 +108,8 @@ public class RazorDocumentMappingServiceTest : TestBase
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 6),
-            End = new Position(0, 18),
-        };
-        var expectedOriginalRange = new Range()
-        {
-            Start = new Position(0, 4),
-            End = new Position(0, 16)
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 6), new LinePosition(0, 18));
+        var expectedOriginalRange = new LinePositionSpan(new LinePosition(0, 4), new LinePosition(0, 16));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -156,16 +132,8 @@ public class RazorDocumentMappingServiceTest : TestBase
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 10),
-            End = new Position(0, 19),
-        };
-        var expectedOriginalRange = new Range()
-        {
-            Start = new Position(0, 4),
-            End = new Position(0, 16)
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 10), new LinePosition(0, 19));
+        var expectedOriginalRange = new LinePositionSpan(new LinePosition(0, 4), new LinePosition(0, 16));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -188,16 +156,8 @@ public class RazorDocumentMappingServiceTest : TestBase
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 0),
-            End = new Position(0, 10),
-        };
-        var expectedOriginalRange = new Range()
-        {
-            Start = new Position(0, 4),
-            End = new Position(0, 16)
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 10));
+        var expectedOriginalRange = new LinePositionSpan(new LinePosition(0, 4), new LinePosition(0, 16));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -224,11 +184,7 @@ public class RazorDocumentMappingServiceTest : TestBase
                 new SourceMapping(new SourceSpan(4, 8), new SourceSpan(6, 8)), // DateTime
                 new SourceMapping(new SourceSpan(12, 4), new SourceSpan(14, 4)) // .Now
             });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 14),
-            End = new Position(0, 19),
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 14), new LinePosition(0, 19));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -255,11 +211,7 @@ public class RazorDocumentMappingServiceTest : TestBase
                 new SourceMapping(new SourceSpan(4, 8), new SourceSpan(6, 8)), // DateTime
                 new SourceMapping(new SourceSpan(12, 4), new SourceSpan(14, 4)) // .Now
             });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 0),
-            End = new Position(0, 14),
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 14));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -282,16 +234,8 @@ public class RazorDocumentMappingServiceTest : TestBase
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 0),
-            End = new Position(0, 19),
-        };
-        var expectedOriginalRange = new Range()
-        {
-            Start = new Position(0, 4),
-            End = new Position(0, 16)
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 19));
+        var expectedOriginalRange = new LinePositionSpan(new LinePosition(0, 4), new LinePosition(0, 16));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -318,11 +262,7 @@ public class RazorDocumentMappingServiceTest : TestBase
                 new SourceMapping(new SourceSpan(4, 8), new SourceSpan(6, 8)), // DateTime
                 new SourceMapping(new SourceSpan(12, 4), new SourceSpan(14, 4)) // .Now
             });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 0),
-            End = new Position(0, 19),
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 19));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -345,16 +285,8 @@ public class RazorDocumentMappingServiceTest : TestBase
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 6),
-            End = new Position(0, 18),
-        };
-        var expectedOriginalRange = new Range()
-        {
-            Start = new Position(0, 4),
-            End = new Position(0, 16)
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 6), new LinePosition(0, 18));
+        var expectedOriginalRange = new LinePositionSpan(new LinePosition(0, 4), new LinePosition(0, 16));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -377,11 +309,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             "@<unclosed></unclosed><p>@DateTime.Now</p>",
             "(__builder) => { };__o = DateTime.Now;",
             new[] { new SourceMapping(new SourceSpan(26, 12), new SourceSpan(25, 12)) });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 0),
-            End = new Position(0, 19),
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 19));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -392,7 +320,7 @@ public class RazorDocumentMappingServiceTest : TestBase
 
         // Assert
         Assert.False(result);
-        Assert.Null(originalRange);
+        Assert.Equal(default, originalRange);
     }
 
     [Fact]
@@ -407,16 +335,8 @@ public class RazorDocumentMappingServiceTest : TestBase
                 new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)),
                 new SourceMapping(new SourceSpan(35, 1), new SourceSpan(30, 1)),
             });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 12),
-            End = new Position(0, 29),
-        };
-        var expectedOriginalRange = new Range()
-        {
-            Start = new Position(0, 13),
-            End = new Position(0, 35)
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 12), new LinePosition(0, 29));
+        var expectedOriginalRange = new LinePositionSpan(new LinePosition(0, 13), new LinePosition(0, 35));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -439,16 +359,8 @@ public class RazorDocumentMappingServiceTest : TestBase
             "@{ var abc = @<unclosed></unclosed>",
             " var abc =  (__builder) => { }",
             new[] { new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)), });
-        var projectedRange = new Range()
-        {
-            Start = new Position(0, 12),
-            End = new Position(0, 29),
-        };
-        var expectedOriginalRange = new Range()
-        {
-            Start = new Position(0, 13),
-            End = new Position(0, 35)
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 12), new LinePosition(0, 29));
+        var expectedOriginalRange = new LinePositionSpan(new LinePosition(0, 13), new LinePosition(0, 35));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -471,11 +383,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             "@{ var abc = @<unclosed></unclosed>",
             " var abc =  (__builder) => { }",
             new[] { new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)), });
-        var projectedRange = new Range()
-        {
-            Start = new Position(2, 12),
-            End = new Position(2, 29),
-        };
+        var projectedRange = new LinePositionSpan(new LinePosition(2, 12), new LinePosition(2, 29));
 
         // Act
         var result = service.TryMapToHostDocumentRange(
@@ -486,6 +394,47 @@ public class RazorDocumentMappingServiceTest : TestBase
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public void TryMapToHostDocumentRange_Inferred_OutOfOrderMappings_DoesntThrow()
+    {
+        // Real world repo is something like:
+        // 
+        // <Component1>
+        //    @if (true)
+        //    {
+        //        <Component2 att="val"
+        //                    onclick="() => thing()""    <-- note double quotes
+        //                    att2="val" />
+        //    }
+        // </Component1>
+        //
+        // Ends up with an unterminated string in the generated code, and a "missing }" diagnostic
+        // that has some very strange mappings!
+
+        // Arrange
+        var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var codeDoc = CreateCodeDocumentWithCSharpProjection(
+            "@{ var abc = @<unclosed></unclosed>",
+            " var abc =  (__builder) => { }",
+            new SourceMapping[] { new(new(30, 1), new (2, 1)), new(new(28, 2), new(30, 2)), });
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 25), new LinePosition(0, 25));
+
+        // Act
+        var result = service.TryMapToHostDocumentRange(
+            codeDoc.GetCSharpDocument(),
+            projectedRange,
+            MappingBehavior.Inferred,
+            out var originalRange);
+
+        // Assert
+        // We're really just happy this doesn't throw an exception. The behaviour is to map to the end of the file
+        Assert.True(result);
+        Assert.Equal(0, originalRange.Start.Line);
+        Assert.Equal(31, originalRange.Start.Character);
+        Assert.Equal(0, originalRange.End.Line);
+        Assert.Equal(35, originalRange.End.Character);
     }
 
     [Fact]
@@ -537,7 +486,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         }
         else
         {
-            Assert.False(true, $"{service.TryMapToGeneratedDocumentPosition} should have returned true");
+            Assert.False(true, $"{nameof(service.TryMapToGeneratedDocumentPosition)} should have returned true");
         }
     }
 
@@ -726,7 +675,7 @@ public class RazorDocumentMappingServiceTest : TestBase
                 new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 1)),
                 new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
             });
-        var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
+        var range = new LinePositionSpan(new LinePosition(1, 10), new LinePosition(1, 13));
 
         // Act & Assert
         if (service.TryMapToGeneratedDocumentRange(
@@ -756,7 +705,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             new[] {
                 new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 1)),
             });
-        var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
+        var range = new LinePositionSpan(new LinePosition(1, 10), new LinePosition(1, 13));
 
         // Act
         var result = service.TryMapToGeneratedDocumentRange(
@@ -782,7 +731,7 @@ public class RazorDocumentMappingServiceTest : TestBase
                 new SourceMapping(new SourceSpan(16, 3), new SourceSpan(11, 3)),
                 new SourceMapping(new SourceSpan(19, 10), new SourceSpan(5, 10))
             });
-        var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
+        var range = new LinePositionSpan(new LinePosition(1, 10), new LinePosition(1, 13));
 
         // Act
         var result = service.TryMapToGeneratedDocumentRange(
@@ -1109,7 +1058,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder => { });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", Array.Empty<RazorSourceDocument>(), tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", importSources: default, tagHelpers);
         return codeDocument;
     }
 
@@ -1121,7 +1070,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             projectedCSharpSource,
             RazorCodeGenerationOptions.CreateDefault(),
             Enumerable.Empty<RazorDiagnostic>(),
-            sourceMappings,
+            sourceMappings.ToImmutableArray(),
             Enumerable.Empty<LinePragma>());
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;

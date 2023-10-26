@@ -13,7 +13,7 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"0b74a41c8d96c43904d510d22f53726a6462f225ce6c59ed2ef8e0c4c0c0e757", @"/TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"0b74a41c8d96c43904d510d22f53726a6462f225ce6c59ed2ef8e0c4c0c0e757", @"/TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml")]
     public class TestFiles_IntegrationTests_InstrumentationPassIntegrationTest_BasicTest : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("value", "Hello", global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -51,7 +51,7 @@ namespace AspNetCore
             EndContext();
             BeginContext(61, 7, false);
             BeginContext(61, 7, false);
-#line (3,2)-(3,9) 6 "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
+#line (3,3)-(3,10) 6 "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
 Write("Hello");
 
 #line default
@@ -127,7 +127,7 @@ __InputTagHelper.BarProp = DateTime.Now;
             EndContext();
             BeginContext(217, 29, false);
             BeginContext(217, 29, false);
-#line (9,1)-(9,5) 6 "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
+#line (9,2)-(9,6) 6 "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
 Write(Foo(item => new global::Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_template_writer) => {
     PushWriter(__razor_template_writer);
     BeginContext(222, 24, true);

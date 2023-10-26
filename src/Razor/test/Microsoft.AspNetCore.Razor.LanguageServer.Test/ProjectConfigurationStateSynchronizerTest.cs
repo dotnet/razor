@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
@@ -33,7 +32,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var synchronizer = GetSynchronizer(projectService.Object);
         var deserializerMock = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
         var args = new ProjectConfigurationFileChangeEventArgs(
-            configurationFilePath: "/path/to/project.razor.json",
+            configurationFilePath: "/path/to/project.razor.bin",
             kind: RazorFileChangeKind.Removed,
             projectInfoDeserializer: deserializerMock.Object);
 
@@ -50,23 +49,25 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     {
         // Arrange
         var projectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
+            displayName: "project",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
         var intermediateOutputPath = Path.GetDirectoryName(projectInfo.SerializedFilePath);
         var projectKey = TestProjectKey.Create(intermediateOutputPath);
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService
-            .Setup(x => x.AddProject(projectInfo.FilePath, @"path\to\obj", projectInfo.Configuration, projectInfo.RootNamespace))
+            .Setup(x => x.AddProject(projectInfo.FilePath, @"path\to\obj", projectInfo.Configuration, projectInfo.RootNamespace, projectInfo.DisplayName))
             .Returns(projectKey);
         projectService
             .Setup(x => x.UpdateProject(
                 projectKey,
                 projectInfo.Configuration,
                 projectInfo.RootNamespace,
+                projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
                 projectInfo.Documents)).Verifiable();
         projectService
@@ -74,11 +75,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                  projectKey,
                  null,
                  null,
+                 "",
                  ProjectWorkspaceState.Default,
                  ImmutableArray<DocumentSnapshotHandle>.Empty)).Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var jsonFileDeserializer = CreateDeserializer(projectInfo);
-        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.bin", RazorFileChangeKind.Added, jsonFileDeserializer);
         var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(addArgs);
@@ -87,7 +89,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await enqueueTask;
 
         var removeArgs = new ProjectConfigurationFileChangeEventArgs(
-            configurationFilePath: "/path/to/obj/project.razor.json",
+            configurationFilePath: "/path/to/obj/project.razor.bin",
             kind: RazorFileChangeKind.Removed,
             projectInfoDeserializer: Mock.Of<IRazorProjectInfoDeserializer>(MockBehavior.Strict));
 
@@ -116,7 +118,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Returns((RazorProjectInfo)null);
 
         var args = new ProjectConfigurationFileChangeEventArgs(
-            configurationFilePath: "/path/to/project.razor.json",
+            configurationFilePath: "/path/to/project.razor.bin",
             kind: RazorFileChangeKind.Added,
             projectInfoDeserializer: deserializerMock.Object);
 
@@ -133,25 +135,27 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     {
         // Arrange
         var projectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
+            displayName: "project",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectKey = TestProjectKey.Create(Path.GetDirectoryName(projectInfo.SerializedFilePath));
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.AddProject(projectInfo.FilePath, @"path\to\obj", projectInfo.Configuration, projectInfo.RootNamespace))
+        projectService.Setup(service => service.AddProject(projectInfo.FilePath, @"path\to\obj", projectInfo.Configuration, projectInfo.RootNamespace, projectInfo.DisplayName))
             .Returns(projectKey);
         projectService.Setup(service => service.UpdateProject(
             projectKey,
             projectInfo.Configuration,
             projectInfo.RootNamespace,
+            projectInfo.DisplayName,
             projectInfo.ProjectWorkspaceState,
             projectInfo.Documents)).Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var jsonFileDeserializer = CreateDeserializer(projectInfo);
-        var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+        var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, jsonFileDeserializer);
 
         // Act
         var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
@@ -170,31 +174,34 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     {
         // Arrange
         var projectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
+            displayName: "project",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectKey = TestProjectKey.Create(Path.GetDirectoryName(projectInfo.SerializedFilePath));
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.AddProject(projectInfo.FilePath, @"path\to\obj", projectInfo.Configuration, projectInfo.RootNamespace))
+        projectService.Setup(service => service.AddProject(projectInfo.FilePath, @"path\to\obj", projectInfo.Configuration, projectInfo.RootNamespace, projectInfo.DisplayName))
             .Returns(projectKey);
         projectService.Setup(service => service.UpdateProject(
             projectKey,
             projectInfo.Configuration,
             projectInfo.RootNamespace,
+            projectInfo.DisplayName,
             projectInfo.ProjectWorkspaceState,
             projectInfo.Documents)).Verifiable();
         projectService.Setup(service => service.UpdateProject(
              projectKey,
              null,
              null,
+             "",
              ProjectWorkspaceState.Default,
-             Array.Empty<DocumentSnapshotHandle>())).Verifiable();
+             ImmutableArray<DocumentSnapshotHandle>.Empty)).Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var deserializer = CreateDeserializer(projectInfo);
-        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, deserializer);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, deserializer);
         var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(addArgs);
@@ -203,7 +210,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await enqueueTask;
 
         var removeArgs = new ProjectConfigurationFileChangeEventArgs(
-            configurationFilePath: "/path/to/obj/project.razor.json",
+            configurationFilePath: "/path/to/obj/project.razor.bin",
             kind: RazorFileChangeKind.Removed,
             projectInfoDeserializer: Mock.Of<IRazorProjectInfoDeserializer>(MockBehavior.Strict));
 
@@ -224,41 +231,45 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     {
         // Arrange
         var initialProjectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
+            displayName: "project",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectKey = TestProjectKey.Create(Path.GetDirectoryName(initialProjectInfo.SerializedFilePath));
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.AddProject(initialProjectInfo.FilePath, @"path\to\obj", initialProjectInfo.Configuration, initialProjectInfo.RootNamespace))
+        projectService.Setup(service => service.AddProject(initialProjectInfo.FilePath, @"path\to\obj", initialProjectInfo.Configuration, initialProjectInfo.RootNamespace, initialProjectInfo.DisplayName))
             .Returns(projectKey);
         projectService.Setup(service => service.UpdateProject(
             projectKey,
             initialProjectInfo.Configuration,
             initialProjectInfo.RootNamespace,
+            initialProjectInfo.DisplayName,
             initialProjectInfo.ProjectWorkspaceState,
             initialProjectInfo.Documents)).Verifiable();
         var changedProjectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
             RazorConfiguration.Create(
                 RazorLanguageVersion.Experimental,
                 "TestConfiguration",
                 Array.Empty<RazorExtension>()),
             rootNamespace: "TestRootNamespace2",
+            displayName: "project",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp6),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
         projectService.Setup(service => service.UpdateProject(
             projectKey,
             changedProjectInfo.Configuration,
             changedProjectInfo.RootNamespace,
+            changedProjectInfo.DisplayName,
             changedProjectInfo.ProjectWorkspaceState,
             changedProjectInfo.Documents)).Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var addDeserializer = CreateDeserializer(initialProjectInfo);
-        var addArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.bin", RazorFileChangeKind.Added, addDeserializer);
 
         var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
@@ -268,7 +279,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await enqueueTask;
 
         var changedDeserializer = CreateDeserializer(changedProjectInfo);
-        var changedArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
+        var changedArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.bin", RazorFileChangeKind.Changed, changedDeserializer);
 
         // Act
         enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
@@ -287,30 +298,33 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     {
         // Arrange
         var initialProjectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
+            displayName: "project",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectKey = TestProjectKey.Create(Path.GetDirectoryName(initialProjectInfo.SerializedFilePath));
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.AddProject(initialProjectInfo.FilePath, @"path\to\obj", initialProjectInfo.Configuration, initialProjectInfo.RootNamespace))
+        projectService.Setup(service => service.AddProject(initialProjectInfo.FilePath, @"path\to\obj", initialProjectInfo.Configuration, initialProjectInfo.RootNamespace, initialProjectInfo.DisplayName))
             .Returns(projectKey);
         projectService.Setup(service => service.UpdateProject(
             projectKey,
             initialProjectInfo.Configuration,
             initialProjectInfo.RootNamespace,
+            initialProjectInfo.DisplayName,
             initialProjectInfo.ProjectWorkspaceState,
             initialProjectInfo.Documents)).Verifiable();
         var changedProjectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
             RazorConfiguration.Create(
                 RazorLanguageVersion.Experimental,
                 "TestConfiguration",
                 Array.Empty<RazorExtension>()),
             rootNamespace: "TestRootNamespace2",
+            displayName: "project",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp6),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -319,11 +333,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
              projectKey,
              null,
              null,
+             "",
              ProjectWorkspaceState.Default,
-             Array.Empty<DocumentSnapshotHandle>())).Verifiable();
+             ImmutableArray<DocumentSnapshotHandle>.Empty)).Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var addDeserializer = CreateDeserializer(initialProjectInfo);
-        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, addDeserializer);
         var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(addArgs);
@@ -337,7 +352,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Returns((RazorProjectInfo)null);
 
         var changedArgs = new ProjectConfigurationFileChangeEventArgs(
-            configurationFilePath: "/path/to/obj/project.razor.json",
+            configurationFilePath: "/path/to/obj/project.razor.bin",
             kind: RazorFileChangeKind.Changed,
             projectInfoDeserializer: changedDeserializerMock.Object);
 
@@ -366,7 +381,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Returns((RazorProjectInfo)null);
 
         var changedArgs = new ProjectConfigurationFileChangeEventArgs(
-            configurationFilePath: "/path/to/project.razor.json",
+            configurationFilePath: "/path/to/project.razor.bin",
             kind: RazorFileChangeKind.Changed,
             projectInfoDeserializer: changedDeserializerMock.Object);
 
@@ -391,18 +406,20 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             "path/to/project.csproj",
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
+            displayName: "project",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectKey = TestProjectKey.Create(Path.GetDirectoryName(projectInfo.SerializedFilePath));
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.AddProject(projectInfo.FilePath, @"path\to\obj", projectInfo.Configuration, projectInfo.RootNamespace))
+        projectService.Setup(service => service.AddProject(projectInfo.FilePath, @"path\to\obj", projectInfo.Configuration, projectInfo.RootNamespace, projectInfo.DisplayName))
             .Returns(projectKey);
         projectService.Setup(p => p.UpdateProject(
             projectKey,
             It.IsAny<RazorConfiguration>(),
             It.IsAny<string>(),
+            It.IsAny<string>(),
             It.IsAny<ProjectWorkspaceState>(),
-            It.IsAny<IReadOnlyList<DocumentSnapshotHandle>>()));
+            It.IsAny<ImmutableArray<DocumentSnapshotHandle>>()));
 
         var synchronizer = GetSynchronizer(projectService.Object);
         var changedDeserializer = CreateDeserializer(projectInfo);
@@ -424,8 +441,9 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             projectKey,
             It.IsAny<RazorConfiguration>(),
             It.IsAny<string>(),
+            It.IsAny<string>(),
             It.IsAny<ProjectWorkspaceState>(),
-            It.IsAny<IReadOnlyList<DocumentSnapshotHandle>>()), Times.Once);
+            It.IsAny<ImmutableArray<DocumentSnapshotHandle>>()), Times.Once);
 
         projectService.VerifyAll();
     }

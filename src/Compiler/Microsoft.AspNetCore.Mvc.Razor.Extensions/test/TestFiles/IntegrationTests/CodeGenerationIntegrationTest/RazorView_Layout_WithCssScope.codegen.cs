@@ -12,7 +12,7 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc;
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"ae0459eafa91f6ae24fb2b349577f0dfb20a0e269a8a48888a1285a725191322", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/test.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"ae0459eafa91f6ae24fb2b349577f0dfb20a0e269a8a48888a1285a725191322", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/test.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/test.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -24,7 +24,7 @@ namespace AspNetCore
         {
             WriteLiteral("\r\n<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n    <meta charset=\"utf-8\" />\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\r\n    <title>");
 #nullable restore
-#line (7,12)-(7,29) 6 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
+#line (7,13)-(7,30) 6 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
 Write(ViewData["Title"]);
 
 #line default

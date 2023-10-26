@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 
@@ -14,23 +15,32 @@ internal sealed class AllowedChildTagFormatter : ValueFormatter<AllowedChildTagD
     {
     }
 
-    protected override AllowedChildTagDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override AllowedChildTagDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(3);
 
-        var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
+        var name = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
-        return new DefaultAllowedChildTagDescriptor(name, displayName, diagnostics);
+        return new AllowedChildTagDescriptor(name, displayName, diagnostics);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, AllowedChildTagDescriptor value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, AllowedChildTagDescriptor value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(3);
 
         CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
         writer.Serialize(value.Diagnostics, options);
+    }
+
+    public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        reader.ReadArrayHeaderAndVerify(3);
+
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Name
+        CachedStringFormatter.Instance.Skim(ref reader, options); // DisplayName
+        RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
     }
 }

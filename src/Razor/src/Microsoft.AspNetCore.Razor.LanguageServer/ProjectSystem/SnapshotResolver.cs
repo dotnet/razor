@@ -29,7 +29,7 @@ internal class SnapshotResolver : ISnapshotResolver
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         var normalizedPath = FilePathNormalizer.Normalize(miscellaneousProjectPath);
-        MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null);
+        MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null, "Miscellaneous Files");
     }
 
     /// <inheritdoc/>
@@ -50,7 +50,7 @@ internal class SnapshotResolver : ISnapshotResolver
                 continue;
             }
 
-            var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
+            var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(projectSnapshot.FilePath);
             if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance))
             {
                 yield return projectSnapshot;

@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"602b63a03b7490d9350a834c628e36b03134479ea417de4aca379f59b8089f35", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"602b63a03b7490d9350a834c628e36b03134479ea417de4aca379f59b8089f35", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EscapedTagHelpers_Runtime
     {
         #line hidden
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             WriteLiteral("div class=\"randomNonTagHelperAttribute\">\r\n    <");
             WriteLiteral("p class=\"Hello World\" ");
 #nullable restore
-#line (4,29)-(4,41) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml"
+#line (4,30)-(4,42) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml"
 Write(DateTime.Now);
 
 #line default
@@ -56,7 +56,7 @@ Write(DateTime.Now);
             __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
             BeginWriteTagHelperAttribute();
 #nullable restore
-#line (6,51)-(6,63) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml"
+#line (6,52)-(6,64) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedTagHelpers.cshtml"
 WriteLiteral(DateTime.Now);
 
 #line default

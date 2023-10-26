@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -83,13 +84,13 @@ internal class WrapWithTagEndpoint : IRazorRequestHandler<WrapWithTagParams, Wra
             // <p>[|@currentCount|]</p>
 
             var tree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var requestSpan = request.Range.AsRazorTextSpan(sourceText);
+            var requestSpan = request.Range.ToTextSpan(sourceText);
             var node = tree.Root.FindNode(requestSpan, includeWhitespace: false, getInnermostNodeForTie: true);
             if (node?.FirstAncestorOrSelf<CSharpImplicitExpressionSyntax>() is { Parent: CSharpCodeBlockSyntax codeBlock } &&
                 (requestSpan == codeBlock.FullSpan || requestSpan.Length == 0))
             {
                 // Pretend we're in Html so the rest of the logic can continue
-                request.Range = codeBlock.FullSpan.AsRange(sourceText);
+                request.Range = codeBlock.FullSpan.ToRange(sourceText);
                 languageKind = RazorLanguageKind.Html;
             }
         }

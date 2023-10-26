@@ -15,7 +15,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
     {
     }
 
-    protected override RazorConfiguration Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override RazorConfiguration Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         var count = reader.ReadArrayHeader();
 
@@ -41,7 +41,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         return RazorConfiguration.Create(languageVersion, configurationName, extensions);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
     {
         // Write two values + one value per extension.
         var extensions = value.Extensions;

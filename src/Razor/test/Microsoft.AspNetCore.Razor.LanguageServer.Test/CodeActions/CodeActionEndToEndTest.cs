@@ -370,7 +370,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     [InlineData("[||]DoesNotExist")]
     [InlineData("Does[||]NotExist")]
     [InlineData("DoesNotExist[||]")]
-    public async Task Handle_GenerateMethod_NoCodeBlock(string cursorAndMethodName)
+    public async Task Handle_GenerateMethod_NoCodeBlock_NonEmptyTrailingLine(string cursorAndMethodName)
     {
         var input = $$"""
             <button @onclick="{{cursorAndMethodName}}"></button>
@@ -378,6 +378,67 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
+            @code {
+                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                {
+                    throw new global::System.NotImplementedException();
+                }
+            }
+            """;
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+        await ValidateCodeActionAsync(input,
+            expected,
+            GenerateEventHandlerTitle,
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
+            diagnostics: diagnostics);
+    }
+
+    [Theory]
+    [InlineData("[||]DoesNotExist")]
+    [InlineData("Does[||]NotExist")]
+    [InlineData("DoesNotExist[||]")]
+    public async Task Handle_GenerateMethod_NoCodeBlock_EmptyTrailingLine(string cursorAndMethodName)
+    {
+        var input = $$"""
+            <button @onclick="{{cursorAndMethodName}}"></button>
+            
+            """;
+
+        var expected = $$"""
+            <button @onclick="DoesNotExist"></button>
+            @code {
+                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                {
+                    throw new global::System.NotImplementedException();
+                }
+            }
+            """;
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+        await ValidateCodeActionAsync(input,
+            expected,
+            GenerateEventHandlerTitle,
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
+            diagnostics: diagnostics);
+    }
+
+    [Theory]
+    [InlineData("[||]DoesNotExist")]
+    [InlineData("Does[||]NotExist")]
+    [InlineData("DoesNotExist[||]")]
+    public async Task Handle_GenerateMethod_NoCodeBlock_WhitespaceTrailingLine(string cursorAndMethodName)
+    {
+        var input = $$"""
+            <button @onclick="{{cursorAndMethodName}}"></button>
+                
+            """;
+
+        var expected = $$"""
+            <button @onclick="DoesNotExist"></button>
+                
             @code {
                 private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
@@ -662,7 +723,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             """;
 
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
-        var razorLSPOptions = new RazorLSPOptions(Trace: default, EnableFormatting: true, AutoClosingTags: true, insertSpaces, tabSize, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false);
+        var razorLSPOptions = new RazorLSPOptions(Trace: default, EnableFormatting: true, AutoClosingTags: true, insertSpaces, tabSize, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false, CommitElementsWithSpace: true);
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         await optionsMonitor.UpdateAsync(razorLSPOptions, CancellationToken.None);
         await ValidateCodeActionAsync(input,
@@ -868,11 +929,11 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             {
                 if (FilePathNormalizer.Normalize(change.TextDocument.Uri.GetAbsoluteOrUNCPath()) == codeBehindFilePath)
                 {
-                    codeBehindEdits.AddRange(change.Edits.Select(e => e.AsTextChange(codeBehindSourceText)));
+                    codeBehindEdits.AddRange(change.Edits.Select(e => e.ToTextChange(codeBehindSourceText)));
                 }
                 else
                 {
-                    razorEdits.AddRange(change.Edits.Select(e => e.AsTextChange(razorSourceText)));
+                    razorEdits.AddRange(change.Edits.Select(e => e.ToTextChange(razorSourceText)));
                 }
             }
 
@@ -919,7 +980,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var edits = new List<TextChange>();
         foreach (var change in changes)
         {
-            edits.AddRange(change.Edits.Select(e => e.AsTextChange(sourceText)));
+            edits.AddRange(change.Edits.Select(e => e.ToTextChange(sourceText)));
         }
 
         var actual = sourceText.WithChanges(edits).ToString();
@@ -957,7 +1018,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var @params = new VSCodeActionParams
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = uri },
-            Range = textSpan.AsRange(sourceText),
+            Range = textSpan.ToRange(sourceText),
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics ?? Array.Empty<Diagnostic>() }
         };
 

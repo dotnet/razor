@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 #line hidden
 #nullable disable
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("RouteTemplate", "/About")]
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"da9a31551104c58f287a17de26f4a3aa316e7e17fb9ed06e39692c4f45fb133a", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"da9a31551104c58f287a17de26f4a3aa316e7e17fb9ed06e39692c4f45fb133a", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -34,7 +34,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
             WriteLiteral("\r\n");
             WriteLiteral("\r\n<h1>New Customer ");
 #nullable restore
-#line (13,18)-(13,28) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
+#line (13,19)-(13,29) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
 Write(Model.Name);
 
 #line default

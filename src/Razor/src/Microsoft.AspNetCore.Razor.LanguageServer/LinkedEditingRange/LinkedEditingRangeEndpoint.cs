@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
@@ -79,7 +80,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
         {
             var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
             var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
-            var ranges = new Range[2] { startSpan.AsRange(), endSpan.AsRange() };
+            var ranges = new Range[2] { startSpan.ToRange(), endSpan.ToRange() };
 
             return new LinkedEditingRanges
             {

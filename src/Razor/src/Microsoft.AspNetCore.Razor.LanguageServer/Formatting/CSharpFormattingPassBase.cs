@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
@@ -38,7 +38,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
         // 2. The indentation due to Razor and HTML constructs
 
         var text = context.SourceText;
-        range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
+        range ??= TextSpan.FromBounds(0, text.Length).ToRange(text);
 
         // To help with figuring out the correct indentation, first we will need the indentation
         // that the C# formatter wants to apply in the following locations,
@@ -69,7 +69,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             // loop will find them. Sadly the ShouldFormat method is used in too many places, for too many
             // different purposes, to put this check there.
             if (owner is { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
-                explicitExpression.Span.AsRange(text) is { } exprRange &&
+                explicitExpression.Span.ToRange(text) is { } exprRange &&
                 exprRange.Start.Line == exprRange.End.Line)
             {
                 continue;
@@ -129,7 +129,12 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
                 continue;
             }
 
-            var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(originalLocation, 0, string.Empty));
+            if (originalLocation > syntaxTreeRoot.EndPosition)
+            {
+                continue;
+            }
+
+            var scopeOwner = syntaxTreeRoot.FindInnermostNode(originalLocation);
             sourceMappingIndentations[originalLocation] = new IndentationData(indentation);
 
             // For @section blocks we have special handling to add a fake source mapping/significant location at the end of the
@@ -436,7 +441,9 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return owner is MarkupTextLiteralSyntax
             {
                 Parent: MarkupTagHelperAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
-                        MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } }
+                        MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
+                        MarkupMinimizedTagHelperAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
+                        MarkupMinimizedTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } }
             } && !isLineRequest;
         }
 

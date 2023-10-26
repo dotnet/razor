@@ -19,7 +19,7 @@ using TestNamespace;
 #line default
 #line hidden
 #nullable disable
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"b354ee3595811e9701f9c464ddf35ccb31360a3799b7bb4279192f084591a4fe", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/test.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"b354ee3595811e9701f9c464ddf35ccb31360a3799b7bb4279192f084591a4fe", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/test.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/test.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -32,7 +32,7 @@ using TestNamespace;
             WriteLiteral("\r\n");
             WriteLiteral("\r\n<h1>");
 #nullable restore
-#line (5,5)-(5,16) 6 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
+#line (5,6)-(5,17) 6 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
 Write(Model?.Name);
 
 #line default
@@ -40,7 +40,7 @@ Write(Model?.Name);
 #nullable disable
             WriteLiteral("</h1>\r\n\r\n<h2>");
 #nullable restore
-#line (7,5)-(7,19) 6 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
+#line (7,6)-(7,20) 6 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
 Write(Model?.Address);
 
 #line default

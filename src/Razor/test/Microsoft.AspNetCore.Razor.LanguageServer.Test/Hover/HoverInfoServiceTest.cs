@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -75,7 +76,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -104,7 +105,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Contains("**SomeChild**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -113,6 +114,31 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             Start = new Position(2, 5),
             End = new Position(2, 14),
         };
+        Assert.Equal(expectedRange, hover.Range);
+    }
+
+    [Fact]
+    public void GetHoverInfo_TagHelper_Attribute_WithParent()
+    {
+        // Arrange
+        var txt = """
+                @addTagHelper *, TestAssembly
+                <test1>
+                    <SomeChild [|att$$ribute|]="test"></SomeChild>
+                </test1>
+                """;
+        TestFileMarkupParser.GetPositionAndSpan(txt, out txt, out var cursorPosition, out var span);
+
+        var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
+        var service = GetHoverInfoService();
+        var location = new SourceLocation(cursorPosition, -1, -1);
+
+        // Act
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+
+        // Assert
+        Assert.Contains("**Attribute**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+        var expectedRange = span.ToRange(codeDocument.GetSourceText());
         Assert.Equal(expectedRange, hover.Range);
     }
 
@@ -131,7 +157,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -158,7 +184,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -187,7 +213,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(edgeLocation, 0, edgeLocation);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -215,7 +241,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Null(hover);
@@ -236,7 +262,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Null(hover);
@@ -257,7 +283,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Null(hover);
@@ -278,7 +304,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -310,7 +336,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.NotNull(hover);
@@ -338,7 +364,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -365,7 +391,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -393,7 +419,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
         // Assert
         Assert.Null(hover);
@@ -415,7 +441,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
 
         // Assert
         Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -444,7 +470,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
 
         // Assert
         Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -473,7 +499,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
 
         // Assert
         Assert.Contains("BoolVal", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -503,7 +529,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
 
         // Assert
         Assert.Null(hover);
@@ -525,7 +551,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
+        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
 
         // Assert
         Assert.Null(hover);
@@ -548,7 +574,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         clientCapabilities.SupportsVisualStudioExtensions = true;
 
         // Act
-        var vsHover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+        var vsHover = service.GetHoverInfo("file.cshtml", codeDocument, location, clientCapabilities);
 
         // Assert
         Assert.False(vsHover.Contents.Value.TryGetFourth(out var _));
@@ -591,7 +617,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         clientCapabilities.SupportsVisualStudioExtensions = true;
 
         // Act
-        var vsHover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+        var vsHover = service.GetHoverInfo("file.cshtml", codeDocument, location, clientCapabilities);
 
         // Assert
         Assert.False(vsHover.Contents.Value.TryGetFourth(out var _));
@@ -639,12 +665,12 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.CSharp);
 
-        var outRange = new Range();
+        var outRange = new LinePositionSpan();
         documentMappingServiceMock
-            .Setup(c => c.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out outRange))
+            .Setup(c => c.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<LinePositionSpan>(), out outRange))
             .Returns(true);
 
-        var projectedPosition = new Position(1, 1);
+        var projectedPosition = new LinePosition(1, 1);
         var projectedIndex = 1;
         documentMappingServiceMock.Setup(
             c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
@@ -878,8 +904,9 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
     private HoverInfoService GetHoverInfoService()
     {
-        var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory();
-        var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory();
+        var snapshotResolver = new TestSnapshotResolver();
+        var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
+        var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         return new HoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
     }
 

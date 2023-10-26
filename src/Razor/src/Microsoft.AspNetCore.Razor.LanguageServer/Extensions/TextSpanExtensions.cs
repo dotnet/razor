@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 internal static class TextSpanExtensions
 {
-    public static Range AsRange(this TextSpan span, SourceText sourceText)
+    public static Range ToRange(this TextSpan span, SourceText sourceText)
     {
         if (sourceText is null)
         {
@@ -26,7 +26,4 @@ internal static class TextSpanExtensions
 
         return range;
     }
-
-    public static Range AsRange(this Language.Syntax.TextSpan span, SourceText sourceText)
-        => new TextSpan(span.Start, span.Length).AsRange(sourceText);
 }

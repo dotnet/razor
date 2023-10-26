@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Globalization;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
@@ -16,7 +15,7 @@ internal sealed class RazorDiagnosticFormatter : ValueFormatter<RazorDiagnostic>
     {
     }
 
-    protected override RazorDiagnostic Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override RazorDiagnostic Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(8);
 
@@ -30,18 +29,13 @@ internal sealed class RazorDiagnosticFormatter : ValueFormatter<RazorDiagnostic>
         var characterIndex = reader.ReadInt32();
         var length = reader.ReadInt32();
 
-        var descriptor = new RazorDiagnosticDescriptor(id, MessageFormat(message), severity);
+        var descriptor = new RazorDiagnosticDescriptor(id, message, severity);
         var span = new SourceSpan(filePath, absoluteIndex, lineIndex, characterIndex, length);
 
         return RazorDiagnostic.Create(descriptor, span);
-
-        static Func<string> MessageFormat(string message)
-        {
-            return () => message;
-        }
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, RazorDiagnostic value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, RazorDiagnostic value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(8);
 
@@ -55,5 +49,20 @@ internal sealed class RazorDiagnosticFormatter : ValueFormatter<RazorDiagnostic>
         writer.Write(span.LineIndex);
         writer.Write(span.CharacterIndex);
         writer.Write(span.Length);
+    }
+
+    public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
+    {
+        reader.ReadArrayHeaderAndVerify(8);
+
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Id
+        reader.Skip(); // Severity
+        CachedStringFormatter.Instance.Skim(ref reader, options); // Message
+
+        CachedStringFormatter.Instance.Skim(ref reader, options); // FilePath
+        reader.Skip(); // AbsoluteIndex
+        reader.Skip(); // LineIndex
+        reader.Skip(); // CharacterIndex
+        reader.Skip(); // Length
     }
 }

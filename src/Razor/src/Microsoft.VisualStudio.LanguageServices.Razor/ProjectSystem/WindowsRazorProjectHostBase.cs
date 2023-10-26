@@ -166,7 +166,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                 // This is a new slice that we didn't previously know about, either because its a new target framework, or how dimensions
                 // are calculated has changed. We simply subscribe to updates for it, and let our action block code handle whether the
                 // distinction is important. To put it another way, we may end up having multiple subscriptions and events that would be
-                // affect about the same project.razor.json file, but our event handling code ensures we don't handle them more than
+                // affect about the same project.razor.bin file, but our event handling code ensures we don't handle them more than
                 // necessary.
                 var subscription = source.JointRuleSource.SourceBlock.LinkTo(
                     DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(v => OnProjectChangedAsync(dimensions, v), nameFormat: "OnProjectChanged {1}"),
@@ -259,7 +259,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                 {
                     UninitializeProjectUnsafe(projectKey);
 
-                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
+                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace, current.DisplayName);
                     UpdateProjectUnsafe(hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.

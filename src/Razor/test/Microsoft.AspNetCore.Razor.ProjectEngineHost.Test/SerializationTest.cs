@@ -40,10 +40,11 @@ public class SerializationTest : TestBase
     {
         // Arrange
         var projectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -72,10 +73,11 @@ public class SerializationTest : TestBase
     {
         // Arrange
         var projectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -106,10 +108,11 @@ public class SerializationTest : TestBase
         var legacyDocument = new DocumentSnapshotHandle("/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
         var componentDocument = new DocumentSnapshotHandle("/path/to/otherfile.razor", "otherfile.razor", FileKinds.Component);
         var projectInfo = new RazorProjectInfo(
-            "/path/to/obj/project.razor.json",
+            "/path/to/obj/project.razor.bin",
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray.Create(legacyDocument, componentDocument));
 

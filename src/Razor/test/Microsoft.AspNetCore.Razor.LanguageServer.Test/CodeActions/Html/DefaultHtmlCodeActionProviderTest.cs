@@ -89,7 +89,7 @@ public class DefaultHtmlCodeActionProviderTest : LanguageServerTestBase
                     TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= new Uri(documentPath), Version = 1 },
                     Edits = new TextEdit[]
                     {
-                        new TextEdit { NewText = "Goo ~~~~~~~~~~~~~~~ Bar", Range = span.AsRange(context.SourceText) }
+                        new TextEdit { NewText = "Goo ~~~~~~~~~~~~~~~ Bar", Range = span.ToRange(context.SourceText) }
                     }
                 }
             }
@@ -156,7 +156,7 @@ public class DefaultHtmlCodeActionProviderTest : LanguageServerTestBase
         var tagHelpers = ImmutableArray<TagHelperDescriptor>.Empty;
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
         var projectEngine = RazorProjectEngine.Create(builder => builder.AddTagHelpers(tagHelpers));
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&

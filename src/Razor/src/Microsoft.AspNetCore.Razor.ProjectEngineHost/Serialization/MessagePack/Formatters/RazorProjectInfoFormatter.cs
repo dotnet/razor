@@ -16,7 +16,7 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
     {
     }
 
-    protected override RazorProjectInfo Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
+    public override RazorProjectInfo Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(7);
 
@@ -32,12 +32,13 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
         var configuration = reader.DeserializeOrNull<RazorConfiguration>(options);
         var projectWorkspaceState = reader.DeserializeOrNull<ProjectWorkspaceState>(options);
         var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var documents = reader.Deserialize<ImmutableArray<DocumentSnapshotHandle>>(options);
 
-        return new RazorProjectInfo(serializedFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
+        return new RazorProjectInfo(serializedFilePath, filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
     }
 
-    protected override void Serialize(ref MessagePackWriter writer, RazorProjectInfo value, SerializerCachingOptions options)
+    public override void Serialize(ref MessagePackWriter writer, RazorProjectInfo value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(7);
 
@@ -47,6 +48,7 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
         writer.Serialize(value.Configuration, options);
         writer.Serialize(value.ProjectWorkspaceState, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.RootNamespace, options);
-        writer.SerializeObject(value.Documents, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
+        writer.Serialize(value.Documents, options);
     }
 }

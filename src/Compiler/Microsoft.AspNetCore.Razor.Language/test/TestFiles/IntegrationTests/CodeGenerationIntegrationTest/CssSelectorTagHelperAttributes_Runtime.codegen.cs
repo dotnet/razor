@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"b0b4eb8b8ddbffa2284ca831845a2ffaacd3d0599bf4242794848b4210903a3b", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CssSelectorTagHelperAttributes.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"b0b4eb8b8ddbffa2284ca831845a2ffaacd3d0599bf4242794848b4210903a3b", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CssSelectorTagHelperAttributes.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_CssSelectorTagHelperAttributes_Runtime
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("href", new global::Microsoft.AspNetCore.Html.HtmlString("~/"), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             BeginAddHtmlAttributeValues(__tagHelperExecutionContext, "href", 3, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             AddHtmlAttributeValue("", 153, "~/", 153, 2, true);
 #nullable restore
-#line (6,11)-(6,17) 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CssSelectorTagHelperAttributes.cshtml"
+#line (6,12)-(6,18) 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CssSelectorTagHelperAttributes.cshtml"
 AddHtmlAttributeValue("", 155, false, 155, 6, false);
 
 #line default
@@ -132,7 +132,7 @@ AddHtmlAttributeValue("", 155, false, 155, 6, false);
             BeginAddHtmlAttributeValues(__tagHelperExecutionContext, "href", 2, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             AddHtmlAttributeValue("", 234, "~/", 234, 2, true);
 #nullable restore
-#line (8,10)-(8,16) 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CssSelectorTagHelperAttributes.cshtml"
+#line (8,11)-(8,17) 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CssSelectorTagHelperAttributes.cshtml"
 AddHtmlAttributeValue("", 236, false, 236, 6, false);
 
 #line default
@@ -171,7 +171,7 @@ AddHtmlAttributeValue("", 236, false, 236, 6, false);
             BeginAddHtmlAttributeValues(__tagHelperExecutionContext, "href", 2, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.SingleQuotes);
             AddHtmlAttributeValue("", 317, "~/?hello=world", 317, 14, true);
 #nullable restore
-#line (10,23)-(10,30) 32 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CssSelectorTagHelperAttributes.cshtml"
+#line (10,24)-(10,31) 32 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CssSelectorTagHelperAttributes.cshtml"
 AddHtmlAttributeValue(" ", 331, false, 332, 6, false);
 
 #line default

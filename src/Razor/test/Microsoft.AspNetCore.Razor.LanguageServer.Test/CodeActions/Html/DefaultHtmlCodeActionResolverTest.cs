@@ -46,7 +46,7 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
                     TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= documentUri, Version = 1 },
                     Edits = new TextEdit[]
                     {
-                        new TextEdit { NewText = "Goo ~~~~~~~~~~~~~~~ Bar", Range = span.AsRange(sourceText) }
+                        new TextEdit { NewText = "Goo ~~~~~~~~~~~~~~~ Bar", Range = span.ToRange(sourceText) }
                     }
                 }
            }
@@ -86,7 +86,10 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
         var codeActionParams = new CodeActionResolveParams()
         {
             Data = new JObject(),
-            RazorFileUri = new Uri(documentPath)
+            RazorFileIdentifier = new VSTextDocumentIdentifier
+            {
+                Uri = new Uri(documentPath)
+            }
         };
 
         // Act

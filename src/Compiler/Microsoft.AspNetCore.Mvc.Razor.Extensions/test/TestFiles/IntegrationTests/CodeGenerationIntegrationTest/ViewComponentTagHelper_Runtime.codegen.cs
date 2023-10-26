@@ -12,7 +12,7 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc;
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"9ef17a17b6e1fedefe92b2dd4e87273d3ae73d9b1f8b2ad44ce57c5611f991d3", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelper.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"9ef17a17b6e1fedefe92b2dd4e87273d3ae73d9b1f8b2ad44ce57c5611f991d3", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelper.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelper.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -63,7 +63,7 @@ namespace AspNetCore
             __tagHelperExecutionContext.Add(__TestViewComponentTagHelper);
             BeginWriteTagHelperAttribute();
 #nullable restore
-#line (6,22)-(6,25) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelper.cshtml"
+#line (6,23)-(6,26) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelper.cshtml"
 WriteLiteral(foo);
 
 #line default
