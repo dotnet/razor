@@ -60,4 +60,6 @@ internal class VSTelemetryReporter : TelemetryReporter
 
     public override void LogError(Exception exception, string? message, params object?[] args)
         => _logger?.LogError(exception, message, args);
+
+
 }
