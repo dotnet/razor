@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Editor;
@@ -92,7 +91,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     public void SetBool(string name, bool value)
     {
         _writableSettingsStore.SetBoolean(Collection, name, value);
-        _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, ImmutableDictionary<string, object?>.Empty.Add(name, value));
+        _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, new Property(name, value));
 
         NotifyChange();
     }
