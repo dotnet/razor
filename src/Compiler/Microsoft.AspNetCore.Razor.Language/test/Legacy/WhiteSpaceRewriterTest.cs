@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class WhiteSpaceRewriterTest() : ParserTestBase("Compiler")
+public class WhiteSpaceRewriterTest() : ParserTestBase(layerName: "Compiler")
 {
     [Fact]
     public void Moves_Whitespace_Preceeding_ExpressionBlock_To_Parent_Block()

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Test;
 
-public class FindTokenIntegrationTest() : IntegrationTestBase("Compiler")
+public class FindTokenIntegrationTest() : IntegrationTestBase(layerName: "Compiler")
 {
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/9177")]
     public void EmptyDirective()
