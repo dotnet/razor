@@ -5,9 +5,9 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 /// <summary>
 /// This class is responsible for maintaining project information for projects that don't
