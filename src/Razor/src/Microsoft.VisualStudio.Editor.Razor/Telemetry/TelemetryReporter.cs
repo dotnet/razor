@@ -277,6 +277,11 @@ internal abstract class TelemetryReporter : ITelemetryReporter
             return TelemetryScope.Null;
         }
 
+        ReportEvent("BeginLspRequest", Severity.Normal,
+            new("eventscope.method", lspMethodName),
+            new("eventscope.languageservername", languageServerName),
+            new("eventscope.correlationid", correlationId));
+
         return BeginBlock("TrackLspRequest", Severity.Normal, 
             new("eventscope.method", lspMethodName),
             new("eventscope.languageservername", languageServerName),
