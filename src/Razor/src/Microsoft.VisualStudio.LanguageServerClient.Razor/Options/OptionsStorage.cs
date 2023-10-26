@@ -109,7 +109,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     public void SetInt(string name, int value)
     {
         _writableSettingsStore.SetInt32(Collection, name, value);
-        _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, ImmutableDictionary<string, object?>.Empty.Add(name, value));
+        _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, new Property(name, value));
 
         NotifyChange();
     }
