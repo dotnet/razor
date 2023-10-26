@@ -216,6 +216,11 @@ internal class SnippetService
             return ImmutableHashSet<string>.Empty;
         }
 
+        // As of writing, Html and CSharp are the only languages we actually
+        // get snippets for. This assert acts as both a testament to that and 
+        // a catch for any future soul who might change that behavior. This
+        // code will need to be updated accordingly, as well as the 
+        // the s_buildInSnippets dictionary
         Debug.Assert(language == SnippetLanguage.Html);
         return s_builtInSnippets[s_HtmlLanguageId];
     }
