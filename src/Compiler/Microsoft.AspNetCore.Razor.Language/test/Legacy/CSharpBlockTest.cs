@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -44,7 +44,7 @@ public class CSharpBlockTest() : ParserTestBase(layerName: "Compiler")
     {
         ParseDocumentTest(
 @"@{
-    void Foo()
+    void Foo() 
     {
         var time = DateTime.Now
         <strong>Hello the time is @time</strong>
