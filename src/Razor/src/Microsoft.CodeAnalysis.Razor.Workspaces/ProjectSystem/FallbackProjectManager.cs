@@ -143,4 +143,21 @@ internal sealed class FallbackProjectManager
 
         return project;
     }
+
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor
+    {
+        private readonly FallbackProjectManager _instance;
+
+        internal TestAccessor(FallbackProjectManager instance)
+        {
+            _instance = instance;
+        }
+
+        internal ImmutableHashSet<ProjectId> ProjectIds => _instance._fallbackProjectIds;
+    }
 }
