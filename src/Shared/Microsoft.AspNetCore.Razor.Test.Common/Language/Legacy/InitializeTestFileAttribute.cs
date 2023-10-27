@@ -9,11 +9,11 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class IntializeTestFileAttribute : BeforeAfterTestAttribute
+public class InitializeTestFileAttribute : BeforeAfterTestAttribute
 {
     public override void Before(MethodInfo methodUnderTest)
     {
-        if (typeof(ParserTestBase).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
+        if (typeof(IParserTest).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
         {
             var typeName = methodUnderTest.DeclaringType.Name;
             ParserTestBase.FileName = $"TestFiles/ParserTests/{typeName}/{methodUnderTest.Name}";
@@ -28,7 +28,7 @@ public class IntializeTestFileAttribute : BeforeAfterTestAttribute
 
     public override void After(MethodInfo methodUnderTest)
     {
-        if (typeof(ParserTestBase).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
+        if (typeof(IParserTest).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
         {
             ParserTestBase.FileName = null;
             ParserTestBase.IsTheory = false;

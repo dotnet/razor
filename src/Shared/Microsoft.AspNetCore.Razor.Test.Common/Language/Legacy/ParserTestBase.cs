@@ -17,8 +17,8 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-[IntializeTestFile]
-public abstract class ParserTestBase
+[InitializeTestFile]
+public abstract class ParserTestBase : IParserTest
 {
     private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
     private static readonly AsyncLocal<bool> _isTheory = new AsyncLocal<bool>();

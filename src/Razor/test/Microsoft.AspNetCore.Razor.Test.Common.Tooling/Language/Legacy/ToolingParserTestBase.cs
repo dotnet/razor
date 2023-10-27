@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,15 +20,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 // Sets the FileName static variable.
 // Finds the test method name using reflection, and uses
 // that to find the expected input/output test files in the file system.
-[IntializeTestFile]
+[InitializeTestFile]
 
-// These tests must be run serially due to the test specific FileName static var.
+// These tests must be run serially due to the test specific ParserTestBase.FileName static var.
 [Collection("ParserTestSerialRuns")]
-public abstract class ToolingParserTestBase : ToolingTestBase
+public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
 {
-    private static readonly AsyncLocal<string> s_fileName = new();
-    private static readonly AsyncLocal<bool> s_isTheory = new();
-
     protected ToolingParserTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
@@ -50,19 +46,6 @@ public abstract class ToolingParserTestBase : ToolingTestBase
 
     protected string TestProjectRoot { get; }
 
-    // Used by the test framework to set the 'base' name for test files.
-    public static string FileName
-    {
-        get { return s_fileName.Value; }
-        set { s_fileName.Value = value; }
-    }
-
-    public static bool IsTheory
-    {
-        get { return s_isTheory.Value; }
-        set { s_isTheory.Value = value; }
-    }
-
     protected int BaselineTestCount { get; set; }
 
     internal virtual void AssertSyntaxTreeNodeMatchesBaseline(RazorSyntaxTree syntaxTree)
@@ -70,19 +53,19 @@ public abstract class ToolingParserTestBase : ToolingTestBase
         var root = syntaxTree.Root;
         var diagnostics = syntaxTree.Diagnostics;
         var filePath = syntaxTree.Source.FilePath;
-        if (FileName is null)
+        if (ParserTestBase.FileName is null)
         {
-            var message = $"{nameof(AssertSyntaxTreeNodeMatchesBaseline)} should only be called from a parser test ({nameof(FileName)} is null).";
+            var message = $"{nameof(AssertSyntaxTreeNodeMatchesBaseline)} should only be called from a parser test ({nameof(ParserTestBase.FileName)} is null).";
             throw new InvalidOperationException(message);
         }
 
-        if (IsTheory)
+        if (ParserTestBase.IsTheory)
         {
             var message = $"{nameof(AssertSyntaxTreeNodeMatchesBaseline)} should not be called from a [Theory] test.";
             throw new InvalidOperationException(message);
         }
 
-        var fileName = BaselineTestCount > 0 ? FileName + $"_{BaselineTestCount}" : FileName;
+        var fileName = BaselineTestCount > 0 ? ParserTestBase.FileName + $"_{BaselineTestCount}" : ParserTestBase.FileName;
         var baselineFileName = Path.ChangeExtension(fileName, ".stree.txt");
         var baselineDiagnosticsFileName = Path.ChangeExtension(fileName, ".diag.txt");
         var baselineClassifiedSpansFileName = Path.ChangeExtension(fileName, ".cspans.txt");
