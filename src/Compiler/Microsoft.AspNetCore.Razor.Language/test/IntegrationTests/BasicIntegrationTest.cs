@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-public class BasicIntegrationTest() : IntegrationTestBase("Compiler")
+public class BasicIntegrationTest() : IntegrationTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void Empty()

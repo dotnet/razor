@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpReservedWordsTest() : ParserTestBase(layerName: "Compiler")
+public class CSharpReservedWordsTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void ReservedWord()

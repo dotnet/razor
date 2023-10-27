@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpSpecialBlockTest() : ParserTestBase(layerName: "Compiler")
+public class CSharpSpecialBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void NonKeywordStatementInCodeBlockIsHandledCorrectly()

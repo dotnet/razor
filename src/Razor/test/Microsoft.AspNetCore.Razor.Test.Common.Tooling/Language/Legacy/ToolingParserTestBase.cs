@@ -29,7 +29,7 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
     protected ToolingParserTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        TestProjectRoot = TestProject.GetProjectDirectory(GetType(), layerFolderName: "Razor");
+        TestProjectRoot = TestProject.GetProjectDirectory(GetType(), layer: TestProject.Layer.Tooling);
     }
 
     /// <summary>

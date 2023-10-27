@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpExplicitExpressionTest() : ParserTestBase(layerName: "Compiler")
+public class CSharpExplicitExpressionTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void ShouldOutputZeroLengthCodeSpanIfExplicitExpressionIsEmpty()

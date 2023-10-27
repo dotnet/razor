@@ -54,9 +54,9 @@ public abstract class IntegrationTestBase
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
-    protected IntegrationTestBase(string layerName, bool? generateBaselines = null, string? projectDirectoryHint = null)
+    protected IntegrationTestBase(TestProject.Layer layer, bool? generateBaselines = null, string? projectDirectoryHint = null)
     {
-        TestProjectRoot = projectDirectoryHint == null ? TestProject.GetProjectDirectory(GetType(), layerName) : TestProject.GetProjectDirectory(projectDirectoryHint, layerName);
+        TestProjectRoot = projectDirectoryHint == null ? TestProject.GetProjectDirectory(GetType(), layer) : TestProject.GetProjectDirectory(projectDirectoryHint, layer);
 
         if (generateBaselines.HasValue)
         {
@@ -238,13 +238,13 @@ public abstract class IntegrationTestBase
         var projectEngine = CreateProjectEngine(Configuration, references, ConfigureProjectEngine);
         var codeDocument = (designTime ?? DesignTime) ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
 
-        return new CompiledCSharpCode(CSharpCompilation.Create(compilation.AssemblyName + ".Views", references: references, options: compilation.Options), codeDocument);
+        return new CompiledCSharpCode(CSharpCompilation.Create(compilation.AssemblyName + ".Views", references: references, options: CSharpCompilationOptions), codeDocument);
     }
 
     protected CompiledAssembly CompileToAssembly(string text, string path = "test.cshtml", bool? designTime = null, bool throwOnFailure = true)
     {
         var compiled = CompileToCSharp(text, path, designTime);
-        return CompileToAssembly(compiled);
+        return CompileToAssembly(compiled, throwOnFailure);
     }
 
     protected CompiledAssembly CompileToAssembly(RazorProjectItem projectItem, bool? designTime = null, bool throwOnFailure = true)

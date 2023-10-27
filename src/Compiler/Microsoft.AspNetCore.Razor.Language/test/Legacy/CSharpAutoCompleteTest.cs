@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpAutoCompleteTest() : ParserTestBase(layerName: "Compiler")
+public class CSharpAutoCompleteTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void FunctionsDirectiveAutoCompleteAtEOF()

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class RazorDirectivesTest() : ParserTestBase(layerName: "Compiler")
+public class RazorDirectivesTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void DirectiveDescriptor_FileScopedMultipleOccurring_CanHaveDuplicates()

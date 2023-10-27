@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class HtmlErrorTest() : ParserTestBase(layerName: "Compiler")
+public class HtmlErrorTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void AllowsInvalidTagNamesAsLongAsParserCanIdentifyEndTag()

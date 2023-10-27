@@ -6,23 +6,38 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class TestProject
 {
-    public static string GetProjectDirectory(string directoryHint, string layerFolderName, bool testDirectoryFirst = false)
+    public enum Layer
+    {
+        Compiler, Tooling
+    }
+
+    private static string GetLayerFolderName(Layer layer) => layer switch
+    {
+        Layer.Compiler => "Compiler",
+        Layer.Tooling => "Razor",
+        _ => throw TestExceptionUtilities.UnexpectedValue(layer)
+    };
+
+    public static string GetProjectDirectory(string directoryHint, Layer layer, bool testDirectoryFirst = false)
     {
         var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json");
+        var layerFolderName = GetLayerFolderName(layer);
 
-        var projectDirectory = testDirectoryFirst
+        Debug.Assert(!testDirectoryFirst || layer != Layer.Tooling, "If testDirectoryFirst is true and we're in the tooling layer, that means the project directory ternary needs to be updated to handle the false case");
+        var projectDirectory = testDirectoryFirst || layer == Layer.Tooling
             ? Path.Combine(repoRoot, "src", layerFolderName, "test", directoryHint)
             : Path.Combine(repoRoot, "src", layerFolderName, directoryHint, "test");
 
         if (string.Equals(directoryHint, "Microsoft.AspNetCore.Razor.Language.Test", StringComparison.Ordinal))
         {
             Debug.Assert(!testDirectoryFirst);
-            Debug.Assert(layerFolderName == "Compiler");
+            Debug.Assert(layer == Layer.Compiler);
             projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "Microsoft.AspNetCore.Razor.Language", "test");
         }
 
@@ -35,15 +50,19 @@ public static class TestProject
         return projectDirectory;
     }
 
-    public static string GetProjectDirectory(Type type, string layerFolderName, bool useCurrentDirectory = false)
+    public static string GetProjectDirectory(Type type, Layer layer, bool useCurrentDirectory = false)
     {
         var baseDir = useCurrentDirectory ? Directory.GetCurrentDirectory() : AppContext.BaseDirectory;
+        var layerFolderName = GetLayerFolderName(layer);
         var repoRoot = SearchUp(baseDir, "global.json");
         var assemblyName = type.Assembly.GetName().Name;
-        var projectDirectory = Path.Combine(repoRoot, "src", layerFolderName, assemblyName, "test");
+        var projectDirectory = layer == Layer.Compiler
+            ?  Path.Combine(repoRoot, "src", layerFolderName, assemblyName, "test")
+            :  Path.Combine(repoRoot, "src", layerFolderName, "test", assemblyName);
+
         if (string.Equals(assemblyName, "Microsoft.AspNetCore.Razor.Language.Test", StringComparison.Ordinal))
         {
-            Debug.Assert(layerFolderName == "Compiler");
+            Debug.Assert(layer == Layer.Compiler);
             projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "Microsoft.AspNetCore.Razor.Language", "test");
         }
 

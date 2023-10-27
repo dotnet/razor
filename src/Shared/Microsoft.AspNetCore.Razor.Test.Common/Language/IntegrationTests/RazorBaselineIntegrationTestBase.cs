@@ -26,9 +26,9 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
-    protected RazorBaselineIntegrationTestBase(string layerName, bool? generateBaselines = null)
+    protected RazorBaselineIntegrationTestBase(TestProject.Layer layer, bool? generateBaselines = null)
     {
-        TestProjectRoot = TestProject.GetProjectDirectory(GetType(), layerName);
+        TestProjectRoot = TestProject.GetProjectDirectory(GetType(), layer);
 
         if (generateBaselines.HasValue)
         {

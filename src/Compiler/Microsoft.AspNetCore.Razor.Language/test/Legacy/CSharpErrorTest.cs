@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpErrorTest() : ParserTestBase(layerName: "Compiler")
+public class CSharpErrorTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void HandlesQuotesAfterTransition()
