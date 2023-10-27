@@ -71,7 +71,9 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
     protected static RazorCodeDocument CreateCodeDocument(string text, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? filePath = null)
     {
-        var fileKind = FileKinds.GetFileKindFromFilePath(filePath ?? "test.cshtml");
+        filePath ??= "test.cshtml";
+
+        var fileKind = FileKinds.GetFileKindFromFilePath(filePath);
         tagHelpers = tagHelpers.NullToEmpty();
 
         if (fileKind == FileKinds.Component)
@@ -79,7 +81,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
             tagHelpers = tagHelpers.AddRange(RazorTestResources.BlazorServerAppTagHelpers);
         }
 
-        var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath);
+        var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
         var projectEngine = RazorProjectEngine.Create(RazorExtensions.Register);
         var importDocumentName = fileKind == FileKinds.Legacy ? "_ViewImports.cshtml" : "_Imports.razor";
         var defaultImportDocument = TestRazorSourceDocument.Create(
