@@ -94,9 +94,9 @@
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>3a25a7f1cc446b60678ed25c9d829420d6321eba</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.23527.4">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.23528.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>b2827fe94e3dd11be213dedacd6a57ace65d7522</Sha>
+      <Sha>a4d49646dbac90883d3672f1c08134d84cca5707</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="Microsoft.DotNet.XliffTasks" Version="9.0.0-beta.23527.4">
