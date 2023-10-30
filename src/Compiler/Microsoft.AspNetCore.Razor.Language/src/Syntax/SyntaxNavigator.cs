@@ -28,7 +28,7 @@ internal static class SyntaxNavigator
         return GetLastToken(current, GetPredicateFunction(includeZeroWidth));
     }
 
-    internal static SyntaxToken? GetPreviousToken(in SyntaxToken current, bool includeZeroWidth)
+    internal static SyntaxToken? GetPreviousToken(SyntaxToken current, bool includeZeroWidth)
     {
         return GetPreviousToken(current, GetPredicateFunction(includeZeroWidth));
     }

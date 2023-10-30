@@ -100,6 +100,24 @@ internal class SyntaxToken : RazorSyntaxNode
         return new SyntaxTriviaList(trailing.CreateRed(this, trailingPosition), trailingPosition, index);
     }
 
+    /// <summary>
+    /// Gets the token that follows this token in the syntax tree.
+    /// </summary>
+    /// <returns>The token that follows this token in the syntax tree.</returns>
+    public SyntaxToken GetNextToken(bool includeZeroWidth = false)
+    {
+        return SyntaxNavigator.GetNextToken(this, includeZeroWidth);
+    }
+
+    /// <summary>
+    /// Gets the token that precedes this token in the syntax tree.
+    /// </summary>
+    /// <returns>The previous token that precedes this token in the syntax tree.</returns>
+    public SyntaxToken GetPreviousToken(bool includeZeroWidth = false)
+    {
+        return SyntaxNavigator.GetPreviousToken(this, includeZeroWidth);
+    }
+
     public override string ToString()
     {
         return Content;

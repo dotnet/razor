@@ -224,11 +224,6 @@ internal abstract partial class SyntaxNode
         return lastToken != null ? lastToken.GetTrailingTrivia() : default(SyntaxTriviaList);
     }
 
-    internal SyntaxToken GetFirstToken()
-    {
-        return ((SyntaxToken)GetFirstTerminal());
-    }
-
     internal SyntaxList<SyntaxToken> GetTokens()
     {
         var tokens = SyntaxListBuilder<SyntaxToken>.Create();
@@ -258,59 +253,22 @@ internal abstract partial class SyntaxNode
         }
     }
 
-    internal SyntaxToken GetLastToken()
+    /// <summary>
+    /// Gets the first token of the tree rooted by this node. Skips zero-width tokens.
+    /// </summary>
+    /// <returns>The first token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
+    public SyntaxToken GetFirstToken(bool includeZeroWidth = false)
     {
-        return ((SyntaxToken)GetLastTerminal());
+        return SyntaxNavigator.GetFirstToken(this, includeZeroWidth);
     }
 
-    public SyntaxNode GetFirstTerminal()
+    /// <summary>
+    /// Gets the last token of the tree rooted by this node. Skips zero-width tokens.
+    /// </summary>
+    /// <returns>The last token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
+    public SyntaxToken GetLastToken(bool includeZeroWidth = false)
     {
-        var node = this;
-
-        do
-        {
-            var foundChild = false;
-            for (int i = 0, n = node.SlotCount; i < n; i++)
-            {
-                var child = node.GetNodeSlot(i);
-                if (child != null)
-                {
-                    node = child;
-                    foundChild = true;
-                    break;
-                }
-            }
-
-            if (!foundChild)
-            {
-                return null;
-            }
-        }
-        while (node.SlotCount != 0);
-
-        return node == this ? this : node;
-    }
-
-    public SyntaxNode GetLastTerminal()
-    {
-        var node = this;
-
-        do
-        {
-            SyntaxNode lastChild = null;
-            for (var i = node.SlotCount - 1; i >= 0; i--)
-            {
-                var child = node.GetNodeSlot(i);
-                if (child != null && child.FullWidth > 0)
-                {
-                    lastChild = child;
-                    break;
-                }
-            }
-            node = lastChild;
-        } while (node?.SlotCount > 0);
-
-        return node;
+        return SyntaxNavigator.GetLastToken(this, includeZeroWidth);
     }
 
     /// <summary>
