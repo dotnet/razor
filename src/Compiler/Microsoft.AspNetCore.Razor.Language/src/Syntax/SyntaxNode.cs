@@ -463,7 +463,7 @@ internal abstract partial class SyntaxNode
                 foundToken = originalFoundToken;
                 do
                 {
-                    foundToken = SyntaxNavigator.GetPreviousToken(foundToken, includeZeroWidth: true);
+                    foundToken = foundToken.GetPreviousToken(includeZeroWidth: true);
                     if (foundToken is null or { Kind: SyntaxKind.NewLine })
                     {
                         return false;
@@ -485,7 +485,7 @@ internal abstract partial class SyntaxNode
                 var currentToken = originalFoundToken;
                 do
                 {
-                    currentToken = SyntaxNavigator.GetNextToken(currentToken, includeZeroWidth: true);
+                    currentToken = currentToken.GetNextToken(includeZeroWidth: true);
 
                     if (currentToken is null || currentToken.Span.End > this.Span.End)
                     {
