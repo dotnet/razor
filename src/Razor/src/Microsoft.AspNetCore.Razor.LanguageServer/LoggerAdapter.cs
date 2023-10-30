@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -14,13 +15,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 // but we did not want to migrate them all at once
 internal class LoggerAdapter : IRazorLogger
 {
-    private readonly IEnumerable<ILogger> _loggers;
+    private readonly ImmutableArray<ILogger> _loggers;
     private readonly ITelemetryReporter? _telemetryReporter;
     private readonly TraceSource? _traceSource;
 
-    public LoggerAdapter(IEnumerable<ILogger> loggers, ITelemetryReporter? telemetryReporter, TraceSource? traceSource = null)
+    public LoggerAdapter(IEnumerable<ILogger> loggers, ITelemetryReporter? telemetryReporter = null, TraceSource? traceSource = null)
     {
-        _loggers = loggers;
+        _loggers = loggers.ToImmutableArray();
+        _telemetryReporter = telemetryReporter;
+        _traceSource = traceSource;
+    }
+
+    public LoggerAdapter(ILogger logger, ITelemetryReporter? telemetryReporter = null, TraceSource? traceSource = null)
+    {
+        _loggers =  ImmutableArray.Create(logger);
         _telemetryReporter = telemetryReporter;
         _traceSource = traceSource;
     }
