@@ -35,10 +35,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void PublishCSharp_FirstTime_PublishesEntireSourceText()
+    public async Task PublishCSharp_FirstTime_PublishesEntireSourceText()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         var content = "// C# content";
         var sourceText = SourceText.From(content);
 
@@ -54,10 +56,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void PublishHtml_FirstTime_PublishesEntireSourceText()
+    public async Task PublishHtml_FirstTime_PublishesEntireSourceText()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         var content = "HTML content";
         var sourceText = SourceText.From(content);
 
@@ -73,10 +77,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void PublishCSharp_SecondTime_PublishesSourceTextDifferences()
+    public async Task PublishCSharp_SecondTime_PublishesSourceTextDifferences()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         var initialSourceText = SourceText.From("// Initial content\n");
         generatedDocumentPublisher.PublishCSharp(_hostProject.Key, "/path/to/file.razor", initialSourceText, 123);
         var change = new TextChange(
@@ -97,10 +103,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void PublishHtml_SecondTime_PublishesSourceTextDifferences()
+    public async Task PublishHtml_SecondTime_PublishesSourceTextDifferences()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         var initialSourceText = SourceText.From("HTML content\n");
         generatedDocumentPublisher.PublishHtml(_hostProject.Key, "/path/to/file.razor", initialSourceText, 123);
         var change = new TextChange(
@@ -121,10 +129,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void PublishCSharp_SecondTime_IdenticalContent_NoTextChanges()
+    public async Task PublishCSharp_SecondTime_IdenticalContent_NoTextChanges()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         var sourceTextContent = "// The content";
         var initialSourceText = SourceText.From(sourceTextContent);
         generatedDocumentPublisher.PublishCSharp(_hostProject.Key, "/path/to/file.razor", initialSourceText, 123);
@@ -142,10 +152,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void PublishHtml_SecondTime_IdenticalContent_NoTextChanges()
+    public async Task PublishHtml_SecondTime_IdenticalContent_NoTextChanges()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         var sourceTextContent = "HTMl content";
         var initialSourceText = SourceText.From(sourceTextContent);
         generatedDocumentPublisher.PublishHtml(_hostProject.Key, "/path/to/file.razor", initialSourceText, 123);
@@ -163,10 +175,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void PublishCSharp_DifferentFileSameContent_PublishesEverything()
+    public async Task PublishCSharp_DifferentFileSameContent_PublishesEverything()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         var sourceTextContent = "// The content";
         var initialSourceText = SourceText.From(sourceTextContent);
         generatedDocumentPublisher.PublishCSharp(_hostProject.Key, "/path/to/file1.razor", initialSourceText, 123);
@@ -185,10 +199,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void PublishHtml_DifferentFileSameContent_PublishesEverything()
+    public async Task PublishHtml_DifferentFileSameContent_PublishesEverything()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         var sourceTextContent = "HTML content";
         var initialSourceText = SourceText.From(sourceTextContent);
         generatedDocumentPublisher.PublishHtml(_hostProject.Key, "/path/to/file1.razor", initialSourceText, 123);
@@ -207,10 +223,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void ProjectSnapshotManager_DocumentChanged_OpenDocument_PublishesEmptyTextChanges_CSharp()
+    public async Task ProjectSnapshotManager_DocumentChanged_OpenDocument_PublishesEmptyTextChanges_CSharp()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         generatedDocumentPublisher.Initialize(_projectManager);
         var sourceTextContent = "// The content";
         var initialSourceText = SourceText.From(sourceTextContent);
@@ -229,10 +247,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void ProjectSnapshotManager_DocumentChanged_OpenDocument_VersionEquivalent_Noops_CSharp()
+    public async Task ProjectSnapshotManager_DocumentChanged_OpenDocument_VersionEquivalent_Noops_CSharp()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         generatedDocumentPublisher.Initialize(_projectManager);
         var sourceTextContent = "// The content";
         var initialSourceText = SourceText.From(sourceTextContent);
@@ -249,10 +269,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void ProjectSnapshotManager_DocumentChanged_OpenDocument_PublishesEmptyTextChanges_Html()
+    public async Task ProjectSnapshotManager_DocumentChanged_OpenDocument_PublishesEmptyTextChanges_Html()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         generatedDocumentPublisher.Initialize(_projectManager);
         var sourceTextContent = "<!-- The content -->";
         var initialSourceText = SourceText.From(sourceTextContent);
@@ -271,10 +293,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void ProjectSnapshotManager_DocumentChanged_OpenDocument_VersionEquivalent_Noops_Html()
+    public async Task ProjectSnapshotManager_DocumentChanged_OpenDocument_VersionEquivalent_Noops_Html()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         generatedDocumentPublisher.Initialize(_projectManager);
         var sourceTextContent = "<!-- The content -->";
         var initialSourceText = SourceText.From(sourceTextContent);
@@ -291,10 +315,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void ProjectSnapshotManager_DocumentChanged_ClosedDocument_RepublishesTextChanges()
+    public async Task ProjectSnapshotManager_DocumentChanged_ClosedDocument_RepublishesTextChanges()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         generatedDocumentPublisher.Initialize(_projectManager);
         var sourceTextContent = "// The content";
         var initialSourceText = SourceText.From(sourceTextContent);
@@ -315,10 +341,12 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void ProjectSnapshotManager_DocumentMoved_DoesntRepublishWholeDocument()
+    public async Task ProjectSnapshotManager_DocumentMoved_DoesntRepublishWholeDocument()
     {
         // Arrange
-        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(LegacyDispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+        await SwitchToDispatcherThreadAsync();
+
+        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, _serverClient, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
         generatedDocumentPublisher.Initialize(_projectManager);
         var sourceTextContent = """
             public void Method()

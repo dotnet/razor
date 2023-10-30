@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -29,12 +28,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 public abstract class LanguageServerTestBase : ToolingTestBase
 {
-    // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
-    // synchronization context from the constructing thread and binds to that. We've seen in XUnit how this can unexpectedly lead to flaky
-    // tests since it doesn't actually replicate what happens in real scenario (a separate dedicated dispatcher thread). If you're reading
-    // this write your tests using the normal Dispatcher property. Eventually this LegacyDispatcher property will go away when we've had
-    // the opportunity to re-write our tests correctly.
-    private protected ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
     private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
     private protected IRazorSpanMappingService SpanMappingService { get; }
     private protected FilePathService FilePathService { get; }
@@ -44,10 +37,6 @@ public abstract class LanguageServerTestBase : ToolingTestBase
     public LanguageServerTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-#pragma warning disable CS0618 // Type or member is obsolete
-        LegacyDispatcher = new TestProjectSnapshotManagerDispatcher();
-#pragma warning restore CS0618 // Type or member is obsolete
-
         Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
         AddDisposable((IDisposable)Dispatcher);
 
@@ -59,6 +48,9 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
         FilePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
     }
+
+    private protected DispatcherAwaitable SwitchToDispatcherThreadAsync()
+        => Dispatcher.SwitchToAsync(DisposalToken);
 
     internal RazorRequestContext CreateRazorRequestContext(VersionedDocumentContext? documentContext, ILspServices? lspServices = null)
     {
@@ -141,41 +133,6 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
         monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, true, InsertSpaces: true, TabSize: 4, formatOnType, autoInsertAttributeQuotes, colorBackground, commitElementsWithSpace));
         return monitor.Object;
-    }
-
-    [Obsolete("Use " + nameof(LSPProjectSnapshotManagerDispatcher))]
-    private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
-    {
-        public TestProjectSnapshotManagerDispatcher()
-        {
-            DispatcherScheduler = SynchronizationContext.Current is null
-                ? new ThrowingTaskScheduler()
-                : TaskScheduler.FromCurrentSynchronizationContext();
-        }
-
-        public override TaskScheduler DispatcherScheduler { get; }
-
-        private Thread Thread { get; } = Thread.CurrentThread;
-
-        public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
-    }
-
-    private class ThrowingTaskScheduler : TaskScheduler
-    {
-        protected override IEnumerable<Task> GetScheduledTasks()
-        {
-            return Enumerable.Empty<Task>();
-        }
-
-        protected override void QueueTask(Task task)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
