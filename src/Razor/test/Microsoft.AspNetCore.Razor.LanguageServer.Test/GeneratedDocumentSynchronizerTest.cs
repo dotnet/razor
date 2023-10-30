@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -66,14 +67,16 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
 
         public bool PublishedHtml { get; private set; }
 
-        public override void PublishCSharp(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
+        public override ValueTask PublishCSharpAsync(ProjectKey projectKey, string filePath, SourceText text, int hostDocumentVersion, CancellationToken cancellationToken)
         {
             PublishedCSharp = true;
+            return ValueTask.CompletedTask;
         }
 
-        public override void PublishHtml(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
+        public override ValueTask PublishHtmlAsync(ProjectKey projectKey, string filePath, SourceText text, int hostDocumentVersion, CancellationToken cancellationToken)
         {
             PublishedHtml = true;
+            return ValueTask.CompletedTask;
         }
     }
 }

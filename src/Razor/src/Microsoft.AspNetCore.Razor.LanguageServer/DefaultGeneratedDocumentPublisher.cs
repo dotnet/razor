@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor;
@@ -20,40 +21,26 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
     private readonly Dictionary<DocumentKey, PublishData> _publishedCSharpData;
     private readonly Dictionary<string, PublishData> _publishedHtmlData;
     private readonly ClientNotifierServiceBase _server;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly LanguageServerFeatureOptions _options;
     private readonly ILogger _logger;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
     public DefaultGeneratedDocumentPublisher(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         ClientNotifierServiceBase server,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        LanguageServerFeatureOptions options,
         ILoggerFactory loggerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (server is null)
-        {
-            throw new ArgumentNullException(nameof(server));
-        }
-
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _server = server ?? throw new ArgumentNullException(nameof(server));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
 
         if (loggerFactory is null)
         {
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _server = server;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
         _logger = loggerFactory.CreateLogger<DefaultGeneratedDocumentPublisher>();
         _publishedCSharpData = new Dictionary<DocumentKey, PublishData>();
 
@@ -75,25 +62,25 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
     }
 
-    public override void PublishCSharp(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
+    public override async ValueTask PublishCSharpAsync(ProjectKey projectKey, string filePath, SourceText text, int hostDocumentVersion, CancellationToken cancellationToken)
     {
         if (filePath is null)
         {
             throw new ArgumentNullException(nameof(filePath));
         }
 
-        if (sourceText is null)
+        if (text is null)
         {
-            throw new ArgumentNullException(nameof(sourceText));
+            throw new ArgumentNullException(nameof(text));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        await _dispatcher.SwitchToAsync(cancellationToken);
 
         // If our generated documents don't have unique file paths, then using project key information is problematic for the client.
         // For example, when a document moves from the Misc Project to a real project, we will update it here, and each version would
         // have a different project key. On the receiving end however, there is only one file path, therefore one version of the contents,
         // so we must ensure we only have a single document to compute diffs from, or things get out of sync.
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        if (!_options.IncludeProjectKeyInGeneratedFilePath)
         {
             projectKey = default;
         }
@@ -105,7 +92,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             previouslyPublishedData = PublishData.Default;
         }
 
-        var textChanges = SourceTextDiffer.GetMinimalTextChanges(previouslyPublishedData.SourceText, sourceText);
+        var textChanges = SourceTextDiffer.GetMinimalTextChanges(previouslyPublishedData.Text, text);
         if (textChanges.Count == 0 && hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
         {
             // Source texts match along with host document versions. We've already published something that looks like this. No-op.
@@ -114,9 +101,9 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
 
         if (_logger.IsEnabled(LogLevel.Trace))
         {
-            var previousDocumentLength = previouslyPublishedData.SourceText.Length;
-            var currentDocumentLength = sourceText.Length;
-            var documentLengthDelta = sourceText.Length - previousDocumentLength;
+            var previousDocumentLength = previouslyPublishedData.Text.Length;
+            var currentDocumentLength = text.Length;
+            var documentLengthDelta = text.Length - previousDocumentLength;
             _logger.LogTrace(
                 "Updating C# buffer of {0} for project {1} to correspond with host document version {2}. {3} -> {4} = Change delta of {5} via {6} text changes.",
                 filePath,
@@ -128,7 +115,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                 textChanges.Count);
         }
 
-        _publishedCSharpData[key] = new PublishData(sourceText, hostDocumentVersion);
+        _publishedCSharpData[key] = new PublishData(text, hostDocumentVersion);
 
         var request = new UpdateBufferRequest()
         {
@@ -136,32 +123,32 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             ProjectKeyId = projectKey.Id,
             Changes = textChanges,
             HostDocumentVersion = hostDocumentVersion,
-            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
+            PreviousWasEmpty = previouslyPublishedData.Text.Length == 0
         };
 
         _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
     }
 
-    public override void PublishHtml(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
+    public override async ValueTask PublishHtmlAsync(ProjectKey projectKey, string filePath, SourceText text, int hostDocumentVersion, CancellationToken cancellationToken)
     {
         if (filePath is null)
         {
             throw new ArgumentNullException(nameof(filePath));
         }
 
-        if (sourceText is null)
+        if (text is null)
         {
-            throw new ArgumentNullException(nameof(sourceText));
+            throw new ArgumentNullException(nameof(text));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        await _dispatcher.SwitchToAsync(cancellationToken);
 
         if (!_publishedHtmlData.TryGetValue(filePath, out var previouslyPublishedData))
         {
             previouslyPublishedData = PublishData.Default;
         }
 
-        var textChanges = SourceTextDiffer.GetMinimalTextChanges(previouslyPublishedData.SourceText, sourceText);
+        var textChanges = SourceTextDiffer.GetMinimalTextChanges(previouslyPublishedData.Text, text);
         if (textChanges.Count == 0 && hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
         {
             // Source texts match along with host document versions. We've already published something that looks like this. No-op.
@@ -170,9 +157,9 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
 
         if (_logger.IsEnabled(LogLevel.Trace))
         {
-            var previousDocumentLength = previouslyPublishedData.SourceText.Length;
-            var currentDocumentLength = sourceText.Length;
-            var documentLengthDelta = sourceText.Length - previousDocumentLength;
+            var previousDocumentLength = previouslyPublishedData.Text.Length;
+            var currentDocumentLength = text.Length;
+            var documentLengthDelta = text.Length - previousDocumentLength;
             _logger.LogTrace(
                 "Updating HTML buffer of {0} to correspond with host document version {1}. {2} -> {3} = Change delta of {4} via {5} text changes.",
                 filePath,
@@ -183,7 +170,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                 textChanges.Count);
         }
 
-        _publishedHtmlData[filePath] = new PublishData(sourceText, hostDocumentVersion);
+        _publishedHtmlData[filePath] = new PublishData(text, hostDocumentVersion);
 
         var request = new UpdateBufferRequest()
         {
@@ -191,7 +178,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             ProjectKeyId = projectKey.Id,
             Changes = textChanges,
             HostDocumentVersion = hostDocumentVersion,
-            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
+            PreviousWasEmpty = previouslyPublishedData.Text.Length == 0
         };
 
         _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
@@ -205,7 +192,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             return;
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         Assumes.NotNull(_projectSnapshotManager);
 
@@ -216,7 +203,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                 if (!_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                 {
                     // Document closed, evict published source text, unless the server doesn't want us to.
-                    if (_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
+                    if (_options.UpdateBuffersForClosedDocuments)
                     {
                         // Some clients want us to keep generating code even if the document is closed, so if we evict our data,
                         // even though we don't send a didChange for it, the next didChange will be wrong.
@@ -224,7 +211,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                     }
 
                     var projectKey = args.ProjectKey;
-                    if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+                    if (!_options.IncludeProjectKeyInGeneratedFilePath)
                     {
                         projectKey = default;
                     }
@@ -255,18 +242,8 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         }
     }
 
-    private sealed class PublishData
+    private readonly record struct PublishData(SourceText Text, int? HostDocumentVersion)
     {
-        public static readonly PublishData Default = new PublishData(SourceText.From(string.Empty), null);
-
-        public PublishData(SourceText sourceText, int? hostDocumentVersion)
-        {
-            SourceText = sourceText;
-            HostDocumentVersion = hostDocumentVersion;
-        }
-
-        public SourceText SourceText { get; }
-
-        public int? HostDocumentVersion { get; }
+        public static readonly PublishData Default = new(SourceText.From(string.Empty), null);
     }
 }

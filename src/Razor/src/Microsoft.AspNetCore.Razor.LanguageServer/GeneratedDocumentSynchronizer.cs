@@ -44,10 +44,14 @@ internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
 
         var htmlText = codeDocument.GetHtmlSourceText();
 
-        _publisher.PublishHtml(document.Project.Key, filePath, htmlText, hostDocumentVersion.Value);
+        await _publisher
+            .PublishHtmlAsync(document.Project.Key, filePath, htmlText, hostDocumentVersion.Value, cancellationToken)
+            .ConfigureAwait(false);
 
         var csharpText = codeDocument.GetCSharpSourceText();
 
-        _publisher.PublishCSharp(document.Project.Key, filePath, csharpText, hostDocumentVersion.Value);
+        await _publisher
+            .PublishCSharpAsync(document.Project.Key, filePath, csharpText, hostDocumentVersion.Value, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

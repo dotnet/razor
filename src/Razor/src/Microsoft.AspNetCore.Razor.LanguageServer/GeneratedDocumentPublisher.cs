@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,7 +12,17 @@ internal abstract class GeneratedDocumentPublisher : IProjectSnapshotChangeTrigg
 {
     public abstract void Initialize(ProjectSnapshotManagerBase projectManager);
 
-    public abstract void PublishCSharp(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion);
+    public abstract ValueTask PublishCSharpAsync(
+        ProjectKey projectKey,
+        string filePath,
+        SourceText text,
+        int hostDocumentVersion,
+        CancellationToken cancellationToken);
 
-    public abstract void PublishHtml(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion);
+    public abstract ValueTask PublishHtmlAsync(
+        ProjectKey projectKey,
+        string filePath,
+        SourceText text,
+        int hostDocumentVersion,
+        CancellationToken cancellationToken);
 }
