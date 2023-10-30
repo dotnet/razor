@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -10,35 +12,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class RazorFileSynchronizer : IRazorFileChangeListener
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly RazorProjectService _projectService;
 
-    public RazorFileSynchronizer(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        RazorProjectService projectService)
+    public RazorFileSynchronizer(ProjectSnapshotManagerDispatcher dispatcher, RazorProjectService projectService)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (projectService is null)
-        {
-            throw new ArgumentNullException(nameof(projectService));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _projectService = projectService;
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _projectService = projectService ?? throw new ArgumentNullException(nameof(projectService));
     }
 
-    public void RazorFileChanged(string filePath, RazorFileChangeKind kind)
+    public async ValueTask RazorFileChangedAsync(string filePath, RazorFileChangeKind kind, CancellationToken cancellationToken)
     {
         if (filePath is null)
         {
             throw new ArgumentNullException(nameof(filePath));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        await _dispatcher.SwitchToAsync(cancellationToken);
 
         switch (kind)
         {

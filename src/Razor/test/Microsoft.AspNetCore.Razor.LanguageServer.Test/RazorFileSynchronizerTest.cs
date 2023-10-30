@@ -17,15 +17,13 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
     public async Task RazorFileChanged_Added_AddsRazorDocument()
     {
         // Arrange
-        await SwitchToDispatcherThreadAsync();
-
         var filePath = "/path/to/file.razor";
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.AddDocument(filePath)).Verifiable();
         var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
 
         // Act
-        synchronizer.RazorFileChanged(filePath, RazorFileChangeKind.Added);
+        await synchronizer.RazorFileChangedAsync(filePath, RazorFileChangeKind.Added, DisposalToken);
 
         // Assert
         projectService.VerifyAll();
@@ -35,15 +33,13 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
     public async Task RazorFileChanged_Added_AddsCSHTMLDocument()
     {
         // Arrange
-        await SwitchToDispatcherThreadAsync();
-
         var filePath = "/path/to/file.cshtml";
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.AddDocument(filePath)).Verifiable();
         var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
 
         // Act
-        synchronizer.RazorFileChanged(filePath, RazorFileChangeKind.Added);
+        await synchronizer.RazorFileChangedAsync(filePath, RazorFileChangeKind.Added, DisposalToken);
 
         // Assert
         projectService.VerifyAll();
@@ -53,15 +49,13 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
     public async Task RazorFileChanged_Removed_RemovesRazorDocument()
     {
         // Arrange
-        await SwitchToDispatcherThreadAsync();
-
         var filePath = "/path/to/file.razor";
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.RemoveDocument(filePath)).Verifiable();
         var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
 
         // Act
-        synchronizer.RazorFileChanged(filePath, RazorFileChangeKind.Removed);
+        await synchronizer.RazorFileChangedAsync(filePath, RazorFileChangeKind.Removed, DisposalToken);
 
         // Assert
         projectService.VerifyAll();
@@ -71,15 +65,13 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
     public async Task RazorFileChanged_Removed_RemovesCSHTMLDocument()
     {
         // Arrange
-        await SwitchToDispatcherThreadAsync();
-
         var filePath = "/path/to/file.cshtml";
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.RemoveDocument(filePath)).Verifiable();
         var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
 
         // Act
-        synchronizer.RazorFileChanged(filePath, RazorFileChangeKind.Removed);
+        await synchronizer.RazorFileChangedAsync(filePath, RazorFileChangeKind.Removed, DisposalToken);
 
         // Assert
         projectService.VerifyAll();
