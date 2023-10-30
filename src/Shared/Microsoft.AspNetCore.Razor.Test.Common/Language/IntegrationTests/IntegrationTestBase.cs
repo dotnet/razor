@@ -238,7 +238,7 @@ public abstract class IntegrationTestBase
         var projectEngine = CreateProjectEngine(Configuration, references, ConfigureProjectEngine);
         var codeDocument = (designTime ?? DesignTime) ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
 
-        return new CompiledCSharpCode(CSharpCompilation.Create(compilation.AssemblyName + ".Views", references: references, options: CSharpCompilationOptions), codeDocument);
+        return new CompiledCSharpCode(CSharpCompilation.Create(compilation.AssemblyName + ".Views", references: references, options: compilation.Options), codeDocument);
     }
 
     protected CompiledAssembly CompileToAssembly(string text, string path = "test.cshtml", bool? designTime = null, bool throwOnFailure = true)
