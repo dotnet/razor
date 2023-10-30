@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -10,5 +12,8 @@ internal abstract class DocumentProcessedListener
 {
     public abstract void Initialize(ProjectSnapshotManager projectManager);
 
-    public abstract void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot);
+    public abstract ValueTask DocumentProcessedAsync(
+        RazorCodeDocument codeDocument,
+        IDocumentSnapshot documentSnapshot,
+        CancellationToken cancellationToken);
 }

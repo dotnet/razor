@@ -119,12 +119,12 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         };
 
         publisher.Initialize(_projectManager);
-        publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
+        await publisher.DocumentProcessedAsync(_testCodeDocument, processedOpenDocument, DisposalToken);
         Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
         publisher.NotifyBackgroundWorkCompleting.Reset();
 
         // Act
-        publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
+        await publisher.DocumentProcessedAsync (_testCodeDocument, processedOpenDocument, DisposalToken);
         publisher.BlockBackgroundWorkCompleting.Set();
 
         // Assert

@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
@@ -25,16 +25,16 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
     // a document for each keystroke.
     private static readonly TimeSpan s_batchingTimeSpan = TimeSpan.FromMilliseconds(10);
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IReadOnlyList<DocumentProcessedListener> _documentProcessedListeners;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly LanguageServerFeatureOptions _options;
+    private readonly ImmutableArray<DocumentProcessedListener> _documentProcessedListeners;
     private readonly BatchingWorkQueue _workQueue;
     private ProjectSnapshotManagerBase? _projectManager;
 
     public OpenDocumentGenerator(
         IEnumerable<DocumentProcessedListener> documentProcessedListeners,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        LanguageServerFeatureOptions options,
         IErrorReporter errorReporter)
     {
         if (documentProcessedListeners is null)
@@ -42,19 +42,9 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
             throw new ArgumentNullException(nameof(documentProcessedListeners));
         }
 
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
-
-        _documentProcessedListeners = documentProcessedListeners.ToArray();
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _documentProcessedListeners = documentProcessedListeners.ToImmutableArray();
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
         _workQueue = new BatchingWorkQueue(s_batchingTimeSpan, FilePathComparer.Instance, errorReporter);
     }
 
@@ -85,7 +75,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
             return;
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         switch (args.Kind)
         {
@@ -164,45 +154,28 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
 
                 void TryEnqueue(IDocumentSnapshot document)
                 {
-                    if (!ProjectManager.IsDocumentOpen(document.FilePath) && !_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
+                    if (!ProjectManager.IsDocumentOpen(document.FilePath) && !_options.UpdateBuffersForClosedDocuments)
                     {
                         return;
                     }
 
                     var key = $"{document.Project.Key.Id}:{document.FilePath.AssumeNotNull()}";
-                    var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
+                    var workItem = new ProcessWorkItem(document, _documentProcessedListeners);
                     _workQueue.Enqueue(key, workItem);
                 }
         }
     }
 
-    private class ProcessWorkItem : BatchableWorkItem
+    private class ProcessWorkItem(IDocumentSnapshot latestDocument, ImmutableArray<DocumentProcessedListener> listeners) : BatchableWorkItem
     {
-        private readonly IDocumentSnapshot _latestDocument;
-        private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
-        private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-
-        public ProcessWorkItem(
-            IDocumentSnapshot latestDocument,
-            IReadOnlyList<DocumentProcessedListener> documentProcessedListeners,
-            ProjectSnapshotManagerDispatcher dispatcher)
-        {
-            _latestDocument = latestDocument;
-            _documentProcessedListeners = documentProcessedListeners;
-            _dispatcher = dispatcher;
-        }
-
         public override async ValueTask ProcessAsync(CancellationToken cancellationToken)
         {
-            var codeDocument = await _latestDocument.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await latestDocument.GetGeneratedOutputAsync().ConfigureAwait(false);
 
-            await _dispatcher.RunOnDispatcherThreadAsync(() =>
+            foreach (var listener in listeners)
             {
-                foreach (var listener in _documentProcessedListeners)
-                {
-                    listener.DocumentProcessed(codeDocument, _latestDocument);
-                }
-            }, cancellationToken).ConfigureAwait(false);
+                await listener.DocumentProcessedAsync(codeDocument, latestDocument, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

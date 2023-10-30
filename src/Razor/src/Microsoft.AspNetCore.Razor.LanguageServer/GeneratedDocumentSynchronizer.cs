@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -28,9 +30,9 @@ internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
     {
     }
 
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
+    public override async ValueTask DocumentProcessedAsync(RazorCodeDocument codeDocument, IDocumentSnapshot document, CancellationToken cancellationToken)
     {
-        _dispatcher.AssertDispatcherThread();
+        await _dispatcher.SwitchToAsync(cancellationToken);
 
         if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))
         {

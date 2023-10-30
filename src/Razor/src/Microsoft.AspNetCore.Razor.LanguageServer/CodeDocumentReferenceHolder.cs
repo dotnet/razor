@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -10,16 +12,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class CodeDocumentReferenceHolder : DocumentProcessedListener
 {
-    private Dictionary<DocumentKey, RazorCodeDocument> _codeDocumentCache;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly Dictionary<DocumentKey, RazorCodeDocument> _codeDocumentCache;
     private ProjectSnapshotManager? _projectManager;
 
-    public CodeDocumentReferenceHolder()
+    public CodeDocumentReferenceHolder(ProjectSnapshotManagerDispatcher dispatcher)
     {
+        _dispatcher = dispatcher;
         _codeDocumentCache = new();
     }
 
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot)
+    public override async ValueTask DocumentProcessedAsync(
+        RazorCodeDocument codeDocument,
+        IDocumentSnapshot documentSnapshot,
+        CancellationToken cancellationToken)
     {
+        await _dispatcher.SwitchToAsync(cancellationToken);
+
         // We capture a reference to the code document after a document has been processed in order to ensure that
         // latest document state information is readily available without re-computation. The DocumentState type
         // (brains of DocumentSnapshot) will garbage collect its generated output aggressively and due to the

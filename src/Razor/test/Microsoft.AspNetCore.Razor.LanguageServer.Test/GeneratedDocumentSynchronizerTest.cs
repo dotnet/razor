@@ -35,8 +35,7 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
         // Arrange
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(
-            () => _synchronizer.DocumentProcessed(_codeDocument, _document), DisposalToken);
+        await _synchronizer.DocumentProcessedAsync(_codeDocument, _document, DisposalToken);
 
         // Assert
         Assert.False(_publisher.PublishedCSharp);
@@ -47,13 +46,10 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
     public async Task DocumentProcessed_KnownVersion_Publishes()
     {
         // Arrange
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            _cache.TrackDocumentVersion(_document, version: 1337);
+        await SwitchToDispatcherThreadAsync();
 
-            // Act
-            _synchronizer.DocumentProcessed(_codeDocument, _document);
-        }, DisposalToken);
+        _cache.TrackDocumentVersion(_document, version: 1337);
+        await _synchronizer.DocumentProcessedAsync(_codeDocument, _document, DisposalToken);
 
         // Assert
         Assert.True(_publisher.PublishedCSharp);

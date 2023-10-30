@@ -27,7 +27,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     {
         _projectManager = TestProjectSnapshotManager.Create(ErrorReporter, Dispatcher);
         _projectManager.AllowNotifyListeners = true;
-        _referenceHolder = new CodeDocumentReferenceHolder();
+        _referenceHolder = new CodeDocumentReferenceHolder(Dispatcher);
         _referenceHolder.Initialize(_projectManager);
 
         _hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, rootNamespace: "TestNamespace");
@@ -174,10 +174,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     private async Task<WeakReference<RazorCodeDocument>> ProcessDocumentAndRetrieveOutputAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            _referenceHolder.DocumentProcessed(codeDocument, documentSnapshot);
-        }, cancellationToken);
+        await _referenceHolder.DocumentProcessedAsync(codeDocument, documentSnapshot, cancellationToken);
         var codeDocumentReference = new WeakReference<RazorCodeDocument>(codeDocument);
 
         return codeDocumentReference;
