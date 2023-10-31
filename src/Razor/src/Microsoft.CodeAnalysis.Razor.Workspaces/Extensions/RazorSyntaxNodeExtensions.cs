@@ -282,7 +282,7 @@ internal static class RazorSyntaxNodeExtensions
         // of the EOF token)
         if (token.Kind == SyntaxKind.EndOfFile && node.Span.Contains(index - 1))
         {
-            token = node.FindToken(index - 1, includeWhitespace);
+            token = token.GetPreviousToken(includeWhitespace);
         }
 
         return token.Parent;
