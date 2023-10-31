@@ -65,6 +65,7 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
         Assert.Equal(projectId, actualId);
 
         var project = Assert.Single(_projectSnapshotManager.GetProjects());
+        Assert.Equal("DisplayName", project.DisplayName);
         Assert.Equal("RootNamespace", project.RootNamespace);
 
         var documentFilePath = Assert.Single(project.DocumentFilePaths);

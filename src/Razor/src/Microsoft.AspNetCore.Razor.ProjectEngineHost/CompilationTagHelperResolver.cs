@@ -4,14 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -42,7 +40,7 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
             return ImmutableArray<TagHelperDescriptor>.Empty;
         }
 
-        var results = new HashSet<TagHelperDescriptor>(TagHelperChecksumComparer.Instance);
+        using var _ = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var results);
         var context = TagHelperDescriptorProviderContext.Create(results);
         context.ExcludeHidden = true;
         context.IncludeDocumentation = true;
@@ -60,20 +58,25 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
         static void ExecuteProviders(ITagHelperDescriptorProvider[] providers, TagHelperDescriptorProviderContext context, ITelemetryReporter? telemetryReporter)
         {
             using var _ = StopwatchPool.GetPooledObject(out var watch);
-            using var timingDictionary = new PooledDictionaryBuilder<string, object?>();
 
-            foreach (var provider in providers)
+            Property[]? properties = null;
+
+            for (var i = 0; i < providers.Length; i++)
             {
+                var provider = providers[i];
                 watch.Restart();
                 provider.Execute(context);
                 watch.Stop();
 
-                var propertyName = $"{provider.GetType().Name}.elapsedtimems";
-                Debug.Assert(!timingDictionary.ContainsKey(propertyName));
-                timingDictionary.Add(propertyName, watch.ElapsedMilliseconds);
+                if (telemetryReporter is not null)
+                {
+                    properties ??= new Property[providers.Length];
+                    var propertyName = $"{provider.GetType().Name}.elapsedtimems";
+                    properties[i] = new(propertyName, watch.ElapsedMilliseconds);
+                }
             }
 
-            telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, timingDictionary.ToImmutable());
+            telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, properties.AssumeNotNull());
         }
     }
 }

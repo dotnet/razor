@@ -22,7 +22,7 @@ using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerCl
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-public class RazorLSPSpanMappingServiceTest : TestBase
+public class RazorLSPSpanMappingServiceTest : ToolingTestBase
 {
     private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
@@ -83,7 +83,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
         var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
         // Act
-        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
+        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
 
         // Assert
         Assert.True(called);
@@ -120,7 +120,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
         var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
         // Act
-        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
+        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
 
         // Assert
         Assert.True(called);

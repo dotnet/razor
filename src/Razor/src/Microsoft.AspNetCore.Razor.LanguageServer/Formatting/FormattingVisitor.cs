@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -226,7 +227,7 @@ internal class FormattingVisitor : SyntaxWalker
                 return false;
             }
 
-            return descriptors.Any(d => d.IsComponentOrChildContentTagHelper());
+            return descriptors.Any(d => d.IsComponentOrChildContentTagHelper);
         }
 
         static bool ParentHasProperty(MarkupTagHelperElementSyntax parentComponent, string? propertyName)

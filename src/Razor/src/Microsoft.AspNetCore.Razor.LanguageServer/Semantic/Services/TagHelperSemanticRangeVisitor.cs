@@ -5,11 +5,11 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
@@ -37,7 +37,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         if (range is not null)
         {
             var sourceText = razorCodeDocument.GetSourceText();
-            rangeAsTextSpan = range.ToRazorTextSpan(sourceText);
+            rangeAsTextSpan = range.ToTextSpan(sourceText);
         }
 
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var builder);
@@ -451,7 +451,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
     {
         if (node is MarkupTagHelperElementSyntax element)
         {
-            var componentDescriptor = element.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(d => d.IsComponentTagHelper());
+            var componentDescriptor = element.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(d => d.IsComponentTagHelper);
             return componentDescriptor is not null;
         }
         else if (node is MarkupTagHelperStartTagSyntax startTag)
@@ -525,9 +525,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                 for (var lineNumber = range.Start.Line; lineNumber <= range.End.Line; lineNumber++)
                 {
                     var originalCharPosition = charPosition;
-                    // NOTE: GetLineLength includes newlines but we don't report tokens for newlines so
-                    // need to account for them.
-                    var lineLength = source.Lines.GetLineLength(lineNumber);
+                    // NOTE: We don't report tokens for newlines so need to account for them.
+                    var lineLength = source.Text.Lines[lineNumber].SpanIncludingLineBreak.Length;
 
                     // For the last line, we end where the syntax tree tells us to. For all other lines, we end at the
                     // last non-newline character
@@ -574,8 +573,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
         void AddRange(SemanticRange semanticRange)
         {
-            if (semanticRange.StartLine == semanticRange.EndLine &&
-                semanticRange.StartCharacter == semanticRange.EndCharacter)
+            var linePositionSpan = semanticRange.AsLinePositionSpan();
+            if (linePositionSpan.Start == linePositionSpan.End)
             {
                 return;
             }
@@ -594,7 +593,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                 return lineLength;
             }
 
-            return source[lineEndAbsoluteIndex - 1] is '\n' or '\r'
+            return source.Text[lineEndAbsoluteIndex - 1] is '\n' or '\r'
                 ? lineLength - 1
                 : lineLength;
         }

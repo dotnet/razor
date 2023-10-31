@@ -67,6 +67,16 @@
         <target state="translated">C# 程式碼的背景</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for Html elements and components</source>
+        <target state="translated">若為 true，按下空格鍵將會提交 Html 元素和元件的建議</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit Elements with Space</source>
+        <target state="translated">透過空格鍵提交元素</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">如果為 True，則會在輸入時啟用格式化</target>
@@ -75,6 +85,16 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">輸入時格式化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">要包含在 Razor 檔案中的程式碼片段。如果設為自訂，只會顯示未包含在 Visual Studio 中的程式碼片段。 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">包含的程式碼片段</target>
         <note />
       </trans-unit>
       <trans-unit id="Typing">

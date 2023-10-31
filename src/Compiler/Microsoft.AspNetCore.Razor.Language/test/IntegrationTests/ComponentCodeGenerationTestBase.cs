@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -30,7 +30,7 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
     internal override string DefaultFileName => ComponentName + ".cshtml";
 
     protected ComponentCodeGenerationTestBase()
-        : base(generateBaselines: null)
+        : base(layer: TestProject.Layer.Compiler, generateBaselines: null)
     {
     }
 
@@ -9862,6 +9862,40 @@ Welcome to your new app.
     }
 
     [Fact]
+    public void Component_ComplexContentInAttribute()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter] public string StringProperty { get; set; }
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent StringProperty="@MyEnum." />
+
+            @code {
+                public enum MyEnum
+                {
+                    One,
+                    Two
+                }
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
+    }
+
+    [Fact]
     public void Component_TextTagsAreNotRendered()
     {
         // Arrange
@@ -10766,7 +10800,7 @@ Time: @DateTime.Now
     public void FormName_NoAddNamedEventMethod()
     {
         // Arrange
-        var componentShim = BaseCompilation.References.Single(r => r.Display.EndsWith("Microsoft.AspNetCore.Razor.Test.ComponentShim.Compiler.dll", StringComparison.Ordinal));
+        var componentShim = BaseCompilation.References.Single(r => r.Display.EndsWith("Microsoft.AspNetCore.Razor.Test.ComponentShim.dll", StringComparison.Ordinal));
         var minimalShim = """
             namespace Microsoft.AspNetCore.Components
             {

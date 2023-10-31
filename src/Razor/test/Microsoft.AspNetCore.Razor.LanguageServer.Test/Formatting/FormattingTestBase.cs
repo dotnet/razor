@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -36,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 // These tests must be run serially due to the test specific FileName static var.
 [Collection("FormattingTestSerialRuns")]
-public class FormattingTestBase : RazorIntegrationTestBase
+public class FormattingTestBase : RazorToolingIntegrationTestBase
 {
     private static readonly AsyncLocal<string> s_fileName = new();
 
@@ -87,7 +86,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             InsertSpaces = insertSpaces,
         };
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
@@ -130,7 +129,8 @@ public class FormattingTestBase : RazorIntegrationTestBase
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(
+            LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -197,7 +197,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             throw new InvalidOperationException("Could not map from Razor document to generated document");
         }
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -242,7 +242,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             tagHelpers = tagHelpers.AddRange(RazorTestResources.BlazorServerAppTagHelpers);
         }
 
-        var sourceDocument = text.GetRazorSourceDocument(path, path);
+        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
 
         const string DefaultImports = """
                 @using BlazorApp1
@@ -256,7 +256,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
 
         var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
         var importsSourceText = SourceText.From(DefaultImports);
-        var importsDocument = importsSourceText.GetRazorSourceDocument(importsPath, importsPath);
+        var importsDocument = RazorSourceDocument.Create(importsSourceText, RazorSourceDocumentProperties.Create(importsPath, importsPath));
         var importsSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         importsSnapshot
             .Setup(d => d.GetTextAsync())
@@ -274,7 +274,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             builder.Features.Add(new DefaultTypeNameFeature());
             RazorExtensions.Register(builder);
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { importsDocument }, tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, ImmutableArray.Create(importsDocument), tagHelpers);
 
         if (!allowDiagnostics)
         {

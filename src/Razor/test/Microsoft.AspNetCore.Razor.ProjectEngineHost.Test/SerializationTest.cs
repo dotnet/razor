@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
-public class SerializationTest : TestBase
+public class SerializationTest : ToolingTestBase
 {
     private readonly RazorConfiguration _configuration;
     private readonly ProjectWorkspaceState _projectWorkspaceState;
@@ -44,6 +44,7 @@ public class SerializationTest : TestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -76,6 +77,7 @@ public class SerializationTest : TestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -110,6 +112,7 @@ public class SerializationTest : TestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray.Create(legacyDocument, componentDocument));
 

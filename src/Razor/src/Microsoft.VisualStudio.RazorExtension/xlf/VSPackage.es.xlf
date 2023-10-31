@@ -67,6 +67,16 @@
         <target state="translated">Fondo de código de C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for Html elements and components</source>
+        <target state="translated">Si es true, al presionar el espacio se confirmarán sugerencias para los elementos y componentes HTML</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit Elements with Space</source>
+        <target state="translated">Confirmar elementos con espacio</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">Si es true, el formato se habilitará al escribir</target>
@@ -75,6 +85,16 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">Dar formato al escribir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">Qué fragmentos de código se van a incluir en un archivo de Razor. Si se establece en personalizado, solo se mostrarán los fragmentos de código que no se incluyen con Visual Studio. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">Fragmentos de código incluidos</target>
         <note />
       </trans-unit>
       <trans-unit id="Typing">

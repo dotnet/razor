@@ -6,14 +6,14 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-public class DirectiveAttributeCompletionItemProviderBaseTest : RazorIntegrationTestBase
+public class DirectiveAttributeCompletionItemProviderBaseTest : RazorToolingIntegrationTestBase
 {
     internal override string FileKind => FileKinds.Component;
     internal override bool UseTwoPhaseCompilation => true;
