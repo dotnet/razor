@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -17,7 +16,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 internal sealed class EditorDocument : IDisposable
 {
     private readonly EditorDocumentManager _documentManager;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly FileChangeTracker _fileTracker;
     private readonly SnapshotChangeTracker _snapshotTracker;
@@ -30,7 +28,6 @@ internal sealed class EditorDocument : IDisposable
 
     public EditorDocument(
         EditorDocumentManager documentManager,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         string projectFilePath,
         string documentFilePath,
@@ -43,49 +40,13 @@ internal sealed class EditorDocument : IDisposable
         EventHandler? opened,
         EventHandler? closed)
     {
-        if (documentManager is null)
-        {
-            throw new ArgumentNullException(nameof(documentManager));
-        }
-
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (projectFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(projectFilePath));
-        }
-
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
-
-        if (textLoader is null)
-        {
-            throw new ArgumentNullException(nameof(textLoader));
-        }
-
-        if (fileTracker is null)
-        {
-            throw new ArgumentNullException(nameof(fileTracker));
-        }
-
-        _documentManager = documentManager;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _joinableTaskContext = joinableTaskContext;
-        ProjectFilePath = projectFilePath;
-        DocumentFilePath = documentFilePath;
+        _documentManager = documentManager ?? throw new ArgumentNullException(nameof(documentManager));
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
+        ProjectFilePath = projectFilePath ?? throw new ArgumentNullException(nameof(projectFilePath));
+        DocumentFilePath = documentFilePath ?? throw new ArgumentNullException(nameof(documentFilePath));
         ProjectKey = projectKey;
-        TextLoader = textLoader;
-        _fileTracker = fileTracker;
+        TextLoader = textLoader ?? throw new ArgumentNullException(nameof(textLoader));
+        _fileTracker = fileTracker ?? throw new ArgumentNullException(nameof(fileTracker));
         _changedOnDisk = changedOnDisk;
         _changedInEditor = changedInEditor;
         _opened = opened;
@@ -97,8 +58,7 @@ internal sealed class EditorDocument : IDisposable
         // Only one of these should be active at a time.
         if (textBuffer is null)
         {
-            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                _fileTracker.StartListening, CancellationToken.None).ConfigureAwait(false);
+            _fileTracker.StartListeningAsync(CancellationToken.None).Forget();
         }
         else
         {
@@ -131,8 +91,7 @@ internal sealed class EditorDocument : IDisposable
             throw new ArgumentNullException(nameof(textBuffer));
         }
 
-        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-            _fileTracker.StopListening, CancellationToken.None).ConfigureAwait(false);
+        _fileTracker.StopListeningAsync(CancellationToken.None).Forget();
 
         _snapshotTracker.StartTracking(textBuffer);
         EditorTextBuffer = textBuffer;
@@ -148,12 +107,12 @@ internal sealed class EditorDocument : IDisposable
 
         _snapshotTracker.StopTracking(EditorTextBuffer);
 
-        EditorTextContainer!.TextChanged -= TextContainer_Changed;
+        Assumes.NotNull(EditorTextContainer);
+        EditorTextContainer.TextChanged -= TextContainer_Changed;
         EditorTextContainer = null;
         EditorTextBuffer = null;
 
-        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-            _fileTracker.StartListening, CancellationToken.None);
+        _fileTracker.StartListeningAsync(CancellationToken.None).Forget();
     }
 
     private void ChangeTracker_Changed(object sender, FileChangeEventArgs e)
@@ -176,9 +135,7 @@ internal sealed class EditorDocument : IDisposable
         if (!_disposed)
         {
             _fileTracker.Changed -= ChangeTracker_Changed;
-
-            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                _fileTracker.StopListening, CancellationToken.None);
+            _fileTracker.StopListeningAsync(CancellationToken.None).Forget();
 
             if (EditorTextBuffer is not null)
             {

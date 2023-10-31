@@ -23,28 +23,13 @@ internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServi
 
     [ImportingConstructor]
     public DefaultVisualStudioDocumentTrackerFactoryFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         ITextDocumentFactoryService textDocumentFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (textDocumentFactory is null)
-        {
-            throw new ArgumentNullException(nameof(textDocumentFactory));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _joinableTaskContext = joinableTaskContext;
-        _textDocumentFactory = textDocumentFactory;
+        _projectSnapshotManagerDispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
+        _textDocumentFactory = textDocumentFactory ?? throw new ArgumentNullException(nameof(textDocumentFactory));
     }
 
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
@@ -56,7 +41,7 @@ internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServi
 
         var projectManager = languageServices.GetRequiredService<ProjectSnapshotManager>();
         var workspaceEditorSettings = languageServices.GetRequiredService<WorkspaceEditorSettings>();
-        var importDocumentManager = languageServices.GetRequiredService<ImportDocumentManager>();
+        var importDocumentManager = languageServices.GetRequiredService<IImportDocumentManager>();
 
         var projectPathProvider = languageServices.WorkspaceServices.GetRequiredService<ProjectPathProvider>();
 

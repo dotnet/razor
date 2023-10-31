@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.Language;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
@@ -27,15 +26,12 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
     private readonly ITextBuffer _textBuffer;
     private readonly string _filePath;
     private readonly string _projectPath;
-    private readonly string _rootNamespace;
+    private readonly string? _rootNamespace;
     private readonly HostProject _hostProject;
     private readonly HostProject _updatedHostProject;
     private readonly HostProject _otherHostProject;
-    private Project _workspaceProject;
-    private readonly ImportDocumentManager _importDocumentManager;
+    private readonly IImportDocumentManager _importDocumentManager;
     private readonly WorkspaceEditorSettings _workspaceEditorSettings;
-    private readonly List<TagHelperDescriptor> _someTagHelpers;
-    private TestTagHelperResolver _tagHelperResolver;
     private readonly ProjectSnapshotManagerBase _projectManager;
     private readonly DefaultVisualStudioDocumentTracker _documentTracker;
 
@@ -49,16 +45,19 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         _projectPath = TestProjectData.SomeProject.FilePath;
         _rootNamespace = TestProjectData.SomeProject.RootNamespace;
 
-        _importDocumentManager = new Mock<ImportDocumentManager>(MockBehavior.Strict).Object;
-        Mock.Get(_importDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
-        Mock.Get(_importDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
+        var importDocumentManagerMock = new Mock<IImportDocumentManager>(MockBehavior.Strict);
+        importDocumentManagerMock
+            .Setup(m => m.OnSubscribedAsync(It.IsAny<VisualStudioDocumentTracker>(), It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
+        importDocumentManagerMock
+            .Setup(m => m.OnUnsubscribedAsync(It.IsAny<VisualStudioDocumentTracker>(), It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
+
+        _importDocumentManager = importDocumentManagerMock.Object;
 
         _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
-
-        _someTagHelpers = new List<TagHelperDescriptor>()
-        {
-            TagHelperDescriptorBuilder.Create("test", "test").Build(),
-        };
 
         _projectManager = new TestProjectSnapshotManager(Workspace, Dispatcher) { AllowNotifyListeners = true };
 
@@ -80,13 +79,12 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
 
     protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
     {
-        _tagHelperResolver = new TestTagHelperResolver();
-        services.Add(_tagHelperResolver);
+        services.Add(new TestTagHelperResolver());
     }
 
     protected override void ConfigureWorkspace(AdhocWorkspace workspace)
     {
-        _workspaceProject = workspace.AddProject(ProjectInfo.Create(
+        workspace.AddProject(ProjectInfo.Create(
             ProjectId.CreateNewId(),
             new VersionStamp(),
             "Test1",
@@ -96,53 +94,53 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
     }
 
     [UIFact]
-    public void Subscribe_NoopsIfAlreadySubscribed()
+    public async Task Subscribe_NoopsIfAlreadySubscribed()
     {
         // Arrange
         var callCount = 0;
         _documentTracker.ContextChanged += (sender, args) => callCount++;
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
 
         // Act
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
 
         // Assert
         Assert.Equal(1, callCount);
     }
 
     [UIFact]
-    public void Unsubscribe_NoopsIfAlreadyUnsubscribed()
+    public async Task Unsubscribe_NoopsIfAlreadyUnsubscribed()
     {
         // Arrange
         var callCount = 0;
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
         _documentTracker.ContextChanged += (sender, args) => callCount++;
-        _documentTracker.Unsubscribe();
+        await _documentTracker.UnsubscribeAsync(DisposalToken);
 
         // Act
-        _documentTracker.Unsubscribe();
+        await _documentTracker.UnsubscribeAsync(DisposalToken);
 
         // Assert
         Assert.Equal(1, callCount);
     }
 
     [UIFact]
-    public void Unsubscribe_NoopsIfSubscribeHasBeenCalledMultipleTimes()
+    public async Task Unsubscribe_NoopsIfSubscribeHasBeenCalledMultipleTimes()
     {
         // Arrange
         var callCount = 0;
-        _documentTracker.Subscribe();
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
+        await _documentTracker.SubscribeAsync(DisposalToken);
         _documentTracker.ContextChanged += (sender, args) => callCount++;
 
         // Act - 1
-        _documentTracker.Unsubscribe();
+        await _documentTracker.UnsubscribeAsync(DisposalToken);
 
         // Assert - 1
         Assert.Equal(0, callCount);
 
         // Act - 2
-        _documentTracker.Unsubscribe();
+        await _documentTracker.UnsubscribeAsync(DisposalToken);
 
         // Assert - 2
         Assert.Equal(1, callCount);
@@ -161,7 +159,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         };
 
         // Act
-        _documentTracker.EditorSettingsManager_Changed(null, null);
+        _documentTracker.EditorSettingsManager_Changed(null!, null!);
 
         // Assert
         Assert.True(called);
@@ -173,7 +171,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
 
-        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectAdded);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectAdded);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -196,7 +194,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
 
-        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectChanged);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectChanged);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -222,7 +220,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         var project = _projectManager.GetLoadedProject(_hostProject.Key);
         _projectManager.ProjectRemoved(_hostProject.Key);
 
-        var e = new ProjectChangeEventArgs(project, null, ProjectChangeKind.ProjectRemoved);
+        var e = new ProjectChangeEventArgs(project, null!, ProjectChangeKind.ProjectRemoved);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -246,7 +244,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         // Arrange
         _projectManager.ProjectAdded(_otherHostProject);
 
-        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_otherHostProject.Key), ProjectChangeKind.ProjectChanged);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_otherHostProject.Key), ProjectChangeKind.ProjectChanged);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) => called = true;
@@ -272,7 +270,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         var importChangedArgs = new ImportChangedEventArgs("path/to/import", FileChangeKind.Changed, new[] { _filePath });
 
         // Act
-        _documentTracker.Import_Changed(null, importChangedArgs);
+        _documentTracker.Import_Changed(null!, importChangedArgs);
 
         // Assert
         Assert.True(called);
@@ -287,18 +285,18 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         var importChangedArgs = new ImportChangedEventArgs("path/to/import", FileChangeKind.Changed, new[] { "path/to/differentfile" });
 
         // Act & Assert (Does not throw)
-        _documentTracker.Import_Changed(null, importChangedArgs);
+        _documentTracker.Import_Changed(null!, importChangedArgs);
     }
 
     [UIFact]
-    public void Subscribe_SetsSupportedProjectAndTriggersContextChanged()
+    public async Task Subscribe_SetsSupportedProjectAndTriggersContextChanged()
     {
         // Arrange
         var called = false;
         _documentTracker.ContextChanged += (sender, args) => called = true;
 
         // Act
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
 
         // Assert
         Assert.True(called);
@@ -306,12 +304,12 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
     }
 
     [UIFact]
-    public void Unsubscribe_ResetsSupportedProjectAndTriggersContextChanged()
+    public async Task Unsubscribe_ResetsSupportedProjectAndTriggersContextChanged()
     {
         // Arrange
 
         // Subscribe once to set supported project
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -321,7 +319,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         };
 
         // Act
-        _documentTracker.Unsubscribe();
+        await _documentTracker.UnsubscribeAsync(DisposalToken);
 
         // Assert
         Assert.False(_documentTracker.IsSupportedProject);
@@ -424,37 +422,37 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
     }
 
     [UIFact]
-    public void Subscribed_InitializesEphemeralProjectSnapshot()
+    public async Task Subscribed_InitializesEphemeralProjectSnapshot()
     {
         // Arrange
 
         // Act
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
 
         // Assert
         Assert.IsType<EphemeralProjectSnapshot>(_documentTracker.ProjectSnapshot);
     }
 
     [UIFact]
-    public void Subscribed_InitializesRealProjectSnapshot()
+    public async Task Subscribed_InitializesRealProjectSnapshot()
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
 
         // Act
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
 
         // Assert
         Assert.IsType<ProjectSnapshot>(_documentTracker.ProjectSnapshot);
     }
 
     [UIFact]
-    public void Subscribed_ListensToProjectChanges()
+    public async Task Subscribed_ListensToProjectChanges()
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
 
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
 
         var args = new List<ContextChangeEventArgs>();
         _documentTracker.ContextChanged += (sender, e) => args.Add(e);
@@ -473,12 +471,12 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
     }
 
     [UIFact]
-    public void Subscribed_ListensToProjectRemoval()
+    public async Task Subscribed_ListensToProjectRemoval()
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
 
-        _documentTracker.Subscribe();
+        await _documentTracker.SubscribeAsync(DisposalToken);
 
         var args = new List<ContextChangeEventArgs>();
         _documentTracker.ContextChanged += (sender, e) => args.Add(e);

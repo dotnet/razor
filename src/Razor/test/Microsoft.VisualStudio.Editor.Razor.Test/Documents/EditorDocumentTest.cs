@@ -45,7 +45,6 @@ public class EditorDocumentTest : ProjectSnapshotManagerDispatcherTestBase
         // Arrange & Act
         using (var document = new EditorDocument(
             _documentManager,
-            Dispatcher,
             JoinableTaskFactory.Context,
             _projectFilePath,
             _documentFilePath,
@@ -71,7 +70,6 @@ public class EditorDocumentTest : ProjectSnapshotManagerDispatcherTestBase
         // Arrange & Act
         using (var document = new EditorDocument(
             _documentManager,
-            Dispatcher,
             JoinableTaskFactory.Context,
             _projectFilePath,
             _documentFilePath,

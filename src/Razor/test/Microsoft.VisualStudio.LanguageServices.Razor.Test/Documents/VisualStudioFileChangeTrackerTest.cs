@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
@@ -35,7 +33,9 @@ public class VisualStudioFileChangeTrackerTest : ProjectSnapshotManagerDispatche
         var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
 
         // Act
-        tracker.StartListening();
+        await tracker.StartListeningAsync(DisposalToken);
+
+        Assert.NotNull(tracker._fileChangeAdviseTask);
         await tracker._fileChangeAdviseTask;
 
         // Assert
@@ -53,10 +53,12 @@ public class VisualStudioFileChangeTrackerTest : ProjectSnapshotManagerDispatche
             .ReturnsAsync(123u)
             .Callback(() => callCount++);
         var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
-        tracker.StartListening();
+        await tracker.StartListeningAsync(DisposalToken);
 
         // Act
-        tracker.StartListening();
+        await tracker.StartListeningAsync(DisposalToken);
+
+        Assert.NotNull(tracker._fileChangeAdviseTask);
         await tracker._fileChangeAdviseTask;
 
         // Assert
@@ -76,19 +78,23 @@ public class VisualStudioFileChangeTrackerTest : ProjectSnapshotManagerDispatche
             .Setup(f => f.UnadviseFileChangeAsync(123, It.IsAny<CancellationToken>()))
             .Verifiable();
         var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
-        tracker.StartListening(); // Start listening for changes.
+        await tracker.StartListeningAsync(DisposalToken); // Start listening for changes.
+
+        Assert.NotNull(tracker._fileChangeAdviseTask);
         await tracker._fileChangeAdviseTask;
 
         // Act
-        tracker.StopListening();
-        await tracker._fileChangeUnadviseTask;
+        await tracker.StopListeningAsync(DisposalToken);
+
+        Assert.NotNull(tracker._fileChangeAdviseTask);
+        await tracker._fileChangeAdviseTask;
 
         // Assert
         fileChangeService.Verify();
     }
 
     [UIFact]
-    public void StopListening_NotListening_DoesNothing()
+    public async Task StopListening_NotListening_DoesNothing()
     {
         // Arrange
         var fileChangeService = new Mock<IVsAsyncFileChangeEx>(MockBehavior.Strict);
@@ -98,7 +104,7 @@ public class VisualStudioFileChangeTrackerTest : ProjectSnapshotManagerDispatche
         var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
 
         // Act
-        tracker.StopListening();
+        await tracker.StopListeningAsync(DisposalToken);
 
         // Assert
         Assert.Null(tracker._fileChangeUnadviseTask);
@@ -126,7 +132,9 @@ public class VisualStudioFileChangeTrackerTest : ProjectSnapshotManagerDispatche
         };
 
         // Act
-        tracker.FilesChanged(fileCount: 1, filePaths: new[] { filePath }, fileChangeFlags: new[] { fileChangeFlag });
+        tracker.FilesChanged(fileCount: 1, [filePath], [fileChangeFlag]);
+
+        Assert.NotNull(tracker._fileChangedTask);
         await tracker._fileChangedTask;
 
         // Assert

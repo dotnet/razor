@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
@@ -27,13 +29,15 @@ internal class DefaultFileChangeTracker : FileChangeTracker
 
     public override string FilePath { get; }
 
-    public override void StartListening()
+    public override ValueTask StartListeningAsync(CancellationToken cancellationToken)
     {
         // Do nothing
+        return default;
     }
 
-    public override void StopListening()
+    public override ValueTask StopListeningAsync(CancellationToken cancellationToken)
     {
         // Do nothing
+        return default;
     }
 }

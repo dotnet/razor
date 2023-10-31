@@ -14,68 +14,33 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentTrackerFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
     private readonly ProjectPathProvider _projectPathProvider;
     private readonly Workspace _workspace;
-    private readonly ImportDocumentManager _importDocumentManager;
+    private readonly IImportDocumentManager _importDocumentManager;
     private readonly ProjectSnapshotManager _projectManager;
     private readonly WorkspaceEditorSettings _workspaceEditorSettings;
 
     public DefaultVisualStudioDocumentTrackerFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         ProjectSnapshotManager projectManager,
         WorkspaceEditorSettings workspaceEditorSettings,
         ProjectPathProvider projectPathProvider,
         ITextDocumentFactoryService textDocumentFactory,
-        ImportDocumentManager importDocumentManager,
+        IImportDocumentManager importDocumentManager,
         Workspace workspace)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (projectManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectManager));
-        }
-
-        if (workspaceEditorSettings is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceEditorSettings));
-        }
-
-        if (projectPathProvider is null)
-        {
-            throw new ArgumentNullException(nameof(projectPathProvider));
-        }
-
-        if (textDocumentFactory is null)
-        {
-            throw new ArgumentNullException(nameof(textDocumentFactory));
-        }
-
-        if (importDocumentManager is null)
-        {
-            throw new ArgumentNullException(nameof(importDocumentManager));
-        }
-
-        if (workspace is null)
-        {
-            throw new ArgumentNullException(nameof(workspace));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _joinableTaskContext = joinableTaskContext;
-        _projectManager = projectManager;
-        _workspaceEditorSettings = workspaceEditorSettings;
-        _projectPathProvider = projectPathProvider;
-        _textDocumentFactory = textDocumentFactory;
-        _importDocumentManager = importDocumentManager;
-        _workspace = workspace;
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
+        _projectManager = projectManager ?? throw new ArgumentNullException(nameof(projectManager));
+        _workspaceEditorSettings = workspaceEditorSettings ?? throw new ArgumentNullException(nameof(workspaceEditorSettings));
+        _projectPathProvider = projectPathProvider ?? throw new ArgumentNullException(nameof(projectPathProvider));
+        _textDocumentFactory = textDocumentFactory ?? throw new ArgumentNullException(nameof(textDocumentFactory));
+        _importDocumentManager = importDocumentManager ?? throw new ArgumentNullException(nameof(importDocumentManager));
+        _workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
     }
 
     public override VisualStudioDocumentTracker? Create(ITextBuffer textBuffer)
@@ -98,7 +63,7 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
 
         var filePath = textDocument.FilePath;
         var tracker = new DefaultVisualStudioDocumentTracker(
-            _projectSnapshotManagerDispatcher, _joinableTaskContext, filePath, projectPath, _projectManager, _workspaceEditorSettings, _workspace, textBuffer, _importDocumentManager);
+            _dispatcher, _joinableTaskContext, filePath, projectPath, _projectManager, _workspaceEditorSettings, _workspace, textBuffer, _importDocumentManager);
 
         return tracker;
     }

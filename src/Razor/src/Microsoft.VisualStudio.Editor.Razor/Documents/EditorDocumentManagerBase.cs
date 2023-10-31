@@ -24,15 +24,9 @@ internal abstract class EditorDocumentManagerBase : EditorDocumentManager
     protected readonly object Lock;
 
     public EditorDocumentManagerBase(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         FileChangeTrackerFactory fileChangeTrackerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
         if (joinableTaskContext is null)
         {
             throw new ArgumentNullException(nameof(joinableTaskContext));
@@ -43,7 +37,6 @@ internal abstract class EditorDocumentManagerBase : EditorDocumentManager
             throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
         }
 
-        ProjectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         JoinableTaskContext = joinableTaskContext;
         _fileChangeTrackerFactory = fileChangeTrackerFactory;
 
@@ -52,8 +45,6 @@ internal abstract class EditorDocumentManagerBase : EditorDocumentManager
 
         Lock = new object();
     }
-
-    protected ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; }
 
     protected JoinableTaskContext JoinableTaskContext { get; }
 
@@ -117,7 +108,6 @@ internal abstract class EditorDocumentManagerBase : EditorDocumentManager
             var textBuffer = GetTextBufferForOpenDocument(key.DocumentFilePath);
             document = new EditorDocument(
                 this,
-                ProjectSnapshotManagerDispatcher,
                 JoinableTaskContext,
                 projectFilePath,
                 key.DocumentFilePath,

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -27,13 +27,13 @@ public class DefaultImportDocumentManagerIntegrationTest : ProjectSnapshotManage
         _directoryPath = Path.GetDirectoryName(_projectPath);
 
         _fileSystem = RazorProjectFileSystem.Create(Path.GetDirectoryName(_projectPath));
-        _projectEngine = RazorProjectEngine.Create(FallbackRazorConfiguration.MVC_2_1, _fileSystem, b =>
-            // These tests rely on MVC's import behavior.
-            Microsoft.AspNetCore.Mvc.Razor.Extensions.RazorExtensions.Register(b));
+
+        // These tests rely on MVC's import behavior.
+        _projectEngine = RazorProjectEngine.Create(FallbackRazorConfiguration.MVC_2_1, _fileSystem, AspNetCore.Mvc.Razor.Extensions.RazorExtensions.Register);
     }
 
     [UIFact]
-    public void Changed_TrackerChanged_ResultsInChangedHavingCorrectArgs()
+    public async Task Changed_TrackerChanged_ResultsInChangedHavingCorrectArgs()
     {
         // Arrange
         var testImportsPath = Path.Combine(_directoryPath, "_ViewImports.cshtml");
@@ -53,13 +53,19 @@ public class DefaultImportDocumentManagerIntegrationTest : ProjectSnapshotManage
         fileChangeTracker
             .Setup(f => f.FilePath)
             .Returns(testImportsPath);
-        fileChangeTracker.Setup(f => f.StartListening()).Verifiable();
+        fileChangeTracker
+            .Setup(f => f.StartListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(testImportsPath))
             .Returns(fileChangeTracker.Object);
 
         var fileChangeTracker2 = new Mock<FileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker2.Setup(f => f.StartListening()).Verifiable();
+        fileChangeTracker2
+            .Setup(f => f.StartListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(Path.Combine(_directoryPath, "Views", "_ViewImports.cshtml")))
             .Returns(fileChangeTracker2.Object);
@@ -68,9 +74,9 @@ public class DefaultImportDocumentManagerIntegrationTest : ProjectSnapshotManage
             .Returns(Mock.Of<FileChangeTracker>(MockBehavior.Strict));
 
         var called = false;
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
-        manager.OnSubscribed(tracker);
-        manager.OnSubscribed(anotherTracker);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
+        await manager.OnSubscribedAsync(tracker, DisposalToken);
+        await manager.OnSubscribedAsync(anotherTracker, DisposalToken);
         manager.Changed += (sender, args) =>
         {
             called = true;

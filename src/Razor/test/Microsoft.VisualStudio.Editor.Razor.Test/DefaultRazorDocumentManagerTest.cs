@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -31,7 +28,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
 
     private readonly ProjectSnapshotManager _projectManager;
     private readonly WorkspaceEditorSettings _workspaceEditorSettings;
-    private readonly ImportDocumentManager _importDocumentManager;
+    private readonly IImportDocumentManager _importDocumentManager;
 
     private readonly Workspace _workspace;
 
@@ -55,9 +52,15 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(
             Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
 
-        var importDocumentManager = new Mock<ImportDocumentManager>(MockBehavior.Strict);
-        importDocumentManager.Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
-        importDocumentManager.Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
+        var importDocumentManager = new Mock<IImportDocumentManager>(MockBehavior.Strict);
+        importDocumentManager
+            .Setup(m => m.OnSubscribedAsync(It.IsAny<VisualStudioDocumentTracker>(), It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
+        importDocumentManager
+            .Setup(m => m.OnUnsubscribedAsync(It.IsAny<VisualStudioDocumentTracker>(), It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
         _importDocumentManager = importDocumentManager.Object;
 
         _workspace = TestWorkspace.Create();
@@ -69,7 +72,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
     {
         // Arrange
         var editorFactoryService = new Mock<RazorEditorFactoryService>(MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService.Object);
+        var documentManager = new DefaultRazorDocumentManager(JoinableTaskContext, editorFactoryService.Object);
         var textView = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
@@ -95,7 +98,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(
             factoryService => factoryService.TryGetDocumentTracker(
                 It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
+        var documentManager = new DefaultRazorDocumentManager(JoinableTaskContext, editorFactoryService);
 
         // Act
         await documentManager.OnTextViewOpenedAsync(textView, buffers);
@@ -117,7 +120,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         var documentTracker = new DefaultVisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManager, _workspaceEditorSettings, _workspace, buffers[0], _importDocumentManager) as VisualStudioDocumentTracker;
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(f => f.TryGetDocumentTracker(It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
+        var documentManager = new DefaultRazorDocumentManager(JoinableTaskContext, editorFactoryService);
 
         // Assert 1
         Assert.False(documentTracker.IsSupportedProject);
@@ -133,7 +136,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
     public async Task OnTextViewClosed_TextViewWithoutDocumentTracker_DoesNothing()
     {
         // Arrange
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict));
+        var documentManager = new DefaultRazorDocumentManager(JoinableTaskContext, Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict));
         var textView = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
@@ -175,7 +178,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         buffers[1].Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
 
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
+        var documentManager = new DefaultRazorDocumentManager(JoinableTaskContext, editorFactoryService);
 
         // Act
         await documentManager.OnTextViewClosedAsync(textView2, buffers);
@@ -204,10 +207,10 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             _workspace, buffers[0], _importDocumentManager);
         buffers[0].Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
+        var documentManager = new DefaultRazorDocumentManager(JoinableTaskContext, editorFactoryService);
 
         // Populate the text views
-        documentTracker.Subscribe();
+        await documentTracker.SubscribeAsync(DisposalToken);
         documentTracker.AddTextView(textView1);
         documentTracker.AddTextView(textView2);
 

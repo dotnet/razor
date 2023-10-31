@@ -3,6 +3,8 @@
 
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -16,7 +18,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
 
     private readonly IErrorReporter _errorReporter;
     private readonly IVsAsyncFileChangeEx _fileChangeService;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     // Internal for testing
@@ -30,7 +32,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
         string filePath,
         IErrorReporter errorReporter,
         IVsAsyncFileChangeEx fileChangeService,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (string.IsNullOrEmpty(filePath))
@@ -38,38 +40,18 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
             throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
-        if (errorReporter is null)
-        {
-            throw new ArgumentNullException(nameof(errorReporter));
-        }
-
-        if (fileChangeService is null)
-        {
-            throw new ArgumentNullException(nameof(fileChangeService));
-        }
-
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
         FilePath = filePath;
-        _errorReporter = errorReporter;
-        _fileChangeService = fileChangeService;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _joinableTaskContext = joinableTaskContext;
+        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
+        _fileChangeService = fileChangeService ?? throw new ArgumentNullException(nameof(fileChangeService));
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
     }
 
     public override string FilePath { get; }
 
-    public override void StartListening()
+    public override async ValueTask StartListeningAsync(CancellationToken cancellationToken)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        await _dispatcher.SwitchToAsync(cancellationToken);
 
         if (_fileChangeAdviseTask is not null)
         {
@@ -88,7 +70,9 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
             {
                 // If an unadvise operation is still processing, we don't start listening until it completes.
                 if (fileChangeUnadviseTaskToJoin is not null)
+                {
                     await fileChangeUnadviseTaskToJoin.JoinAsync().ConfigureAwait(true);
+                }
 
                 return await _fileChangeService.AdviseFileChangeAsync(FilePath, FileChangeFlags, this).ConfigureAwait(true);
             }
@@ -106,9 +90,9 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
         });
     }
 
-    public override void StopListening()
+    public override async ValueTask StopListeningAsync(CancellationToken cancellationToken)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        await _dispatcher.SwitchToAsync(cancellationToken);
 
         if (_fileChangeAdviseTask is null || _fileChangeUnadviseTask?.IsCompleted == false)
         {
@@ -183,12 +167,6 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
     {
         _joinableTaskContext.AssertUIThread();
 
-        if (Changed is null)
-        {
-            return;
-        }
-
-        var args = new FileChangeEventArgs(FilePath, changeKind);
-        Changed.Invoke(this, args);
+        Changed?.Invoke(this, new FileChangeEventArgs(FilePath, changeKind));
     }
 }

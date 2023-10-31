@@ -96,7 +96,6 @@ public class EditorDocumentManagerListenerTest : ProjectSnapshotManagerDispatche
     {
         var document = new EditorDocument(
             Mock.Of<EditorDocumentManager>(MockBehavior.Strict),
-            Dispatcher,
             JoinableTaskFactory.Context,
             _projectFilePath,
             _documentFilePath,

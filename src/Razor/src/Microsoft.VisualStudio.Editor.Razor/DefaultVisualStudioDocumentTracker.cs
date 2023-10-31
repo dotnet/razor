@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -19,14 +20,14 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly string _filePath;
     private readonly string _projectPath;
     private readonly ProjectSnapshotManager _projectManager;
     private readonly WorkspaceEditorSettings _workspaceEditorSettings;
     private readonly ITextBuffer _textBuffer;
-    private readonly ImportDocumentManager _importDocumentManager;
+    private readonly IImportDocumentManager _importDocumentManager;
     private readonly List<ITextView> _textViews;
     private readonly Workspace _workspace;
     private bool _isSupportedProject;
@@ -36,7 +37,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     public override event EventHandler<ContextChangeEventArgs>? ContextChanged;
 
     public DefaultVisualStudioDocumentTracker(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         string filePath,
         string projectPath,
@@ -44,62 +45,23 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         WorkspaceEditorSettings workspaceEditorSettings,
         Workspace workspace,
         ITextBuffer textBuffer,
-        ImportDocumentManager importDocumentManager)
+        IImportDocumentManager importDocumentManager)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
 
         if (string.IsNullOrEmpty(filePath))
         {
             throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
-        if (projectPath is null)
-        {
-            throw new ArgumentNullException(nameof(projectPath));
-        }
-
-        if (projectManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectManager));
-        }
-
-        if (workspaceEditorSettings is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceEditorSettings));
-        }
-
-        if (workspace is null)
-        {
-            throw new ArgumentNullException(nameof(workspace));
-        }
-
-        if (textBuffer is null)
-        {
-            throw new ArgumentNullException(nameof(textBuffer));
-        }
-
-        if (importDocumentManager is null)
-        {
-            throw new ArgumentNullException(nameof(importDocumentManager));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _joinableTaskContext = joinableTaskContext;
         _filePath = filePath;
-        _projectPath = projectPath;
-        _projectManager = projectManager;
-        _workspaceEditorSettings = workspaceEditorSettings;
-        _textBuffer = textBuffer;
-        _importDocumentManager = importDocumentManager;
-        _workspace = workspace; // For now we assume that the workspace is the always default VS workspace.
+        _projectPath = projectPath ?? throw new ArgumentNullException(nameof(projectPath));
+        _projectManager = projectManager ?? throw new ArgumentNullException(nameof(projectManager));
+        _workspaceEditorSettings = workspaceEditorSettings ?? throw new ArgumentNullException(nameof(workspaceEditorSettings));
+        _textBuffer = textBuffer ?? throw new ArgumentNullException(nameof(textBuffer));
+        _importDocumentManager = importDocumentManager ?? throw new ArgumentNullException(nameof(importDocumentManager));
+        _workspace = workspace ?? throw new ArgumentNullException(nameof(workspace)); // For now we assume that the workspace is the always default VS workspace.
 
         _textViews = new List<ITextView>();
     }
@@ -169,9 +131,9 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         return null;
     }
 
-    public void Subscribe()
+    public async ValueTask SubscribeAsync(CancellationToken cancellationToken)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        await _dispatcher.SwitchToAsync(cancellationToken);
 
         if (_subscribeCount++ > 0)
         {
@@ -185,14 +147,14 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         _workspaceEditorSettings.Changed += EditorSettingsManager_Changed;
         _importDocumentManager.Changed += Import_Changed;
 
-        _importDocumentManager.OnSubscribed(this);
+        await _importDocumentManager.OnSubscribedAsync(this, cancellationToken);
 
-        _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
+        OnContextChangedAsync(ContextChangeKind.ProjectChanged).Forget();
     }
 
-    private IProjectSnapshot? GetOrCreateProject(string projectPath)
+    private IProjectSnapshot GetOrCreateProject(string projectPath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         var projectKey = _projectManager.GetAllProjectKeys(projectPath).FirstOrDefault();
 
@@ -204,16 +166,16 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         return project;
     }
 
-    public void Unsubscribe()
+    public async ValueTask UnsubscribeAsync(CancellationToken cancellationToken)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        await _dispatcher.SwitchToAsync(cancellationToken);
 
         if (_subscribeCount == 0 || _subscribeCount-- > 1)
         {
             return;
         }
 
-        _importDocumentManager.OnUnsubscribed(this);
+        await _importDocumentManager.OnUnsubscribedAsync(this, cancellationToken);
 
         _projectManager.Changed -= ProjectManager_Changed;
         _workspaceEditorSettings.Changed -= EditorSettingsManager_Changed;
@@ -241,7 +203,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             return;
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         if (_projectPath is not null &&
             string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
@@ -292,7 +254,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     // Internal for testing
     internal void Import_Changed(object sender, ImportChangedEventArgs args)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         foreach (var path in args.AssociatedDocuments)
         {

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -35,7 +35,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
     }
 
     [UIFact]
-    public void OnSubscribed_StartsFileChangeTrackers()
+    public async Task OnSubscribed_StartsFileChangeTrackers()
     {
         // Arrange
         var tracker = Mock.Of<VisualStudioDocumentTracker>(
@@ -46,7 +46,8 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
         var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
         var fileChangeTracker1 = new Mock<FileChangeTracker>(MockBehavior.Strict);
         fileChangeTracker1
-            .Setup(f => f.StartListening())
+            .Setup(f => f.StartListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
             .Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(Path.Combine(_directoryPath, "Views", "Home", "_ViewImports.cshtml")))
@@ -54,23 +55,27 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Verifiable();
         var fileChangeTracker2 = new Mock<FileChangeTracker>(MockBehavior.Strict);
         fileChangeTracker2
-            .Setup(f => f.StartListening())
+            .Setup(f => f.StartListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
             .Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(Path.Combine(_directoryPath, "Views", "_ViewImports.cshtml")))
             .Returns(fileChangeTracker2.Object)
             .Verifiable();
         var fileChangeTracker3 = new Mock<FileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker3.Setup(f => f.StartListening()).Verifiable();
+        fileChangeTracker3
+            .Setup(f => f.StartListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(Path.Combine(_directoryPath, "_ViewImports.cshtml")))
             .Returns(fileChangeTracker3.Object)
             .Verifiable();
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
 
         // Act
-        manager.OnSubscribed(tracker);
+        await manager.OnSubscribedAsync(tracker, DisposalToken);
 
         // Assert
         fileChangeTrackerFactory.Verify();
@@ -80,7 +85,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
     }
 
     [UIFact]
-    public void OnSubscribed_AlreadySubscribed_DoesNothing()
+    public async Task OnSubscribed_AlreadySubscribed_DoesNothing()
     {
         // Arrange
         var tracker = Mock.Of<VisualStudioDocumentTracker>(
@@ -96,24 +101,27 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
         var callCount = 0;
         var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
         var fileChangeTracker = new Mock<FileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker.Setup(t => t.StartListening()).Verifiable();
+        fileChangeTracker
+            .Setup(f => f.StartListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(It.IsAny<string>()))
             .Returns(fileChangeTracker.Object)
             .Callback(() => callCount++);
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
-        manager.OnSubscribed(tracker); // Start tracking the import.
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
+        await manager.OnSubscribedAsync(tracker, DisposalToken); // Start tracking the import.
 
         // Act
-        manager.OnSubscribed(anotherTracker);
+        await manager.OnSubscribedAsync(anotherTracker, DisposalToken);
 
         // Assert
         Assert.Equal(1, callCount);
     }
 
     [UIFact]
-    public void OnUnsubscribed_StopsFileChangeTracker()
+    public async Task OnUnsubscribed_StopsFileChangeTracker()
     {
         // Arrange
         var tracker = Mock.Of<VisualStudioDocumentTracker>(
@@ -123,20 +131,24 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
 
         var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
         var fileChangeTracker = new Mock<FileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker.Setup(f => f.StartListening()).Verifiable();
         fileChangeTracker
-            .Setup(f => f.StopListening())
+            .Setup(f => f.StartListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
+        fileChangeTracker
+            .Setup(f => f.StopListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
             .Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(Path.Combine(_directoryPath, "_ViewImports.cshtml")))
             .Returns(fileChangeTracker.Object)
             .Verifiable();
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
-        manager.OnSubscribed(tracker); // Start tracking the import.
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
+        await manager.OnSubscribedAsync(tracker, DisposalToken); // Start tracking the import.
 
         // Act
-        manager.OnUnsubscribed(tracker);
+        await manager.OnUnsubscribedAsync(tracker, DisposalToken);
 
         // Assert
         fileChangeTrackerFactory.Verify();
@@ -144,7 +156,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
     }
 
     [UIFact]
-    public void OnUnsubscribed_AnotherDocumentTrackingImport_DoesNotStopFileChangeTracker()
+    public async Task OnUnsubscribed_AnotherDocumentTrackingImport_DoesNotStopFileChangeTracker()
     {
         // Arrange
         var tracker = Mock.Of<VisualStudioDocumentTracker>(
@@ -159,21 +171,24 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
 
         var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
         var fileChangeTracker = new Mock<FileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker.Setup(f => f.StartListening()).Verifiable();
         fileChangeTracker
-            .Setup(f => f.StopListening())
+            .Setup(f => f.StartListeningAsync(It.IsAny<CancellationToken>()))
+            .Returns(default(ValueTask))
+            .Verifiable();
+        fileChangeTracker
+            .Setup(f => f.StopListeningAsync(It.IsAny<CancellationToken>()))
             .Throws(new InvalidOperationException());
         fileChangeTrackerFactory
             .Setup(f => f.Create(It.IsAny<string>()))
             .Returns(fileChangeTracker.Object);
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
-        manager.OnSubscribed(tracker); // Starts tracking import for the first document.
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
+        await manager.OnSubscribedAsync(tracker, DisposalToken); // Starts tracking import for the first document.
 
-        manager.OnSubscribed(anotherTracker); // Starts tracking import for the second document.
+        await manager.OnSubscribedAsync(anotherTracker, DisposalToken); // Starts tracking import for the second document.
 
         // Act & Assert (Does not throw)
-        manager.OnUnsubscribed(tracker);
-        manager.OnUnsubscribed(tracker);
+        await manager.OnUnsubscribedAsync(tracker, DisposalToken);
+        await manager.OnUnsubscribedAsync(tracker, DisposalToken);
     }
 }

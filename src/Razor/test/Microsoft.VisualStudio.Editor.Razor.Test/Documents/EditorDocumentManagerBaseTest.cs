@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
@@ -29,7 +27,7 @@ public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTes
     public EditorDocumentManagerBaseTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _manager = new TestEditorDocumentManager(Dispatcher, JoinableTaskFactory.Context);
+        _manager = new TestEditorDocumentManager(JoinableTaskFactory.Context);
         _projectKey1 = TestProjectData.SomeProject.Key;
         _projectKey2 = TestProjectData.AnotherProject.Key;
         _projectFile1 = TestProjectData.SomeProject.FilePath;
@@ -177,18 +175,11 @@ public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTes
             d => Assert.Same(document1, d));
     }
 
-    private class TestEditorDocumentManager : EditorDocumentManagerBase
+    private class TestEditorDocumentManager(JoinableTaskContext joinableTaskContext) : EditorDocumentManagerBase(joinableTaskContext, new DefaultFileChangeTrackerFactory())
     {
-        public TestEditorDocumentManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
-            : base(projectSnapshotManagerDispatcher, joinableTaskContext, new DefaultFileChangeTrackerFactory())
-        {
-        }
-
-        public List<EditorDocument> Opened { get; } = new List<EditorDocument>();
-
-        public List<EditorDocument> Closed { get; } = new List<EditorDocument>();
-
-        public Dictionary<string, ITextBuffer> Buffers { get; } = new Dictionary<string, ITextBuffer>();
+        public List<EditorDocument> Opened { get; } = [];
+        public List<EditorDocument> Closed { get; } = [];
+        public Dictionary<string, ITextBuffer> Buffers { get; } = [];
 
         public new void DocumentOpened(string filePath, ITextBuffer textBuffer)
         {
