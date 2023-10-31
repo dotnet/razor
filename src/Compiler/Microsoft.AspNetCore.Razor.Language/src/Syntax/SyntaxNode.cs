@@ -498,69 +498,6 @@ internal abstract partial class SyntaxNode
 
                 return currentToken;
             }
-
-            static bool? walkNodeChildren(SyntaxNode parent, int startIndex, bool walkBackwards, bool stopOnNewline, [NotNullWhen(true)] out SyntaxToken? foundToken)
-            {
-                Debug.Assert(parent != null, "Node should have been out of range of the document");
-
-                var (indexIncrement, endIndex) = walkBackwards
-                    ? (-1, -1)
-                    : (1, ChildSyntaxList.CountNodes(parent!.Green));
-
-                for (int currentIndex = startIndex + indexIncrement; currentIndex != endIndex; currentIndex += indexIncrement)
-                {
-                    var currentChild = ChildSyntaxList.ItemInternal(parent, currentIndex);
-                    switch (currentChild.Kind)
-                    {
-                        case SyntaxKind.NewLine when stopOnNewline:
-                            // We found a newline, we need to walk forwards until we find the first non-whitespace or newline token.
-                            foundToken = null;
-                            return false;
-                        case SyntaxKind.Whitespace:
-                            // We found whitespace, keep walking
-                            continue;
-                        default:
-                            if (currentChild.IsToken)
-                            {
-                                // This is the node we're looking for
-                                foundToken = (SyntaxToken)currentChild;
-                                return true;
-                            }
-                            else
-                            {
-                                // The previous node is something complex. Walk its children to find a desired token.
-                                // If this ever becomes a stack overflow concern, we could make it iterative, but this is much
-                                // simpler for now.
-                                switch (walkNodeChildren(parent: currentChild, startIndex: walkBackwards ? ChildSyntaxList.CountNodes(currentChild.Green) : -1, walkBackwards, stopOnNewline, out foundToken))
-                                {
-                                    case true:
-                                        return true;
-                                    case false:
-                                        return false;
-                                    case null:
-                                        // Couldn't find a desired node in the child, keep walking backwards. This is believed to be impossible,
-                                        // but isn't an inherent issue in itself, so if it's encountered we should understand the scenario and
-                                        // cover with a test if it's not decided to be a bug.
-                                        Debug.Fail("This is believed to be impossible. If this fails, add a test for the case.");
-                                        continue;
-                                }
-                            }
-                    }
-                }
-
-                foundToken = null;
-
-                // The start of the document is the only special case:
-                //  - If we're walking backwards and hit the start of the document, we need to treat this as if we should walk forward. There's no
-                //    previous node to attach the token to, so walking forward is the only option.
-                if (walkBackwards && parent!.SpanStart == 0)
-                {
-                    return false;
-                }
-
-                // Got to the end of the node without finding a desired token. Pop up the stack and try again
-                return null;
-            }
         }
     }
 #nullable disable
