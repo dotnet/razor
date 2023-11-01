@@ -16,10 +16,12 @@ internal class VisualStudioProjectSnapshotManagerDispatcher : ProjectSnapshotMan
     private readonly IErrorReporter _errorReporter;
 
     [ImportingConstructor]
-    public VisualStudioProjectSnapshotManagerDispatcher(IErrorReporter errorReporter) : base(ThreadName)
+    public VisualStudioProjectSnapshotManagerDispatcher(IErrorReporter errorReporter)
+        : base(ThreadName)
     {
         _errorReporter = errorReporter;
     }
 
-    public override void LogException(Exception ex) => _errorReporter.ReportError(ex);
+    public override void LogException(Exception ex)
+        => _errorReporter.ReportError(ex);
 }

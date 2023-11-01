@@ -13,29 +13,27 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 [ExportLanguageServiceFactory(typeof(ProjectSnapshotManager), RazorLanguage.Name)]
 internal class DefaultProjectSnapshotManagerFactory : ILanguageServiceFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IEnumerable<IProjectSnapshotChangeTrigger> _triggers;
+    private readonly IErrorReporter _errorReporter;
 
     [ImportingConstructor]
     public DefaultProjectSnapshotManagerFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        [ImportMany] IEnumerable<IProjectSnapshotChangeTrigger> triggers)
+        ProjectSnapshotManagerDispatcher dispatcher,
+        [ImportMany] IEnumerable<IProjectSnapshotChangeTrigger> triggers,
+        IErrorReporter errorReporter)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _triggers = triggers ?? throw new ArgumentNullException(nameof(triggers));
+        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
     }
 
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
     {
-        if (languageServices is null)
-        {
-            throw new ArgumentNullException(nameof(languageServices));
-        }
-
         return new DefaultProjectSnapshotManager(
-            languageServices.WorkspaceServices.GetRequiredService<IErrorReporter>(),
+            _errorReporter,
             _triggers,
             languageServices.WorkspaceServices.Workspace,
-            _projectSnapshotManagerDispatcher);
+            _dispatcher);
     }
 }

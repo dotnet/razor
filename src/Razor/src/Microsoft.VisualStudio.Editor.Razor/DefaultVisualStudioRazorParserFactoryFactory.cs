@@ -15,17 +15,15 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 internal class DefaultVisualStudioRazorParserFactoryFactory : ILanguageServiceFactory
 {
     private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly IErrorReporter _errorReporter;
 
     [ImportingConstructor]
-    public DefaultVisualStudioRazorParserFactoryFactory(JoinableTaskContext joinableTaskContext)
+    public DefaultVisualStudioRazorParserFactoryFactory(JoinableTaskContext joinableTaskContext, IErrorReporter errorReporter)
     {
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        _joinableTaskContext = joinableTaskContext;
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
+        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
     }
+
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
     {
         if (languageServices is null)
@@ -34,13 +32,12 @@ internal class DefaultVisualStudioRazorParserFactoryFactory : ILanguageServiceFa
         }
 
         var workspaceServices = languageServices.WorkspaceServices;
-        var errorReporter = workspaceServices.GetRequiredService<IErrorReporter>();
         var completionBroker = languageServices.GetRequiredService<VisualStudioCompletionBroker>();
         var projectEngineFactory = workspaceServices.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
 
         return new DefaultVisualStudioRazorParserFactory(
             _joinableTaskContext,
-            errorReporter,
+            _errorReporter,
             completionBroker,
             projectEngineFactory);
     }

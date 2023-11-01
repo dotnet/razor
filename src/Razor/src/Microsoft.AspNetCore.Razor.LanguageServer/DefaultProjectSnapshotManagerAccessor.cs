@@ -15,7 +15,9 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
     private readonly IEnumerable<IProjectSnapshotChangeTrigger> _changeTriggers;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
     private readonly AdhocWorkspaceFactory _workspaceFactory;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IErrorReporter _errorReporter;
+
     private ProjectSnapshotManagerBase? _instance;
     private bool _disposed;
 
@@ -23,12 +25,14 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
         IEnumerable<IProjectSnapshotChangeTrigger> changeTriggers,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         AdhocWorkspaceFactory workspaceFactory,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IErrorReporter errorReporter)
     {
         _changeTriggers = changeTriggers ?? throw new ArgumentNullException(nameof(changeTriggers));
         _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
         _workspaceFactory = workspaceFactory ?? throw new ArgumentNullException(nameof(workspaceFactory));
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
     }
 
     public override ProjectSnapshotManagerBase Instance
@@ -43,10 +47,10 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
                         new RemoteProjectSnapshotProjectEngineFactory(_optionsMonitor)
                     });
                 _instance = new DefaultProjectSnapshotManager(
-                    ErrorReporter.Instance,
+                    _errorReporter,
                     _changeTriggers,
                     workspace,
-                    _projectSnapshotManagerDispatcher);
+                    _dispatcher);
             }
 
             return _instance;

@@ -77,7 +77,7 @@ internal static class FilePathNormalizer
 
         var filePathSpan = filePath.AsSpan();
 
-        using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
+        using var _ = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
         var normalizedSpan = NormalizeCoreAndGetSpan(filePathSpan, array);
 
         var lastSlashIndex = normalizedSpan.LastIndexOf('/');

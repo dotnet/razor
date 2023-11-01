@@ -19,7 +19,7 @@ internal readonly record struct ProjectKey
     // end up. All creation logic is here in one place to ensure this is consistent.
     public static ProjectKey From(HostProject hostProject) => new(hostProject.IntermediateOutputPath);
     public static ProjectKey From(IProjectSnapshot project) => new(project.IntermediateOutputPath);
-    public static ProjectKey? From(Project project)
+    public static ProjectKey From(Project project)
     {
         var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(project.CompilationOutputInfo.AssemblyPath);
         return new(intermediateOutputPath);

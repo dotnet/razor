@@ -17,43 +17,30 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 internal class VisualStudioFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
 {
     private readonly IVsAsyncFileChangeEx? _fileChangeService;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly IErrorReporter _errorReporter;
 
     [ImportingConstructor]
     public VisualStudioFileChangeTrackerFactoryFactory(
         SVsServiceProvider serviceProvider,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        JoinableTaskContext joinableTaskContext)
+        ProjectSnapshotManagerDispatcher dispatcher,
+        JoinableTaskContext joinableTaskContext,
+        IErrorReporter errorReporter)
     {
         if (serviceProvider is null)
         {
             throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
         _fileChangeService = serviceProvider.GetService(typeof(SVsFileChangeEx)) as IVsAsyncFileChangeEx;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _joinableTaskContext = joinableTaskContext;
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
+        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
     }
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
-        if (workspaceServices is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceServices));
-        }
-
-        var errorReporter = workspaceServices.GetRequiredService<IErrorReporter>();
-        return new VisualStudioFileChangeTrackerFactory(errorReporter, _fileChangeService!, _projectSnapshotManagerDispatcher, _joinableTaskContext);
+        return new VisualStudioFileChangeTrackerFactory(_errorReporter, _fileChangeService!, _dispatcher, _joinableTaskContext);
     }
 }

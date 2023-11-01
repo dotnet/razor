@@ -129,13 +129,8 @@ internal sealed class FallbackProjectManager
         }
 
         var projectKey = ProjectKey.From(project);
-        if (projectKey is not { } razorProjectKey)
-        {
-            return;
-        }
-
         var hostDocument = CreateHostDocument(filePath, projectFilePath);
-        _projectSnapshotManagerAccessor.Instance.DocumentRemoved(razorProjectKey, hostDocument);
+        _projectSnapshotManagerAccessor.Instance.DocumentRemoved(projectKey, hostDocument);
     }
 
     private Project? TryFindProjectForProjectId(ProjectId projectId)

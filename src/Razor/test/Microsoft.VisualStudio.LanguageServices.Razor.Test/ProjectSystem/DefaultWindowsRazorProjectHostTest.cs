@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,7 +31,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
     public DefaultWindowsRazorProjectHostTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = new TestProjectSnapshotManager(Workspace, Dispatcher);
+        _projectManager = new TestProjectSnapshotManager(ErrorReporter, Workspace, Dispatcher);
 
         var projectConfigurationFilePathStore = new Mock<ProjectConfigurationFilePathStore>(MockBehavior.Strict);
         projectConfigurationFilePathStore.Setup(s => s.Remove(It.IsAny<ProjectKey>())).Verifiable();
@@ -68,7 +66,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         // Arrange
         var projectState = new Dictionary<string, IProjectRuleSnapshot>()
         {
-            [Rules.RazorGeneral.SchemaName] = TestProjectRuleSnapshot.CreateProperties(Rules.RazorGeneral.SchemaName, new Dictionary<string, string>())
+            [Rules.RazorGeneral.SchemaName] = TestProjectRuleSnapshot.CreateProperties(Rules.RazorGeneral.SchemaName, [])
         }.ToImmutableDictionary();
 
         // Act
@@ -144,7 +142,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         // Arrange
         var projectState = new Dictionary<string, IProjectRuleSnapshot>()
         {
-            [Rules.RazorGeneral.SchemaName] = TestProjectRuleSnapshot.CreateProperties(Rules.RazorGeneral.SchemaName, new Dictionary<string, string>())
+            [Rules.RazorGeneral.SchemaName] = TestProjectRuleSnapshot.CreateProperties(Rules.RazorGeneral.SchemaName, [])
         }.ToImmutableDictionary();
 
         // Act
@@ -240,9 +238,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         // Arrange
         var projectState = new Dictionary<string, IProjectRuleSnapshot>()
         {
-            [Rules.RazorConfiguration.SchemaName] = TestProjectRuleSnapshot.CreateItems(
-                Rules.RazorConfiguration.SchemaName,
-                new Dictionary<string, Dictionary<string, string>>())
+            [Rules.RazorConfiguration.SchemaName] = TestProjectRuleSnapshot.CreateItems(Rules.RazorConfiguration.SchemaName, [])
         }.ToImmutableDictionary();
 
         // Act
@@ -262,7 +258,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
                 Rules.RazorConfiguration.SchemaName,
                 new Dictionary<string, Dictionary<string, string>>()
                 {
-                    ["Razor-10.0"] = new Dictionary<string, string>(),
+                    ["Razor-10.0"] = [],
                 })
         }.ToImmutableDictionary();
 
@@ -381,7 +377,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var projectState = new Dictionary<string, IProjectRuleSnapshot>().ToImmutableDictionary();
 
         // Act
-        var result = DefaultWindowsRazorProjectHost.TryGetExtensions(new[] { "Extension1", "Extension2" }, projectState, out var extensions);
+        var result = DefaultWindowsRazorProjectHost.TryGetExtensions(["Extension1", "Extension2"], projectState, out var extensions);
 
         // Assert
         Assert.True(result);
@@ -398,12 +394,12 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
                 Rules.RazorExtension.PrimaryDataSourceItemType,
                 new Dictionary<string, Dictionary<string, string>>()
                 {
-                    ["UnconfiguredExtensionName"] = new Dictionary<string, string>()
+                    ["UnconfiguredExtensionName"] = []
                 })
         }.ToImmutableDictionary();
 
         // Act
-        var result = DefaultWindowsRazorProjectHost.TryGetExtensions(new[] { "Extension1", "Extension2" }, projectState, out var extensions);
+        var result = DefaultWindowsRazorProjectHost.TryGetExtensions(["Extension1", "Extension2"], projectState, out var extensions);
 
         // Assert
         Assert.True(result);
@@ -422,14 +418,14 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
                 Rules.RazorExtension.PrimaryDataSourceItemType,
                 new Dictionary<string, Dictionary<string, string>>()
                 {
-                    ["UnconfiguredExtensionName"] = new Dictionary<string, string>(),
-                    [expectedExtension1Name] = new Dictionary<string, string>(),
-                    [expectedExtension2Name] = new Dictionary<string, string>(),
+                    ["UnconfiguredExtensionName"] = [],
+                    [expectedExtension1Name] = [],
+                    [expectedExtension2Name] = [],
                 })
         }.ToImmutableDictionary();
 
         // Act
-        var result = DefaultWindowsRazorProjectHost.TryGetExtensions(new[] { expectedExtension1Name, expectedExtension2Name }, projectState, out var extensions);
+        var result = DefaultWindowsRazorProjectHost.TryGetExtensions([expectedExtension1Name, expectedExtension2Name], projectState, out var extensions);
 
         // Assert
         Assert.True(result);
@@ -515,7 +511,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
                 Rules.RazorConfiguration.SchemaName,
                 new Dictionary<string, Dictionary<string, string>>()
                 {
-                    ["Razor-13.37"] = new Dictionary<string, string>()
+                    ["Razor-13.37"] = []
                 })
         }.ToImmutableDictionary();
 
@@ -524,6 +520,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
 
         // Assert
         Assert.True(result);
+        Assert.NotNull(configuration);
         Assert.Equal(RazorLanguageVersion.Version_1_0, configuration.LanguageVersion);
         Assert.Equal("Razor-13.37", configuration.ConfigurationName);
         Assert.Empty(configuration.Extensions);
@@ -558,6 +555,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
 
         // Assert
         Assert.True(result);
+        Assert.NotNull(configuration);
         Assert.Empty(configuration.Extensions);
     }
 
@@ -596,8 +594,8 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
                 Rules.RazorExtension.PrimaryDataSourceItemType,
                 new Dictionary<string, Dictionary<string, string>>()
                 {
-                    [expectedExtension1Name] = new Dictionary<string, string>(),
-                    [expectedExtension2Name] = new Dictionary<string, string>(),
+                    [expectedExtension1Name] = [],
+                    [expectedExtension2Name] = [],
                 })
         }.ToImmutableDictionary();
 
@@ -606,6 +604,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
 
         // Assert
         Assert.True(result);
+        Assert.NotNull(configuration);
         Assert.Equal(expectedLanguageVersion, configuration.LanguageVersion);
         Assert.Equal(expectedConfigurationName, configuration.ConfigurationName);
         Assert.Collection(
@@ -637,10 +636,10 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
         // Act & Assert
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
-        await Task.Run(async () => await host.DisposeAsync());
+        await Task.Run(host.DisposeAsync);
         Assert.Empty(_projectManager.GetProjects());
     }
 
@@ -656,7 +655,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
         // Act & Assert
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
         await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
@@ -697,10 +696,12 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
 
-        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
+        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
+        {
+            SkipIntermediateOutputPathExistCheck_TestOnly = true
+        };
 
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
         // Act
@@ -710,6 +711,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var snapshot = Assert.Single(_projectManager.GetProjects());
         Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
+        Assert.NotNull(snapshot.Configuration);
         Assert.Equal(RazorLanguageVersion.Version_2_1, snapshot.Configuration.LanguageVersion);
         Assert.Equal("MVC-2.1", snapshot.Configuration.ConfigurationName);
         Assert.Collection(
@@ -722,6 +724,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.SomeProjectFile1.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.Legacy, document.FileKind);
@@ -729,12 +732,13 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.SomeProjectComponentFile1.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.Component, document.FileKind);
             });
 
-        await Task.Run(async () => await host.DisposeAsync());
+        await Task.Run(host.DisposeAsync);
         Assert.Empty(_projectManager.GetProjects());
     }
 
@@ -763,7 +767,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
         // Act
@@ -772,7 +776,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         // Assert
         Assert.Empty(_projectManager.GetProjects());
 
-        await Task.Run(async () => await host.DisposeAsync());
+        await Task.Run(host.DisposeAsync);
         Assert.Empty(_projectManager.GetProjects());
     }
 
@@ -812,10 +816,12 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
+        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
+        {
+            SkipIntermediateOutputPathExistCheck_TestOnly = true
+        };
 
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
@@ -863,10 +869,12 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
+        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
+        {
+            SkipIntermediateOutputPathExistCheck_TestOnly = true
+        };
 
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
@@ -876,6 +884,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var snapshot = Assert.Single(_projectManager.GetProjects());
         Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
+        Assert.NotNull(snapshot.Configuration);
         Assert.Equal(RazorLanguageVersion.Version_2_1, snapshot.Configuration.LanguageVersion);
         Assert.Equal("MVC-2.1", snapshot.Configuration.ConfigurationName);
         Assert.Collection(
@@ -888,6 +897,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.SomeProjectComponentImportFile1.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.SomeProjectComponentImportFile1.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.ComponentImport, document.FileKind);
@@ -895,12 +905,14 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.SomeProjectFile1.TargetPath, document.TargetPath);
             },
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.SomeProjectComponentFile1.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.Component, document.FileKind);
@@ -921,15 +933,15 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
              { Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.AnotherProjectNestedFile3.TargetPath },
          });
 
-        changes = new TestProjectChangeDescription[]
-        {
+        changes =
+        [
              _razorGeneralProperties.ToChange(changes[0].After),
              _configurationItems.ToChange(changes[1].After),
              _extensionItems.ToChange(changes[2].After),
              _razorComponentWithTargetPathItems.ToChange(changes[3].After),
              _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
              _configurationGeneral.ToChange(changes[5].After),
-        };
+        ];
 
         await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
@@ -937,6 +949,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         snapshot = Assert.Single(_projectManager.GetProjects());
         Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
+        Assert.NotNull(snapshot.Configuration);
         Assert.Equal(RazorLanguageVersion.Version_2_0, snapshot.Configuration.LanguageVersion);
         Assert.Equal("MVC-2.0", snapshot.Configuration.ConfigurationName);
         Assert.Collection(
@@ -949,6 +962,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.AnotherProjectNestedFile3.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.AnotherProjectNestedFile3.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.Legacy, document.FileKind);
@@ -956,6 +970,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.AnotherProjectNestedComponentFile3.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.AnotherProjectNestedComponentFile3.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.Component, document.FileKind);
@@ -963,6 +978,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.SomeProjectComponentImportFile1.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.SomeProjectComponentImportFile1.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.ComponentImport, document.FileKind);
@@ -970,6 +986,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.SomeProjectFile1.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.Legacy, document.FileKind);
@@ -977,12 +994,13 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             d =>
             {
                 var document = snapshot.GetDocument(d);
+                Assert.NotNull(document);
                 Assert.Equal(TestProjectData.SomeProjectComponentFile1.FilePath, document.FilePath);
                 Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
                 Assert.Equal(FileKinds.Component, document.FileKind);
             });
 
-        await Task.Run(async () => await host.DisposeAsync());
+        await Task.Run(host.DisposeAsync);
         Assert.Empty(_projectManager.GetProjects());
     }
 
@@ -1019,10 +1037,12 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
+        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
+        {
+            SkipIntermediateOutputPathExistCheck_TestOnly = true
+        };
 
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
@@ -1032,6 +1052,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var snapshot = Assert.Single(_projectManager.GetProjects());
         Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
+        Assert.NotNull(snapshot.Configuration);
         Assert.Equal(RazorLanguageVersion.Version_2_1, snapshot.Configuration.LanguageVersion);
         Assert.Equal("MVC-2.1", snapshot.Configuration.ConfigurationName);
         Assert.Collection(
@@ -1043,21 +1064,21 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "");
         _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "");
 
-        changes = new TestProjectChangeDescription[]
-        {
+        changes =
+        [
              _razorGeneralProperties.ToChange(changes[0].After),
              _configurationItems.ToChange(changes[1].After),
              _extensionItems.ToChange(changes[2].After),
              _razorComponentWithTargetPathItems.ToChange(changes[3].After),
              _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
-        };
+        ];
 
         await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 2
         Assert.Empty(_projectManager.GetProjects());
 
-        await Task.Run(async () => await host.DisposeAsync());
+        await Task.Run(host.DisposeAsync);
         Assert.Empty(_projectManager.GetProjects());
     }
 
@@ -1094,10 +1115,12 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
+        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
+        {
+            SkipIntermediateOutputPathExistCheck_TestOnly = true
+        };
 
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
@@ -1107,6 +1130,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var snapshot = Assert.Single(_projectManager.GetProjects());
         Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
+        Assert.NotNull(snapshot.Configuration);
         Assert.Equal(RazorLanguageVersion.Version_2_1, snapshot.Configuration.LanguageVersion);
         Assert.Equal("MVC-2.1", snapshot.Configuration.ConfigurationName);
         Assert.Collection(
@@ -1115,7 +1139,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
             e => Assert.Equal("MVC-2.1", e.ExtensionName));
 
         // Act - 2
-        await Task.Run(async () => await host.DisposeAsync());
+        await Task.Run(host.DisposeAsync);
 
         // Assert - 2
         Assert.Empty(_projectManager.GetProjects());
@@ -1125,14 +1149,14 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.0");
         _configurationItems.Item("MVC-2.0", new Dictionary<string, string>() { { "Extensions", "MVC-2.0;Another-Thing" }, });
 
-        changes = new TestProjectChangeDescription[]
-        {
+        changes =
+        [
              _razorGeneralProperties.ToChange(changes[0].After),
              _configurationItems.ToChange(changes[1].After),
              _extensionItems.ToChange(changes[2].After),
              _razorComponentWithTargetPathItems.ToChange(changes[3].After),
              _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
-        };
+        ];
 
         await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
@@ -1174,10 +1198,12 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
 
-        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
+        var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
+        {
+            SkipIntermediateOutputPathExistCheck_TestOnly = true
+        };
 
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(host.LoadAsync);
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
@@ -1186,6 +1212,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         // Assert - 1
         var snapshot = Assert.Single(_projectManager.GetProjects());
         Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
+        Assert.NotNull(snapshot.Configuration);
         Assert.Same("MVC-2.1", snapshot.Configuration.ConfigurationName);
 
         Assert.Collection(
@@ -1193,6 +1220,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
            d =>
            {
                var document = snapshot.GetDocument(d);
+               Assert.NotNull(document);
                Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, document.FilePath);
                Assert.Equal(TestProjectData.SomeProjectFile1.TargetPath, document.TargetPath);
                Assert.Equal(FileKinds.Legacy, document.FileKind);
@@ -1200,6 +1228,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
            d =>
            {
                var document = snapshot.GetDocument(d);
+               Assert.NotNull(document);
                Assert.Equal(TestProjectData.SomeProjectComponentFile1.FilePath, document.FilePath);
                Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
                Assert.Equal(FileKinds.Component, document.FileKind);
@@ -1212,6 +1241,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         // Assert - 1
         snapshot = Assert.Single(_projectManager.GetProjects());
         Assert.Equal(TestProjectData.AnotherProject.FilePath, snapshot.FilePath);
+        Assert.NotNull(snapshot.Configuration);
         Assert.Same("MVC-2.1", snapshot.Configuration.ConfigurationName);
 
         Assert.Collection(
@@ -1219,6 +1249,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
            d =>
            {
                var document = snapshot.GetDocument(d);
+               Assert.NotNull(document);
                Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, document.FilePath);
                Assert.Equal(TestProjectData.SomeProjectFile1.TargetPath, document.TargetPath);
                Assert.Equal(FileKinds.Legacy, document.FileKind);
@@ -1226,20 +1257,19 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
            d =>
            {
                var document = snapshot.GetDocument(d);
+               Assert.NotNull(document);
                Assert.Equal(TestProjectData.SomeProjectComponentFile1.FilePath, document.FilePath);
                Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
                Assert.Equal(FileKinds.Component, document.FileKind);
            });
 
-        await Task.Run(async () => await host.DisposeAsync());
+        await Task.Run(host.DisposeAsync);
         Assert.Empty(_projectManager.GetProjects());
     }
 
-    private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
-    {
-        public TestProjectSnapshotManager(Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
-            : base(Mock.Of<IErrorReporter>(MockBehavior.Strict), Array.Empty<IProjectSnapshotChangeTrigger>(), workspace, dispatcher)
-        {
-        }
-    }
+    private class TestProjectSnapshotManager(
+        IErrorReporter errorReporter,
+        Workspace workspace,
+        ProjectSnapshotManagerDispatcher dispatcher)
+        : DefaultProjectSnapshotManager(errorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), workspace, dispatcher);
 }
