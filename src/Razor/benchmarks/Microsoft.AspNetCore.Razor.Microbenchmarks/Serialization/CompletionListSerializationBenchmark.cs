@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
@@ -82,7 +83,7 @@ public class CompletionListSerializationBenchmark
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
         var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, CommonResources.LegacyTagHelpers);
 
-        var owner = syntaxTree.Root.FindInnermostNode(queryIndex);
+        var owner = syntaxTree.Root.FindInnermostNode(queryIndex, includeWhitespace: true, walkMarkersBack: true);
         var context = new RazorCompletionContext(queryIndex, owner, syntaxTree, tagHelperDocumentContext);
 
         var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context);

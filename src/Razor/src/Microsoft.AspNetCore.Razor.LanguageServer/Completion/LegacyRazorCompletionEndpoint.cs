@@ -90,7 +90,7 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
             _ => CompletionReason.Typing,
         };
         var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
-        var owner = syntaxTree.Root.FindInnermostNode(hostDocumentIndex);
+        var owner = syntaxTree.Root.FindInnermostNode(hostDocumentIndex, includeWhitespace: true, walkMarkersBack: true);
         var completionContext = new RazorCompletionContext(hostDocumentIndex, owner, syntaxTree, tagHelperDocumentContext, reason, completionOptions);
 
         var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext);

@@ -67,7 +67,7 @@ internal class RazorCompletionListProvider
         var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
         var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
-        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
         var razorCompletionContext = new RazorCompletionContext(
             absoluteIndex,
             owner,

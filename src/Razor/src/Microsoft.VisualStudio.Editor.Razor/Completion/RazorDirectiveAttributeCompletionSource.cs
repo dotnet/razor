@@ -74,7 +74,7 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var absoluteIndex = triggerLocation.Position;
-            var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
+            var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
             var razorCompletionContext = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
             var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
