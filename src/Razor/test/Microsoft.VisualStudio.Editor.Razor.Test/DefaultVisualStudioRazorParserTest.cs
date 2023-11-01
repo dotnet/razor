@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -57,41 +56,40 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var documentTracker = CreateDocumentTracker();
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            var latestChange = new SourceChange(0, 0, string.Empty);
-            var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
-            parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
-            codeDocument.SetSyntaxTree(syntaxTree);
-            var args = new BackgroundParserResultsReadyEventArgs(
-                parser._latestChangeReference,
-                codeDocument);
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Act - 1
-            var getLatestCodeDocumentTask = parser.GetLatestCodeDocumentAsync(StringTextSnapshot.Empty);
+        var latestChange = new SourceChange(0, 0, string.Empty);
+        var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
+        parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
+        codeDocument.SetSyntaxTree(syntaxTree);
+        var args = new BackgroundParserResultsReadyEventArgs(
+            parser._latestChangeReference,
+            codeDocument);
 
-            // Assert - 1
-            Assert.False(getLatestCodeDocumentTask.IsCompleted);
+        // Act - 1
+        var getLatestCodeDocumentTask = parser.GetLatestCodeDocumentAsync(StringTextSnapshot.Empty);
 
-            // Act - 2
-            await Task.Run(() => parser.OnResultsReady(sender: null, args));
+        // Assert - 1
+        Assert.False(getLatestCodeDocumentTask.IsCompleted);
 
-            // Assert - 2
-            Assert.True(getLatestCodeDocumentTask.IsCompleted);
+        // Act - 2
+        await Task.Run(() => parser.OnResultsReady(sender: null!, args));
 
-            // Act - 3
-            var latestCodeDocument = await getLatestCodeDocumentTask;
+        // Assert - 2
+        Assert.True(getLatestCodeDocumentTask.IsCompleted);
 
-            // Assert - 3
-            Assert.Same(latestCodeDocument, codeDocument);
-        }
+        // Act - 3
+        var latestCodeDocument = await getLatestCodeDocumentTask;
+
+        // Assert - 3
+        Assert.Same(latestCodeDocument, codeDocument);
     }
 
     [UIFact]
@@ -99,38 +97,37 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var documentTracker = CreateDocumentTracker();
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            var latestChange = new SourceChange(0, 0, string.Empty);
-            var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
-            parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
-            codeDocument.SetSyntaxTree(syntaxTree);
-            var args = new BackgroundParserResultsReadyEventArgs(
-                parser._latestChangeReference,
-                codeDocument);
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Initialize the document with some content so we have a syntax tree to return.
-            await Task.Run(() => parser.OnResultsReady(sender: null, args));
+        var latestChange = new SourceChange(0, 0, string.Empty);
+        var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
+        parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
+        codeDocument.SetSyntaxTree(syntaxTree);
+        var args = new BackgroundParserResultsReadyEventArgs(
+            parser._latestChangeReference,
+            codeDocument);
 
-            // Act - 1
-            var getLatestCodeDocumentTask = parser.GetLatestCodeDocumentAsync(StringTextSnapshot.Empty);
+        // Initialize the document with some content so we have a syntax tree to return.
+        await Task.Run(() => parser.OnResultsReady(sender: null!, args));
 
-            // Assert - 1
-            Assert.True(getLatestCodeDocumentTask.IsCompleted);
+        // Act - 1
+        var getLatestCodeDocumentTask = parser.GetLatestCodeDocumentAsync(StringTextSnapshot.Empty);
 
-            // Act - 2
-            var latestCodeDocument = await getLatestCodeDocumentTask;
+        // Assert - 1
+        Assert.True(getLatestCodeDocumentTask.IsCompleted);
 
-            // Assert - 2
-            Assert.Same(latestCodeDocument, codeDocument);
-        }
+        // Act - 2
+        var latestCodeDocument = await getLatestCodeDocumentTask;
+
+        // Assert - 2
+        Assert.Same(latestCodeDocument, codeDocument);
     }
 
     [UIFact]
@@ -138,25 +135,24 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var documentTracker = CreateDocumentTracker();
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            var latestChange = new SourceChange(0, 0, string.Empty);
-            var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
-            parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
-            var sameSnapshot = StringTextSnapshot.Empty;
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Act
-            var getLatestCodeDocumentTask1 = parser.GetLatestCodeDocumentAsync(sameSnapshot);
-            var getLatestCodeDocumentTask2 = parser.GetLatestCodeDocumentAsync(sameSnapshot);
+        var latestChange = new SourceChange(0, 0, string.Empty);
+        var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
+        parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
+        var sameSnapshot = StringTextSnapshot.Empty;
 
-            // Assert
-            Assert.Same(getLatestCodeDocumentTask1, getLatestCodeDocumentTask2);
-        }
+        // Act
+        var getLatestCodeDocumentTask1 = parser.GetLatestCodeDocumentAsync(sameSnapshot);
+        var getLatestCodeDocumentTask2 = parser.GetLatestCodeDocumentAsync(sameSnapshot);
+
+        // Assert
+        Assert.Same(getLatestCodeDocumentTask1, getLatestCodeDocumentTask2);
     }
 
     [UIFact]
@@ -164,26 +160,25 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var documentTracker = CreateDocumentTracker();
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            var latestChange = new SourceChange(0, 0, string.Empty);
-            var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
-            parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
-            var snapshot1 = new StringTextSnapshot("Snapshot 1");
-            var snapshot2 = new StringTextSnapshot("Snapshot 2");
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Act
-            var getLatestCodeDocumentTask1 = parser.GetLatestCodeDocumentAsync(snapshot1);
-            var getLatestCodeDocumentTask2 = parser.GetLatestCodeDocumentAsync(snapshot2);
+        var latestChange = new SourceChange(0, 0, string.Empty);
+        var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
+        parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
+        var snapshot1 = new StringTextSnapshot("Snapshot 1");
+        var snapshot2 = new StringTextSnapshot("Snapshot 2");
 
-            // Assert
-            Assert.NotSame(getLatestCodeDocumentTask1, getLatestCodeDocumentTask2);
-        }
+        // Act
+        var getLatestCodeDocumentTask1 = parser.GetLatestCodeDocumentAsync(snapshot1);
+        var getLatestCodeDocumentTask2 = parser.GetLatestCodeDocumentAsync(snapshot2);
+
+        // Assert
+        Assert.NotSame(getLatestCodeDocumentTask1, getLatestCodeDocumentTask2);
     }
 
     [UIFact]
@@ -192,38 +187,37 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
         // Arrange
         var documentTracker = CreateDocumentTracker(versionNumber: 1337);
         var olderSnapshot = new StringTextSnapshot("Older", versionNumber: 910);
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            var latestChange = new SourceChange(0, 0, string.Empty);
-            var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
-            parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
-            codeDocument.SetSyntaxTree(syntaxTree);
-            var args = new BackgroundParserResultsReadyEventArgs(
-                parser._latestChangeReference,
-                codeDocument);
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Initialize the document with some content so we have a syntax tree to return.
-            await Task.Run(() => parser.OnResultsReady(sender: null, args));
+        var latestChange = new SourceChange(0, 0, string.Empty);
+        var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
+        parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
+        codeDocument.SetSyntaxTree(syntaxTree);
+        var args = new BackgroundParserResultsReadyEventArgs(
+            parser._latestChangeReference,
+            codeDocument);
 
-            // Act - 1
-            var getLatestCodeDocumentTask = parser.GetLatestCodeDocumentAsync(olderSnapshot);
+        // Initialize the document with some content so we have a syntax tree to return.
+        await Task.Run(() => parser.OnResultsReady(sender: null!, args));
 
-            // Assert - 1
-            Assert.True(getLatestCodeDocumentTask.IsCompleted);
+        // Act - 1
+        var getLatestCodeDocumentTask = parser.GetLatestCodeDocumentAsync(olderSnapshot);
 
-            // Act - 2
-            var latestCodeDocument = await getLatestCodeDocumentTask;
+        // Assert - 1
+        Assert.True(getLatestCodeDocumentTask.IsCompleted);
 
-            // Assert - 2
-            Assert.Same(latestCodeDocument, codeDocument);
-        }
+        // Act - 2
+        var latestCodeDocument = await getLatestCodeDocumentTask;
+
+        // Assert - 2
+        Assert.Same(latestCodeDocument, codeDocument);
     }
 
     [UIFact]
@@ -240,7 +234,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict)))
         {
             var latestChange = new SourceChange(0, 0, string.Empty);
             var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
@@ -250,7 +244,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
                 codeDocument);
 
             // Initialize the document with some content so we have a syntax tree to return.
-            await Task.Run(() => parser.OnResultsReady(sender: null, args));
+            await Task.Run(() => parser.OnResultsReady(sender: null!, args));
         }
 
         var newerSnapshot = new StringTextSnapshot("Newer", versionNumber: 1337);
@@ -382,7 +376,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
             CreateDocumentTracker(),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
         parser.Dispose();
 
         // Act & Assert
@@ -398,7 +392,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
             CreateDocumentTracker(),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
         parser.Dispose();
 
         // Act & Assert
@@ -414,7 +408,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
             CreateDocumentTracker(),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
         parser.Dispose();
 
         // Act & Assert
@@ -425,26 +419,25 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     public void OnDocumentStructureChanged_IgnoresEditsThatAreOld()
     {
         // Arrange
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             CreateDocumentTracker(),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            var called = false;
-            parser.DocumentStructureChanged += (sender, e) => called = true;
-            parser._latestChangeReference = new BackgroundParser.ChangeReference(null, new StringTextSnapshot(string.Empty));
-            var args = new BackgroundParserResultsReadyEventArgs(
-                new BackgroundParser.ChangeReference(new SourceChange(0, 0, string.Empty), new StringTextSnapshot(string.Empty)),
-                TestRazorCodeDocument.CreateEmpty());
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Act
-            parser.OnDocumentStructureChanged(args);
+        var called = false;
+        parser.DocumentStructureChanged += (sender, e) => called = true;
+        parser._latestChangeReference = new BackgroundParser.ChangeReference(null, new StringTextSnapshot(string.Empty));
+        var args = new BackgroundParserResultsReadyEventArgs(
+            new BackgroundParser.ChangeReference(new SourceChange(0, 0, string.Empty), new StringTextSnapshot(string.Empty)),
+            TestRazorCodeDocument.CreateEmpty());
 
-            // Assert
-            Assert.False(called);
-        }
+        // Act
+        parser.OnDocumentStructureChanged(args);
+
+        // Assert
+        Assert.False(called);
     }
 
     [UIFact]
@@ -452,30 +445,29 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var documentTracker = CreateDocumentTracker();
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            var called = false;
-            parser.DocumentStructureChanged += (sender, e) => called = true;
-            var latestChange = new SourceChange(0, 0, string.Empty);
-            var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
-            parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(TestRazorSourceDocument.Create()));
-            var args = new BackgroundParserResultsReadyEventArgs(
-                parser._latestChangeReference,
-                codeDocument);
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
+        var called = false;
 
-            // Act
-            parser.OnDocumentStructureChanged(args);
+        parser.DocumentStructureChanged += (sender, e) => called = true;
+        var latestChange = new SourceChange(0, 0, string.Empty);
+        var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
+        parser._latestChangeReference = new BackgroundParser.ChangeReference(latestChange, latestSnapshot);
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(TestRazorSourceDocument.Create()));
+        var args = new BackgroundParserResultsReadyEventArgs(
+            parser._latestChangeReference,
+            codeDocument);
 
-            // Assert
-            Assert.True(called);
-        }
+        // Act
+        parser.OnDocumentStructureChanged(args);
+
+        // Assert
+        Assert.True(called);
     }
 
     [UIFact]
@@ -483,96 +475,91 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var documentTracker = CreateDocumentTracker();
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            var called = false;
-            parser.DocumentStructureChanged += (sender, e) => called = true;
-            var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
-            parser._latestChangeReference = new BackgroundParser.ChangeReference(null, latestSnapshot);
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(TestRazorSourceDocument.Create()));
-            var badArgs = new BackgroundParserResultsReadyEventArgs(
-                // This is a different reparse edit, shouldn't be fired for this call
-                new BackgroundParser.ChangeReference(null, latestSnapshot),
-                codeDocument);
-            var goodArgs = new BackgroundParserResultsReadyEventArgs(
-                parser._latestChangeReference,
-                codeDocument);
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Act - 1
-            parser.OnDocumentStructureChanged(badArgs);
+        var called = false;
+        parser.DocumentStructureChanged += (sender, e) => called = true;
+        var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
+        parser._latestChangeReference = new BackgroundParser.ChangeReference(null, latestSnapshot);
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(TestRazorSourceDocument.Create()));
+        var badArgs = new BackgroundParserResultsReadyEventArgs(
+            // This is a different reparse edit, shouldn't be fired for this call
+            new BackgroundParser.ChangeReference(null, latestSnapshot),
+            codeDocument);
+        var goodArgs = new BackgroundParserResultsReadyEventArgs(
+            parser._latestChangeReference,
+            codeDocument);
 
-            // Assert - 1
-            Assert.False(called);
+        // Act - 1
+        parser.OnDocumentStructureChanged(badArgs);
 
-            // Act - 2
-            parser.OnDocumentStructureChanged(goodArgs);
+        // Assert - 1
+        Assert.False(called);
 
-            // Assert - 2
-            Assert.True(called);
-        }
+        // Act - 2
+        parser.OnDocumentStructureChanged(goodArgs);
+
+        // Assert - 2
+        Assert.True(called);
     }
 
     [UIFact]
     public void StartIdleTimer_DoesNotRestartTimerWhenAlreadyRunning()
     {
         // Arrange
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             CreateDocumentTracker(),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict))
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict))
         {
             BlockBackgroundIdleWork = new ManualResetEventSlim(),
             _idleDelay = TimeSpan.FromSeconds(5)
-        })
-        {
-            parser.StartIdleTimer();
-            using (var currentTimer = parser._idleTimer)
-            {
+        };
 
-                // Act
-                parser.StartIdleTimer();
-                var afterTimer = parser._idleTimer;
+        parser.StartIdleTimer();
+        using var currentTimer = parser._idleTimer;
 
-                // Assert
-                Assert.NotNull(currentTimer);
-                Assert.Same(currentTimer, afterTimer);
-            }
-        }
+        // Act
+        parser.StartIdleTimer();
+        var afterTimer = parser._idleTimer;
+
+        // Assert
+        Assert.NotNull(currentTimer);
+        Assert.Same(currentTimer, afterTimer);
     }
 
     [UIFact]
     public void StopIdleTimer_StopsTimer()
     {
         // Arrange
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             CreateDocumentTracker(),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict))
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict))
         {
             BlockBackgroundIdleWork = new ManualResetEventSlim(),
             _idleDelay = TimeSpan.FromSeconds(5)
-        })
-        {
-            parser.StartIdleTimer();
-            var currentTimer = parser._idleTimer;
+        };
 
-            // Act
-            parser.StopIdleTimer();
+        parser.StartIdleTimer();
+        var currentTimer = parser._idleTimer;
 
-            // Assert
-            Assert.NotNull(currentTimer);
-            Assert.Null(parser._idleTimer);
-        }
+        // Act
+        parser.StopIdleTimer();
+
+        // Assert
+        Assert.NotNull(currentTimer);
+        Assert.Null(parser._idleTimer);
     }
 
     [UIFact]
@@ -581,22 +568,21 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
         // Arrange
         var documentTracker = CreateDocumentTracker();
         var textBuffer = (TestTextBuffer)documentTracker.TextBuffer;
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             CreateDocumentTracker(),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            parser.StartParser();
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Act
-            parser.StopParser();
+        parser.StartParser();
 
-            // Assert
-            Assert.Empty(textBuffer.AttachedChangedEvents);
-            Assert.Null(parser._parser);
-        }
+        // Act
+        parser.StopParser();
+
+        // Assert
+        Assert.Empty(textBuffer.AttachedChangedEvents);
+        Assert.Null(parser._parser);
     }
 
     [UIFact]
@@ -605,57 +591,54 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
         // Arrange
         var documentTracker = CreateDocumentTracker();
         var textBuffer = (TestTextBuffer)documentTracker.TextBuffer;
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            // Act
-            parser.StartParser();
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Assert
-            Assert.Single(textBuffer.AttachedChangedEvents);
-            Assert.NotNull(parser._parser);
-        }
+        // Act
+        parser.StartParser();
+
+        // Assert
+        Assert.Single(textBuffer.AttachedChangedEvents);
+        Assert.NotNull(parser._parser);
     }
 
     [UIFact]
     public void TryReinitializeParser_ReturnsTrue_IfProjectIsSupported()
     {
         // Arrange
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             CreateDocumentTracker(isSupportedProject: true),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            // Act
-            var result = parser.TryReinitializeParser();
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Assert
-            Assert.True(result);
-        }
+        // Act
+        var result = parser.TryReinitializeParser();
+
+        // Assert
+        Assert.True(result);
     }
 
     [UIFact]
     public void TryReinitializeParser_ReturnsFalse_IfProjectIsNotSupported()
     {
         // Arrange
-        using (var parser = new DefaultVisualStudioRazorParser(
+        using var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             CreateDocumentTracker(isSupportedProject: false),
             _projectEngineFactory,
             ErrorReporter,
-            Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
-        {
-            // Act
-            var result = parser.TryReinitializeParser();
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
 
-            // Assert
-            Assert.False(result);
-        }
+        // Act
+        var result = parser.TryReinitializeParser();
+
+        // Assert
+        Assert.False(result);
     }
 }

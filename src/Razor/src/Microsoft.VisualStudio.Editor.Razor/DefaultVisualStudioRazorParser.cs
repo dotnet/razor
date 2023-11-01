@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.Extensions.Internal;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using static Microsoft.VisualStudio.Editor.Razor.BackgroundParser;
@@ -35,7 +36,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
 
     private readonly object _idleLock = new();
     private readonly object _updateStateLock = new();
-    private readonly VisualStudioCompletionBroker _completionBroker;
+    private readonly ICompletionBroker _completionBroker;
     private readonly VisualStudioDocumentTracker _documentTracker;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
@@ -62,7 +63,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         VisualStudioDocumentTracker documentTracker,
         ProjectSnapshotProjectEngineFactory projectEngineFactory,
         IErrorReporter errorReporter,
-        VisualStudioCompletionBroker completionBroker)
+        ICompletionBroker completionBroker)
     {
         _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
         _projectEngineFactory = projectEngineFactory ?? throw new ArgumentNullException(nameof(projectEngineFactory));
