@@ -57,7 +57,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 }
             }
 
-            foreach (var trigger in triggers) 
+            foreach (var trigger in triggers)
             {
                 if (trigger is not IPriorityProjectSnapshotChangeTrigger)
                 {
