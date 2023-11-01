@@ -20,30 +20,10 @@ internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFa
         VisualStudioCompletionBroker completionBroker,
         ProjectSnapshotProjectEngineFactory projectEngineFactory)
     {
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (errorReporter is null)
-        {
-            throw new ArgumentNullException(nameof(errorReporter));
-        }
-
-        if (completionBroker is null)
-        {
-            throw new ArgumentNullException(nameof(completionBroker));
-        }
-
-        if (projectEngineFactory is null)
-        {
-            throw new ArgumentNullException(nameof(projectEngineFactory));
-        }
-
-        _joinableTaskContext = joinableTaskContext;
-        _errorReporter = errorReporter;
-        _completionBroker = completionBroker;
-        _projectEngineFactory = projectEngineFactory;
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
+        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
+        _completionBroker = completionBroker ?? throw new ArgumentNullException(nameof(completionBroker));
+        _projectEngineFactory = projectEngineFactory ?? throw new ArgumentNullException(nameof(projectEngineFactory));
     }
 
     public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker)
@@ -55,12 +35,11 @@ internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFa
 
         _joinableTaskContext.AssertUIThread();
 
-        var parser = new DefaultVisualStudioRazorParser(
+        return new DefaultVisualStudioRazorParser(
             _joinableTaskContext,
             documentTracker,
             _projectEngineFactory,
             _errorReporter,
             _completionBroker);
-        return parser;
     }
 }

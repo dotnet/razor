@@ -64,36 +64,11 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         IErrorReporter errorReporter,
         VisualStudioCompletionBroker completionBroker)
     {
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (documentTracker is null)
-        {
-            throw new ArgumentNullException(nameof(documentTracker));
-        }
-
-        if (projectEngineFactory is null)
-        {
-            throw new ArgumentNullException(nameof(projectEngineFactory));
-        }
-
-        if (errorReporter is null)
-        {
-            throw new ArgumentNullException(nameof(errorReporter));
-        }
-
-        if (completionBroker is null)
-        {
-            throw new ArgumentNullException(nameof(completionBroker));
-        }
-
-        _joinableTaskContext = joinableTaskContext;
-        _projectEngineFactory = projectEngineFactory;
-        _errorReporter = errorReporter;
-        _completionBroker = completionBroker;
-        _documentTracker = documentTracker;
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
+        _projectEngineFactory = projectEngineFactory ?? throw new ArgumentNullException(nameof(projectEngineFactory));
+        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
+        _completionBroker = completionBroker ?? throw new ArgumentNullException(nameof(completionBroker));
+        _documentTracker = documentTracker ?? throw new ArgumentNullException(nameof(documentTracker));
         _codeDocumentRequests = new List<CodeDocumentRequest>();
 
         _documentTracker.ContextChanged += DocumentTracker_ContextChanged;
