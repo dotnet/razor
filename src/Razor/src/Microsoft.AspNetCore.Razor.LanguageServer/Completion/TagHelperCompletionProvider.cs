@@ -60,11 +60,14 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
 
         owner = owner switch
         {
+            // This provider is trying to find the nearest Start or End tag. Most of the time, that's a level up, but if the index the user is typing at
+            // is a token of a start or end tag directly, we already have the node we want.
             MarkupStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperStartTagSyntax or MarkupTagHelperEndTagSyntax => owner,
             // When overtyping a self closing tag completion happens on "<c$$ />" and the owner is a "misc attribute content"
             // so we have to navigate back up to the start tag to provide completion. Need to be careful though as we don't
             // want element completions for <c $$ /> even though the parent node is the same
             { Parent: MarkupMiscAttributeContentSyntax { Parent: MarkupStartTagSyntax startTag } } when context.AbsoluteIndex == startTag.Name.Span.End => startTag,
+            // Either the parent is a context we can handle, or it's not and we shouldn't show completions.
             _ => owner.Parent
         };
 
