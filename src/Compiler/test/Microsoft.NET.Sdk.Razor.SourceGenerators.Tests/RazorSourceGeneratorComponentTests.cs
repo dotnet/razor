@@ -743,8 +743,13 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // Assert
         result.Diagnostics.Verify(
             Diagnostic("RZ10012").WithLocation(1, 1),
+            Diagnostic("RZ10012").WithLocation(2, 1),
+            Diagnostic("RZ10012").WithLocation(3, 1),
             Diagnostic("RZ10012").WithLocation(4, 1),
+            Diagnostic("RZ10012").WithLocation(5, 1),
+            Diagnostic("RZ10012").WithLocation(6, 1),
             Diagnostic("RZ10022").WithLocation(6, 16), // Attribute '@formname' can only be applied to 'form' elements.
+            Diagnostic("RZ10012").WithLocation(7, 1),
             Diagnostic("RZ10023").WithLocation(7, 18)); // Attribute '@rendermode' is only valid when used on a component.
         Assert.Single(result.GeneratedSources);
     }
