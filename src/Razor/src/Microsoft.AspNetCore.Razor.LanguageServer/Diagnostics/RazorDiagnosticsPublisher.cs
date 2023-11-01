@@ -150,54 +150,54 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         try
         {
             lock (PublishedRazorDiagnostics)
-                lock (PublishedCSharpDiagnostics)
+            lock (PublishedCSharpDiagnostics)
+            {
+                ClearClosedDocumentsPublishedDiagnostics(PublishedRazorDiagnostics);
+                ClearClosedDocumentsPublishedDiagnostics(PublishedCSharpDiagnostics);
+
+                _documentClosedTimer?.Dispose();
+                _documentClosedTimer = null;
+
+                if (PublishedRazorDiagnostics.Count > 0 || PublishedCSharpDiagnostics.Count > 0)
                 {
-                    ClearClosedDocumentsPublishedDiagnostics(PublishedRazorDiagnostics);
-                    ClearClosedDocumentsPublishedDiagnostics(PublishedCSharpDiagnostics);
-
-                    _documentClosedTimer?.Dispose();
-                    _documentClosedTimer = null;
-
-                    if (PublishedRazorDiagnostics.Count > 0 || PublishedCSharpDiagnostics.Count > 0)
+                    lock (_work)
                     {
-                        lock (_work)
-                        {
-                            // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
-                            // and check if the currently tracked documents are closed. In practice this work is super minimal.
-                            StartDocumentClosedCheckTimer();
-                        }
+                        // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
+                        // and check if the currently tracked documents are closed. In practice this work is super minimal.
+                        StartDocumentClosedCheckTimer();
                     }
+                }
 
-                    void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
+                void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
+                {
+                    var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
+                    foreach (var (key, value) in originalPublishedDiagnostics)
                     {
-                        var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
-                        foreach (var (key, value) in originalPublishedDiagnostics)
+                        Assumes.NotNull(_projectManager);
+                        if (!_projectManager.IsDocumentOpen(key))
                         {
-                            Assumes.NotNull(_projectManager);
-                            if (!_projectManager.IsDocumentOpen(key))
-                            {
-                                // Document is now closed, we shouldn't track its diagnostics anymore.
-                                publishedDiagnostics.Remove(key);
+                            // Document is now closed, we shouldn't track its diagnostics anymore.
+                            publishedDiagnostics.Remove(key);
 
-                                // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
-                                // doesn't have a ton of closed document errors that they can't get rid of.
-                                if (value.Count > 0)
-                                {
-                                    PublishDiagnosticsForFilePath(key, Array.Empty<Diagnostic>());
-                                }
+                            // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
+                            // doesn't have a ton of closed document errors that they can't get rid of.
+                            if (value.Count > 0)
+                            {
+                                PublishDiagnosticsForFilePath(key, Array.Empty<Diagnostic>());
                             }
                         }
                     }
                 }
+            }
         }
         catch
         {
             lock (PublishedRazorDiagnostics)
-                lock (PublishedCSharpDiagnostics)
-                {
-                    _documentClosedTimer?.Dispose();
-                    _documentClosedTimer = null;
-                }
+            lock (PublishedCSharpDiagnostics)
+            {
+                _documentClosedTimer?.Dispose();
+                _documentClosedTimer = null;
+            }
 
             throw;
         }
@@ -240,23 +240,23 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
 
         lock (PublishedRazorDiagnostics)
-            lock (PublishedCSharpDiagnostics)
+        lock (PublishedCSharpDiagnostics)
+        {
+            var filePath = document.FilePath.AssumeNotNull();
+
+            if (PublishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
+                && (csharpDiagnostics == null || (PublishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
             {
-                var filePath = document.FilePath.AssumeNotNull();
-
-                if (PublishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
-                    && (csharpDiagnostics == null || (PublishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
-                {
-                    // Diagnostics are the same as last publish
-                    return;
-                }
-
-                PublishedRazorDiagnostics[filePath] = razorDiagnostics;
-                if (csharpDiagnostics != null)
-                {
-                    PublishedCSharpDiagnostics[filePath] = csharpDiagnostics;
-                }
+                // Diagnostics are the same as last publish
+                return;
             }
+
+            PublishedRazorDiagnostics[filePath] = razorDiagnostics;
+            if (csharpDiagnostics != null)
+            {
+                PublishedCSharpDiagnostics[filePath] = csharpDiagnostics;
+            }
+        }
 
         if (!document.TryGetText(out var sourceText))
         {
