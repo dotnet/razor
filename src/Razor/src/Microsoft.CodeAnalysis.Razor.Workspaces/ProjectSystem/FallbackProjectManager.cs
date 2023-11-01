@@ -87,7 +87,7 @@ internal sealed class FallbackProjectManager
             return;
         }
 
-        var rootNamespace = project.DefaultNamespace ?? "ASP";
+        var rootNamespace = project.DefaultNamespace;
 
         // We create this as a fallback project so that other parts of the system can reason about them - eg we don't do code
         // generation for closed files for documents in these projects. If these projects become "real", either because capabilities
