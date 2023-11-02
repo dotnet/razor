@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
@@ -52,6 +53,7 @@ internal class BraceSmartIndenter : IDisposable
         TextBufferCodeDocumentProvider codeDocumentProvider,
         IEditorOperationsFactoryService editorOperationsFactory)
     {
+        Debug.Assert(documentTracker.TextBuffer.IsLegacyCoreRazorBuffer());
         if (joinableTaskContext is null)
         {
             throw new ArgumentNullException(nameof(joinableTaskContext));
