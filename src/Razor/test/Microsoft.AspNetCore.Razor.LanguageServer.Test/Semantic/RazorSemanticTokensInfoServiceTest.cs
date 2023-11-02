@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -1179,24 +1178,6 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         };
 
         return range;
-    }
-
-    private class TestInitializeManager : IInitializeManager<InitializeParams, InitializeResult>
-    {
-        public InitializeParams GetInitializeParams()
-        {
-            throw new NotImplementedException();
-        }
-
-        public InitializeResult GetInitializeResult()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetInitializeParams(InitializeParams request)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     private class TestDocumentContextFactory : DocumentContextFactory
