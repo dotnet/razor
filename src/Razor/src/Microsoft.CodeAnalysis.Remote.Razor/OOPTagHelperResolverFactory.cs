@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -13,11 +14,15 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [Shared]
 [ExportWorkspaceServiceFactory(typeof(ITagHelperResolver), ServiceLayer.Host)]
 [method: ImportingConstructor]
-internal class OOPTagHelperResolverFactory(IErrorReporter errorReporter, ITelemetryReporter telemetryReporter) : IWorkspaceServiceFactory
+internal class OOPTagHelperResolverFactory(
+    IProjectSnapshotProjectEngineFactory projectEngineFactory,
+    IErrorReporter errorReporter,
+    ITelemetryReporter telemetryReporter)
+    : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new OOPTagHelperResolver(
-            workspaceServices.GetRequiredService<ProjectSnapshotProjectEngineFactory>(),
+            projectEngineFactory,
             errorReporter,
             workspaceServices.Workspace,
             telemetryReporter);

@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.Test.ProjectSystem;
 
 public static class TestProjectKey
 {

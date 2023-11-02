@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
@@ -24,9 +23,9 @@ internal class DefaultAdhocWorkspaceFactory : AdhocWorkspaceFactory
         _hostServicesProvider = hostWorkspaceServicesProvider;
     }
 
-    public override AdhocWorkspace Create() => Create(Enumerable.Empty<IWorkspaceService>());
+    public override AdhocWorkspace Create() => Create(Array.Empty<IWorkspaceService>());
 
-    public override AdhocWorkspace Create(IEnumerable<IWorkspaceService> workspaceServices)
+    public override AdhocWorkspace Create(params IWorkspaceService[] workspaceServices)
     {
         if (workspaceServices is null)
         {

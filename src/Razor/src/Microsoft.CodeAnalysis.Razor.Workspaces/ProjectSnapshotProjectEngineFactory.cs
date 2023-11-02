@@ -1,83 +1,52 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal abstract class ProjectSnapshotProjectEngineFactory : IWorkspaceService
+internal abstract class ProjectSnapshotProjectEngineFactory(
+    IFallbackProjectEngineFactory fallback,
+    Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories) : IProjectSnapshotProjectEngineFactory
 {
-    public abstract IProjectEngineFactory FindFactory(IProjectSnapshot project);
+    private readonly IFallbackProjectEngineFactory _fallback = fallback;
+    private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _factories = factories;
 
-    public abstract IProjectEngineFactory FindSerializableFactory(IProjectSnapshot project);
-
-    public RazorProjectEngine Create(IProjectSnapshot project)
+    public virtual RazorProjectEngine Create(
+        RazorConfiguration configuration,
+        RazorProjectFileSystem fileSystem,
+        Action<RazorProjectEngineBuilder>? configure)
     {
-        return Create(project, RazorProjectFileSystem.Create(Path.GetDirectoryName(project.FilePath)), null);
+        // When we're running in the editor, the editor provides a configure delegate that will include
+        // the editor settings and tag helpers.
+        //
+        // This service is only used in process in Visual Studio, and any other callers should provide these
+        // things also.
+        configure ??= ((b) => { });
+
+        // If there's no factory to handle the configuration then fall back to a very basic configuration.
+        //
+        // This will stop a crash from happening in this case (misconfigured project), but will still make
+        // it obvious to the user that something is wrong.
+        var factory = SelectFactory(configuration) ?? _fallback;
+        return factory.Create(configuration, fileSystem, configure);
     }
 
-    public RazorProjectEngine Create(IProjectSnapshot project, RazorProjectFileSystem fileSystem)
+    public IProjectEngineFactory? FindSerializableFactory(IProjectSnapshot project)
+        => SelectFactory(project.Configuration, requireSerializable: true);
+
+    private IProjectEngineFactory? SelectFactory(RazorConfiguration configuration, bool requireSerializable = false)
     {
-        if (project is null)
+        foreach (var factory in _factories)
         {
-            throw new ArgumentNullException(nameof(project));
+            if (configuration.ConfigurationName == factory.Metadata.ConfigurationName)
+            {
+                return requireSerializable && !factory.Metadata.SupportsSerialization ? null : factory.Value;
+            }
         }
 
-        if (fileSystem is null)
-        {
-            throw new ArgumentNullException(nameof(fileSystem));
-        }
-
-        return Create(project, fileSystem, null);
+        return null;
     }
-
-    public RazorProjectEngine Create(IProjectSnapshot project, Action<RazorProjectEngineBuilder> configure)
-    {
-        if (project is null)
-        {
-            throw new ArgumentNullException(nameof(project));
-        }
-
-        return Create(project, RazorProjectFileSystem.Create(Path.GetDirectoryName(project.FilePath)), configure);
-    }
-
-    public RazorProjectEngine Create(IProjectSnapshot project, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
-    {
-        if (project is null)
-        {
-            throw new ArgumentNullException(nameof(project));
-        }
-
-        if (fileSystem is null)
-        {
-            throw new ArgumentNullException(nameof(fileSystem));
-        }
-
-        return Create(project.Configuration, fileSystem, configure);
-    }
-
-    public RazorProjectEngine Create(RazorConfiguration configuration, string directoryPath, Action<RazorProjectEngineBuilder> configure)
-    {
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
-
-        if (directoryPath is null)
-        {
-            throw new ArgumentNullException(nameof(directoryPath));
-        }
-
-        return Create(configuration, RazorProjectFileSystem.Create(directoryPath), configure);
-    }
-
-#nullable enable
-    public abstract RazorProjectEngine? Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure);
-#nullable disable
 }

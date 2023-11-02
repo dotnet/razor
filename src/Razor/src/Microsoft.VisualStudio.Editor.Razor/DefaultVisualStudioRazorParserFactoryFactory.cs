@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 
@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 internal class DefaultVisualStudioRazorParserFactoryFactory : ILanguageServiceFactory
 {
     private readonly ICompletionBroker _completionBroker;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly IErrorReporter _errorReporter;
 
@@ -23,22 +24,21 @@ internal class DefaultVisualStudioRazorParserFactoryFactory : ILanguageServiceFa
     public DefaultVisualStudioRazorParserFactoryFactory(
         JoinableTaskContext joinableTaskContext,
         IErrorReporter errorReporter,
-        ICompletionBroker completionBroker)
+        ICompletionBroker completionBroker,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory)
     {
-        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
-        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
-        _completionBroker = completionBroker ?? throw new ArgumentNullException(nameof(completionBroker));
+        _joinableTaskContext = joinableTaskContext;
+        _errorReporter = errorReporter;
+        _completionBroker = completionBroker;
+        _projectEngineFactory = projectEngineFactory;
     }
 
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
     {
-        var workspaceServices = languageServices.WorkspaceServices;
-        var projectEngineFactory = workspaceServices.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
-
         return new DefaultVisualStudioRazorParserFactory(
             _joinableTaskContext,
             _errorReporter,
             _completionBroker,
-            projectEngineFactory);
+            _projectEngineFactory);
     }
 }

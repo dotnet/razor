@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Host;
+namespace Microsoft.AspNetCore.Razor.Test.Workspaces;
 
 internal class TestLanguageServices : HostLanguageServices
 {

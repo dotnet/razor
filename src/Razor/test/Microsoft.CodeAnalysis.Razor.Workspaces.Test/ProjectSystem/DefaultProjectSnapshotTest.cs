@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,14 +30,14 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
             TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
             csharpLanguageVersion: default);
 
-        _documents = new HostDocument[]
-        {
+        _documents =
+        [
             TestProjectData.SomeProjectFile1,
             TestProjectData.SomeProjectFile2,
 
             // linked file
             TestProjectData.AnotherProjectNestedFile3,
-        };
+        ];
     }
 
     protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
@@ -55,7 +54,7 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void ProjectSnapshot_CachesDocumentSnapshots()
     {
         // Arrange
-        var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(_hostProject, ProjectEngineFactory, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader);
@@ -76,11 +75,12 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void IsImportDocument_NonImportDocument_ReturnsFalse()
     {
         // Arrange
-        var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(_hostProject, ProjectEngineFactory, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
         var snapshot = new ProjectSnapshot(state);
 
         var document = snapshot.GetDocument(_documents[0].FilePath);
+        Assert.NotNull(document);
 
         // Act
         var result = snapshot.IsImportDocument(document);
@@ -93,12 +93,13 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void IsImportDocument_ImportDocument_ReturnsTrue()
     {
         // Arrange
-        var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(_hostProject, ProjectEngineFactory, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
         var snapshot = new ProjectSnapshot(state);
 
         var document = snapshot.GetDocument(TestProjectData.SomeProjectImportFile.FilePath);
+        Assert.NotNull(document);
 
         // Act
         var result = snapshot.IsImportDocument(document);
@@ -111,11 +112,12 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void GetRelatedDocuments_NonImportDocument_ReturnsEmpty()
     {
         // Arrange
-        var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(_hostProject, ProjectEngineFactory, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
         var snapshot = new ProjectSnapshot(state);
 
         var document = snapshot.GetDocument(_documents[0].FilePath);
+        Assert.NotNull(document);
 
         // Act
         var documents = snapshot.GetRelatedDocuments(document);
@@ -128,13 +130,14 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void GetRelatedDocuments_ImportDocument_ReturnsRelated()
     {
         // Arrange
-        var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(_hostProject, ProjectEngineFactory, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
         var snapshot = new ProjectSnapshot(state);
 
         var document = snapshot.GetDocument(TestProjectData.SomeProjectImportFile.FilePath);
+        Assert.NotNull(document);
 
         // Act
         var documents = snapshot.GetRelatedDocuments(document);

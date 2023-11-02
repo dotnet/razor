@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 
@@ -11,7 +12,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFactory
 {
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly ICompletionBroker _completionBroker;
     private readonly IErrorReporter _errorReporter;
 
@@ -19,7 +20,7 @@ internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFa
         JoinableTaskContext joinableTaskContext,
         IErrorReporter errorReporter,
         ICompletionBroker completionBroker,
-        ProjectSnapshotProjectEngineFactory projectEngineFactory)
+        IProjectSnapshotProjectEngineFactory projectEngineFactory)
     {
         _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
         _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));

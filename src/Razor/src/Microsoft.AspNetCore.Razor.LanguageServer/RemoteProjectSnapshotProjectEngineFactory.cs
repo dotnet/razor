@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
@@ -10,32 +9,21 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RemoteProjectSnapshotProjectEngineFactory : DefaultProjectSnapshotProjectEngineFactory
+internal sealed class RemoteProjectSnapshotProjectEngineFactory(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+    : ProjectSnapshotProjectEngineFactory(s_fallbackProjectEngineFactory, MefProjectEngineFactories.Factories)
 {
-    public static readonly IFallbackProjectEngineFactory FallbackProjectEngineFactory = new FallbackProjectEngineFactory();
+    private static readonly IFallbackProjectEngineFactory s_fallbackProjectEngineFactory = new FallbackProjectEngineFactory();
 
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor;
 
-    public RemoteProjectSnapshotProjectEngineFactory(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
-        : base(FallbackProjectEngineFactory, MefProjectEngineFactories.Factories)
-    {
-        if (optionsMonitor is null)
-        {
-            throw new ArgumentNullException(nameof(optionsMonitor));
-        }
-
-        _optionsMonitor = optionsMonitor;
-    }
-
-    public override RazorProjectEngine? Create(
+    public override RazorProjectEngine Create(
         RazorConfiguration configuration,
         RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure)
+        Action<RazorProjectEngineBuilder>? configure)
     {
         if (fileSystem is not DefaultRazorProjectFileSystem defaultFileSystem)
         {
-            Debug.Fail("Unexpected file system.");
-            return null;
+            throw new ArgumentException("Unexpected file system.", nameof(fileSystem));
         }
 
         var remoteFileSystem = new RemoteRazorProjectFileSystem(defaultFileSystem.Root);
@@ -43,32 +31,25 @@ internal class RemoteProjectSnapshotProjectEngineFactory : DefaultProjectSnapsho
 
         void Configure(RazorProjectEngineBuilder builder)
         {
-            configure(builder);
+            configure?.Invoke(builder);
             builder.Features.Add(new RemoteCodeGenerationOptionsFeature(_optionsMonitor));
         }
     }
 
-    private class RemoteCodeGenerationOptionsFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+    private class RemoteCodeGenerationOptionsFeature(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
-        private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-
-        public RemoteCodeGenerationOptionsFeature(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
-        {
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
-            _optionsMonitor = optionsMonitor;
-        }
+        private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor;
 
         public int Order { get; set; }
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
             // We don't need to explicitly subscribe to options changing because this method will be run on every parse.
-            options.IndentSize = _optionsMonitor.CurrentValue.TabSize;
-            options.IndentWithTabs = !_optionsMonitor.CurrentValue.InsertSpaces;
+            var currentOptions = _optionsMonitor.CurrentValue;
+
+            options.IndentSize = currentOptions.TabSize;
+            options.IndentWithTabs = !currentOptions.InsertSpaces;
         }
     }
 }

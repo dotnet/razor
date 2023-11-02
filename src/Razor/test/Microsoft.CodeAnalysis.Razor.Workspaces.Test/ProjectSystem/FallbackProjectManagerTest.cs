@@ -4,7 +4,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
@@ -26,7 +26,7 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
         _projectConfigurationFilePathStore = new TestProjectConfigurationFilePathStore();
 
         var dispatcher = Mock.Of<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
-        _projectSnapshotManager = new TestProjectSnapshotManager(Workspace, dispatcher);
+        _projectSnapshotManager = new TestProjectSnapshotManager(ProjectEngineFactory, Workspace, dispatcher);
 
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == _projectSnapshotManager, MockBehavior.Strict);
 

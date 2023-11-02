@@ -8,10 +8,10 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
 using Microsoft.VisualStudio.Threading;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,15 +19,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
 
 public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDispatcherTestBase
 {
-    private readonly Workspace _workspace;
     private readonly IProjectSnapshot _projectSnapshot1;
     private readonly IProjectSnapshot _projectSnapshot2;
 
     public DefaultProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _workspace = TestWorkspace.Create();
-        AddDisposable(_workspace);
+        var projectEngineFactory = Mock.Of<IProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
 
         var projectWorkspaceState1 = new ProjectWorkspaceState(ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build()),
@@ -35,8 +33,8 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
 
         _projectSnapshot1 = new ProjectSnapshot(
             ProjectState.Create(
-                _workspace.Services,
                 new HostProject("/host/path/to/project1.csproj", "/host/path/to/obj", RazorConfiguration.Default, "project1"),
+                projectEngineFactory,
                 projectWorkspaceState1));
 
         var projectWorkspaceState2 = new ProjectWorkspaceState(ImmutableArray.Create(
@@ -45,8 +43,8 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
 
         _projectSnapshot2 = new ProjectSnapshot(
             ProjectState.Create(
-                _workspace.Services,
                 new HostProject("/host/path/to/project2.csproj", "/host/path/to/obj", RazorConfiguration.Default, "project2"),
+                projectEngineFactory,
                 projectWorkspaceState2));
     }
 

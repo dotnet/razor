@@ -55,7 +55,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _hostProject2 = new HostProject(TestProjectData.AnotherProject.FilePath, TestProjectData.AnotherProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_1, TestProjectData.AnotherProject.RootNamespace);
         _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
 
-        _projectManager = new TestProjectSnapshotManager(ErrorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), Workspace, Dispatcher);
+        _projectManager = new TestProjectSnapshotManager(ErrorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), ProjectEngineFactory, Workspace, Dispatcher);
 
         _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(_tagHelperResolver.TagHelpers, default);
 
@@ -84,7 +84,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         var triggers = new[] { defaultPriorityTrigger, highPriorityTrigger };
 
         // Act
-        var projectManager = new TestProjectSnapshotManager(ErrorReporter, triggers, Workspace, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager(ErrorReporter, triggers, ProjectEngineFactory, Workspace, Dispatcher);
 
         // Assert
         Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);
@@ -665,9 +665,10 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     private class TestProjectSnapshotManager(
         IErrorReporter errorReporter,
         IEnumerable<IProjectSnapshotChangeTrigger> triggers,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         Workspace workspace,
         ProjectSnapshotManagerDispatcher dispatcher)
-        : DefaultProjectSnapshotManager(errorReporter, triggers, workspace, dispatcher)
+        : DefaultProjectSnapshotManager(errorReporter, triggers, projectEngineFactory, workspace, dispatcher)
     {
         public ProjectChangeKind? ListenersNotifiedOf { get; private set; }
 

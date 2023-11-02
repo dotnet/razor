@@ -31,11 +31,9 @@ internal class TestDocumentSnapshot : DocumentSnapshot
 
     public static TestDocumentSnapshot Create(string filePath, string text, VersionStamp version, TestProjectSnapshot projectSnapshot)
     {
-        using var testWorkspace = TestWorkspace.Create();
         var hostDocument = new HostDocument(filePath, filePath);
         var sourceText = SourceText.From(text);
         var documentState = new DocumentState(
-            testWorkspace.Services,
             hostDocument,
             SourceText.From(text),
             version,
@@ -45,7 +43,7 @@ internal class TestDocumentSnapshot : DocumentSnapshot
         return testDocument;
     }
 
-    internal static TestDocumentSnapshot Create(Workspace workspace, ProjectSnapshot projectSnapshot, string filePath, string text = "", VersionStamp? version = null)
+    internal static TestDocumentSnapshot Create(ProjectSnapshot projectSnapshot, string filePath, string text = "", VersionStamp? version = null)
     {
         version ??= VersionStamp.Default;
 
@@ -59,7 +57,6 @@ internal class TestDocumentSnapshot : DocumentSnapshot
         var hostDocument = new HostDocument(filePath, targetPath);
         var sourceText = SourceText.From(text);
         var documentState = new DocumentState(
-            workspace.Services,
             hostDocument,
             SourceText.From(text),
             version,

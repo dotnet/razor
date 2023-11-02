@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
@@ -30,7 +31,7 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
     {
         _sessionContext = new TestCollaborationSession(isHost: false);
 
-        _projectSnapshotManager = new TestProjectSnapshotManager(Workspace, new TestProjectSnapshotManagerDispatcher());
+        _projectSnapshotManager = new TestProjectSnapshotManager(ProjectEngineFactory, Workspace, new TestProjectSnapshotManagerDispatcher());
 
         _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),

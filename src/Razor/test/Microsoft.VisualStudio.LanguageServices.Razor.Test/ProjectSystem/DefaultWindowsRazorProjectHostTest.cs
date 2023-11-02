@@ -31,7 +31,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
     public DefaultWindowsRazorProjectHostTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = new TestProjectSnapshotManager(ErrorReporter, Workspace, Dispatcher);
+        _projectManager = new TestProjectSnapshotManager(ErrorReporter, ProjectEngineFactory, Workspace, Dispatcher);
 
         var projectConfigurationFilePathStore = new Mock<ProjectConfigurationFilePathStore>(MockBehavior.Strict);
         projectConfigurationFilePathStore.Setup(s => s.Remove(It.IsAny<ProjectKey>())).Verifiable();
@@ -1269,7 +1269,8 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
 
     private class TestProjectSnapshotManager(
         IErrorReporter errorReporter,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         Workspace workspace,
         ProjectSnapshotManagerDispatcher dispatcher)
-        : DefaultProjectSnapshotManager(errorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), workspace, dispatcher);
+        : DefaultProjectSnapshotManager(errorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), projectEngineFactory, workspace, dispatcher);
 }

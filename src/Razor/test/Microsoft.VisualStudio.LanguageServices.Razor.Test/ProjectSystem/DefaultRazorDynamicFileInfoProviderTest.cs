@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -38,7 +37,7 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
     {
         _documentServiceFactory = new DefaultRazorDocumentServiceProviderFactory();
         _editorFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(MockBehavior.Strict);
-        _projectSnapshotManager = new TestProjectSnapshotManager(Workspace, new TestProjectSnapshotManagerDispatcher())
+        _projectSnapshotManager = new TestProjectSnapshotManager(ProjectEngineFactory, Workspace, new TestProjectSnapshotManagerDispatcher())
         {
             AllowNotifyListeners = true
         };
@@ -48,9 +47,9 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
         _projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument1, new EmptyTextLoader(hostDocument1.FilePath));
         var hostDocument2 = new HostDocument("C:\\document2.razor", "document2.razor", FileKinds.Component);
         _projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument2, new EmptyTextLoader(hostDocument2.FilePath));
-        _project = _projectSnapshotManager.GetSnapshot(hostProject);
-        _document1 = (DocumentSnapshot)_project.GetDocument(hostDocument1.FilePath);
-        _document2 = (DocumentSnapshot)_project.GetDocument(hostDocument2.FilePath);
+        _project = _projectSnapshotManager.GetSnapshot(hostProject).AssumeNotNull();
+        _document1 = (DocumentSnapshot)_project.GetDocument(hostDocument1.FilePath).AssumeNotNull();
+        _document2 = (DocumentSnapshot)_project.GetDocument(hostDocument2.FilePath).AssumeNotNull();
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
         var filePathService = new FilePathService(languageServerFeatureOptions);
@@ -95,6 +94,7 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
     {
         // Arrange
         var info = await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
+        Assert.NotNull(info);
 
         Assert.Equal(@"C:\document1.razor.fJcYlbdqjCXiWYY1.ide.g.cs", info.FilePath);
     }

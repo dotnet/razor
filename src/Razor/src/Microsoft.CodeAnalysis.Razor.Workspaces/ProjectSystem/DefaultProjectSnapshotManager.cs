@@ -26,6 +26,8 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 {
     public override event EventHandler<ProjectChangeEventArgs>? Changed;
 
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
+
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
     // created lazily.
     private readonly ReadWriterLocker _rwLocker = new();
@@ -40,11 +42,13 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     public DefaultProjectSnapshotManager(
         IErrorReporter errorReporter,
         IEnumerable<IProjectSnapshotChangeTrigger> triggers,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         Workspace workspace,
         ProjectSnapshotManagerDispatcher dispatcher)
     {
         ErrorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
         Workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
+        _projectEngineFactory = projectEngineFactory ?? throw new ArgumentNullException(nameof(projectEngineFactory));
         _dispatcher = dispatcher ?? throw new ArgumentException(nameof(dispatcher));
 
         using (_rwLocker.EnterReadLock())
@@ -442,7 +446,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 return false;
             }
 
-            var state = ProjectState.Create(Workspace.Services, projectAddedAction.HostProject);
+            var state = ProjectState.Create(projectAddedAction.HostProject, _projectEngineFactory);
             var newEntry = new Entry(state);
 
             oldSnapshot = newSnapshot = newEntry.GetSnapshot();

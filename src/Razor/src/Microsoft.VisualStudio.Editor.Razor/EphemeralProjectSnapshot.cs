@@ -9,31 +9,19 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class EphemeralProjectSnapshot : IProjectSnapshot
 {
-    private readonly HostWorkspaceServices _services;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly Lazy<RazorProjectEngine> _projectEngine;
 
-    public EphemeralProjectSnapshot(HostWorkspaceServices services, string projectPath)
+    public EphemeralProjectSnapshot(IProjectSnapshotProjectEngineFactory projectEngineFactory, string projectPath)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (projectPath is null)
-        {
-            throw new ArgumentNullException(nameof(projectPath));
-        }
-
-        _services = services;
-        FilePath = projectPath;
+        _projectEngineFactory = projectEngineFactory ?? throw new ArgumentNullException(nameof(projectEngineFactory));
+        FilePath = projectPath ?? throw new ArgumentNullException(nameof(projectPath));
         IntermediateOutputPath = Path.Combine(Path.GetDirectoryName(FilePath) ?? FilePath, "obj");
         DisplayName = Path.GetFileNameWithoutExtension(projectPath);
 
@@ -44,7 +32,7 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
 
     public ProjectKey Key { get; }
 
-    public RazorConfiguration? Configuration => FallbackRazorConfiguration.Latest;
+    public RazorConfiguration Configuration => FallbackRazorConfiguration.Latest;
 
     public IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
 
@@ -101,7 +89,6 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
 
     private RazorProjectEngine CreateProjectEngine()
     {
-        var factory = _services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
-        return factory.Create(this);
+        return _projectEngineFactory.Create(this);
     }
 }

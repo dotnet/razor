@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -33,35 +32,32 @@ internal class ProjectState
 
     private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathComparer.Instance);
     private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathComparer.Instance);
+
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly object _lock;
 
     private RazorProjectEngine _projectEngine;
 
     public static ProjectState Create(
-        HostWorkspaceServices services,
         HostProject hostProject,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         ProjectWorkspaceState projectWorkspaceState = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
         if (hostProject is null)
         {
             throw new ArgumentNullException(nameof(hostProject));
         }
 
-        return new ProjectState(services, hostProject, projectWorkspaceState);
+        return new ProjectState(hostProject, projectEngineFactory, projectWorkspaceState);
     }
 
     private ProjectState(
-        HostWorkspaceServices services,
         HostProject hostProject,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         ProjectWorkspaceState projectWorkspaceState)
     {
-        Services = services;
         HostProject = hostProject;
+        _projectEngineFactory = projectEngineFactory;
         ProjectWorkspaceState = projectWorkspaceState;
         Documents = s_emptyDocuments;
         ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
@@ -99,7 +95,7 @@ internal class ProjectState
             throw new ArgumentNullException(nameof(importsToRelatedDocuments));
         }
 
-        Services = older.Services;
+        _projectEngineFactory = older._projectEngineFactory;
         Version = older.Version.GetNewerVersion();
 
         HostProject = hostProject;
@@ -160,8 +156,6 @@ internal class ProjectState
 
     public ProjectWorkspaceState ProjectWorkspaceState { get; }
 
-    public HostWorkspaceServices Services { get; }
-
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? ImmutableArray<TagHelperDescriptor>.Empty;
 
     public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState?.CSharpLanguageVersion ?? LanguageVersion.Default;
@@ -220,7 +214,7 @@ internal class ProjectState
             return this;
         }
 
-        var documents = Documents.Add(hostDocument.FilePath, DocumentState.Create(Services, hostDocument, loader));
+        var documents = Documents.Add(hostDocument.FilePath, DocumentState.Create(hostDocument, loader));
 
         // Compute the effect on the import map
         var importTargetPaths = GetImportDocumentTargetPaths(hostDocument);
@@ -410,8 +404,7 @@ internal class ProjectState
 
     private RazorProjectEngine CreateProjectEngine()
     {
-        var factory = Services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
-        return factory.Create(
+        return _projectEngineFactory.Create(
             HostProject.Configuration,
             Path.GetDirectoryName(HostProject.FilePath),
             configure: builder =>

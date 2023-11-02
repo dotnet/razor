@@ -37,10 +37,10 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         _hostProject_For_2_0 = new HostProject("Test.csproj", "/obj", FallbackRazorConfiguration.MVC_2_0, rootNamespace: null);
         _hostProject_For_NonSerializableConfiguration = new HostProject(
             "Test.csproj", "/obj",
-            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", Array.Empty<RazorExtension>()), rootNamespace: null);
+            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", []), rootNamespace: null);
 
-        _customFactories = new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[]
-        {
+        _customFactories =
+        [
             new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
                 () => Mock.Of<IProjectEngineFactory>(MockBehavior.Strict),
                 new ExportCustomProjectEngineFactoryAttribute("MVC-2.0") { SupportsSerialization = true, }),
@@ -49,7 +49,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
             new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
                 () => Mock.Of<IProjectEngineFactory>(MockBehavior.Strict),
                 new ExportCustomProjectEngineFactoryAttribute("Test-2") { SupportsSerialization = false, }),
-        };
+        ];
 
         _fallbackFactory = new FallbackProjectEngineFactory();
 
@@ -59,8 +59,9 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         var info = ProjectInfo.Create(ProjectId.CreateNewId("Test"), VersionStamp.Default, "Test", "Test", LanguageNames.CSharp, filePath: "Test.csproj");
         _workspaceProject = _workspace.CurrentSolution.AddProject(info).GetProject(info.Id).AssumeNotNull();
 
-        _projectManager = new TestProjectSnapshotManager(_workspace);
-        _engineFactory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
+        var projectEngineFactory = Mock.Of<IProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
+        _projectManager = new TestProjectSnapshotManager(projectEngineFactory, _workspace);
+        _engineFactory = new TestProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
     }
 
     [Fact]
@@ -207,4 +208,9 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         Assert.Contains(TagHelper1_Project1.Checksum, set);
         Assert.Contains(TagHelper2_Project2.Checksum, set);
     }
+
+    private class TestProjectSnapshotProjectEngineFactory(
+        IFallbackProjectEngineFactory fallback,
+        Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories)
+        : ProjectSnapshotProjectEngineFactory(fallback, factories);
 }

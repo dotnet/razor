@@ -225,6 +225,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
         services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
 
+        services.AddSingleton<IProjectSnapshotProjectEngineFactory, RemoteProjectSnapshotProjectEngineFactory>();
         services.AddSingleton<ProjectSnapshotManagerAccessor, DefaultProjectSnapshotManagerAccessor>();
         services.AddSingleton<ITagHelperFactsService, TagHelperFactsService>();
         services.AddSingleton<LSPTagHelperTooltipFactory, DefaultLSPTagHelperTooltipFactory>();

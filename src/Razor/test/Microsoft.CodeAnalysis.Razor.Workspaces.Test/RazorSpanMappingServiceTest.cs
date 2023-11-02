@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -15,17 +14,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-public class RazorSpanMappingServiceTest : WorkspaceTestBase
+public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {
-    private readonly HostProject _hostProject;
-    private readonly HostDocument _hostDocument;
-
-    public RazorSpanMappingServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _hostProject = TestProjectData.SomeProject;
-        _hostDocument = TestProjectData.SomeProjectFile1;
-    }
+    private readonly HostProject _hostProject = TestProjectData.SomeProject;
+    private readonly HostDocument _hostDocument = TestProjectData.SomeProjectFile1;
 
     protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
     {
@@ -41,10 +33,11 @@ public class RazorSpanMappingServiceTest : WorkspaceTestBase
 ");
 
         var project = new ProjectSnapshot(
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(_hostProject, ProjectEngineFactory)
             .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
         var document = project.GetDocument(_hostDocument.FilePath);
+        Assert.NotNull(document);
         var service = new RazorSpanMappingService(document);
 
         var output = await document.GetGeneratedOutputAsync();
@@ -73,10 +66,11 @@ public class RazorSpanMappingServiceTest : WorkspaceTestBase
 ");
 
         var project = new ProjectSnapshot(
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(_hostProject, ProjectEngineFactory)
             .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
         var document = project.GetDocument(_hostDocument.FilePath);
+        Assert.NotNull(document);
         var service = new RazorSpanMappingService(document);
 
         var output = await document.GetGeneratedOutputAsync();
@@ -106,10 +100,11 @@ public class RazorSpanMappingServiceTest : WorkspaceTestBase
 ");
 
         var project = new ProjectSnapshot(
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(_hostProject, ProjectEngineFactory)
             .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
         var document = project.GetDocument(_hostDocument.FilePath);
+        Assert.NotNull(document);
         var service = new RazorSpanMappingService(document);
 
         var output = await document.GetGeneratedOutputAsync();
@@ -138,10 +133,11 @@ public class RazorSpanMappingServiceTest : WorkspaceTestBase
 ");
 
         var project = new ProjectSnapshot(
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(_hostProject, ProjectEngineFactory)
             .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
         var document = project.GetDocument(_hostDocument.FilePath);
+        Assert.NotNull(document);
         var service = new RazorSpanMappingService(document);
 
         var output = await document.GetGeneratedOutputAsync();

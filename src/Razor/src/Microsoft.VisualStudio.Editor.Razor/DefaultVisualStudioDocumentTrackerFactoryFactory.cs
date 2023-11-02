@@ -17,34 +17,22 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [ExportLanguageServiceFactory(typeof(VisualStudioDocumentTrackerFactory), RazorLanguage.Name, ServiceLayer.Default)]
 internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServiceFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
 
     [ImportingConstructor]
     public DefaultVisualStudioDocumentTrackerFactoryFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
-        ITextDocumentFactoryService textDocumentFactory)
+        ITextDocumentFactoryService textDocumentFactory,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (textDocumentFactory is null)
-        {
-            throw new ArgumentNullException(nameof(textDocumentFactory));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _textDocumentFactory = textDocumentFactory;
+        _projectEngineFactory = projectEngineFactory;
     }
 
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
@@ -61,13 +49,13 @@ internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServi
         var projectPathProvider = languageServices.WorkspaceServices.GetRequiredService<ProjectPathProvider>();
 
         return new DefaultVisualStudioDocumentTrackerFactory(
-            _projectSnapshotManagerDispatcher,
+            _dispatcher,
             _joinableTaskContext,
             projectManager,
             workspaceEditorSettings,
             projectPathProvider,
             _textDocumentFactory,
             importDocumentManager,
-            languageServices.WorkspaceServices.Workspace);
+            _projectEngineFactory);
     }
 }

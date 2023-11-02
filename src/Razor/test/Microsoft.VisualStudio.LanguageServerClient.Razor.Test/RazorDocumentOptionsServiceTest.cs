@@ -1,18 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -22,13 +20,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 
-public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
+public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {
-    public RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task RazorDocumentOptionsService_ReturnsCorrectOptions_UseTabs()
     {
@@ -51,9 +44,9 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
         documentOptions.TryGetDocumentOption(indentationSizeOptionKey, out var indentationSize);
 
         // Assert
-        Assert.True((bool)useTabs);
-        Assert.Equal(4, (int)tabSize);
-        Assert.Equal(4, (int)indentationSize);
+        Assert.True((bool)useTabs!);
+        Assert.Equal(4, (int)tabSize!);
+        Assert.Equal(4, (int)indentationSize!);
     }
 
     [Fact]
@@ -78,9 +71,9 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
         documentOptions.TryGetDocumentOption(indentationSizeOptionKey, out var indentationSize);
 
         // Assert
-        Assert.False((bool)useTabs);
-        Assert.Equal(2, (int)tabSize);
-        Assert.Equal(2, (int)indentationSize);
+        Assert.False((bool)useTabs!);
+        Assert.Equal(2, (int)tabSize!);
+        Assert.Equal(2, (int)indentationSize!);
     }
 
     private static OptionKey GetUseTabsOptionKey(Document document)
@@ -103,7 +96,7 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
             Path.Combine(baseDirectory, "SomeProject", "File1.cshtml"), "File1.cshtml", FileKinds.Legacy);
 
         var project = new ProjectSnapshot(
-            ProjectState.Create(Workspace.Services, hostProject)
+            ProjectState.Create(hostProject, ProjectEngineFactory)
             .WithAddedHostDocument(hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
         var documentSnapshot = project.GetDocument(hostDocument.FilePath);

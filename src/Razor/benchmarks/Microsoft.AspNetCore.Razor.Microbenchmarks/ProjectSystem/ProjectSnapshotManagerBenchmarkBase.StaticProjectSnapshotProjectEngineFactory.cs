@@ -11,18 +11,15 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
 public abstract partial class ProjectSnapshotManagerBenchmarkBase
 {
-    private class StaticProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
+    private class StaticProjectSnapshotProjectEngineFactory : IProjectSnapshotProjectEngineFactory
     {
-        public override IProjectEngineFactory FindFactory(IProjectSnapshot project)
-            => throw new NotImplementedException();
-
-        public override IProjectEngineFactory FindSerializableFactory(IProjectSnapshot project)
-            => throw new NotImplementedException();
-
-        public override RazorProjectEngine Create(
+        public RazorProjectEngine Create(
             RazorConfiguration configuration,
             RazorProjectFileSystem fileSystem,
-            Action<RazorProjectEngineBuilder> configure)
+            Action<RazorProjectEngineBuilder>? configure)
             => RazorProjectEngine.Create(configuration, fileSystem, RazorExtensions.Register);
+
+        public IProjectEngineFactory? FindSerializableFactory(IProjectSnapshot project)
+            => throw new NotImplementedException();
     }
 }

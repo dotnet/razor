@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -30,6 +29,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
     private readonly HostProject _someOtherProject;
     private Project _someWorkspaceProject;
     private readonly Workspace _workspace;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
 
     public VsSolutionUpdatesProjectSnapshotChangeTriggerTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -38,14 +38,18 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         _someOtherProject = new HostProject(TestProjectData.AnotherProject.FilePath, TestProjectData.AnotherProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.AnotherProject.RootNamespace);
 
         _workspace = TestWorkspace.Create(w => _someWorkspaceProject = w.AddProject(ProjectInfo.Create(
-                ProjectId.CreateNewId(),
-                VersionStamp.Create(),
-                "SomeProject",
-                "SomeProject",
-                LanguageNames.CSharp,
-                filePath: _someProject.FilePath).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(_someProject.IntermediateOutputPath, "SomeProject.dll")))));
+            ProjectId.CreateNewId(),
+            VersionStamp.Create(),
+            "SomeProject",
+            "SomeProject",
+            LanguageNames.CSharp,
+            filePath: _someProject.FilePath).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(_someProject.IntermediateOutputPath, "SomeProject.dll")))));
+
+        Assert.NotNull(_someWorkspaceProject);
 
         AddDisposable(_workspace);
+
+        _projectEngineFactory = Mock.Of<IProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
     }
 
     [Fact]
@@ -110,7 +114,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
     public async Task SolutionClosing_CancelsActiveWork()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_workspace, s_dispatcher)
+        var projectManager = new TestProjectSnapshotManager(_projectEngineFactory, _workspace, s_dispatcher)
         {
             AllowNotifyListeners = true,
         };
@@ -129,8 +133,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 
         var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(TestServiceProvider.Instance, projectService.Object, workspaceStateGenerator, s_dispatcher, JoinableTaskFactory.Context);
         trigger.Initialize(projectManager);
-        trigger.UpdateProjectCfg_Done(Mock.Of<IVsHierarchy>(MockBehavior.Strict), pCfgProj: default, pCfgSln: default, dwAction: default, fSuccess: default, fCancel: default);
-        await trigger.CurrentUpdateTaskForTests;
+        trigger.UpdateProjectCfg_Done(Mock.Of<IVsHierarchy>(MockBehavior.Strict), pCfgProj: default!, pCfgSln: default!, dwAction: default, fSuccess: default, fCancel: default);
+        await trigger.CurrentUpdateTaskForTests!;
 
         // Act
         await s_dispatcher.RunOnDispatcherThreadAsync(() =>
@@ -150,7 +154,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
     public async Task OnProjectBuiltAsync_KnownProject_EnqueuesProjectStateUpdate()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_workspace, s_dispatcher);
+        var projectManager = new TestProjectSnapshotManager(_projectEngineFactory, _workspace, s_dispatcher);
         var expectedProjectPath = _someProject.FilePath;
         var expectedProjectSnapshot = await s_dispatcher.RunOnDispatcherThreadAsync(() =>
         {
@@ -190,8 +194,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         services.Setup(s => s.GetService(It.Is<Type>(f => f == typeof(SVsSolutionBuildManager)))).Returns(buildManager.Object);
         var projectSnapshot = new ProjectSnapshot(
             ProjectState.Create(
-                _workspace.Services,
-                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path")));
+                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path"),
+                _projectEngineFactory));
         var expectedProjectPath = projectSnapshot.FilePath;
 
         var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
@@ -254,16 +258,14 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 
     private class TestServiceProvider : IServiceProvider
     {
-        public static readonly TestServiceProvider Instance = new TestServiceProvider();
+        public static readonly TestServiceProvider Instance = new();
 
         private TestServiceProvider()
         {
         }
 
-        public object GetService(Type serviceType)
-        {
-            return null;
-        }
+        public object? GetService(Type serviceType)
+            => null;
     }
 
     private class TestDispatcher : ProjectSnapshotManagerDispatcher

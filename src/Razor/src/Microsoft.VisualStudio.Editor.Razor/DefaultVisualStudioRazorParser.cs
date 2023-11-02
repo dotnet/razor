@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -39,7 +40,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
     private readonly ICompletionBroker _completionBroker;
     private readonly VisualStudioDocumentTracker _documentTracker;
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly IErrorReporter _errorReporter;
     private readonly List<CodeDocumentRequest> _codeDocumentRequests;
     private readonly TaskScheduler _uiThreadScheduler;
@@ -61,7 +62,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
     public DefaultVisualStudioRazorParser(
         JoinableTaskContext joinableTaskContext,
         VisualStudioDocumentTracker documentTracker,
-        ProjectSnapshotProjectEngineFactory projectEngineFactory,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         IErrorReporter errorReporter,
         ICompletionBroker completionBroker)
     {
@@ -220,7 +221,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         Debug.Assert(_documentTracker.IsSupportedProject);
         Debug.Assert(_documentTracker.ProjectSnapshot is not null);
 
-        _projectEngine = _projectEngineFactory.Create(_documentTracker.ProjectSnapshot, ConfigureProjectEngine);
+        _projectEngine = _projectEngineFactory.Create(_documentTracker.ProjectSnapshot.AssumeNotNull(), ConfigureProjectEngine);
 
         Debug.Assert(_projectEngine is not null);
         Debug.Assert(_projectEngine!.Engine is not null);

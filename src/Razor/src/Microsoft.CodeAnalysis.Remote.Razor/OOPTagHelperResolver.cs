@@ -22,14 +22,18 @@ internal class OOPTagHelperResolver : ITagHelperResolver
 {
     private readonly TagHelperResultCache _resultCache;
     private readonly CompilationTagHelperResolver _innerResolver;
-    private readonly ProjectSnapshotProjectEngineFactory _factory;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly IErrorReporter _errorReporter;
     private readonly Workspace _workspace;
     private readonly ITelemetryReporter _telemetryReporter;
 
-    public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, IErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
+    public OOPTagHelperResolver(
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
+        IErrorReporter errorReporter,
+        Workspace workspace,
+        ITelemetryReporter telemetryReporter)
     {
-        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        _projectEngineFactory = projectEngineFactory ?? throw new ArgumentNullException(nameof(projectEngineFactory));
         _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
         _workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
         _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
@@ -55,7 +59,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         // 3. Use fallback factory in process
         //
         // Calling into RazorTemplateEngineFactoryService.Create will accomplish #2 and #3 in one step.
-        var factory = _factory.FindSerializableFactory(projectSnapshot);
+        var factory = _projectEngineFactory.FindSerializableFactory(projectSnapshot);
 
         ImmutableArray<TagHelperDescriptor> result = default;
 

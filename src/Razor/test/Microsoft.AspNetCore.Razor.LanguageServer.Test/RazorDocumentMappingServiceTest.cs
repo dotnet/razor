@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -19,15 +20,9 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class RazorDocumentMappingServiceTest : ToolingTestBase
+public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private readonly FilePathService _filePathService;
-
-    public RazorDocumentMappingServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
-    }
+    private readonly FilePathService _filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
 
     [Fact]
     public void TryMapToHostDocumentRange_Strict_StartOnlyMaps_ReturnsFalse()

@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.Test.Workspaces;
 
 internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {

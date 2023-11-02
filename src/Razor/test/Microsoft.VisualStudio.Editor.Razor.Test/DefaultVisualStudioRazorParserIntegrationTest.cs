@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Test;
@@ -36,10 +36,11 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
     public DefaultVisualStudioRazorParserIntegrationTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _workspace = CodeAnalysis.TestWorkspace.Create();
+        _workspace = TestWorkspace.Create();
         AddDisposable(_workspace);
 
-        _projectSnapshot = new EphemeralProjectSnapshot(_workspace.Services, TestProjectPath);
+        var projectEngineFactory = Mock.Of<IProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
+        _projectSnapshot = new EphemeralProjectSnapshot(projectEngineFactory, TestProjectPath);
     }
 
     [UIFact]
@@ -571,7 +572,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
         return CreateParserManager(documentTracker);
     }
 
-    private static ProjectSnapshotProjectEngineFactory CreateProjectEngineFactory(IEnumerable<TagHelperDescriptor> tagHelpers = null)
+    private static IProjectSnapshotProjectEngineFactory CreateProjectEngineFactory(IEnumerable<TagHelperDescriptor> tagHelpers = null)
     {
         var fileSystem = new TestRazorProjectFileSystem();
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem, builder =>

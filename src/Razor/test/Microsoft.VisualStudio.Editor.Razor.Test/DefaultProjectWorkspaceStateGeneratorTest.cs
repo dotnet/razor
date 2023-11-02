@@ -11,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,10 +27,12 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     private readonly Project _workspaceProject;
     private readonly ProjectSnapshot _projectSnapshot;
     private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
 
     public DefaultProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
+        _projectEngineFactory = Mock.Of<IProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
         var tagHelperResolver = new TestTagHelperResolver()
         {
             TagHelpers = ImmutableArray.Create(TagHelperDescriptorBuilder.Create("ResolvableTagHelper", "TestAssembly").Build())
@@ -48,7 +52,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
             LanguageNames.CSharp,
             TestProjectData.SomeProject.FilePath));
         _workspaceProject = solution.GetProject(projectId);
-        _projectSnapshot = new ProjectSnapshot(ProjectState.Create(_workspace.Services, TestProjectData.SomeProject));
+        _projectSnapshot = new ProjectSnapshot(ProjectState.Create(TestProjectData.SomeProject, _projectEngineFactory));
         _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
             csharpLanguageVersion: default);
@@ -58,98 +62,88 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public void Dispose_MakesUpdateNoop()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
-        {
-            stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        using var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher);
+        stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-            // Act
-            stateGenerator.Dispose();
-            stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
+        // Act
+        stateGenerator.Dispose();
+        stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
 
-            // Assert
-            Assert.Empty(stateGenerator.Updates);
-        }
+        // Assert
+        Assert.Empty(stateGenerator.Updates);
     }
 
     [UIFact]
     public void Update_StartsUpdateTask()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
-        {
-            stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        using var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher);
+        stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-            // Act
-            stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
+        // Act
+        stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
 
-            // Assert
-            var update = Assert.Single(stateGenerator.Updates);
-            Assert.False(update.Value.Task.IsCompleted);
-        }
+        // Assert
+        var update = Assert.Single(stateGenerator.Updates);
+        Assert.False(update.Value.Task.IsCompleted);
     }
 
     [UIFact]
     public void Update_SoftCancelsIncompleteTaskForSameProject()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
-        {
-            stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
-            stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
-            var initialUpdate = stateGenerator.Updates.Single().Value;
+        using var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher);
+        stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
+        var initialUpdate = stateGenerator.Updates.Single().Value;
 
-            // Act
-            stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
+        // Act
+        stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
 
-            // Assert
-            Assert.True(initialUpdate.Cts.IsCancellationRequested);
-        }
+        // Assert
+        Assert.True(initialUpdate.Cts.IsCancellationRequested);
     }
 
     [UIFact]
     public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
-        {
-            stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
-            var projectManager = new TestProjectSnapshotManager(_workspace, Dispatcher);
-            stateGenerator.Initialize(projectManager);
-            projectManager.ProjectAdded(_projectSnapshot.HostProject);
-            projectManager.ProjectWorkspaceStateChanged(_projectSnapshot.Key, _projectWorkspaceStateWithTagHelpers);
+        using var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher);
+        stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+        var projectManager = new TestProjectSnapshotManager(_projectEngineFactory, _workspace, Dispatcher);
+        stateGenerator.Initialize(projectManager);
+        projectManager.ProjectAdded(_projectSnapshot.HostProject);
+        projectManager.ProjectWorkspaceStateChanged(_projectSnapshot.Key, _projectWorkspaceStateWithTagHelpers);
 
-            // Act
-            stateGenerator.Update(workspaceProject: null, _projectSnapshot, DisposalToken);
+        // Act
+        stateGenerator.Update(workspaceProject: null, _projectSnapshot, DisposalToken);
 
-            // Jump off the UI thread so the background work can complete.
-            await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
+        // Jump off the UI thread so the background work can complete.
+        await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
-            // Assert
-            var newProjectSnapshot = projectManager.GetLoadedProject(_projectSnapshot.Key);
-            Assert.Empty(newProjectSnapshot.TagHelpers);
-        }
+        // Assert
+        var newProjectSnapshot = projectManager.GetLoadedProject(_projectSnapshot.Key);
+        Assert.Empty(newProjectSnapshot.TagHelpers);
     }
 
     [UIFact]
     public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
-        {
-            stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
-            var projectManager = new TestProjectSnapshotManager(_workspace, Dispatcher);
-            stateGenerator.Initialize(projectManager);
-            projectManager.ProjectAdded(_projectSnapshot.HostProject);
+        using var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher);
+        stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+        var projectManager = new TestProjectSnapshotManager(_projectEngineFactory, _workspace, Dispatcher);
+        stateGenerator.Initialize(projectManager);
+        projectManager.ProjectAdded(_projectSnapshot.HostProject);
 
-            // Act
-            stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
+        // Act
+        stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
 
-            // Jump off the UI thread so the background work can complete.
-            await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
+        // Jump off the UI thread so the background work can complete.
+        await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
-            // Assert
-            var newProjectSnapshot = projectManager.GetLoadedProject(_projectSnapshot.Key);
-            Assert.Equal<TagHelperDescriptor>(_resolvableTagHelpers, newProjectSnapshot.TagHelpers);
-        }
+        // Assert
+        var newProjectSnapshot = projectManager.GetLoadedProject(_projectSnapshot.Key);
+        Assert.Equal<TagHelperDescriptor>(_resolvableTagHelpers, newProjectSnapshot.TagHelpers);
     }
 }

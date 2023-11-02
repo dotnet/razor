@@ -20,11 +20,10 @@ public partial class OOPTagHelperResolverTest
         return dispatcher.Object;
     });
 
-    private class TestProjectSnapshotManager(Workspace workspace) : DefaultProjectSnapshotManager(
+    private class TestProjectSnapshotManager(IProjectSnapshotProjectEngineFactory projectEngineFactory, Workspace workspace) : DefaultProjectSnapshotManager(
         Mock.Of<IErrorReporter>(MockBehavior.Strict),
         Enumerable.Empty<IProjectSnapshotChangeTrigger>(),
+        projectEngineFactory,
         workspace,
-        s_projectSnapshotManagerDispatcher.Value)
-    {
-    }
+        s_projectSnapshotManagerDispatcher.Value);
 }

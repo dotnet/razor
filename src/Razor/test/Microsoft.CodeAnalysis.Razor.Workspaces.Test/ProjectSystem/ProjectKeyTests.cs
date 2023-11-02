@@ -3,19 +3,16 @@
 
 using System.IO;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Test.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test.ProjectSystem;
 
-public class ProjectKeyTests : WorkspaceTestBase
+public class ProjectKeyTests(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {
-    public ProjectKeyTests(ITestOutputHelper testOutput)
-    : base(testOutput)
-    {
-    }
-
     [Theory]
     [InlineData("/path/to/dir", @"\path\to\dir")]
     [InlineData("/path%2Fto/dir", @"\path\to\dir")]

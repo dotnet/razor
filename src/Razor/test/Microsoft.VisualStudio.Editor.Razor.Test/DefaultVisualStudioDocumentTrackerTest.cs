@@ -1,11 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
@@ -27,15 +24,12 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
     private readonly ITextBuffer _textBuffer;
     private readonly string _filePath;
     private readonly string _projectPath;
-    private readonly string _rootNamespace;
+    private readonly string? _rootNamespace;
     private readonly HostProject _hostProject;
     private readonly HostProject _updatedHostProject;
     private readonly HostProject _otherHostProject;
-    private Project _workspaceProject;
     private readonly ImportDocumentManager _importDocumentManager;
     private readonly WorkspaceEditorSettings _workspaceEditorSettings;
-    private readonly List<TagHelperDescriptor> _someTagHelpers;
-    private TestTagHelperResolver _tagHelperResolver;
     private readonly ProjectSnapshotManagerBase _projectManager;
     private readonly DefaultVisualStudioDocumentTracker _documentTracker;
 
@@ -55,12 +49,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
 
         _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
 
-        _someTagHelpers = new List<TagHelperDescriptor>()
-        {
-            TagHelperDescriptorBuilder.Create("test", "test").Build(),
-        };
-
-        _projectManager = new TestProjectSnapshotManager(Workspace, Dispatcher) { AllowNotifyListeners = true };
+        _projectManager = new TestProjectSnapshotManager(ProjectEngineFactory, Workspace, Dispatcher) { AllowNotifyListeners = true };
 
         _hostProject = new HostProject(_projectPath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_1, _rootNamespace);
         _updatedHostProject = new HostProject(_projectPath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, _rootNamespace);
@@ -73,20 +62,19 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
             _projectPath,
             _projectManager,
             _workspaceEditorSettings,
-            Workspace,
             _textBuffer,
-            _importDocumentManager);
+            _importDocumentManager,
+            ProjectEngineFactory);
     }
 
     protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
     {
-        _tagHelperResolver = new TestTagHelperResolver();
-        services.Add(_tagHelperResolver);
+        services.Add(new TestTagHelperResolver());
     }
 
     protected override void ConfigureWorkspace(AdhocWorkspace workspace)
     {
-        _workspaceProject = workspace.AddProject(ProjectInfo.Create(
+        workspace.AddProject(ProjectInfo.Create(
             ProjectId.CreateNewId(),
             new VersionStamp(),
             "Test1",
@@ -161,7 +149,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         };
 
         // Act
-        _documentTracker.EditorSettingsManager_Changed(null, null);
+        _documentTracker.EditorSettingsManager_Changed(null, null!);
 
         // Assert
         Assert.True(called);
@@ -173,7 +161,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
 
-        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectAdded);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_hostProject.Key)!, ProjectChangeKind.ProjectAdded);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -196,7 +184,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
 
-        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectChanged);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_hostProject.Key)!, ProjectChangeKind.ProjectChanged);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -222,7 +210,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         var project = _projectManager.GetLoadedProject(_hostProject.Key);
         _projectManager.ProjectRemoved(_hostProject.Key);
 
-        var e = new ProjectChangeEventArgs(project, null, ProjectChangeKind.ProjectRemoved);
+        var e = new ProjectChangeEventArgs(project!, null!, ProjectChangeKind.ProjectRemoved);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -246,7 +234,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         // Arrange
         _projectManager.ProjectAdded(_otherHostProject);
 
-        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_otherHostProject.Key), ProjectChangeKind.ProjectChanged);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_otherHostProject.Key)!, ProjectChangeKind.ProjectChanged);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) => called = true;

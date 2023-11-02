@@ -1,14 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Host;
+namespace Microsoft.AspNetCore.Razor.Test.Workspaces;
 
 internal class TestWorkspaceServices : HostWorkspaceServices
 {
@@ -25,26 +25,6 @@ internal class TestWorkspaceServices : HostWorkspaceServices
         IEnumerable<ILanguageService> languageServices,
         Workspace workspace)
     {
-        if (hostServices is null)
-        {
-            throw new ArgumentNullException(nameof(hostServices));
-        }
-
-        if (workspaceServices is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceServices));
-        }
-
-        if (languageServices is null)
-        {
-            throw new ArgumentNullException(nameof(languageServices));
-        }
-
-        if (workspace is null)
-        {
-            throw new ArgumentNullException(nameof(workspace));
-        }
-
         _hostServices = hostServices;
         _workspaceServices = workspaceServices;
         _workspace = workspace;
@@ -56,7 +36,8 @@ internal class TestWorkspaceServices : HostWorkspaceServices
 
     public override Workspace Workspace => _workspace;
 
-    public override TWorkspaceService GetService<TWorkspaceService>()
+    public override TWorkspaceService? GetService<TWorkspaceService>()
+        where TWorkspaceService : default
     {
         var service = _workspaceServices.OfType<TWorkspaceService>().FirstOrDefault();
 

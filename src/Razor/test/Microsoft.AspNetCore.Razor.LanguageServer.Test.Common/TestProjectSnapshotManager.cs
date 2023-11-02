@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
@@ -17,17 +16,14 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 {
     private TestProjectSnapshotManager(IErrorReporter errorReporter, Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
-        : base(errorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), workspace, dispatcher)
+        : base(errorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), new TestProjectSnapshotProjectEngineFactory(), workspace, dispatcher)
     {
     }
 
     public static TestProjectSnapshotManager Create(IErrorReporter errorReporter, ProjectSnapshotManagerDispatcher dispatcher)
     {
         var services = TestServices.Create(
-            workspaceServices: new[]
-            {
-                new DefaultProjectSnapshotProjectEngineFactory(new FallbackProjectEngineFactory(), MefProjectEngineFactories.Factories)
-            },
+            workspaceServices: Enumerable.Empty<IWorkspaceService>(),
             razorLanguageServices: Enumerable.Empty<ILanguageService>());
         var workspace = TestWorkspace.Create(services);
         var testProjectManager = new TestProjectSnapshotManager(errorReporter, workspace, dispatcher);
@@ -39,7 +35,7 @@ internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 
     public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
     {
-        var documentSnapshot = TestDocumentSnapshot.Create(Workspace, projectSnapshot, filePath);
+        var documentSnapshot = TestDocumentSnapshot.Create(projectSnapshot, filePath);
         DocumentAdded(projectSnapshot.Key, documentSnapshot.HostDocument, new DocumentSnapshotTextLoader(documentSnapshot));
 
         return documentSnapshot;
@@ -58,6 +54,14 @@ internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         if (AllowNotifyListeners)
         {
             base.NotifyListeners(e);
+        }
+    }
+
+    private class TestProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
+    {
+        public TestProjectSnapshotProjectEngineFactory()
+            : base(new FallbackProjectEngineFactory(), MefProjectEngineFactories.Factories)
+        {
         }
     }
 }

@@ -3,10 +3,8 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common;
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal class TestProjectSnapshotProjectEngineFactory : IProjectSnapshotProjectEngineFactory
 {
@@ -18,7 +16,11 @@ internal class TestProjectSnapshotProjectEngineFactory : IProjectSnapshotProject
         RazorConfiguration configuration,
         RazorProjectFileSystem fileSystem,
         Action<RazorProjectEngineBuilder>? configure)
-        => Engine ?? RazorProjectEngine.Create(configuration, fileSystem, configure ?? Configure);
+        => Engine ?? RazorProjectEngine.Create(configuration, fileSystem, b =>
+        {
+            configure?.Invoke(b);
+            Configure?.Invoke(b);
+        });
 
     public IProjectEngineFactory? FindSerializableFactory(IProjectSnapshot project)
         => throw new NotImplementedException();

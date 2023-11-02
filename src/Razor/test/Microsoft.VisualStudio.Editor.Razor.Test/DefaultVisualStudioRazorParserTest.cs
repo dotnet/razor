@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -20,23 +19,14 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private readonly IProjectSnapshot _projectSnapshot;
-    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
-    private readonly Workspace _workspace;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
 
     public DefaultVisualStudioRazorParserTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _workspace = TestWorkspace.Create();
-        AddDisposable(_workspace);
-
-        _projectSnapshot = new EphemeralProjectSnapshot(_workspace.Services, "c:\\SomeProject.csproj");
-
         var engine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Empty);
-        _projectEngineFactory = Mock.Of<ProjectSnapshotProjectEngineFactory>(
-            f => f.Create(
-                It.IsAny<RazorConfiguration>(),
-                It.IsAny<RazorProjectFileSystem>(),
-                It.IsAny<Action<RazorProjectEngineBuilder>>()) == engine, MockBehavior.Strict);
+        _projectEngineFactory = new TestProjectSnapshotProjectEngineFactory(engine);
+        _projectSnapshot = new EphemeralProjectSnapshot(_projectEngineFactory, "c:\\SomeProject.csproj");
     }
 
     private VisualStudioDocumentTracker CreateDocumentTracker(bool isSupportedProject = true, int versionNumber = 0)
@@ -640,5 +630,17 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
 
         // Assert
         Assert.False(result);
+    }
+
+    private class TestProjectSnapshotProjectEngineFactory(RazorProjectEngine engine) : IProjectSnapshotProjectEngineFactory
+    {
+        public RazorProjectEngine Create(
+            RazorConfiguration configuration,
+            RazorProjectFileSystem fileSystem,
+            Action<RazorProjectEngineBuilder>? configure)
+            => engine;
+
+        public IProjectEngineFactory? FindSerializableFactory(IProjectSnapshot project)
+            => throw new NotImplementedException();
     }
 }
