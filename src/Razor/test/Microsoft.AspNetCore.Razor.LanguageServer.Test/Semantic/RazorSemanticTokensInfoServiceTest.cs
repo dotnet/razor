@@ -1114,9 +1114,9 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
                 CustomMessageNames.RazorProvidePreciseRangeSemanticTokensEndpoint,
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(serverSupportsPreciseRanges ?
-                csharpTokens :
-                It.Is<ProvideSemanticTokensResponse>(x => x.Tokens == null));
+            .ReturnsAsync(serverSupportsPreciseRanges
+                ? csharpTokens
+                : It.Is<ProvideSemanticTokensResponse>(x => x.Tokens == null));
 
         var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);
         var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
