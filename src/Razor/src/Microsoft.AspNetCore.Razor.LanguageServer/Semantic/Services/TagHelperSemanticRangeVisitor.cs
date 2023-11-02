@@ -31,14 +31,10 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         _colorCodeBackground = colorCodeBackground;
     }
 
-    public static ImmutableArray<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range? range, RazorSemanticTokensLegend razorSemanticTokensLegend, bool colorCodeBackground)
+    public static ImmutableArray<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range range, RazorSemanticTokensLegend razorSemanticTokensLegend, bool colorCodeBackground)
     {
-        TextSpan? rangeAsTextSpan = null;
-        if (range is not null)
-        {
-            var sourceText = razorCodeDocument.GetSourceText();
-            rangeAsTextSpan = range.ToTextSpan(sourceText);
-        }
+        var sourceText = razorCodeDocument.GetSourceText();
+        var rangeAsTextSpan = range.ToTextSpan(sourceText);
 
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var builder);
 
