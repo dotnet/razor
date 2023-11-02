@@ -108,24 +108,25 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             return new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: 0);
         }
 
-        SemanticTokens? result;
-        try
+        if (UsePreciseSemanticTokenRanges)
         {
-            result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangesParams, SemanticTokens>(
-            "roslyn/semanticTokenRanges",
-            CreateVSSemanticTokensRangesParams(csharpRanges, csharpDocumentUri),
-            DisposalToken);
-        }
-        catch (RemoteMethodNotFoundException)
-        {
-            // The new endpoint is available in version 4.8.0-3.23471.2 or higher of Roslyn packages
-            result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
-            Methods.TextDocumentSemanticTokensRangeName,
-            CreateVSSemanticTokensRangeParams(minimalRange, csharpDocumentUri),
-            DisposalToken);
-        }
+            var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangesParams, SemanticTokens>(
+                "roslyn/semanticTokenRanges",
+                CreateVSSemanticTokensRangesParams(csharpRanges, csharpDocumentUri),
+                DisposalToken);
 
             return new ProvideSemanticTokensResponse(tokens: result?.Data, hostDocumentSyncVersion: 0);
+        }
+        else
+        {
+            var range = Assert.Single(csharpRanges);
+            var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
+                "textDocument/semanticTokens/range",
+                CreateVSSemanticTokensRangeParams(range, csharpDocumentUri),
+                DisposalToken);
+
+            return new ProvideSemanticTokensResponse(tokens: result?.Data, hostDocumentSyncVersion: 0);
+        }
     }
 
     protected Range[]? GetMappedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange)
