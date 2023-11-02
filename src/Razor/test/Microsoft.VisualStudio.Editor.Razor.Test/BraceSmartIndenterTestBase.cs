@@ -73,9 +73,8 @@ public class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectS
 
     private protected static TestTextBuffer CreateTextBuffer(ITextSnapshot initialSnapshot, VisualStudioDocumentTracker documentTracker)
     {
-        var textBuffer = new TestTextBuffer(initialSnapshot);
+        var textBuffer = new TestTextBuffer(initialSnapshot, new LegacyCoreContentType());
         textBuffer.Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
-        textBuffer.ChangeContentType(new LegacyCoreContentType(), editTag: null);
 
         return textBuffer;
     }
