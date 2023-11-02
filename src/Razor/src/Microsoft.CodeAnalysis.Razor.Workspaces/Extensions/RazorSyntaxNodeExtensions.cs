@@ -277,10 +277,9 @@ internal static class RazorSyntaxNodeExtensions
     /// <param name="index">The location to find the innermost node at.</param>
     /// <param name="includeWhitespace">Whether to include whitespace in the search.</param>
     /// <param name="walkMarkersBack">When true, if there are multiple <see cref="SyntaxKind.Marker"/> tokens in a single location, return the parent node of the
-    /// first one in the tree. <paramref name="includeWhitespace"/> must be true when setting this value.</param>
-    public static SyntaxNode? FindInnermostNode(this SyntaxNode node, int index, bool includeWhitespace = false, bool walkMarkersBack = false)
+    /// first one in the tree.</param>
+    public static SyntaxNode? FindInnermostNode(this SyntaxNode node, int index, bool includeWhitespace = false, bool walkMarkersBack = true)
     {
-        Debug.Assert(!walkMarkersBack || includeWhitespace);
         var token = node.FindToken(index, includeWhitespace);
 
         // If the index is EOF but the node has index-1,
@@ -296,7 +295,7 @@ internal static class RazorSyntaxNodeExtensions
 
         var foundPosition = token.Position;
 
-        if (includeWhitespace && walkMarkersBack && token.Kind == SyntaxKind.Marker)
+        if (walkMarkersBack && token.Kind == SyntaxKind.Marker)
         {
             while (true)
             {
