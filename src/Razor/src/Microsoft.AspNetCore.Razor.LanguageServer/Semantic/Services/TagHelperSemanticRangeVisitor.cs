@@ -188,6 +188,41 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         }
     }
 
+    public override void VisitCSharpImplicitExpressionBody(CSharpImplicitExpressionBodySyntax node)
+    {
+        // Generally same as explicit expression, below, but different because the parens might not be there,
+        // and because the compiler isn't nice and doesn't give us OpenParen and CloseParen properties we can
+        // easily use.
+
+        // Matches @(SomeCSharpCode())
+        if (node.CSharpCode.Children is
+            [
+                CSharpExpressionLiteralSyntax { LiteralTokens: [{ Kind: SyntaxKind.LeftParenthesis } openParen] },
+                CSharpExpressionLiteralSyntax body,
+                CSharpExpressionLiteralSyntax { LiteralTokens: [{ Kind: SyntaxKind.RightParenthesis } closeParen] },
+            ])
+        {
+            var legend = _razorSemanticTokensLegend;
+
+            using (ColorCSharpBackground())
+            {
+                AddSemanticRange(openParen, legend.RazorTransition);
+            }
+
+            Visit(body);
+
+            using (ColorCSharpBackground())
+            {
+                AddSemanticRange(closeParen, legend.RazorTransition);
+            }
+        }
+        else
+        {
+            // Matches @SomeCSharpCode()
+            Visit(node.CSharpCode);
+        }
+    }
+
     public override void VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
     {
         var legend = _razorSemanticTokensLegend;
