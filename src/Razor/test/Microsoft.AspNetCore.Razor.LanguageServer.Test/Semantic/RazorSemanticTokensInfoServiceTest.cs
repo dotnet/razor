@@ -523,6 +523,22 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
     }
 
     [Fact]
+    public async Task GetSemanticTokens_Razor_DirectiveWithExplicitStatementAsync()
+    {
+        var documentText =
+            """
+                @addTagHelper *, TestAssembly
+                <Component1 @onclick="@(Function())"></Component1>
+                """;
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        Assert.NotNull(csharpTokens.Tokens);
+        Assert.NotEmpty(csharpTokens.Tokens);
+    }
+
+    [Fact]
     public async Task GetSemanticTokens_HandleTransitionEscape()
     {
         var documentText =
