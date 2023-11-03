@@ -74,7 +74,7 @@ internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProv
 
         // Also helps filter out edge cases like `< te` and `< te=""`
         // (see comment in AtMarkupTransitionCompletionPoint)
-        if (!_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _) ||
+        if (!_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out _, closingForwardSlashOrCloseAngleToken: out _) ||
             !containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
             return ImmutableArray<RazorCompletionItem>.Empty;

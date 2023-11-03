@@ -67,7 +67,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             _ => owner.Parent
         };
 
-        if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, out _) &&
+        if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
             // Trying to complete the element type
