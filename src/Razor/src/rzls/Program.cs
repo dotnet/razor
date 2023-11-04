@@ -76,16 +76,24 @@ public class Program
         ITelemetryReporter? devKitTelemetryReporter = null;
         if (!telemetryExtensionPath.IsNullOrEmpty())
         {
-            using var exportProvider = await ExportProviderBuilder
-                .CreateExportProviderAsync(telemetryExtensionPath)
-                .ConfigureAwait(true);
-
-            // Initialize the telemetry reporter if available
-            devKitTelemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
-
-            if (devKitTelemetryReporter is ITelemetryReporterInitializer initializer)
+            try
             {
-                initializer.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
+                using var exportProvider = await ExportProviderBuilder
+                    .CreateExportProviderAsync(telemetryExtensionPath)
+                    .ConfigureAwait(true);
+
+                // Initialize the telemetry reporter if available
+                devKitTelemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
+
+                if (devKitTelemetryReporter is ITelemetryReporterInitializer initializer)
+                {
+                    initializer.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Console.Error.WriteLineAsync($"Failed to load telemetry extension in {telemetryExtensionPath}.").ConfigureAwait(true);
+                await Console.Error.WriteLineAsync(ex.ToString()).ConfigureAwait(true);
             }
         }
 
