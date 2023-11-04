@@ -60,8 +60,8 @@ internal class OptionsStorage : IAdvancedSettingsStorage
 
     public SnippetSetting Snippets
     {
-        get => (SnippetSetting)GetInt(SnippetsName, (int)SnippetSetting.All);
-        set => SetInt(SnippetsName, (int)value);
+        get => (SnippetSetting)Enum.Parse(typeof(SnippetSetting), GetString(SnippetsName, Enum.GetName(typeof(SnippetSetting), SnippetSetting.All)));
+        set => SetString(SnippetsName, Enum.GetName(typeof(SnippetSetting), value));
     }
 
     [ImportingConstructor]
@@ -109,6 +109,24 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     public void SetInt(string name, int value)
     {
         _writableSettingsStore.SetInt32(Collection, name, value);
+        _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, new Property(name, value));
+
+        NotifyChange();
+    }
+
+    public string GetString(string name, string defaultValue)
+    {
+        if (_writableSettingsStore.PropertyExists(Collection, name))
+        {
+            return _writableSettingsStore.GetString(Collection, name);
+        }
+
+        return defaultValue;
+    }
+
+    public void SetString(string name, string value)
+    {
+        _writableSettingsStore.SetString(Collection, name, value);
         _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, new Property(name, value));
 
         NotifyChange();

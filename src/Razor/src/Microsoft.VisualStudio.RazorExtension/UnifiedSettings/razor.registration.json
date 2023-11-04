@@ -1,0 +1,102 @@
+{
+  "properties": {
+    "textEditor.razor.advanced.formatOnType": {
+      "type": "boolean",
+      "default": true,
+      "title": "%Setting_FormattingOnTypeDisplayName%",
+      "description": "%Setting_FormattingOnTypeDescription%",
+      "migration": {
+        "input": {
+          "store": "VsUserSettingsRegistry",
+          "path": "Razor\\FormatOnType",
+          "bitmask": 1
+        }
+      }
+    },
+    "textEditor.razor.advanced.autoClosingTags": {
+      "type": "boolean",
+      "default": true,
+      "title": "%Setting_AutoClosingTagsDisplayName%",
+      "description": "%Setting_AutoClosingTagsDescription%",
+      "migration": {
+        "input": {
+          "store": "VsUserSettingsRegistry",
+          "path": "Razor\\AutoClosingTags",
+          "bitmask": 1
+        }
+      }
+    },
+    "textEditor.razor.advanced.autoInsertAttributeQuotes": {
+      "type": "boolean",
+      "default": true,
+      "title": "%Setting_AutoInsertAttributeQuotesDisplayName%",
+      "description": "%Setting_AutoInsertAttributeQuotesDescription%",
+      "migration": {
+        "input": {
+          "store": "VsUserSettingsRegistry",
+          "path": "Razor\\AutoInsertAttributeQuotes",
+          "bitmask": 1
+        }
+      }
+    },
+    "textEditor.razor.advanced.colorBackground": {
+      "type": "boolean",
+      "default": true,
+      "title": "%Setting_ColorBackgroundDisplayName%",
+      "description": "%Setting_ColorBackgroundDescription%",
+      "migration": {
+        "input": {
+          "store": "VsUserSettingsRegistry",
+          "path": "Razor\\ColorBackground",
+          "bitmask": 1
+        }
+      }
+    },
+    "textEditor.razor.advanced.commitElementsWithSpace": {
+      "type": "boolean",
+      "default": true,
+      "title": "%Setting_CommitElementsWithSpaceDescription%",
+      "description": "%Setting_CommitElementsWithSpaceDisplayName%",
+      "migration": {
+        "input": {
+          "store": "VsUserSettingsRegistry",
+          "path": "Razor\\CommitElementsWithSpace",
+          "bitmask": 1
+        }
+      }
+    },
+    "textEditor.razor.advanced.snippets": {
+      "type": "string",
+      "default": "all",
+      "enum": [
+        "all",
+        "custom",
+        "none"
+      ],
+      "enumItemLabels": [
+        "%Setting_SnippetsAll%",
+        "%Setting_SnippetsCustom%",
+        "%Setting_SnippetsNone%"
+      ],
+      "title": "%Setting_CommitElementsWithSpaceDescription%",
+      "description": "%Setting_CommitElementsWithSpaceDisplayName%",
+      "migration": {
+        "input": {
+          "store": "VsUserSettingsRegistry",
+          "path": "Razor\\CommitElementsWithSpace",
+          "bitmask": 1
+        }
+      }
+    }
+  },
+  "categories": {
+    "razor": {
+      "title": "%110%" // Razor (ASP.NET Core)
+    },
+    "razor.advanced": {
+      "title": "%1050%", // Advanced
+      "order": 0,
+      "legacyOptionPageId": "8EBB7F64-5BF7-49E6-9023-7CD7B9912203"
+    }
+  }
+}
