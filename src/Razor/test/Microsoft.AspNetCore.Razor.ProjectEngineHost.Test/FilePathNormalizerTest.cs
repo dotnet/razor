@@ -37,7 +37,7 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
     }
 
     [Fact]
-    public void NormalizeDirectory_DedupesForwardSlashes()
+    public void NormalizeDirectory_DedupesBackSlashes()
     {
         // Arrange
         var directory = "C:\\path\\to\\\\directory\\";
