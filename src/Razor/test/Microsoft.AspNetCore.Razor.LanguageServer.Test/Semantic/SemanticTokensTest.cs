@@ -56,12 +56,11 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_RazorIfNotReady(bool precise)
     {
-        var documentText =
-            """
-                <p></p>@{
-                    var d = "t";
-                }
-                """;
+        var documentText = """
+            <p></p>@{
+                var d = "t";
+            }
+            """;
 
         var csharpTokens = new ProvideSemanticTokensResponse(tokens: [], hostDocumentSyncVersion: 1);
         await AssertSemanticTokensAsync(documentText, precise, csharpTokens: csharpTokens, documentVersion: 1);
@@ -71,13 +70,12 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharpBlock_HTML(bool precise)
     {
-        var documentText =
-            """
-                @{
-                    var d = "t";
-                    <p>HTML @d</p>
-                }
-                """;
+        var documentText = """
+            @{
+                var d = "t";
+                <p>HTML @d</p>
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -86,11 +84,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_Nested_HTML(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <!--@{var d = "string";@<a></a>}-->
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <!--@{var d = "string";@<a></a>}-->
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -99,11 +96,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_VSCodeWorks(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                @{ var d = }
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            @{ var d = }
+            """;
 
         var csharpTokens = new ProvideSemanticTokensResponse(tokens: [], hostDocumentSyncVersion: 1);
         await AssertSemanticTokensAsync(documentText, precise, csharpTokens: csharpTokens, documentVersion: 1);
@@ -113,12 +109,11 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_Explicit(bool precise)
     {
-        var documentText =
-            """
-                @using System
-                @addTagHelper *, TestAssembly
-                @(DateTime.Now)
-                """;
+        var documentText = """
+            @using System
+            @addTagHelper *, TestAssembly
+            @(DateTime.Now)
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -127,12 +122,11 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_Implicit(bool serverSupportsPreciseRanges, bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                @{ var d = "txt";}
-                @d
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            @{ var d = "txt";}
+            @d
+            """;
 
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, precise);
         await AssertSemanticTokensAsync(documentText, precise, csharpTokens: csharpTokens, serverSupportsPreciseRanges: serverSupportsPreciseRanges);
@@ -143,11 +137,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_VersionMismatch(bool serverSupportsPreciseRanges, bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                @{ var d = }
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            @{ var d = }
+            """;
 
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, precise);
         await AssertSemanticTokensAsync(documentText, precise, csharpTokens: csharpTokens, documentVersion: 21, serverSupportsPreciseRanges: serverSupportsPreciseRanges);
@@ -158,11 +151,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_FunctionAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                @{ var d = }
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            @{ var d = }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -171,13 +163,12 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_StaticModifier(bool precise)
     {
-        var documentText =
-            """
-                @code
-                {
-                    static int x = 1;
-                }
-                """;
+        var documentText = """
+            @code
+            {
+                static int x = 1;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -186,13 +177,12 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_MultipleBlankLines(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
+        var documentText = """
+            @addTagHelper *, TestAssembly
 
-                <p>first
-                second</p>
-                """;
+            <p>first
+            second</p>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -201,10 +191,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_IncompleteTag(bool precise)
     {
-        var documentText =
-            """
-                <str class='
-                """;
+        var documentText = """
+            <str class='
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -213,10 +202,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_MinimizedHTMLAttribute(bool precise)
     {
-        var documentText =
-            """
-                <p attr />
-                """;
+        var documentText = """
+            <p attr />
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -226,9 +214,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_MinimizedHTMLAsync(bool precise)
     {
         var documentText = """
-                @addTagHelper *, TestAssembly
-                <input/>
-                """;
+            @addTagHelper *, TestAssembly
+            <input/>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -237,11 +225,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_HTMLCommentAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <!-- comment with comma's -->
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <!-- comment with comma's -->
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -250,11 +237,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_PartialHTMLCommentAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <!-- comment
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <!-- comment
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -263,11 +249,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_HTMLIncludesBang(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <!input/>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <!input/>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -276,11 +261,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_HalfOfCommentAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                @* comment
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            @* comment
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -289,11 +273,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_NoAttributesAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <test1></test1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <test1></test1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -302,11 +285,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_WithAttributeAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <test1 bool-val='true'></test1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <test1 bool-val='true'></test1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -315,11 +297,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_MinimizedAttribute_BoundAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <test1 bool-val></test1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <test1 bool-val></test1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -328,11 +309,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_MinimizedAttribute_NotBoundAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <test1 notbound></test1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <test1 notbound></test1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -341,11 +321,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_IgnoresNonTagHelperAttributesAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <test1 bool-val='true' class='display:none'></test1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <test1 bool-val='true' class='display:none'></test1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -354,11 +333,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_TagHelpersNotAvailableInRazorAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <test1 bool-val='true' class='display:none'></test1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <test1 bool-val='true' class='display:none'></test1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -367,11 +345,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_DoesNotApplyOnNonTagHelpersAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <p bool-val='true'></p>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <p bool-val='true'></p>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -381,11 +358,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_Razor_MinimizedDirectiveAttributeParameters(bool precise)
     {
         // Capitalized, non-well-known-HTML elements should not be marked as TagHelpers
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                }<NotATagHelp @minimized:something />
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            }<NotATagHelp @minimized:something />
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -394,11 +370,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_ComponentAttributeAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <Component1 bool-val=""true""></Component1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <Component1 bool-val=""true""></Component1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -408,14 +383,13 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_Razor_ComponentAttribute_DoesntGetABackground(bool precise)
     {
         // Need C# around the component for the C# range to be valid, to correctly validate the attribute handling
-        var documentText =
-            """
-                @DateTime.Now
+        var documentText = """
+            @DateTime.Now
 
-                <Component1 Title=""Hi there I'm a string""></Component1>
+            <Component1 Title=""Hi there I'm a string""></Component1>
 
-                @DateTime.Now
-                """;
+            @DateTime.Now
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true, withCSharpBackground: true);
     }
@@ -424,11 +398,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_DirectiveAttributesParametersAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <Component1 @test:something='Function'></Component1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <Component1 @test:something='Function'></Component1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -437,11 +410,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_NonComponentsDoNotShowInRazorAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <test1 bool-val='true'></test1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <test1 bool-val='true'></test1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -450,11 +422,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_DirectivesAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <Component1 @test='Function'></Component1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <Component1 @test='Function'></Component1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -463,11 +434,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_DirectiveWithExplicitStatementAsync(bool precise)
     {
-        var documentText =
-            """
-                @addTagHelper *, TestAssembly
-                <Component1 @onclick="@(Function())"></Component1>
-                """;
+        var documentText = """
+            @addTagHelper *, TestAssembly
+            <Component1 @onclick="@(Function())"></Component1>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -476,10 +446,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_HandleTransitionEscape(bool precise)
     {
-        var documentText =
-            """
-                @@text
-                """;
+        var documentText = """
+            @@text
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -488,10 +457,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_DoNotColorNonTagHelpersAsync(bool precise)
     {
-        var documentText =
-            """
-                <p @test='Function'></p>
-                """;
+        var documentText = """
+            <p @test='Function'></p>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -501,9 +469,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_Razor_DoesNotApplyOnNonTagHelpersAsync(bool precise)
     {
         var documentText = """
-                @addTagHelpers *, TestAssembly
-                <p></p>
-                """;
+            @addTagHelpers *, TestAssembly
+            <p></p>
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -512,10 +480,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_CodeDirectiveAsync(bool precise)
     {
-        var documentText =
-            """
-                @code {}
-                """;
+        var documentText = """
+            @code {}
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -525,14 +492,14 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_Razor_CodeDirectiveBodyAsync(bool precise)
     {
         var documentText = """
-                @using System
-                @code {
-                    public void SomeMethod()
-                    {
-                        @DateTime.Now
-                    }
+            @using System
+            @code {
+                public void SomeMethod()
+                {
+                    @DateTime.Now
                 }
-                """;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -541,10 +508,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_UsingDirective(bool precise)
     {
-        var documentText =
-            """
-                @using System.Threading
-                """;
+        var documentText = """
+            @using System.Threading
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -553,10 +519,9 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_FunctionsDirectiveAsync(bool precise)
     {
-        var documentText =
-            """
-                @functions {}
-                """;
+        var documentText = """
+            @functions {}
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -565,24 +530,23 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_NestedTextDirectives(bool precise)
     {
-        var documentText =
-            """
-                @using System
-                @functions {
-                    private void BidsByShipment(string generatedId, int bids)
+        var documentText = """
+            @using System
+            @functions {
+                private void BidsByShipment(string generatedId, int bids)
+                {
+                    if (bids > 0)
                     {
-                        if (bids > 0)
-                        {
-                            <a class=""Thing"">
-                                @if(bids > 0)
-                                {
-                                    <text>@DateTime.Now</text>
-                                }
-                            </a>
-                        }
+                        <a class=""Thing"">
+                            @if(bids > 0)
+                            {
+                                <text>@DateTime.Now</text>
+                            }
+                        </a>
                     }
                 }
-                """;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -591,13 +555,12 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_NestedTransitions(bool precise)
     {
-        var documentText =
-            """
-                @using System
-                @functions {
-                    Action<object> abc = @<span></span>;
-                }
-                """;
+        var documentText = """
+            @using System
+            @functions {
+                Action<object> abc = @<span></span>;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -607,8 +570,8 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_Razor_CommentAsync(bool precise)
     {
         var documentText = """
-                @* A comment *@
-                """;
+            @* A comment *@
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -617,12 +580,11 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_MultiLineCommentMidlineAsync(bool precise)
     {
-        var documentText =
-            """
-                <a />@* kdl
-                skd
-                slf*@
-                """;
+        var documentText = """
+            <a />@* kdl
+            skd
+            slf*@
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -631,15 +593,14 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_MultiLineCommentWithBlankLines(bool precise)
     {
-        var documentText =
-            """
-                @* kdl
+        var documentText = """
+            @* kdl
 
-                skd
-                    
-                        sdfasdfasdf
-                slf*@
-                """;
+            skd
+                
+                    sdfasdfasdf
+            slf*@
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -658,11 +619,10 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public async Task GetSemanticTokens_Razor_MultiLineCommentAsync(bool precise)
     {
-        var documentText =
-            """
-                @*stuff
-                things *@
-                """;
+        var documentText = """
+            @*stuff
+            things *@
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise);
     }
@@ -672,19 +632,19 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_CSharp_Static(bool precise)
     {
         var documentText = """
-                @using System
-                @code
-                {
-                    private static bool _isStatic;
+            @using System
+            @code
+            {
+                private static bool _isStatic;
 
-                    public void M()
+                public void M()
+                {
+                    if (_isStatic)
                     {
-                        if (_isStatic)
-                        {
-                        }
                     }
                 }
-                """;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -694,64 +654,66 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_CSharp_LargeFile(bool precise)
     {
         var start = """
-                @page
-                @model SampleApp.Pages.ErrorModel
-                @using System
+            @page
+            @model SampleApp.Pages.ErrorModel
+            @using System
 
-                <!DOCTYPE html>
-                <html lang="en">
+            <!DOCTYPE html>
+            <html lang="en">
 
-                <head>
-                    <meta charset="utf-8" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-                    <title>Error</title>
-                    <link href="~/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
-                    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
-                </head>
+            <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+                <title>Error</title>
+                <link href="~/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+                <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
+            </head>
 
-                <body>
-                """;
+            <body>
+            """;
+
         var middle = """
-                    <div class="@cssClass">
-                        <div class="content px-4">
-                            @using System
-                            <h1 class="text-danger">Error.</h1>
-                            <h2 class="text-danger">An error occurred while processing your request.</h2>
+                <div class="@cssClass">
+                    <div class="content px-4">
+                        @using System
+                        <h1 class="text-danger">Error.</h1>
+                        <h2 class="text-danger">An error occurred while processing your request.</h2>
 
-                            @if (Model.ShowRequestId)
+                        @if (Model.ShowRequestId)
+                        {
+                            <p>
+                                <strong>Request ID:</strong> <code>@Model.RequestId</code>
+                            </p>
+                        }
+
+                        <h3>Development Mode</h3>
+                        @if (true)
+                        {
+                            <p>
+                                Swapping to the <strong>@DateTime.Now</strong> environment displays detailed information about the error that occurred.
+                            </p>
+                        }
+                        <p>
+                            @if (false)
                             {
-                                <p>
-                                    <strong>Request ID:</strong> <code>@Model.RequestId</code>
-                                </p>
+                                <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
                             }
-
-                            <h3>Development Mode</h3>
+                            It can result in displaying sensitive information from exceptions to end users.
                             @if (true)
                             {
-                                <p>
-                                    Swapping to the <strong>@DateTime.Now</strong> environment displays detailed information about the error that occurred.
-                                </p>
+                                <text>For local debugging, enable the <strong>@Environment.NewLine</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
+                                and restarting the app.</text>
                             }
-                            <p>
-                                @if (false)
-                                {
-                                    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-                                }
-                                It can result in displaying sensitive information from exceptions to end users.
-                                @if (true)
-                                {
-                                    <text>For local debugging, enable the <strong>@Environment.NewLine</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-                                    and restarting the app.</text>
-                                }
-                            </p>
-                        </div>
+                        </p>
                     </div>
-                """;
-        var end = """
-                </body>
+                </div>
+            """;
 
-                </html>
-                """;
+        var end = """
+            </body>
+
+            </html>
+            """;
 
         var builder = new StringBuilder();
         builder.AppendLine(start);
@@ -772,20 +734,20 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_CSharp_Static_WithBackground(bool precise)
     {
         var documentText = """
-                @using System
-                @code
-                {
-                    private static bool
-                        _isStatic;
+            @using System
+            @code
+            {
+                private static bool
+                    _isStatic;
 
-                    public void M()
+                public void M()
+                {
+                    if (_isStatic)
                     {
-                        if (_isStatic)
-                        {
-                        }
                     }
                 }
-                """;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true, withCSharpBackground: true);
     }
@@ -795,20 +757,20 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_CSharp_Tabs_Static_WithBackground(bool precise)
     {
         var documentText = """
-                @using System
-                @code
-                {
-                	private static bool
-                		_isStatic;
+            @using System
+            @code
+            {
+            	private static bool
+            		_isStatic;
 
-                	public void M()
-                	{
-                		if (_isStatic)
-                		{
-                		}
-                	}
-                }
-                """;
+            	public void M()
+            	{
+            		if (_isStatic)
+            		{
+            		}
+            	}
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true, withCSharpBackground: true);
     }
@@ -818,19 +780,19 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_CSharp_WithBackground(bool precise)
     {
         var documentText = """
-                @using System
-                @code
-                {
-                    private static bool _isStatic;
+            @using System
+            @code
+            {
+                private static bool _isStatic;
 
-                    public void M()
+                public void M()
+                {
+                    if (_isStatic)
                     {
-                        if (_isStatic)
-                        {
-                        }
                     }
                 }
-                """;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true, withCSharpBackground: true);
     }
@@ -840,15 +802,15 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_CSharp_WitRenderFragment(bool precise)
     {
         var documentText = """
-                <div>This is some HTML</div>
-                @code
+            <div>This is some HTML</div>
+            @code
+            {
+                public void M()
                 {
-                    public void M()
-                    {
-                        RenderFragment x = @<div>This is some HTML</div>;
-                    }
+                    RenderFragment x = @<div>This is some HTML</div>;
                 }
-                """;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true);
     }
@@ -858,15 +820,15 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public async Task GetSemanticTokens_CSharp_WitRenderFragmentAndBackground(bool precise)
     {
         var documentText = """
-                <div>This is some HTML</div>
-                @code
+            <div>This is some HTML</div>
+            @code
+            {
+                public void M()
                 {
-                    public void M()
-                    {
-                        RenderFragment x = @<div>This is some HTML</div>;
-                    }
+                    RenderFragment x = @<div>This is some HTML</div>;
                 }
-                """;
+            }
+            """;
 
         await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true, withCSharpBackground: true);
     }
@@ -888,13 +850,12 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     [CombinatorialData]
     public void GetMappedCSharpRanges_MinimalRangeVsSmallDisjointRanges_DisjointRangesAreSmaller(bool precise)
     {
-        var documentText =
-            """
-                @using System
-                @functions {
-                    Action<object> abc = @<span></span>;
-                }
-                """;
+        var documentText = """
+            @using System
+            @functions {
+                Action<object> abc = @<span></span>;
+            }
+            """;
 
         var codeDocument = CreateCodeDocument(documentText, isRazorFile: true, DefaultTagHelpers);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
