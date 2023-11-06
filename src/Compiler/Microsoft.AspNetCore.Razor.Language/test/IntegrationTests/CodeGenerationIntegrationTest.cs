@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Xunit;
 
@@ -996,12 +997,12 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     #endregion
 
-    private void DesignTimeTest()
+    private void DesignTimeTest([CallerMemberName]string testName = "")
     {
         // Arrange
         var projectEngine = CreateProjectEngine(builder =>
         {
-            builder.ConfigureDocumentClassifier();
+            builder.ConfigureDocumentClassifier(GetTestFileName(testName));
 
             // Some of these tests use templates
             builder.AddTargetExtension(new TemplateTargetExtension());
@@ -1009,26 +1010,26 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             SectionDirective.Register(builder);
         });
 
-        var projectItem = CreateProjectItemFromFile();
+        var projectItem = CreateProjectItemFromFile(testName: testName);
 
         // Act
         var codeDocument = projectEngine.ProcessDesignTime(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
-        AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument());
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument());
-        AssertSourceMappingsMatchBaseline(codeDocument);
-        AssertHtmlSourceMappingsMatchBaseline(codeDocument);
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode(), testName);
+        AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
+        AssertSourceMappingsMatchBaseline(codeDocument, testName);
+        AssertHtmlSourceMappingsMatchBaseline(codeDocument, testName);
         AssertLinePragmas(codeDocument, designTime: true);
     }
 
-    private void RunTimeTest()
+    private void RunTimeTest([CallerMemberName]string testName = "")
     {
         // Arrange
         var projectEngine = CreateProjectEngine(builder =>
         {
-            builder.ConfigureDocumentClassifier();
+            builder.ConfigureDocumentClassifier(GetTestFileName(testName));
 
             // Some of these tests use templates
             builder.AddTargetExtension(new TemplateTargetExtension());
@@ -1036,23 +1037,23 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             SectionDirective.Register(builder);
         });
 
-        var projectItem = CreateProjectItemFromFile();
+        var projectItem = CreateProjectItemFromFile(testName: testName);
 
         // Act
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument());
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
         AssertLinePragmas(codeDocument, designTime: false);
     }
 
-    private void RunRuntimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors)
+    private void RunRuntimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, [CallerMemberName]string testName = "")
     {
         // Arrange
         var projectEngine = CreateProjectEngine(builder =>
         {
-            builder.ConfigureDocumentClassifier();
+            builder.ConfigureDocumentClassifier(GetTestFileName(testName));
 
             // Some of these tests use templates
             builder.AddTargetExtension(new TemplateTargetExtension());
@@ -1060,23 +1061,23 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             SectionDirective.Register(builder);
         });
 
-        var projectItem = CreateProjectItemFromFile();
+        var projectItem = CreateProjectItemFromFile(testName: testName);
         var imports = GetImports(projectEngine, projectItem);
 
         // Act
         var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, imports, descriptors.ToList());
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument());
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
     }
 
-    private void RunDesignTimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors)
+    private void RunDesignTimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, [CallerMemberName] string testName = "")
     {
         // Arrange
         var projectEngine = CreateProjectEngine(builder =>
         {
-            builder.ConfigureDocumentClassifier();
+            builder.ConfigureDocumentClassifier(GetTestFileName(testName));
 
             // Some of these tests use templates
             builder.AddTargetExtension(new TemplateTargetExtension());
@@ -1084,18 +1085,18 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             SectionDirective.Register(builder);
         });
 
-        var projectItem = CreateProjectItemFromFile();
+        var projectItem = CreateProjectItemFromFile(testName: testName);
         var imports = GetImports(projectEngine, projectItem);
 
         // Act
         var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, imports, descriptors.ToList());
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument());
-        AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument());
-        AssertHtmlSourceMappingsMatchBaseline(codeDocument);
-        AssertSourceMappingsMatchBaseline(codeDocument);
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
+        AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument(), testName);
+        AssertHtmlSourceMappingsMatchBaseline(codeDocument, testName);
+        AssertSourceMappingsMatchBaseline(codeDocument, testName);
     }
 
     private static ImmutableArray<RazorSourceDocument> GetImports(RazorProjectEngine projectEngine, RazorProjectItem projectItem)
