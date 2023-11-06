@@ -40,7 +40,7 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
     public void NormalizeDirectory_DedupesBackSlashes()
     {
         // Arrange
-        var directory = "C:\\path\\to\\\\directory\\";
+        var directory = @"C:\path\to\\directory\";
 
         // Act
         var normalized = FilePathNormalizer.NormalizeDirectory(directory);
