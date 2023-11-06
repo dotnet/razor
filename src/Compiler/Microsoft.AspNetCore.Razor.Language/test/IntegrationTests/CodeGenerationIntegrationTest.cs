@@ -255,6 +255,15 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     [IntegrationTestFact]
     public void SwitchExpression_RecursivePattern() => RunTest();
 
+    [IntegrationTestFact]
+    public new void DesignTime() => RunTest();
+
+    [IntegrationTestFact]
+    public void RemoveTagHelperDirective() => RunTest();
+
+    [IntegrationTestFact]
+    public void AddTagHelperDirective() => RunTest();
+
     private void RunTest([CallerMemberName] string testName = "")
     {
         if (_designTime)
