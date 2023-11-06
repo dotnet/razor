@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -127,15 +126,15 @@ public abstract class IntegrationTestBase
 
     protected RazorProjectItem AddProjectItemFromText(string text, string filePath = "_ViewImports.cshtml", [CallerMemberName]string testName = "")
     {
-        var projectItem = CreateProjectItemFromText(text, filePath, testName);
+        var projectItem = CreateProjectItemFromText(text, filePath, GetTestFileName(testName));
         FileSystem.Add(projectItem);
         return projectItem;
     }
 
-    private RazorProjectItem CreateProjectItemFromText(string text, string filePath, string testName, string? cssScope = null)
+    private RazorProjectItem CreateProjectItemFromText(string text, string filePath, string testFileName, string? cssScope = null)
     {
         // Consider the file path to be relative to the 'FileName' of the test.
-        var workingDirectory = Path.GetDirectoryName(testName);
+        var workingDirectory = Path.GetDirectoryName(testFileName);
         Assert.NotNull(workingDirectory);
 
         // Since these paths are used in baselines, we normalize them to windows style. We
@@ -209,9 +208,9 @@ public abstract class IntegrationTestBase
         return projectItem;
     }
 
-    protected CompiledCSharpCode CompileToCSharp(string text, string path = "test.cshtml", bool? designTime = null, string? cssScope = null)
+    protected CompiledCSharpCode CompileToCSharp(string text, string path = "test.cshtml", bool? designTime = null, string? cssScope = null, [CallerMemberName]string testName = "")
     {
-        var projectItem = CreateProjectItemFromText(text, path, cssScope);
+        var projectItem = CreateProjectItemFromText(text, path, GetTestFileName(testName), cssScope);
         return CompileToCSharp(projectItem, designTime);
     }
 
