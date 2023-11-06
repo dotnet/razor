@@ -73,6 +73,23 @@ public class Program
 
         var languageServerFeatureOptions = new ConfigurableLanguageServerFeatureOptions(args);
 
+        var devKitTelemetryReporter = await TryGetTelemetryReporterAsync(telemetryLevel, sessionId, telemetryExtensionPath).ConfigureAwait(true);
+
+        var logger = new LspLogger(trace);
+        var server = RazorLanguageServerWrapper.Create(
+            Console.OpenStandardInput(),
+            Console.OpenStandardOutput(),
+            logger,
+            devKitTelemetryReporter ?? NoOpTelemetryReporter.Instance,
+            featureOptions: languageServerFeatureOptions);
+
+        logger.LogInformation("Razor Language Server started successfully.");
+
+        await server.WaitForExitAsync().ConfigureAwait(true);
+    }
+
+    private static async Task<ITelemetryReporter?> TryGetTelemetryReporterAsync(string telemetryLevel, string sessionId, string telemetryExtensionPath)
+    {
         ITelemetryReporter? devKitTelemetryReporter = null;
         if (!telemetryExtensionPath.IsNullOrEmpty())
         {
@@ -97,16 +114,6 @@ public class Program
             }
         }
 
-        var logger = new LspLogger(trace);
-        var server = RazorLanguageServerWrapper.Create(
-            Console.OpenStandardInput(),
-            Console.OpenStandardOutput(),
-            logger,
-            devKitTelemetryReporter ?? NoOpTelemetryReporter.Instance,
-            featureOptions: languageServerFeatureOptions);
-
-        logger.LogInformation("Razor Language Server started successfully.");
-
-        await server.WaitForExitAsync().ConfigureAwait(true);
+        return devKitTelemetryReporter;
     }
 }
