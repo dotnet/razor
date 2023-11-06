@@ -12,19 +12,12 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-public class CodeGenerationIntegrationTest : IntegrationTestBase
+public class CodeGenerationIntegrationTest(bool designTime = false)
+    : IntegrationTestBase(layer: TestProject.Layer.Compiler, generateBaselines: null)
 {
-    private readonly bool _designTime;
-
-    public CodeGenerationIntegrationTest(bool designTime = false)
-        : base(layer: TestProject.Layer.Compiler, generateBaselines: null)
-    {
-        _designTime = designTime;
-    }
-
     public override string GetTestFileName(string testName)
     {
-        return base.GetTestFileName(testName) + (_designTime ? "_DesignTime" : "_Runtime");
+        return base.GetTestFileName(testName) + (designTime ? "_DesignTime" : "_Runtime");
     }
 
     [IntegrationTestFact]
@@ -266,7 +259,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     private void RunTest([CallerMemberName] string testName = "")
     {
-        if (_designTime)
+        if (designTime)
         {
             DesignTimeTest(testName);
         }
@@ -329,7 +322,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     private void RunTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, [CallerMemberName] string testName = "")
     {
-        if (_designTime)
+        if (designTime)
         {
             RunDesignTimeTagHelpersTest(descriptors, testName);
         }
