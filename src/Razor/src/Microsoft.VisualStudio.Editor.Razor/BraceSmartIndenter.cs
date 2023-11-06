@@ -260,7 +260,9 @@ internal class BraceSmartIndenter : IDisposable
         // @{ |}
 
         var change = new SourceChange(changePosition, 0, string.Empty);
+#pragma warning disable CS0618 // Type or member is obsolete, BraceSmartIndenter is only used in legacy scenarios
         var owner = syntaxTree.Root.LocateOwner(change);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         if (IsUnlinkedSpan(owner))
         {
