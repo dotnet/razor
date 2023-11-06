@@ -549,7 +549,9 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     private static SyntaxNode ExtractSpan(int spanLocation, string content)
     {
         var syntaxTree = GetSyntaxTree(content);
+#pragma warning disable CS0618 // Type or member is obsolete
         var span = syntaxTree.Root.LocateOwner(new SourceChange(new SourceSpan(spanLocation, 0), string.Empty));
+#pragma warning restore CS0618 // Type or member is obsolete
         return span;
     }
 
