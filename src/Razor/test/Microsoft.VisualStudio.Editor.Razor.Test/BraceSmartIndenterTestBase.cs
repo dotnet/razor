@@ -2,19 +2,17 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
+public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
     private protected static VisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView focusedTextView)
     {
@@ -84,19 +82,5 @@ public class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectS
         var mock = new Mock<ITextBuffer>(MockBehavior.Strict);
         mock.SetupGet(a => a.ContentType).Returns(new LegacyCoreContentType());
         return mock.Object;
-    }
-
-    protected class LegacyCoreContentType : IContentType
-    {
-        public string TypeName => throw new NotImplementedException();
-
-        public string DisplayName => throw new NotImplementedException();
-
-        public IEnumerable<IContentType> BaseTypes => throw new NotImplementedException();
-
-        public bool IsOfType(string type)
-        {
-            return type == RazorConstants.LegacyCoreContentType;
-        }
     }
 }
