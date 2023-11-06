@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class HtmlDocumentTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
+public class HtmlDocumentTest() : ParserTestBase(layer: TestProject.Layer.Compiler, validateSpanEditHandlers: true)
 {
     private static readonly TestFile Nested1000 = TestFile.Create("TestFiles/nested-1000.html", typeof(HtmlDocumentTest));
 

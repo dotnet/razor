@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
+public class CSharpBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler, validateSpanEditHandlers: true)
 {
     [Fact]
     public void CSharpBlock_SingleLineControlFlowStatement_Error()
@@ -44,7 +44,7 @@ public class CSharpBlockTest() : ParserTestBase(layer: TestProject.Layer.Compile
     {
         ParseDocumentTest(
 @"@{
-    void Foo() 
+    void Foo()
     {
         var time = DateTime.Now
         <strong>Hello the time is @time</strong>

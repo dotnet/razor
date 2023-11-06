@@ -48,7 +48,7 @@ public class RazorParserTest
         var syntaxTree = parser.Parse(TestRazorSourceDocument.Create("foo @bar baz"));
 
         // Assert
-        var actual = SyntaxNodeSerializer.Serialize(syntaxTree.Root);
+        var actual = SyntaxNodeSerializer.Serialize(syntaxTree.Root, validateSpanEditHandlers: true);
         Assert.Equal(expected, actual);
     }
 }

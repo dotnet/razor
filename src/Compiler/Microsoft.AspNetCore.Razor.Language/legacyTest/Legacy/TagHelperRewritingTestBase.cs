@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class TagHelperRewritingTestBase() : ParserTestBase(layer: TestProject.Layer.Compiler)
+public class TagHelperRewritingTestBase() : ParserTestBase(layer: TestProject.Layer.Compiler, validateSpanEditHandlers: true)
 {
     internal void RunParseTreeRewriterTest(string documentContent, params string[] tagNames)
     {

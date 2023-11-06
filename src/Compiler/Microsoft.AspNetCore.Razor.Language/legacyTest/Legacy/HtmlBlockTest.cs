@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
+public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler, validateSpanEditHandlers: true)
 {
     [Fact]
     public void HandlesUnbalancedTripleDashHTMLComments()

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpTemplateTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
+public class CSharpTemplateTest() : ParserTestBase(layer: TestProject.Layer.Compiler, validateSpanEditHandlers: true)
 {
     [Fact]
     public void HandlesSingleLineTemplate()
