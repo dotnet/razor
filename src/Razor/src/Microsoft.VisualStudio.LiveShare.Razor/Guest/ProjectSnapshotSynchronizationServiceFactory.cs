@@ -1,14 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LiveShare.Razor.Serialization;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
@@ -20,32 +16,17 @@ internal class ProjectSnapshotSynchronizationServiceFactory : ICollaborationServ
 {
     private readonly ProxyAccessor _proxyAccessor;
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly Workspace _workspace;
+    private readonly ProjectSnapshotManagerBase _projectManager;
 
     [ImportingConstructor]
     public ProjectSnapshotSynchronizationServiceFactory(
         ProxyAccessor proxyAccessor,
         JoinableTaskContext joinableTaskContext,
-        [Import(typeof(VisualStudioWorkspace))] Workspace workspace)
+        ProjectSnapshotManager projectManager)
     {
-        if (proxyAccessor is null)
-        {
-            throw new ArgumentNullException(nameof(proxyAccessor));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (workspace is null)
-        {
-            throw new ArgumentNullException(nameof(workspace));
-        }
-
         _proxyAccessor = proxyAccessor;
         _joinableTaskContext = joinableTaskContext;
-        _workspace = workspace;
+        _projectManager = (ProjectSnapshotManagerBase)projectManager;
     }
 
     public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
@@ -55,15 +36,12 @@ internal class ProjectSnapshotSynchronizationServiceFactory : ICollaborationServ
         var serializer = (JsonSerializer)sessionContext.GetService(typeof(JsonSerializer));
         serializer.Converters.RegisterRazorLiveShareConverters();
 
-        var languageServices = _workspace.Services.GetLanguageServices(RazorLanguage.Name);
-        var projectManager = (ProjectSnapshotManagerBase)languageServices.GetRequiredService<ProjectSnapshotManager>();
-
         var projectSnapshotManagerProxy = await sessionContext.GetRemoteServiceAsync<IProjectSnapshotManagerProxy>(typeof(IProjectSnapshotManagerProxy).Name, cancellationToken);
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _joinableTaskContext.Factory,
             sessionContext,
             projectSnapshotManagerProxy,
-            projectManager);
+            _projectManager);
 
         await synchronizationService.InitializeAsync(cancellationToken);
 

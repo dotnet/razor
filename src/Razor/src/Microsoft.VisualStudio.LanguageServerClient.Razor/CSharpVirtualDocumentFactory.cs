@@ -33,8 +33,8 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     private static IContentType? s_csharpContentType;
     private readonly FileUriProvider _fileUriProvider;
     private readonly FilePathService _filePathService;
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly ProjectSnapshotManager _projectManager;
+    private readonly LanguageServerFeatureOptions _options;
     private readonly IOutputWindowLogger _logger;
     private readonly ITelemetryReporter _telemetryReporter;
 
@@ -45,16 +45,16 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         ITextDocumentFactoryService textDocumentFactory,
         FileUriProvider fileUriProvider,
         FilePathService filePathService,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        ProjectSnapshotManager projectManager,
+        LanguageServerFeatureOptions options,
         IOutputWindowLogger logger,
         ITelemetryReporter telemetryReporter)
         : base(contentTypeRegistry, textBufferFactory, textDocumentFactory, fileUriProvider)
     {
         _fileUriProvider = fileUriProvider;
         _filePathService = filePathService;
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _projectManager = projectManager;
+        _options = options;
         _logger = logger;
         _telemetryReporter = telemetryReporter;
     }
@@ -122,7 +122,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         newVirtualDocuments = null;
 
         // If generated file paths are not unique, then there is nothing to refresh
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        if (!_options.IncludeProjectKeyInGeneratedFilePath)
         {
             return false;
         }
@@ -186,13 +186,13 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     private IEnumerable<ProjectKey> GetProjectKeys(Uri hostDocumentUri)
     {
         // If generated file paths are not unique, then we just act as though we're in one unknown project
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        if (!_options.IncludeProjectKeyInGeneratedFilePath)
         {
             yield return default;
             yield break;
         }
 
-        var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
+        var projects = _projectManager.GetProjects();
 
         var inAny = false;
         var normalizedDocumentPath = FilePathService.GetProjectSystemFilePath(hostDocumentUri);

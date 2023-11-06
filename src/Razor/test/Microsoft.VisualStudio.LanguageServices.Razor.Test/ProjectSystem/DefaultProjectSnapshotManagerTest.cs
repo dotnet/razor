@@ -668,8 +668,10 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         IProjectSnapshotProjectEngineFactory projectEngineFactory,
         Workspace workspace,
         ProjectSnapshotManagerDispatcher dispatcher)
-        : DefaultProjectSnapshotManager(errorReporter, triggers, projectEngineFactory, workspace, dispatcher)
+        : DefaultProjectSnapshotManager(errorReporter, triggers, projectEngineFactory, dispatcher)
     {
+        internal override Workspace Workspace { get; } = workspace;
+
         public ProjectChangeKind? ListenersNotifiedOf { get; private set; }
 
         public bool NotifyChangedEvents { get; set; }

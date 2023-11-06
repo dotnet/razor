@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,14 +20,9 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
+public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private static readonly ProjectSnapshotManagerAccessor s_projectSnapshotManager = CreateProjectSnapshotManagerAccessor();
-
-    public DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
+    private static readonly ProjectSnapshotManager s_projectSnapshotManager = CreateProjectSnapshotManager();
 
     [Fact]
     public async Task Handle_SearchFound_GenericComponent()
@@ -166,7 +160,7 @@ public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
         return documentSnapshot;
     }
 
-    internal static ProjectSnapshotManagerAccessor CreateProjectSnapshotManagerAccessor()
+    internal static ProjectSnapshotManager CreateProjectSnapshotManager()
     {
         var firstProject = Mock.Of<IProjectSnapshot>(p =>
             p.FilePath == "c:/First/First.csproj" &&
@@ -179,17 +173,6 @@ public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
             p.DocumentFilePaths == new[] { "c:/Second/Component3.razor" } &&
             p.GetDocument("c:/Second/Component3.razor") == CreateRazorDocumentSnapshot("", "c:/Second/Component3.razor", "Second.Components"), MockBehavior.Strict);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { firstProject, secondProject }.ToImmutableArray(), MockBehavior.Strict);
-        return new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-    }
-
-    internal class TestProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor
-    {
-        public TestProjectSnapshotManagerAccessor(ProjectSnapshotManagerBase instance)
-        {
-            Instance = instance;
-        }
-
-        public override ProjectSnapshotManagerBase Instance { get; }
+        return Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { firstProject, secondProject }.ToImmutableArray(), MockBehavior.Strict);
     }
 }

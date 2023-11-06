@@ -193,13 +193,9 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
         Assert.Same(state1, state2);
     }
 
-    private class TestProjectSnapshotManager : ProjectSnapshotManager
+    private class TestProjectSnapshotManager(params IProjectSnapshot[] projects) : ProjectSnapshotManager
     {
-        private ImmutableArray<IProjectSnapshot> _projects;
-        public TestProjectSnapshotManager(params IProjectSnapshot[] projects)
-        {
-            _projects = projects.ToImmutableArray();
-        }
+        private ImmutableArray<IProjectSnapshot> _projects = projects.ToImmutableArray();
 
         public override ImmutableArray<IProjectSnapshot> GetProjects() => _projects;
 

@@ -10,26 +10,20 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
 {
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly ILogger<DefaultRazorComponentSearchEngine> _logger;
 
     public DefaultRazorComponentSearchEngine(
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        ProjectSnapshotManager projectManager,
         ILoggerFactory loggerFactory)
     {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+        _projectManager = projectManager;
         _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
     }
 
@@ -47,7 +41,7 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             return null;
         }
 
-        var projects = _projectSnapshotManager.GetProjects();
+        var projects = _projectManager.GetProjects();
 
         foreach (var project in projects)
         {
@@ -106,7 +100,7 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
 
         var lookupSymbolName = RemoveGenericContent(typeName.AsMemory());
 
-        var projects = _projectSnapshotManager.GetProjects();
+        var projects = _projectManager.GetProjects();
 
         foreach (var project in projects)
         {

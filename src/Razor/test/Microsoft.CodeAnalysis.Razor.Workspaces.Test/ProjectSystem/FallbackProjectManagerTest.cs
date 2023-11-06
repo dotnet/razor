@@ -16,28 +16,25 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test.ProjectSystem;
 public class FallbackProjectManagerTest : WorkspaceTestBase
 {
     private FallbackProjectManager _fallbackProjectManger;
-    private TestProjectSnapshotManager _projectSnapshotManager;
+    private TestProjectSnapshotManager _projectManager;
     private TestProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
 
     public FallbackProjectManagerTest(ITestOutputHelper testOutputHelper)
         : base(testOutputHelper)
     {
-        var languageServerFeatureOptions = TestLanguageServerFeatureOptions.Instance;
         _projectConfigurationFilePathStore = new TestProjectConfigurationFilePathStore();
 
         var dispatcher = Mock.Of<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
-        _projectSnapshotManager = new TestProjectSnapshotManager(ProjectEngineFactory, Workspace, dispatcher);
+        _projectManager = new TestProjectSnapshotManager(ProjectEngineFactory, Workspace, dispatcher);
 
-        var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == _projectSnapshotManager, MockBehavior.Strict);
-
-        _fallbackProjectManger = new FallbackProjectManager(_projectConfigurationFilePathStore, languageServerFeatureOptions, projectSnapshotManagerAccessor);
+        _fallbackProjectManger = new FallbackProjectManager(_projectConfigurationFilePathStore, TestLanguageServerFeatureOptions.Instance, _projectManager);
     }
 
     [Fact]
     public void DynamicFileAdded_KnownProject_DoesNothing()
     {
         var hostProject = new HostProject(SomeProject.FilePath, SomeProject.IntermediateOutputPath, RazorConfiguration.Default, "RootNamespace", "DisplayName");
-        _projectSnapshotManager.ProjectAdded(hostProject);
+        _projectManager.ProjectAdded(hostProject);
 
         var projectId = ProjectId.CreateNewId();
         var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: SomeProject.FilePath)
@@ -64,7 +61,7 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
         var actualId = Assert.Single(_fallbackProjectManger.GetTestAccessor().ProjectIds);
         Assert.Equal(projectId, actualId);
 
-        var project = Assert.Single(_projectSnapshotManager.GetProjects());
+        var project = Assert.Single(_projectManager.GetProjects());
         Assert.Equal("DisplayName", project.DisplayName);
         Assert.Equal("RootNamespace", project.RootNamespace);
 
@@ -86,13 +83,13 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
 
         _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectFile1.FilePath);
 
-        var project = Assert.Single(_projectSnapshotManager.GetProjects());
+        var project = Assert.Single(_projectManager.GetProjects());
         Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
 
         var hostProject = new HostProject(SomeProject.FilePath, SomeProject.IntermediateOutputPath, RazorConfiguration.Default, "RootNamespace", "DisplayName");
-        _projectSnapshotManager.ProjectConfigurationChanged(hostProject);
+        _projectManager.ProjectConfigurationChanged(hostProject);
 
-        project = Assert.Single(_projectSnapshotManager.GetProjects());
+        project = Assert.Single(_projectManager.GetProjects());
         Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
     }
 
@@ -112,7 +109,7 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
 
         _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectComponentFile1.FilePath);
 
-        var project = Assert.Single(_projectSnapshotManager.GetProjects());
+        var project = Assert.Single(_projectManager.GetProjects());
 
         Assert.Collection(project.DocumentFilePaths.OrderBy(f => f), // DocumentFilePaths comes from a dictionary, so no sort guarantee
             f => Assert.Equal(SomeProjectFile1.FilePath, f),

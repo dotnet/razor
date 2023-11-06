@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // (language version, extensions, named configuration).
 //
 // The implementation will create a ProjectSnapshot for each HostProject.
-internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
+internal abstract class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 {
     public override event EventHandler<ProjectChangeEventArgs>? Changed;
 
@@ -43,11 +43,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         IErrorReporter errorReporter,
         IEnumerable<IProjectSnapshotChangeTrigger> triggers,
         IProjectSnapshotProjectEngineFactory projectEngineFactory,
-        Workspace workspace,
         ProjectSnapshotManagerDispatcher dispatcher)
     {
         ErrorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
-        Workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
         _projectEngineFactory = projectEngineFactory ?? throw new ArgumentNullException(nameof(projectEngineFactory));
         _dispatcher = dispatcher ?? throw new ArgumentException(nameof(dispatcher));
 
@@ -92,8 +90,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         using var _ = _rwLocker.EnterReadLock();
         return _openDocuments_needsLock.ToImmutableArray();
     }
-
-    internal override Workspace Workspace { get; }
 
     internal override IErrorReporter ErrorReporter { get; }
 

@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -694,12 +693,11 @@ public class RenameEndpointTest : LanguageServerTestBase
             p.GetDocument("c:/Second/ComponentWithParam.razor") == componentWithParam.Snapshot &&
             p.GetDocument(index.FilePath) == index.Snapshot, MockBehavior.Strict);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { firstProject, secondProject }.ToImmutableArray(), MockBehavior.Strict);
-        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
+        var projectManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { firstProject, secondProject }.ToImmutableArray(), MockBehavior.Strict);
 
         var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
 
-        var searchEngine = new DefaultRazorComponentSearchEngine(projectSnapshotManagerAccessor, LoggerFactory);
+        var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
         languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(
             options => options.SupportsFileManipulation == true && options.SingleServerSupport == false && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
 
@@ -720,7 +718,7 @@ public class RenameEndpointTest : LanguageServerTestBase
             projectSnapshotManagerDispatcher,
             _documentContextFactory,
             searchEngine,
-            projectSnapshotManagerAccessor,
+            projectManager,
             languageServerFeatureOptions,
             documentMappingService,
             languageServer,

@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,18 +16,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultDocumentContextFactory : DocumentContextFactory
 {
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly ISnapshotResolver _snapshotResolver;
     private readonly DocumentVersionCache _documentVersionCache;
     private readonly ILogger<DefaultDocumentContextFactory> _logger;
 
     public DefaultDocumentContextFactory(
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        ProjectSnapshotManager projectManager,
         ISnapshotResolver snapshotResolver,
         DocumentVersionCache documentVersionCache,
         ILoggerFactory loggerFactory)
     {
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+        _projectManager = projectManager;
         _snapshotResolver = snapshotResolver;
         _documentVersionCache = documentVersionCache;
         _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
@@ -100,7 +99,7 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
             return _snapshotResolver.TryResolveDocumentInAnyProject(filePath, out documentSnapshot);
         }
 
-        var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectContext.ToProjectKey());
+        var project = _projectManager.GetLoadedProject(projectContext.ToProjectKey());
         if (project?.GetDocument(filePath) is { } document)
         {
             documentSnapshot = document;

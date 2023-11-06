@@ -6,15 +6,17 @@ using Moq;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
+internal class TestProjectSnapshotManager(
+    IProjectSnapshotProjectEngineFactory projectEngineFactory,
+    Workspace workspace,
+    ProjectSnapshotManagerDispatcher dispatcher)
+    : DefaultProjectSnapshotManager(
+        Mock.Of<IErrorReporter>(MockBehavior.Strict),
+        Enumerable.Empty<IProjectSnapshotChangeTrigger>(),
+        projectEngineFactory,
+        dispatcher)
 {
-    public TestProjectSnapshotManager(IProjectSnapshotProjectEngineFactory projectEngineFactory, Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
-        : base(
-            Mock.Of<IErrorReporter>(MockBehavior.Strict),
-            Enumerable.Empty<IProjectSnapshotChangeTrigger>(),
-            projectEngineFactory, workspace, dispatcher)
-    {
-    }
+    internal override Workspace Workspace { get; } = workspace;
 
     public bool AllowNotifyListeners { get; set; }
 

@@ -66,18 +66,25 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
     internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()
     {
-        var projectEngineFactory = new StaticProjectSnapshotProjectEngineFactory();
-        var services = TestServices.Create(
-            new IWorkspaceService[] { TagHelperResolver },
-            []);
+        return new BenchmarkProjectSnapshotManager(TagHelperResolver);
+    }
 
-        return new DefaultProjectSnapshotManager(
-            new TestErrorReporter(),
-            Array.Empty<IProjectSnapshotChangeTrigger>(),
-            projectEngineFactory,
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            new AdhocWorkspace(services),
-            new TestProjectSnapshotManagerDispatcher());
-#pragma warning restore CA2000 // Dispose objects before losing scope
+    private class BenchmarkProjectSnapshotManager : DefaultProjectSnapshotManager
+    {
+        internal override Workspace Workspace { get; }
+
+        public BenchmarkProjectSnapshotManager(ITagHelperResolver tagHelperResolver)
+            : base(
+                new TestErrorReporter(),
+                Array.Empty<IProjectSnapshotChangeTrigger>(),
+                new StaticProjectSnapshotProjectEngineFactory(),
+                new TestProjectSnapshotManagerDispatcher())
+        {
+            var services = TestServices.Create(
+                new IWorkspaceService[] { tagHelperResolver },
+                []);
+
+            Workspace = new AdhocWorkspace(services);
+        }
     }
 }

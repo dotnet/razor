@@ -20,7 +20,7 @@ internal sealed class FallbackProjectManager
 {
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly ProjectSnapshotManagerBase _projectManager;
 
     private ImmutableHashSet<ProjectId> _fallbackProjectIds = ImmutableHashSet<ProjectId>.Empty;
 
@@ -28,16 +28,16 @@ internal sealed class FallbackProjectManager
     public FallbackProjectManager(
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+        ProjectSnapshotManager projectManager)
     {
         _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
         _languageServerFeatureOptions = languageServerFeatureOptions;
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+        _projectManager = (ProjectSnapshotManagerBase)projectManager;
     }
 
     internal void DynamicFileAdded(ProjectId projectId, ProjectKey razorProjectKey, string projectFilePath, string filePath)
     {
-        var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(razorProjectKey);
+        var project = _projectManager.GetLoadedProject(razorProjectKey);
         if (_fallbackProjectIds.Contains(projectId))
         {
             // The project might have started as a fallback project, but it might have been upgraded by our getting CPS info
@@ -95,7 +95,7 @@ internal sealed class FallbackProjectManager
         // the project will be updated, and it will no longer be a fallback project.
         var hostProject = new FallbackHostProject(project.FilePath, intermediateOutputPath, FallbackRazorConfiguration.Latest, rootNamespace, project.Name);
 
-        _projectSnapshotManagerAccessor.Instance.ProjectAdded(hostProject);
+        _projectManager.ProjectAdded(hostProject);
 
         AddFallbackDocument(hostProject.Key, filePath, project.FilePath);
 
@@ -108,7 +108,7 @@ internal sealed class FallbackProjectManager
     {
         var hostDocument = CreateHostDocument(filePath, projectFilePath);
         var textLoader = new FileTextLoader(filePath, defaultEncoding: null);
-        _projectSnapshotManagerAccessor.Instance.DocumentAdded(projectKey, hostDocument, textLoader);
+        _projectManager.DocumentAdded(projectKey, hostDocument, textLoader);
     }
 
     private static HostDocument CreateHostDocument(string filePath, string projectFilePath)
@@ -130,12 +130,12 @@ internal sealed class FallbackProjectManager
 
         var projectKey = ProjectKey.From(project);
         var hostDocument = CreateHostDocument(filePath, projectFilePath);
-        _projectSnapshotManagerAccessor.Instance.DocumentRemoved(projectKey, hostDocument);
+        _projectManager.DocumentRemoved(projectKey, hostDocument);
     }
 
     private Project? TryFindProjectForProjectId(ProjectId projectId)
     {
-        if (_projectSnapshotManagerAccessor.Instance.Workspace is not { } workspace)
+        if (_projectManager.Workspace is not { } workspace)
         {
             throw new InvalidOperationException("Can not map a ProjectId to a ProjectKey before the project is initialized");
         }

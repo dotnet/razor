@@ -793,5 +793,8 @@ namespace Microsoft.AspNetCore.Components
         IProjectSnapshotProjectEngineFactory projectEngineFactory,
         Workspace workspace,
         ProjectSnapshotManagerDispatcher _dispatcher)
-        : DefaultProjectSnapshotManager(errorReporter, triggers, projectEngineFactory, workspace, _dispatcher);
+        : DefaultProjectSnapshotManager(errorReporter, triggers, projectEngineFactory, _dispatcher)
+    {
+        internal override Workspace Workspace { get; } = workspace;
+    }
 }

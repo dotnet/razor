@@ -11,14 +11,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
 {
-    private readonly IConfigurationSyncService _configuruationSyncService;
+    private readonly IConfigurationSyncService _configurationSyncService;
 
     private TestRazorLSPOptionsMonitor(
         IConfigurationSyncService configurationService,
         IOptionsMonitorCache<RazorLSPOptions> cache)
         : base(configurationService, cache, RazorLSPOptions.Default)
     {
-        _configuruationSyncService = configurationService;
+        _configurationSyncService = configurationService;
     }
 
     public bool Called { get; private set; }
@@ -31,7 +31,7 @@ internal class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
 
     public Task UpdateAsync(RazorLSPOptions options, CancellationToken cancellationToken)
     {
-        if (_configuruationSyncService is not ConfigurationSyncService configurationSyncService)
+        if (_configurationSyncService is not ConfigurationSyncService configurationSyncService)
         {
             throw new InvalidOperationException();
         }

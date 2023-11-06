@@ -30,8 +30,8 @@ internal partial class RazorCustomMessageTarget
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ITelemetryReporter _telemetryReporter;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly LanguageServerFeatureOptions _options;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly SnippetCache _snippetCache;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
@@ -49,8 +49,8 @@ internal partial class RazorCustomMessageTarget
         LSPDocumentSynchronizer documentSynchronizer,
         CSharpVirtualDocumentAddListener csharpVirtualDocumentAddListener,
         ITelemetryReporter telemetryReporter,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        LanguageServerFeatureOptions options,
+        ProjectSnapshotManager projectManager,
         SnippetCache snippetCache)
     {
         if (documentManager is null)
@@ -77,8 +77,8 @@ internal partial class RazorCustomMessageTarget
         _documentSynchronizer = documentSynchronizer ?? throw new ArgumentNullException(nameof(documentSynchronizer));
         _csharpVirtualDocumentAddListener = csharpVirtualDocumentAddListener ?? throw new ArgumentNullException(nameof(csharpVirtualDocumentAddListener));
         _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _projectManager = projectManager;
         _snippetCache = snippetCache ?? throw new ArgumentNullException(nameof(snippetCache));
     }
 
@@ -137,7 +137,7 @@ internal partial class RazorCustomMessageTarget
     {
         // For Html documents we don't do anything fancy, just call the standard service
         // If we're not generating unique document file names, then we can treat C# documents the same way
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath ||
+        if (!_options.IncludeProjectKeyInGeneratedFilePath ||
             typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
         {
             return await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
@@ -204,7 +204,7 @@ internal partial class RazorCustomMessageTarget
 
         // If we're not generating unique document file names, then we don't need to ensure we find the right virtual document
         // as there can only be one anyway
-        if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
+        if (_options.IncludeProjectKeyInGeneratedFilePath &&
             hostDocument.GetProjectContext() is { } projectContext &&
             FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, projectContext) is { } virtualDocument)
         {

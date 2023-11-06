@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.Test.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
@@ -1142,7 +1141,6 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
             Mock.Get(documentVersionCache).Setup(c => c.TrackDocumentVersion(It.IsAny<IDocumentSnapshot>(), It.IsAny<int>())).Verifiable();
         }
 
-        var accessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
         if (snapshotResolver is null)
         {
             snapshotResolver = new Mock<ISnapshotResolver>(MockBehavior.Strict).Object;
@@ -1155,7 +1153,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
             remoteTextLoaderFactory,
             snapshotResolver,
             documentVersionCache,
-            accessor,
+            projectSnapshotManager,
             LoggerFactory);
 
         return projectService;

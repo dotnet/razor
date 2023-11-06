@@ -27,30 +27,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 [LanguageServerEndpoint(Methods.TextDocumentRenameName)]
 internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, ICapabilitiesProvider
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly DocumentContextFactory _documentContextFactory;
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly RazorComponentSearchEngine _componentSearchEngine;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly LanguageServerFeatureOptions _options;
     private readonly IRazorDocumentMappingService _documentMappingService;
 
     public RenameEndpoint(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         DocumentContextFactory documentContextFactory,
         RazorComponentSearchEngine componentSearchEngine,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        ProjectSnapshotManager projectManager,
+        LanguageServerFeatureOptions options,
         IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RenameEndpoint>())
+        : base(options, documentMappingService, languageServer, loggerFactory.CreateLogger<RenameEndpoint>())
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-        _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
-        _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+        _dispatcher = dispatcher;
+        _documentContextFactory = documentContextFactory;
+        _componentSearchEngine = componentSearchEngine;
+        _projectManager = projectManager;
+        _options = options;
+        _documentMappingService = documentMappingService;
     }
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
@@ -84,7 +84,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
     }
 
     protected override bool IsSupported()
-        => _languageServerFeatureOptions.SupportsFileManipulation;
+        => _options.SupportsFileManipulation;
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
@@ -161,7 +161,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         var documentSnapshots = new List<IDocumentSnapshot?>();
         var documentPaths = new HashSet<string>();
 
-        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => _projectSnapshotManager.GetProjects(), cancellationToken).ConfigureAwait(false);
+        var projects = await _dispatcher.RunOnDispatcherThreadAsync(() => _projectManager.GetProjects(), cancellationToken).ConfigureAwait(false);
 
         foreach (var project in projects)
         {
@@ -198,7 +198,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
     {
         // VS Code in Windows expects path to start with '/'
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
-        var updatedOldPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
+        var updatedOldPath = _options.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
             ? '/' + filePath
             : filePath;
         var oldUri = new UriBuilder
@@ -209,7 +209,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         }.Uri;
 
         // VS Code in Windows expects path to start with '/'
-        var updatedNewPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !newPath.StartsWith("/")
+        var updatedNewPath = _options.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !newPath.StartsWith("/")
             ? '/' + newPath
             : newPath;
         var newUri = new UriBuilder
@@ -260,7 +260,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
 
         // VS Code in Windows expects path to start with '/'
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
-        var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
+        var updatedPath = _options.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
             ? "/" + filePath
             : filePath;
         var uri = new UriBuilder

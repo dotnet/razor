@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -68,8 +69,8 @@ public class CSharpVirtualDocumentFactoryTest : ToolingTestBase
         // Arrange
         var uri = new Uri("C:/path/to/file.razor");
         var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri, MockBehavior.Strict);
-        var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict);
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, _filePathService, projectSnapshotManagerAccessor, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger(), telemetryReporter: null);
+        var projectManager = Mock.Of<ProjectSnapshotManager>(MockBehavior.Strict);
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, _filePathService, projectManager, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger(), telemetryReporter: null);
 
         // Act
         var result = factory.TryCreateMultipleFor(_nonRazorLSPBuffer, out var virtualDocuments);
@@ -87,12 +88,11 @@ public class CSharpVirtualDocumentFactoryTest : ToolingTestBase
         var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(_razorLSPBuffer) == uri, MockBehavior.Strict);
         Mock.Get(uriProvider).Setup(p => p.AddOrUpdate(It.IsAny<ITextBuffer>(), It.IsAny<Uri>())).Verifiable();
 
-        var projectSnapshotManager = TestProjectSnapshotManager.Create(ErrorReporter, new TestDispatcher());
-        var project = projectSnapshotManager.CreateAndAddProject(@"C:\path\to\project.csproj");
-        projectSnapshotManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
-        var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
+        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter, new TestDispatcher());
+        var project = projectManager.CreateAndAddProject(@"C:\path\to\project.csproj");
+        projectManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
 
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, _filePathService, projectSnapshotManagerAccessor, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger(), telemetryReporter: null);
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, _filePathService, projectManager, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger(), telemetryReporter: null);
 
         // Act
         var result = factory.TryCreateMultipleFor(_razorLSPBuffer, out var virtualDocuments);
@@ -111,18 +111,17 @@ public class CSharpVirtualDocumentFactoryTest : ToolingTestBase
         var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(_razorLSPBuffer) == uri, MockBehavior.Strict);
         Mock.Get(uriProvider).Setup(p => p.AddOrUpdate(It.IsAny<ITextBuffer>(), It.IsAny<Uri>())).Verifiable();
 
-        var projectSnapshotManager = TestProjectSnapshotManager.Create(ErrorReporter, new TestDispatcher());
+        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter, new TestDispatcher());
         var project = TestProjectSnapshot.Create(@"C:\path\to\project1.csproj", @"C:\path\to\obj1", Array.Empty<string>(), RazorConfiguration.Default, projectWorkspaceState: null);
-        projectSnapshotManager.ProjectAdded(project.HostProject);
-        projectSnapshotManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
+        projectManager.ProjectAdded(project.HostProject);
+        projectManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
         project = TestProjectSnapshot.Create(@"C:\path\to\project2.csproj", @"C:\path\to\obj2", Array.Empty<string>(), RazorConfiguration.Default, projectWorkspaceState: null);
-        projectSnapshotManager.ProjectAdded(project.HostProject);
-        projectSnapshotManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
-        var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
+        projectManager.ProjectAdded(project.HostProject);
+        projectManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
         var filePathService = new FilePathService(languageServerFeatureOptions);
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, filePathService, projectSnapshotManagerAccessor, languageServerFeatureOptions, new TestOutputWindowLogger(), telemetryReporter: null);
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, filePathService, projectManager, languageServerFeatureOptions, new TestOutputWindowLogger(), telemetryReporter: null);
 
         // Act
         var result = factory.TryCreateMultipleFor(_razorLSPBuffer, out var virtualDocuments);

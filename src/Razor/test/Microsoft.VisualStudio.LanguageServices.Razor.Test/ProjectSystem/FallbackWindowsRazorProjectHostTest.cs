@@ -668,5 +668,8 @@ public class FallbackWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatc
         Workspace workspace,
         IProjectSnapshotProjectEngineFactory projectEngineFactory,
         ProjectSnapshotManagerDispatcher dispatcher)
-        : DefaultProjectSnapshotManager(errorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), projectEngineFactory, workspace, dispatcher);
+        : DefaultProjectSnapshotManager(errorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), projectEngineFactory, dispatcher)
+    {
+        internal override Workspace Workspace { get; } = workspace;
+    }
 }

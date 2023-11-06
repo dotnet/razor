@@ -17,8 +17,8 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
 internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy, ICollaborationService, IDisposable
 {
     private readonly CollaborationSession _session;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly AsyncSemaphore _latestStateSemaphore;
     private bool _disposed;
@@ -29,37 +29,17 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     public DefaultProjectSnapshotManagerProxy(
         CollaborationSession session,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectSnapshotManager projectSnapshotManager,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        ProjectSnapshotManager projectManager,
         JoinableTaskFactory joinableTaskFactory)
     {
-        if (session is null)
-        {
-            throw new ArgumentNullException(nameof(session));
-        }
-
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (projectSnapshotManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManager));
-        }
-
-        if (joinableTaskFactory is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskFactory));
-        }
-
         _session = session;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _projectSnapshotManager = projectSnapshotManager;
+        _dispatcher = dispatcher;
+        _projectManager = projectManager;
         _joinableTaskFactory = joinableTaskFactory;
 
         _latestStateSemaphore = new AsyncSemaphore(initialCount: 1);
-        _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+        _projectManager.Changed += ProjectSnapshotManager_Changed;
     }
 
     public event EventHandler<ProjectChangeEventProxyArgs>? Changed;
@@ -82,9 +62,9 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     public void Dispose()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
-        _projectSnapshotManager.Changed -= ProjectSnapshotManager_Changed;
+        _projectManager.Changed -= ProjectSnapshotManager_Changed;
         _latestStateSemaphore.Dispose();
         _disposed = true;
     }
@@ -97,7 +77,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
             await _joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
         }
 
-        return _projectSnapshotManager.GetProjects();
+        return _projectManager.GetProjects();
     }
 
     // Internal for testing
@@ -134,7 +114,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         if (_disposed)
         {
@@ -165,7 +145,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     private void OnChanged(ProjectChangeEventProxyArgs args)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         if (_disposed)
         {
