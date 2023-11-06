@@ -47,7 +47,7 @@ internal class IntegrationTheoryDiscoverer(IMessageSink diagnosticMessageSink)
 
 internal class IntegrationTestCase : XunitTestCase
 {
-    private bool designTime;
+    private bool _designTime;
 
     [EditorBrowsable(EditorBrowsableState.Never)]
     [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
@@ -56,35 +56,35 @@ internal class IntegrationTestCase : XunitTestCase
     public IntegrationTestCase(bool designTime, IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, object[] testMethodArguments = null!)
         : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
     {
-        this.designTime = designTime;
+        _designTime = designTime;
     }
 
     protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
     {
-        return base.GetDisplayName(factAttribute, displayName) + (designTime ? " (Design Time)" : " (Run Time)");
+        return base.GetDisplayName(factAttribute, displayName) + (_designTime ? " (Design Time)" : " (Run Time)");
     }
 
     public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
     {
         Debug.Assert(constructorArguments.Length == 1 && constructorArguments[0] is bool);
-        constructorArguments[0] = designTime;
+        constructorArguments[0] = _designTime;
         return base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
     }
 
     public override void Deserialize(IXunitSerializationInfo data)
     {
-        designTime = data.GetValue<bool>(nameof(designTime));
+        _designTime = data.GetValue<bool>(nameof(_designTime));
         base.Deserialize(data);
     }
 
     public override void Serialize(IXunitSerializationInfo data)
     {
-        data.AddValue(nameof(designTime), designTime);
+        data.AddValue(nameof(_designTime), _designTime);
         base.Serialize(data);
     }
 
     protected override string GetUniqueID()
     {
-        return base.GetUniqueID() + (designTime ? "dt" : "rt");
+        return base.GetUniqueID() + (_designTime ? "dt" : "rt");
     }
 }
