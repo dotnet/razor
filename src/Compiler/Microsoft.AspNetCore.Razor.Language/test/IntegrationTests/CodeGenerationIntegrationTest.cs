@@ -269,7 +269,7 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
         }
     }
 
-    private void DesignTimeTest([CallerMemberName]string testName = "")
+    private void DesignTimeTest(string testName)
     {
         // Arrange
         var projectEngine = CreateProjectEngine(builder =>
@@ -296,7 +296,7 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
         AssertLinePragmas(codeDocument, designTime: true);
     }
 
-    private void RunTimeTest([CallerMemberName]string testName = "")
+    private void RunTimeTest(string testName)
     {
         // Arrange
         var projectEngine = CreateProjectEngine(builder =>
@@ -332,7 +332,7 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
         }
     }
 
-    private void RunRuntimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, [CallerMemberName]string testName = "")
+    private void RunRuntimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, string testName)
     {
         // Arrange
         var projectEngine = CreateProjectEngine(builder =>
@@ -356,7 +356,7 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
         AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
     }
 
-    private void RunDesignTimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, [CallerMemberName] string testName = "")
+    private void RunDesignTimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, string testName)
     {
         // Arrange
         var projectEngine = CreateProjectEngine(builder =>
