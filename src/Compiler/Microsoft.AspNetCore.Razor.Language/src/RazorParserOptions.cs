@@ -17,7 +17,8 @@ public sealed class RazorParserOptions
             designTime: false,
             parseLeadingDirectives: false,
             version: RazorLanguageVersion.Latest,
-            fileKind: FileKinds.Legacy);
+            fileKind: FileKinds.Legacy,
+            enableSpanEditHandlers: false);
     }
 
     public static RazorParserOptions Create(Action<RazorParserOptionsBuilder> configure)
@@ -58,7 +59,7 @@ public sealed class RazorParserOptions
         return options;
     }
 
-    internal RazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, RazorLanguageVersion version, string fileKind)
+    internal RazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, RazorLanguageVersion version, string fileKind, bool enableSpanEditHandlers)
     {
         if (directives == null)
         {
@@ -71,6 +72,7 @@ public sealed class RazorParserOptions
         Version = version;
         FeatureFlags = RazorParserFeatureFlags.Create(Version, fileKind);
         FileKind = fileKind;
+        EnableSpanEditHandlers = enableSpanEditHandlers;
     }
 
     public bool DesignTime { get; }
@@ -92,4 +94,6 @@ public sealed class RazorParserOptions
     internal string FileKind { get; }
 
     internal RazorParserFeatureFlags FeatureFlags { get; /* Testing Only */ init; }
+
+    internal bool EnableSpanEditHandlers { get; }
 }

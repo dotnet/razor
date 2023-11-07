@@ -257,7 +257,8 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
             designTime,
             parseLeadingDirectives: false,
             version: version,
-            fileKind: fileKind)
+            fileKind: fileKind,
+            enableSpanEditHandlers: false)
             {
                 FeatureFlags = featureFlags ?? RazorParserFeatureFlags.Create(version, fileKind)
             };
