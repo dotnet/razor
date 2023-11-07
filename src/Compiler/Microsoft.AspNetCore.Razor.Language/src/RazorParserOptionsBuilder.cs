@@ -44,9 +44,11 @@ public sealed class RazorParserOptionsBuilder
 
     public RazorLanguageVersion LanguageVersion { get; }
 
+    internal bool EnableSpanEditHandlers { get; set; }
+
     public RazorParserOptions Build()
     {
-        return new RazorParserOptions(Directives.ToArray(), DesignTime, ParseLeadingDirectives, LanguageVersion, FileKind ?? FileKinds.Legacy);
+        return new RazorParserOptions(Directives.ToArray(), DesignTime, ParseLeadingDirectives, LanguageVersion, FileKind ?? FileKinds.Legacy, EnableSpanEditHandlers);
     }
 
     public void SetDesignTime(bool designTime)

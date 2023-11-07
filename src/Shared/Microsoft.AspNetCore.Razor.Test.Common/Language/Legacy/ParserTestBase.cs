@@ -271,7 +271,8 @@ public abstract class ParserTestBase : IParserTest
             designTime,
             parseLeadingDirectives: false,
             version: version,
-            fileKind: fileKind)
+            fileKind: fileKind,
+            enableSpanEditHandlers: false)
         {
             FeatureFlags = featureFlags ?? RazorParserFeatureFlags.Create(version, fileKind)
         };
