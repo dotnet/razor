@@ -9900,6 +9900,40 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9346")]
+    public void Component_ComplexContentInAttribute_02()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter] public string StringProperty { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent StringProperty="@MyEnum+" />
+
+            @code {
+                public enum MyEnum
+                {
+                    One,
+                    Two
+                }
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
+    }
+
     [IntegrationTestFact]
     public void Component_TextTagsAreNotRendered()
     {
