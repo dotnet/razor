@@ -15,11 +15,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 public class CodeGenerationIntegrationTest(bool designTime = false)
     : IntegrationTestBase(layer: TestProject.Layer.Compiler, generateBaselines: null)
 {
-    public override string GetTestFileName(string testName)
-    {
-        return base.GetTestFileName(testName) + (designTime ? "_DesignTime" : "_Runtime");
-    }
-
     [IntegrationTestFact]
     public void SingleLineControlFlowStatements() => RunTest();
 
@@ -256,6 +251,11 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
 
     [IntegrationTestFact]
     public void AddTagHelperDirective() => RunTest();
+
+    public override string GetTestFileName(string testName)
+    {
+        return base.GetTestFileName(testName) + (designTime ? "_DesignTime" : "_Runtime");
+    }
 
     private void RunTest([CallerMemberName] string testName = "")
     {
