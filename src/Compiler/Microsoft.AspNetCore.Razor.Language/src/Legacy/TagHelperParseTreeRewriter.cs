@@ -588,7 +588,7 @@ internal static class TagHelperParseTreeRewriter
             // Treat partial tags such as '</' which have no tag names as content.
             if (string.IsNullOrEmpty(tagName))
             {
-                var firstChild = tagBlock.Children.First();
+                var firstChild = tagBlock.LegacyChildren.First();
                 Debug.Assert(firstChild is MarkupTextLiteralSyntax);
 
                 ValidateParentAllowsContent(firstChild);
@@ -621,7 +621,7 @@ internal static class TagHelperParseTreeRewriter
             // Treat partial tags such as '</' which have no tag names as content.
             if (string.IsNullOrEmpty(tagName))
             {
-                var firstChild = tagBlock.Children.First();
+                var firstChild = tagBlock.LegacyChildren.First();
                 Debug.Assert(firstChild is MarkupTextLiteralSyntax);
 
                 ValidateParentAllowsContent(firstChild);
