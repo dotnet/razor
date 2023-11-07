@@ -1,14 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 // Used to abstract away platform-specific file/directory path information.
 //

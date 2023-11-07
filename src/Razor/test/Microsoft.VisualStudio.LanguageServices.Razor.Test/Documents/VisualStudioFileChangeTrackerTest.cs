@@ -5,7 +5,7 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;

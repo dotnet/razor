@@ -1,32 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 using TestFileMarkupParser = Microsoft.CodeAnalysis.Testing.TestFileMarkupParser;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 
-public abstract class DocumentExcerptServiceTestBase : WorkspaceTestBase
+public abstract class DocumentExcerptServiceTestBase(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {
-    private readonly HostProject _hostProject;
-    private readonly HostDocument _hostDocument;
-
-    public DocumentExcerptServiceTestBase(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _hostProject = TestProjectData.SomeProject;
-        _hostDocument = TestProjectData.SomeProjectFile1;
-    }
+    private readonly HostProject _hostProject = TestProjectData.SomeProject;
+    private readonly HostDocument _hostDocument = TestProjectData.SomeProjectFile1;
 
     public static (SourceText sourceText, TextSpan span) CreateText(string text)
     {
@@ -51,7 +43,7 @@ public abstract class DocumentExcerptServiceTestBase : WorkspaceTestBase
             ProjectState.Create(Workspace.Services, _hostProject)
             .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
-        var primary = project.GetDocument(_hostDocument.FilePath);
+        var primary = project.GetDocument(_hostDocument.FilePath).AssumeNotNull();
 
         var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
             ProjectId.CreateNewId(Path.GetFileNameWithoutExtension(_hostDocument.FilePath)),
@@ -67,6 +59,7 @@ public abstract class DocumentExcerptServiceTestBase : WorkspaceTestBase
             new GeneratedDocumentTextLoader(primary, _hostDocument.FilePath));
 
         var secondary = solution.Projects.Single().Documents.Single();
+
         return (primary, secondary);
     }
 
@@ -97,7 +90,7 @@ public abstract class DocumentExcerptServiceTestBase : WorkspaceTestBase
     {
         var (razorSourceText, primarySpan) = CreateText(razorSource);
         var (primary, generatedDocument) = InitializeDocument(razorSourceText);
-        var generatedSpan = await DocumentExcerptServiceTestBase.GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
+        var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
         return (generatedDocument, razorSourceText, primarySpan, generatedSpan);
     }
 
@@ -105,7 +98,7 @@ public abstract class DocumentExcerptServiceTestBase : WorkspaceTestBase
     {
         var (razorSourceText, primarySpan) = CreateText(razorSource);
         var (primary, generatedDocument) = InitializeDocument(razorSourceText);
-        var generatedSpan = await DocumentExcerptServiceTestBase.GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
+        var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
         return (primary, generatedDocument, generatedSpan);
     }
 }

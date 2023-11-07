@@ -6,6 +6,7 @@
 using System;
 using System.Collections.ObjectModel;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;

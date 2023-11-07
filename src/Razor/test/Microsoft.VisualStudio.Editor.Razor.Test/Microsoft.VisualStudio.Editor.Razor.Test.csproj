@@ -27,8 +27,4 @@
     <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.CodeAnalysis.Razor.Compiler.Mvc.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPackageVersion)" />
-  </ItemGroup>
-
 </Project>

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -13,6 +12,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -287,33 +288,5 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Returns(fileKind);
 
         return (codeDocument, documentSnapshot.Object);
-    }
-
-    private static string GetProjectDirectory()
-    {
-        var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json") ?? AppContext.BaseDirectory;
-
-        var assemblyName = typeof(FormattingTestBase).Assembly.GetName().Name;
-        var projectDirectory = Path.Combine(repoRoot, "src", "Razor", "test", assemblyName!);
-
-        return projectDirectory;
-    }
-
-    private static string? SearchUp(string baseDirectory, string fileName)
-    {
-        var directoryInfo = new DirectoryInfo(baseDirectory);
-        do
-        {
-            var fileInfo = new FileInfo(Path.Combine(directoryInfo.FullName, fileName));
-            if (fileInfo.Exists)
-            {
-                return fileInfo.DirectoryName;
-            }
-
-            directoryInfo = directoryInfo.Parent;
-        }
-        while (directoryInfo?.Parent != null);
-
-        return null;
     }
 }

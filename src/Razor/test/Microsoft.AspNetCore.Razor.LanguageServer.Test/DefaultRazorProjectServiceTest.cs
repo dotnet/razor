@@ -14,9 +14,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -24,6 +24,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
+using TestProjectSnapshotManager = Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshotManager;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 

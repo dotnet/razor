@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
 using Xunit.Abstractions;
 

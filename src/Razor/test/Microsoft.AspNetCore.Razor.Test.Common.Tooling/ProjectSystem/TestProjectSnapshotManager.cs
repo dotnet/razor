@@ -1,28 +1,30 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
+using System;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
-internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
+internal class TestProjectSnapshotManager(Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
+    : DefaultProjectSnapshotManager(
+        Mock.Of<IErrorReporter>(MockBehavior.Strict),
+        Array.Empty<IProjectSnapshotChangeTrigger>(),
+        workspace,
+        dispatcher)
 {
-    public TestProjectSnapshotManager(Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
-        : base(Mock.Of<IErrorReporter>(MockBehavior.Strict), Enumerable.Empty<IProjectSnapshotChangeTrigger>(), workspace, dispatcher)
-    {
-    }
-
     public bool AllowNotifyListeners { get; set; }
 
-    public ProjectSnapshot GetSnapshot(HostProject hostProject)
+    public ProjectSnapshot? GetSnapshot(HostProject hostProject)
     {
         return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
     }
 
-    public ProjectSnapshot GetSnapshot(Project workspaceProject)
+    public ProjectSnapshot? GetSnapshot(Project workspaceProject)
     {
         return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
     }

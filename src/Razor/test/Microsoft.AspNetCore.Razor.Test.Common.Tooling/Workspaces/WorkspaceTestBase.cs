@@ -1,22 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 
 public abstract class WorkspaceTestBase : ToolingTestBase
 {
     private bool _initialized;
-    private HostServices _hostServices;
-    private Workspace _workspace;
+    private HostServices? _hostServices;
+    private Workspace? _workspace;
 
     protected WorkspaceTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -57,10 +56,13 @@ public abstract class WorkspaceTestBase : ToolingTestBase
     {
     }
 
+    [MemberNotNull(nameof(_hostServices), nameof(_workspace))]
     private void EnsureInitialized()
     {
         if (_initialized)
         {
+            _hostServices.AssumeNotNull();
+            _workspace.AssumeNotNull();
             return;
         }
 

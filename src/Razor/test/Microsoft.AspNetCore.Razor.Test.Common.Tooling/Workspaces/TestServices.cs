@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Host;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 
 public class TestServices : HostServices
 {
@@ -16,27 +15,12 @@ public class TestServices : HostServices
 
     private TestServices(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices)
     {
-        if (workspaceServices is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceServices));
-        }
-
-        if (razorLanguageServices is null)
-        {
-            throw new ArgumentNullException(nameof(razorLanguageServices));
-        }
-
         _workspaceServices = workspaceServices;
         _razorLanguageServices = razorLanguageServices;
     }
 
     protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
     {
-        if (workspace is null)
-        {
-            throw new ArgumentNullException(nameof(workspace));
-        }
-
         return new TestWorkspaceServices(this, _workspaceServices, _razorLanguageServices, workspace);
     }
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -70,7 +70,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var request = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = null,
+            ConfigurationFilePath = null!,
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -99,7 +99,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var stopRequest = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = null,
+            ConfigurationFilePath = null!,
         };
 
         // Act
@@ -329,7 +329,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             ILoggerFactory loggerFactory)
             : this(
-                fileChangeDetectorFactory: null,
+                fileChangeDetectorFactory: null!,
                 projectSnapshotManagerDispatcher,
                 workspaceDirectoryPathResolver,
                 listeners,
