@@ -637,8 +637,15 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         }
         else if (node.Children.Count > 1)
         {
-            // We don't expect this to happen, we just want to know if it can.
-            throw new InvalidOperationException("Attribute nodes should either be minimized or a single type of content." + string.Join(", ", node.Children));
+            // We have reported an error for this, but we render the children anyway (for consistency with design-time).
+            Debug.Assert(node.HasDiagnostics);
+            foreach (var token in node.FindDescendantNodes<IntermediateToken>())
+            {
+                if (token.IsCSharp)
+                {
+                    WriteCSharpToken(context, token);
+                }
+            }
         }
         else if (node.Children.Count == 1 && node.Children[0] is HtmlContentIntermediateNode htmlNode)
         {

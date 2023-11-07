@@ -14,6 +14,15 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent>(0);
+            __builder.AddComponentParameter(1, "StringProperty", 
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                              MyEnum
+
+#line default
+#line hidden
+#nullable disable
+            );
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

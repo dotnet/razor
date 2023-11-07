@@ -809,8 +809,16 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         }
         else if (node.Children.Count > 1)
         {
-            // We don't expect this to happen, we just want to know if it can.
-            throw new InvalidOperationException("Attribute nodes should either be minimized or a single type of content." + string.Join(", ", node.Children));
+            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
+
+            // We render the children anyway, so tooling works.
+            foreach (var token in node.FindDescendantNodes<IntermediateToken>())
+            {
+                if (token.IsCSharp)
+                {
+                    WriteCSharpToken(context, token);
+                }
+            }
         }
         else if (node.Children.Count == 1 && node.Children[0] is HtmlContentIntermediateNode)
         {
@@ -1171,26 +1179,24 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
     public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
     {
         var tokens = node.FindDescendantNodes<IntermediateToken>();
-        if (tokens.Count == 0)
-        {
-            return;
-        }
-
-        // Either all tokens should be C# or none of them.
-        if (tokens[0].IsCSharp)
+        if (tokens.Any(t => t.IsCSharp))
         {
             context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
             context.CodeWriter.Write("<string>(");
+
+            var hasAnyNonCSharp = false;
             foreach (var token in tokens)
             {
-                Debug.Assert(token.IsCSharp);
+                hasAnyNonCSharp |= !token.IsCSharp;
                 WriteCSharpToken(context, token);
             }
+
+            if (hasAnyNonCSharp)
+            {
+                Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
+            }
+
             context.CodeWriter.Write(");");
-        }
-        else
-        {
-            Debug.Assert(!tokens.Any(t => t.IsCSharp));
         }
     }
 

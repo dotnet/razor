@@ -9897,7 +9897,12 @@ namespace Test
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+        result.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS0119: 'TestComponent.MyEnum' is a type, which is not valid in the given context
+            //                               MyEnum
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "MyEnum").WithArguments("Test.TestComponent.MyEnum", "type").WithLocation(1, 31));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9346")]
@@ -9931,7 +9936,12 @@ namespace Test
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+        result.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS0119: 'TestComponent.MyEnum' is a type, which is not valid in the given context
+            //                               MyEnum
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "MyEnum").WithArguments("Test.TestComponent.MyEnum", "type").WithLocation(1, 31));
     }
 
     [IntegrationTestFact]
@@ -10512,7 +10522,27 @@ Time: @DateTime.Now
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+        if (DesignTime)
+        {
+            result.Diagnostics.Verify(
+                // x:\dir\subdir\Test\TestComponent.cshtml(2,54): error CS0103: The name 'start' does not exist in the current context
+                //                                                      start
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "start").WithArguments("start").WithLocation(2, 54),
+                // x:\dir\subdir\Test\TestComponent.cshtml(2,59): error CS1003: Syntax error, ',' expected
+                //                                                      start
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 59),
+                // x:\dir\subdir\Test\TestComponent.cshtml(2,71): error CS1003: Syntax error, ',' expected
+                //                                                              "literal"
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 71),
+                // x:\dir\subdir\Test\TestComponent.cshtml(2,75): error CS1003: Syntax error, ',' expected
+                //                                                                          x
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 75),
+                // x:\dir\subdir\Test\TestComponent.cshtml(2,76): error CS0103: The name 'end' does not exist in the current context
+                //                                                                            end
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "end").WithArguments("end").WithLocation(2, 76));
+        }
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]
@@ -10565,6 +10595,14 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+        result.Diagnostics.Verify(DesignTime
+            // (39,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+            //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
+            ? Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(39, 85)
+            // (34,105): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+            //             string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
+            : Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(34, 105));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]
