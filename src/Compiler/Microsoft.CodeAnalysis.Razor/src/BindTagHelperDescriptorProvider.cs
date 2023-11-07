@@ -314,7 +314,10 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                             format: (string)constructorArguments[5].Value);
                     }
 
-                    results.Add(tagHelper);
+                    if (tagHelper is not null)
+                    {
+                        results.Add(tagHelper);
+                    }
                 }
             }
 
