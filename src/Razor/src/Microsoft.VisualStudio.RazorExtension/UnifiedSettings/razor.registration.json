@@ -9,7 +9,7 @@
         "pass":{
           "input": {
             "store": "VsUserSettingsRegistry",
-            "path": "Razor\\CommitElementsWithSpace"
+            "path": "Razor\\FormatOnType"
           }
         }
       }
@@ -23,7 +23,7 @@
         "pass":{
           "input": {
             "store": "VsUserSettingsRegistry",
-            "path": "Razor\\CommitElementsWithSpace"
+            "path": "Razor\\AutoClosingTags"
           }
         }
       }
@@ -37,7 +37,7 @@
         "pass":{
           "input": {
             "store": "VsUserSettingsRegistry",
-            "path": "Razor\\CommitElementsWithSpace"
+            "path": "Razor\\AutoInsertAttributeQuotes"
           }
         }
       }
@@ -51,7 +51,7 @@
         "pass":{
           "input": {
             "store": "VsUserSettingsRegistry",
-            "path": "Razor\\CommitElementsWithSpace"
+            "path": "Razor\\ColorBackground"
           }
         }
       }
