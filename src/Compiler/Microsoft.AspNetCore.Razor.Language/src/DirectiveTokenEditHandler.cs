@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -10,9 +10,8 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal class DirectiveTokenEditHandler : SpanEditHandler
 {
-    public static void SetupBuilder(SpanEditHandlerBuilder builder, AcceptedCharactersInternal acceptedCharacters, Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> tokenizer)
+    public static void SetupBuilder(SpanEditHandlerBuilder builder, Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> tokenizer)
     {
-        builder.AcceptedCharacters = acceptedCharacters;
         builder.Factory = static (acceptedCharacters, tokenizer) => new DirectiveTokenEditHandler
         {
             AcceptedCharacters = acceptedCharacters,
