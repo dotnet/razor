@@ -1,27 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.IO;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Text;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
-public class StringTextImage : ITextImage
+public class StringTextImage(string text) : ITextImage
 {
-    private readonly SourceText _sourceText;
-    private readonly string _text;
-
-    public StringTextImage(string text)
-    {
-        _text = text;
-        _sourceText = SourceText.From(text);
-    }
+    private readonly SourceText _sourceText = SourceText.From(text);
+    private readonly string _text = text;
 
     public char this[int position] => _text[position];
 
-    public ITextImageVersion Version => null;
+    public ITextImageVersion Version => null!;
 
     public int Length => _text.Length;
 

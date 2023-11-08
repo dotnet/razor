@@ -1,33 +1,33 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.Text;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
 public class StringTextSnapshot : ITextSnapshot2
 {
     private readonly List<ITextSnapshotLine> _lines;
-    private ITextBuffer _textBuffer;
+    private ITextBuffer? _textBuffer;
 
     public static readonly StringTextSnapshot Empty = new(string.Empty);
 
-    public StringTextSnapshot(string content) : this(content, versionNumber: 0)
+    public StringTextSnapshot(string content)
+        : this(content, versionNumber: 0)
     {
     }
 
     public StringTextSnapshot(string content, int versionNumber)
     {
         Content = content;
-        _lines = new List<ITextSnapshotLine>();
+        _lines = [];
 
         var start = 0;
         var delimiterIndex = 0;
@@ -58,6 +58,8 @@ public class StringTextSnapshot : ITextSnapshot2
 
             Version = new TextVersion(versionNumber);
         }
+
+        Version.AssumeNotNull();
     }
 
     public string Content { get; }
@@ -68,17 +70,17 @@ public class StringTextSnapshot : ITextSnapshot2
 
     public int Length => Content.Length;
 
-    public ITextBuffer TextBuffer
+    public ITextBuffer? TextBuffer
     {
         get => _textBuffer;
         set
         {
             _textBuffer = value;
-            ContentType = _textBuffer.ContentType;
+            ContentType = _textBuffer?.ContentType;
         }
     }
 
-    public IContentType ContentType { get; private set; }
+    public IContentType? ContentType { get; private set; }
 
     public int LineCount => _lines.Count;
 
@@ -144,16 +146,11 @@ public class StringTextSnapshot : ITextSnapshot2
         throw new NotImplementedException();
     }
 
-    private class TextVersion : ITextVersion
+    private class TextVersion(int versionNumber) : ITextVersion
     {
-        public TextVersion(int versionNumber)
-        {
-            VersionNumber = versionNumber;
-        }
-
         public INormalizedTextChangeCollection Changes { get; } = new TextChangeCollection();
 
-        public int VersionNumber { get; }
+        public int VersionNumber { get; } = versionNumber;
 
         public ITextVersion Next => throw new NotImplementedException();
 
@@ -163,34 +160,31 @@ public class StringTextSnapshot : ITextSnapshot2
 
         public int ReiteratedVersionNumber => throw new NotImplementedException();
 
-        public ITrackingSpan CreateCustomTrackingSpan(VisualStudio.Text.Span span, TrackingFidelityMode trackingFidelity, object customState, CustomTrackToVersion behavior) => throw new NotImplementedException();
+        public ITrackingSpan CreateCustomTrackingSpan(Span span, TrackingFidelityMode trackingFidelity, object customState, CustomTrackToVersion behavior) => throw new NotImplementedException();
 
         public ITrackingPoint CreateTrackingPoint(int position, PointTrackingMode trackingMode) => throw new NotImplementedException();
 
         public ITrackingPoint CreateTrackingPoint(int position, PointTrackingMode trackingMode, TrackingFidelityMode trackingFidelity) => throw new NotImplementedException();
 
-        public ITrackingSpan CreateTrackingSpan(VisualStudio.Text.Span span, SpanTrackingMode trackingMode) => throw new NotImplementedException();
+        public ITrackingSpan CreateTrackingSpan(Span span, SpanTrackingMode trackingMode) => throw new NotImplementedException();
 
-        public ITrackingSpan CreateTrackingSpan(VisualStudio.Text.Span span, SpanTrackingMode trackingMode, TrackingFidelityMode trackingFidelity) => throw new NotImplementedException();
+        public ITrackingSpan CreateTrackingSpan(Span span, SpanTrackingMode trackingMode, TrackingFidelityMode trackingFidelity) => throw new NotImplementedException();
 
         public ITrackingSpan CreateTrackingSpan(int start, int length, SpanTrackingMode trackingMode) => throw new NotImplementedException();
 
         public ITrackingSpan CreateTrackingSpan(int start, int length, SpanTrackingMode trackingMode, TrackingFidelityMode trackingFidelity) => throw new NotImplementedException();
 
+#pragma warning disable CS8644 // Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.
         private class TextChangeCollection : List<ITextChange>, INormalizedTextChangeCollection
+#pragma warning restore CS8644
         {
             public bool IncludesLineChanges => false;
         }
     }
 
-    private class SnapshotTrackingPoint : ITrackingPoint
+    private class SnapshotTrackingPoint(int position) : ITrackingPoint
     {
-        private readonly int _position;
-
-        public SnapshotTrackingPoint(int position)
-        {
-            _position = position;
-        }
+        private readonly int _position = position;
 
         public ITextBuffer TextBuffer => throw new NotImplementedException();
 
@@ -229,7 +223,7 @@ public class StringTextSnapshot : ITextSnapshot2
             Start = new SnapshotPoint(owner, start);
             End = new SnapshotPoint(owner, start + _content.Length);
             Snapshot = owner;
-            LineNumber = (owner as StringTextSnapshot)._lines.Count;
+            LineNumber = (owner as StringTextSnapshot)?._lines.Count ?? 0;
         }
 
         public ITextSnapshot Snapshot { get; }

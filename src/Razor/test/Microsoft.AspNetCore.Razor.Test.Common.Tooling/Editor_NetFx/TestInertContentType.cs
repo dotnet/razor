@@ -1,14 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.Test;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
 public class TestInertContentType : IContentType
 {
@@ -18,7 +15,7 @@ public class TestInertContentType : IContentType
 
     public string DisplayName => TypeName;
 
-    public IEnumerable<IContentType> BaseTypes => Enumerable.Empty<IContentType>();
+    public IEnumerable<IContentType> BaseTypes => Array.Empty<IContentType>();
 
     public bool IsOfType(string type) => string.Equals(type, TypeName, StringComparison.OrdinalIgnoreCase);
 }

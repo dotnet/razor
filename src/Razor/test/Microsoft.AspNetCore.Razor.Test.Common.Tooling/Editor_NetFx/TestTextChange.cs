@@ -1,17 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Test;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
 public class TestTextChange : ITextChange
 {
-    public TestTextChange(TestEdit edit) : this(edit.Change)
+    public TestTextChange(TestEdit edit)
+        : this(edit.Change)
     {
     }
 

@@ -1,20 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.Test;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
 public class TestTextBuffer : ITextBuffer
 {
     private readonly List<EventHandler<TextContentChangedEventArgs>> _attachedChangedEvents;
 
-    public TestTextBuffer(ITextSnapshot initialSnapshot, IContentType contentType = null)
+    public TestTextBuffer(ITextSnapshot initialSnapshot, IContentType? contentType = null)
     {
         ChangeContentType(contentType ?? TestInertContentType.Instance, editTag: null);
 
@@ -24,7 +22,7 @@ public class TestTextBuffer : ITextBuffer
             testSnapshot.TextBuffer = this;
         }
 
-        _attachedChangedEvents = new List<EventHandler<TextContentChangedEventArgs>>();
+        _attachedChangedEvents = [];
 
         ReadOnlyRegionsChanged += (sender, args) => { };
         ChangedLowPriority += (sender, args) => { };
@@ -47,13 +45,13 @@ public class TestTextBuffer : ITextBuffer
             return;
         }
 
-        var args = new TextContentChangedEventArgs(edits[0].OldSnapshot, edits[edits.Length - 1].NewSnapshot, new EditOptions(), null);
+        var args = new TextContentChangedEventArgs(edits[0].OldSnapshot, edits[^1].NewSnapshot, new EditOptions(), null);
         foreach (var edit in edits)
         {
             args.Changes.Add(new TestTextChange(edit.Change));
         }
 
-        CurrentSnapshot = edits[edits.Length - 1].NewSnapshot;
+        CurrentSnapshot = edits[^1].NewSnapshot;
         if (CurrentSnapshot is StringTextSnapshot testSnapshot)
         {
             testSnapshot.TextBuffer = this;
@@ -64,12 +62,12 @@ public class TestTextBuffer : ITextBuffer
             changedEvent.Invoke(this, args);
         }
 
-        PostChanged?.Invoke(this, null);
+        PostChanged?.Invoke(this, null!);
 
-        ReadOnlyRegionsChanged?.Invoke(this, null);
-        ChangedLowPriority?.Invoke(this, null);
-        ChangedHighPriority?.Invoke(this, null);
-        Changing?.Invoke(this, null);
+        ReadOnlyRegionsChanged?.Invoke(this, null!);
+        ChangedLowPriority?.Invoke(this, null!);
+        ChangedHighPriority?.Invoke(this, null!);
+        Changing?.Invoke(this, null!);
     }
 
     public IReadOnlyList<EventHandler<TextContentChangedEventArgs>> AttachedChangedEvents => _attachedChangedEvents;
@@ -100,11 +98,12 @@ public class TestTextBuffer : ITextBuffer
 
     public bool EditInProgress => throw new NotImplementedException();
 
-    public IContentType ContentType { get; private set; }
+    public IContentType? ContentType { get; private set; }
 
     public ITextEdit CreateEdit() => new BufferEdit(this);
 
-    public void ChangeContentType(IContentType newContentType, object editTag){
+    public void ChangeContentType(IContentType newContentType, object? editTag)
+    {
         ContentType = newContentType;
 
         if (CurrentSnapshot is StringTextSnapshot oldStringTextSnapshot)
@@ -116,7 +115,7 @@ public class TestTextBuffer : ITextBuffer
             CurrentSnapshot = newStringTextSnapshot;
         }
 
-        ContentTypeChanged?.Invoke(this, null);
+        ContentTypeChanged?.Invoke(this, null!);
     }
 
     public bool CheckEditAccess() => throw new NotImplementedException();
@@ -139,7 +138,7 @@ public class TestTextBuffer : ITextBuffer
 
     public bool IsReadOnly(Span span, bool isEdit) => throw new NotImplementedException();
 
-    public ITextSnapshot Replace(Text.Span replaceSpan, string replaceWith) => throw new NotImplementedException();
+    public ITextSnapshot Replace(Span replaceSpan, string replaceWith) => throw new NotImplementedException();
 
     public void TakeThreadOwnership() => throw new NotImplementedException();
 

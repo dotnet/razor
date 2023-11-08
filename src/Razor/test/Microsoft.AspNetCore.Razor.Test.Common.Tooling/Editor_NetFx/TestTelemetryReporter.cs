@@ -7,9 +7,9 @@ using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Test.Shared;
 
-internal class TestTelemetryReporter() : TelemetryReporter(default)
+internal class TestTelemetryReporter() : TelemetryReporter()
 {
-    public List<TelemetryEvent> Events { get; } = new();
+    public List<TelemetryEvent> Events { get; } = [];
 
     protected override void Report(TelemetryEvent telemetryEvent)
     {
