@@ -316,6 +316,4 @@ using Microsoft.VisualStudio.Shell;
       <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'System.Text.Json'" />
     </ItemGroup>
   </Target>
-
-  <ProjectExtensions><VisualStudio><UserProperties razor_1unifiedsettings_1registration_1json__JsonSchema="..\..\..\..\..\..\..\..\Program Files\Microsoft Visual Studio\2022\IntPreview\Common7\IDE\UnifiedSettings\registration.schema.json" /></VisualStudio></ProjectExtensions>
 </Project>
