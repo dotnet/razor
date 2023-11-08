@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Test.Shared;
+
 internal class TestTelemetryReporter() : TelemetryReporter(default)
 {
     public List<TelemetryEvent> Events { get; } = new();

@@ -5,10 +5,10 @@ using System;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.VisualStudio.Editor.Razor.Test.Shared;
 using Microsoft.VisualStudio.Telemetry;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Test;
+
 public class TelemetryReporterTests
 {
     [Fact]
