@@ -3,8 +3,8 @@
     "textEditor.razor.advanced.formatOnType": {
       "type": "boolean",
       "default": true,
-      "title": "%Setting_FormattingOnTypeDisplayName%",
-      "description": "%Setting_FormattingOnTypeDescription%",
+      "title": "@Setting_FormattingOnTypeDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_FormattingOnTypeDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
         "pass":{
           "input": {
@@ -17,8 +17,8 @@
     "textEditor.razor.advanced.autoClosingTags": {
       "type": "boolean",
       "default": true,
-      "title": "%Setting_AutoClosingTagsDisplayName%",
-      "description": "%Setting_AutoClosingTagsDescription%",
+      "title": "@Setting_AutoClosingTagsDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_AutoClosingTagsDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
         "pass":{
           "input": {
@@ -31,8 +31,8 @@
     "textEditor.razor.advanced.autoInsertAttributeQuotes": {
       "type": "boolean",
       "default": true,
-      "title": "%Setting_AutoInsertAttributeQuotesDisplayName%",
-      "description": "%Setting_AutoInsertAttributeQuotesDescription%",
+      "title": "@Setting_AutoInsertAttributeQuotesDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_AutoInsertAttributeQuotesDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
         "pass":{
           "input": {
@@ -45,8 +45,8 @@
     "textEditor.razor.advanced.colorBackground": {
       "type": "boolean",
       "default": true,
-      "title": "%Setting_ColorBackgroundDisplayName%",
-      "description": "%Setting_ColorBackgroundDescription%",
+      "title": "@Setting_ColorBackgroundDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_ColorBackgroundDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
         "pass":{
           "input": {
@@ -59,8 +59,8 @@
     "textEditor.razor.advanced.commitElementsWithSpace": {
       "type": "boolean",
       "default": true,
-      "title": "%Setting_CommitElementsWithSpaceDescription%",
-      "description": "%Setting_CommitElementsWithSpaceDisplayName%",
+      "title": "@Setting_CommitElementsWithSpaceDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_CommitElementsWithSpaceDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
         "pass":{
           "input": {
@@ -79,12 +79,12 @@
         "none"
       ],
       "enumItemLabels": [
-        "%Setting_SnippetsAll%",
-        "%Setting_SnippetsCustom%",
-        "%Setting_SnippetsNone%"
+        "@Setting_SnippetsAll;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_SnippetsCustom;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_SnippetsNone;{13b72f58-279e-49e0-a56d-296be02f0805}"
       ],
-      "title": "%Setting_CommitElementsWithSpaceDescription%",
-      "description": "%Setting_CommitElementsWithSpaceDisplayName%",
+      "title": "@Setting_CommitElementsWithSpaceDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_CommitElementsWithSpaceDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
         "enumIntegerToString": {
           "input": {
@@ -111,10 +111,10 @@
   },
   "categories": {
     "textEditor.razor": {
-      "title": "%110%" // Razor (ASP.NET Core)
+      "title": "@110;{13b72f58-279e-49e0-a56d-296be02f0805}" // Razor (ASP.NET Core)
     },
     "textEditor.razor.advanced": {
-      "title": "%1050%", // Advanced
+      "title": "@1050;{13b72f58-279e-49e0-a56d-296be02f0805}", // Advanced
       "legacyOptionPageId": "8EBB7F64-5BF7-49E6-9023-7CD7B9912203"
     }
   }
