@@ -81,10 +81,25 @@
       "title": "%Setting_CommitElementsWithSpaceDescription%",
       "description": "%Setting_CommitElementsWithSpaceDisplayName%",
       "migration": {
-        "input": {
-          "store": "VsUserSettingsRegistry",
-          "path": "Razor\\CommitElementsWithSpace",
-          "bitmask": 1
+        "enumIntegerToString": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\Snippets"
+          },
+          "map": [
+            {
+              "result": "all",
+              "match": 0
+            },
+            {
+              "result": "custom",
+              "match": 1
+            },
+            {
+              "result": "none",
+              "match": 2
+            }
+          ]
         }
       }
     }
