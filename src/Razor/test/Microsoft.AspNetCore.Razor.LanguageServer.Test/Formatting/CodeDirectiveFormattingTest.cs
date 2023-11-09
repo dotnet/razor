@@ -10,16 +10,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CodeDirectiveFormattingTest : FormattingTestBase
+public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
 {
     internal override bool UseTwoPhaseCompilation => true;
 
     internal override bool DesignTime => true;
-
-    public CodeDirectiveFormattingTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
 
     [Fact]
     public async Task FormatsCodeBlockDirective()

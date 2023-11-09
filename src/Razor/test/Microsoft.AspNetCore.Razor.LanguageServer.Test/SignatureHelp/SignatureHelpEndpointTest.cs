@@ -16,13 +16,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 
-public class SignatureHelpEndpointTest : SingleServerDelegatingEndpointTestBase
+public class SignatureHelpEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public SignatureHelpEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_SingleServer_CSharpSignature()
     {

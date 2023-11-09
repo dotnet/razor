@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -26,7 +25,7 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common;
+namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 public abstract class LanguageServerTestBase : ToolingTestBase
 {
@@ -129,6 +128,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         var documentContextFactory = documentFound
             ? new TestDocumentContextFactory(documentPath.GetAbsoluteOrUNCPath(), codeDocument, version: 1337)
             : new TestDocumentContextFactory();
+
         return documentContextFactory;
     }
 

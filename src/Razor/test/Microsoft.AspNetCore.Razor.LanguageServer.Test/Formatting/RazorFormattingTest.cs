@@ -11,13 +11,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class RazorFormattingTest : FormattingTestBase
+public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
 {
-    public RazorFormattingTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Section_BraceOnNextLine()
     {

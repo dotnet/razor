@@ -10,13 +10,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class DocumentRangeFormattingEndpointTest : FormattingLanguageServerTestBase
+public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) : FormattingLanguageServerTestBase(testOutput)
 {
-    public DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_FormattingEnabled_InvokesFormattingService()
     {

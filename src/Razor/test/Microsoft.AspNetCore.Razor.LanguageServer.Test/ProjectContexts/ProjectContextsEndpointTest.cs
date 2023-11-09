@@ -10,12 +10,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.ProjectContexts;
 
-public class ProjectContextsEndpointTest : SingleServerDelegatingEndpointTestBase
+public class ProjectContextsEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public ProjectContextsEndpointTest(ITestOutputHelper testOutput) : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task GetProjectContexts_ReturnsExpected()
     {

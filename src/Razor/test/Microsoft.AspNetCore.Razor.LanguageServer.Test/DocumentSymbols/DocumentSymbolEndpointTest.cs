@@ -16,12 +16,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.DocumentSymbols;
 
-public class DocumentSymbolEndpointTest : SingleServerDelegatingEndpointTestBase
+public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : base(testOutput)
-    {
-    }
-
     [Fact]
     public Task DocumentSymbols_CSharpMethods()
         => VerifyDocumentSymbolsAsync(

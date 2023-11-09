@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -13,15 +13,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-public class DocumentDidChangeEndpointTest : LanguageServerTestBase
+public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly RazorProjectService _projectService;
-
-    public DocumentDidChangeEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _projectService = Mock.Of<RazorProjectService>(MockBehavior.Strict);
-    }
+    private readonly RazorProjectService _projectService = Mock.Of<RazorProjectService>(MockBehavior.Strict);
 
     [Fact]
     public void ApplyContentChanges_SingleChange()

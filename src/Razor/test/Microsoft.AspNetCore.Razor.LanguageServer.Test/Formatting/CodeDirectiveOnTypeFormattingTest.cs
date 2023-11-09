@@ -10,13 +10,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CodeDirectiveOnTypeFormattingTest : FormattingTestBase
+public class CodeDirectiveOnTypeFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
 {
-    public CodeDirectiveOnTypeFormattingTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task CloseCurly_Class_SingleLineAsync()
     {

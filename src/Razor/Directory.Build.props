@@ -16,7 +16,7 @@
 
   <!-- Only include .NET Framework files when building for .NET Framework -->
   <ItemGroup Condition="'$(TargetFramework)' != '$(DefaultNetFxTargetFramework)'">
-    <Compile Remove="**\*.NetFX.cs" />
+    <Compile Remove="**\*.NetFx.cs" />
     <Compile Remove="**\NetFx\**\*.*" />
     <Compile Remove="**\*_NetFx\**\*.*" />
   </ItemGroup>

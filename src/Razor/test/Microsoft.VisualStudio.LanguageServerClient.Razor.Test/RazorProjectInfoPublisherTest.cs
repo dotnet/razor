@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -540,7 +541,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
     {
         if (documentFilePaths is null)
         {
-            documentFilePaths = Array.Empty<string>();
+            documentFilePaths = [];
         }
 
         var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath, documentFilePaths, projectWorkspaceState);

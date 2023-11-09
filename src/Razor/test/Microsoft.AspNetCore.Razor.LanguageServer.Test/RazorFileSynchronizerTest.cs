@@ -5,20 +5,15 @@
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class RazorFileSynchronizerTest : LanguageServerTestBase
+public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public RazorFileSynchronizerTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void RazorFileChanged_Added_AddsRazorDocument()
     {

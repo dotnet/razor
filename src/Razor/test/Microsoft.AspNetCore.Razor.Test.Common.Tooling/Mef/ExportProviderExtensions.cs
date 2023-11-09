@@ -10,7 +10,7 @@ using System.Linq;
 using Microsoft.VisualStudio.Composition;
 using System.Reflection;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Extensions;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Mef;
 
 internal static class ExportProviderExtensions
 {

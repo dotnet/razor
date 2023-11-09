@@ -9,13 +9,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CodeActionFormattingTest : FormattingTestBase
+public class CodeActionFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
 {
-    public CodeActionFormattingTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task AddDebuggerDisplay()
     {

@@ -14,10 +14,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -36,13 +35,8 @@ using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHe
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover;
 
 [UseExportProvider]
-public class HoverInfoServiceTest : TagHelperServiceTestBase
+public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
-    public HoverInfoServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     private static VSInternalClientCapabilities CreateMarkDownCapabilities()
         => CreateCapabilities(MarkupKind.Markdown);
 

@@ -3,9 +3,10 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 internal class TestDocumentContextFactory : DocumentContextFactory
 {

@@ -13,16 +13,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class HtmlFormattingTest : FormattingTestBase
+public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
 {
     internal override bool UseTwoPhaseCompilation => true;
 
     internal override bool DesignTime => true;
-
-    public HtmlFormattingTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
 
     [Fact]
     public async Task FormatsSimpleHtmlTag()

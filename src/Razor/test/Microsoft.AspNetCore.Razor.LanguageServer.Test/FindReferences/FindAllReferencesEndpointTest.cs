@@ -17,32 +17,28 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 
-public class FindAllReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
+public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : base(testOutput)
-    {
-    }
-
     [Fact]
     public Task FindCSharpReferences()
         => VerifyCSharpFindAllReferencesAsyncAsync("""
 
-                @{
-                    const string [|$$S|] = "";
+            @{
+                const string [|$$S|] = "";
 
-                    string M()
-                    {
-                        return [|S|];
-                    }
-
-                    string N()
-                    {
-                        return [|S|];
-                    }
+                string M()
+                {
+                    return [|S|];
                 }
 
-                <p>@[|S|]</p>
-                """);
+                string N()
+                {
+                    return [|S|];
+                }
+            }
+
+            <p>@[|S|]</p>
+            """);
 
     private async Task VerifyCSharpFindAllReferencesAsyncAsync(string input)
     {

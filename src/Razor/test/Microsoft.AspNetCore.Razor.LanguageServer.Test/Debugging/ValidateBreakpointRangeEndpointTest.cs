@@ -20,13 +20,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
-public class ValidateBreakpointRangeEndpointTest : SingleServerDelegatingEndpointTestBase
+public class ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_CSharp_ValidBreakpoint()
     {

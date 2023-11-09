@@ -9,23 +9,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public abstract class FormattingLanguageServerTestBase : LanguageServerTestBase
+public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    internal DocumentContextFactory EmptyDocumentContextFactory { get; }
-
-    public FormattingLanguageServerTestBase(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        EmptyDocumentContextFactory = new TestDocumentContextFactory();
-    }
-
     internal static RazorCodeDocument CreateCodeDocument(string content, IReadOnlyList<SourceMapping> sourceMappings)
     {
         var sourceDocument = TestRazorSourceDocument.Create(content);

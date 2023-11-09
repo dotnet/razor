@@ -15,11 +15,15 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.Mef;
 /// <summary>
 /// Represents a MEF composition used for testing.
 /// </summary>
-public sealed class TestComposition
+public sealed partial class TestComposition
 {
-    public static readonly TestComposition Empty = new TestComposition(ImmutableHashSet<Assembly>.Empty, ImmutableHashSet<Type>.Empty, ImmutableHashSet<Type>.Empty, scope: null);
+    public static readonly TestComposition Empty = new(
+        ImmutableHashSet<Assembly>.Empty,
+        ImmutableHashSet<Type>.Empty,
+        ImmutableHashSet<Type>.Empty,
+        scope: null);
 
-    private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = new Dictionary<CacheKey, IExportProviderFactory>();
+    private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
 
     private readonly struct CacheKey : IEquatable<CacheKey>
     {

@@ -23,13 +23,8 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
+public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public DefinitionEndpointDelegationTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_SingleServer_CSharp_Method()
     {

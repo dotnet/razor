@@ -9,13 +9,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CSharpStatementBlockOnTypeFormattingTest : FormattingTestBase
+public class CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
 {
-    public CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task CloseCurly_IfBlock_SingleLineAsync()
     {

@@ -1,21 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-internal class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
+internal class TestRazorDocumentServiceProvider(IRazorSpanMappingService spanMappingService) : IRazorDocumentServiceProvider
 {
-    private readonly IRazorSpanMappingService _razorSpanMappingService;
-
-    public TestRazorDocumentServiceProvider(IRazorSpanMappingService razorSpanMappingService)
-    {
-        _razorSpanMappingService = razorSpanMappingService;
-    }
+    private readonly IRazorSpanMappingService _spanMappingService = spanMappingService;
 
     public bool CanApplyChange => throw new NotImplementedException();
 
@@ -27,7 +20,7 @@ internal class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
 
         if (serviceType == typeof(IRazorSpanMappingService))
         {
-            return (TService)_razorSpanMappingService;
+            return (TService)_spanMappingService;
         }
 
         if (serviceType == typeof(IRazorDocumentPropertiesService))
@@ -35,7 +28,7 @@ internal class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
             return (TService)(IRazorDocumentPropertiesService)new TestRazorDocumentPropertiesService();
         }
 
-        return this as TService;
+        return (this as TService).AssumeNotNull();
     }
 
     private class TestRazorDocumentPropertiesService : IRazorDocumentPropertiesService

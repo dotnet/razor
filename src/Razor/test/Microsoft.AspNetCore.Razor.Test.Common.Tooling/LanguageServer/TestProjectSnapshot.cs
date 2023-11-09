@@ -13,15 +13,15 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common;
+namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 internal class TestProjectSnapshot : ProjectSnapshot
 {
     public static TestProjectSnapshot Create(string filePath, ProjectWorkspaceState? projectWorkspaceState = null)
-        => Create(filePath, Array.Empty<string>(), projectWorkspaceState);
+        => Create(filePath, [], projectWorkspaceState);
 
     public static TestProjectSnapshot Create(string filePath, string[] documentFilePaths, ProjectWorkspaceState? projectWorkspaceState = null)
-        => Create(filePath, Path.Combine(Path.GetDirectoryName(filePath) ?? "\\\\path", "obj"), documentFilePaths, RazorConfiguration.Default, projectWorkspaceState);
+        => Create(filePath, Path.Combine(Path.GetDirectoryName(filePath) ?? @"\\path", "obj"), documentFilePaths, RazorConfiguration.Default, projectWorkspaceState);
 
     public static TestProjectSnapshot Create(
         string filePath,

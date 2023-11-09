@@ -17,13 +17,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 
-public class ImplementationEndpointTest : SingleServerDelegatingEndpointTestBase
+public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public ImplementationEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_SingleServer_CSharp_Method()
     {

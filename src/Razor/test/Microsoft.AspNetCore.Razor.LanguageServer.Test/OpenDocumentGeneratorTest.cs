@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
@@ -29,11 +29,11 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public OpenDocumentGeneratorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documents = new HostDocument[]
-        {
+        _documents =
+        [
             new HostDocument("c:/Test1/Index.cshtml", "Index.cshtml"),
             new HostDocument("c:/Test1/Components/Counter.cshtml", "Components/Counter.cshtml"),
-        };
+        ];
 
         _hostProject1 = new HostProject("c:/Test1/Test1.csproj", "c:/Test1/obj", RazorConfiguration.Default, "TestRootNamespace");
         _hostProject2 = new HostProject("c:/Test2/Test2.csproj", "c:/Test2/obj", RazorConfiguration.Default, "TestRootNamespace");

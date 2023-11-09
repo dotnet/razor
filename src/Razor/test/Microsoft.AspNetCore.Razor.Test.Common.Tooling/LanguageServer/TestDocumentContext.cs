@@ -3,11 +3,11 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 internal static class TestDocumentContext
 {

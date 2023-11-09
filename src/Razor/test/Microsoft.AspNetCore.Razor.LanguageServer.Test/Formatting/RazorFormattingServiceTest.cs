@@ -13,13 +13,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class RazorFormattingServiceTest : ToolingTestBase
+public class RazorFormattingServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public RazorFormattingServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void MergeEdits_ReturnsSingleEditAsExpected()
     {

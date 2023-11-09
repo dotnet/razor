@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -13,13 +13,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-public class DocumentDidOpenEndpointTest : LanguageServerTestBase
+public class DocumentDidOpenEndpointTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public DocumentDidOpenEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     // This is more of an integration test to validate that all the pieces work together
     [Fact]
     public async Task Handle_DidOpenTextDocument_AddsDocument()

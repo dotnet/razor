@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Extensions;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 internal class CSharpTestLspServerHelpers
 {
@@ -53,7 +53,7 @@ internal class CSharpTestLspServerHelpers
     {
         var cSharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
-        var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+        var exportProvider = TestComposition.Roslyn.ExportProviderFactory.CreateExportProvider();
         var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken);
         var workspace = CreateCSharpTestWorkspace(cSharpFiles, exportProvider, metadataReferences, razorSpanMappingService);
         var clientCapabilities = new VSInternalClientCapabilities

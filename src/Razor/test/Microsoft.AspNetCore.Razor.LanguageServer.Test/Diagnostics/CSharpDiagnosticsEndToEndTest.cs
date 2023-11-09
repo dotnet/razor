@@ -16,13 +16,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-public class CSharpDiagnosticsEndToEndTest : SingleServerDelegatingEndpointTestBase
+public class CSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public CSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle()
     {

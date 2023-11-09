@@ -6,8 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common.Extensions;
@@ -15,15 +15,10 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 
-internal class TestDocumentManager : TrackingLSPDocumentManager
+internal class TestDocumentManager(CSharpTestLspServer testLspServer = null) : TrackingLSPDocumentManager
 {
-    private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new();
-    private readonly CSharpTestLspServer _testLspServer;
-
-    public TestDocumentManager(CSharpTestLspServer testLspServer = null)
-    {
-        _testLspServer = testLspServer;
-    }
+    private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = [];
+    private readonly CSharpTestLspServer _testLspServer = testLspServer;
 
     public int UpdateVirtualDocumentCallCount { get; private set; }
 

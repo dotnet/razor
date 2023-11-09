@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -96,7 +96,7 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : Cl
 
     private async Task<RazorDocumentFormattingResponse> CallWebToolsApplyFormattedEditsHandlerAsync(string serializedValue, Uri documentUri, string generatedHtml)
     {
-        var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+        var exportProvider = TestComposition.Editor.ExportProviderFactory.CreateExportProvider();
         var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
 
         if (!contentTypeService.ContentTypes.Any(t => t.TypeName == HtmlContentTypeDefinition.HtmlContentType))

@@ -19,13 +19,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
+public class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public OnAutoInsertEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_SingleProvider_InvokesProvider()
     {
