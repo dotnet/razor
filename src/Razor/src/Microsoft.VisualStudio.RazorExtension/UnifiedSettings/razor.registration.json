@@ -1,5 +1,10 @@
 {
   "properties": {
+    /* 
+    * Migration works by using the previous path that we stored in the VsUserSettingsRegister. This comes
+    * from the OptionsStorage strings related to the option with the form of "{collection}\{name}".
+    * Names much match exactly for the setting to work.
+    */
     "textEditor.razor.advanced.formatOnType": {
       "type": "boolean",
       "default": true,
