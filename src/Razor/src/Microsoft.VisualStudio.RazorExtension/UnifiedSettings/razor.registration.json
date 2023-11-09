@@ -88,8 +88,8 @@
         "@Setting_SnippetsCustom;{13b72f58-279e-49e0-a56d-296be02f0805}",
         "@Setting_SnippetsNone;{13b72f58-279e-49e0-a56d-296be02f0805}"
       ],
-      "title": "@Setting_CommitElementsWithSpaceDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
-      "description": "@Setting_CommitElementsWithSpaceDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "title": "@Setting_SnippetsDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_SnippetsDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
         "enumIntegerToString": {
           "input": {
