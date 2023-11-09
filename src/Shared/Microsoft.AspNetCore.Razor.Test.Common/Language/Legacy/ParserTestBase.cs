@@ -202,7 +202,7 @@ public abstract class ParserTestBase : IParserTest
 
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
 
-        var options = CreateParserOptions(version, directives, designTime, featureFlags, fileKind);
+        var options = CreateParserOptions(version, directives, designTime, _validateSpanEditHandlers, featureFlags, fileKind);
         var context = new ParserContext(source, options);
 
         var codeParser = new CSharpCodeParser(directives, context);
@@ -262,45 +262,20 @@ public abstract class ParserTestBase : IParserTest
         RazorLanguageVersion version,
         IEnumerable<DirectiveDescriptor> directives,
         bool designTime,
+        bool enableSpanEditHandlers,
         RazorParserFeatureFlags featureFlags = null,
         string fileKind = null)
     {
-        return new TestRazorParserOptions(
+        fileKind ??= FileKinds.Legacy;
+        return new RazorParserOptions(
             directives.ToArray(),
             designTime,
             parseLeadingDirectives: false,
-            version: version,
-            fileKind: fileKind ?? FileKinds.Legacy,
-            featureFlags: featureFlags);
-    }
-
-    private class TestRazorParserOptions : RazorParserOptions
-    {
-        public TestRazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, RazorLanguageVersion version, string fileKind, RazorParserFeatureFlags featureFlags = null)
+            version,
+            fileKind,
+            enableSpanEditHandlers)
         {
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            Directives = directives;
-            DesignTime = designTime;
-            ParseLeadingDirectives = parseLeadingDirectives;
-            Version = version;
-            FileKind = fileKind;
-            FeatureFlags = featureFlags ?? RazorParserFeatureFlags.Create(Version, fileKind);
-        }
-
-        public override bool DesignTime { get; }
-
-        internal override string FileKind { get; }
-
-        public override IReadOnlyCollection<DirectiveDescriptor> Directives { get; }
-
-        public override bool ParseLeadingDirectives { get; }
-
-        public override RazorLanguageVersion Version { get; }
-
-        internal override RazorParserFeatureFlags FeatureFlags { get; }
+            FeatureFlags = featureFlags ?? RazorParserFeatureFlags.Create(version, fileKind)
+        };
     }
 }
