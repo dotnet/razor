@@ -36,7 +36,7 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : Cl
     public void AddCodeDocument(RazorCodeDocument codeDocument)
     {
         var path = FilePathNormalizer.Normalize(codeDocument.Source.FilePath);
-        _documents.TryAdd("/" + path, codeDocument);
+        _documents.Add("/" + path, codeDocument);
     }
 
     private Task<RazorDocumentFormattingResponse> FormatAsync(DocumentOnTypeFormattingParams @params)
@@ -91,7 +91,7 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : Cl
     {
         var codeDocument = _documents[uri.GetAbsoluteOrUNCPath()];
         var generatedHtml = codeDocument.GetHtmlDocument().GeneratedCode;
-        return generatedHtml.Replace("\r", "", StringComparison.Ordinal).Replace("\n", "\r\n", StringComparison.Ordinal);
+        return generatedHtml.Replace("\r", "").Replace("\n", "\r\n");
     }
 
     private async Task<RazorDocumentFormattingResponse> CallWebToolsApplyFormattedEditsHandlerAsync(string serializedValue, Uri documentUri, string generatedHtml)

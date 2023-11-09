@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -20,7 +19,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -918,6 +916,7 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
         int? documentVersion)
     {
         var document = CreateCodeDocument(documentText, isRazorFile, tagHelpers);
+        var random = new Random();
 
         var projectSnapshot = new Mock<IProjectSnapshot>(MockBehavior.Strict);
         projectSnapshot
@@ -930,7 +929,7 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
             .ReturnsAsync(document);
 
         documentContext.SetupGet(d => d.Version)
-            .Returns(documentVersion ?? Random.Shared.Next());
+            .Returns(documentVersion ?? random.Next());
 
         documentContext.Setup(d => d.Project)
             .Returns(projectSnapshot.Object);

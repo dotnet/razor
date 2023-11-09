@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -22,6 +24,21 @@ public sealed partial class TestComposition
         ImmutableHashSet<Type>.Empty,
         ImmutableHashSet<Type>.Empty,
         scope: null);
+
+    public static readonly TestComposition Roslyn = Empty
+        .AddAssemblies(MefHostServices.DefaultAssemblies)
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll"))
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.EditorFeatures.dll"))
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.dll"))
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"))
+        .AddParts(typeof(RazorTestWorkspaceRegistrationService));
+
+#if NETFRAMEWORK
+    public static readonly TestComposition Editor = Empty
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.VisualStudio.Text.Implementation.dll"))
+        .AddParts(typeof(TestExportJoinableTaskContext));
+#endif
 
     private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
 

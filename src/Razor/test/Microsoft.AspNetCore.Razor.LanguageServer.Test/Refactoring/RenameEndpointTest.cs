@@ -608,7 +608,7 @@ public class RenameEndpointTest : LanguageServerTestBase
             .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
         namespaceNode.Content = rootNamespaceName;
 
-        var sourceText = SourceText.From(new string(item.Content));
+        var sourceText = SourceText.From(item.Content);
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, LanguageVersion.Default);
         var projectSnapshot = TestProjectSnapshot.Create("C:/project.csproj", projectWorkspaceState);
         var snapshot = Mock.Of<IDocumentSnapshot>(d =>

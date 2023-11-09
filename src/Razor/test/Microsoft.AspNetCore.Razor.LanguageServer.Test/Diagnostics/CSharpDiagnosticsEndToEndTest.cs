@@ -2,6 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+#if !NET
+using System.Collections.Generic;
+#endif
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;

@@ -194,7 +194,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         public Task<IDocumentSnapshot> GetProcessedDocumentAsync(TimeSpan cancelAfter)
         {
             var cts = new CancellationTokenSource(cancelAfter);
-            var registration = cts.Token.Register(() => _tcs.SetCanceled(cts.Token));
+            var registration = cts.Token.Register(() => _tcs.SetCanceled());
             _ = _tcs.Task.ContinueWith(
                 (t) =>
                 {
