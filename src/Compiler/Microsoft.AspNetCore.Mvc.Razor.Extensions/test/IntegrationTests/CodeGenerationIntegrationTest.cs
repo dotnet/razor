@@ -230,14 +230,14 @@ public class MyModel
     public void Sections_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-public class InputTestTagHelper : {typeof(TagHelper).FullName}
-{{
-    public ModelExpression For {{ get; set; }}
-}}
-");
+public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public ModelExpression For { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -370,14 +370,14 @@ public class MyService<TModel>
     public void ModelExpressionTagHelper_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-public class InputTestTagHelper : {typeof(TagHelper).FullName}
-{{
-    public ModelExpression For {{ get; set; }}
-}}
-");
+public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public ModelExpression For { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -394,12 +394,12 @@ public class InputTestTagHelper : {typeof(TagHelper).FullName}
     public void RazorPages_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
-public class DivTagHelper : {typeof(TagHelper).FullName}
-{{
+        AddCSharpSyntaxTree($$"""
+public class DivTagHelper : {{typeof(TagHelper).FullName}}
+{
 
-}}
-");
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -431,12 +431,12 @@ public class DivTagHelper : {typeof(TagHelper).FullName}
     public void RazorPagesWithoutModel_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
-public class DivTagHelper : {typeof(TagHelper).FullName}
-{{
+        AddCSharpSyntaxTree($$"""
+public class DivTagHelper : {{typeof(TagHelper).FullName}}
+{
 
-}}
-");
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -483,21 +483,21 @@ public class DivTagHelper : {typeof(TagHelper).FullName}
     public void ViewComponentTagHelper_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 public class TestViewComponent
-{{
+{
     public string Invoke(string firstName)
-    {{
+    {
         return firstName;
-    }}
-}}
+    }
+}
 
-[{typeof(HtmlTargetElementAttribute).FullName}]
-public class AllTagHelper : {typeof(TagHelper).FullName}
-{{
-    public string Bar {{ get; set; }}
-}}
-");
+[{{typeof(HtmlTargetElementAttribute).FullName}}]
+public class AllTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public string Bar { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -514,38 +514,38 @@ public class AllTagHelper : {typeof(TagHelper).FullName}
     public void ViewComponentTagHelperOptionalParam_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 using System;
 
 public class OptionalTestViewComponent
-{{
+{
     public string Invoke(bool showSecret = false)
-    {{
+    {
         return showSecret ? ""what a secret"" : ""not a secret"";
-    }}
-}}
+    }
+}
 public class OptionalTestWithParamViewComponent
-{{
+{
     public string Invoke(string secret, bool showSecret = false)
-    {{
+    {
         var isSecret = showSecret ? ""what a secret"" : ""not a secret"";
         return isSecret + "" : "" + secret;
-    }}
-}}
+    }
+}
 public class OptionalWithMultipleTypesViewComponent
-{{
+{
     public string Invoke(
         int age = 42,
         double favoriteDecimal = 12.3,
         char favoriteLetter = 'b',
         DateTime? birthDate = null,
         string anotherOne = null)
-    {{
+    {
         birthDate = new DateTime(1979, 8, 23);
         return age + "" : "" + favoriteDecimal + "" : "" + favoriteLetter + "" : "" + birthDate + "" : "" + anotherOne;
-    }}
-}}
-");
+    }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -580,18 +580,18 @@ public class OptionalWithMultipleTypesViewComponent
     public void RazorPage_WithCssScope()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
-[{typeof(HtmlTargetElementAttribute).FullName}({"\"all\""})]
-public class AllTagHelper : {typeof(TagHelper).FullName}
-{{
-    public string Bar {{ get; set; }}
-}}
+        AddCSharpSyntaxTree($$"""
+[{{typeof(HtmlTargetElementAttribute).FullName}}({{"\"all\""}})]
+public class AllTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public string Bar { get; set; }
+}
 
-[{typeof(HtmlTargetElementAttribute).FullName}({"\"form\""})]
-public class FormTagHelper : {typeof(TagHelper).FullName}
-{{
-}}
-");
+[{{typeof(HtmlTargetElementAttribute).FullName}}({{"\"form\""}})]
+public class FormTagHelper : {{typeof(TagHelper).FullName}}
+{
+}
+""");
 
         // Act
         // This test case attempts to use all syntaxes that might interact with auto-generated attributes
@@ -622,18 +622,18 @@ public class FormTagHelper : {typeof(TagHelper).FullName}
     public void RazorView_WithCssScope()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
-[{typeof(HtmlTargetElementAttribute).FullName}({"\"all\""})]
-public class AllTagHelper : {typeof(TagHelper).FullName}
-{{
-    public string Bar {{ get; set; }}
-}}
+        AddCSharpSyntaxTree($$"""
+[{{typeof(HtmlTargetElementAttribute).FullName}}({{"\"all\""}})]
+public class AllTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public string Bar { get; set; }
+}
 
-[{typeof(HtmlTargetElementAttribute).FullName}({"\"form\""})]
-public class FormTagHelper : {typeof(TagHelper).FullName}
-{{
-}}
-");
+[{{typeof(HtmlTargetElementAttribute).FullName}}({{"\"form\""}})]
+public class FormTagHelper : {{typeof(TagHelper).FullName}}
+{
+}
+""");
 
         // Act
         // This test case attempts to use all syntaxes that might interact with auto-generated attributes
@@ -663,17 +663,17 @@ public class FormTagHelper : {typeof(TagHelper).FullName}
     public void RazorView_Layout_WithCssScope()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
-[{typeof(HtmlTargetElementAttribute).FullName}({"\"all\""})]
-public class AllTagHelper : {typeof(TagHelper).FullName}
-{{
-    public string Bar {{ get; set; }}
-}}
-[{typeof(HtmlTargetElementAttribute).FullName}({"\"form\""})]
-public class FormTagHelper : {typeof(TagHelper).FullName}
-{{
-}}
-");
+        AddCSharpSyntaxTree($$"""
+[{{typeof(HtmlTargetElementAttribute).FullName}}({{"\"all\""}})]
+public class AllTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public string Bar { get; set; }
+}
+[{{typeof(HtmlTargetElementAttribute).FullName}}({{"\"form\""}})]
+public class FormTagHelper : {{typeof(TagHelper).FullName}}
+{
+}
+""");
 
         // Act
         // This test case attempts to use all syntaxes that might interact with auto-generated attributes
@@ -1060,14 +1060,14 @@ public class MyModel
     public void Sections_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-public class InputTestTagHelper : {typeof(TagHelper).FullName}
-{{
-    public ModelExpression For {{ get; set; }}
-}}
-");
+public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public ModelExpression For { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -1237,14 +1237,14 @@ public class ThisShouldBeGenerated
     public void ModelExpressionTagHelper_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-public class InputTestTagHelper : {typeof(TagHelper).FullName}
-{{
-    public ModelExpression For {{ get; set; }}
-}}
-");
+public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public ModelExpression For { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -1263,12 +1263,12 @@ public class InputTestTagHelper : {typeof(TagHelper).FullName}
     public void RazorPages_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
-public class DivTagHelper : {typeof(TagHelper).FullName}
-{{
+        AddCSharpSyntaxTree($$"""
+public class DivTagHelper : {{typeof(TagHelper).FullName}}
+{
 
-}}
-");
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -1304,12 +1304,12 @@ public class DivTagHelper : {typeof(TagHelper).FullName}
     public void RazorPagesWithoutModel_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
-public class DivTagHelper : {typeof(TagHelper).FullName}
-{{
+        AddCSharpSyntaxTree($$"""
+public class DivTagHelper : {{typeof(TagHelper).FullName}}
+{
 
-}}
-");
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -1362,21 +1362,21 @@ public class DivTagHelper : {typeof(TagHelper).FullName}
     public void ViewComponentTagHelper_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 public class TestViewComponent
-{{
+{
     public string Invoke(string firstName)
-    {{
+    {
         return firstName;
-    }}
-}}
+    }
+}
 
-[{typeof(HtmlTargetElementAttribute).FullName}]
-public class AllTagHelper : {typeof(TagHelper).FullName}
-{{
-    public string Bar {{ get; set; }}
-}}
-");
+[{{typeof(HtmlTargetElementAttribute).FullName}}]
+public class AllTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public string Bar { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 

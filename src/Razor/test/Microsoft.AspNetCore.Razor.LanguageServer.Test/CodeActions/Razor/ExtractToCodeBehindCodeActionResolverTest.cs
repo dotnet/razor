@@ -63,7 +63,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:\\Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private int x = 1; }}";
+        var contents = $$"""
+            @page \"/test\"
+            @code { private int x = 1; }
+            """;
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetUnsupported();
 
@@ -82,7 +85,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:\\Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private int x = 1; }}";
+        var contents = $$"""
+            @page \"/test\"
+            @code { private int x = 1; }
+            """;
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetFileKind(FileKinds.Legacy);
 

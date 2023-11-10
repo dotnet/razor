@@ -804,24 +804,28 @@ public class RazorDirectivesTest() : ParserTestBase(layer: TestProject.Layer.Com
     [Fact]
     public void TypeParam_WithSemicolon()
     {
-        ParseDocumentTest(@$"@typeparam TItem;
+        ParseDocumentTest($$"""
+@typeparam TItem;
 <ul>
 </ul>
-@code {{
+@code {
     // something
-}}",
+}
+""",
             new[] { ComponentConstrainedTypeParamDirective.Directive });
     }
 
     [Fact]
     public void TypeParam_WithoutSemicolon()
     {
-        ParseDocumentTest(@$"@typeparam TItem
+        ParseDocumentTest($$"""
+@typeparam TItem
 <ul>
 </ul>
-@code {{
+@code {
     // something
-}}",
+}
+""",
             new[] { ComponentConstrainedTypeParamDirective.Directive });
     }
 

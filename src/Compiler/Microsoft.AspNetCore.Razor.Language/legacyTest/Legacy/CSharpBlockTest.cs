@@ -432,7 +432,10 @@ while(true);");
     [Fact]
     public void CapturesNewlineAfterUsing()
     {
-        ParseDocumentTest($"@using Foo{Environment.NewLine}");
+        ParseDocumentTest($"""
+            @using Foo
+            
+            """);
     }
 
     [Fact]

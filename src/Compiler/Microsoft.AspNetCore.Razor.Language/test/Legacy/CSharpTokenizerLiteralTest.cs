@@ -203,7 +203,10 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void Character_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
     {
-        TestTokenizer($"'foo\\{Environment.NewLine}flarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer($"""
+            'foo\\
+            flarg
+            """, SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
     }
 
     [Fact]
@@ -260,7 +263,10 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void String_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
     {
-        TestTokenizer($"\"foo\\{Environment.NewLine}flarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer($"""
+            \"foo\\
+            flarg
+            """, SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
     }
 
     [Fact]
