@@ -49,7 +49,7 @@
     },
     "textEditor.razor.advanced.colorBackground": {
       "type": "boolean",
-      "default": true,
+      "default": false,
       "title": "@Setting_ColorBackgroundDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "description": "@Setting_ColorBackgroundDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
