@@ -64,8 +64,8 @@
     "textEditor.razor.advanced.commitElementsWithSpace": {
       "type": "boolean",
       "default": true,
-      "title": "@Setting_CommitElementsWithSpaceDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
-      "description": "@Setting_CommitElementsWithSpaceDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "title": "@Setting_CommitElementsWithSpaceDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_CommitElementsWithSpaceDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "migration": {
         "pass":{
           "input": {
