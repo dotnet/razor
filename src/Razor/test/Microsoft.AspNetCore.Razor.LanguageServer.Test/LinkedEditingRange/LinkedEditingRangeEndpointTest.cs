@@ -349,7 +349,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
         Assert.True(Regex.Match("Te/st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
         Assert.True(Regex.Match("Te\\st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
         Assert.True(Regex.Match("Te!st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
-        Assert.True(Regex.Match("Te" + Environment.NewLine + "st",
+        Assert.True(Regex.Match("""
+            Te
+            st
+            """,
             LinkedEditingRangeEndpoint.WordPattern).Length != 4 + Environment.NewLine.Length);
     }
 }

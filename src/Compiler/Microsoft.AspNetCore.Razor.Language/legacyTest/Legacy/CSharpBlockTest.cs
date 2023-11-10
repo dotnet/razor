@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -568,8 +568,9 @@ catch(bar) { baz(); }");
     public void SupportsTryStatementWithMultipleCatchClause()
     {
         ParseDocumentTest(
-            "@try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) " +
-            "{ var foo = new { } } catch(Foo Bar Baz) { var foo = new { } }");
+"""
+            @try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } }
+            """);
     }
 
     [Fact]
@@ -582,8 +583,9 @@ catch(bar) { baz(); }");
     public void SupportsMarkupWithinAdditionalCatchClauses()
     {
         RunSimpleWrappedMarkupTest(
-            prefix: "@try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) " +
-            "{ var foo = new { } } catch(Foo Bar Baz) {",
+            prefix: """
+            @try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) {
+            """,
             markup: " <p>Foo</p> ",
             suffix: "}");
     }
@@ -664,16 +666,18 @@ catch(bar) { baz(); }");
     public void ParsersCanNestRecursively()
     {
         // Arrange
-        ParseDocumentTest("@foreach(var c in db.Categories) {" + Environment.NewLine
-                     + "            <div>" + Environment.NewLine
-                     + "                <h1>@c.Name</h1>" + Environment.NewLine
-                     + "                <ul>" + Environment.NewLine
-                     + "                    @foreach(var p in c.Products) {" + Environment.NewLine
-                     + "                        <li><a href=\"@Html.ActionUrl(\"Products\", \"Detail\", new { id = p.Id })\">@p.Name</a></li>" + Environment.NewLine
-                     + "                    }" + Environment.NewLine
-                     + "                </ul>" + Environment.NewLine
-                     + "            </div>" + Environment.NewLine
-                     + "        }");
+        ParseDocumentTest("""
+            @foreach(var c in db.Categories) {
+                        <div>
+                            <h1>@c.Name</h1>
+                            <ul>
+                                @foreach(var p in c.Products) {
+                                    <li><a href="@Html.ActionUrl("Products", "Detail", new { id = p.Id })">@p.Name</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+            """);
     }
 
     [Fact]
