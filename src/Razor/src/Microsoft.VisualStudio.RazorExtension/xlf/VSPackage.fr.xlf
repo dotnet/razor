@@ -89,12 +89,12 @@
       </trans-unit>
       <trans-unit id="Setting_SnippetsAll">
         <source>All</source>
-        <target state="new">All</target>
+        <target state="translated">Tout</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsCustom">
         <source>Custom</source>
-        <target state="new">Custom</target>
+        <target state="translated">Personnalisé</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDescription">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Setting_SnippetsNone">
         <source>None</source>
-        <target state="new">None</target>
+        <target state="translated">Aucune</target>
         <note />
       </trans-unit>
       <trans-unit id="Typing">
