@@ -195,7 +195,9 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     {
         // Arrange
         var source = new StringTextSnapshot("""
+
             @{
+
             """);
         var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source);
@@ -242,6 +244,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
         var source = new StringTextSnapshot("""
             @{
                 <div>
+
             """);
         var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source);
