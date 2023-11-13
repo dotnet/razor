@@ -143,4 +143,19 @@ public class ChecksumTests(ITestOutputHelper testOutput) : ToolingTestBase(testO
             }
         }
     }
+
+    [Fact]
+    public void TestLargeString()
+    {
+        // Regression test for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909377.
+
+        object? largeString = RazorTestResources.GetResourceText("FormattingTest.razor");
+
+        var builder = new Checksum.Builder();
+        builder.AppendData(largeString);
+
+        var result = builder.FreeAndGetChecksum();
+
+        Assert.NotNull(result);
+    }
 }
