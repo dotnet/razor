@@ -44,7 +44,7 @@ public class CSharpBlockTest() : ParserTestBase(layer: TestProject.Layer.Compile
     {
         ParseDocumentTest(
 @"@{
-    void Foo()
+    void Foo() 
     {
         var time = DateTime.Now
         <strong>Hello the time is @time</strong>

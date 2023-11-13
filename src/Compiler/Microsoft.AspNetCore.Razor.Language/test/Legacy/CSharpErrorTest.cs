@@ -34,7 +34,7 @@ public class CSharpErrorTest() : ParserTestBase(layer: TestProject.Layer.Compile
     {
         // ParseBlockCapturesWhitespaceToEndOfLineInInvalidUsingStatementAndTreatsAsFileCode
         ParseDocumentTest("""
-            @using
+            @using          
 
 
             """);
@@ -348,10 +348,10 @@ public class CSharpErrorTest() : ParserTestBase(layer: TestProject.Layer.Compile
     public void TerminatesVerbatimStringAtEndOfFile()
     {
         ParseDocumentTest("""
-            @if(foo) { var foo = @"blah
-            blah;
+            @if(foo) { var foo = @"blah 
+            blah; 
             <p>Foo</p>
-            blah
+            blah 
             blah
             """);
     }
