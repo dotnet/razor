@@ -144,11 +144,9 @@ public class ChecksumTests(ITestOutputHelper testOutput) : ToolingTestBase(testO
         }
     }
 
-    [Fact]
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909377")]
     public void TestLargeString()
     {
-        // Regression test for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909377.
-
         object? largeString = RazorTestResources.GetResourceText("FormattingTest.razor");
 
         var builder = new Checksum.Builder();
