@@ -28,7 +28,7 @@ public class CSharpRazorCommentsTest() : ParserTestBase(layer: TestProject.Layer
         ParseDocumentTest("""
             @foo(
             @**@
-            
+
             """);
     }
 
@@ -82,8 +82,7 @@ This is a comment
     [Fact]
     public void RazorCommentInMarkup()
     {
-        ParseDocumentTest(
-"""
+        ParseDocumentTest("""
             <p>
             @**@
             </p>
@@ -93,10 +92,9 @@ This is a comment
     [Fact]
     public void MultipleRazorCommentInMarkup()
     {
-        ParseDocumentTest(
-"""
+        ParseDocumentTest("""
             <p>
-              @**@  
+              @**@
             @**@
             </p>
             """);
@@ -105,8 +103,7 @@ This is a comment
     [Fact]
     public void MultipleRazorCommentsInSameLineInMarkup()
     {
-        ParseDocumentTest(
-"""
+        ParseDocumentTest("""
             <p>
             @**@  @**@
             </p>
@@ -116,8 +113,7 @@ This is a comment
     [Fact]
     public void RazorCommentsSurroundingMarkup()
     {
-        ParseDocumentTest(
-"""
+        ParseDocumentTest("""
             <p>
             @* hello *@ content @* world *@
             </p>
@@ -127,8 +123,7 @@ This is a comment
     [Fact]
     public void RazorCommentBetweenCodeBlockAndMarkup()
     {
-        ParseDocumentTest(
-"""
+        ParseDocumentTest("""
             @{ }
             @* Hello World *@
             <div>Foo</div>
@@ -138,15 +133,14 @@ This is a comment
     [Fact]
     public void RazorCommentWithExtraNewLineInMarkup()
     {
-        ParseDocumentTest(
-"""
+        ParseDocumentTest("""
             <p>
-            
+
             @* content *@
             @*
             content
             *@
-            
+
             </p>
             """);
     }

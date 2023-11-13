@@ -24,10 +24,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
     // This is loosely based off logic from the Razor compiler:
     // https://github.com/dotnet/aspnetcore/blob/9da42b9fab4c61fe46627ac0c6877905ec845d5a/src/Razor/Microsoft.AspNetCore.Razor.Language/src/Legacy/HtmlTokenizer.cs
     // Internal for testing only.
-    internal static readonly string WordPattern = $"""
-            !?[^ <>!\/\?\[\]="\\@
-            ]+
-            """;
+    internal static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
 
     private readonly ILogger _logger;
 

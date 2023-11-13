@@ -17,7 +17,7 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
         var attributeName = "[item]";
         ParseDocumentTest($$"""
             @{<a {{attributeName}}
-            ='Foo'\t{{attributeName}}=
+            ='Foo'	{{attributeName}}=
             'Bar' />}
             """);
     }
@@ -28,7 +28,7 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
         var attributeName = "[(item,";
         ParseDocumentTest($$"""
             @{<a {{attributeName}}
-            ='Foo'\t{{attributeName}}=
+            ='Foo'	{{attributeName}}=
             'Bar' />}
             """);
     }
@@ -39,7 +39,7 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
         var attributeName = "(click)";
         ParseDocumentTest($$"""
             @{<a {{attributeName}}
-            ='Foo'\t{{attributeName}}=
+            ='Foo'	{{attributeName}}=
             'Bar' />}
             """);
     }
@@ -50,7 +50,7 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
         var attributeName = "(^click)";
         ParseDocumentTest($$"""
             @{<a {{attributeName}}
-            ='Foo'\t{{attributeName}}=
+            ='Foo'	{{attributeName}}=
             'Bar' />}
             """);
     }
@@ -61,7 +61,7 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
         var attributeName = "*something";
         ParseDocumentTest($$"""
             @{<a {{attributeName}}
-            ='Foo'\t{{attributeName}}=
+            ='Foo'	{{attributeName}}=
             'Bar' />}
             """);
     }
@@ -72,7 +72,7 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
         var attributeName = "#local";
         ParseDocumentTest($$"""
             @{<a {{attributeName}}
-            ='Foo'\t{{attributeName}}=
+            ='Foo'	{{attributeName}}=
             'Bar' />}
             """);
     }
@@ -82,8 +82,8 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
     {
         var attributeName = "[item]";
         ParseDocumentTest($$"""
-            @{<a 
-              {{attributeName}}='Foo'\t
+            @{<a
+              {{attributeName}}='Foo'
             {{attributeName}}='Bar' />}
             """);
     }
@@ -93,8 +93,8 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
     {
         var attributeName = "[(item,";
         ParseDocumentTest($$"""
-            @{<a 
-              {{attributeName}}='Foo'\t
+            @{<a
+              {{attributeName}}='Foo'
             {{attributeName}}='Bar' />}
             """);
     }
@@ -104,8 +104,8 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
     {
         var attributeName = "(click)";
         ParseDocumentTest($$"""
-            @{<a 
-              {{attributeName}}='Foo'\t
+            @{<a
+              {{attributeName}}='Foo'
             {{attributeName}}='Bar' />}
             """);
     }
@@ -115,8 +115,8 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
     {
         var attributeName = "(^click)";
         ParseDocumentTest($$"""
-            @{<a 
-              {{attributeName}}='Foo'\t
+            @{<a
+              {{attributeName}}='Foo'
             {{attributeName}}='Bar' />}
             """);
     }
@@ -126,8 +126,8 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
     {
         var attributeName = "*something";
         ParseDocumentTest($$"""
-            @{<a 
-              {{attributeName}}='Foo'\t
+            @{<a
+              {{attributeName}}='Foo'
             {{attributeName}}='Bar' />}
             """);
     }
@@ -137,8 +137,8 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
     {
         var attributeName = "#local";
         ParseDocumentTest($$"""
-            @{<a 
-              {{attributeName}}='Foo'\t
+            @{<a
+              {{attributeName}}='Foo'
             {{attributeName}}='Bar' />}
             """);
     }

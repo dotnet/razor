@@ -1425,11 +1425,11 @@ public class DefaultTagHelperDescriptorFactoryTest
         // Arrange
         name = name.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\\"");
         var text = $$"""
-        [{{typeof(AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute).FullName}}(""{{name}}"")]
-        public class DynamicTestTagHelper : {{typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}}
-        {
-        }
-        """;
+            [{{typeof(AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute).FullName}}("{{name}}")]
+            public class DynamicTestTagHelper : {{typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}}
+            {
+            }
+            """;
         var syntaxTree = CSharpSyntaxTree.ParseText(text);
         var compilation = TestCompilation.Create(_assembly, syntaxTree);
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
@@ -1607,7 +1607,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var text = $$"""
             public class DynamicTestTagHelper : {{typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}}
             {
-                [{{typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName}}(""{{name}}"")]
+                [{{typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName}}("{{name}}")]
                 public string SomeAttribute { get; set; }
             }
             """;
@@ -1648,7 +1648,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var text = $$"""
             public class DynamicTestTagHelper : {{typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}}
             {
-                [{{typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName}}({{nameof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute.DictionaryAttributePrefix)}} = ""{{prefix}}"")]
+                [{{typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName}}({{nameof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute.DictionaryAttributePrefix)}} = "{{prefix}}")]
                 public System.Collections.Generic.IDictionary<string, int> SomeAttribute { get; set; }
             }
             """;
@@ -1692,7 +1692,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var text = $$"""
             public class DynamicTestTagHelper : {{typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}}
             {
-                [{{typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName}}(""{{name}}"")]
+                [{{typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName}}("{{name}}")]
                 public string InvalidProperty { get; set; }
             }
             """;
@@ -1739,7 +1739,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var text = $$"""
             public class DynamicTestTagHelper : {{typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}}
             {
-                [{{typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName}}({{nameof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute.DictionaryAttributePrefix)}} = ""{{prefix}}"")]
+                [{{typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName}}({{nameof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute.DictionaryAttributePrefix)}} = "{{prefix}}")]
                 public System.Collections.Generic.IDictionary<System.String, System.Int32> InvalidProperty { get; set; }
             }
             """;
@@ -1781,7 +1781,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         // Arrange
         name = name.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\\"");
         var text = $$"""
-            [{{typeof(AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute).FullName}}(""{{name}}"")]
+            [{{typeof(AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute).FullName}}("{{name}}")]
             public class DynamicTestTagHelper : {{typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}}
             {
             }
@@ -1823,7 +1823,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         // Arrange
         name = name.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\\"");
         var text = $$"""
-            [{{typeof(AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute).FullName}}({{nameof(AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute.ParentTag)}} = ""{{name}}"")]
+            [{{typeof(AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute).FullName}}({{nameof(AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute.ParentTag)}} = "{{name}}")]
             public class DynamicTestTagHelper : {{typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}}
             {
             }

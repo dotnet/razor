@@ -195,8 +195,8 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     {
         // Arrange
         var source = new StringTextSnapshot("""
-@{
-""");
+            @{
+            """);
         var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source);
 
@@ -240,9 +240,9 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     {
         // Arrange
         var source = new StringTextSnapshot("""
-@{
-    <div>
-""");
+            @{
+                <div>
+            """);
         var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source);
 
@@ -264,11 +264,11 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
         // Arrange
         var customDirective = DirectiveDescriptor.CreateRazorBlockDirective("custom");
         var source = new StringTextSnapshot("""
-@custom
-{
-    <div>
-}
-""");
+            @custom
+            {
+                <div>
+            }
+            """);
         var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source, new[] { customDirective });
 
@@ -289,12 +289,12 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     {
         // Arrange
         var source = new StringTextSnapshot("""
-<div>
-    @{
-        <span>
-    }
-</div>
-""");
+            <div>
+                @{
+                    <span>
+                }
+            </div>
+            """);
         var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source);
 
@@ -316,13 +316,13 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
         // Arrange
         var customDirective = DirectiveDescriptor.CreateRazorBlockDirective("custom");
         var source = new StringTextSnapshot("""
-@custom
-{
-    @{
-        <div>
-    }
-}
-""");
+            @custom
+            {
+                @{
+                    <div>
+                }
+            }
+            """);
 
         var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source, new[] { customDirective });

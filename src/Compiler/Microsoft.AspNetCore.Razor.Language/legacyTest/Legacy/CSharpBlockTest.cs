@@ -434,7 +434,7 @@ while(true);");
     {
         ParseDocumentTest($"""
             @using Foo
-            
+
             """);
     }
 
@@ -570,8 +570,7 @@ catch(bar) { baz(); }");
     [Fact]
     public void SupportsTryStatementWithMultipleCatchClause()
     {
-        ParseDocumentTest(
-"""
+        ParseDocumentTest("""
             @try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } }
             """);
     }
@@ -585,8 +584,7 @@ catch(bar) { baz(); }");
     [Fact]
     public void SupportsMarkupWithinAdditionalCatchClauses()
     {
-        RunSimpleWrappedMarkupTest(
-            prefix: """
+        RunSimpleWrappedMarkupTest(prefix: """
             @try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) {
             """,
             markup: " <p>Foo</p> ",

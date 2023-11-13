@@ -127,7 +127,7 @@ public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
         var contents = $"""
-            @page \"/test\"
+            @page "/test"
             @namespace Another.Namespace
             """;
         var codeDocument = CreateCodeDocument(contents);

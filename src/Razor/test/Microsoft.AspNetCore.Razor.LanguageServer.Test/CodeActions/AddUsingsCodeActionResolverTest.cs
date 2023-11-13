@@ -98,7 +98,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         Assert.Equal(0, firstEdit.Range.Start.Line);
         Assert.Equal($"""
             @using System
-            
+
             """, firstEdit.NewText);
     }
 
@@ -108,8 +108,8 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
         var contents = $"""
-            @page \"/\"
-            
+            @page "/"
+
             """;
         var codeDocument = CreateCodeDocument(contents);
 
@@ -135,7 +135,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         Assert.Equal(1, firstEdit.Range.Start.Line);
         Assert.Equal($"""
             @using System
-            
+
             """, firstEdit.NewText);
     }
 
@@ -180,7 +180,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         Assert.Equal(1, firstEdit.Range.Start.Line);
         Assert.Equal($"""
             @using System
-            
+
             """, firstEdit.NewText);
     }
 
@@ -219,7 +219,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         Assert.Equal(0, firstEdit.Range.Start.Line);
         Assert.Equal($"""
             @using System
-            
+
             """, firstEdit.NewText);
     }
 
@@ -230,7 +230,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         var documentPath = new Uri("c:/Test.razor");
         var contents = $"""
             @namespace Testing
-            
+
             """;
         var codeDocument = CreateCodeDocument(contents);
 
@@ -256,7 +256,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         Assert.Equal(1, firstEdit.Range.Start.Line);
         Assert.Equal($"""
             @using System
-            
+
             """, firstEdit.NewText);
     }
 
@@ -266,9 +266,9 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
         var contents = $"""
-            @page \"/\"
+            @page "/"
             @namespace Testing
-            
+
             """;
         var codeDocument = CreateCodeDocument(contents);
 
@@ -294,7 +294,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         Assert.Equal(2, firstEdit.Range.Start.Line);
         Assert.Equal($"""
             @using System
-            
+
             """, firstEdit.NewText);
     }
 
@@ -328,7 +328,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         Assert.Equal(1, firstEdit.Range.Start.Line);
         Assert.Equal($"""
             @using System.Linq
-            
+
             """, firstEdit.NewText);
     }
 
@@ -340,7 +340,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         var contents = $"""
             @using System
             @using System.Linq
-            
+
             """;
         var codeDocument = CreateCodeDocument(contents);
 
@@ -366,7 +366,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         Assert.Equal(2, firstEdit.Range.Start.Line);
         Assert.Equal($"""
             @using Microsoft.AspNetCore.Razor.Language
-            
+
             """, firstEdit.NewText);
     }
 

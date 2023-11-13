@@ -436,9 +436,6 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
             <p>
                 <strong>
                     Hello
-            """+
-$"""
-            
                 </strong>
             </p>
             """;
