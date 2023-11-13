@@ -544,7 +544,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
                 public string Invoke(string secret, bool showSecret = false)
                 {
                     var isSecret = showSecret ? "what a secret" : "not a secret";
-                    return isSecret + "" : "" + secret;
+                    return isSecret + " : " + secret;
                 }
             }
             public class OptionalWithMultipleTypesViewComponent
@@ -596,13 +596,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
-            [{{typeof(HtmlTargetElementAttribute).FullName}}({{"all"}})]
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("all")]
             public class AllTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public string Bar { get; set; }
             }
 
-            [{{typeof(HtmlTargetElementAttribute).FullName}}({{"form"}})]
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("form")]
             public class FormTagHelper : {{typeof(TagHelper).FullName}}
             {
             }
@@ -640,13 +640,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
-            [{{typeof(HtmlTargetElementAttribute).FullName}}({{"\"all"}})]
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("all")]
             public class AllTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public string Bar { get; set; }
             }
 
-            [{{typeof(HtmlTargetElementAttribute).FullName}}({{"form"}})]
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("form")]
             public class FormTagHelper : {{typeof(TagHelper).FullName}}
             {
             }
@@ -683,12 +683,12 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
-            [{{typeof(HtmlTargetElementAttribute).FullName}}({{"all"}})]
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("all")]
             public class AllTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public string Bar { get; set; }
             }
-            [{{typeof(HtmlTargetElementAttribute).FullName}}({{"form"}})]
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("form")]
             public class FormTagHelper : {{typeof(TagHelper).FullName}}
             {
             }
