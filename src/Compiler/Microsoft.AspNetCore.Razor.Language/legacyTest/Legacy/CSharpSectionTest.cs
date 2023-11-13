@@ -26,8 +26,8 @@ public class CSharpSectionTest() : ParserTestBase(layer: TestProject.Layer.Compi
     public void CapturesWhitespaceToEndOfLineInSectionStatementMissingOpenBrace()
     {
         ParseDocumentTest("""
-            @section Foo
-
+            @section Foo         
+                
             """,
             new[] { SectionDirective.Directive });
     }
@@ -36,8 +36,8 @@ public class CSharpSectionTest() : ParserTestBase(layer: TestProject.Layer.Compi
     public void CapturesWhitespaceToEndOfLineInSectionStatementMissingName()
     {
         ParseDocumentTest("""
-            @section
-
+            @section         
+                
             """,
             new[] { SectionDirective.Directive });
     }
@@ -167,7 +167,7 @@ public class CSharpSectionTest() : ParserTestBase(layer: TestProject.Layer.Compi
     {
         // ParseSectionBlockReportsErrorAndAcceptsWhitespaceToEndOfLineIfSectionNotFollowedByOpenBrace
         ParseDocumentTest("""
-            @section foo
+            @section foo      
 
             """,
             new[] { SectionDirective.Directive });
@@ -177,7 +177,7 @@ public class CSharpSectionTest() : ParserTestBase(layer: TestProject.Layer.Compi
     public void AcceptsOpenBraceMultipleLinesBelowSectionName()
     {
         ParseDocumentTest("""
-            @section foo
+            @section foo      
 
 
 
