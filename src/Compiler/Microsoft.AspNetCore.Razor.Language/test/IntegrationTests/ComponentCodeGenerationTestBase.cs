@@ -10523,26 +10523,7 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        if (DesignTime)
-        {
-            result.Diagnostics.Verify(
-                // x:\dir\subdir\Test\TestComponent.cshtml(2,54): error CS0103: The name 'start' does not exist in the current context
-                //                                                      start
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "start").WithArguments("start").WithLocation(2, 54),
-                // x:\dir\subdir\Test\TestComponent.cshtml(2,59): error CS1003: Syntax error, ',' expected
-                //                                                      start
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 59),
-                // x:\dir\subdir\Test\TestComponent.cshtml(2,71): error CS1003: Syntax error, ',' expected
-                //                                                              "literal"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 71),
-                // x:\dir\subdir\Test\TestComponent.cshtml(2,75): error CS1003: Syntax error, ',' expected
-                //                                                                          x
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 75),
-                // x:\dir\subdir\Test\TestComponent.cshtml(2,76): error CS0103: The name 'end' does not exist in the current context
-                //                                                                            end
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "end").WithArguments("end").WithLocation(2, 76));
-        }
+        Assert.NotEmpty(generated.Diagnostics);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]

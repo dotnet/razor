@@ -39,28 +39,16 @@ using Microsoft.AspNetCore.Components.Web;
             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                     start
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                              "literal"
 
 #line default
 #line hidden
 #nullable disable
+            );
+            global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                          x
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                           end
 
 #line default
 #line hidden

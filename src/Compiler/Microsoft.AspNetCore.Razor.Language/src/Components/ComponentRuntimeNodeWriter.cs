@@ -951,6 +951,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
     {
+        if (node.Children.Count > 1)
+        {
+            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
+        }
+
         // string __formName = expression;
         context.CodeWriter.Write("string ");
         context.CodeWriter.Write(_scopeStack.FormNameVarName);

@@ -1178,25 +1178,20 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
     {
-        var tokens = node.FindDescendantNodes<IntermediateToken>();
-        if (tokens.Any(t => t.IsCSharp))
+        if (node.Children.Count > 1)
         {
-            context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
-            context.CodeWriter.Write("<string>(");
+            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
+        }
 
-            var hasAnyNonCSharp = false;
-            foreach (var token in tokens)
+        foreach (var token in node.FindDescendantNodes<IntermediateToken>())
+        {
+            if (token.IsCSharp)
             {
-                hasAnyNonCSharp |= !token.IsCSharp;
+                context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
+                context.CodeWriter.Write("<string>(");
                 WriteCSharpToken(context, token);
+                context.CodeWriter.WriteLine(");");
             }
-
-            if (hasAnyNonCSharp)
-            {
-                Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-            }
-
-            context.CodeWriter.Write(");");
         }
     }
 
