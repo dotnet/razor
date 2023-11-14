@@ -630,22 +630,16 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
     {
+        if (node.Children.Count > 1)
+        {
+            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
+            // We render the children anyway, so tooling works.
+        }
+
         if (node.AttributeStructure == AttributeStructure.Minimized)
         {
             // Minimized attributes always map to 'true'
             context.CodeWriter.Write("true");
-        }
-        else if (node.Children.Count > 1)
-        {
-            // We have reported an error for this, but we render the children anyway (for consistency with design-time).
-            Debug.Assert(node.HasDiagnostics);
-            foreach (var token in node.FindDescendantNodes<IntermediateToken>())
-            {
-                if (token.IsCSharp)
-                {
-                    WriteCSharpToken(context, token);
-                }
-            }
         }
         else if (node.Children.Count == 1 && node.Children[0] is HtmlContentIntermediateNode htmlNode)
         {
