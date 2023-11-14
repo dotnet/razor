@@ -16,6 +16,7 @@ public enum ErrorCode
     ERR_CantInferMethTypeArgs = 411,
     WRN_UnreferencedFieldAssg = 414,
     ERR_SyntaxError = 1003,
+    ERR_BadArgCount = 1501,
     ERR_BadArgType = 1503,
     WRN_AsyncLacksAwaits = 1998,
     ERR_NoCorrespondingArgument = 7036,
