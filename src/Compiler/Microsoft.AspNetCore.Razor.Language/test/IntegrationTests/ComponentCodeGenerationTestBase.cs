@@ -10568,6 +10568,18 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+        if (DesignTime)
+        {
+            result.Diagnostics.Verify(
+                // x:\dir\subdir\Test\TestComponent.cshtml(2,74): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //                                                                          x
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "string").WithLocation(2, 74));
+        }
+        else
+        {
+            result.Diagnostics.Verify();
+        }
         Assert.NotEmpty(generated.Diagnostics);
     }
 
