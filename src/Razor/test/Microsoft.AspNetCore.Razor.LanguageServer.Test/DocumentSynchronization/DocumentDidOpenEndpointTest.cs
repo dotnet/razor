@@ -25,8 +25,7 @@ public class DocumentDidOpenEndpointTest(ITestOutputHelper testOutput) : Languag
         projectService.Setup(service => service.OpenDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
             .Callback<string, SourceText, int>((path, text, version) =>
             {
-                var resultString = GetString(text);
-                Assert.Equal("hello", resultString);
+                Assert.Equal("hello", text.ToString());
                 Assert.Equal(documentPath, path);
                 Assert.Equal(1337, version);
             });

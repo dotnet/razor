@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 /// </summary>
 internal static class WebTools
 {
-    private const string ServerAssemblyName = "Microsoft.WebTools.Languages.LanguageServer.Server, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+    private const string ServerAssemblyName = "Microsoft.WebTools.Languages.LanguageServer.Server, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
     private const string EditorAssemblyName = "Microsoft.WebTools.Languages.Shared.Editor, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
     private const string ApplyFormatEditsHandlerTypeName = "Microsoft.WebTools.Languages.LanguageServer.Server.Html.OperationHandlers.ApplyFormatEditsHandler";
     private const string BufferManagerTypeName = "Microsoft.WebTools.Languages.LanguageServer.Server.Shared.Buffer.BufferManager";

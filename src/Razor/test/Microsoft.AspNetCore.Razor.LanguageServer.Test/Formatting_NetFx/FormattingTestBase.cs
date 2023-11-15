@@ -66,7 +66,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             InsertSpaces = insertSpaces,
         };
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, dispatcher, codeDocument, documentSnapshot, razorLSPOptions);
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
@@ -109,8 +111,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(
-            LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
+            LoggerFactory, dispatcher, codeDocument, documentSnapshot, razorLSPOptions);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -177,7 +181,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             throw new InvalidOperationException("Could not map from Razor document to generated document");
         }
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument);
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, dispatcher, codeDocument);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,

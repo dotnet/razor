@@ -38,8 +38,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
         var result = endpoint.ApplyContentChanges(new[] { change }, sourceText, Logger);
 
         // Assert
-        var resultString = GetString(result);
-        Assert.Equal("Hello! World", resultString);
+        Assert.Equal("Hello! World", result.ToString());
     }
 
     [Fact]
@@ -91,10 +90,9 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
         var result = endpoint.ApplyContentChanges(changes, sourceText, Logger);
 
         // Assert
-        var resultString = GetString(result);
         Assert.Equal(@"Hi!
 
-! World", resultString);
+! World", result.ToString());
     }
 
     // This is more of an integration test to validate that all the pieces work together
@@ -110,8 +108,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
         projectService.Setup(service => service.UpdateDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
             .Callback<string, SourceText, int>((path, text, version) =>
             {
-                var resultString = GetString(text);
-                Assert.Equal("<p></p>", resultString);
+                Assert.Equal("<p></p>", text.ToString());
                 Assert.Equal(documentPath.OriginalString, path);
                 Assert.Equal(1337, version);
             });

@@ -698,8 +698,6 @@ public class RenameEndpointTest : LanguageServerTestBase
         var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { firstProject, secondProject }.ToImmutableArray(), MockBehavior.Strict);
         var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
 
-        var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-
         var searchEngine = new DefaultRazorComponentSearchEngine(projectSnapshotManagerAccessor, LoggerFactory);
         languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(
             options => options.SupportsFileManipulation == true && options.SingleServerSupport == false && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
@@ -718,7 +716,7 @@ public class RenameEndpointTest : LanguageServerTestBase
         languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
 
         var endpoint = new RenameEndpoint(
-            projectSnapshotManagerDispatcher,
+            Dispatcher,
             _documentContextFactory,
             searchEngine,
             projectSnapshotManagerAccessor,

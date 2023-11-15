@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-internal class CSharpTestLspServerHelpers
+internal static class CSharpTestLspServerHelpers
 {
     private const string EditRangeSetting = "editRange";
 
@@ -51,11 +51,11 @@ internal class CSharpTestLspServerHelpers
 
     public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(IEnumerable<(Uri Uri, SourceText SourceText)> files, VSInternalServerCapabilities serverCapabilities, IRazorSpanMappingService razorSpanMappingService, CancellationToken cancellationToken)
     {
-        var cSharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
+        var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
         var exportProvider = TestComposition.Roslyn.ExportProviderFactory.CreateExportProvider();
         var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken);
-        var workspace = CreateCSharpTestWorkspace(cSharpFiles, exportProvider, metadataReferences, razorSpanMappingService);
+        var workspace = CreateCSharpTestWorkspace(csharpFiles, exportProvider, metadataReferences, razorSpanMappingService);
         var clientCapabilities = new VSInternalClientCapabilities
         {
             SupportsVisualStudioExtensions = true,
@@ -76,10 +76,8 @@ internal class CSharpTestLspServerHelpers
             SupportsDiagnosticRequests = true,
         };
 
-        var testLspServer = await CSharpTestLspServer.CreateAsync(
+        return await CSharpTestLspServer.CreateAsync(
             workspace, exportProvider, clientCapabilities, serverCapabilities, cancellationToken);
-
-        return testLspServer;
     }
 
     private static AdhocWorkspace CreateCSharpTestWorkspace(

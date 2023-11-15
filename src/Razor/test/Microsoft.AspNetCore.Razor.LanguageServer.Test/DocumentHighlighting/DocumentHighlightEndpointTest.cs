@@ -108,7 +108,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         {
             DocumentHighlightProvider = true
         };
-        var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+        await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null, DisposalToken);
         await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 

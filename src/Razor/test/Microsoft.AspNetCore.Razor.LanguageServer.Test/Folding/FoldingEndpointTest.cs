@@ -38,10 +38,13 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
         var codeDocument = CreateCodeDocument(input);
         var razorFilePath = "C:/path/to/file.razor";
 
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
         var endpoint = new FoldingRangeEndpoint(
-            DocumentMappingService, LanguageServer, new List<IRazorFoldingRangeProvider> { new UsingsFoldingRangeProvider(), new RazorCodeBlockFoldingProvider() }, LoggerFactory);
+            DocumentMappingService,
+            languageServer,
+            [new UsingsFoldingRangeProvider(), new RazorCodeBlockFoldingProvider()],
+            LoggerFactory);
 
         var request = new FoldingRangeParams()
         {

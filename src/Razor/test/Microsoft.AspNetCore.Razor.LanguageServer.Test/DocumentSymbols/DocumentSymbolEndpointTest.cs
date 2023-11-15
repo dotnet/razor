@@ -51,11 +51,11 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
         var codeDocument = CreateCodeDocument(input);
         var razorFilePath = "C:/path/to/file.razor";
 
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
         // This test requires the SingleServerSupport to be disabled
         Assert.False(TestLanguageServerFeatureOptions.Instance.SingleServerSupport);
-        var endpoint = new DocumentSymbolEndpoint(LanguageServer, DocumentMappingService, TestLanguageServerFeatureOptions.Instance);
+        var endpoint = new DocumentSymbolEndpoint(languageServer, DocumentMappingService, TestLanguageServerFeatureOptions.Instance);
 
         var serverCapabilities = new VSInternalServerCapabilities();
         var clientCapabilities = new VSInternalClientCapabilities();
@@ -71,9 +71,9 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
         var codeDocument = CreateCodeDocument(input);
         var razorFilePath = "C:/path/to/file.razor";
 
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-        var endpoint = new DocumentSymbolEndpoint(LanguageServer, DocumentMappingService, TestLanguageServerFeatureOptions.Instance);
+        var endpoint = new DocumentSymbolEndpoint(languageServer, DocumentMappingService, TestLanguageServerFeatureOptions.Instance);
 
         var request = new DocumentSymbolParams()
         {

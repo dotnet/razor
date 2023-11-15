@@ -1186,7 +1186,9 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
 
         public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
         {
-            foreach (var projects in _projectMappings.Values)
+            var currentProjects = _projectMappings.Values.ToArray();
+
+            foreach (var projects in currentProjects)
             {
                 foreach (var project in projects)
                 {

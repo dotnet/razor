@@ -32,7 +32,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
+public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
     private const string GenerateEventHandlerTitle = "Generate Event Handler 'DoesNotExist'";
     private const string GenerateAsyncEventHandlerTitle = "Generate Async Event Handler 'DoesNotExist'";
@@ -40,9 +40,10 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     private const string GenerateAsyncEventHandlerReturnType = "global::System.Threading.Tasks.Task";
     private const string CodeBehindTestReplaceNamespace = "$$Replace_Namespace$$";
 
-    private GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolversFn(
+    private GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolvers(
         string filePath,
         RazorCodeDocument codeDocument,
+        ClientNotifierServiceBase languageServer,
         IRazorFormattingService razorFormattingService,
         RazorLSPOptionsMonitor? optionsMonitor = null)
             => new[]
@@ -50,15 +51,10 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
                 new GenerateMethodCodeActionResolver(
                     new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
                     optionsMonitor ?? TestRazorLSPOptionsMonitor.Create(),
-                    LanguageServer,
+                    languageServer,
                     new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
             };
-
-    public CodeActionEndToEndTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
 
     #region CSharp CodeAction Tests
 
@@ -386,13 +382,12 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             }
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
             GenerateEventHandlerTitle,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
-            diagnostics: diagnostics);
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -416,13 +411,12 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             }
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
             GenerateEventHandlerTitle,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
-            diagnostics: diagnostics);
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -447,13 +441,12 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             }
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
             GenerateEventHandlerTitle,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
-            diagnostics: diagnostics);
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -476,13 +469,12 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             }
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
             GenerateAsyncEventHandlerTitle,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
-            diagnostics: diagnostics);
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -506,13 +498,12 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             }
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
             GenerateEventHandlerTitle,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
-            diagnostics: diagnostics);
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -536,13 +527,12 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             }
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
             GenerateAsyncEventHandlerTitle,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
-            diagnostics: diagnostics);
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -575,13 +565,12 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             }
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
             codeActionTitle,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
-            diagnostics: diagnostics);
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -612,13 +601,12 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             }
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
             GenerateAsyncEventHandlerTitle,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
-            diagnostics: diagnostics);
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -635,19 +623,18 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
         var razorSourceText = codeDocument.GetSourceText();
         var uri = new Uri(razorFilePath);
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, Logger, null!);
-
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
 
         var result = await GetCodeActionsAsync(
             uri,
             textSpan,
             razorSourceText,
             requestContext,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            diagnostics: diagnostics);
+            languageServer,
+            razorProviders: [new GenerateMethodCodeActionProvider()],
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
         Assert.DoesNotContain(
             result,
             e =>
@@ -675,7 +662,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
         var razorSourceText = codeDocument.GetSourceText();
         var uri = new Uri(razorFilePath);
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, Logger, null!);
 
@@ -684,7 +671,8 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             textSpan,
             razorSourceText,
             requestContext,
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() });
+            languageServer,
+            razorProviders: [new GenerateMethodCodeActionProvider()]);
         Assert.DoesNotContain(
             result,
             e =>
@@ -722,17 +710,26 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             {{inputIndentString}}}
             """;
 
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
-        var razorLSPOptions = new RazorLSPOptions(Trace: default, EnableFormatting: true, AutoClosingTags: true, insertSpaces, tabSize, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false, CommitElementsWithSpace: true);
+        var razorLSPOptions = new RazorLSPOptions(
+            Trace: default,
+            EnableFormatting: true,
+            AutoClosingTags: true,
+            insertSpaces,
+            tabSize,
+            FormatOnType: true,
+            AutoInsertAttributeQuotes: true,
+            ColorBackground: false,
+            CommitElementsWithSpace: true);
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         await optionsMonitor.UpdateAsync(razorLSPOptions, CancellationToken.None);
+
         await ValidateCodeActionAsync(input,
             expected,
             "Generate Event Handler 'DoesNotExist'",
-            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
+            razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
+            codeActionResolversCreator: CreateRazorCodeActionResolvers,
             optionsMonitor: optionsMonitor,
-            diagnostics: diagnostics);
+            diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
@@ -908,7 +905,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         }));
         var razorSourceText = codeDocument.GetSourceText();
         var uri = new Uri(razorFilePath);
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, Logger, null!);
         File.Create(codeBehindFilePath).Close();
@@ -918,9 +915,23 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             initialCodeBehindContent = initialCodeBehindContent.Replace(CodeBehindTestReplaceNamespace, @namespace);
             File.WriteAllText(codeBehindFilePath, initialCodeBehindContent);
 
-            var result = await GetCodeActionsAsync(uri, textSpan, razorSourceText, requestContext, razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() }, diagnostics);
-            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-            var changes = await GetEditsAsync(result, requestContext, codeAction, CreateRazorCodeActionResolversFn(razorFilePath, codeDocument, formattingService));
+            var result = await GetCodeActionsAsync(
+                uri,
+                textSpan,
+                razorSourceText,
+                requestContext,
+                languageServer,
+                razorProviders: [new GenerateMethodCodeActionProvider()],
+                diagnostics);
+
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher);
+
+            var changes = await GetEditsAsync(
+                result,
+                requestContext,
+                languageServer,
+                codeAction,
+                CreateRazorCodeActionResolvers(razorFilePath, codeDocument, languageServer, formattingService));
 
             var razorEdits = new List<TextChange>();
             var codeBehindEdits = new List<TextChange>();
@@ -955,7 +966,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<string, RazorCodeDocument, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? createRazorCodeActionResolversFn = null,
+        Func<string, RazorCodeDocument, ClientNotifierServiceBase, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -965,17 +976,30 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
         var sourceText = codeDocument.GetSourceText();
         var uri = new Uri(razorFilePath);
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, Logger, null!);
 
-        var result = await GetCodeActionsAsync(uri, textSpan, sourceText, requestContext, razorCodeActionProviders, diagnostics);
+        var result = await GetCodeActionsAsync(
+            uri,
+            textSpan,
+            sourceText,
+            requestContext,
+            languageServer,
+            razorCodeActionProviders,
+            diagnostics);
+
         Assert.NotEmpty(result);
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
-        var razorCodeActionResolvers = createRazorCodeActionResolversFn is null
-            ? Array.Empty<IRazorCodeActionResolver>()
-            : createRazorCodeActionResolversFn(razorFilePath, codeDocument, formattingService, optionsMonitor);
-        var changes = await GetEditsAsync(result, requestContext, codeAction, razorCodeActionResolvers, childActionIndex);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(
+            LoggerFactory, Dispatcher, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
+
+        var changes = await GetEditsAsync(
+            result,
+            requestContext,
+            languageServer,
+            codeAction,
+            codeActionResolversCreator?.Invoke(razorFilePath, codeDocument, languageServer, formattingService, optionsMonitor) ?? [],
+            childActionIndex);
 
         var edits = new List<TextChange>();
         foreach (var change in changes)
@@ -992,16 +1016,18 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         TextSpan textSpan,
         SourceText sourceText,
         RazorRequestContext requestContext,
-        IRazorCodeActionProvider[]? razorCodeActionProviders = null,
+        ClientNotifierServiceBase languageServer,
+        IRazorCodeActionProvider[]? razorProviders = null,
         Diagnostic[]? diagnostics = null)
     {
-        var csharpCodeActionProviders = new ICSharpCodeActionProvider[]
-        {
-            new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance)
-        };
-        var htmlCodeActionProviders = Array.Empty<IHtmlCodeActionProvider>();
-
-        var endpoint = new CodeActionEndpoint(DocumentMappingService, razorCodeActionProviders ?? Array.Empty<IRazorCodeActionProvider>(), csharpCodeActionProviders, htmlCodeActionProviders, LanguageServer, LanguageServerFeatureOptions, default);
+        var endpoint = new CodeActionEndpoint(
+            DocumentMappingService.AssumeNotNull(),
+            razorCodeActionProviders: razorProviders ?? [],
+            csharpCodeActionProviders: [new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance)],
+            htmlCodeActionProviders: [],
+            languageServer,
+            LanguageServerFeatureOptions.AssumeNotNull(),
+            telemetryReporter: null);
 
         // Call GetRegistration, so the endpoint knows we support resolve
         endpoint.ApplyCapabilities(new(), new VSInternalClientCapabilities
@@ -1019,7 +1045,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = uri },
             Range = textSpan.ToRange(sourceText),
-            Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics ?? Array.Empty<Diagnostic>() }
+            Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics ?? [] }
         };
 
         var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -1030,8 +1056,9 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     private async Task<TextDocumentEdit[]> GetEditsAsync(
         SumType<Command, CodeAction>[] result,
         RazorRequestContext requestContext,
+        ClientNotifierServiceBase languageServer,
         string codeAction,
-        IRazorCodeActionResolver[] razorCodeActionResolvers,
+        IRazorCodeActionResolver[] razorResolvers,
         int childActionIndex = 0)
     {
         var codeActionToRun = (VSInternalCodeAction)result.Single(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeAction || ((RazorVSInternalCodeAction)e.Value!).Title == codeAction);
@@ -1041,15 +1068,16 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             codeActionToRun = codeActionToRun.Children[childActionIndex];
         }
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher);
 
-        var csharpCodeActionResolvers = new CSharpCodeActionResolver[]
+        var csharpResolvers = new CSharpCodeActionResolver[]
         {
-            new DefaultCSharpCodeActionResolver(DocumentContextFactory, LanguageServer, formattingService)
+            new DefaultCSharpCodeActionResolver(DocumentContextFactory.AssumeNotNull(), languageServer, formattingService)
         };
-        var htmlCodeActionResolvers = Array.Empty<HtmlCodeActionResolver>();
 
-        var resolveEndpoint = new CodeActionResolveEndpoint(razorCodeActionResolvers, csharpCodeActionResolvers, htmlCodeActionResolvers, LoggerFactory);
+        var htmlResolvers = Array.Empty<HtmlCodeActionResolver>();
+
+        var resolveEndpoint = new CodeActionResolveEndpoint(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
 
         var resolveResult = await resolveEndpoint.HandleRequestAsync(codeActionToRun, requestContext, DisposalToken);
 
@@ -1108,7 +1136,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             builder3.SetMetadata(
                 new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"),
                 new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
-            return new() { builder.Build(), builder2.Build(), builder3.Build() };
+            return [builder.Build(), builder2.Build(), builder3.Build()];
         }
     }
 }
