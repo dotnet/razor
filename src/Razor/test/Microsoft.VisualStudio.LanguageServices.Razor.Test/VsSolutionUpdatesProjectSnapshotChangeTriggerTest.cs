@@ -31,7 +31,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
     private readonly HostProject _someProject;
     private readonly HostProject _someOtherProject;
     private Project _someWorkspaceProject;
-    private readonly Workspace _workspace;
+    private readonly CodeAnalysis.Workspace _workspace;
 
     public VsSolutionUpdatesProjectSnapshotChangeTriggerTest(ITestOutputHelper testOutput)
         : base(testOutput)

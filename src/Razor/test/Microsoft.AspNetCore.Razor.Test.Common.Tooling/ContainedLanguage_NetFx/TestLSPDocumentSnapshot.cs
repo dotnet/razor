@@ -5,12 +5,12 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
-public class TestLSPDocumentSnapshot : LSPDocumentSnapshot
+internal class TestLSPDocumentSnapshot : LSPDocumentSnapshot
 {
     public TestLSPDocumentSnapshot(Uri uri, int version, params VirtualDocumentSnapshot[] virtualDocuments)
         : this(uri, version, snapshotContent: "Hello World", virtualDocuments)

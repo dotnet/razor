@@ -58,8 +58,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test", "src\Razor\test\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.csproj", "{0FC409AF-B92B-42D0-9096-1F20360D2672}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common", "src\Razor\test\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common.csproj", "{1C7BBF16-3507-4A23-91B4-9EEA03409C72}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remote.Razor.Test", "src\Razor\test\Microsoft.CodeAnalysis.Remote.Razor.Test\Microsoft.CodeAnalysis.Remote.Razor.Test.csproj", "{39233703-B752-43AC-AD86-E9D3E61B4AD9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remote.Razor.CoreComponents", "src\Razor\src\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.csproj", "{17C4A6DF-3AA5-43FE-8A0E-53DF14340446}"
@@ -367,14 +365,6 @@ Global
 		{0FC409AF-B92B-42D0-9096-1F20360D2672}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0FC409AF-B92B-42D0-9096-1F20360D2672}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{0FC409AF-B92B-42D0-9096-1F20360D2672}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 		{39233703-B752-43AC-AD86-E9D3E61B4AD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{39233703-B752-43AC-AD86-E9D3E61B4AD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39233703-B752-43AC-AD86-E9D3E61B4AD9}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
@@ -747,7 +737,6 @@ Global
 		{35FEC0EA-09B5-45D2-832D-D6FEBA364871} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 		{0D6FD2CD-3C0A-452B-AC12-DE6301C287AC} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 		{0FC409AF-B92B-42D0-9096-1F20360D2672} = {92463391-81BE-462B-AC3C-78C6C760741F}
-		{1C7BBF16-3507-4A23-91B4-9EEA03409C72} = {92463391-81BE-462B-AC3C-78C6C760741F}
 		{39233703-B752-43AC-AD86-E9D3E61B4AD9} = {92463391-81BE-462B-AC3C-78C6C760741F}
 		{17C4A6DF-3AA5-43FE-8A0E-53DF14340446} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 		{8CEC0991-259F-4313-B3EF-E398F2B40E61} = {92463391-81BE-462B-AC3C-78C6C760741F}

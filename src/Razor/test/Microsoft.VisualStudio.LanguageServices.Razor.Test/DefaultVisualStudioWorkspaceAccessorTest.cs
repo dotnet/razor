@@ -7,7 +7,6 @@ using System;
 using System.Collections.ObjectModel;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -135,7 +134,7 @@ public class DefaultVisualStudioWorkspaceAccessorTest : ToolingTestBase
             _canGetWorkspaceFromHostProject = canGetWorkspaceFromHostProject;
         }
 
-        internal override bool TryGetWorkspaceFromProjectionBuffer(ITextBuffer textBuffer, out Workspace workspace)
+        internal override bool TryGetWorkspaceFromProjectionBuffer(ITextBuffer textBuffer, out CodeAnalysis.Workspace workspace)
         {
             if (_canGetWorkspaceFromProjectionBuffer)
             {
@@ -147,7 +146,7 @@ public class DefaultVisualStudioWorkspaceAccessorTest : ToolingTestBase
             return false;
         }
 
-        internal override bool TryGetWorkspaceFromHostProject(ITextBuffer textBuffer, out Workspace workspace)
+        internal override bool TryGetWorkspaceFromHostProject(ITextBuffer textBuffer, out CodeAnalysis.Workspace workspace)
         {
             if (_canGetWorkspaceFromHostProject)
             {

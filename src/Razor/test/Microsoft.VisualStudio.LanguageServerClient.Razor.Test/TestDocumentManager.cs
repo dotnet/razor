@@ -7,10 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common.Extensions;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
@@ -71,8 +71,8 @@ internal class TestDocumentManager(CSharpTestLspServer testLspServer = null) : T
         var virtualSourceText = SourceText.From(virtualDocumentSnapshot.Snapshot.GetText());
         var rangesAndTexts = changes.Select(c =>
         {
-            virtualSourceText.GetLinesAndOffsets(c.OldSpan, out var startLine, out var startCharacter, out var endLine, out var endCharacter);
-            var range = new LanguageServer.Protocol.Range
+            GetLinesAndOffsets(virtualSourceText, c.OldSpan, out var startLine, out var startCharacter, out var endLine, out var endCharacter);
+            var range = new Range
             {
                 Start = new LanguageServer.Protocol.Position { Line = startLine, Character = startCharacter },
                 End = new LanguageServer.Protocol.Position { Line = endLine, Character = endCharacter }
@@ -84,5 +84,24 @@ internal class TestDocumentManager(CSharpTestLspServer testLspServer = null) : T
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
         _testLspServer.ReplaceTextAsync(virtualDocumentSnapshot.Uri, rangesAndTexts).Wait();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+    }
+
+    private static void GetLinesAndOffsets(
+        SourceText sourceText,
+        Span span,
+        out int startLineNumber,
+        out int startOffset,
+        out int endLineNumber,
+        out int endOffset)
+    {
+        (startLineNumber, startOffset) = GetLineAndOffset(sourceText, span.Start);
+        (endLineNumber, endOffset) = GetLineAndOffset(sourceText, span.End);
+
+        static (int lineNumber, int offset) GetLineAndOffset(SourceText source, int position)
+        {
+            var line = source.Lines.GetLineFromPosition(position);
+
+            return (lineNumber: line.LineNumber, offset: position - line.Start);
+        }
     }
 }

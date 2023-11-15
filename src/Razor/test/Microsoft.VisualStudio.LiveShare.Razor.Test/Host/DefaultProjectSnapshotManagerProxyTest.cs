@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
 using Microsoft.VisualStudio.Threading;
@@ -21,7 +20,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
 
 public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDispatcherTestBase
 {
-    private readonly Workspace _workspace;
+    private readonly CodeAnalysis.Workspace _workspace;
     private readonly IProjectSnapshot _projectSnapshot1;
     private readonly IProjectSnapshot _projectSnapshot2;
 

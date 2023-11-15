@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
 internal class TestVirtualDocument : VirtualDocumentBase<TestVirtualDocumentSnapshot>
 {

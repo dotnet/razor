@@ -4,11 +4,12 @@
 #nullable disable
 
 using System;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
-public class TestVirtualDocumentSnapshot : VirtualDocumentSnapshot
+internal class TestVirtualDocumentSnapshot : VirtualDocumentSnapshot
 {
     private readonly long? _hostDocumentSyncVersion;
 
