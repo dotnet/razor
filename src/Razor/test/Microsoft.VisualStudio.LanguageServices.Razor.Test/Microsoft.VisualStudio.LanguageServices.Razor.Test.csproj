@@ -23,10 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\src\Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version1_X.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.CodeAnalysis.Razor.Compiler.Mvc.csproj" />
