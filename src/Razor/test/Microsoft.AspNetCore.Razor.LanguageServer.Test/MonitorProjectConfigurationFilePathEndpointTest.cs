@@ -37,7 +37,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         directoryPathResolver.Setup(resolver => resolver.Resolve())
             .Throws<XunitException>();
         var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
-            LegacyDispatcher,
+            Dispatcher,
             directoryPathResolver.Object,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             TestLanguageServerFeatureOptions.Instance,
@@ -62,7 +62,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         directoryPathResolver.Setup(resolver => resolver.Resolve())
             .Throws<XunitException>();
         var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
-            LegacyDispatcher,
+            Dispatcher,
             directoryPathResolver.Object,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             TestLanguageServerFeatureOptions.Instance,
@@ -85,7 +85,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
@@ -117,7 +117,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
@@ -142,7 +142,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
@@ -169,7 +169,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
@@ -201,7 +201,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
@@ -237,7 +237,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detectors = new[] { projectOpenDebugDetector, releaseDetector, postPublishDebugDetector };
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detectors[callCount++],
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
@@ -284,7 +284,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detectors = new[] { debug1Detector, debug2Detector, release1Detector };
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detectors[callCount++],
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);

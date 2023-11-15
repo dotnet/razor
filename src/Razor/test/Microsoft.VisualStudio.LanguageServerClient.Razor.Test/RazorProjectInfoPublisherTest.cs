@@ -564,21 +564,6 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
         return snapshotManager;
     }
 
-    protected Task RunOnDispatcherThreadAsync(Action action)
-        => Dispatcher.RunOnDispatcherThreadAsync(
-            action,
-            DisposalToken);
-
-    protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> func)
-        => Dispatcher.RunOnDispatcherThreadAsync(
-            func,
-            DisposalToken);
-
-    protected Task RunOnDispatcherThreadAsync(Func<Task> func)
-        => Dispatcher.RunOnDispatcherThreadAsync(
-            func,
-            DisposalToken);
-
     private class TestRazorProjectInfoPublisher : RazorProjectInfoPublisher
     {
         private static readonly Mock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new(MockBehavior.Strict);
