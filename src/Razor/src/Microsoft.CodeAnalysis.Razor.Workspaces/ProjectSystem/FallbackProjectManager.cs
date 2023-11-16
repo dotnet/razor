@@ -111,15 +111,35 @@ internal sealed class FallbackProjectManager(
     private void AddFallbackDocument(ProjectKey projectKey, string filePath, string projectFilePath)
     {
         var hostDocument = CreateHostDocument(filePath, projectFilePath);
+        if (hostDocument is null)
+        {
+            return;
+        }
+
         var textLoader = new FileTextLoader(filePath, defaultEncoding: null);
         _projectSnapshotManagerAccessor.Instance.DocumentAdded(projectKey, hostDocument, textLoader);
     }
 
-    private static HostDocument CreateHostDocument(string filePath, string projectFilePath)
+    private static HostDocument? CreateHostDocument(string filePath, string projectFilePath)
     {
-        var targetPath = filePath.StartsWith(projectFilePath, FilePathComparison.Instance)
-            ? filePath[projectFilePath.Length..]
-            : filePath;
+        var projectPath = Path.GetDirectoryName(projectFilePath);
+        if (projectPath is null)
+        {
+            return null;
+        }
+
+        if (!projectPath.EndsWith("\\"))
+        {
+            projectPath += "\\";
+        }
+
+        // The compiler only supports paths that are relative to the project root
+        if (!filePath.StartsWith(projectPath, FilePathComparison.Instance))
+        {
+            return null;
+        }
+
+        var targetPath = filePath[projectPath.Length..];
         var hostDocument = new HostDocument(filePath, targetPath);
         return hostDocument;
     }
@@ -139,6 +159,11 @@ internal sealed class FallbackProjectManager(
         }
 
         var hostDocument = CreateHostDocument(filePath, projectFilePath);
+        if (hostDocument is null)
+        {
+            return;
+        }
+
         _projectSnapshotManagerAccessor.Instance.DocumentRemoved(razorProjectKey, hostDocument);
     }
 

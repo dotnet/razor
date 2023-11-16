@@ -121,6 +121,29 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
     }
 
     [Fact]
+    public void DynamicFileAdded_TrackedProject_IgnoresDocumentFromOutsideCone()
+    {
+        var projectId = ProjectId.CreateNewId();
+        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: SomeProject.FilePath)
+            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(SomeProject.IntermediateOutputPath, "SomeProject.dll")))
+            .WithDefaultNamespace("RootNamespace");
+
+        Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
+
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectFile1.FilePath);
+
+        // These two represent linked files, or shared project items
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, AnotherProjectFile2.FilePath);
+
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, AnotherProjectComponentFile1.FilePath);
+
+        var project = Assert.Single(_projectSnapshotManager.GetProjects());
+
+        Assert.Collection(project.DocumentFilePaths,
+            f => Assert.Equal(SomeProjectFile1.FilePath, f));
+    }
+
+    [Fact]
     public void DynamicFileAdded_UnknownProject_SetsConfigurationFileStore()
     {
         var projectId = ProjectId.CreateNewId();
