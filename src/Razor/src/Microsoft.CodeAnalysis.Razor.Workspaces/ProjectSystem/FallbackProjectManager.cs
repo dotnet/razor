@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -16,24 +17,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 /// </summary>
 [Shared]
 [Export(typeof(FallbackProjectManager))]
-internal sealed class FallbackProjectManager
+[method: ImportingConstructor]
+internal sealed class FallbackProjectManager(
+    ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+    ITelemetryReporter telemetryReporter)
 {
-    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     private ImmutableHashSet<ProjectId> _fallbackProjectIds = ImmutableHashSet<ProjectId>.Empty;
-
-    [ImportingConstructor]
-    public FallbackProjectManager(
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
-    {
-        _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
-    }
 
     internal void DynamicFileAdded(ProjectId projectId, ProjectKey razorProjectKey, string projectFilePath, string filePath)
     {
