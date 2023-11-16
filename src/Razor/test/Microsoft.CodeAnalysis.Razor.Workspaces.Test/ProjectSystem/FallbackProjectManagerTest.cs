@@ -72,6 +72,7 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
 
         var documentFilePath = Assert.Single(project.DocumentFilePaths);
         Assert.Equal(SomeProjectFile1.FilePath, documentFilePath);
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(documentFilePath)!.TargetPath);
     }
 
     [Fact]
@@ -110,14 +111,18 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
 
         _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectFile2.FilePath);
 
-        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectComponentFile1.FilePath);
+        _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectNestedComponentFile3.FilePath);
 
         var project = Assert.Single(_projectSnapshotManager.GetProjects());
 
         Assert.Collection(project.DocumentFilePaths.OrderBy(f => f), // DocumentFilePaths comes from a dictionary, so no sort guarantee
             f => Assert.Equal(SomeProjectFile1.FilePath, f),
-            f => Assert.Equal(SomeProjectComponentFile1.FilePath, f),
-            f => Assert.Equal(SomeProjectFile2.FilePath, f));
+            f => Assert.Equal(SomeProjectFile2.FilePath, f),
+            f => Assert.Equal(SomeProjectNestedComponentFile3.FilePath, f));
+
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(SomeProjectFile1.FilePath)!.TargetPath);
+        Assert.Equal(SomeProjectFile2.TargetPath, project.GetDocument(SomeProjectFile2.FilePath)!.TargetPath);
+        Assert.Equal(SomeProjectNestedComponentFile3.TargetPath, project.GetDocument(SomeProjectNestedComponentFile3.FilePath)!.TargetPath);
     }
 
     [Fact]
@@ -141,6 +146,8 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
 
         Assert.Collection(project.DocumentFilePaths,
             f => Assert.Equal(SomeProjectFile1.FilePath, f));
+
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(SomeProjectFile1.FilePath)!.TargetPath);
     }
 
     [Fact]
