@@ -33,28 +33,42 @@ internal sealed class FallbackProjectManager(
 
     internal void DynamicFileAdded(ProjectId projectId, ProjectKey razorProjectKey, string projectFilePath, string filePath)
     {
-        if (_fallbackProjectIds.Contains(projectId))
+        try
         {
-            // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
-            // are the only way to know about files in the project.
-            AddFallbackDocument(razorProjectKey, filePath, projectFilePath);
+            if (_fallbackProjectIds.Contains(projectId))
+            {
+                // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
+                // are the only way to know about files in the project.
+                AddFallbackDocument(razorProjectKey, filePath, projectFilePath);
+            }
+            else if (_projectSnapshotManagerAccessor.Instance.GetLoadedProject(razorProjectKey) is null)
+            {
+                // We have been asked to provide dynamic file info, which means there is a .razor or .cshtml file in the project
+                // but for some reason our project system doesn't know about the project. In these cases (often when people don't
+                // use the Razor or Web SDK) we spin up a fallback experience for them
+                AddFallbackProject(projectId, filePath);
+            }
         }
-        else if (_projectSnapshotManagerAccessor.Instance.GetLoadedProject(razorProjectKey) is null)
+        catch (Exception ex)
         {
-            // We have been asked to provide dynamic file info, which means there is a .razor or .cshtml file in the project
-            // but for some reason our project system doesn't know about the project. In these cases (often when people don't
-            // use the Razor or Web SDK) we spin up a fallback experience for them
-            AddFallbackProject(projectId, filePath);
+            _telemetryReporter.ReportFault(ex, "Error while trying to add fallback document to project");
         }
     }
 
     internal void DynamicFileRemoved(ProjectId projectId, string projectFilePath, string filePath)
     {
-        if (_fallbackProjectIds.Contains(projectId))
+        try
         {
-            // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
-            // are the only way to know about files in the project.
-            RemoveFallbackDocument(projectId, filePath, projectFilePath);
+            if (_fallbackProjectIds.Contains(projectId))
+            {
+                // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
+                // are the only way to know about files in the project.
+                RemoveFallbackDocument(projectId, filePath, projectFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _telemetryReporter.ReportFault(ex, "Error while trying to remove fallback document from project");
         }
     }
 
