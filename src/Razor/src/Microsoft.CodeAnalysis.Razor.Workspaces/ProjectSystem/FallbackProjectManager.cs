@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -30,23 +29,16 @@ internal sealed class FallbackProjectManager(
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
-    private ImmutableHashSet<ProjectId> _fallbackProjectIds = ImmutableHashSet<ProjectId>.Empty;
-
     internal void DynamicFileAdded(ProjectId projectId, ProjectKey razorProjectKey, string projectFilePath, string filePath)
     {
         try
         {
             var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(razorProjectKey);
-            if (_fallbackProjectIds.Contains(projectId))
+            if (project is ProjectSnapshot { HostProject: FallbackHostProject })
             {
-                // The project might have started as a fallback project, but it might have been upgraded by our getting CPS info
-                // about it. In that case, leave the CPS bits to do the work
-                if (project is ProjectSnapshot { HostProject: FallbackHostProject })
-                {
-                    // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
-                    // are the only way to know about files in the project.
-                    AddFallbackDocument(razorProjectKey, filePath, projectFilePath);
-                }
+                // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
+                // are the only way to know about files in the project.
+                AddFallbackDocument(razorProjectKey, filePath, projectFilePath);
             }
             else if (project is null)
             {
@@ -62,11 +54,12 @@ internal sealed class FallbackProjectManager(
         }
     }
 
-    internal void DynamicFileRemoved(ProjectId projectId, string projectFilePath, string filePath)
+    internal void DynamicFileRemoved(ProjectId projectId, ProjectKey razorProjectKey, string projectFilePath, string filePath)
     {
         try
         {
-            if (_fallbackProjectIds.Contains(projectId))
+            var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(razorProjectKey);
+            if (project is ProjectSnapshot { HostProject: FallbackHostProject })
             {
                 // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
                 // are the only way to know about files in the project.
@@ -89,11 +82,6 @@ internal sealed class FallbackProjectManager(
 
         var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
         if (intermediateOutputPath is null)
-        {
-            return;
-        }
-
-        if (!ImmutableInterlocked.Update(ref _fallbackProjectIds, (set, id) => set.Add(id), project.Id))
         {
             return;
         }
@@ -181,22 +169,5 @@ internal sealed class FallbackProjectManager(
         }
 
         return project;
-    }
-
-    internal TestAccessor GetTestAccessor()
-    {
-        return new TestAccessor(this);
-    }
-
-    internal readonly struct TestAccessor
-    {
-        private readonly FallbackProjectManager _instance;
-
-        internal TestAccessor(FallbackProjectManager instance)
-        {
-            _instance = instance;
-        }
-
-        internal ImmutableHashSet<ProjectId> ProjectIds => _instance._fallbackProjectIds;
     }
 }

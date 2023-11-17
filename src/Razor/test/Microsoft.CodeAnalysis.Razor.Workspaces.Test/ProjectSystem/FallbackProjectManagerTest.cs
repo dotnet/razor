@@ -48,7 +48,8 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
 
         _fallbackProjectManger.DynamicFileAdded(projectId, hostProject.Key, SomeProject.FilePath, SomeProjectFile1.FilePath);
 
-        Assert.Empty(_fallbackProjectManger.GetTestAccessor().ProjectIds);
+        var project = Assert.Single(_projectSnapshotManager.GetProjects());
+        Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
     }
 
     [Fact]
@@ -62,9 +63,6 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
         _fallbackProjectManger.DynamicFileAdded(projectId, SomeProject.Key, SomeProject.FilePath, SomeProjectFile1.FilePath);
-
-        var actualId = Assert.Single(_fallbackProjectManger.GetTestAccessor().ProjectIds);
-        Assert.Equal(projectId, actualId);
 
         var project = Assert.Single(_projectSnapshotManager.GetProjects());
         Assert.Equal("DisplayName", project.DisplayName);
