@@ -3,9 +3,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -45,4 +47,6 @@ internal interface IProjectSnapshot
     /// <param name="document">The document.</param>
     /// <returns>A list of related documents.</returns>
     ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document);
+
+    bool TryGetProjectContext(string? documentFilePath, [NotNullWhen(true)] out VSProjectContext? context);
 }

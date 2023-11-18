@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -31,15 +30,9 @@ internal partial class RazorCustomMessageTarget
 
         foreach (var project in projects)
         {
-            if (project is ProjectSnapshot snapshot &&
-                project.GetDocument(documentFilePath) is not null)
+            if (project.TryGetProjectContext(documentFilePath, out var context))
             {
-                projectContexts.Add(new VSProjectContext
-                {
-                    Id = project.Key.Id,
-                    Kind = VSProjectKind.CSharp,
-                    Label = snapshot.HostProject.DisplayName
-                });
+                projectContexts.Add(context);
             }
         }
 
