@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 [LanguageServerEndpoint(LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint)]
 internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationHandler<MonitorProjectConfigurationFilePathParams>, IDisposable
