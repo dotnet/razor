@@ -7,5 +7,5 @@ internal class MonitorProjectConfigurationFilePathParams
 {
     public required string ProjectKeyId { get; set; }
 
-    public required string ConfigurationFilePath { get; set; }
+    public required string? ConfigurationFilePath { get; set; }
 }
