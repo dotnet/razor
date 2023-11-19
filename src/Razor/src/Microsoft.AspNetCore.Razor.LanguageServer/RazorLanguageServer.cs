@@ -181,7 +181,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         static void AddHandlers(IServiceCollection services)
         {
-            // Not calling AddHandler because we want to register this endpoint as an IOnIntialized too
+            // Not calling AddHandler because we want to register this endpoint as an IOnInitialized too
             services.AddSingleton<RazorConfigurationEndpoint>();
             services.AddSingleton<IMethodHandler, RazorConfigurationEndpoint>(s => s.GetRequiredService<RazorConfigurationEndpoint>());
             // Transient because it should only be used once and I'm hoping it doesn't stick around.
