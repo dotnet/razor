@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -133,6 +134,32 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
 
         // Assert
         Assert.Equal(0, detector.StartCount);
+    }
+
+    [Fact]
+    public async Task Handle_InWorkspaceDirectory_MonitorsIfLanguageFeatureOptionSet()
+    {
+        // Arrange
+        var detector = new TestFileChangeDetector();
+        var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
+            () => detector,
+            LegacyDispatcher,
+            _directoryPathResolver,
+            Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+            LoggerFactory,
+            options: new TestLanguageServerFeatureOptions(monitorWorkspaceFolderForConfigurationFiles: false));
+        var startRequest = new MonitorProjectConfigurationFilePathParams()
+        {
+            ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
+            ConfigurationFilePath = "C:/dir/obj/Debug/project.razor.bin",
+        };
+        var requestContext = CreateRazorRequestContext(documentContext: null);
+
+        // Act
+        await configurationFileEndpoint.HandleNotificationAsync(startRequest, requestContext, DisposalToken);
+
+        // Assert
+        Assert.Equal(1, detector.StartCount);
     }
 
     [Fact]
@@ -324,30 +351,17 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         private readonly Func<IFileChangeDetector> _fileChangeDetectorFactory;
 
         public TestMonitorProjectConfigurationFilePathEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
-            IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            ILoggerFactory loggerFactory)
-            : this(
-                fileChangeDetectorFactory: null,
-                projectSnapshotManagerDispatcher,
-                workspaceDirectoryPathResolver,
-                listeners,
-                loggerFactory)
-        {
-        }
-
-        public TestMonitorProjectConfigurationFilePathEndpoint(
             Func<IFileChangeDetector> fileChangeDetectorFactory,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            LanguageServerFeatureOptions? options = null)
             : base(
                 projectSnapshotManagerDispatcher,
                 workspaceDirectoryPathResolver,
                 listeners,
-                TestLanguageServerFeatureOptions.Instance,
+                options ?? TestLanguageServerFeatureOptions.Instance,
                 loggerFactory)
         {
             _fileChangeDetectorFactory = fileChangeDetectorFactory ?? (() => Mock.Of<IFileChangeDetector>(MockBehavior.Strict));
