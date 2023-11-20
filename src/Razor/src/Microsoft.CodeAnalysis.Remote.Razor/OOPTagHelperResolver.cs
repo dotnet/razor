@@ -186,16 +186,10 @@ internal class OOPTagHelperResolver : ITagHelperResolver
     // Protected virtual for testing
     protected virtual ImmutableArray<Checksum> ProduceChecksumsFromDelta(ProjectId projectId, int lastResultId, TagHelperDeltaResult deltaResult)
     {
-        using var _ = StopwatchPool.GetPooledObject(out var stopWatch);
-        stopWatch.Restart();
-
-        var fromCache = true;
-
         if (!_resultCache.TryGet(projectId, lastResultId, out var checksums))
         {
             // We most likely haven't made a request to the server yet so there's no delta to apply
             checksums = ImmutableArray<Checksum>.Empty;
-            fromCache = false;
 
             if (deltaResult.IsDelta)
             {
@@ -208,7 +202,6 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         {
             // Not a delta based response, we should treat it as a "refresh"
             checksums = ImmutableArray<Checksum>.Empty;
-            fromCache = false;
         }
 
         if (deltaResult.ResultId != lastResultId)
@@ -216,16 +209,6 @@ internal class OOPTagHelperResolver : ITagHelperResolver
             // New results, lets build a coherent TagHelper collection and then cache it
             checksums = deltaResult.Apply(checksums);
             _resultCache.Set(projectId, deltaResult.ResultId, checksums);
-            fromCache = false;
-        }
-
-        stopWatch.Stop();
-        if (fromCache)
-        {
-            _telemetryReporter.ReportEvent(
-                "taghelpers.fromcache",
-                Severity.Normal,
-                new Property("taghelper.cachedresult.ellapsedms", stopWatch.ElapsedMilliseconds));
         }
 
         return checksums;
