@@ -2811,5 +2811,25 @@ namespace MyApp
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
         }
+
+        [Theory, CombinatorialData]
+        public async Task RazorLangVersion_Incorrect([CombinatorialValues("incorrect", "-1", "10000")] string langVersion)
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<h1>Hello world</h1>",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project, options =>
+            {
+                options.TestGlobalOptions["build_property.RazorLangVersion"] = langVersion;
+            });
+
+            var result = RunGenerator(compilation!, ref driver);
+
+            result.Diagnostics.Verify(
+                Diagnostic("CS8785").WithArguments("RazorSourceGenerator", "ArgumentNullException", "Value cannot be null. (Parameter 'languageVersion')").WithLocation(1, 1));
+            Assert.Empty(result.GeneratedSources);
+        }
     }
 }
