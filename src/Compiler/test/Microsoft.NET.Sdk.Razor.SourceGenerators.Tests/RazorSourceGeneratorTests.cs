@@ -2828,8 +2828,9 @@ namespace MyApp
             var result = RunGenerator(compilation!, ref driver);
 
             result.Diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("RazorSourceGenerator", "ArgumentNullException", "Value cannot be null. (Parameter 'languageVersion')").WithLocation(1, 1));
-            Assert.Empty(result.GeneratedSources);
+                // error RZ3600: Invalid value '{0}'' for RazorLangVersion. Valid values include 'Latest' or a valid version in range 1.0 to 8.0.
+                Diagnostic("RZ3600").WithArguments(langVersion).WithLocation(1, 1));
+            Assert.Single(result.GeneratedSources);
         }
     }
 }
