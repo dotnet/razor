@@ -40,4 +40,6 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool UpdateBuffersForClosedDocuments => false;
 
     public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath;
+
+    public override bool MonitorWorkspaceFolderForConfigurationFiles => true;
 }
