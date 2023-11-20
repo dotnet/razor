@@ -4,13 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -114,22 +112,5 @@ internal class ProjectSnapshot : IProjectSnapshot
     public virtual RazorProjectEngine GetProjectEngine()
     {
         return State.ProjectEngine;
-    }
-
-    public bool TryGetProjectContext(string? documentFilePath, [NotNullWhen(true)] out VSProjectContext? context)
-    {
-        if (documentFilePath is not null && GetDocument(documentFilePath) is not null)
-        {
-            context = new VSProjectContext
-            {
-                Id = Key.Id,
-                Kind = VSProjectKind.CSharp,
-                Label = HostProject.DisplayName
-            };
-            return true;
-        }
-
-        context = null;
-        return false;
     }
 }

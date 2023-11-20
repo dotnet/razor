@@ -30,8 +30,8 @@ internal static class RazorDiagnosticConverter
             : [
                 new VSDiagnosticProjectInformation()
                 {
-                    Context = string.Empty,
-                    ProjectIdentifier = documentSnapshot.Project.TryGetProjectContext(documentSnapshot.FilePath, out var context) ? context.Id : string.Empty,
+                    Context = null,
+                    ProjectIdentifier = documentSnapshot.Project.Key.Id,
                     ProjectName = documentSnapshot.Project.DisplayName
                 }
             ];

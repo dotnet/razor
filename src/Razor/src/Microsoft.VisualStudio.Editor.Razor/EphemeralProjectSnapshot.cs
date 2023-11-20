@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
@@ -105,11 +103,5 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
     {
         var factory = _services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
         return factory.Create(this);
-    }
-
-    public bool TryGetProjectContext(string? documentFilePath, [NotNullWhen(true)] out VSProjectContext? context)
-    {
-        context = null;
-        return false;
     }
 }
