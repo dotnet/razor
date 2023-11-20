@@ -7,4 +7,6 @@
         UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-                MarkupBlock -  - <script>alert("Hello");</script>
+                MarkupElement - (0:0,0 [32] x:\dir\subdir\Test\TestComponent.cshtml) - script
+                    HtmlContent - (8:0,8 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (8:0,8 [15] x:\dir\subdir\Test\TestComponent.cshtml) - Html - alert("Hello");

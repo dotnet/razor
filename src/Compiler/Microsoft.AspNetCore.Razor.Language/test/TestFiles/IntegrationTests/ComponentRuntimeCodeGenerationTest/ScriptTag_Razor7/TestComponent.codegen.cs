@@ -13,7 +13,9 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __builder.AddMarkupContent(0, "<script>alert(\"Hello\");</script>");
+            __builder.OpenElement(0, "script");
+            __builder.AddContent(1, "alert(\"Hello\");");
+            __builder.CloseElement();
         }
         #pragma warning restore 1998
     }
