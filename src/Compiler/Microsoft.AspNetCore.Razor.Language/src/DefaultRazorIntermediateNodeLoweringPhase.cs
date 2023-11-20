@@ -507,7 +507,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 node.NamePrefix?.LiteralTokens,
                 node.Name.LiteralTokens,
                 node.NameSuffix?.LiteralTokens,
-                node.EqualsToken == null ? new SyntaxList<SyntaxToken>() : new SyntaxList<SyntaxToken>(node.EqualsToken),
+                node.EqualsToken != null ? new SyntaxList<SyntaxToken>(node.EqualsToken) : default,
                 node.ValuePrefix?.LiteralTokens);
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens, chunkGenerator: null).Green.CreateRed(node, node.NamePrefix?.Position ?? node.Name.Position);
 
@@ -1204,18 +1204,49 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
         }
 
-        private SyntaxList<SyntaxToken> MergeLiterals(params SyntaxList<SyntaxToken>?[] literals)
+        private static SyntaxList<SyntaxToken> MergeLiterals(
+            SyntaxList<SyntaxToken>? literal1,
+            SyntaxList<SyntaxToken>? literal2,
+            SyntaxList<SyntaxToken>? literal3 = null,
+            SyntaxList<SyntaxToken>? literal4 = null,
+            SyntaxList<SyntaxToken>? literal5 = null)
         {
-            var builder = SyntaxListBuilder<SyntaxToken>.Create();
-            for (var i = 0; i < literals.Length; i++)
-            {
-                var literal = literals[i];
-                if (!literal.HasValue)
-                {
-                    continue;
-                }
+            var size = literal1?.Count ?? 0 +
+                       literal2?.Count ?? 0 +
+                       literal3?.Count ?? 0 +
+                       literal4?.Count ?? 0 +
+                       literal5?.Count ?? 0;
 
-                builder.AddRange(literal.Value);
+            if (size == 0)
+            {
+                return default;
+            }
+
+            var builder = SyntaxListBuilder<SyntaxToken>.Create();
+
+            if (literal1 is { } tokens1)
+            {
+                builder.AddRange(tokens1);
+            }
+
+            if (literal2 is { } tokens2)
+            {
+                builder.AddRange(tokens2);
+            }
+
+            if (literal3 is { } tokens3)
+            {
+                builder.AddRange(tokens3);
+            }
+
+            if (literal4 is { } tokens4)
+            {
+                builder.AddRange(tokens4);
+            }
+
+            if (literal5 is { } tokens5)
+            {
+                builder.AddRange(tokens5);
             }
 
             return builder.ToList();
