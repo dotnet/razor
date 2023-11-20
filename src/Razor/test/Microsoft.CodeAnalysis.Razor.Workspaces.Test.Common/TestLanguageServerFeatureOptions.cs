@@ -9,12 +9,15 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
 
-    private bool _includeProjectKeyInGeneratedFilePath;
+    private readonly bool _includeProjectKeyInGeneratedFilePath;
+    private readonly bool _monitorWorkspaceFolderForConfigurationFiles;
 
     public TestLanguageServerFeatureOptions(
-        bool includeProjectKeyInGeneratedFilePath = false)
+        bool includeProjectKeyInGeneratedFilePath = false,
+        bool monitorWorkspaceFolderForConfigurationFiles = true)
     {
         _includeProjectKeyInGeneratedFilePath = includeProjectKeyInGeneratedFilePath;
+        _monitorWorkspaceFolderForConfigurationFiles = monitorWorkspaceFolderForConfigurationFiles;
     }
 
     public override bool SupportsFileManipulation => false;
@@ -41,5 +44,5 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath;
 
-    public override bool MonitorWorkspaceFolderForConfigurationFiles => true;
+    public override bool MonitorWorkspaceFolderForConfigurationFiles => _monitorWorkspaceFolderForConfigurationFiles;
 }
