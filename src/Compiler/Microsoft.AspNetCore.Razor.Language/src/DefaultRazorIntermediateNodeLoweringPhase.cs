@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -1056,6 +1058,49 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
         }
 
+        /// <summary>
+        ///  Simple helper struct to simplify calling code that needs to skip elements
+        ///  without resorting to LINQ.
+        /// </summary>
+        private readonly struct ChildNodesHelper(ChildSyntaxList list, int start = 0)
+        {
+            public int Count { get; } = list.Count - start;
+
+            public SyntaxNode this[int index] => list[start + index];
+
+            public ChildNodesHelper Skip(int count)
+            {
+                return new ChildNodesHelper(list, start + count);
+            }
+
+            public SyntaxNode FirstOrDefault() => Count > 0 ? this[0] : null;
+
+            public bool TryCast<TNode>(out ImmutableArray<TNode> result)
+            {
+                // Note that this intentionally returns true for for empty lists.
+                // This behavior matches the expectations of code that previously called
+                // ".All(x => x is TNode)" followed by ".Cast<TNode>()" via LINQ.
+                // Because "All" would return true for empty lists, this method
+                // needs to do the same.
+
+                using var builder = new PooledArrayBuilder<TNode>(Count);
+
+                for (var i = start; i < list.Count; i++)
+                {
+                    if (list[i] is not TNode node)
+                    {
+                        result = default;
+                        return false;
+                    }
+
+                    builder.Add(node);
+                }
+
+                result = builder.DrainToImmutable();
+                return true;
+            }
+        }
+
         private void VisitAttributeValue(SyntaxNode node)
         {
             if (node == null)
@@ -1063,48 +1108,46 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 return;
             }
 
-            IReadOnlyList<SyntaxNode> children = node.ChildNodes();
+            var children = new ChildNodesHelper(node.ChildNodes());
             var position = node.Position;
-            if (children.Count > 0 &&
-                children[0] is MarkupBlockSyntax markupBlock &&
-                markupBlock.Children.Count == 2 &&
-                markupBlock.Children[0] is MarkupTextLiteralSyntax &&
-                markupBlock.Children[1] is MarkupEphemeralTextLiteralSyntax)
+            if (children.FirstOrDefault() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
             {
                 // This is a special case when we have an attribute like attr="@@foo".
                 // In this case, we want the foo to be written out as HtmlContent and not HtmlAttributeValue.
                 Visit(markupBlock);
-                children = children.Skip(1).ToList();
+                children = children.Skip(1);
                 position = children.Count > 0 ? children[0].Position : position;
             }
 
-            if (children.All(c => c is MarkupLiteralAttributeValueSyntax))
-            {
-                var literalAttributeValueNodes = children.Cast<MarkupLiteralAttributeValueSyntax>().ToArray();
-                var valueTokens = SyntaxListBuilder<SyntaxToken>.Create();
-                for (var i = 0; i < literalAttributeValueNodes.Length; i++)
-                {
-                    var mergedValue = MergeAttributeValue(literalAttributeValueNodes[i]);
-                    valueTokens.AddRange(mergedValue.LiteralTokens);
-                }
-                var rewritten = SyntaxFactory.MarkupTextLiteral(valueTokens.ToList(), chunkGenerator: null).Green.CreateRed(node.Parent, position);
-                Visit(rewritten);
-            }
-            else if (children.All(c => c is MarkupTextLiteralSyntax))
+            if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
             {
                 var builder = SyntaxListBuilder<SyntaxToken>.Create();
-                var markupLiteralArray = children.Cast<MarkupTextLiteralSyntax>();
+
+                foreach (var literal in attributeLiteralArray)
+                {
+                    var mergedValue = MergeAttributeValue(literal);
+                    builder.AddRange(mergedValue.LiteralTokens);
+                }
+
+                var rewritten = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null).Green.CreateRed(node.Parent, position);
+                Visit(rewritten);
+            }
+            else if (children.TryCast<MarkupTextLiteralSyntax>(out var markupLiteralArray))
+            {
+                var builder = SyntaxListBuilder<SyntaxToken>.Create();
+
                 foreach (var literal in markupLiteralArray)
                 {
                     builder.AddRange(literal.LiteralTokens);
                 }
+
                 var rewritten = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null).Green.CreateRed(node.Parent, position);
                 Visit(rewritten);
             }
-            else if (children.All(c => c is CSharpExpressionLiteralSyntax))
+            else if (children.TryCast<CSharpExpressionLiteralSyntax>(out var expressionLiteralArray))
             {
                 var builder = SyntaxListBuilder<SyntaxToken>.Create();
-                var expressionLiteralArray = children.Cast<CSharpExpressionLiteralSyntax>();
+
                 SpanEditHandler editHandler = null;
                 ISpanChunkGenerator generator = null;
                 foreach (var literal in expressionLiteralArray)
@@ -1113,6 +1156,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                     editHandler = literal.GetEditHandler();
                     builder.AddRange(literal.LiteralTokens);
                 }
+
                 var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), generator).Green.CreateRed(node.Parent, position);
                 rewritten = editHandler != null ? rewritten.WithEditHandler(editHandler) : rewritten;
                 Visit(rewritten);
