@@ -216,6 +216,7 @@ internal static class IServiceCollectionExtensions
         {
             services.AddSingleton<IFileChangeDetector, ProjectConfigurationFileChangeDetector>();
         }
+
         services.AddSingleton<IFileChangeDetector, RazorFileChangeDetector>();
 
         // Document processed listeners
