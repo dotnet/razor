@@ -25,14 +25,12 @@ internal class OOPTagHelperResolver : ITagHelperResolver
     private readonly ProjectSnapshotProjectEngineFactory _factory;
     private readonly IErrorReporter _errorReporter;
     private readonly Workspace _workspace;
-    private readonly ITelemetryReporter _telemetryReporter;
 
     public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, IErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
     {
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
         _workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
-        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
 
         _innerResolver = new CompilationTagHelperResolver(telemetryReporter);
         _resultCache = new TagHelperResultCache();
