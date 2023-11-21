@@ -7,17 +7,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal static class SyntaxUtilities
 {
-    public static MarkupTextLiteralSyntax? MergeTextLiterals(params MarkupTextLiteralSyntax[] literalSyntaxes)
+    public static MarkupTextLiteralSyntax MergeTextLiterals(params MarkupTextLiteralSyntax[] literalSyntaxes)
     {
-        if (literalSyntaxes == null || literalSyntaxes.Length == 0)
-        {
-            return null;
-        }
-
         SyntaxNode? parent = null;
         var position = 0;
         var seenFirstLiteral = false;
-        var builder = Syntax.InternalSyntax.SyntaxListBuilder.Create();
+        var builder = InternalSyntax.SyntaxListBuilder.Create();
 
         foreach (var syntax in literalSyntaxes)
         {
@@ -39,8 +34,8 @@ internal static class SyntaxUtilities
             }
         }
 
-        var mergedLiteralSyntax = Syntax.InternalSyntax.SyntaxFactory.MarkupTextLiteral(
-            builder.ToList<Syntax.InternalSyntax.SyntaxToken>(), chunkGenerator: null);
+        var mergedLiteralSyntax = InternalSyntax.SyntaxFactory.MarkupTextLiteral(
+            builder.ToList<InternalSyntax.SyntaxToken>(), chunkGenerator: null);
 
         return (MarkupTextLiteralSyntax)mergedLiteralSyntax.CreateRed(parent, position);
     }
@@ -115,7 +110,7 @@ internal static class SyntaxUtilities
             builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), chunkGenerator).WithEditHandler(editHandler));
         }
 
-        return builder.ToListNode().CreateRed(@this, @this.Position);
+        return builder.ToListNode().AssumeNotNull().CreateRed(@this, @this.Position);
     }
 
     internal static SyntaxNode GetEndTagLegacyChildren(
@@ -181,6 +176,6 @@ internal static class SyntaxUtilities
 
         builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), chunkGenerator).WithEditHandler(editHandler));
 
-        return builder.ToListNode().CreateRed(@this, @this.Position);
+        return builder.ToListNode().AssumeNotNull().CreateRed(@this, @this.Position);
     }
 }

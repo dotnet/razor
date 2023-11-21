@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal readonly struct SyntaxListBuilder<TNode>
@@ -25,21 +23,9 @@ internal readonly struct SyntaxListBuilder<TNode>
         _builder = builder;
     }
 
-    public bool IsNull
-    {
-        get
-        {
-            return _builder == null;
-        }
-    }
+    public bool IsNull => _builder == null;
 
-    public int Count
-    {
-        get
-        {
-            return _builder.Count;
-        }
-    }
+    public int Count => _builder.Count;
 
     public void Clear()
     {
@@ -96,6 +82,6 @@ internal readonly struct SyntaxListBuilder<TNode>
             return builder.ToList();
         }
 
-        return default(SyntaxList<TNode>);
+        return default;
     }
 }

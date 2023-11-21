@@ -518,7 +518,7 @@ internal class FormattingVisitor : SyntaxWalker
 
             var builder = new SyntaxListBuilder(1);
             builder.Add(markupTransition);
-            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(node, node.Position));
+            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().AssumeNotNull().CreateRed(node, node.Position));
         }
 
         var children = node.LegacyChildren;
@@ -555,7 +555,7 @@ internal class FormattingVisitor : SyntaxWalker
 
         AddLiteralIfExists();
 
-        return new SyntaxList<RazorSyntaxNode>(newChildren.ToListNode().CreateRed(node, node.Position));
+        return new SyntaxList<RazorSyntaxNode>(newChildren.ToListNode().AssumeNotNull().CreateRed(node, node.Position));
 
         void AddLiteralIfExists()
         {
@@ -580,7 +580,7 @@ internal class FormattingVisitor : SyntaxWalker
 
             var builder = new SyntaxListBuilder(1);
             builder.Add(markupTransition);
-            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(node, node.Position));
+            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().AssumeNotNull().CreateRed(node, node.Position));
         }
 
         return node.LegacyChildren;
