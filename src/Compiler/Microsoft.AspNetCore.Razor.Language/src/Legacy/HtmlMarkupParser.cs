@@ -1,11 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 
@@ -31,11 +30,21 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     {
     }
 
-    private TagTracker CurrentTracker => _tagTracker.Count > 0 ? _tagTracker.Peek() : null;
+    private TagTracker? CurrentTracker => _tagTracker.Count > 0 ? _tagTracker.Peek() : null;
 
-    private string CurrentStartTagName => CurrentTracker?.TagName;
+    private string? CurrentStartTagName => CurrentTracker?.TagName;
 
-    public CSharpCodeParser CodeParser { get; set; }
+    private CSharpCodeParser? _codeParser;
+    public CSharpCodeParser CodeParser
+    {
+        get
+        {
+            // Note: Circular reference with HtmlMarkupParser means we can't set this in the constructor
+            Debug.Assert(_codeParser != null, "CodeParser should have been set during initialization");
+            return _codeParser!;
+        }
+        set => _codeParser = value;
+    }
 
     private bool CaseSensitive { get; set; }
 
@@ -108,7 +117,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     // The tag stack inside a code block is different from the stack outside the block.
     // E.g, `<div> @{ </div> }` will be parsed as two separate elements with missing end and start tags respectively.
     //
-    public MarkupBlockSyntax ParseBlock()
+    public MarkupBlockSyntax? ParseBlock()
     {
         if (Context == null)
         {
@@ -207,7 +216,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     private void ParseMarkupNodes(
         in SyntaxListBuilder<RazorSyntaxNode> builder,
         ParseMode mode,
-        Func<SyntaxToken, bool> stopCondition = null)
+        Func<SyntaxToken, bool>? stopCondition = null)
     {
         stopCondition = stopCondition ?? (token => false);
         while (!EndOfFile && !stopCondition(CurrentToken))
@@ -280,7 +289,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 case ParserState.MarkupComment:
                 case ParserState.CData:
                     ParseMarkupNode(builder, ParseMode.MarkupInCodeBlock);
-                    editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                    SetAcceptedCharacters(AcceptedCharactersInternal.None);
                     builder.Add(OutputAsMarkupLiteral());
                     break;
                 default:
@@ -365,7 +374,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 if (isOuterTagWellFormed)
                 {
                     // Completed tags have no accepted characters inside blocks.
-                    editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                    SetAcceptedCharacters(AcceptedCharactersInternal.None);
                 }
             }
         }
@@ -384,7 +393,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         Assert(SyntaxKind.Transition);
 
         AcceptAndMoveNext();
-        editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+        SetAcceptedCharacters(AcceptedCharactersInternal.None);
         chunkGenerator = SpanChunkGenerator.Null;
         var transition = GetNodeWithEditHandler(SyntaxFactory.MarkupTransition(Output(), chunkGenerator));
         builder.Add(transition);
@@ -420,8 +429,12 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         // First, signal to code parser that whitespace is significant to us.
         var old = Context.WhiteSpaceIsSignificantToAncestorBlock;
         Context.WhiteSpaceIsSignificantToAncestorBlock = true;
-        editHandlerBuilder.Reset();
-        editHandlerBuilder.Tokenizer = LanguageTokenizeString;
+        SetAcceptedCharacters(AcceptedCharactersInternal.Any);
+        if (editHandlerBuilder != null)
+        {
+            editHandlerBuilder.Reset();
+            editHandlerBuilder.Tokenizer = LanguageTokenizeString;
+        }
 
         // Now parse until a new line.
         do
@@ -436,7 +449,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         if (!EndOfFile && CurrentToken.Kind == SyntaxKind.NewLine)
         {
             AcceptAndMoveNext();
-            editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+            SetAcceptedCharacters(AcceptedCharactersInternal.None);
         }
         PutCurrentBack();
         Context.WhiteSpaceIsSignificantToAncestorBlock = old;
@@ -483,7 +496,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             var endTagStart = CurrentStart;
             var endTag = ParseEndTag(mode, out var endTagName, out var _);
 
-            Debug.Assert(endTagName != null);
             if (string.Equals(CurrentStartTagName, endTagName, StringComparison.OrdinalIgnoreCase))
             {
                 // Happy path. Found a matching start tag. Create the element and reset the builder.
@@ -644,7 +656,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             attributes = attributeBuilder.ToList();
         }
 
-        SyntaxToken forwardSlashToken = null;
+        SyntaxToken? forwardSlashToken = null;
         if (At(SyntaxKind.ForwardSlash))
         {
             // This is a self closing tag.
@@ -674,7 +686,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 }
 
                 // Completed tags in code blocks have no accepted characters.
-                editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                SetAcceptedCharacters(AcceptedCharactersInternal.None);
 
                 if (tagMode != MarkupTagMode.SelfClosing && IsVoidElement(tagName))
                 {
@@ -754,8 +766,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         using (var pooledResult = Pool.Allocate<RazorSyntaxNode>())
         {
             var miscAttributeContentBuilder = pooledResult.Builder;
-            SyntaxToken forwardSlashToken = null;
-            SyntaxToken closeAngleToken = null;
+            SyntaxToken? forwardSlashToken = null;
+            SyntaxToken? closeAngleToken = null;
 
             AcceptWhile(IsSpacingToken);
             miscAttributeContentBuilder.Add(OutputAsMarkupLiteral());
@@ -770,7 +782,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 }
 
                 closeAngleToken = EatCurrentToken();
-                editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                SetAcceptedCharacters(AcceptedCharactersInternal.None);
             }
             else
             {
@@ -797,7 +809,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         }
     }
 
-    private void RecoverTextTag(out MarkupTextLiteralSyntax miscContent, out SyntaxToken closeAngleToken)
+    private void RecoverTextTag(out MarkupTextLiteralSyntax? miscContent, out SyntaxToken closeAngleToken)
     {
         // We don't want to skip-to and parse because there shouldn't be anything in the body of text tags.
         AcceptUntil(SyntaxKind.CloseAngle, SyntaxKind.NewLine);
@@ -820,7 +832,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         Assert(SyntaxKind.OpenAngle);
 
         tagName = string.Empty;
-        SyntaxToken tagNameToken = null;
+        SyntaxToken tagNameToken;
 
         var openAngleToken = EatCurrentToken(); // Accept '<'
         var forwardSlashToken = At(SyntaxKind.ForwardSlash) ? EatCurrentToken() : SyntaxFactory.MissingToken(SyntaxKind.ForwardSlash);
@@ -861,8 +873,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             tagNameToken = SyntaxFactory.MissingToken(SyntaxKind.Text);
         }
 
-        SyntaxToken closeAngleToken = null;
-        MarkupMiscAttributeContentSyntax miscAttributeContent = null;
+        SyntaxToken closeAngleToken;
+        MarkupMiscAttributeContentSyntax? miscAttributeContent = null;
         using (var pooledResult = Pool.Allocate<RazorSyntaxNode>())
         {
             var miscAttributeBuilder = pooledResult.Builder;
@@ -879,7 +891,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 if (At(SyntaxKind.CloseAngle))
                 {
                     // Completed tags in code blocks have no accepted characters.
-                    editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                    SetAcceptedCharacters(AcceptedCharactersInternal.None);
                 }
             }
 
@@ -912,8 +924,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         Assert(SyntaxKind.Text);
         var tagNameToken = EatCurrentToken();
 
-        MarkupMiscAttributeContentSyntax miscAttributeContent = null;
-        SyntaxToken closeAngleToken = null;
+        MarkupMiscAttributeContentSyntax? miscAttributeContent = null;
+        SyntaxToken? closeAngleToken = null;
         using (var pooledResult = Pool.Allocate<RazorSyntaxNode>())
         {
             var miscAttributeBuilder = pooledResult.Builder;
@@ -925,13 +937,13 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     RazorDiagnosticFactory.CreateParsing_TextTagCannotContainAttributes(
                         new SourceSpan(textLocation, contentLength: 4 /* text */)));
 
-                editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.Any;
+                SetAcceptedCharacters(AcceptedCharactersInternal.Any);
                 RecoverTextTag(out var miscContent, out closeAngleToken);
                 miscAttributeBuilder.Add(miscContent);
             }
             else
             {
-                editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                SetAcceptedCharacters(AcceptedCharactersInternal.None);
                 closeAngleToken = EatCurrentToken();
             }
 
@@ -1073,7 +1085,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         Accept(attributePrefixWhitespace); // Whitespace before attribute name
         var namePrefix = OutputAsMarkupLiteral();
         Accept(nameTokens); // Attribute name
-        var name = OutputAsMarkupLiteral();
+        var name = OutputAsMarkupLiteralRequired();
 
         var atMinimizedAttribute = !TokenExistsAfterWhitespace(SyntaxKind.Equals);
         if (atMinimizedAttribute)
@@ -1123,7 +1135,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         return false;
     }
 
-    private MarkupAttributeBlockSyntax ParseRemainingAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name)
+    private MarkupAttributeBlockSyntax ParseRemainingAttribute(MarkupTextLiteralSyntax? namePrefix, MarkupTextLiteralSyntax name)
     {
         // Since this is not a minimized attribute, the whitespace after attribute name belongs to this attribute.
         AcceptWhile(static token => token.Kind == SyntaxKind.Whitespace || token.Kind == SyntaxKind.NewLine);
@@ -1148,9 +1160,9 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             PutBack(whitespaceAfterEquals);
         }
 
-        MarkupTextLiteralSyntax valuePrefix = null;
-        RazorBlockSyntax attributeValue = null;
-        MarkupTextLiteralSyntax valueSuffix = null;
+        MarkupTextLiteralSyntax? valuePrefix = null;
+        RazorBlockSyntax? attributeValue = null;
+        MarkupTextLiteralSyntax? valueSuffix = null;
 
         // First, determine if this is a 'data-' attribute (since those can't use conditional attributes)
         var nameContent = string.Concat(name.LiteralTokens.Nodes.Select(s => s.Content));
@@ -1242,12 +1254,12 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                         new LocationTagged<string>(string.Concat(prefixTokens.Select(s => s.Content)), prefixStart),
                         new LocationTagged<string>(CurrentToken.Content, CurrentStart));
                     AcceptAndMoveNext();
-                    editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                    SetAcceptedCharacters(AcceptedCharactersInternal.None);
                     markupBuilder.Add(OutputAsMarkupLiteral());
 
                     chunkGenerator = SpanChunkGenerator.Null;
                     AcceptAndMoveNext();
-                    editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                    SetAcceptedCharacters(AcceptedCharactersInternal.None);
                     markupBuilder.Add(OutputAsMarkupEphemeralLiteral());
 
                     var markupBlock = SyntaxFactory.MarkupBlock(markupBuilder.ToList());
@@ -1363,7 +1375,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             }
         }
 
-        MarkupEndTagSyntax endTag = null;
+        MarkupEndTagSyntax? endTag = null;
         if (seenEndScript)
         {
             var tagStart = CurrentStart;
@@ -1372,8 +1384,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             var openAngleToken = EatCurrentToken(); // '<'
             var forwardSlashToken = EatCurrentToken(); // '/'
             var tagNameToken = EatCurrentToken(); // 'script'
-            MarkupMiscAttributeContentSyntax miscContent = null;
-            SyntaxToken closeAngleToken = null;
+            MarkupMiscAttributeContentSyntax? miscContent = null;
+            SyntaxToken? closeAngleToken = null;
 
             using (var pooledResult = Pool.Allocate<RazorSyntaxNode>())
             {
@@ -1402,7 +1414,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 }
             }
 
-            editHandlerBuilder.AcceptedCharacters = endTagAcceptedCharacters;
+            SetAcceptedCharacters(endTagAcceptedCharacters);
 
             endTag = SyntaxFactory.MarkupEndTag(
                 openAngleToken,
@@ -1517,10 +1529,10 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             AcceptAndMoveNext();
             AcceptAndMoveNext();
             AcceptAndMoveNext();
-            editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+            SetAcceptedCharacters(AcceptedCharactersInternal.None);
             htmlCommentBuilder.Add(OutputAsMarkupLiteral());
 
-            editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.Whitespace;
+            SetAcceptedCharacters(AcceptedCharactersInternal.Whitespace);
             while (!EndOfFile)
             {
                 ParseMarkupNodes(htmlCommentBuilder, ParseMode.Text, t => t.Kind == SyntaxKind.DoubleHyphen);
@@ -1529,13 +1541,13 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 if (At(SyntaxKind.CloseAngle))
                 {
                     // Output the content in the comment block as a separate markup
-                    editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.Whitespace;
+                    SetAcceptedCharacters(AcceptedCharactersInternal.Whitespace);
                     htmlCommentBuilder.Add(OutputAsMarkupLiteral());
 
                     // This is the end of a comment block
                     Accept(lastDoubleHyphen);
                     AcceptAndMoveNext();
-                    editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
+                    SetAcceptedCharacters(AcceptedCharactersInternal.None);
                     htmlCommentBuilder.Add(OutputAsMarkupLiteral());
                     var commentBlock = SyntaxFactory.MarkupCommentBlock(htmlCommentBuilder.ToList());
                     builder.Add(commentBlock);
@@ -1635,7 +1647,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     private bool ScriptTagExpectsHtml(MarkupStartTagSyntax tagBlock)
     {
-        MarkupAttributeBlockSyntax typeAttribute = null;
+        MarkupAttributeBlockSyntax? typeAttribute = null;
         for (var i = 0; i < tagBlock.Attributes.Count; i++)
         {
             var node = tagBlock.Attributes[i];
@@ -1682,7 +1694,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     }
 
     // Internal for testing.
-    internal SyntaxToken AcceptAllButLastDoubleHyphens()
+    internal SyntaxToken? AcceptAllButLastDoubleHyphens()
     {
         var lastDoubleHyphen = CurrentToken;
         AcceptWhile(s =>
@@ -1724,7 +1736,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             }
         }
         Debug.Assert(EndOfFile);
-        editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.Any;
+        SetAcceptedCharacters(AcceptedCharactersInternal.Any);
         return false;
     }
 
@@ -1832,7 +1844,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         }
     }
 
-    private bool TryParseBangEscape(out SyntaxToken bangToken)
+    private bool TryParseBangEscape([NotNullWhen(true)] out SyntaxToken? bangToken)
     {
         bangToken = null;
         if (IsBangEscape(lookahead: 0))
@@ -1910,30 +1922,30 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 {
                     if (NextIs(SyntaxKind.CloseAngle))
                     {
-                            // Check condition 2.3: We're at the end of a comment. Check to make sure the text ending is allowed.
-                            isValidComment = !IsCommentContentEndingInvalid(prevTokens);
+                        // Check condition 2.3: We're at the end of a comment. Check to make sure the text ending is allowed.
+                        isValidComment = !IsCommentContentEndingInvalid(prevTokens);
                         return true;
                     }
                     else if (NextIs(ns => IsHyphen(ns) && NextIs(SyntaxKind.CloseAngle)))
                     {
-                            // Check condition 2.3: we're at the end of a comment, which has an extra dash.
-                            // Need to treat the dash as part of the content and check the ending.
-                            // However, that case would have already been checked as part of check from 2.2.1 which
-                            // would already fail this iteration and we wouldn't get here
-                            isValidComment = true;
+                        // Check condition 2.3: we're at the end of a comment, which has an extra dash.
+                        // Need to treat the dash as part of the content and check the ending.
+                        // However, that case would have already been checked as part of check from 2.2.1 which
+                        // would already fail this iteration and we wouldn't get here
+                        isValidComment = true;
                         return true;
                     }
                     else if (NextIs(ns => ns.Kind == SyntaxKind.Bang && NextIs(SyntaxKind.CloseAngle)))
                     {
-                            // This is condition 2.2.3
-                            isValidComment = false;
+                        // This is condition 2.2.3
+                        isValidComment = false;
                         return true;
                     }
                 }
                 else if (token.Kind == SyntaxKind.OpenAngle)
                 {
-                        // Checking condition 2.2.1
-                        if (NextIs(ns => ns.Kind == SyntaxKind.Bang && NextIs(SyntaxKind.DoubleHyphen)))
+                    // Checking condition 2.2.1
+                    if (NextIs(ns => ns.Kind == SyntaxKind.Bang && NextIs(SyntaxKind.DoubleHyphen)))
                     {
                         isValidComment = false;
                         return true;
@@ -2084,7 +2096,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         AcceptMarkerTokenIfNecessary();
         builder.Add(OutputAsMarkupLiteral());
 
-        RazorSyntaxNode codeBlock;
+        RazorSyntaxNode? codeBlock;
         using (PushSpanContextConfig())
         {
             codeBlock = CodeParser.ParseBlock();
@@ -2155,15 +2167,20 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                token.Kind == SyntaxKind.DoubleQuote;
     }
 
-    private void DefaultMarkupSpanContext(SpanEditHandlerBuilder editHandlerBuilder, ref ISpanChunkGenerator generator)
+    private void DefaultMarkupSpanContext(SpanEditHandlerBuilder? editHandlerBuilder, ref ISpanChunkGenerator? generator)
     {
         generator = MarkupChunkGenerator.Instance;
+        SetAcceptedCharacters(AcceptedCharactersInternal.Any);
+        if (editHandlerBuilder == null)
+        {
+            return;
+        }
+
         editHandlerBuilder.Reset();
         editHandlerBuilder.Tokenizer = LanguageTokenizeString;
-        editHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.Any;
     }
 
-    private Syntax.GreenNode GetLastSpan(RazorSyntaxNode node)
+    private Syntax.GreenNode? GetLastSpan(RazorSyntaxNode node)
     {
         if (node == null)
         {
@@ -2186,14 +2203,14 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         return last.Green;
     }
 
-    private static bool IsVoidElement(string tagName)
+    private static bool IsVoidElement(string? tagName)
     {
         if (string.IsNullOrEmpty(tagName))
         {
             return false;
         }
 
-        if (tagName.StartsWith("!", StringComparison.Ordinal))
+        if (tagName!.StartsWith("!", StringComparison.Ordinal))
         {
             tagName = tagName.Substring(1);
         }

@@ -22,6 +22,8 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
 {
+    private static readonly RazorParserOptions DefaultOptions = RazorParserOptions.Create(builder => builder.EnableSpanEditHandlers = true);
+
     public BraceSmartIndenterTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
@@ -83,7 +85,10 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void ContainsInvalidContent_NewLineSpan_ReturnsFalse()
     {
         // Arrange
-        var span = ExtractSpan(2, "@{" + Environment.NewLine + "}");
+        var span = ExtractSpan(2, """
+            @{
+            }
+            """);
 
         // Act
         var result = BraceSmartIndenter.ContainsInvalidContent(span);
@@ -213,7 +218,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void AtApplicableRazorBlock_AtMarkup_ReturnsFalse()
     {
         // Arrange
-        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("<p></p>"));
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("<p></p>"), DefaultOptions);
         var changePosition = 2;
 
         // Act
@@ -227,7 +232,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void AtApplicableRazorBlock_AtExplicitCodeBlocksCode_ReturnsTrue()
     {
         // Arrange
-        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@{}"));
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@{}"), DefaultOptions);
         var changePosition = 2;
 
         // Act
@@ -241,7 +246,11 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void AtApplicableRazorBlock_AtMetacode_ReturnsTrue()
     {
         // Arrange
-        var parseOptions = RazorParserOptions.Create(options => options.Directives.Add(FunctionsDirective.Directive));
+        var parseOptions = RazorParserOptions.Create(options =>
+        {
+            options.Directives.Add(FunctionsDirective.Directive);
+            options.EnableSpanEditHandlers = true;
+        });
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@functions {}"), parseOptions);
         var changePosition = 12;
 
@@ -256,7 +265,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void AtApplicableRazorBlock_WhenNoOwner_ReturnsFalse()
     {
         // Arrange
-        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@DateTime.Now"));
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@DateTime.Now"), DefaultOptions);
         var changePosition = 14; // 1 after the end of the content
 
         // Act
@@ -422,7 +431,10 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void TryCreateIndentationContext_ReturnsFalseIfNoFocusedTextView()
     {
         // Arrange
-        var snapshot = new StringTextSnapshot(Environment.NewLine + "Hello World");
+        var snapshot = new StringTextSnapshot("""
+            
+            Hello World
+            """);
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(snapshot.Content));
         ITextBuffer textBuffer = null;
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView: null);
@@ -459,7 +471,10 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void TryCreateIndentationContext_ReturnsFalseIfNewLineIsNotPrecededByOpenBrace_FileStart()
     {
         // Arrange
-        var initialSnapshot = new StringTextSnapshot(Environment.NewLine + "Hello World");
+        var initialSnapshot = new StringTextSnapshot("""
+            
+            Hello World
+            """);
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(initialSnapshot.Content));
         ITextBuffer textBuffer = null;
         var focusedTextView = CreateFocusedTextView(() => textBuffer);
@@ -497,7 +512,10 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void TryCreateIndentationContext_ReturnsFalseIfNewLineIsNotFollowedByCloseBrace()
     {
         // Arrange
-        var initialSnapshot = new StringTextSnapshot("@{ " + Environment.NewLine + "World");
+        var initialSnapshot = new StringTextSnapshot("""
+            @{ 
+            World
+            """);
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(initialSnapshot.Content));
         ITextBuffer textBuffer = null;
         var focusedTextView = CreateFocusedTextView(() => textBuffer);
@@ -541,6 +559,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
             {
                 options.Directives.Add(FunctionsDirective.Directive);
                 options.Directives.Add(SectionDirective.Directive);
+                options.EnableSpanEditHandlers = true;
             }));
 
         return syntaxTree;

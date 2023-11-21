@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,6 +25,7 @@ internal partial class ParserContext
         ParseLeadingDirectives = options.ParseLeadingDirectives;
         ErrorSink = new ErrorSink();
         SeenDirectives = new HashSet<string>(StringComparer.Ordinal);
+        EnableSpanEditHandlers = options.EnableSpanEditHandlers;
     }
 
     public ErrorSink ErrorSink { get; set; }
@@ -43,6 +42,8 @@ internal partial class ParserContext
 
     public bool ParseLeadingDirectives { get; }
 
+    public bool EnableSpanEditHandlers { get; }
+
     public bool WhiteSpaceIsSignificantToAncestorBlock { get; set; }
 
     public bool NullGenerateWhitespaceAndNewLine { get; set; }
@@ -51,7 +52,9 @@ internal partial class ParserContext
 
     public bool StartOfLine { get; set; } = true;
 
-    public AcceptedCharactersInternal LastAcceptedCharacters { get; set; } = AcceptedCharactersInternal.None;
+    public bool MakeMarkerNode { get; set; } = true;
+
+    public AcceptedCharactersInternal CurrentAcceptedCharacters { get; set; } = AcceptedCharactersInternal.Any;
 
     public bool EndOfFile
     {

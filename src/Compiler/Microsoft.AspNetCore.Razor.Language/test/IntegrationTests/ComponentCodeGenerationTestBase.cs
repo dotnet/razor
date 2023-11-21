@@ -10095,6 +10095,30 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestTheory, CombinatorialData, WorkItem("https://github.com/dotnet/razor/issues/9584")]
+    public void ScriptTag_Razor8([CombinatorialValues("8.0", "latest")] string langVersion)
+    {
+        var generated = CompileToCSharp("""
+            <script>alert("Hello");</script>
+            """,
+            configuration: Configuration.WithVersion(RazorLanguageVersion.Parse(langVersion)));
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9584")]
+    public void ScriptTag_Razor7()
+    {
+        var generated = CompileToCSharp("""
+            <script>alert("Hello");</script>
+            """,
+            configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region LinePragmas
