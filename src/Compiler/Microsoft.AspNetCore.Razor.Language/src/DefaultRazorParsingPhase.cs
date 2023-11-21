@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -10,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 #pragma warning disable CS0618 // Type or member is obsolete
 internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPhase
 {
-    private IRazorParserOptionsFeature _optionsFeature;
+    private IRazorParserOptionsFeature? _optionsFeature;
 
     protected override void OnInitialized()
     {
@@ -19,7 +17,7 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
     {
-        var options = codeDocument.GetParserOptions() ?? _optionsFeature.GetOptions();
+        var options = codeDocument.GetParserOptions() ?? _optionsFeature.AssumeNotNull().GetOptions();
         var syntaxTree = RazorSyntaxTree.Parse(codeDocument.Source, options);
         codeDocument.SetSyntaxTree(syntaxTree);
 
@@ -30,6 +28,6 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
             importSyntaxTrees.Add(RazorSyntaxTree.Parse(import, options));
         }
 
-        codeDocument.SetImportSyntaxTrees(importSyntaxTrees.ToArray());
+        codeDocument.SetImportSyntaxTrees(importSyntaxTrees.DrainToImmutable());
     }
 }

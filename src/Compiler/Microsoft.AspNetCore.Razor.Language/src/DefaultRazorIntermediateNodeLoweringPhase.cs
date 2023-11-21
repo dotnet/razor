@@ -98,7 +98,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         // In each lowering piece above, namespaces were tracked. We render them here to ensure every
         // lowering action has a chance to add a source location to a namespace. Ultimately, closest wins.
-        var i = 0;
+        var index = 0;
         foreach (var reference in usingReferences)
         {
             var @using = new UsingDirectiveIntermediateNode()
@@ -107,23 +107,22 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 Source = reference.Source,
             };
 
-            builder.Insert(i++, @using);
+            builder.Insert(index++, @using);
         }
 
         PostProcessImportedDirectives(document);
 
         // The document should contain all errors that currently exist in the system. This involves
         // adding the errors from the primary and imported syntax trees.
-        for (i = 0; i < syntaxTree.Diagnostics.Count; i++)
+        for (var i = 0; i < syntaxTree.Diagnostics.Count; i++)
         {
             document.Diagnostics.Add(syntaxTree.Diagnostics[i]);
         }
 
-        if (imports != null)
+        if (imports is ImmutableArray<RazorSyntaxTree> importsArray)
         {
-            for (i = 0; i < imports.Count; i++)
+            foreach (var import in importsArray)
             {
-                var import = imports[i];
                 for (var j = 0; j < import.Diagnostics.Count; j++)
                 {
                     document.Diagnostics.Add(import.Diagnostics[j]);
@@ -159,11 +158,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
     }
 
-    private IReadOnlyList<UsingReference> ImportDirectives(
+    private static IReadOnlyList<UsingReference> ImportDirectives(
         DocumentIntermediateNode document,
         IntermediateNodeBuilder builder,
         RazorParserOptions options,
-        IReadOnlyList<RazorSyntaxTree> imports)
+        ImmutableArray<RazorSyntaxTree>? imports)
     {
         if (imports == null)
         {
@@ -171,10 +170,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
 
         var importsVisitor = new ImportsVisitor(document, builder, options.FeatureFlags);
-        for (var i = 0; i < imports.Count; i++)
+        foreach (var import in imports.GetValueOrDefault())
         {
-            var import = imports[i];
-
             importsVisitor.SourceDocument = import.Source;
             importsVisitor.Visit(import.Root);
         }

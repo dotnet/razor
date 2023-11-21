@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -121,7 +122,7 @@ public static class RazorCodeDocumentExtensions
         document.Items[typeof(RazorSyntaxTree)] = syntaxTree;
     }
 
-    public static IReadOnlyList<RazorSyntaxTree> GetImportSyntaxTrees(this RazorCodeDocument document)
+    public static ImmutableArray<RazorSyntaxTree>? GetImportSyntaxTrees(this RazorCodeDocument document)
     {
         if (document == null)
         {
@@ -131,7 +132,7 @@ public static class RazorCodeDocumentExtensions
         return (document.Items[typeof(ImportSyntaxTreesHolder)] as ImportSyntaxTreesHolder)?.SyntaxTrees;
     }
 
-    public static void SetImportSyntaxTrees(this RazorCodeDocument document, IReadOnlyList<RazorSyntaxTree> syntaxTrees)
+    public static void SetImportSyntaxTrees(this RazorCodeDocument document, ImmutableArray<RazorSyntaxTree> syntaxTrees)
     {
         if (document == null)
         {
@@ -341,8 +342,8 @@ public static class RazorCodeDocumentExtensions
             var appendSuffix = true;
             var lastNamespaceContent = string.Empty;
             var lastNamespaceLocation = SourceSpan.Undefined;
-            var importSyntaxTrees = document.GetImportSyntaxTrees();
-            if (importSyntaxTrees != null)
+
+            if (document.GetImportSyntaxTrees() is ImmutableArray<RazorSyntaxTree> importSyntaxTrees)
             {
                 // ImportSyntaxTrees is usually set. Just being defensive.
                 foreach (var importSyntaxTree in importSyntaxTrees)
@@ -480,15 +481,7 @@ public static class RazorCodeDocumentExtensions
         }
     }
 
-    private class ImportSyntaxTreesHolder
-    {
-        public ImportSyntaxTreesHolder(IReadOnlyList<RazorSyntaxTree> syntaxTrees)
-        {
-            SyntaxTrees = syntaxTrees;
-        }
-
-        public IReadOnlyList<RazorSyntaxTree> SyntaxTrees { get; }
-    }
+    private record class ImportSyntaxTreesHolder(ImmutableArray<RazorSyntaxTree> SyntaxTrees);
 
     private class IncludeSyntaxTreesHolder
     {
