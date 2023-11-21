@@ -344,6 +344,7 @@ static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.Create(str
 static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.GetPooledInstance(string! kind, string! name, string! assemblyName, out Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder! builder) -> Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder
 static Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.GetPooledInstance(string! name, string! assemblyName, out Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder! builder) -> Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder
 static readonly Microsoft.AspNetCore.Razor.Language.MetadataCollection.Empty -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
+virtual Microsoft.AspNetCore.Razor.Language.RazorEnginePhaseBase.OnInitialized() -> void
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.CodeDocument.get -> Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.SourceMappings.get -> System.Collections.Immutable.ImmutableArray<Microsoft.AspNetCore.Razor.Language.SourceMapping>
 ~Microsoft.AspNetCore.Razor.Language.RazorParserOptions.Directives.get -> System.Collections.Generic.IReadOnlyCollection<Microsoft.AspNetCore.Razor.Language.DirectiveDescriptor>

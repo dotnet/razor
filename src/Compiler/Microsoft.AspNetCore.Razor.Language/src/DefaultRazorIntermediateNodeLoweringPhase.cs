@@ -22,7 +22,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 {
     private IRazorCodeGenerationOptionsFeature _optionsFeature;
 
-    protected override void OnIntialized()
+    protected override void OnInitialized()
     {
         _optionsFeature = GetRequiredFeature<IRazorCodeGenerationOptionsFeature>();
     }

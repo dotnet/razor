@@ -12,7 +12,7 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
 {
     private IRazorParserOptionsFeature _optionsFeature;
 
-    protected override void OnIntialized()
+    protected override void OnInitialized()
     {
         _optionsFeature = GetRequiredFeature<IRazorParserOptionsFeature>();
     }
