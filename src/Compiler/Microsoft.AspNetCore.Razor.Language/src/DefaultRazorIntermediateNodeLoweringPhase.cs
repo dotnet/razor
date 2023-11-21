@@ -512,8 +512,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens, chunkGenerator: null).Green.CreateRed(node, node.NamePrefix?.Position ?? node.Name.Position);
 
             var name = node.Name.GetContent();
-            if (name.StartsWith("data-", StringComparison.OrdinalIgnoreCase) &&
-                !_featureFlags.AllowConditionalDataDashAttributes)
+            if (!_featureFlags.AllowConditionalDataDashAttributes && name.StartsWith("data-", StringComparison.OrdinalIgnoreCase))
             {
                 Visit(prefix);
                 Visit(node.Value);
@@ -521,47 +520,55 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
             else
             {
-                if (node.Value != null && node.Value.ChildNodes().All(c => c is MarkupLiteralAttributeValueSyntax))
+                if (node.Value is { } blockSyntax)
                 {
-                    // We need to do what ConditionalAttributeCollapser used to do.
-                    var literalAttributeValueNodes = node.Value.ChildNodes().Cast<MarkupLiteralAttributeValueSyntax>().ToArray();
-                    var valueTokens = SyntaxListBuilder<SyntaxToken>.Create();
-                    for (var i = 0; i < literalAttributeValueNodes.Length; i++)
+                    var children = new ChildNodesHelper(blockSyntax.ChildNodes());
+
+                    if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
                     {
-                        var mergedValue = MergeAttributeValue(literalAttributeValueNodes[i]);
-                        valueTokens.AddRange(mergedValue.LiteralTokens);
+                        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+
+                        foreach (var literal in attributeLiteralArray)
+                        {
+                            var mergedValue = MergeAttributeValue(literal);
+                            builder.AddRange(mergedValue.LiteralTokens);
+                        }
+
+                        var rewritten = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null);
+
+                        var mergedLiterals = MergeLiterals(prefix?.LiteralTokens, rewritten.LiteralTokens, node.ValueSuffix?.LiteralTokens);
+                        var mergedAttribute = SyntaxFactory.MarkupTextLiteral(mergedLiterals, chunkGenerator: null).Green.CreateRed(node.Parent, node.Position);
+                        Visit(mergedAttribute);
+
+                        return;
                     }
-                    var rewritten = SyntaxFactory.MarkupTextLiteral(valueTokens.ToList(), chunkGenerator: null);
-
-                    var mergedLiterals = MergeLiterals(prefix?.LiteralTokens, rewritten.LiteralTokens, node.ValueSuffix?.LiteralTokens);
-                    var mergedAttribute = SyntaxFactory.MarkupTextLiteral(mergedLiterals, chunkGenerator: null).Green.CreateRed(node.Parent, node.Position);
-                    Visit(mergedAttribute);
                 }
-                else
+
+                _builder.Push(new HtmlAttributeIntermediateNode()
                 {
-                    _builder.Push(new HtmlAttributeIntermediateNode()
-                    {
-                        AttributeName = name,
-                        Prefix = prefix.GetContent(),
-                        Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
-                        Source = BuildSourceSpanFromNode(node),
-                    });
+                    AttributeName = name,
+                    Prefix = prefix.GetContent(),
+                    Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
+                    Source = BuildSourceSpanFromNode(node),
+                });
 
-                    VisitAttributeValue(node.Value);
+                VisitAttributeValue(node.Value);
 
-                    _builder.Pop();
-                }
+                _builder.Pop();
             }
         }
 
         public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
         {
-            var name = node.Name.GetContent();
-            if (name.StartsWith("data-", StringComparison.OrdinalIgnoreCase) &&
-                !_featureFlags.AllowConditionalDataDashAttributes)
+            if (!_featureFlags.AllowConditionalDataDashAttributes)
             {
-                base.VisitMarkupMinimizedAttributeBlock(node);
-                return;
+                var name = node.Name.GetContent();
+
+                if (name.StartsWith("data-", StringComparison.OrdinalIgnoreCase))
+                {
+                    base.VisitMarkupMinimizedAttributeBlock(node);
+                    return;
+                }
             }
 
             // Minimized attributes are just html content.
