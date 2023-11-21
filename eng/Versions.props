@@ -52,24 +52,25 @@
     <MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>6.0.2-servicing.22064.6</MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>6.0.1</MicrosoftNETCorePlatformsPackageVersion>
     <MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>9.0.0-alpha.1.23565.2</MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>
-    <MicrosoftNetCompilersToolsetPackageVersion>4.8.0-3.23475.1</MicrosoftNetCompilersToolsetPackageVersion>
-    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.8.0-3.23475.1</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
-    <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
-    <MicrosoftCodeAnalysisCommonPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisCommonPackageVersion>
-    <MicrosoftCodeAnalysisCSharpPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisCSharpPackageVersion>
-    <MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>
-    <MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
-    <MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisEditorFeaturesPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>
-    <MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>
-    <MicrosoftCodeAnalysisTestUtilitiesPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisTestUtilitiesPackageVersion>
-    <MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
-    <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
-    <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.8.0-3.23475.1</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
-    <MicrosoftVisualStudioLanguageServicesPackageVersion>4.8.0-3.23475.1</MicrosoftVisualStudioLanguageServicesPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>4.9.108-dev</MicrosoftNetCompilersToolsetPackageVersion>
+    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.9.108-dev</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
+    <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
+    <MicrosoftCodeAnalysisExternalAccessRazorCompilerPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisExternalAccessRazorCompilerPackageVersion>
+    <MicrosoftCodeAnalysisCommonPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisCommonPackageVersion>
+    <MicrosoftCodeAnalysisCSharpPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisCSharpPackageVersion>
+    <MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>
+    <MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
+    <MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
+    <MicrosoftCodeAnalysisEditorFeaturesPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisEditorFeaturesPackageVersion>
+    <MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>
+    <MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
+    <MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>
+    <MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>
+    <MicrosoftCodeAnalysisTestUtilitiesPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisTestUtilitiesPackageVersion>
+    <MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
+    <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
+    <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.9.108-dev</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
+    <MicrosoftVisualStudioLanguageServicesPackageVersion>4.9.108-dev</MicrosoftVisualStudioLanguageServicesPackageVersion>
     <MicrosoftDotNetXliffTasksPackageVersion>9.0.0-beta.23607.2</MicrosoftDotNetXliffTasksPackageVersion>
     <!--
       Exception - Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages are not updated by automation,
@@ -90,8 +91,8 @@
   <PropertyGroup Label="Manual">
     <!-- Several packages from the editor are used for testing HTML support, and share the following version. -->
     <Tooling_HtmlEditorPackageVersion>17.9.67-preview-0001</Tooling_HtmlEditorPackageVersion>
-    <MicrosoftVisualStudioShellPackagesVersion>17.7.37349</MicrosoftVisualStudioShellPackagesVersion>
-    <MicrosoftVisualStudioPackagesVersion>17.7.188</MicrosoftVisualStudioPackagesVersion>
+    <MicrosoftVisualStudioShellPackagesVersion>17.8.36711</MicrosoftVisualStudioShellPackagesVersion>
+    <MicrosoftVisualStudioPackagesVersion>17.9.1-preview</MicrosoftVisualStudioPackagesVersion>
     <VisualStudioLanguageServerProtocolVersion>17.8.9-preview</VisualStudioLanguageServerProtocolVersion>
     <!-- dotnet/runtime packages -->
     <MicrosoftExtensionsPackageVersion>6.0.0</MicrosoftExtensionsPackageVersion>
@@ -126,14 +127,14 @@
     <MicrosoftVisualStudioShellFrameworkPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellFrameworkPackageVersion>
     <MicrosoftVisualStudioInteropPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioInteropPackageVersion>
     <MicrosoftInternalVisualStudioInteropPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftInternalVisualStudioInteropPackageVersion>
-    <MicrosoftVisualStudioRpcContractsPackageVersion>17.7.9</MicrosoftVisualStudioRpcContractsPackageVersion>
+    <MicrosoftVisualStudioRpcContractsPackageVersion>17.9.3-alpha</MicrosoftVisualStudioRpcContractsPackageVersion>
     <MicrosoftVisualStudioTelemetryVersion>17.8.138</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTextDataPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextDataPackageVersion>
     <MicrosoftVisualStudioTextImplementationPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextImplementationPackageVersion>
     <MicrosoftVisualStudioTextLogicPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextLogicPackageVersion>
-    <MicrosoftVisualStudioThreadingPackageVersion>17.7.30</MicrosoftVisualStudioThreadingPackageVersion>
+    <MicrosoftVisualStudioThreadingPackageVersion>17.8.14</MicrosoftVisualStudioThreadingPackageVersion>
     <MicrosoftVisualStudioWebPackageVersion>16.10.0-preview-1-31008-014</MicrosoftVisualStudioWebPackageVersion>
-    <MicrosoftVisualStudioValidationPackageVersion>17.6.11</MicrosoftVisualStudioValidationPackageVersion>
+    <MicrosoftVisualStudioValidationPackageVersion>17.8.8</MicrosoftVisualStudioValidationPackageVersion>
     <MicrosoftVisualStudioComponentModelHostPackageVersion>17.7.124-preview</MicrosoftVisualStudioComponentModelHostPackageVersion>
     <MicrosoftWebToolsLanguagesHtmlPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesHtmlPackageVersion>
     <MicrosoftWebToolsLanguagesLanguageServerServerPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesLanguageServerServerPackageVersion>
@@ -145,7 +146,7 @@
     <NewtonsoftJsonPackageVersion>13.0.3</NewtonsoftJsonPackageVersion>
     <NerdbankStreamsPackageVersion>2.10.69</NerdbankStreamsPackageVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
-    <StreamJsonRpcPackageVersion>2.16.36</StreamJsonRpcPackageVersion>
+    <StreamJsonRpcPackageVersion>2.17.8</StreamJsonRpcPackageVersion>
     <SystemRuntimeInteropServicesRuntimePackageVersion>4.3.0</SystemRuntimeInteropServicesRuntimePackageVersion>
     <Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.3.4</Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion>$(Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion)</Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion>
