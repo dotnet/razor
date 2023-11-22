@@ -358,9 +358,7 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
                 markupTransition = markupTransition.WithEditHandler(editHandler);
             }
 
-            var builder = new SyntaxListBuilder(1);
-            builder.Add(markupTransition);
-            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().AssumeNotNull().CreateRed(node, node.Position));
+            return SyntaxList<RazorSyntaxNode>.Create(markupTransition, node);
         }
 
         SpanEditHandler? latestEditHandler = null;
@@ -431,9 +429,7 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
                 markupTransition = markupTransition.WithEditHandler(editHandler);
             }
 
-            var builder = new SyntaxListBuilder(1);
-            builder.Add(markupTransition);
-            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().AssumeNotNull().CreateRed(node, node.Position));
+            return SyntaxList<RazorSyntaxNode>.Create(markupTransition, node);
         }
 
         return node.LegacyChildren;

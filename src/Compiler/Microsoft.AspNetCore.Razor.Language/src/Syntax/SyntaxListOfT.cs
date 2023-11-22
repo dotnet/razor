@@ -45,6 +45,16 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
         return builder.ToList().Node;
     }
 
+    public static SyntaxList<TNode> Create(SyntaxNode node, SyntaxNode parent, int position)
+    {
+        return new SyntaxList<TNode>(node.Green.CreateRed(parent, position));
+    }
+
+    public static SyntaxList<TNode> Create(SyntaxNode node, SyntaxNode parent)
+    {
+        return new SyntaxList<TNode>(node.Green.CreateRed(parent, parent.Position));
+    }
+
     /// <summary>
     /// The number of nodes in the list.
     /// </summary>

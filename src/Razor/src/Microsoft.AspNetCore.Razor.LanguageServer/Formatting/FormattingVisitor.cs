@@ -516,9 +516,7 @@ internal class FormattingVisitor : SyntaxWalker
             tokenBuilder.AddRange(tokens, 0, tokens.Length);
             var markupTransition = SyntaxFactory.MarkupTransition(tokenBuilder.ToList(), node.ChunkGenerator).Green.CreateRed(node, node.Position);
 
-            var builder = new SyntaxListBuilder(1);
-            builder.Add(markupTransition);
-            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().AssumeNotNull().CreateRed(node, node.Position));
+            return SyntaxList<RazorSyntaxNode>.Create(markupTransition, parent: node);
         }
 
         var children = node.LegacyChildren;
@@ -578,9 +576,7 @@ internal class FormattingVisitor : SyntaxWalker
             tokenBuilder.AddRange(tokens, 0, tokens.Length);
             var markupTransition = SyntaxFactory.MarkupTransition(tokenBuilder.ToList(), node.ChunkGenerator).Green.CreateRed(node, node.Position);
 
-            var builder = new SyntaxListBuilder(1);
-            builder.Add(markupTransition);
-            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().AssumeNotNull().CreateRed(node, node.Position));
+            return SyntaxList<RazorSyntaxNode>.Create(markupTransition, parent: node);
         }
 
         return node.LegacyChildren;
