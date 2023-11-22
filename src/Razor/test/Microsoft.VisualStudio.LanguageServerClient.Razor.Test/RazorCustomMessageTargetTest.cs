@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Editor.Razor.Snippets;
@@ -57,7 +56,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -98,7 +97,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Verifiable();
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -150,7 +149,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Verifiable();
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -189,7 +188,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -265,7 +264,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Returns(expectedResults);
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
@@ -343,7 +342,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 It.IsAny<Uri>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
         var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 
@@ -376,7 +375,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -422,7 +421,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
             .Returns(true);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object,
@@ -493,7 +492,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 It.IsAny<Uri>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<Property[]>())).Returns(TelemetryScope.Null);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
@@ -560,7 +559,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 It.IsAny<Uri>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = new TestOutputWindowLogger();
+        var outputWindowLogger = TestOutputWindowLogger.Instance;
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<Property[]>())).Returns(TelemetryScope.Null);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
@@ -626,26 +625,5 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         public static NullScope Instance { get; } = new NullScope();
         private NullScope() { }
         public void Dispose() { }
-    }
-
-    private class TestOutputWindowLogger : IOutputWindowLogger
-    {
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return null;
-        }
-
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return false;
-        }
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-        }
-
-        public void SetTestLogger(ILogger testOutputLogger)
-        {
-        }
     }
 }

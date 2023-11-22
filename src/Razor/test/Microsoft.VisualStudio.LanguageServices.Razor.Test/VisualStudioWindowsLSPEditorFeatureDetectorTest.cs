@@ -4,9 +4,8 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Shell.Interop;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,8 +22,7 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
     public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
     {
         // Arrange
-        var logger = GetRazorLogger();
-        var featureDetector = new TestLSPEditorFeatureDetector(logger)
+        var featureDetector = new TestLSPEditorFeatureDetector(TestOutputWindowLogger.Instance)
         {
             ProjectSupportsLSPEditorValue = true,
         };
@@ -40,8 +38,7 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
     public void IsLSPEditorAvailable_LegacyEditorEnabled_ReturnsFalse()
     {
         // Arrange
-        var logger = GetRazorLogger();
-        var featureDetector = new TestLSPEditorFeatureDetector(logger)
+        var featureDetector = new TestLSPEditorFeatureDetector(TestOutputWindowLogger.Instance)
         {
             UseLegacyEditor = true,
             ProjectSupportsLSPEditorValue = true,
@@ -58,8 +55,7 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
     public void IsLSPEditorAvailable_IsVSRemoteClient_ReturnsTrue()
     {
         // Arrange
-        var logger = GetRazorLogger();
-        var featureDetector = new TestLSPEditorFeatureDetector(logger)
+        var featureDetector = new TestLSPEditorFeatureDetector(TestOutputWindowLogger.Instance)
         {
             IsVSRemoteClientValue = true,
             ProjectSupportsLSPEditorValue = true,
@@ -76,8 +72,7 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
     public void IsLSPEditorAvailable_UnsupportedProject_ReturnsFalse()
     {
         // Arrange
-        var logger = GetRazorLogger();
-        var featureDetector = new TestLSPEditorFeatureDetector(logger)
+        var featureDetector = new TestLSPEditorFeatureDetector(TestOutputWindowLogger.Instance)
         {
             ProjectSupportsLSPEditorValue = false,
         };
@@ -93,8 +88,7 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
     public void IsRemoteClient_VSRemoteClient_ReturnsTrue()
     {
         // Arrange
-        var logger = GetRazorLogger();
-        var featureDetector = new TestLSPEditorFeatureDetector(logger)
+        var featureDetector = new TestLSPEditorFeatureDetector(TestOutputWindowLogger.Instance)
         {
             IsVSRemoteClientValue = true,
         };
@@ -110,8 +104,7 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
     public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
     {
         // Arrange
-        var logger = GetRazorLogger();
-        var featureDetector = new TestLSPEditorFeatureDetector(logger)
+        var featureDetector = new TestLSPEditorFeatureDetector(TestOutputWindowLogger.Instance)
         {
             IsLiveShareGuestValue = true,
         };
@@ -127,8 +120,7 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
     public void IsRemoteClient_UnknownEnvironment_ReturnsFalse()
     {
         // Arrange
-        var logger = GetRazorLogger();
-        var featureDetector = new TestLSPEditorFeatureDetector(logger);
+        var featureDetector = new TestLSPEditorFeatureDetector(TestOutputWindowLogger.Instance);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -137,18 +129,10 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
         Assert.False(result);
     }
 
-    private static RazorLogger GetRazorLogger()
-    {
-        var mock = new Mock<RazorLogger>(MockBehavior.Strict);
-        mock.Setup(l => l.LogVerbose(It.IsAny<string>()));
-
-        return mock.Object;
-    }
-
 #pragma warning disable CS0618 // Type or member is obsolete (Test constructor)
     private class TestLSPEditorFeatureDetector : VisualStudioWindowsLSPEditorFeatureDetector
     {
-        public TestLSPEditorFeatureDetector(RazorLogger logger)
+        public TestLSPEditorFeatureDetector(IOutputWindowLogger logger)
             : base(projectCapabilityResolver: null, logger)
         {
         }

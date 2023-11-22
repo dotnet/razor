@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -599,7 +600,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
             Action<IProjectSnapshot, string> onSerializeToFile = null,
             bool shouldSerialize = true,
             bool useRealShouldSerialize = false)
-            : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, TestRazorLogger.Instance)
+            : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, TestOutputWindowLogger.Instance)
         {
             _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
             _shouldSerialize = shouldSerialize;

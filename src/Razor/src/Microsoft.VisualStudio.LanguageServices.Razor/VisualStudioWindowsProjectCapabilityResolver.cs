@@ -3,8 +3,9 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -13,10 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 [Export(typeof(ProjectCapabilityResolver))]
 internal class VisualStudioWindowsProjectCapabilityResolver : ProjectCapabilityResolver
 {
-    private readonly RazorLogger _razorLogger;
+    private readonly ILogger _razorLogger;
 
     [ImportingConstructor]
-    public VisualStudioWindowsProjectCapabilityResolver(RazorLogger razorLogger)
+    public VisualStudioWindowsProjectCapabilityResolver(IOutputWindowLogger razorLogger)
     {
         if (razorLogger is null)
         {
