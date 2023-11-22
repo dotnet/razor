@@ -4,7 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+namespace Microsoft.VisualStudio.Editor.Razor.Logging;
 
 internal abstract class LogHubLoggerProviderFactory
 {

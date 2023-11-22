@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+namespace Microsoft.VisualStudio.Editor.Razor.Logging;
 
 internal class DefaultLogHubLogWriter : LogHubLogWriter, IDisposable
 {

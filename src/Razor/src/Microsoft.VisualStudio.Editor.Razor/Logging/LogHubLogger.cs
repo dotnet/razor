@@ -4,7 +4,7 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+namespace Microsoft.VisualStudio.Editor.Razor.Logging;
 
 internal class LogHubLogger : ILogger
 {
