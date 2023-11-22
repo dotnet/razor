@@ -25,16 +25,26 @@ internal class OutputWindowLogger : IOutputWindowLogger, IDisposable
 #endif
 
     private readonly OutputPane _outputPane;
-
+    private readonly OutputWindowLogHubLoggerProviderFactory _outputWindowLogHubLoggerProviderFactory;
     private ILogger? _testLogger;
+    private ILogger? _logHubLogger;
 
     [ImportingConstructor]
-    public OutputWindowLogger(JoinableTaskContext joinableTaskContext)
+    public OutputWindowLogger(JoinableTaskContext joinableTaskContext, OutputWindowLogHubLoggerProviderFactory outputWindowLogHubLoggerProviderFactory)
     {
         _outputPane = new OutputPane(joinableTaskContext);
+        _outputWindowLogHubLoggerProviderFactory = outputWindowLogHubLoggerProviderFactory;
+
+        _ = InitializeLogHubAsync();
     }
 
-    public IDisposable BeginScope<TState>(TState state) => Scope.Instance;
+    private async Task InitializeLogHubAsync()
+    {
+        var loggerProvider = (LogHubLoggerProvider)await _outputWindowLogHubLoggerProviderFactory.GetOrCreateAsync("Razor.OutputWindow", CancellationToken.None);
+        _logHubLogger = loggerProvider.CreateLogger("OW");
+    }
+
+    public IDisposable BeginScope<TState>(TState state) => Scope.Instance;  
 
     public void SetTestLogger(ILogger? testLogger)
     {
@@ -54,6 +64,7 @@ internal class OutputWindowLogger : IOutputWindowLogger, IDisposable
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         _testLogger?.Log(logLevel, eventId, state, exception, formatter);
+        _logHubLogger?.Log(logLevel, eventId, state, exception, formatter);
 
         if (IsEnabled(logLevel))
         {
