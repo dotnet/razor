@@ -35,7 +35,8 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
 
     private static SyntaxNode? CreateNode(SyntaxList<TNode> nodes)
     {
-        var builder = new SyntaxListBuilder<TNode>(nodes.Count);
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<TNode>(out var builder);
+        builder.SetCapacityIfLarger(nodes.Count);
 
         foreach (var node in nodes)
         {
@@ -319,7 +320,8 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
 
     public SyntaxList<TNode> Where(Func<TNode, bool> predicate)
     {
-        var builder = new SyntaxListBuilder<TNode>(Count);
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<TNode>(out var builder);
+        builder.SetCapacityIfLarger(Count);
 
         foreach (var node in this)
         {

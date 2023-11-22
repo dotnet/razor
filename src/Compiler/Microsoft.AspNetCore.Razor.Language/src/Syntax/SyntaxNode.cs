@@ -205,7 +205,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
 
     internal SyntaxList<SyntaxToken> GetTokens()
     {
-        var tokens = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var tokens);
 
         AddTokens(this, tokens);
 
@@ -222,9 +222,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
 
             for (var i = 0; i < current.SlotCount; i++)
             {
-                var child = current.GetNodeSlot(i);
-
-                if (child != null)
+                if (current.GetNodeSlot(i) is { } child)
                 {
                     AddTokens(child, tokens);
                 }

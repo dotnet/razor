@@ -3,18 +3,40 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal class SyntaxListBuilder(int size)
+internal class SyntaxListBuilder(int initialCapacity)
 {
-    private ArrayElement<GreenNode>[] _nodes = new ArrayElement<GreenNode>[size];
+    private ArrayElement<GreenNode>[] _nodes = new ArrayElement<GreenNode>[initialCapacity];
+
+    public int Capacity => _nodes.Length;
+
+    public void SetCapacityIfLarger(int newCapacity)
+    {
+        if (newCapacity > _nodes.Length)
+        {
+            Array.Resize(ref _nodes, newCapacity);
+        }
+    }
 
     public int Count { get; private set; }
 
     public void Clear()
     {
+        Array.Clear(_nodes, 0, Count);
         Count = 0;
+    }
+
+    internal void ClearInternal()
+    {
+        if (_nodes.Length > DefaultPool.MaximumObjectSize)
+        {
+            Array.Resize(ref _nodes, DefaultPool.MaximumObjectSize);
+        }
+
+        Clear();
     }
 
     public void Add(SyntaxNode item)
@@ -105,11 +127,9 @@ internal class SyntaxListBuilder(int size)
         AddRange(new SyntaxList<SyntaxNode>(list.Node), offset, count);
     }
 
-    private void Grow(int size)
+    private void Grow(int newSize)
     {
-        var tmp = new ArrayElement<GreenNode>[size];
-        Array.Copy(_nodes, tmp, _nodes.Length);
-        _nodes = tmp;
+        Array.Resize(ref _nodes, newSize);
     }
 
     public bool Any(SyntaxKind kind)
