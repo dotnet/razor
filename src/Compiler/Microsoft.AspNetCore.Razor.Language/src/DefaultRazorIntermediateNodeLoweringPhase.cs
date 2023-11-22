@@ -83,7 +83,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         // 1. Prioritize non-imported usings over imported ones.
         // 2. Don't import usings that already exist in primary document.
         // 3. Allow duplicate usings in primary document (C# warning).
-        var usingReferences = new List<UsingReference>(visitor.Usings);
+        using var _ = ListPool<UsingReference>.GetPooledObject(out var usingReferences);
+        usingReferences.AddRange(visitor.Usings);
+
         for (var j = importedUsings.Count - 1; j >= 0; j--)
         {
             var importedUsing = importedUsings[j];
@@ -180,10 +182,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         return importsVisitor.Usings;
     }
 
-    private void PostProcessImportedDirectives(DocumentIntermediateNode document)
+    private static void PostProcessImportedDirectives(DocumentIntermediateNode document)
     {
         var directives = document.FindDescendantReferences<DirectiveIntermediateNode>();
-        var seenDirectives = new HashSet<DirectiveDescriptor>();
+        using var _ = HashSetPool<DirectiveDescriptor>.GetPooledObject(out var seenDirectives);
         for (var i = directives.Count - 1; i >= 0; i--)
         {
             var reference = directives[i];
