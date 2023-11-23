@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -22,13 +24,14 @@ namespace Microsoft.CodeAnalysis.Razor;
 [Export(typeof(ProjectWorkspaceStateGenerator))]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
 [method: ImportingConstructor]
-internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, ITelemetryReporter telemetryReporter) : ProjectWorkspaceStateGenerator, IDisposable
+internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, ITelemetryReporter telemetryReporter, IOutputWindowLogger logger) : ProjectWorkspaceStateGenerator, IDisposable
 {
     // Internal for testing
     internal readonly Dictionary<ProjectKey, UpdateItem> Updates = new();
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
+    private readonly IOutputWindowLogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 1);
 
     private ProjectSnapshotManagerBase _projectManager;
@@ -60,6 +63,8 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
             throw new ArgumentNullException(nameof(projectSnapshot));
         }
 
+        _logger.LogDebug("Workspate state update requests for {project}", projectSnapshot.Key);
+
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         if (_disposed)
@@ -71,14 +76,17 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
             !updateItem.Task.IsCompleted &&
             !updateItem.Cts.IsCancellationRequested)
         {
+            _logger.LogDebug("Workspate state: Cancelling previous update request for {project}", projectSnapshot.Key);
             updateItem.Cts.Cancel();
         }
 
         if (updateItem?.Cts.IsCancellationRequested == false)
         {
+            _logger.LogDebug("Workspate state: Disposing previous token update request for {project}", projectSnapshot.Key);
             updateItem?.Cts.Dispose();
         }
 
+        _logger.LogDebug("Workspate state: Starting task for update request for {project}", projectSnapshot.Key);
         var lcts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var updateTask = Task.Factory.StartNew(
             () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, lcts.Token),
@@ -133,16 +141,27 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
 
         try
         {
+            _logger.LogDebug("Workspate state: Waiting on semaphore to update {project}", projectSnapshot.Key);
+
             // Only allow a single TagHelper resolver request to process at a time in order to reduce Visual Studio memory pressure. Typically a TagHelper resolution result can be upwards of 10mb+.
             // So if we now do multiple requests to resolve TagHelpers simultaneously it results in only a single one executing at a time so that we don't have N number of requests in flight with these
             // 10mb payloads waiting to be processed.
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Object disposed or task cancelled exceptions should be swallowed/no-op'd
+            if (ex is OperationCanceledException or ObjectDisposedException)
+            {
+                // Object disposed or task cancelled exceptions should be swallowed/no-op'd
+                _logger.LogDebug("Workspate state: Cancelled or disposed waiting on semaphore to update {project}", projectSnapshot.Key);
+                return;
+            }
+
+            _telemetryReporter.ReportFault(ex, "Error waiting on semaphore to update {project}", projectSnapshot.Key);
             return;
         }
+
+        _logger.LogDebug("Workspate state: Got the semaphore to update {project}", projectSnapshot.Key);
 
         try
         {
@@ -151,6 +170,7 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
             if (cancellationToken.IsCancellationRequested)
             {
                 // Silently cancel, we're the only ones creating these tasks.
+                _logger.LogDebug("Workspate state: Canceled before we were going to update {project}", projectSnapshot.Key);
                 return;
             }
 
@@ -172,6 +192,8 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
 
                     using var _ = StopwatchPool.GetPooledObject(out var watch);
 
+                    _logger.LogDebug("Workspate state: Resolving tag helpers for {project}", projectSnapshot.Key);
+
                     watch.Restart();
                     var tagHelpers = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
                     watch.Stop();
@@ -187,14 +209,19 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
             }
             catch (OperationCanceledException)
             {
+                _logger.LogDebug("Workspate state: Aborting tag helper resolve for {project}", projectSnapshot.Key);
+
                 // Abort work if we get a task cancelled exception
                 _telemetryReporter.ReportEvent("taghelperresolve/end", Severity.Normal,
                     new Property("id", telemetryId),
                     new Property("result", "cancel"));
+
                 return;
             }
             catch (Exception ex)
             {
+                _logger.LogDebug("Workspate state: Error during tag helper resolve for {project}: {ex}", projectSnapshot.Key, ex);
+
                 _telemetryReporter.ReportEvent("taghelperresolve/end", Severity.Normal,
                     new Property("id", telemetryId),
                     new Property("result", "error"));
@@ -208,6 +235,8 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
 
             if (cancellationToken.IsCancellationRequested)
             {
+                _logger.LogDebug("Workspate state: Cancelled after tag helper resolve for {project}", projectSnapshot.Key);
+
                 // Silently cancel, we're the only ones creating these tasks.
                 return;
             }
@@ -217,8 +246,12 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
+                        _logger.LogDebug("Workspate state: Cancelled after tag helper resolve, before updating {project}", projectSnapshot.Key);
+
                         return;
                     }
+
+                    _logger.LogDebug("Workspate state: Reporting change for {project}", projectSnapshot.Key);
 
                     ReportWorkspaceStateChange(projectSnapshot.Key, workspaceState);
                 },
@@ -226,11 +259,15 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
         }
         catch (OperationCanceledException)
         {
+            _logger.LogDebug("Workspate state: Cancelled while updating {project}", projectSnapshot.Key);
+
             // Abort work if we get a task canceled exception
             return;
         }
         catch (Exception ex)
         {
+            _logger.LogDebug("Workspate state: Error while updating {project}: {ex}", projectSnapshot.Key, ex);
+
             // This is something totally unexpected, let's just send it over to the project manager.
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
@@ -245,16 +282,22 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
                 // anyway, so we're all good.
                 if (!_disposed)
                 {
+                    _logger.LogDebug("Workspate state: Releasing the semaphore for {project}", projectSnapshot.Key);
+
                     _semaphore.Release();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogDebug("Workspate state: Error releasing the semaphore to update {project}: {ex}", projectSnapshot.Key, ex);
+
                 // Swallow exceptions that happen from releasing the semaphore.
             }
         }
 
         OnBackgroundWorkCompleted();
+
+        _logger.LogDebug("Workspate state: Done {project}", projectSnapshot.Key);
     }
 
     private void ReportWorkspaceStateChange(ProjectKey projectKey, ProjectWorkspaceState workspaceStateChange)
