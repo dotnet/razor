@@ -159,6 +159,44 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
         Assert.True(serializationSuccessful);
     }
 
+    [Fact]
+    public async Task ProjectManager_Changed_DocumentOpened_InitializedProject_NoFile_Active_Publishes()
+    {
+        // Arrange
+        var serializationSuccessful = false;
+        var hostProject = new HostProject(@"C:\path\to\project.csproj", @"C:\path\to\obj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
+        var hostDocument = new HostDocument(@"C:\path\to\file.razor", "file.razor");
+        _projectSnapshotManager.ProjectAdded(hostProject);
+        _projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, ProjectWorkspaceState.Default);
+        _projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+        var projectSnapshot = _projectSnapshotManager.GetProjects()[0];
+        var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.bin";
+        _projectConfigurationFilePathStore.Set(projectSnapshot.Key, expectedConfigurationFilePath);
+        var publisher = new TestRazorProjectInfoPublisher(
+            _projectConfigurationFilePathStore,
+            onSerializeToFile: (snapshot, configurationFilePath) =>
+            {
+                Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
+                serializationSuccessful = true;
+            },
+            configurationFileExists: false)
+        {
+            EnqueueDelay = 10,
+            _active = true
+        };
+        publisher.Initialize(_projectSnapshotManager);
+
+        // Act
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            _projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
+        });
+
+        // Assert
+        Assert.Empty(publisher.DeferredPublishTasks);
+        Assert.True(serializationSuccessful);
+    }
+
     [Theory]
     [InlineData(ProjectChangeKind.DocumentAdded)]
     [InlineData(ProjectChangeKind.DocumentRemoved)]
