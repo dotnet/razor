@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Shared = System.Composition.SharedAttribute;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -28,7 +31,7 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
     internal bool _active;
 
     private const string TempFileExt = ".temp";
-    private readonly RazorLogger _logger;
+    private readonly ILogger _logger;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
     private readonly Dictionary<ProjectKey, IProjectSnapshot> _pendingProjectPublishes;
@@ -54,31 +57,16 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
     public RazorProjectInfoPublisher(
         LSPEditorFeatureDetector lSPEditorFeatureDetector,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        RazorLogger logger)
+        IOutputWindowLogger logger)
     {
-        if (lSPEditorFeatureDetector is null)
-        {
-            throw new ArgumentNullException(nameof(lSPEditorFeatureDetector));
-        }
-
-        if (projectConfigurationFilePathStore is null)
-        {
-            throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-        }
-
-        if (logger is null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
         DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
         _pendingProjectPublishes = new Dictionary<ProjectKey, IProjectSnapshot>();
         _pendingProjectPublishesLock = new();
         _publishLock = new object();
 
-        _lspEditorFeatureDetector = lSPEditorFeatureDetector;
-        _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-        _logger = logger;
+        _lspEditorFeatureDetector = lSPEditorFeatureDetector ?? throw new ArgumentNullException(nameof(lSPEditorFeatureDetector));
+        _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     // Internal settable for testing
@@ -94,6 +82,8 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
     // Internal for testing
     internal void EnqueuePublish(IProjectSnapshot projectSnapshot)
     {
+        _logger.LogDebug("Queing publish for {key}", projectSnapshot.Key);
+
         lock (_pendingProjectPublishesLock)
         {
             _pendingProjectPublishes[projectSnapshot.Key] = projectSnapshot;
@@ -110,11 +100,13 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
         // Don't do any work if the solution is closing
         if (args.SolutionIsClosing)
         {
+            _logger.LogDebug("Not publishing, because solution is closing for {key}", args.ProjectKey);
             return;
         }
 
         if (!_lspEditorFeatureDetector.IsLSPEditorAvailable())
         {
+            _logger.LogDebug("Not publishing, because LSP editor isn't enabled for {key}", args.ProjectKey);
             return;
         }
 
@@ -142,9 +134,12 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
             else
             {
                 // No open documents and not active. No-op.
+                _logger.LogDebug("Not publishing, because not active and no open documents for {key}", args.ProjectKey);
                 return;
             }
         }
+
+        _logger.LogDebug("Might be publishing, for {kind} update for {key}", args.Kind, args.ProjectKey);
 
         // All the below Publish's (except ProjectRemoved) wait until our project has been initialized (ProjectWorkspaceState != null)
         // so that we don't publish half-finished projects, which can cause things like Semantic coloring to "flash"
@@ -154,6 +149,7 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
             case ProjectChangeKind.ProjectChanged:
                 if (!ProjectWorkspacePublishable(args))
                 {
+                    _logger.LogDebug("Not publishing, because workspace is not publishable for {key}", args.ProjectKey);
                     break;
                 }
 
@@ -180,6 +176,10 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
                     // we enqueue publishes and then publish the latest project after a delay.
                     EnqueuePublish(args.Newer!);
                 }
+                else
+                {
+                    _logger.LogDebug("Not publishing, because workspace is not publishable for {key}", args.ProjectKey);
+                }
 
                 break;
 
@@ -188,6 +188,10 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
                 if (ProjectWorkspacePublishable(args))
                 {
                     ImmediatePublish(args.Newer!);
+                }
+                else
+                {
+                    _logger.LogDebug("Not publishing, because workspace is not publishable for {key}", args.ProjectKey);
                 }
 
                 break;
@@ -218,6 +222,7 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
             {
                 if (!_projectConfigurationFilePathStore.TryGet(projectSnapshot.Key, out configurationFilePath))
                 {
+                    _logger.LogDebug("Couldn't get a config file path for project {key}", projectSnapshot.Key);
                     return;
                 }
 
@@ -226,13 +231,18 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
                 // An exception is made for when there's no existing project configuration file because some flashing is preferable to having no TagHelper knowledge.
                 if (ShouldSerialize(projectSnapshot, configurationFilePath))
                 {
+                    _logger.LogDebug("Gonna serialize for {key} to {configurationFilePath}", projectSnapshot.Key, configurationFilePath);
+
                     SerializeToFile(projectSnapshot, configurationFilePath);
+                }
+                else
+                {
+                    _logger.LogDebug("Decided not to serialize config file {file}", configurationFilePath);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($@"Could not update Razor project configuration file '{configurationFilePath}':
-{ex}");
+                _logger.LogError("Could not update Razor project configuration file '{configurationFilePath}' :{ex}", configurationFilePath, ex);
             }
         }
     }
@@ -261,13 +271,18 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
 
     protected virtual void SerializeToFile(IProjectSnapshot projectSnapshot, string configurationFilePath)
     {
+        _logger.LogDebug("Hello I'm serializing for {key} to {configurationFilePath}", projectSnapshot.Key, configurationFilePath);
+
         // We need to avoid having an incomplete file at any point, but our
         // project configuration file is large enough that it will be written as multiple operations.
         var tempFilePath = string.Concat(configurationFilePath, TempFileExt);
+        _logger.LogDebug("Temp file: {file}", tempFilePath);
         var tempFileInfo = new FileInfo(tempFilePath);
 
         if (tempFileInfo.Exists)
         {
+            _logger.LogDebug("Temp file {file} exists so deleting", tempFilePath);
+
             // This could be caused by failures during serialization or early process termination.
             tempFileInfo.Delete();
         }
@@ -276,6 +291,7 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
         // by the time we move the tempfile into its place
         using (var stream = tempFileInfo.Create())
         {
+            _logger.LogDebug("Created temp file stream, calling serialize: {file}", tempFilePath);
             var projectInfo = projectSnapshot.ToRazorProjectInfo(configurationFilePath);
             projectInfo.SerializeTo(stream);
         }
@@ -283,9 +299,11 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
         var fileInfo = new FileInfo(configurationFilePath);
         if (fileInfo.Exists)
         {
+            _logger.LogDebug("Previous config file exists, deleting: {file}", configurationFilePath);
             fileInfo.Delete();
         }
 
+        _logger.LogDebug("Moving from temp file {tempFile} to config file: {file}", tempFilePath, configurationFilePath);
         File.Move(tempFilePath, configurationFilePath);
     }
 
@@ -298,6 +316,7 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
     {
         if (!FileExists(configurationFilePath))
         {
+            _logger.LogDebug("Config file {file} doesn't exist, so definitely serializing!", configurationFilePath);
             return true;
         }
 
@@ -336,6 +355,8 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
 
     private void ImmediatePublish(IProjectSnapshot projectSnapshot)
     {
+        _logger.LogDebug("Immediate publish for {key}", projectSnapshot.Key);
+
         lock (_pendingProjectPublishesLock)
         {
             // Clear any pending publish
