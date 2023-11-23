@@ -15,6 +15,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
+using Workspace = Microsoft.CodeAnalysis.Workspace;
+
 public class DefaultRazorEditorFactoryServiceTest : ToolingTestBase
 {
     private readonly IContentType _razorCoreContentType;

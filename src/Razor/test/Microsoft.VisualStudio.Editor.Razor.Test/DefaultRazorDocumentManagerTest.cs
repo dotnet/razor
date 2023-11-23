@@ -3,8 +3,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -20,6 +18,8 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
+
+using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {
