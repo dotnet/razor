@@ -7884,6 +7884,8 @@ namespace Test
             nullableEnable: true);
 
         // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
 
