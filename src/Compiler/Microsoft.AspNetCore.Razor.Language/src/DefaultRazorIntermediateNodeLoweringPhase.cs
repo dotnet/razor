@@ -122,7 +122,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             document.Diagnostics.Add(syntaxTree.Diagnostics[i]);
         }
 
-        if (imports is ImmutableArray<RazorSyntaxTree> importsArray)
+        if (imports is { IsDefault: false } importsArray)
         {
             foreach (var import in importsArray)
             {
@@ -165,15 +165,15 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         DocumentIntermediateNode document,
         IntermediateNodeBuilder builder,
         RazorParserOptions options,
-        ImmutableArray<RazorSyntaxTree>? imports)
+        ImmutableArray<RazorSyntaxTree> imports)
     {
-        if (imports == null)
+        if (imports.IsDefaultOrEmpty)
         {
             return Array.Empty<UsingReference>();
         }
 
         var importsVisitor = new ImportsVisitor(document, builder, options.FeatureFlags);
-        foreach (var import in imports.GetValueOrDefault())
+        foreach (var import in imports)
         {
             importsVisitor.SourceDocument = import.Source;
             importsVisitor.Visit(import.Root);

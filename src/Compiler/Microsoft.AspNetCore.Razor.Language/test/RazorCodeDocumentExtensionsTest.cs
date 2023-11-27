@@ -53,9 +53,10 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument.SetImportSyntaxTrees(expected);
 
         // Act
-        var actual = codeDocument.GetImportSyntaxTrees().AssumeNotNull();
+        var actual = codeDocument.GetImportSyntaxTrees();
 
         // Assert
+        Assert.False(actual.IsDefault);
         Assert.Equal<RazorSyntaxTree>(expected, actual);
     }
 

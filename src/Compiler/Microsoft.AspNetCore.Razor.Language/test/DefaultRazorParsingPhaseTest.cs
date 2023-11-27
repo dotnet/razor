@@ -73,8 +73,10 @@ public class DefaultRazorParsingPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
+        var importSyntaxTrees = codeDocument.GetImportSyntaxTrees();
+        Assert.False(importSyntaxTrees.IsDefault);
         Assert.Collection(
-            codeDocument.GetImportSyntaxTrees().AssumeNotNull(),
+            importSyntaxTrees,
             t => { Assert.Same(t.Source, imports[0]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); },
             t => { Assert.Same(t.Source, imports[1]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); });
     }

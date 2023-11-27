@@ -122,14 +122,14 @@ public static class RazorCodeDocumentExtensions
         document.Items[typeof(RazorSyntaxTree)] = syntaxTree;
     }
 
-    public static ImmutableArray<RazorSyntaxTree>? GetImportSyntaxTrees(this RazorCodeDocument document)
+    public static ImmutableArray<RazorSyntaxTree> GetImportSyntaxTrees(this RazorCodeDocument document)
     {
         if (document == null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        return (document.Items[typeof(ImportSyntaxTreesHolder)] as ImportSyntaxTreesHolder)?.SyntaxTrees;
+        return (document.Items[typeof(ImportSyntaxTreesHolder)] as ImportSyntaxTreesHolder)?.SyntaxTrees ?? default;
     }
 
     public static void SetImportSyntaxTrees(this RazorCodeDocument document, ImmutableArray<RazorSyntaxTree> syntaxTrees)
@@ -137,6 +137,11 @@ public static class RazorCodeDocumentExtensions
         if (document == null)
         {
             throw new ArgumentNullException(nameof(document));
+        }
+
+        if (syntaxTrees.IsDefault)
+        {
+            throw new ArgumentException("", nameof(syntaxTrees));
         }
 
         document.Items[typeof(ImportSyntaxTreesHolder)] = new ImportSyntaxTreesHolder(syntaxTrees);
@@ -343,7 +348,7 @@ public static class RazorCodeDocumentExtensions
             var lastNamespaceContent = string.Empty;
             var lastNamespaceLocation = SourceSpan.Undefined;
 
-            if (document.GetImportSyntaxTrees() is ImmutableArray<RazorSyntaxTree> importSyntaxTrees)
+            if (document.GetImportSyntaxTrees() is { IsDefault: false } importSyntaxTrees)
             {
                 // ImportSyntaxTrees is usually set. Just being defensive.
                 foreach (var importSyntaxTree in importSyntaxTrees)

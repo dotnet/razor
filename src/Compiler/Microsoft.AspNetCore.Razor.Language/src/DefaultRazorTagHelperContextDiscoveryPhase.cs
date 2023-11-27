@@ -51,7 +51,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
             visitor = new TagHelperDirectiveVisitor(descriptors);
         }
 
-        if (codeDocument.GetImportSyntaxTrees() is ImmutableArray<RazorSyntaxTree> imports)
+        if (codeDocument.GetImportSyntaxTrees() is { IsDefault: false } imports)
         {
             foreach (var import in imports)
             {
