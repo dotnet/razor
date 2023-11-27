@@ -7851,6 +7851,42 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9592")]
+    public void GenericComponent_TypeParameterOrdering()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            
+            namespace Test;
+
+            public interface IInterfaceConstraint<T> { }
+
+            public interface IComposedInterface : IInterfaceConstraint<string> { }
+
+            public class MyComponent<TService, TKey> : ComponentBase
+                where TService : IInterfaceConstraint<TKey>
+            {
+                [Parameter] public TKey? Value { get; set; }
+                [Parameter] public EventCallback<TKey> ValueChanged { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent TKey="string" TService="IComposedInterface" @bind-Value="_componentValue" />
+            <MyComponent TService="IComposedInterface" TKey="string" @bind-Value="_componentValue" />
+
+            @code {
+                string _componentValue = string.Empty;
+            }
+            """,
+            nullableEnable: true);
+
+        // Assert
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Key
