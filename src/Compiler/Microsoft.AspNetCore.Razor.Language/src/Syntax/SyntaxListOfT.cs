@@ -82,7 +82,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
                 {
                     if (unchecked((uint)index < (uint)Node.SlotCount))
                     {
-                        return (TNode)Node.GetNodeSlot(index)!;
+                        return (TNode)Node.GetNodeSlot(index).AssumeNotNull();
                     }
                 }
                 else if (index == 0)
