@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -18,12 +19,18 @@ internal class RazorCompletionEndpoint : IVSCompletionEndpoint
 {
     private readonly CompletionListProvider _completionListProvider;
     private readonly ITelemetryReporter? _telemetryReporter;
+    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
     private VSInternalClientCapabilities? _clientCapabilities;
 
-    public RazorCompletionEndpoint(CompletionListProvider completionListProvider, ITelemetryReporter? telemetryReporter)
+    public RazorCompletionEndpoint(
+        CompletionListProvider completionListProvider,
+        ITelemetryReporter? telemetryReporter,
+        IOptionsMonitor<RazorLSPOptions> optionsMonitor
+    )
     {
         _completionListProvider = completionListProvider;
         _telemetryReporter = telemetryReporter;
+        _optionsMonitor = optionsMonitor;
     }
 
     public bool MutatesSolutionState => false;
@@ -63,6 +70,12 @@ internal class RazorCompletionEndpoint : IVSCompletionEndpoint
         if (request.Context is not VSInternalCompletionContext completionContext)
         {
             Debug.Fail("Completion context should never be null in practice");
+            return null;
+        }
+
+        var autoShownCompletion = completionContext.InvokeKind != VSInternalCompletionInvokeKind.Explicit;
+        if (autoShownCompletion && !_optionsMonitor.CurrentValue.AutoShowCompletion)
+        {
             return null;
         }
 
