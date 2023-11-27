@@ -116,12 +116,16 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
     public async Task ImpExprAcceptsDCIInStmtBlkAfterIdentifiers()
     {
         // ImplicitExpressionAcceptsDotlessCommitInsertionsInStatementBlockAfterIdentifiers
-        var changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                            + "    @DateTime." + Environment.NewLine
-                                            + "}");
-        var original = new StringTextSnapshot("@{" + Environment.NewLine
-                                        + "    @DateTime" + Environment.NewLine
-                                        + "}");
+        var changed = new StringTextSnapshot("""
+            @{
+                @DateTime.
+            }
+            """);
+        var original = new StringTextSnapshot("""
+            @{
+                @DateTime
+            }
+            """);
 
         var edit = new TestEdit(15 + Environment.NewLine.Length, 0, original, changed, ".");
         using (var manager = CreateParserManager(original))
@@ -140,17 +144,21 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
             ApplyAndVerifyPartialChange(edit, "DateTime.");
 
             original = changed;
-            changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                            + "    @DateTime.." + Environment.NewLine
-                                            + "}");
+            changed = new StringTextSnapshot("""
+                @{
+                    @DateTime..
+                }
+                """);
             edit = new TestEdit(16 + Environment.NewLine.Length, 0, original, changed, ".");
 
             ApplyAndVerifyPartialChange(edit, "DateTime..");
 
             original = changed;
-            changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                            + "    @DateTime.Now." + Environment.NewLine
-                                            + "}");
+            changed = new StringTextSnapshot("""
+                @{
+                    @DateTime.Now.
+                }
+                """);
             edit = new TestEdit(16 + Environment.NewLine.Length, 0, original, changed, "Now");
 
             ApplyAndVerifyPartialChange(edit, "DateTime.Now.");
@@ -161,12 +169,16 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
     public async Task ImpExprAcceptsDCIInStatementBlock()
     {
         // ImpExprAcceptsDotlessCommitInsertionsInStatementBlock
-        var changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                                + "    @DateT." + Environment.NewLine
-                                                + "}");
-        var original = new StringTextSnapshot("@{" + Environment.NewLine
-                                        + "    @DateT" + Environment.NewLine
-                                        + "}");
+        var changed = new StringTextSnapshot("""
+            @{
+                @DateT.
+            }
+            """);
+        var original = new StringTextSnapshot("""
+            @{
+                @DateT
+            }
+            """);
 
         var edit = new TestEdit(12 + Environment.NewLine.Length, 0, original, changed, ".");
         using (var manager = CreateParserManager(original))
@@ -184,9 +196,11 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
             ApplyAndVerifyPartialChange(edit, "DateT.");
 
             original = changed;
-            changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                            + "    @DateTime." + Environment.NewLine
-                                            + "}");
+            changed = new StringTextSnapshot("""
+                @{
+                    @DateTime.
+                }
+                """);
             edit = new TestEdit(12 + Environment.NewLine.Length, 0, original, changed, "ime");
 
             ApplyAndVerifyPartialChange(edit, "DateTime.");

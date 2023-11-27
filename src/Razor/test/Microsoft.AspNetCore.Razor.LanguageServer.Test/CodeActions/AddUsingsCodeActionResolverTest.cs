@@ -89,7 +89,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
         Assert.Single(textDocumentEdit.Edits);
         var firstEdit = textDocumentEdit.Edits.First();
         Assert.Equal(0, firstEdit.Range.Start.Line);
-        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+        Assert.Equal($"""
+            @using System
+
+            """, firstEdit.NewText);
     }
 
     [Fact]
@@ -97,7 +100,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@page \"/\"{Environment.NewLine}";
+        var contents = $"""
+            @page "/"
+
+            """;
         var codeDocument = CreateCodeDocument(contents);
 
         var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
@@ -120,7 +126,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
         Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
         var firstEdit = Assert.Single(textDocumentEdit.Edits);
         Assert.Equal(1, firstEdit.Range.Start.Line);
-        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+        Assert.Equal($"""
+            @using System
+
+            """, firstEdit.NewText);
     }
 
     [Fact]
@@ -128,7 +137,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     {
         // Arrange
         var documentPath = new Uri("c:/Test.cshtml");
-        var contents = $"@page{Environment.NewLine}@model IndexModel";
+        var contents = $"""
+            @page
+            @model IndexModel
+            """;
 
         var projectItem = new TestRazorProjectItem("c:/Test.cshtml", "c:/Test.cshtml", "Test.cshtml") { Content = contents };
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, (builder) =>
@@ -159,7 +171,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
         Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
         var firstEdit = Assert.Single(textDocumentEdit.Edits);
         Assert.Equal(1, firstEdit.Range.Start.Line);
-        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+        Assert.Equal($"""
+            @using System
+
+            """, firstEdit.NewText);
     }
 
     [Fact]
@@ -167,7 +182,12 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"<table>{Environment.NewLine}<tr>{Environment.NewLine}</tr>{Environment.NewLine}</table>";
+        var contents = $"""
+            <table>
+            <tr>
+            </tr>
+            </table>
+            """;
         var codeDocument = CreateCodeDocument(contents);
 
         var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
@@ -190,7 +210,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
         Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
         var firstEdit = Assert.Single(textDocumentEdit.Edits);
         Assert.Equal(0, firstEdit.Range.Start.Line);
-        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+        Assert.Equal($"""
+            @using System
+
+            """, firstEdit.NewText);
     }
 
     [Fact]
@@ -198,7 +221,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@namespace Testing{Environment.NewLine}";
+        var contents = $"""
+            @namespace Testing
+
+            """;
         var codeDocument = CreateCodeDocument(contents);
 
         var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
@@ -221,7 +247,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
         Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
         var firstEdit = Assert.Single(textDocumentEdit.Edits);
         Assert.Equal(1, firstEdit.Range.Start.Line);
-        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+        Assert.Equal($"""
+            @using System
+
+            """, firstEdit.NewText);
     }
 
     [Fact]
@@ -229,7 +258,11 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@page \"/\"{Environment.NewLine}@namespace Testing{Environment.NewLine}";
+        var contents = $"""
+            @page "/"
+            @namespace Testing
+
+            """;
         var codeDocument = CreateCodeDocument(contents);
 
         var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
@@ -252,7 +285,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
         Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
         var firstEdit = Assert.Single(textDocumentEdit.Edits);
         Assert.Equal(2, firstEdit.Range.Start.Line);
-        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+        Assert.Equal($"""
+            @using System
+
+            """, firstEdit.NewText);
     }
 
     [Fact]
@@ -283,7 +319,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
         Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
         var firstEdit = Assert.Single(textDocumentEdit.Edits);
         Assert.Equal(1, firstEdit.Range.Start.Line);
-        Assert.Equal($"@using System.Linq{Environment.NewLine}", firstEdit.NewText);
+        Assert.Equal($"""
+            @using System.Linq
+
+            """, firstEdit.NewText);
     }
 
     [Fact]
@@ -291,7 +330,11 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@using System{Environment.NewLine}@using System.Linq{Environment.NewLine}";
+        var contents = $"""
+            @using System
+            @using System.Linq
+
+            """;
         var codeDocument = CreateCodeDocument(contents);
 
         var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
@@ -314,7 +357,10 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
         Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
         var firstEdit = Assert.Single(textDocumentEdit.Edits);
         Assert.Equal(2, firstEdit.Range.Start.Line);
-        Assert.Equal($"@using Microsoft.AspNetCore.Razor.Language{Environment.NewLine}", firstEdit.NewText);
+        Assert.Equal($"""
+            @using Microsoft.AspNetCore.Razor.Language
+
+            """, firstEdit.NewText);
     }
 
     private static RazorCodeDocument CreateCodeDocument(string text)

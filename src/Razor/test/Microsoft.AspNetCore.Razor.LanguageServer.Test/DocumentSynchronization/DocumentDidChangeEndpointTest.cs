@@ -79,7 +79,10 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
                     End = new Position(0, 1)
                 },
                 RangeLength = 4,
-                Text = "i!" + Environment.NewLine
+                Text = """
+                    i!
+
+                    """
             },
             // Hi!
             //

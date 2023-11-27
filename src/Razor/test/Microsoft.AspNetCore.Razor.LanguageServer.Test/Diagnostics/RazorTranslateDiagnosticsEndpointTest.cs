@@ -773,7 +773,10 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
-        var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
+        var addTagHelper = $"""
+            @addTagHelper *, TestAssembly
+            
+            """;
         var codeDocument = CreateCodeDocument(
             $"{addTagHelper}<button></button>",
             ImmutableArray.Create(GetButtonTagHelperDescriptor().Build()));
@@ -802,7 +805,10 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
-        var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
+        var addTagHelper = $"""
+            @addTagHelper *, TestAssembly
+            
+            """;
         var codeDocument = CreateCodeDocument(
             $"{addTagHelper}<button></button>",
             ImmutableArray.Create(GetButtonTagHelperDescriptor().Build()));
@@ -909,7 +915,10 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
 
         var descriptor = GetButtonTagHelperDescriptor();
 
-        var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
+        var addTagHelper = $"""
+            @addTagHelper *, TestAssembly
+            
+            """;
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             $"{addTagHelper}<button onactivate=\"Send\" disabled=\"@(Something)\">Hi</button>",
             $"var __o = Send;var __o = Something;",

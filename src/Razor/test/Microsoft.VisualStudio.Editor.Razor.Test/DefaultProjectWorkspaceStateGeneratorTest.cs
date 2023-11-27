@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -62,7 +63,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public void Dispose_MakesUpdateNoop()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
+        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
@@ -79,7 +80,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public void Update_StartsUpdateTask()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
+        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
@@ -96,7 +97,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public void Update_SoftCancelsIncompleteTaskForSameProject()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
+        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
             stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
@@ -114,7 +115,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
+        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
             var projectManager = new TestProjectSnapshotManager(_workspace, Dispatcher);
@@ -138,7 +139,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
+        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
             var projectManager = new TestProjectSnapshotManager(_workspace, Dispatcher);
