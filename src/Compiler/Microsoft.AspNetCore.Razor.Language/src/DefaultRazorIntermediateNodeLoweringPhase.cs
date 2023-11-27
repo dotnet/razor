@@ -526,7 +526,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         /// </summary>
         protected readonly struct ChildNodesHelper(ChildSyntaxList list, int start = 0)
         {
-            public int Count { get; } = list.Count - start;
+            public int Count { get; } = Math.Max(list.Count - start, 0);
 
             public SyntaxNode this[int index] => list[start + index];
 
