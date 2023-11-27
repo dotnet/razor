@@ -539,7 +539,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             public bool TryCast<TNode>(out ImmutableArray<TNode> result)
             {
-                // Note that this intentionally returns true for for empty lists.
+                // Note that this intentionally returns true for empty lists.
                 // This behavior matches the expectations of code that previously called
                 // ".All(x => x is TNode)" followed by ".Cast<TNode>()" via LINQ.
                 // Because "All" would return true for empty lists, this method
