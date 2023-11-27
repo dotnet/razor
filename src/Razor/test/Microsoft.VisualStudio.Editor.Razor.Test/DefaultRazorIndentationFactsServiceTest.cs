@@ -36,7 +36,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void IsCSharpOpenCurlyBrace_SpanWithLeftBrace_ReturnTrue()
     {
         // Arrange
-        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
         builder.Add(SyntaxFactory.Token(SyntaxKind.LeftBrace, "{"));
         var child = SyntaxFactory.RazorMetaCode(builder.ToList(), chunkGenerator: null);
 
@@ -56,7 +56,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     {
         // Arrange
         var symbolType = (SyntaxKind)symbolTypeObject;
-        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
         builder.Add(SyntaxFactory.Token(symbolType, content));
         var child = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null);
 
@@ -71,7 +71,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void IsCSharpOpenCurlyBrace_MultipleSymbols_ReturnFalse()
     {
         // Arrange
-        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
         builder.Add(SyntaxFactory.Token(SyntaxKind.Identifier, "hello"));
         builder.Add(SyntaxFactory.Token(SyntaxKind.Comma, ","));
         var child = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null);
@@ -87,7 +87,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void IsCSharpOpenCurlyBrace_SpanWithHtmlSymbol_ReturnFalse()
     {
         // Arrange
-        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
         builder.Add(SyntaxFactory.Token(SyntaxKind.Text, "hello"));
         var child = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null);
 
