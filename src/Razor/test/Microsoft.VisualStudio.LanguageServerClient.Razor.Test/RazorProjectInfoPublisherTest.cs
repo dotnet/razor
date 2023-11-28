@@ -624,6 +624,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         private readonly bool _shouldSerialize;
         private readonly bool _useRealShouldSerialize;
+        private readonly bool _configurationFileExists;
 
         static TestRazorProjectInfoPublisher()
         {
@@ -636,17 +637,19 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
             ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
             Action<IProjectSnapshot, string> onSerializeToFile = null,
             bool shouldSerialize = true,
-            bool useRealShouldSerialize = false)
+            bool useRealShouldSerialize = false,
+            bool configurationFileExists = true)
             : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, TestRazorLogger.Instance)
         {
             _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
             _shouldSerialize = shouldSerialize;
             _useRealShouldSerialize = useRealShouldSerialize;
+            _configurationFileExists = configurationFileExists;
         }
 
         protected override bool FileExists(string file)
         {
-            return true;
+            return _configurationFileExists;
         }
 
         protected override void SerializeToFile(IProjectSnapshot projectSnapshot, string configurationFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, configurationFilePath);
