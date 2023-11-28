@@ -8,18 +8,13 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal class SyntaxNodeWriter : SyntaxRewriter
+internal class SyntaxNodeWriter(TextWriter writer, bool validateSpanEditHandlers) : SyntaxRewriter
 {
-    private readonly TextWriter _writer;
     private bool _visitedRoot;
-
-    public SyntaxNodeWriter(TextWriter writer)
-    {
-        _writer = writer;
-    }
 
     public int Depth { get; set; }
 
@@ -94,10 +89,17 @@ internal class SyntaxNodeWriter : SyntaxRewriter
 
         WriteChunkGenerator(node);
 
-        var annotation = node.GetAnnotations().FirstOrDefault(a => a.Kind == SyntaxConstants.EditHandlerKind);
-        if (annotation != null && annotation.Data is SpanEditHandler handler)
+        if (validateSpanEditHandlers)
         {
-            WriteEditHandler(handler);
+            var annotation = node.GetAnnotations().FirstOrDefault(a => a.Kind == SyntaxConstants.EditHandlerKind);
+            if (annotation != null && annotation.Data is SpanEditHandler handler)
+            {
+                WriteEditHandler(handler);
+            }
+        }
+        else
+        {
+            Assert.All(node.GetAnnotations(), a => Assert.IsNotType<SpanEditHandler>(a.Data));
         }
 
         if (!_visitedRoot)
@@ -210,7 +212,7 @@ internal class SyntaxNodeWriter : SyntaxRewriter
 
     protected void WriteNewLine()
     {
-        _writer.WriteLine();
+        writer.WriteLine();
     }
 
     protected void Write(object value)
@@ -218,11 +220,11 @@ internal class SyntaxNodeWriter : SyntaxRewriter
         if (value is string stringValue)
         {
             stringValue = stringValue.Replace("\r\n", "LF");
-            _writer.Write(stringValue);
+            writer.Write(stringValue);
             return;
         }
 
-        _writer.Write(value);
+        writer.Write(value);
     }
 
     private static bool ShouldDisplayNodeContent(SyntaxNode node)

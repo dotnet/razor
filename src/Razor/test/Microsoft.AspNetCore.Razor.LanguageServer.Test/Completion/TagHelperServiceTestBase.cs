@@ -184,6 +184,43 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch),
             TypeName("TestDirectiveAttribute"));
 
+        var directiveAttribute3 = TagHelperDescriptorBuilder.Create(ComponentMetadata.EventHandler.TagHelperKind, "OnClickDirectiveAttribute", "TestAssembly");
+        directiveAttribute3.TagMatchingRule(rule =>
+        {
+            rule.TagName = "*";
+            rule.RequireAttributeDescriptor(b =>
+            {
+                b.Name = "@onclick";
+                b.SetMetadata(MetadataCollection.Create(IsDirectiveAttribute));
+                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+            });
+        });
+        directiveAttribute3.TagMatchingRule(rule =>
+        {
+            rule.TagName = "*";
+            rule.RequireAttributeDescriptor(b =>
+            {
+                b.Name = "@onclick";
+                b.SetMetadata(MetadataCollection.Create(IsDirectiveAttribute));
+                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+            });
+        });
+        directiveAttribute3.BindAttribute(attribute =>
+        {
+            attribute.Name = "@onclick";
+            attribute.SetMetadata(PropertyName("onclick"), IsDirectiveAttribute, IsWeaklyTyped);
+            attribute.TypeName = "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs>";
+        });
+        directiveAttribute3.SetMetadata(
+            RuntimeName(ComponentMetadata.EventHandler.RuntimeName),
+            SpecialKind(ComponentMetadata.EventHandler.TagHelperKind),
+            new(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+            new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch),
+            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+            TypeName("OnClickDirectiveAttribute"),
+            TypeNamespace("Microsoft.AspNetCore.Components.Web"),
+            TypeNameIdentifier("EventHandlers"));
+
         var htmlTagMutator = TagHelperDescriptorBuilder.Create("HtmlMutator", "TestAssembly");
         htmlTagMutator.TagMatchingRule(rule =>
         {
@@ -208,6 +245,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             builder3.Build(),
             directiveAttribute1.Build(),
             directiveAttribute2.Build(),
+            directiveAttribute3.Build(),
             htmlTagMutator.Build());
 
         HtmlFactsService = new DefaultHtmlFactsService();
@@ -223,55 +261,6 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
     internal static RazorCodeDocument CreateCodeDocument(string text, bool isRazorFile, params TagHelperDescriptor[] tagHelpers)
     {
         return CreateCodeDocument(text, isRazorFile ? RazorFile : CSHtmlFile, tagHelpers);
-    }
-
-    protected static TextDocumentIdentifier GetIdentifier(bool isRazor)
-    {
-        var file = isRazor ? RazorFile : CSHtmlFile;
-        return new TextDocumentIdentifier
-        {
-            Uri = new Uri($"c:\\${file}")
-        };
-    }
-
-    internal static (Queue<VersionedDocumentContext>, Queue<TextDocumentIdentifier>) CreateDocumentContext(
-        DocumentContentVersion[] textArray,
-        bool[] isRazorArray,
-        ImmutableArray<TagHelperDescriptor> tagHelpers,
-        VersionStamp projectVersion = default,
-        int? documentVersion = null)
-    {
-        var documentContexts = new Queue<VersionedDocumentContext>();
-        var identifiers = new Queue<TextDocumentIdentifier>();
-        foreach (var (text, isRazorFile) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
-        {
-            var document = CreateCodeDocument(text.Content, isRazorFile, tagHelpers);
-
-            var projectSnapshot = new Mock<IProjectSnapshot>(MockBehavior.Strict);
-            projectSnapshot
-                .Setup(p => p.Version)
-                .Returns(projectVersion);
-
-            var documentSnapshot = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
-            var documentContext = new Mock<VersionedDocumentContext>(MockBehavior.Strict, new Uri("c:/path/to/file.razor"), documentSnapshot, /* projectContext */ null, 0);
-            documentContext.Setup(d => d.GetCodeDocumentAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(document);
-
-            documentContext.SetupGet(d => d.Version)
-                .Returns(documentVersion ?? Random.Shared.Next());
-
-            documentContext.Setup(d => d.Project)
-                .Returns(projectSnapshot.Object);
-
-            documentContext.Setup(d => d.GetSourceTextAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(document.GetSourceText()));
-
-            documentContexts.Enqueue(documentContext.Object);
-            var identifier = GetIdentifier(isRazorFile);
-            identifiers.Enqueue(identifier);
-        }
-
-        return (documentContexts, identifiers);
     }
 
     internal static RazorCodeDocument CreateCodeDocument(string text, string filePath, ImmutableArray<TagHelperDescriptor> tagHelpers)
@@ -292,6 +281,4 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
 
         return CreateCodeDocument(text, filePath, tagHelpers.ToImmutableArray());
     }
-
-    internal record DocumentContentVersion(string Content, int Version = 0);
 }

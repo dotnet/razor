@@ -130,11 +130,16 @@ internal abstract class TelemetryReporter : ITelemetryReporter
 
             var faultEvent = new FaultEvent(
                 eventName: GetEventName("fault"),
-                description: GetExceptionDetails(exception),
+                description: (message is null ? string.Empty : message + ": ") + GetExceptionDetails(exception),
                 FaultSeverity.General,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
+                    if (message is not null)
+                    {
+                        faultUtility.AddErrorInformation(message);
+                    }
+
                     foreach (var data in @params)
                     {
                         if (data is null)
@@ -208,7 +213,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         return exception.Message;
     }
 
-    private void Report(TelemetryEvent telemetryEvent)
+    protected virtual void Report(TelemetryEvent telemetryEvent)
     {
         try
         {
@@ -281,7 +286,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
             new("eventscope.languageservername", languageServerName),
             new("eventscope.correlationid", correlationId));
 
-        return BeginBlock("TrackLspRequest", Severity.Normal, 
+        return BeginBlock("TrackLspRequest", Severity.Normal,
             new("eventscope.method", lspMethodName),
             new("eventscope.languageservername", languageServerName),
             new("eventscope.correlationid", correlationId));

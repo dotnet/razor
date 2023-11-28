@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -35,7 +36,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void IsCSharpOpenCurlyBrace_SpanWithLeftBrace_ReturnTrue()
     {
         // Arrange
-        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
         builder.Add(SyntaxFactory.Token(SyntaxKind.LeftBrace, "{"));
         var child = SyntaxFactory.RazorMetaCode(builder.ToList(), chunkGenerator: null);
 
@@ -55,7 +56,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     {
         // Arrange
         var symbolType = (SyntaxKind)symbolTypeObject;
-        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
         builder.Add(SyntaxFactory.Token(symbolType, content));
         var child = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null);
 
@@ -70,7 +71,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void IsCSharpOpenCurlyBrace_MultipleSymbols_ReturnFalse()
     {
         // Arrange
-        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
         builder.Add(SyntaxFactory.Token(SyntaxKind.Identifier, "hello"));
         builder.Add(SyntaxFactory.Token(SyntaxKind.Comma, ","));
         var child = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null);
@@ -86,7 +87,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void IsCSharpOpenCurlyBrace_SpanWithHtmlSymbol_ReturnFalse()
     {
         // Arrange
-        var builder = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
         builder.Add(SyntaxFactory.Token(SyntaxKind.Text, "hello"));
         var child = SyntaxFactory.MarkupTextLiteral(builder.ToList(), chunkGenerator: null);
 
@@ -174,6 +175,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     </div>
 </div>
 ");
+        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(new StringTextSnapshot("something else"));
 
         // Act
@@ -192,9 +194,12 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void GetDesiredIndentation_ReturnsNull_IfOwningSpanIsCode()
     {
         // Arrange
-        var source = new StringTextSnapshot($@"
-@{{
-");
+        var source = new StringTextSnapshot("""
+
+            @{
+
+            """);
+        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source);
 
         // Act
@@ -217,6 +222,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
         var source = new StringTextSnapshot($@"
 @custom
 ");
+        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source, new[] { customDirective });
 
         // Act
@@ -235,9 +241,12 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void GetDesiredIndentation_ReturnsCorrectIndentation_ForMarkupWithinCodeBlock()
     {
         // Arrange
-        var source = new StringTextSnapshot($@"@{{
-    <div>
-");
+        var source = new StringTextSnapshot("""
+            @{
+                <div>
+
+            """);
+        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source);
 
         // Act
@@ -257,10 +266,13 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     {
         // Arrange
         var customDirective = DirectiveDescriptor.CreateRazorBlockDirective("custom");
-        var source = new StringTextSnapshot($@"@custom
-{{
-    <div>
-}}");
+        var source = new StringTextSnapshot("""
+            @custom
+            {
+                <div>
+            }
+            """);
+        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source, new[] { customDirective });
 
         // Act
@@ -279,13 +291,14 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     public void GetDesiredIndentation_ReturnsCorrectIndentation_ForNestedMarkupWithinCodeBlock()
     {
         // Arrange
-        var source = new StringTextSnapshot($@"
-<div>
-    @{{
-        <span>
-    }}
-</div>
-");
+        var source = new StringTextSnapshot("""
+            <div>
+                @{
+                    <span>
+                }
+            </div>
+            """);
+        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source);
 
         // Act
@@ -305,12 +318,16 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     {
         // Arrange
         var customDirective = DirectiveDescriptor.CreateRazorBlockDirective("custom");
-        var source = new StringTextSnapshot($@"@custom
-{{
-    @{{
-        <div>
-    }}
-}}");
+        var source = new StringTextSnapshot("""
+            @custom
+            {
+                @{
+                    <div>
+                }
+            }
+            """);
+
+        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
         var syntaxTree = GetSyntaxTree(source, new[] { customDirective });
 
         // Act
@@ -334,6 +351,8 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
             {
                 builder.AddDirective(directive);
             }
+
+            builder.Features.Add(new DefaultVisualStudioRazorParser.VisualStudioEnableTagHelpersFeature());
         });
 
         var sourceProjectItem = new TestRazorProjectItem("test.cshtml")
