@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -190,9 +192,15 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var documentPath = "c:/Test.razor";
         var contents = $$"""
             @page "/test"
-            {{codeDirective}} { private var x = 1; }
+            {|remove:{{codeDirective}}{|extract: { private var x = 1; }|}|}
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        TestFileMarkupParser.GetPositionAndSpans(
+            contents, out contents, out int cursorPosition,
+            out ImmutableDictionary<string, ImmutableArray<TextSpan>> namedSpans);
+
+        var extractSpan = namedSpans["extract"].Single();
+        var removeSpan = namedSpans["remove"].Single();
 
         var request = new VSCodeActionParams()
         {
@@ -216,10 +224,10 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(15, actionParams.RemoveStart);
-        Assert.Equal(20, actionParams.ExtractStart);
-        Assert.Equal(43, actionParams.ExtractEnd);
-        Assert.Equal(43, actionParams.RemoveEnd);
+        Assert.Equal(removeSpan.Start, actionParams.RemoveStart);
+        Assert.Equal(extractSpan.Start, actionParams.ExtractStart);
+        Assert.Equal(extractSpan.End, actionParams.ExtractEnd);
+        Assert.Equal(removeSpan.End, actionParams.RemoveEnd);
     }
 
     [Fact]
@@ -229,9 +237,15 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var documentPath = "c:/Test.razor";
         var contents = """
             @page "/test"
-            @code$${ private var x = 1; }
+            {|remove:@code$${|extract:{ private var x = 1; }|}|}
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        TestFileMarkupParser.GetPositionAndSpans(
+            contents, out contents, out int cursorPosition,
+            out ImmutableDictionary<string, ImmutableArray<TextSpan>> namedSpans);
+
+        var extractSpan = namedSpans["extract"].Single();
+        var removeSpan = namedSpans["remove"].Single();
 
         var request = new VSCodeActionParams()
         {
@@ -255,10 +269,11 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(15, actionParams.RemoveStart);
-        Assert.Equal(20, actionParams.ExtractStart);
-        Assert.Equal(42, actionParams.ExtractEnd);
-        Assert.Equal(42, actionParams.RemoveEnd);
+
+        Assert.Equal(removeSpan.Start, actionParams.RemoveStart);
+        Assert.Equal(extractSpan.Start, actionParams.ExtractStart);
+        Assert.Equal(extractSpan.End, actionParams.ExtractEnd);
+        Assert.Equal(removeSpan.End, actionParams.RemoveEnd);
     }
 
     [Fact]
@@ -298,9 +313,15 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var documentPath = "c:/Test.razor";
         var contents = """
             @page "/test"
-            @$$functions { private var x = 1; }
+            {|remove:@$$functions{|extract: { private var x = 1; }|}|}
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        TestFileMarkupParser.GetPositionAndSpans(
+            contents, out contents, out int cursorPosition,
+            out ImmutableDictionary<string, ImmutableArray<TextSpan>> namedSpans);
+
+        var extractSpan = namedSpans["extract"].Single();
+        var removeSpan = namedSpans["remove"].Single();
 
         var request = new VSCodeActionParams()
         {
@@ -324,10 +345,10 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(15, actionParams.RemoveStart);
-        Assert.Equal(25, actionParams.ExtractStart);
-        Assert.Equal(48, actionParams.ExtractEnd);
-        Assert.Equal(48, actionParams.RemoveEnd);
+        Assert.Equal(removeSpan.Start, actionParams.RemoveStart);
+        Assert.Equal(extractSpan.Start, actionParams.ExtractStart);
+        Assert.Equal(extractSpan.End, actionParams.ExtractEnd);
+        Assert.Equal(removeSpan.End, actionParams.RemoveEnd);
     }
 
     [Fact]
