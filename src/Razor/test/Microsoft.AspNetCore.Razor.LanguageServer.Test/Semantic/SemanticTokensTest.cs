@@ -7,7 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -22,6 +24,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,7 +35,7 @@ using Xunit.Abstractions;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 [UseExportProvider]
-public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
+public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
     private readonly Mock<ClientNotifierServiceBase> _languageServer = new(MockBehavior.Strict);
     private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase), layer: TestProject.Layer.Tooling);
@@ -45,6 +48,15 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
             Range = true
         }
     };
+
+    private static Regex s_matchNewLines = MyRegex();
+
+#if NET
+    [GeneratedRegex("\r\n")]
+    private static partial Regex MyRegex();
+#else
+    private static Regex MyRegex() => new Regex("\r\n|\r|\n");
+#endif
 
 #if GENERATE_BASELINES
     private bool GenerateBaselines { get; set; } = true;
@@ -851,11 +863,14 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
     public void GetMappedCSharpRanges_MinimalRangeVsSmallDisjointRanges_DisjointRangesAreSmaller(bool precise)
     {
         var documentText = """
-            @using System
-            @functions {
-                Action<object> abc = @<span></span>;
-            }
+            @[|using System|]
+            @functions {[|
+                Action<object> abc = |]@<span></span>[|;
+            |]}
             """;
+
+        TestFileMarkupParser.GetSpans(documentText, out documentText,
+            out ImmutableArray<TextSpan> spans);
 
         var codeDocument = CreateCodeDocument(documentText, isRazorFile: true, DefaultTagHelpers);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
@@ -863,19 +878,19 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
 
         if (precise)
         {
-            var expectedCsharpRangeLengths = new int[] { 12, 27, 3 };
             Assert.True(RazorSemanticTokensInfoService.TryGetSortedCSharpRanges(codeDocument, razorRange, out var csharpRanges));
-            Assert.Equal(3, csharpRanges.Length);
+            Assert.Equal(spans.Length, csharpRanges.Length);
             for (var i = 0; i < csharpRanges.Length; i++)
             {
                 var csharpRange = csharpRanges[i];
                 var textSpan = csharpRange.ToTextSpan(csharpSourceText);
-                Assert.Equal(expectedCsharpRangeLengths[i], textSpan.Length);
+                Assert.Equal(spans[i].Length, textSpan.Length);
             }
         }
         else
         {
-            var expectedCsharpRangeLength = 970;
+            // Note that the expected lengths are different on Windows vs. Unix.
+            var expectedCsharpRangeLength = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 970 : 938;
             Assert.True(RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out var csharpRange));
             var textSpan = csharpRange.ToTextSpan(csharpSourceText);
             Assert.Equal(expectedCsharpRangeLength, textSpan.Length);
@@ -1096,7 +1111,14 @@ public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperService
             return string.Empty;
         }
 
-        return semanticFile.ReadAllText();
+        var baselineContents = semanticFile.ReadAllText();
+
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            baselineContents = s_matchNewLines.Replace(baselineContents, "\n");
+        }
+
+        return baselineContents;
     }
 
     private Range[]? GetMappedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, bool precise)
