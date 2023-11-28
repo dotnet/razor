@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -200,16 +201,22 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = Path.Combine("C:", "externaldir", "obj", "Debug");
+        var releaseDirectory = Path.Combine("C:", "externaldir", "obj", "Release");
+
         var debugOutputPath = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = "C:\\externaldir\\obj\\Debug\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
+
         var releaseOutputPath = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = debugOutputPath.ProjectKeyId,
-            ConfigurationFilePath = "C:\\externaldir\\obj\\Release\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(releaseDirectory, "project.razor.bin")
         };
+
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
         // Act
@@ -217,7 +224,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         await configurationFileEndpoint.HandleNotificationAsync(releaseOutputPath, requestContext, DisposalToken);
 
         // Assert
-        Assert.Equal(new[] { "C:\\externaldir\\obj\\Debug", "C:\\externaldir\\obj\\Release" }, detector.StartedWithDirectory);
+        Assert.Equal([debugDirectory, releaseDirectory], detector.StartedWithDirectory);
         Assert.Equal(1, detector.StopCount);
     }
 
@@ -232,16 +239,22 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = Path.Combine("C:", "externaldir", "obj", "Debug");
+        var releaseDirectory = Path.Combine("C:", "dir", "obj", "Release");
+
         var externalRequest = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = TestProjectKey.Create("C:\\dir\\obj").Id,
-            ConfigurationFilePath = "C:\\externaldir\\obj\\Debug\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
+
         var internalRequest = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = externalRequest.ProjectKeyId,
-            ConfigurationFilePath = "C:\\dir\\obj\\Release\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(releaseDirectory, "project.razor.bin")
         };
+
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
         // Act
@@ -249,7 +262,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         await configurationFileEndpoint.HandleNotificationAsync(internalRequest, requestContext, DisposalToken);
 
         // Assert
-        Assert.Equal(new[] { "C:\\externaldir\\obj\\Debug" }, detector.StartedWithDirectory);
+        Assert.Equal([debugDirectory], detector.StartedWithDirectory);
         Assert.Equal(1, detector.StopCount);
     }
 
@@ -268,16 +281,22 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = Path.Combine("C:", "externaldir1", "obj", "Debug");
+        var releaseDirectory = Path.Combine("C:", "externaldir1", "obj", "Release");
+
         var debugOutputPath = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = TestProjectKey.Create("C:\\dir\\obj").Id,
-            ConfigurationFilePath = "C:\\externaldir1\\obj\\Debug\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
+
         var releaseOutputPath = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = debugOutputPath.ProjectKeyId,
-            ConfigurationFilePath = "C:\\externaldir1\\obj\\Release\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(releaseDirectory, "project.razor.bin")
         };
+
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
         // Act
@@ -315,21 +334,29 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory1 = Path.Combine("C:", "externaldir1", "obj", "Debug");
+        var releaseDirectory1 = Path.Combine("C:", "externaldir1", "obj", "Release");
+        var debugDirectory2 = Path.Combine("C:", "externaldir2", "obj", "Debug");
+
         var debugOutputPath1 = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = TestProjectKey.Create("C:\\dir\\obj").Id,
-            ConfigurationFilePath = "C:\\externaldir1\\obj\\Debug\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(debugDirectory1, "project.razor.bin")
         };
+
         var releaseOutputPath1 = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = debugOutputPath1.ProjectKeyId,
-            ConfigurationFilePath = "C:\\externaldir1\\obj\\Release\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(releaseDirectory1, "project.razor.bin")
         };
+
         var debugOutputPath2 = new MonitorProjectConfigurationFilePathParams()
         {
             ProjectKeyId = TestProjectKey.Create("C:\\dir\\obj2").Id,
-            ConfigurationFilePath = "C:\\externaldir2\\obj\\Debug\\project.razor.bin",
+            ConfigurationFilePath = Path.Combine(debugDirectory2, "project.razor.bin")
         };
+
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
         // Act
