@@ -44,4 +44,22 @@ public class HoverTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdito
         const string ExpectedResult = "string? SurveyPrompt.Title { get; set; }";
         Assert.Equal(ExpectedResult, hoverString);
     }
+
+    [IdeFact]
+    public async Task Hover_OverHTMLWithCatchAll()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.SetTextAsync("""
+            <button @onclick="@OnClick">Click me</button>
+            """, HangMitigatingCancellationToken);
+
+        // Act
+        var hoverString = await TestServices.Editor.GetHoverStringAsync(3, ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        const string ExpectedResult = "The button element represents a button labeled by it's contents.";
+        Assert.Equal(ExpectedResult, hoverString);
+    }
 }
