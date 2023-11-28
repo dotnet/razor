@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -108,7 +109,9 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var documentResolver = new TestDocumentResolver(documentSnapshot);
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, documentResolver, _documentVersionCache, LoggerFactory);
 
-        var hostProject = new HostProject(@"C:\goo", @"C:\goo\obj", RazorConfiguration.Default, rootNamespace: null);
+        var projectFilePath = Path.Combine("C:", "goo");
+        var intermediateOutputPath = Path.Combine(projectFilePath, "obj");
+        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         _projectSnapshotManagerBase.ProjectAdded(hostProject);
         var hostDocument = new HostDocument(uri.GetAbsoluteOrUNCPath(), "file.cshtml");
         _projectSnapshotManagerBase.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(uri.GetAbsoluteOrUNCPath()));
@@ -132,7 +135,9 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var documentResolverMock = new Mock<ISnapshotResolver>(MockBehavior.Strict);
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, documentResolverMock.Object, _documentVersionCache, LoggerFactory);
 
-        var hostProject = new HostProject(@"C:\goo", @"C:\goo\obj", RazorConfiguration.Default, rootNamespace: null);
+        var projectFilePath = Path.Combine("C:", "goo");
+        var intermediateOutputPath = Path.Combine(projectFilePath, "obj");
+        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         _projectSnapshotManagerBase.ProjectAdded(hostProject);
         var hostDocument = new HostDocument(uri.GetAbsoluteOrUNCPath(), "file.cshtml");
         _projectSnapshotManagerBase.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(uri.GetAbsoluteOrUNCPath()));
