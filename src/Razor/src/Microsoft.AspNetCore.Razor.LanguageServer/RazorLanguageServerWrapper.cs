@@ -74,10 +74,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
         messageFormatter.JsonSerializer.AddVSInternalExtensionConverters();
         messageFormatter.JsonSerializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input, messageFormatter))
-        {
-            ExceptionStrategy = ExceptionProcessing.ISerializable
-        };
+        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input, messageFormatter));
 
         return jsonRpc;
     }
