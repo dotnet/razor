@@ -8339,6 +8339,23 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9625")]
+    public void Component_WithRef_Generic_SystemInNamespace()
+    {
+        var generated = CompileToCSharp("""
+            @namespace X.Y.System.Z
+            @typeparam T
+
+            <TestComponent Param="Param" @ref="comp" />
+
+            @code {
+                private TestComponent<T?>? comp;
+                [Parameter] public T? Param { get; set; }
+            }
+            """, nullableEnable: true);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Templates
