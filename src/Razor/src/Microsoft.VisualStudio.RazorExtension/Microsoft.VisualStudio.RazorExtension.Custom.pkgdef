@@ -57,7 +57,7 @@
 
 [$RootKey$\FeatureFlags\Razor\LSP\UsePreciseSemanticTokenRanges]
 "Description"="Use precise semantic token ranges when requesting semantic token information on razor files. Note: This is experimental, some actions may not apply correctly, or at all!"
-"Value"=dword:00000000
+"Value"=dword:00000001
 "Title"="Use precise semantic token ranges when requesting semantic token information on Razor files (requires restart)"
 "PreviewPaneChannels"="*"
 "VisibleToInternalUsersOnlyChannels"="*"
