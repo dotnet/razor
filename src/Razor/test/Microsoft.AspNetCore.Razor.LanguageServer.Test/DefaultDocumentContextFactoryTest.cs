@@ -39,7 +39,8 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateAsync_CanNotResolveDocument_ReturnsNull()
     {
         // Arrange
-        var uri = new Uri("C:/path/to/file.cshtml");
+        var filePath = PathUtilities.CreateRootedPath("path", "to", "file.cshtml");
+        var uri = new Uri(filePath);
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
 
         // Act
@@ -53,7 +54,8 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateForOpenDocumentAsync_CanNotResolveDocument_ReturnsNull()
     {
         // Arrange
-        var uri = new Uri("C:/path/to/file.cshtml");
+        var filePath = PathUtilities.CreateRootedPath("path", "to", "file.cshtml");
+        var uri = new Uri(filePath);
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
 
         // Act
@@ -67,7 +69,8 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateForOpenDocumentAsync_CanNotResolveVersion_ReturnsNull()
     {
         // Arrange
-        var uri = new Uri("C:/path/to/file.cshtml");
+        var filePath = PathUtilities.CreateRootedPath("path", "to", "file.cshtml");
+        var uri = new Uri(filePath);
         var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
         var documentResolver = new TestDocumentResolver(documentSnapshot);
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, documentResolver, _documentVersionCache, LoggerFactory);
@@ -83,7 +86,8 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateAsync_ResolvesContent()
     {
         // Arrange
-        var uri = new Uri("C:/path/to/file.cshtml");
+        var filePath = PathUtilities.CreateRootedPath("path", "to", "file.cshtml");
+        var uri = new Uri(filePath);
         var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
@@ -103,7 +107,8 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateAsync_WithProjectContext_Resolves()
     {
         // Arrange
-        var uri = new Uri("C:/path/to/file.cshtml");
+        var filePath = PathUtilities.CreateRootedPath("path", "to", "file.cshtml");
+        var uri = new Uri(filePath);
         var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
@@ -129,7 +134,8 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateAsync_WithProjectContext_DoesntUseSnapshotResolver()
     {
         // Arrange
-        var uri = new Uri("C:/path/to/file.cshtml");
+        var filePath = PathUtilities.CreateRootedPath("path", "to", "file.cshtml");
+        var uri = new Uri(filePath);
         var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
@@ -156,7 +162,8 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public async Task TryCreateForOpenDocumentAsync_ResolvesContent()
     {
         // Arrange
-        var uri = new Uri("C:/path/to/file.cshtml");
+        var filePath = PathUtilities.CreateRootedPath("path", "to", "file.cshtml");
+        var uri = new Uri(filePath);
         var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
