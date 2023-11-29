@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -109,7 +110,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var documentResolver = new TestDocumentResolver(documentSnapshot);
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, documentResolver, _documentVersionCache, LoggerFactory);
 
-        var projectFilePath = Path.Combine("C:", "goo");
+        var projectFilePath = PathUtilities.CreateRootedPath("goo");
         var intermediateOutputPath = Path.Combine(projectFilePath, "obj");
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         _projectSnapshotManagerBase.ProjectAdded(hostProject);
@@ -135,7 +136,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var documentResolverMock = new Mock<ISnapshotResolver>(MockBehavior.Strict);
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, documentResolverMock.Object, _documentVersionCache, LoggerFactory);
 
-        var projectFilePath = Path.Combine("C:", "goo");
+        var projectFilePath = PathUtilities.CreateRootedPath("goo");
         var intermediateOutputPath = Path.Combine(projectFilePath, "obj");
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         _projectSnapshotManagerBase.ProjectAdded(hostProject);

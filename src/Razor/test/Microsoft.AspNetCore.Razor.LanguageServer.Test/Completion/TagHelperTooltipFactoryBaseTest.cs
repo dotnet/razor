@@ -361,7 +361,7 @@ There is no xml, but I got you this < and the >.
         var tagHelpers = ImmutableArray.Create(builder.Build());
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.Default);
 
-        var baseDirectory = Path.Combine("C:", "path", "to");
+        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
         var razorFilePath = Path.Combine(baseDirectory, "file.razor");
         var projectFilePath = Path.Combine(baseDirectory, "project.csproj");
 
@@ -385,7 +385,7 @@ There is no xml, but I got you this < and the >.
         var tagHelpers = ImmutableArray.Create(builder.Build());
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.Default);
 
-        var baseDirectory = Path.Combine("C:", "path", "to");
+        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
         var razorFilePath = Path.Combine(baseDirectory, "file.razor");
         var projectFilePath = Path.Combine(baseDirectory, "project.csproj");
         var baseIntermediateOutputPath = Path.Combine(baseDirectory, "obj");
@@ -422,7 +422,7 @@ There is no xml, but I got you this < and the >.
         var tagHelpers = ImmutableArray.Create(builder.Build());
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.Default);
 
-        var baseDirectory = Path.Combine("C:", "path", "to");
+        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
         var razorFilePath = Path.Combine(baseDirectory, "file.razor");
         var projectFilePath = Path.Combine(baseDirectory, "project.csproj");
         var baseIntermediateOutputPath = Path.Combine(baseDirectory, "obj");
@@ -458,7 +458,7 @@ There is no xml, but I got you this < and the >.
     [Fact]
     public void GetAvailableProjects_NotAvailableInAnyProject_ReturnsText()
     {
-        var baseDirectory = Path.Combine("C:", "path", "to");
+        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
         var razorFilePath = Path.Combine(baseDirectory, "file.razor");
         var projectFilePath = Path.Combine(baseDirectory, "project.csproj");
         var baseIntermediateOutputPath = Path.Combine(baseDirectory, "obj");
