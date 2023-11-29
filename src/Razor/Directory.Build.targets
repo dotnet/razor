@@ -11,5 +11,5 @@
     <None Include="**\*_NetFx\**\*.*" />
   </ItemGroup>
 
-  <Import Project="$(RepoRoot)Directory.Build.targets" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
 </Project>
