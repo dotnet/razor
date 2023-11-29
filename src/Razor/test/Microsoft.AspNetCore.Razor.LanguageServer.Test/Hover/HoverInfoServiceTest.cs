@@ -764,10 +764,10 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
     {
         // Arrange
         var input = """
-                @addTagHelper *, Test$$Assembly
+            @addTagHelper *, Test$$Assembly
 
-                <test1></test1>
-                """;
+            <test1></test1>
+            """;
 
         // Act
         var result = await GetResultFromSingleServerEndpointAsync(input);
@@ -781,10 +781,15 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
         var rawContainer = (ContainerElement)result.RawContent;
         var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
 
+        if (embeddedContainerElement.Elements.FirstOrDefault() is ContainerElement headerContainer)
+        {
+            embeddedContainerElement = headerContainer;
+        }
+
         var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
         var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
         // Hover info is for a string
-        Assert.StartsWith("Represents text as a sequence of UTF-16", text);
+        Assert.StartsWith("class System.String", text);
     }
 
     private async Task<VSInternalHover> GetResultFromSingleServerEndpointAsync(string input)
