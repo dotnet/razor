@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
-public class FilePathNormalizerTest(ITestOutputHelper testOutput) : TestBase(testOutput)
+public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [OSSkipConditionFact(new[] { "OSX", "Linux" })]
     public void Normalize_Windows_StripsPrecedingSlash()
@@ -34,6 +34,45 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : TestBase(tes
 
         // Assert
         Assert.Equal("//ComputerName/path/to/something", path);
+    }
+
+    [Fact]
+    public void NormalizeDirectory_DedupesBackSlashes()
+    {
+        // Arrange
+        var directory = @"C:\path\to\\directory\";
+
+        // Act
+        var normalized = FilePathNormalizer.NormalizeDirectory(directory);
+
+        // Assert
+        Assert.Equal("C:/path/to/directory/", normalized);
+    }
+
+    [Fact]
+    public void NormalizeDirectory_DedupesForwardSlashes()
+    {
+        // Arrange
+        var directory = "C:/path/to//directory/";
+
+        // Act
+        var normalized = FilePathNormalizer.NormalizeDirectory(directory);
+
+        // Assert
+        Assert.Equal("C:/path/to/directory/", normalized);
+    }
+
+    [Fact]
+    public void NormalizeDirectory_DedupesMismatchedSlashes()
+    {
+        // Arrange
+        var directory = "C:\\path\\to\\/directory\\";
+
+        // Act
+        var normalized = FilePathNormalizer.NormalizeDirectory(directory);
+
+        // Assert
+        Assert.Equal("C:/path/to/directory/", normalized);
     }
 
     [Fact]

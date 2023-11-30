@@ -8,11 +8,14 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpWhitespaceHandlingTest : ParserTestBase
+public class CSharpWhitespaceHandlingTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void StmtBlockDoesNotAcceptTrailingNewlineIfTheyAreSignificantToAncestor()
     {
-        ParseDocumentTest("@{@: @if (true) { }" + Environment.NewLine + "}");
+        ParseDocumentTest("""
+            @{@: @if (true) { }
+            }
+            """);
     }
 }

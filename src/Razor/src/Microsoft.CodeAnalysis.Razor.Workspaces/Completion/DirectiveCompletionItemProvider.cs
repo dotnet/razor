@@ -140,7 +140,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
         {
             var completionDisplayText = directive.DisplayName ?? directive.Directive;
             var commitCharacters = GetDirectiveCommitCharacters(directive.Kind);
-            
+
             var completionItem = new RazorCompletionItem(
                 completionDisplayText,
                 directive.Directive,
@@ -150,7 +150,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
             var completionDescription = new DirectiveCompletionDescription(directive.Description);
             completionItem.SetDirectiveCompletionDescription(completionDescription);
             completionItems.Add(completionItem);
-            
+
             if (s_singleLineDirectiveSnippets.TryGetValue(directive.Directive, out var snippetTexts))
             {
                 var snippetCompletionItem = new RazorCompletionItem(
@@ -159,7 +159,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
                     RazorCompletionItemKind.Directive,
                     commitCharacters: commitCharacters,
                     isSnippet: true);
-                
+
                 var snippetDescription = "@" + snippetTexts.DisplayText
                                              + Environment.NewLine
                                              + SR.DirectiveSnippetDescription;
@@ -184,9 +184,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
     // Internal for testing
     internal static bool IsDirectiveCompletableToken(AspNetCore.Razor.Language.Syntax.SyntaxToken token)
     {
-        return token.Kind == SyntaxKind.Identifier ||
-            // Marker symbol
-            token.Kind == SyntaxKind.Marker ||
-            token.Kind == SyntaxKind.Keyword;
+        return token is { Kind: SyntaxKind.Identifier or SyntaxKind.Marker or SyntaxKind.Keyword }
+                     or { Kind: SyntaxKind.Transition, Parent.Kind: SyntaxKind.CSharpTransition };
     }
 }

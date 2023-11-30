@@ -15,7 +15,7 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class RazorSyntaxTreePartialParserTest : ParserTestBase
+public class RazorSyntaxTreePartialParserTest : ToolingParserTestBase
 {
     private const string NewLine = "\r\n";
 
@@ -23,6 +23,8 @@ public class RazorSyntaxTreePartialParserTest : ParserTestBase
         : base(testOutput)
     {
     }
+
+    protected override bool EnableSpanEditHandlers => true;
 
     public static TheoryData TagHelperPartialParseRejectData
     {
@@ -409,6 +411,8 @@ public class RazorSyntaxTreePartialParserTest : ParserTestBase
             {
                 builder.AddTagHelpers(tagHelpers);
             }
+
+            builder.Features.Add(new DefaultVisualStudioRazorParser.VisualStudioEnableTagHelpersFeature());
         });
 
         return projectEngine;

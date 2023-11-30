@@ -5,9 +5,9 @@
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>839cdfb0ecca5e0be3dbccd926e7651ef50fdf10</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.23519.2">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.23565.2">
       <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
-      <Sha>d3fbf3c3d4c4f142ea12efceaa6efece9ad2e6b5</Sha>
+      <Sha>b5ceed90b72d1b05975dd95fedd86c2455969adb</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.9.0-1.23525.14">
@@ -24,10 +24,6 @@
       <Sha>21bf9a49939411ab683f1a272fd184ed9e459f45</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler" Version="4.9.0-1.23525.14">
-      <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>21bf9a49939411ab683f1a272fd184ed9e459f45</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" Version="4.9.0-1.23525.14">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>21bf9a49939411ab683f1a272fd184ed9e459f45</Sha>
     </Dependency>
@@ -98,15 +94,14 @@
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>3a25a7f1cc446b60678ed25c9d829420d6321eba</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.23524.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.23577.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>3b9d8a14dfad67dc3a5c18734db967d3ad173537</Sha>
+      <Sha>b0d70fdfda08b94b367f5bf1b91ab4c219091255</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="1.0.0-beta.23523.1" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
-      <Uri>https://github.com/dotnet/xliff-tasks</Uri>
-      <Sha>83531fff1a39abe38de53e2e6b702bc1bb9c3bb4</Sha>
-      <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="9.0.0-beta.23577.2">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>b0d70fdfda08b94b367f5bf1b91ab4c219091255</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages
          to be retrieved from live source-build and their content consumed by packages produced by razor.

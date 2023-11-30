@@ -19,7 +19,7 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class RazorDocumentMappingServiceTest : TestBase
+public class RazorDocumentMappingServiceTest : ToolingTestBase
 {
     private readonly FilePathService _filePathService;
 
@@ -400,7 +400,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapToHostDocumentRange_Inferred_OutOfOrderMappings_DoesntThrow()
     {
         // Real world repo is something like:
-        // 
+        //
         // <Component1>
         //    @if (true)
         //    {
@@ -751,7 +751,10 @@ public class RazorDocumentMappingServiceTest : TestBase
         var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.SetMetadata(TypeName("TestTagHelper"));
-        var text = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test>@Name</test>";
+        var text = """
+            @addTagHelper *, TestAssembly
+            <test>@Name</test>
+            """;
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
@@ -768,7 +771,10 @@ public class RazorDocumentMappingServiceTest : TestBase
         var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.SetMetadata(TypeName("TestTagHelper"));
-        var text = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test></test>@DateTime.Now";
+        var text = """
+            @addTagHelper *, TestAssembly
+            <test></test>@DateTime.Now
+            """;
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
@@ -791,7 +797,10 @@ public class RazorDocumentMappingServiceTest : TestBase
             builder.SetMetadata(PropertyName("AspInt"));
         });
         descriptor.SetMetadata(TypeName("TestTagHelper"));
-        var text = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test asp-int='123'></test>";
+        var text = """
+            @addTagHelper *, TestAssembly
+            <test asp-int='123'></test>
+            """;
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
@@ -847,7 +856,10 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void GetLanguageKindCore_GetsLastClassifiedSpanLanguageIfAtEndOfDocument()
     {
         // Arrange
-        var text = $"<strong>Something</strong>{Environment.NewLine}<App>";
+        var text = """
+            <strong>Something</strong>
+            <App>
+            """;
         var classifiedSpans = ImmutableArray.Create<ClassifiedSpanInternal>(
            new(new SourceSpan(0, 0),
                blockSpan: new SourceSpan(absoluteIndex: 0, lineIndex: 0, characterIndex: 0, length: text.Length),

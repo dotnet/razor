@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
@@ -28,6 +29,7 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly ITelemetryReporter _telemetryReporter;
     private readonly EventHandler? _onChangedOnDisk;
     private readonly EventHandler? _onChangedInEditor;
     private readonly EventHandler _onOpened;
@@ -40,20 +42,12 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
     public ProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} called before {nameof(Initialize)}");
 
     [ImportingConstructor]
-    public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
+    public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext, ITelemetryReporter telemetryReporter)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
+        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
 
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _joinableTaskContext = joinableTaskContext;
         _onChangedOnDisk = Document_ChangedOnDisk;
         _onChangedInEditor = Document_ChangedInEditor;
         _onOpened = Document_Opened;
@@ -77,6 +71,8 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
         _onChangedInEditor = onChangedInEditor;
         _onOpened = onOpened;
         _onClosed = onClosed;
+
+        _telemetryReporter = null!;
     }
 
     [MemberNotNull(nameof(_documentManager), nameof(_projectManager))]
@@ -101,50 +97,54 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
             switch (e.Kind)
             {
                 case ProjectChangeKind.DocumentAdded:
-                {
-                    // Don't do any work if the solution is closing
-                    if (e.SolutionIsClosing)
                     {
-                        return;
+                        // Don't do any work if the solution is closing
+                        if (e.SolutionIsClosing)
+                        {
+                            return;
+                        }
+
+                        var key = new DocumentKey(e.ProjectKey, e.DocumentFilePath.AssumeNotNull());
+
+                        // GetOrCreateDocument needs to be run on the UI thread
+                        await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
+
+                        var document = DocumentManager.GetOrCreateDocument(
+                            key, e.ProjectFilePath, e.ProjectKey, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+                        if (document.IsOpenInEditor)
+                        {
+                            _onOpened(document, EventArgs.Empty);
+                        }
+
+                        break;
                     }
-
-                    var key = new DocumentKey(e.ProjectKey, e.DocumentFilePath.AssumeNotNull());
-
-                    // GetOrCreateDocument needs to be run on the UI thread
-                    await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
-
-                    var document = DocumentManager.GetOrCreateDocument(
-                        key, e.ProjectFilePath, e.ProjectKey, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
-                    if (document.IsOpenInEditor)
-                    {
-                        _onOpened(document, EventArgs.Empty);
-                    }
-
-                    break;
-                }
 
                 case ProjectChangeKind.DocumentRemoved:
-                {
-                    // Need to run this even if the solution is closing because document dispose cleans up file watchers etc.
-
-                    // TryGetDocument and Dispose need to be run on the UI thread
-                    await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
-
-                    if (DocumentManager.TryGetDocument(
-                        new DocumentKey(e.ProjectKey, e.DocumentFilePath.AssumeNotNull()), out var document))
                     {
-                        // This class 'owns' the document entry so it's safe for us to dispose it.
-                        document.Dispose();
-                    }
+                        // Need to run this even if the solution is closing because document dispose cleans up file watchers etc.
 
-                    break;
-                }
+                        // TryGetDocument and Dispose need to be run on the UI thread
+                        await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
+
+                        if (DocumentManager.TryGetDocument(
+                            new DocumentKey(e.ProjectKey, e.DocumentFilePath.AssumeNotNull()), out var document))
+                        {
+                            // This class 'owns' the document entry so it's safe for us to dispose it.
+                            document.Dispose();
+                        }
+
+                        break;
+                    }
             }
         }
         catch (Exception ex)
         {
-            Debug.Fail("EditorDocumentManagerListener.ProjectManager_Changed threw exception:" +
-                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            Debug.Fail($"""
+                EditorDocumentManagerListener.ProjectManager_Changed threw exception:
+                {ex.Message}
+                Stack trace:
+                {ex.StackTrace}
+                """);
         }
     }
 
@@ -167,8 +167,12 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
         }
         catch (Exception ex)
         {
-            Debug.Fail("EditorDocumentManagerListener.Document_ChangedOnDisk threw exception:" +
-                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            Debug.Fail($"""
+                EditorDocumentManagerListener.Document_ChangedOnDisk threw exception:
+                {ex.Message}
+                Stack trace:
+                {ex.StackTrace}
+                """);
         }
     }
 
@@ -192,8 +196,12 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
         }
         catch (Exception ex)
         {
-            Debug.Fail("EditorDocumentManagerListener.Document_ChangedInEditor threw exception:" +
-                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            Debug.Fail($"""
+                EditorDocumentManagerListener.Document_ChangedInEditor threw exception:
+                {ex.Message}
+                Stack trace:
+                {ex.StackTrace}
+                """);
         }
     }
 
@@ -213,13 +221,31 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var document = (EditorDocument)sender;
+
+                var project = ProjectManager.GetLoadedProject(document.ProjectKey);
+                if (project is ProjectSnapshot { HostProject: FallbackHostProject } projectSnapshot)
+                {
+                    // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
+                    // so fire some telemetry. We can't log details about the project, for PII reasons, but we can use document count and tag helper count
+                    // as some kind of measure of complexity.
+                    _telemetryReporter.ReportEvent(
+                        "fallbackproject/documentopen",
+                        Severity.Normal,
+                        new Property("document.count", projectSnapshot.DocumentCount),
+                        new Property("taghelper.count", projectSnapshot.TagHelpers.Length));
+                }
+
                 ProjectManager.DocumentOpened(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
             }, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            Debug.Fail("EditorDocumentManagerListener.Document_Opened threw exception:" +
-                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            Debug.Fail($"""
+                EditorDocumentManagerListener.Document_Opened threw exception:
+                {ex.Message}
+                Stack trace:
+                {ex.StackTrace}
+                """);
         }
     }
 
@@ -243,8 +269,12 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
         }
         catch (Exception ex)
         {
-            Debug.Fail("EditorDocumentManagerListener.Document_Closed threw exception:" +
-                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            Debug.Fail($"""
+                EditorDocumentManagerListener.Document_Closed threw exception:
+                {ex.Message}
+                Stack trace:
+                {ex.StackTrace}
+                """);
         }
     }
 }

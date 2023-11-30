@@ -5,16 +5,17 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-public class DirectiveAttributeTransitionCompletionItemProviderTest : TestBase
+public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTestBase
 {
     private static readonly RazorCompletionItem s_transitionCompletionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
 
@@ -144,19 +145,6 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : TestBase
     }
 
     [Fact]
-    public void GetCompletionItems_OutsideOfFile_ReturnsEmptyList()
-    {
-        // Arrange
-        var context = CreateContext(absoluteIndex: 50, "<input  />");
-
-        // Act
-        var result = _provider.GetCompletionItems(context);
-
-        // Assert
-        Assert.Empty(result);
-    }
-
-    [Fact]
     public void GetCompletionItems_NonAttribute_ReturnsEmptyList()
     {
         // Arrange
@@ -186,7 +174,10 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : TestBase
     public void GetCompletionItems_InbetweenSelfClosingEnd_ReturnsEmptyList()
     {
         // Arrange
-        var context = CreateContext(absoluteIndex: 8, "<input /" + Environment.NewLine);
+        var context = CreateContext(absoluteIndex: 8, """
+            <input /
+            
+            """);
 
         // Act
         var result = _provider.GetCompletionItems(context);
@@ -264,6 +255,19 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : TestBase
     }
 
     [Fact]
+    public void GetCompletionItems_ExistingAttribute_TrailingEdgeOnSpace_ReturnsEmptyList()
+    {
+        // Arrange
+        var context = CreateContext(absoluteIndex: 16, "<input src=\"xyz\"   />");
+
+        // Act
+        var result = _provider.GetCompletionItems(context);
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
     public void GetCompletionItems_ExistingAttribute_Partial_ReturnsEmptyList()
     {
         // Arrange
@@ -318,8 +322,8 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : TestBase
     private RazorCompletionContext CreateContext(int absoluteIndex, string documentContent, string fileKind = null)
     {
         var syntaxTree = GetSyntaxTree(documentContent, fileKind);
-        var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(queryableChange);
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex, new DefaultHtmlFactsService());
         var context = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, _tagHelperDocumentContext);
         return context;
     }

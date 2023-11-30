@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
-public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
+public class ChecksumTests(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     public static IEnumerable<object[]> Checksums
     {
@@ -142,5 +142,18 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
                 }
             }
         }
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909377")]
+    public void TestLargeString()
+    {
+        object? largeString = RazorTestResources.GetResourceText("FormattingTest.razor");
+
+        var builder = new Checksum.Builder();
+        builder.AppendData(largeString);
+
+        var result = builder.FreeAndGetChecksum();
+
+        Assert.NotNull(result);
     }
 }

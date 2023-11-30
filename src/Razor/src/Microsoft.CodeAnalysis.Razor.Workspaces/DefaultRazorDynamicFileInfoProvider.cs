@@ -29,19 +29,21 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly FilePathService _filePathService;
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly FallbackProjectManager _fallbackProjectManager;
 
     [ImportingConstructor]
     public DefaultRazorDynamicFileInfoProvider(
         RazorDocumentServiceProviderFactory factory,
         LSPEditorFeatureDetector lspEditorFeatureDetector,
         FilePathService filePathService,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        FallbackProjectManager fallbackProjectManager)
     {
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _lspEditorFeatureDetector = lspEditorFeatureDetector ?? throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
         _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-
+        _fallbackProjectManager = fallbackProjectManager ?? throw new ArgumentNullException(nameof(fallbackProjectManager));
         _entries = new ConcurrentDictionary<Key, Entry>();
         _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
     }
@@ -244,10 +246,12 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         // We are activated for all Roslyn projects that have a .cshtml or .razor file, but they are not necessarily
         // C# projects that we expect.
         var projectKey = TryFindProjectKeyForProjectId(projectId);
-        if (!projectKey.HasValue)
+        if (projectKey is not { } razorProjectKey)
         {
             return Task.FromResult<RazorDynamicFileInfo?>(null);
         }
+
+        _fallbackProjectManager.DynamicFileAdded(projectId, razorProjectKey, projectFilePath, filePath);
 
         var key = new Key(projectId, filePath);
         var entry = _entries.GetOrAdd(key, _createEmptyEntry);
@@ -265,6 +269,14 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         {
             throw new ArgumentNullException(nameof(filePath));
         }
+
+        var projectKey = TryFindProjectKeyForProjectId(projectId);
+        if (projectKey is not { } razorProjectKey)
+        {
+            return Task.CompletedTask;
+        }
+
+        _fallbackProjectManager.DynamicFileRemoved(projectId, razorProjectKey, projectFilePath, filePath);
 
         // ---------------------------------------------------------- NOTE & CAUTION --------------------------------------------------------------
         //

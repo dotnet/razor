@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -29,32 +27,12 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-// Sets the FileName static variable.
-// Finds the test method name using reflection, and uses
-// that to find the expected input/output test files in the file system.
-[IntializeTestFile]
-
-// These tests must be run serially due to the test specific FileName static var.
-[Collection("FormattingTestSerialRuns")]
-public class FormattingTestBase : RazorIntegrationTestBase
+public class FormattingTestBase : RazorToolingIntegrationTestBase
 {
-    private static readonly AsyncLocal<string> s_fileName = new();
-
     public FormattingTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        TestProjectPath = GetProjectDirectory();
-
         ILoggerExtensions.TestOnlyLoggingEnabled = true;
-    }
-
-    public static string? TestProjectPath { get; private set; }
-
-    // Used by the test framework to set the 'base' name for test files.
-    public static string FileName
-    {
-        get { return s_fileName.Value!; }
-        set { s_fileName.Value = value; }
     }
 
     private protected async Task RunFormattingTestAsync(
@@ -87,7 +65,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             InsertSpaces = insertSpaces,
         };
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
@@ -130,7 +108,8 @@ public class FormattingTestBase : RazorIntegrationTestBase
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(
+            LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -197,7 +176,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             throw new InvalidOperationException("Could not map from Razor document to generated document");
         }
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,

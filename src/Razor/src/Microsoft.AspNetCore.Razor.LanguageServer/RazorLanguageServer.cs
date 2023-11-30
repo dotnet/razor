@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
@@ -163,8 +164,6 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
         services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
 
-        services.AddSingleton<IFaultExceptionHandler, JsonRPCFaultExceptionHandler>();
-
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
         // appinsights keys etc
@@ -181,7 +180,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         static void AddHandlers(IServiceCollection services)
         {
-            // Not calling AddHandler because we want to register this endpoint as an IOnIntialized too
+            // Not calling AddHandler because we want to register this endpoint as an IOnInitialized too
             services.AddSingleton<RazorConfigurationEndpoint>();
             services.AddSingleton<IMethodHandler, RazorConfigurationEndpoint>(s => s.GetRequiredService<RazorConfigurationEndpoint>());
             // Transient because it should only be used once and I'm hoping it doesn't stick around.

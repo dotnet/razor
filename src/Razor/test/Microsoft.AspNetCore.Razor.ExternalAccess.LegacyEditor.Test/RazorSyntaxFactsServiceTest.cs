@@ -9,7 +9,7 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.Test;
 
-public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorProjectEngineTestBase(testOutput)
+public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorToolingProjectEngineTestBase(testOutput)
 {
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Latest;
 
@@ -88,7 +88,7 @@ public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorPr
             .Metadata(TypeName("TestTagHelper"))
             .Build();
 
-        var engine = CreateProjectEngine();
+        var engine = CreateProjectEngine(builder => builder.Features.Add(new VisualStudioEnableTagHelpersFeature()));
 
         var sourceDocument = TestRazorSourceDocument.Create(source, normalizeNewLines: true);
         var importDocument = TestRazorSourceDocument.Create("@addTagHelper *, TestAssembly", filePath: "import.cshtml", relativePath: "import.cshtml");
@@ -96,5 +96,15 @@ public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorPr
         var codeDocument = engine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, importSources: ImmutableArray.Create(importDocument), new []{ taghelper });
 
         return RazorWrapperFactory.WrapCodeDocument(codeDocument);
+    }
+
+    private class VisualStudioEnableTagHelpersFeature : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature
+    {
+        public int Order => 0;
+
+        public void Configure(RazorParserOptionsBuilder options)
+        {
+            options.EnableSpanEditHandlers = true;
+        }
     }
 }

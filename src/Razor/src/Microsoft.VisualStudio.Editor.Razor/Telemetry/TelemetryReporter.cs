@@ -85,19 +85,18 @@ internal abstract class TelemetryReporter : ITelemetryReporter
 
     private static void AddToProperties(IDictionary<string, object?> properties, Property property)
     {
-        if (IsNumericValue(property.Value))
-        {
-            properties.Add(GetPropertyName(property.Name), property.Value);
-        }
-        else
+        if (IsComplexValue(property.Value))
         {
             properties.Add(GetPropertyName(property.Name), new TelemetryComplexProperty(property.Value));
         }
-
-        static bool IsNumericValue(object? o)
+        else
         {
-            return o is Type { IsEnum: false } type &&
-                   Type.GetTypeCode(type) is >= TypeCode.Char and <= TypeCode.Double;
+            properties.Add(GetPropertyName(property.Name), property.Value);
+        }
+
+        static bool IsComplexValue(object? o)
+        {
+            return o?.GetType() is Type type && Type.GetTypeCode(type) == TypeCode.Object;
         }
     }
 
@@ -131,11 +130,16 @@ internal abstract class TelemetryReporter : ITelemetryReporter
 
             var faultEvent = new FaultEvent(
                 eventName: GetEventName("fault"),
-                description: GetExceptionDetails(exception),
+                description: (message is null ? string.Empty : message + ": ") + GetExceptionDetails(exception),
                 FaultSeverity.General,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
+                    if (message is not null)
+                    {
+                        faultUtility.AddErrorInformation(message);
+                    }
+
                     foreach (var data in @params)
                     {
                         if (data is null)
@@ -209,7 +213,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         return exception.Message;
     }
 
-    private void Report(TelemetryEvent telemetryEvent)
+    protected virtual void Report(TelemetryEvent telemetryEvent)
     {
         try
         {
@@ -277,7 +281,12 @@ internal abstract class TelemetryReporter : ITelemetryReporter
             return TelemetryScope.Null;
         }
 
-        return BeginBlock("TrackLspRequest", Severity.Normal, 
+        ReportEvent("BeginLspRequest", Severity.Normal,
+            new("eventscope.method", lspMethodName),
+            new("eventscope.languageservername", languageServerName),
+            new("eventscope.correlationid", correlationId));
+
+        return BeginBlock("TrackLspRequest", Severity.Normal,
             new("eventscope.method", lspMethodName),
             new("eventscope.languageservername", languageServerName),
             new("eventscope.correlationid", correlationId));

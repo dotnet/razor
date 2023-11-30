@@ -26,6 +26,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     private const string AutoInsertAttributeQuotesName = "AutoInsertAttributeQuotes";
     private const string ColorBackgroundName = "ColorBackground";
     private const string CommitElementsWithSpaceName = "CommitElementsWithSpace";
+    private const string SnippetsName = "Snippets";
 
     public bool FormatOnType
     {
@@ -57,6 +58,12 @@ internal class OptionsStorage : IAdvancedSettingsStorage
         set => SetBool(CommitElementsWithSpaceName, value);
     }
 
+    public SnippetSetting Snippets
+    {
+        get => (SnippetSetting)GetInt(SnippetsName, (int)SnippetSetting.All);
+        set => SetInt(SnippetsName, (int)value);
+    }
+
     [ImportingConstructor]
     public OptionsStorage(SVsServiceProvider vsServiceProvider, ITelemetryReporter telemetryReporter)
     {
@@ -69,7 +76,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
 
     public event EventHandler<ClientAdvancedSettingsChangedEventArgs>? Changed;
 
-    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CommitElementsWithSpace);
+    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CommitElementsWithSpace, Snippets);
 
     public bool GetBool(string name, bool defaultValue)
     {
@@ -84,6 +91,24 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     public void SetBool(string name, bool value)
     {
         _writableSettingsStore.SetBoolean(Collection, name, value);
+        _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, new Property(name, value));
+
+        NotifyChange();
+    }
+
+    public int GetInt(string name, int defaultValue)
+    {
+        if (_writableSettingsStore.PropertyExists(Collection, name))
+        {
+            return _writableSettingsStore.GetInt32(Collection, name);
+        }
+
+        return defaultValue;
+    }
+
+    public void SetInt(string name, int value)
+    {
+        _writableSettingsStore.SetInt32(Collection, name, value);
         _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, new Property(name, value));
 
         NotifyChange();

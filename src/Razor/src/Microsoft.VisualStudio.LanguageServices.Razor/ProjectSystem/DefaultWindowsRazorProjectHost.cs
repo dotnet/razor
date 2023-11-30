@@ -279,7 +279,6 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         return true;
     }
 
-    // Internal for testing
     internal static bool TryGetRootNamespace(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
         [NotNullWhen(returnValue: true)] out string? rootNamespace)
