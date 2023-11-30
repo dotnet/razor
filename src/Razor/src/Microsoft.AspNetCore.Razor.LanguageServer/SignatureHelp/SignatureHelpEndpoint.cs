@@ -47,7 +47,7 @@ internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<Si
         if (request.Context is not null && request.Context.TriggerKind != SignatureHelpTriggerKind.Invoked && !_optionsMonitor.CurrentValue.AutoListParams)
         {
             // Return nothing is "Parameter Information" option is disabled unless signature help is invoked explicitly via command as opposed to typing or content change
-            return Task.FromResult((IDelegatedParams?)null);
+            return Task.FromResult<IDelegatedParams?>(null);
         }
 
         var documentContext = requestContext.GetRequiredDocumentContext();
