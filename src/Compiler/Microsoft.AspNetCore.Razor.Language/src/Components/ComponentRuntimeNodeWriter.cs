@@ -630,15 +630,16 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
     {
+        if (node.Children.Count > 1)
+        {
+            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
+            // We render the children anyway, so tooling works.
+        }
+
         if (node.AttributeStructure == AttributeStructure.Minimized)
         {
             // Minimized attributes always map to 'true'
             context.CodeWriter.Write("true");
-        }
-        else if (node.Children.Count > 1)
-        {
-            // We don't expect this to happen, we just want to know if it can.
-            throw new InvalidOperationException("Attribute nodes should either be minimized or a single type of content." + string.Join(", ", node.Children));
         }
         else if (node.Children.Count == 1 && node.Children[0] is HtmlContentIntermediateNode htmlNode)
         {
@@ -944,6 +945,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
     {
+        if (node.Children.Count > 1)
+        {
+            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
+        }
+
         // string __formName = expression;
         context.CodeWriter.Write("string ");
         context.CodeWriter.Write(_scopeStack.FormNameVarName);
@@ -1010,7 +1016,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         // global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode0 = expression;
         WriteCSharpCode(context, new CSharpCodeIntermediateNode
         {
-            Source = node.Source,
             Children =
             {
                 new IntermediateToken
@@ -1018,7 +1023,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     Kind = TokenKind.CSharp,
                     Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "
                 },
-                node.Children[0],
+                new CSharpCodeIntermediateNode
+                {
+                    Source = node.Source,
+                    Children = { node.Children[0] }
+                },
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,

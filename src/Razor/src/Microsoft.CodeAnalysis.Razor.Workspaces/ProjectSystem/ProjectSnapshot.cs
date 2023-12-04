@@ -34,11 +34,15 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
 
+    public int DocumentCount => State.Documents.Count;
+
     public string FilePath => State.HostProject.FilePath;
 
     public string IntermediateOutputPath => State.HostProject.IntermediateOutputPath;
 
     public string? RootNamespace => State.HostProject.RootNamespace;
+
+    public string DisplayName => State.HostProject.DisplayName;
 
     public LanguageVersion CSharpLanguageVersion => State.CSharpLanguageVersion;
 

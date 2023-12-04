@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"66a1fd3b9b40b304a7d1864845d2b7ab0f5f5c8a98d810ff8f97a245644661a9", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"66a1fd3b9b40b304a7d1864845d2b7ab0f5f5c8a98d810ff8f97a245644661a9", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_TagHelpersInSection_Runtime
     {
         #line hidden
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
                     __tagHelperExecutionContext = __tagHelperScopeManager.Begin("nestedtaghelper", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                         WriteLiteral("Some buffered values with ");
 #nullable restore
-#line (11,56)-(11,60) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
+#line (11,57)-(11,61) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
 Write(code);
 
 #line default
@@ -75,7 +75,7 @@ Write(code);
                 BeginWriteTagHelperAttribute();
                 WriteLiteral("Current Time: ");
 #nullable restore
-#line (9,51)-(9,63) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
+#line (9,52)-(9,64) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
 WriteLiteral(DateTime.Now);
 
 #line default
@@ -88,7 +88,7 @@ WriteLiteral(DateTime.Now);
                 AddHtmlAttributeValue("", 188, "Current", 188, 7, true);
                 AddHtmlAttributeValue(" ", 195, "Time:", 196, 6, true);
 #nullable restore
-#line (9,95)-(9,109) 32 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
+#line (9,96)-(9,110) 32 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
 AddHtmlAttributeValue(" ", 201, DateTime.Now, 202, 13, false);
 
 #line default

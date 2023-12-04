@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"a9d16af76d3b638c489fe4ce4511816619e1713e1515ec0ce13b898e140dde7d", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"a9d16af76d3b638c489fe4ce4511816619e1713e1515ec0ce13b898e140dde7d", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorComments_Runtime
     {
         #pragma warning disable 1998
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #nullable disable
             WriteLiteral("<p>But this should show the comment syntax: ");
 #nullable restore
-#line (13,45)-(13,48) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml"
+#line (13,46)-(13,49) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml"
 Write(bar);
 
 #line default
@@ -49,7 +49,7 @@ Write(bar);
 #nullable disable
             WriteLiteral("</p>\r\n\r\n");
 #nullable restore
-#line (15,2)-(15,3) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml"
+#line (15,3)-(15,4) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml"
 Write(ab);
 
 #line default

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
@@ -136,7 +137,7 @@ internal abstract class HtmlFactsService
         "wbr",
     };
 
-    public abstract bool TryGetElementInfo(SyntaxNode element, out SyntaxToken containingTagNameToken, out SyntaxList<RazorSyntaxNode> attributeNodes);
+    public abstract bool TryGetElementInfo(SyntaxNode element, out SyntaxToken containingTagNameToken, out SyntaxList<RazorSyntaxNode> attributeNodes, out SyntaxToken closingForwardSlashOrCloseAngleToken);
 
     public abstract bool TryGetAttributeInfo(
         SyntaxNode attribute,

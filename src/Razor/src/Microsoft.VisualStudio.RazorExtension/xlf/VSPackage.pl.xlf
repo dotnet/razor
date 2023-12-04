@@ -67,6 +67,16 @@
         <target state="translated">Tło dla kodu języka C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for Html elements and components</source>
+        <target state="translated">Jeśli ma wartość true, naciśnięcie klawisza Spacja spowoduje zatwierdzenie sugestii dotyczących elementów i składników HTML</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit Elements with Space</source>
+        <target state="translated">Zatwierdź elementy za pomocą klawisza Spacja</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">Jeśli ma wartość „prawda”, formatowanie będzie włączone podczas pisania</target>
@@ -75,6 +85,31 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">Formatuj według typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsAll">
+        <source>All</source>
+        <target state="translated">Wszystkie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsCustom">
+        <source>Custom</source>
+        <target state="translated">Niestandardowe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">Jakie fragmenty kodu należy uwzględnić w pliku Razor. Jeśli zostanie ustawiona wartość niestandardowa, będą wyświetlane tylko fragmenty kodu, które nie są dołączone do programu Visual Studio. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">Uwzględnione fragmenty kodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsNone">
+        <source>None</source>
+        <target state="translated">Brak</target>
         <note />
       </trans-unit>
       <trans-unit id="Typing">

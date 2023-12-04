@@ -174,8 +174,12 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         }
         catch (Exception ex)
         {
-            Debug.Fail("DefaultVisualStudioRazorParser.QueueReparse threw exception:" +
-                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            Debug.Fail($"""
+                DefaultVisualStudioRazorParser.QueueReparse threw exception:
+                {ex.Message}
+                Stack trace:
+                {ex.StackTrace}
+                """);
         }
     }
 
@@ -466,8 +470,12 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         }
         catch (Exception ex)
         {
-            Debug.Fail("DefaultVisualStudioRazorParser.OnResultsReady threw exception:" +
-                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            Debug.Fail($"""
+                DefaultVisualStudioRazorParser.OnResultsReady threw exception:
+                {ex.Message}
+                Stack trace:
+                {ex.StackTrace}
+                """);
         }
     }
 
@@ -519,6 +527,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         builder.SetRootNamespace(projectSnapshot?.RootNamespace);
         builder.Features.Add(new VisualStudioParserOptionsFeature(_documentTracker.EditorSettings));
         builder.Features.Add(new VisualStudioTagHelperFeature(_documentTracker.TagHelpers));
+        builder.Features.Add(new VisualStudioEnableTagHelpersFeature());
     }
 
     private void UpdateParserState(RazorCodeDocument codeDocument, ITextSnapshot snapshot)
@@ -621,6 +630,17 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         public IReadOnlyList<TagHelperDescriptor>? GetDescriptors()
         {
             return _tagHelpers;
+        }
+    }
+
+    // Internal for testing
+    internal class VisualStudioEnableTagHelpersFeature : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature
+    {
+        public int Order => 0;
+
+        public void Configure(RazorParserOptionsBuilder options)
+        {
+            options.EnableSpanEditHandlers = true;
         }
     }
 

@@ -19,7 +19,7 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class RazorDocumentMappingServiceTest : TestBase
+public class RazorDocumentMappingServiceTest : ToolingTestBase
 {
     private readonly FilePathService _filePathService;
 
@@ -397,6 +397,47 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
+    public void TryMapToHostDocumentRange_Inferred_OutOfOrderMappings_DoesntThrow()
+    {
+        // Real world repo is something like:
+        //
+        // <Component1>
+        //    @if (true)
+        //    {
+        //        <Component2 att="val"
+        //                    onclick="() => thing()""    <-- note double quotes
+        //                    att2="val" />
+        //    }
+        // </Component1>
+        //
+        // Ends up with an unterminated string in the generated code, and a "missing }" diagnostic
+        // that has some very strange mappings!
+
+        // Arrange
+        var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var codeDoc = CreateCodeDocumentWithCSharpProjection(
+            "@{ var abc = @<unclosed></unclosed>",
+            " var abc =  (__builder) => { }",
+            new SourceMapping[] { new(new(30, 1), new (2, 1)), new(new(28, 2), new(30, 2)), });
+        var projectedRange = new LinePositionSpan(new LinePosition(0, 25), new LinePosition(0, 25));
+
+        // Act
+        var result = service.TryMapToHostDocumentRange(
+            codeDoc.GetCSharpDocument(),
+            projectedRange,
+            MappingBehavior.Inferred,
+            out var originalRange);
+
+        // Assert
+        // We're really just happy this doesn't throw an exception. The behaviour is to map to the end of the file
+        Assert.True(result);
+        Assert.Equal(0, originalRange.Start.Line);
+        Assert.Equal(31, originalRange.Start.Character);
+        Assert.Equal(0, originalRange.End.Line);
+        Assert.Equal(35, originalRange.End.Character);
+    }
+
+    [Fact]
     public void TryMapToGeneratedDocumentPosition_NotMatchingAnyMapping()
     {
         // Arrange
@@ -710,7 +751,10 @@ public class RazorDocumentMappingServiceTest : TestBase
         var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.SetMetadata(TypeName("TestTagHelper"));
-        var text = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test>@Name</test>";
+        var text = """
+            @addTagHelper *, TestAssembly
+            <test>@Name</test>
+            """;
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
@@ -727,7 +771,10 @@ public class RazorDocumentMappingServiceTest : TestBase
         var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.SetMetadata(TypeName("TestTagHelper"));
-        var text = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test></test>@DateTime.Now";
+        var text = """
+            @addTagHelper *, TestAssembly
+            <test></test>@DateTime.Now
+            """;
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
@@ -750,7 +797,10 @@ public class RazorDocumentMappingServiceTest : TestBase
             builder.SetMetadata(PropertyName("AspInt"));
         });
         descriptor.SetMetadata(TypeName("TestTagHelper"));
-        var text = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test asp-int='123'></test>";
+        var text = """
+            @addTagHelper *, TestAssembly
+            <test asp-int='123'></test>
+            """;
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
@@ -806,7 +856,10 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void GetLanguageKindCore_GetsLastClassifiedSpanLanguageIfAtEndOfDocument()
     {
         // Arrange
-        var text = $"<strong>Something</strong>{Environment.NewLine}<App>";
+        var text = """
+            <strong>Something</strong>
+            <App>
+            """;
         var classifiedSpans = ImmutableArray.Create<ClassifiedSpanInternal>(
            new(new SourceSpan(0, 0),
                blockSpan: new SourceSpan(absoluteIndex: 0, lineIndex: 0, characterIndex: 0, length: text.Length),
@@ -1017,7 +1070,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder => { });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", Array.Empty<RazorSourceDocument>(), tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", importSources: default, tagHelpers);
         return codeDocument;
     }
 
@@ -1029,7 +1082,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             projectedCSharpSource,
             RazorCodeGenerationOptions.CreateDefault(),
             Enumerable.Empty<RazorDiagnostic>(),
-            sourceMappings,
+            sourceMappings.ToImmutableArray(),
             Enumerable.Empty<LinePragma>());
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;

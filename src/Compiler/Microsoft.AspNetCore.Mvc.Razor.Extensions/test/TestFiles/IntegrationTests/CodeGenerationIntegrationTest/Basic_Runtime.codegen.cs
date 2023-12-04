@@ -12,7 +12,7 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc;
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"3b732a30f94dc763cbd74d150cca70825dbddec2bddfba4e4d82547d5ced9a82", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"3b732a30f94dc763cbd74d150cca70825dbddec2bddfba4e4d82547d5ced9a82", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -25,7 +25,7 @@ namespace AspNetCore
             WriteLiteral("<div");
             BeginWriteAttribute("class", " class=\"", 4, "\"", 28, 1);
 #nullable restore
-#line (1,12)-(1,28) 28 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+#line (1,13)-(1,29) 28 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
 WriteAttributeValue("", 12, this.ToString(), 12, 16, false);
 
 #line default
@@ -34,7 +34,7 @@ WriteAttributeValue("", 12, this.ToString(), 12, 16, false);
             EndWriteAttribute();
             WriteLiteral(">\r\n    Hello world\r\n    ");
 #nullable restore
-#line (3,5)-(3,34) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+#line (3,6)-(3,35) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
 Write(string.Format("{0}", "Hello"));
 
 #line default
@@ -61,7 +61,7 @@ Write(string.Format("{0}", "Hello"));
 #line hidden
 #nullable disable
 #nullable restore
-#line (8,30)-(8,33) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+#line (8,31)-(8,34) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
 Write(cls);
 
 #line default

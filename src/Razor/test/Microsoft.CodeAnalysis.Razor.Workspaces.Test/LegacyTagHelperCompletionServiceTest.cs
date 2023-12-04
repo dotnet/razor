@@ -16,7 +16,7 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) : TestBase(testOutput)
+public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1452432")]
@@ -1356,7 +1356,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
         {
             var actualValue = actual.Completions[expectedCompletion.Key];
             Assert.NotNull(actualValue);
-            Assert.Equal(expectedCompletion.Value, actualValue, TagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedCompletion.Value, actualValue);
         }
     }
 
@@ -1368,7 +1368,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
         {
             var actualValue = actual.Completions[expectedCompletion.Key];
             Assert.NotNull(actualValue);
-            Assert.Equal(expectedCompletion.Value, actualValue, BoundAttributeDescriptorComparer.Default);
+            Assert.Equal(expectedCompletion.Value, actualValue);
         }
     }
 

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Test.Legacy;
@@ -45,11 +44,17 @@ public class CSharpCodeParserTest
                         }
                     },
                     {
-                        "th" + Environment.NewLine,
+                        """
+                        th
+
+                        """,
                         directiveLocation,
                         new[]
                         {
-                            InvalidPrefixError(2 + Environment.NewLine.Length, Environment.NewLine[0], "th" + Environment.NewLine),
+                            InvalidPrefixError(2 + Environment.NewLine.Length, Environment.NewLine[0], """
+                            th
+
+                            """),
                         }
                     },
                     {
@@ -197,7 +202,15 @@ public class CSharpCodeParserTest
     {
         // Arrange
         var expectedDiagnostic = RazorDiagnosticFactory.CreateParsing_DuplicateDirective(
-            new SourceSpan(null, 22 + Environment.NewLine.Length, 1, 0, 16), "tagHelperPrefix");
+            new SourceSpan(
+                filePath: null,
+                absoluteIndex: 22 + Environment.NewLine.Length,
+                lineIndex: 1,
+                characterIndex: 0,
+                length: 16,
+                lineCount: 1,
+                endCharacterIndex: 0),
+            "tagHelperPrefix");
         var source = TestRazorSourceDocument.Create(
             @"@tagHelperPrefix ""th:""
 @tagHelperPrefix ""th""",

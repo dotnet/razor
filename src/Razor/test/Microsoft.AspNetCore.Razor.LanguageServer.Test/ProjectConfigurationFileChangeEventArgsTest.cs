@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testOutput) : TestBase(testOutput)
+public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
     public void TryDeserialize_RemovedKind_ReturnsFalse()
@@ -27,6 +27,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
                 "c:/path/to/project.csproj",
                 configuration: null,
                 rootNamespace: null,
+                displayName: "project",
                 projectWorkspaceState: null,
                 documents: ImmutableArray<DocumentSnapshotHandle>.Empty));
 
@@ -54,6 +55,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
             "c:/path/to/project.csproj",
             configuration: null,
             rootNamespace: null,
+            displayName: "project",
             projectWorkspaceState: null,
             documents: ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -84,6 +86,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
             "c:/path/to/project.csproj",
             configuration: null,
             rootNamespace: null,
+            displayName: "project",
             projectWorkspaceState: null,
             documents: ImmutableArray<DocumentSnapshotHandle>.Empty);
 

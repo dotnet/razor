@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -26,14 +25,12 @@ internal class OOPTagHelperResolver : ITagHelperResolver
     private readonly ProjectSnapshotProjectEngineFactory _factory;
     private readonly IErrorReporter _errorReporter;
     private readonly Workspace _workspace;
-    private readonly ITelemetryReporter _telemetryReporter;
 
     public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, IErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
     {
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
         _workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
-        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
 
         _innerResolver = new CompilationTagHelperResolver(telemetryReporter);
         _resultCache = new TagHelperResultCache();
@@ -167,8 +164,8 @@ internal class OOPTagHelperResolver : ITagHelperResolver
             var fetchedTagHelpers = fetchResult.Value.TagHelpers;
             if (fetchedTagHelpers.IsEmpty)
             {
-                // If we didn't receive any tag helpers, somthing catastrophic happened in the Roslyn OOP
-                // when calling FetchTaghelpersAsync(...).
+                // If we didn't receive any tag helpers, something catastrophic happened in the Roslyn OOP
+                // when calling FetchTagHelpersAsync(...).
                 throw new InvalidOperationException("Tag helpers could not be fetched from the Roslyn OOP.");
             }
 
@@ -177,7 +174,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
             foreach (var tagHelper in fetchedTagHelpers)
             {
                 tagHelpers.Add(tagHelper);
-                cache.TryAdd(tagHelper.GetChecksum(), tagHelper);
+                cache.TryAdd(tagHelper.Checksum, tagHelper);
             }
         }
 
@@ -187,16 +184,10 @@ internal class OOPTagHelperResolver : ITagHelperResolver
     // Protected virtual for testing
     protected virtual ImmutableArray<Checksum> ProduceChecksumsFromDelta(ProjectId projectId, int lastResultId, TagHelperDeltaResult deltaResult)
     {
-        using var _ = StopwatchPool.GetPooledObject(out var stopWatch);
-        stopWatch.Restart();
-
-        var fromCache = true;
-
         if (!_resultCache.TryGet(projectId, lastResultId, out var checksums))
         {
             // We most likely haven't made a request to the server yet so there's no delta to apply
             checksums = ImmutableArray<Checksum>.Empty;
-            fromCache = false;
 
             if (deltaResult.IsDelta)
             {
@@ -209,7 +200,6 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         {
             // Not a delta based response, we should treat it as a "refresh"
             checksums = ImmutableArray<Checksum>.Empty;
-            fromCache = false;
         }
 
         if (deltaResult.ResultId != lastResultId)
@@ -217,13 +207,6 @@ internal class OOPTagHelperResolver : ITagHelperResolver
             // New results, lets build a coherent TagHelper collection and then cache it
             checksums = deltaResult.Apply(checksums);
             _resultCache.Set(projectId, deltaResult.ResultId, checksums);
-            fromCache = false;
-        }
-
-        stopWatch.Stop();
-        if (fromCache)
-        {
-            _telemetryReporter.ReportEvent("taghelpers.fromcache", Severity.Normal, ImmutableDictionary<string, object?>.Empty.Add("taghelper.cachedresult.ellapsedms", stopWatch.ElapsedMilliseconds));
         }
 
         return checksums;

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -59,7 +60,7 @@ internal sealed class HoverInfoService : IHoverInfoService
         _htmlFactsService = htmlFactsService;
     }
 
-    public VSInternalHover? GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities)
+    public VSInternalHover? GetHoverInfo(string documentFilePath, RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities)
     {
         if (codeDocument is null)
         {
@@ -91,13 +92,13 @@ internal sealed class HoverInfoService : IHoverInfoService
         // belongs to, or in other words, the exact same tag! To work around this we just make sure we
         // only check nodes that are at a different location in the file.
         var ownerStart = owner.SpanStart;
-        var ancestors = owner.Ancestors().Where(n => n.SpanStart != ownerStart);
-        var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
 
-        if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes) &&
+        if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
             containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
         {
             // Hovering over HTML tag name
+            var ancestors = owner.Ancestors().Where(n => n.SpanStart != ownerStart);
+            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
             var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
             var binding = _tagHelperFactsService.GetTagHelperBinding(
                 tagHelperDocumentContext,
@@ -117,7 +118,7 @@ internal sealed class HoverInfoService : IHoverInfoService
 
                 var range = containingTagNameToken.GetRange(codeDocument.Source);
 
-                var result = ElementInfoToHover(binding.Descriptors, range, clientCapabilities);
+                var result = ElementInfoToHover(documentFilePath, binding.Descriptors, range, clientCapabilities);
                 return result;
             }
         }
@@ -125,6 +126,12 @@ internal sealed class HoverInfoService : IHoverInfoService
         if (_htmlFactsService.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
             selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true)
         {
+            // When finding parents for attributes, we make sure to find the parent of the containing tag, otherwise these methods
+            // would return the parent of the attribute, which is not helpful, as its just going to be the containing element
+            var containingTag = containingTagNameToken.Parent;
+            var ancestors = containingTag.Ancestors().Where<SyntaxNode>(n => n.SpanStart != containingTag.SpanStart);
+            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
+
             // Hovering over HTML attribute name
             var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
 
@@ -178,7 +185,7 @@ internal sealed class HoverInfoService : IHoverInfoService
                         attributeName = "@" + attributeName;
                         break;
                     case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                        var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTagNameToken.Parent;
+                        var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTag;
                         range.Start.Character -= minimizedAttribute.Transition.FullWidth;
                         attributeName = "@" + attributeName;
                         break;
@@ -240,13 +247,13 @@ internal sealed class HoverInfoService : IHoverInfoService
         }
     }
 
-    private VSInternalHover? ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities)
+    private VSInternalHover? ElementInfoToHover(string documentFilePath, IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities)
     {
         var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
-        if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out ContainerElement? classifiedTextElement))
+        if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(documentFilePath, elementDescriptionInfo, out ContainerElement? classifiedTextElement))
         {
             var vsHover = new VSInternalHover
             {
@@ -261,7 +268,7 @@ internal sealed class HoverInfoService : IHoverInfoService
         {
             var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
 
-            if (!_lspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
+            if (!_lspTagHelperTooltipFactory.TryCreateTooltip(documentFilePath, elementDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
             {
                 return null;
             }

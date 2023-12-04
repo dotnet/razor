@@ -22,12 +22,22 @@ using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerCl
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-public class RazorLSPSpanMappingServiceTest : TestBase
+public class RazorLSPSpanMappingServiceTest : ToolingTestBase
 {
     private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
-    private static readonly string s_mockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
-    private static readonly string s_mockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+    private static readonly string s_mockGeneratedContent = """
+            Hello
+             This is the source text in the generated C# file.
+             This is some more sample text for demo purposes.
+            """;
+    private static readonly string s_mockRazorContent = """
+            Hello
+             This is the
+             source text
+             in the generated C# file.
+             This is some more sample text for demo purposes.
+            """;
 
     private readonly SourceText _sourceTextGenerated;
     private readonly SourceText _sourceTextRazor;
@@ -83,7 +93,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
         var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
         // Act
-        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
+        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
 
         // Assert
         Assert.True(called);
@@ -120,7 +130,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
         var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
         // Act
-        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
+        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
 
         // Assert
         Assert.True(called);

@@ -5,14 +5,14 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"9e0927882a39a700cb088e5a915bfe7c1f8b99c1859555ad2263383bac549511", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UnfinishedExpressionInCode.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"9e0927882a39a700cb088e5a915bfe7c1f8b99c1859555ad2263383bac549511", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UnfinishedExpressionInCode.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_UnfinishedExpressionInCode_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line (2,1)-(2,10) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UnfinishedExpressionInCode.cshtml"
+#line (2,2)-(2,11) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UnfinishedExpressionInCode.cshtml"
 Write(DateTime.);
 
 #line default

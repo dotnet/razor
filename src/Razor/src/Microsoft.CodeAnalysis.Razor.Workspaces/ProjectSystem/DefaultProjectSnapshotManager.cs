@@ -57,7 +57,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 }
             }
 
-            foreach (var trigger in triggers) 
+            foreach (var trigger in triggers)
             {
                 if (trigger is not IPriorityProjectSnapshotChangeTrigger)
                 {
@@ -282,35 +282,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override IProjectSnapshot GetOrAddLoadedProject(ProjectKey projectKey, Func<HostProject> createHostProjectFunc)
-    {
-        IProjectSnapshot? newProjectSnapshot = null;
-        using (var upgradeableReadLock = _rwLocker.EnterUpgradeAbleReadLock())
-        {
-            var project = GetLoadedProject(projectKey);
-
-            if (project is not null)
-            {
-                return project;
-            }
-
-            var newProject = createHostProjectFunc();
-            var state = ProjectState.Create(Workspace.Services, newProject);
-            var entry = new Entry(state);
-
-            using (upgradeableReadLock.EnterWriteLock())
-            {
-                _projects_needsLock[projectKey] = entry;
-            }
-
-            newProjectSnapshot = _projects_needsLock[projectKey].GetSnapshot();
-        }
-
-        // New project was created, notify outside of the lock
-        NotifyListeners(older: null, newProjectSnapshot, documentFilePath: null, ProjectChangeKind.ProjectAdded);
-        return newProjectSnapshot;
-    }
-
     internal override void ProjectConfigurationChanged(HostProject hostProject)
     {
         if (hostProject is null)
@@ -339,7 +310,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         if (TryChangeEntry_UsesLock(
             projectKey,
             documentFilePath: null,
-            new ProjectWorkspaceStateChanged(projectWorkspaceState),
+            new ProjectWorkspaceStateChangedAction(projectWorkspaceState),
             out var oldSnapshot,
             out var newSnapshot))
         {
@@ -358,22 +329,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         {
             NotifyListeners(oldSnapshot, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
         }
-    }
-
-    internal override bool TryRemoveLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
-    {
-        if (TryChangeEntry_UsesLock(
-            projectKey,
-            documentFilePath: null,
-            new ProjectRemovedAction(projectKey),
-            out var oldSnapshot,
-            out project))
-        {
-            NotifyListeners(oldSnapshot, project, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
-            return true;
-        }
-
-        return false;
     }
 
     internal override void SolutionOpened()
@@ -635,8 +590,8 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             case ProjectRemovedAction:
                 return null;
 
-            case ProjectWorkspaceStateChanged worskapceStateChangedAction:
-                return new Entry(originalEntry.State.WithProjectWorkspaceState(worskapceStateChangedAction.WorkspaceState));
+            case ProjectWorkspaceStateChangedAction workspaceStateChangedAction:
+                return new Entry(originalEntry.State.WithProjectWorkspaceState(workspaceStateChangedAction.WorkspaceState));
 
             case HostProjectUpdatedAction hostProjectUpdatedAction:
                 return new Entry(originalEntry.State.WithHostProject(hostProjectUpdatedAction.HostProject));

@@ -5,11 +5,13 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
@@ -157,7 +159,6 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
         // Assert
         Assert.Empty(completions);
     }
-
 
     [Fact]
     public void GetCompletionAt_SelfClosingTag_ReturnsCompletions()
@@ -392,6 +393,40 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
             completion =>
             {
                 Assert.Equal("test2", completion.InsertText);
+            });
+    }
+
+    [Fact]
+    public async Task GetCompletionAt_InBody_WithoutSpace_ReturnsCompletions()
+    {
+        // Arrange
+        var options = TestRazorLSPOptionsMonitor.Create();
+        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, CancellationToken.None);
+        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, options);
+
+        var context = CreateRazorCompletionContext(
+            """
+                @addTagHelper *, TestAssembly
+                <test2>
+                    <$$
+                </test2>
+                """,
+            isRazorFile: false,
+            tagHelpers: DefaultTagHelpers);
+
+        // Act
+        var completions = service.GetCompletionItems(context);
+
+        // Assert
+        Assert.Collection(
+            completions,
+            completion =>
+            {
+                Assert.DoesNotContain(completion.CommitCharacters, c => c.Character == " ");
+            },
+            completion =>
+            {
+                Assert.DoesNotContain(completion.CommitCharacters, c => c.Character == " ");
             });
     }
 
@@ -863,8 +898,8 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
         var syntaxTree = codeDocument.GetSyntaxTree();
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
-        var queryableChange = new SourceChange(position, length: 0, newText: string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(queryableChange);
+        var owner = syntaxTree.Root.FindInnermostNode(position, includeWhitespace: true, walkMarkersBack: true);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, position, new DefaultHtmlFactsService());
         return new RazorCompletionContext(position, owner, syntaxTree, tagHelperDocumentContext, Options: options);
     }
 }

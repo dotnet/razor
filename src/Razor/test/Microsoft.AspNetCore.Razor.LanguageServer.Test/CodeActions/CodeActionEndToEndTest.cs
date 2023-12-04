@@ -370,7 +370,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     [InlineData("[||]DoesNotExist")]
     [InlineData("Does[||]NotExist")]
     [InlineData("DoesNotExist[||]")]
-    public async Task Handle_GenerateMethod_NoCodeBlock(string cursorAndMethodName)
+    public async Task Handle_GenerateMethod_NoCodeBlock_NonEmptyTrailingLine(string cursorAndMethodName)
     {
         var input = $$"""
             <button @onclick="{{cursorAndMethodName}}"></button>
@@ -378,6 +378,67 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
+            @code {
+                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                {
+                    throw new global::System.NotImplementedException();
+                }
+            }
+            """;
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+        await ValidateCodeActionAsync(input,
+            expected,
+            GenerateEventHandlerTitle,
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
+            diagnostics: diagnostics);
+    }
+
+    [Theory]
+    [InlineData("[||]DoesNotExist")]
+    [InlineData("Does[||]NotExist")]
+    [InlineData("DoesNotExist[||]")]
+    public async Task Handle_GenerateMethod_NoCodeBlock_EmptyTrailingLine(string cursorAndMethodName)
+    {
+        var input = $$"""
+            <button @onclick="{{cursorAndMethodName}}"></button>
+            
+            """;
+
+        var expected = $$"""
+            <button @onclick="DoesNotExist"></button>
+            @code {
+                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                {
+                    throw new global::System.NotImplementedException();
+                }
+            }
+            """;
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+        await ValidateCodeActionAsync(input,
+            expected,
+            GenerateEventHandlerTitle,
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
+            diagnostics: diagnostics);
+    }
+
+    [Theory]
+    [InlineData("[||]DoesNotExist")]
+    [InlineData("Does[||]NotExist")]
+    [InlineData("DoesNotExist[||]")]
+    public async Task Handle_GenerateMethod_NoCodeBlock_WhitespaceTrailingLine(string cursorAndMethodName)
+    {
+        var input = $$"""
+            <button @onclick="{{cursorAndMethodName}}"></button>
+                
+            """;
+
+        var expected = $$"""
+            <button @onclick="DoesNotExist"></button>
+                
             @code {
                 private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
@@ -662,7 +723,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             """;
 
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
-        var razorLSPOptions = new RazorLSPOptions(Trace: default, EnableFormatting: true, AutoClosingTags: true, insertSpaces, tabSize, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false);
+        var razorLSPOptions = new RazorLSPOptions(Trace: default, EnableFormatting: true, AutoClosingTags: true, insertSpaces, tabSize, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false, CommitElementsWithSpace: true);
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         await optionsMonitor.UpdateAsync(razorLSPOptions, CancellationToken.None);
         await ValidateCodeActionAsync(input,
@@ -858,7 +919,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             File.WriteAllText(codeBehindFilePath, initialCodeBehindContent);
 
             var result = await GetCodeActionsAsync(uri, textSpan, razorSourceText, requestContext, razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() }, diagnostics);
-            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync();
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
             var changes = await GetEditsAsync(result, requestContext, codeAction, CreateRazorCodeActionResolversFn(razorFilePath, codeDocument, formattingService));
 
             var razorEdits = new List<TextChange>();
@@ -910,7 +971,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
         var result = await GetCodeActionsAsync(uri, textSpan, sourceText, requestContext, razorCodeActionProviders, diagnostics);
         Assert.NotEmpty(result);
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentContext.Snapshot, LoggerFactory, optionsMonitor?.CurrentValue);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
         var razorCodeActionResolvers = createRazorCodeActionResolversFn is null
             ? Array.Empty<IRazorCodeActionResolver>()
             : createRazorCodeActionResolversFn(razorFilePath, codeDocument, formattingService, optionsMonitor);
@@ -980,7 +1041,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             codeActionToRun = codeActionToRun.Children[childActionIndex];
         }
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync();
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
 
         var csharpCodeActionResolvers = new CSharpCodeActionResolver[]
         {

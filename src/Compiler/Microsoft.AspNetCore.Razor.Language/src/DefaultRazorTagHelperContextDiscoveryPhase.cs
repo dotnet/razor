@@ -24,8 +24,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
         var descriptors = codeDocument.GetTagHelpers();
         if (descriptors == null)
         {
-            var feature = Engine.GetFeature<ITagHelperFeature>();
-            if (feature == null)
+            if (!Engine.TryGetFeature(out ITagHelperFeature feature))
             {
                 // No feature, nothing to do.
                 return;
@@ -51,12 +50,11 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
         {
             visitor = new TagHelperDirectiveVisitor(descriptors);
         }
-        var imports = codeDocument.GetImportSyntaxTrees();
-        if (imports != null)
+
+        if (codeDocument.GetImportSyntaxTrees() is { IsDefault: false } imports)
         {
-            for (var i = 0; i < imports.Count; i++)
+            foreach (var import in imports)
             {
-                var import = imports[i];
                 visitor.Visit(import);
             }
         }
@@ -250,7 +248,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                     continue;
                 }
 
-                if (tagHelper.IsComponentFullyQualifiedNameMatch())
+                if (tagHelper.IsComponentFullyQualifiedNameMatch)
                 {
                     // If the component descriptor matches for a fully qualified name, using directives shouldn't matter.
                     Matches.Add(tagHelper);
@@ -264,7 +262,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                     continue;
                 }
 
-                if (tagHelper.IsChildContentTagHelper())
+                if (tagHelper.IsChildContentTagHelper)
                 {
                     // If this is a child content tag helper, we want to add it if it's original type is in scope.
                     // E.g, if the type name is `Test.MyComponent.ChildContent`, we want to add it if `Test.MyComponent` is in scope.
@@ -344,9 +342,9 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
 
                         foreach (var tagHelper in _notFullyQualifiedComponents)
                         {
-                            Debug.Assert(!tagHelper.IsComponentFullyQualifiedNameMatch(), "We've already processed these.");
+                            Debug.Assert(!tagHelper.IsComponentFullyQualifiedNameMatch, "We've already processed these.");
 
-                            if (tagHelper.IsChildContentTagHelper())
+                            if (tagHelper.IsChildContentTagHelper)
                             {
                                 // If this is a child content tag helper, we want to add it if it's original type is in scope of the given namespace.
                                 // E.g, if the type name is `Test.MyComponent.ChildContent`, we want to add it if `Test.MyComponent` is in this namespace.

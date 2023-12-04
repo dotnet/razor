@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -244,12 +244,12 @@ internal class DefaultRazorProjectService : RazorProjectService
         }
     }
 
-    public override ProjectKey AddProject(string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace)
+    public override ProjectKey AddProject(string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string displayName)
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var hostProject = new HostProject(normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace);
+        var hostProject = new HostProject(normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
         // ProjectAdded will no-op if the project already exists
         _projectSnapshotManagerAccessor.Instance.ProjectAdded(hostProject);
 
@@ -264,12 +264,13 @@ internal class DefaultRazorProjectService : RazorProjectService
         ProjectKey projectKey,
         RazorConfiguration? configuration,
         string? rootNamespace,
+        string displayName,
         ProjectWorkspaceState projectWorkspaceState,
-        IReadOnlyList<DocumentSnapshotHandle> documents)
+        ImmutableArray<DocumentSnapshotHandle> documents)
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
+        var project = (ProjectSnapshot?)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
 
         if (project is null)
         {
@@ -314,15 +315,15 @@ internal class DefaultRazorProjectService : RazorProjectService
             _logger.LogInformation("Updating project '{key}''s root namespace to '{rootNamespace}'.", project.Key, rootNamespace);
         }
 
-        var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace);
+        var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
         _projectSnapshotManagerAccessor.Instance.ProjectConfigurationChanged(hostProject);
     }
 
-    private void UpdateProjectDocuments(IReadOnlyList<DocumentSnapshotHandle> documents, ProjectKey projectKey)
+    private void UpdateProjectDocuments(ImmutableArray<DocumentSnapshotHandle> documents, ProjectKey projectKey)
     {
-        _logger.LogDebug("UpdateProjectDocuments for {projectKey} with {documentCount} documents.", projectKey, documents.Count);
+        _logger.LogDebug("UpdateProjectDocuments for {projectKey} with {documentCount} documents.", projectKey, documents.Length);
 
-        var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
+        var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey).AssumeNotNull();
         var currentHostProject = project.HostProject;
         var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(project.FilePath);
         var documentMap = documents.ToDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
@@ -342,7 +343,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             MoveDocument(documentFilePath, project, miscellaneousProject);
         }
 
-        project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
+        project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey).AssumeNotNull();
 
         // Update existing documents
         foreach (var documentFilePath in project.DocumentFilePaths)
@@ -378,7 +379,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             _projectSnapshotManagerAccessor.Instance.DocumentAdded(currentHostProject.Key, newHostDocument, remoteTextLoader);
         }
 
-        project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(project.Key);
+        project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(project.Key).AssumeNotNull();
         miscellaneousProject = (ProjectSnapshot)_snapshotResolver.GetMiscellaneousProject();
 
         // Add (or migrate from misc) any new documents

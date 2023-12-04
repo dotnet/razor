@@ -10,8 +10,11 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
+using Microsoft.VisualStudio.Editor.Razor.Snippets;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
 using Microsoft.VisualStudio.LanguageServices.Razor;
 using Microsoft.VisualStudio.RazorExtension.Options;
+using Microsoft.VisualStudio.RazorExtension.Snippets;
 using Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -72,6 +75,17 @@ internal sealed class RazorPackage : AsyncPackage
             var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
             mcs.AddCommand(menuToolWin);
         }
+
+        CreateSnippetService();
+    }
+
+    private SnippetService CreateSnippetService()
+    {
+        var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
+        var joinableTaskContext = componentModel.GetService<JoinableTaskContext>();
+        var cache = componentModel.GetService<SnippetCache>();
+        var optionsStorage = componentModel.GetService<OptionsStorage>();
+        return new SnippetService(joinableTaskContext.Factory, this, cache, optionsStorage);
     }
 
     /// <summary>

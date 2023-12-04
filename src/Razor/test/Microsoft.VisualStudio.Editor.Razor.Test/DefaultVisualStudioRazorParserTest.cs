@@ -43,7 +43,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     private VisualStudioDocumentTracker CreateDocumentTracker(bool isSupportedProject = true, int versionNumber = 0)
     {
         var documentTracker = Mock.Of<VisualStudioDocumentTracker>(tracker =>
-        tracker.TextBuffer == new TestTextBuffer(new StringTextSnapshot(string.Empty, versionNumber)) &&
+        tracker.TextBuffer == new TestTextBuffer(new StringTextSnapshot(string.Empty, versionNumber), /* contentType */ null) &&
             tracker.ProjectPath == "c:\\SomeProject.csproj" &&
             tracker.ProjectSnapshot == _projectSnapshot &&
             tracker.FilePath == "c:\\SomeFilePath.cshtml" &&
@@ -616,7 +616,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
             parser.StartParser();
 
             // Assert
-            Assert.Equal(1, textBuffer.AttachedChangedEvents.Count);
+            Assert.Single(textBuffer.AttachedChangedEvents);
             Assert.NotNull(parser._parser);
         }
     }

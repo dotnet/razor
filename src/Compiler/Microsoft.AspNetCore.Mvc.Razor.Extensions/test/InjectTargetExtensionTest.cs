@@ -18,7 +18,7 @@ public class InjectTargetExtensionTest
     public void InjectDirectiveTargetExtension_WritesProperty()
     {
         // Arrange
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
         var target = new InjectTargetExtension();
         var node = new InjectIntermediateNode()
         {
@@ -30,11 +30,13 @@ public class InjectTargetExtensionTest
         target.WriteInjectProperty(context, node);
 
         // Assert
-        Assert.Equal(
-            "#nullable restore" + Environment.NewLine +
-            "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]" + Environment.NewLine +
-            "public PropertyType PropertyName { get; private set; } = default!;" + Environment.NewLine +
-            "#nullable disable" + Environment.NewLine,
+        Assert.Equal("""
+            #nullable restore
+            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            public PropertyType PropertyName { get; private set; } = default!;
+            #nullable disable
+
+            """,
             context.CodeWriter.GenerateCode());
     }
 
@@ -42,7 +44,7 @@ public class InjectTargetExtensionTest
     public void InjectDirectiveTargetExtension_WritesPropertyWithLinePragma_WhenSourceIsSet()
     {
         // Arrange
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
         var target = new InjectTargetExtension();
         var node = new InjectIntermediateNode()
         {
@@ -60,16 +62,20 @@ public class InjectTargetExtensionTest
         target.WriteInjectProperty(context, node);
 
         // Assert
-        Assert.Equal(Environment.NewLine +
-            "#nullable restore" + Environment.NewLine +
-            "#line 2 \"test-path\"" + Environment.NewLine +
-            "#nullable restore" + Environment.NewLine +
-            "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]" + Environment.NewLine +
-            "public PropertyType<ModelType> PropertyName { get; private set; } = default!;" + Environment.NewLine +
-            "#nullable disable" + Environment.NewLine + Environment.NewLine +
-            "#line default" + Environment.NewLine +
-            "#line hidden" + Environment.NewLine +
-            "#nullable disable" + Environment.NewLine,
+        Assert.Equal("""
+
+            #nullable restore
+            #line 2 "test-path"
+            #nullable restore
+            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            public PropertyType<ModelType> PropertyName { get; private set; } = default!;
+            #nullable disable
+
+            #line default
+            #line hidden
+            #nullable disable
+
+            """,
             context.CodeWriter.GenerateCode());
     }
 }

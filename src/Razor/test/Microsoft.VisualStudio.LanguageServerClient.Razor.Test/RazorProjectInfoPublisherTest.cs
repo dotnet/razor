@@ -39,8 +39,8 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
         // Arrange
         var serializationSuccessful = false;
         var tagHelpers = ImmutableArray.Create<TagHelperDescriptor>(
-            new DefaultTagHelperDescriptor(FileKinds.Component, "Namespace.FileNameOther", "Assembly", "FileName", "FileName document", "FileName hint",
-                caseSensitive: false, tagMatchingRules: null, attributeDescriptors: null, allowedChildTags: null, metadata: null, diagnostics: null));
+            new TagHelperDescriptor(FileKinds.Component, "Namespace.FileNameOther", "Assembly", "FileName", "FileName document", "FileName hint",
+                caseSensitive: false, tagMatchingRules: default, attributeDescriptors: default, allowedChildTags: default, metadata: null, diagnostics: default));
 
         var initialProjectSnapshot = CreateProjectSnapshot(@"C:\path\to\project.csproj", new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.Preview));
         var expectedProjectSnapshot = CreateProjectSnapshot(@"C:\path\to\project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Preview));
@@ -68,7 +68,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         // Assert
         var stalePublishTask = Assert.Single(publisher.DeferredPublishTasks);
-        await stalePublishTask.Value.ConfigureAwait(false);
+        await stalePublishTask.Value;
         Assert.True(serializationSuccessful);
     }
 
@@ -150,8 +150,46 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
         await RunOnDispatcherThreadAsync(() =>
         {
             _projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
-        }).ConfigureAwait(false);
+        });
         
+
+        // Assert
+        Assert.Empty(publisher.DeferredPublishTasks);
+        Assert.True(serializationSuccessful);
+    }
+
+    [Fact]
+    public async Task ProjectManager_Changed_DocumentOpened_InitializedProject_NoFile_Active_Publishes()
+    {
+        // Arrange
+        var serializationSuccessful = false;
+        var hostProject = new HostProject(@"C:\path\to\project.csproj", @"C:\path\to\obj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
+        var hostDocument = new HostDocument(@"C:\path\to\file.razor", "file.razor");
+        _projectSnapshotManager.ProjectAdded(hostProject);
+        _projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, ProjectWorkspaceState.Default);
+        _projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+        var projectSnapshot = _projectSnapshotManager.GetProjects()[0];
+        var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.bin";
+        _projectConfigurationFilePathStore.Set(projectSnapshot.Key, expectedConfigurationFilePath);
+        var publisher = new TestRazorProjectInfoPublisher(
+            _projectConfigurationFilePathStore,
+            onSerializeToFile: (snapshot, configurationFilePath) =>
+            {
+                Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
+                serializationSuccessful = true;
+            },
+            configurationFileExists: false)
+        {
+            EnqueueDelay = 10,
+            _active = true
+        };
+        publisher.Initialize(_projectSnapshotManager);
+
+        // Act
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            _projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
+        });
 
         // Assert
         Assert.Empty(publisher.DeferredPublishTasks);
@@ -189,7 +227,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         // Assert
         var kvp = Assert.Single(publisher.DeferredPublishTasks);
-        await kvp.Value.ConfigureAwait(false);
+        await kvp.Value;
         Assert.True(serializationSuccessful);
     }
 
@@ -226,7 +264,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         // Flush publish task
         var kvp = Assert.Single(publisher.DeferredPublishTasks);
-        await kvp.Value.ConfigureAwait(false);
+        await kvp.Value;
         aboutToChange = true;
         publisher.DeferredPublishTasks.Clear();
 
@@ -264,7 +302,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         // Assert
         var kvp = Assert.Single(publisher.DeferredPublishTasks);
-        await kvp.Value.ConfigureAwait(false);
+        await kvp.Value;
 
         Assert.False(attemptedToSerialize);
     }
@@ -298,7 +336,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         // Assert
         var kvp = Assert.Single(publisher.DeferredPublishTasks);
-        await kvp.Value.ConfigureAwait(false);
+        await kvp.Value;
         Assert.True(serializationSuccessful);
     }
 
@@ -331,7 +369,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         // Assert
         var kvp = Assert.Single(publisher.DeferredPublishTasks);
-        await kvp.Value.ConfigureAwait(false);
+        await kvp.Value;
         Assert.True(serializationSuccessful);
     }
 
@@ -342,8 +380,8 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
         var serializationSuccessful = false;
         var firstSnapshot = CreateProjectSnapshot(@"C:\path\to\project.csproj");
         var tagHelpers = ImmutableArray.Create<TagHelperDescriptor>(
-            new DefaultTagHelperDescriptor(FileKinds.Component, "Namespace.FileNameOther", "Assembly", "FileName", "FileName document", "FileName hint",
-                caseSensitive: false, tagMatchingRules: null, attributeDescriptors: null, allowedChildTags: null, metadata: null, diagnostics: null));
+            new TagHelperDescriptor(FileKinds.Component, "Namespace.FileNameOther", "Assembly", "FileName", "FileName document", "FileName hint",
+                caseSensitive: false, tagMatchingRules: default, attributeDescriptors: default, allowedChildTags: default, metadata: null, diagnostics: default));
 
         var secondSnapshot = CreateProjectSnapshot(@"C:\path\to\project.csproj", new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp8), new string[]{
             "FileName.razor"
@@ -370,7 +408,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         // Assert
         var kvp = Assert.Single(publisher.DeferredPublishTasks);
-        await kvp.Value.ConfigureAwait(false);
+        await kvp.Value;
         Assert.False(serializationSuccessful);
     }
 
@@ -586,6 +624,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         private readonly bool _shouldSerialize;
         private readonly bool _useRealShouldSerialize;
+        private readonly bool _configurationFileExists;
 
         static TestRazorProjectInfoPublisher()
         {
@@ -598,17 +637,19 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
             ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
             Action<IProjectSnapshot, string> onSerializeToFile = null,
             bool shouldSerialize = true,
-            bool useRealShouldSerialize = false)
+            bool useRealShouldSerialize = false,
+            bool configurationFileExists = true)
             : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, TestRazorLogger.Instance)
         {
             _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
             _shouldSerialize = shouldSerialize;
             _useRealShouldSerialize = useRealShouldSerialize;
+            _configurationFileExists = configurationFileExists;
         }
 
         protected override bool FileExists(string file)
         {
-            return true;
+            return _configurationFileExists;
         }
 
         protected override void SerializeToFile(IProjectSnapshot projectSnapshot, string configurationFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, configurationFilePath);

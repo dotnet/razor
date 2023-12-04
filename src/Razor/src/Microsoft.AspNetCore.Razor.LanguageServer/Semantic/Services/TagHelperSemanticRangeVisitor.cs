@@ -5,11 +5,11 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
@@ -31,14 +31,10 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         _colorCodeBackground = colorCodeBackground;
     }
 
-    public static ImmutableArray<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range? range, RazorSemanticTokensLegend razorSemanticTokensLegend, bool colorCodeBackground)
+    public static ImmutableArray<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range range, RazorSemanticTokensLegend razorSemanticTokensLegend, bool colorCodeBackground)
     {
-        TextSpan? rangeAsTextSpan = null;
-        if (range is not null)
-        {
-            var sourceText = razorCodeDocument.GetSourceText();
-            rangeAsTextSpan = range.ToRazorTextSpan(sourceText);
-        }
+        var sourceText = razorCodeDocument.GetSourceText();
+        var rangeAsTextSpan = range.ToTextSpan(sourceText);
 
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var builder);
 
@@ -185,6 +181,41 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         using (ColorCSharpBackground())
         {
             AddSemanticRange(node.CloseBrace, legend.RazorTransition);
+        }
+    }
+
+    public override void VisitCSharpImplicitExpressionBody(CSharpImplicitExpressionBodySyntax node)
+    {
+        // Generally same as explicit expression, below, but different because the parens might not be there,
+        // and because the compiler isn't nice and doesn't give us OpenParen and CloseParen properties we can
+        // easily use.
+
+        // Matches @(SomeCSharpCode())
+        if (node.CSharpCode.Children is
+            [
+                CSharpExpressionLiteralSyntax { LiteralTokens: [{ Kind: SyntaxKind.LeftParenthesis } openParen] },
+                CSharpExpressionLiteralSyntax body,
+                CSharpExpressionLiteralSyntax { LiteralTokens: [{ Kind: SyntaxKind.RightParenthesis } closeParen] },
+            ])
+        {
+            var legend = _razorSemanticTokensLegend;
+
+            using (ColorCSharpBackground())
+            {
+                AddSemanticRange(openParen, legend.RazorTransition);
+            }
+
+            Visit(body);
+
+            using (ColorCSharpBackground())
+            {
+                AddSemanticRange(closeParen, legend.RazorTransition);
+            }
+        }
+        else
+        {
+            // Matches @SomeCSharpCode()
+            Visit(node.CSharpCode);
         }
     }
 
@@ -451,7 +482,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
     {
         if (node is MarkupTagHelperElementSyntax element)
         {
-            var componentDescriptor = element.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(d => d.IsComponentTagHelper());
+            var componentDescriptor = element.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(d => d.IsComponentTagHelper);
             return componentDescriptor is not null;
         }
         else if (node is MarkupTagHelperStartTagSyntax startTag)
@@ -525,9 +556,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                 for (var lineNumber = range.Start.Line; lineNumber <= range.End.Line; lineNumber++)
                 {
                     var originalCharPosition = charPosition;
-                    // NOTE: GetLineLength includes newlines but we don't report tokens for newlines so
-                    // need to account for them.
-                    var lineLength = source.Lines.GetLineLength(lineNumber);
+                    // NOTE: We don't report tokens for newlines so need to account for them.
+                    var lineLength = source.Text.Lines[lineNumber].SpanIncludingLineBreak.Length;
 
                     // For the last line, we end where the syntax tree tells us to. For all other lines, we end at the
                     // last non-newline character
@@ -574,8 +604,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
         void AddRange(SemanticRange semanticRange)
         {
-            if (semanticRange.StartLine == semanticRange.EndLine &&
-                semanticRange.StartCharacter == semanticRange.EndCharacter)
+            var linePositionSpan = semanticRange.AsLinePositionSpan();
+            if (linePositionSpan.Start == linePositionSpan.End)
             {
                 return;
             }
@@ -594,7 +624,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                 return lineLength;
             }
 
-            return source[lineEndAbsoluteIndex - 1] is '\n' or '\r'
+            return source.Text[lineEndAbsoluteIndex - 1] is '\n' or '\r'
                 ? lineLength - 1
                 : lineLength;
         }

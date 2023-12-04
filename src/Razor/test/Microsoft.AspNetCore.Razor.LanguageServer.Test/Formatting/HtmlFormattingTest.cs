@@ -463,6 +463,30 @@ public class HtmlFormattingTest : FormattingTestBase
     }
 
     [Fact]
+    public async Task FormatsComponentTag_WithImplicitExpression()
+    {
+        var tagHelpers = GetComponents();
+        await RunFormattingTestAsync(
+            input: """
+                        <GridTable>
+                            <GridRow >
+                        <GridCell>@cell</GridCell>
+                    <GridCell>cell</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            expected: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@cell</GridCell>
+                            <GridCell>cell</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            tagHelpers: tagHelpers);
+    }
+
+    [Fact]
     public async Task FormatsComponentTag_WithExplicitExpression()
     {
         var tagHelpers = GetComponents();
@@ -1656,6 +1680,50 @@ public class HtmlFormattingTest : FormattingTestBase
                                              CurrentValue="boo">
                                     <option>goo</option>
                                 </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+            fileKind: FileKinds.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9337")]
+    public async Task FormatMinimizedTagHelperAttributes()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private bool _id {get;set;}
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputCheckbox CssClass="goo"
+                                   Value
+                                   accesskey="F" />
+                            </div>
+                        }
+                    </div>
+                    """,
+            expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private bool _id { get; set; }
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputCheckbox CssClass="goo"
+                                               Value
+                                               accesskey="F" />
                             </div>
                         }
                     </div>

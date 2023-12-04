@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,25 +8,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using System.Threading;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-internal abstract partial class SyntaxNode
+internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, int position)
 {
-    public SyntaxNode(GreenNode green, SyntaxNode parent, int position)
-    {
-        Green = green;
-        Parent = parent;
-        Position = position;
-    }
-
-    internal GreenNode Green { get; }
-
-    public SyntaxNode Parent { get; }
-
-    public int Position { get; }
+    internal GreenNode Green { get; } = green;
+    public SyntaxNode Parent { get; } = parent;
+    public int Position { get; } = position;
 
     public int EndPosition => Position + FullWidth;
 
@@ -40,7 +29,7 @@ internal abstract partial class SyntaxNode
 
     public int SpanStart => Position + Green.GetLeadingTriviaWidth();
 
-    public TextSpan FullSpan => new TextSpan(Position, Green.FullWidth);
+    public TextSpan FullSpan => new(Position, Green.FullWidth);
 
     public TextSpan Span
     {
@@ -73,21 +62,9 @@ internal abstract partial class SyntaxNode
 
     public bool IsTrivia => Green.IsTrivia;
 
-    public bool HasLeadingTrivia
-    {
-        get
-        {
-            return GetLeadingTrivia().Count > 0;
-        }
-    }
+    public bool HasLeadingTrivia => GetLeadingTrivia().Count > 0;
 
-    public bool HasTrailingTrivia
-    {
-        get
-        {
-            return GetTrailingTrivia().Count > 0;
-        }
-    }
+    public bool HasTrailingTrivia => GetTrailingTrivia().Count > 0;
 
     public bool ContainsDiagnostics => Green.ContainsDiagnostics;
 
@@ -99,11 +76,11 @@ internal abstract partial class SyntaxNode
 
     public abstract void Accept(SyntaxVisitor visitor);
 
-    internal abstract SyntaxNode GetNodeSlot(int index);
+    internal abstract SyntaxNode? GetNodeSlot(int index);
 
-    internal abstract SyntaxNode GetCachedSlot(int index);
+    internal abstract SyntaxNode? GetCachedSlot(int index);
 
-    internal SyntaxNode GetRed(ref SyntaxNode field, int slot)
+    internal SyntaxNode? GetRed(ref SyntaxNode? field, int slot)
     {
         var result = field;
 
@@ -121,7 +98,7 @@ internal abstract partial class SyntaxNode
     }
 
     // Special case of above function where slot = 0, does not need GetChildPosition
-    internal SyntaxNode GetRedAtZero(ref SyntaxNode field)
+    internal SyntaxNode? GetRedAtZero(ref SyntaxNode? field)
     {
         var result = field;
 
@@ -138,7 +115,8 @@ internal abstract partial class SyntaxNode
         return result;
     }
 
-    protected T GetRed<T>(ref T field, int slot) where T : SyntaxNode
+    protected T? GetRed<T>(ref T field, int slot)
+        where T : SyntaxNode
     {
         var result = field;
 
@@ -156,7 +134,8 @@ internal abstract partial class SyntaxNode
     }
 
     // special case of above function where slot = 0, does not need GetChildPosition
-    protected T GetRedAtZero<T>(ref T field) where T : SyntaxNode
+    protected T? GetRedAtZero<T>(ref T field)
+        where T : SyntaxNode
     {
         var result = field;
 
@@ -173,7 +152,7 @@ internal abstract partial class SyntaxNode
         return result;
     }
 
-    internal SyntaxNode GetRedElement(ref SyntaxNode element, int slot)
+    internal SyntaxNode? GetRedElement(ref SyntaxNode? element, int slot)
     {
         Debug.Assert(IsList);
 
@@ -215,23 +194,18 @@ internal abstract partial class SyntaxNode
     public virtual SyntaxTriviaList GetLeadingTrivia()
     {
         var firstToken = GetFirstToken();
-        return firstToken != null ? firstToken.GetLeadingTrivia() : default(SyntaxTriviaList);
+        return firstToken != null ? firstToken.GetLeadingTrivia() : default;
     }
 
     public virtual SyntaxTriviaList GetTrailingTrivia()
     {
         var lastToken = GetLastToken();
-        return lastToken != null ? lastToken.GetTrailingTrivia() : default(SyntaxTriviaList);
-    }
-
-    internal SyntaxToken GetFirstToken()
-    {
-        return ((SyntaxToken)GetFirstTerminal());
+        return lastToken != null ? lastToken.GetTrailingTrivia() : default;
     }
 
     internal SyntaxList<SyntaxToken> GetTokens()
     {
-        var tokens = SyntaxListBuilder<SyntaxToken>.Create();
+        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var tokens);
 
         AddTokens(this, tokens);
 
@@ -248,9 +222,7 @@ internal abstract partial class SyntaxNode
 
             for (var i = 0; i < current.SlotCount; i++)
             {
-                var child = current.GetNodeSlot(i);
-
-                if (child != null)
+                if (current.GetNodeSlot(i) is { } child)
                 {
                     AddTokens(child, tokens);
                 }
@@ -258,59 +230,22 @@ internal abstract partial class SyntaxNode
         }
     }
 
-    internal SyntaxToken GetLastToken()
+    /// <summary>
+    /// Gets the first token of the tree rooted by this node. Skips zero-width tokens.
+    /// </summary>
+    /// <returns>The first token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
+    public SyntaxToken? GetFirstToken(bool includeZeroWidth = false)
     {
-        return ((SyntaxToken)GetLastTerminal());
+        return SyntaxNavigator.GetFirstToken(this, includeZeroWidth);
     }
 
-    public SyntaxNode GetFirstTerminal()
+    /// <summary>
+    /// Gets the last token of the tree rooted by this node. Skips zero-width tokens.
+    /// </summary>
+    /// <returns>The last token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
+    public SyntaxToken? GetLastToken(bool includeZeroWidth = false)
     {
-        var node = this;
-
-        do
-        {
-            var foundChild = false;
-            for (int i = 0, n = node.SlotCount; i < n; i++)
-            {
-                var child = node.GetNodeSlot(i);
-                if (child != null)
-                {
-                    node = child;
-                    foundChild = true;
-                    break;
-                }
-            }
-
-            if (!foundChild)
-            {
-                return null;
-            }
-        }
-        while (node.SlotCount != 0);
-
-        return node == this ? this : node;
-    }
-
-    public SyntaxNode GetLastTerminal()
-    {
-        var node = this;
-
-        do
-        {
-            SyntaxNode lastChild = null;
-            for (var i = node.SlotCount - 1; i >= 0; i--)
-            {
-                var child = node.GetNodeSlot(i);
-                if (child != null && child.FullWidth > 0)
-                {
-                    lastChild = child;
-                    break;
-                }
-            }
-            node = lastChild;
-        } while (node?.SlotCount > 0);
-
-        return node;
+        return SyntaxNavigator.GetLastToken(this, includeZeroWidth);
     }
 
     /// <summary>
@@ -342,7 +277,6 @@ internal abstract partial class SyntaxNode
         }
     }
 
-#nullable enable
     /// <summary>
     /// Gets the first node of type TNode that matches the predicate.
     /// </summary>
@@ -351,21 +285,20 @@ internal abstract partial class SyntaxNode
     {
         for (var node = this; node != null; node = node.Parent)
         {
-            if (node is TNode tnode && (predicate == null || predicate(tnode)))
+            if (node is TNode typedNode && (predicate == null || predicate(typedNode)))
             {
-                return tnode;
+                return typedNode;
             }
         }
 
         return default;
     }
-#nullable disable
 
     /// <summary>
     /// Gets a list of descendant nodes in prefix document order.
     /// </summary>
     /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
-    public IEnumerable<SyntaxNode> DescendantNodes(Func<SyntaxNode, bool> descendIntoChildren = null)
+    public IEnumerable<SyntaxNode> DescendantNodes(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
         return DescendantNodesImpl(FullSpan, descendIntoChildren, includeSelf: false);
     }
@@ -374,14 +307,14 @@ internal abstract partial class SyntaxNode
     /// Gets a list of descendant nodes (including this node) in prefix document order.
     /// </summary>
     /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
-    public IEnumerable<SyntaxNode> DescendantNodesAndSelf(Func<SyntaxNode, bool> descendIntoChildren = null)
+    public IEnumerable<SyntaxNode> DescendantNodesAndSelf(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
         return DescendantNodesImpl(FullSpan, descendIntoChildren, includeSelf: true);
     }
 
     protected internal SyntaxNode ReplaceCore<TNode>(
-        IEnumerable<TNode> nodes = null,
-        Func<TNode, TNode, SyntaxNode> computeReplacementNode = null)
+        IEnumerable<TNode>? nodes = null,
+        Func<TNode, TNode, SyntaxNode>? computeReplacementNode = null)
         where TNode : SyntaxNode
     {
         return SyntaxReplacer.Replace(this, nodes, computeReplacementNode);
@@ -422,7 +355,6 @@ internal abstract partial class SyntaxNode
         return Green.IsEquivalentTo(other.Green);
     }
 
-#nullable enable
     /// <summary>
     /// Finds a descendant token of this node whose span includes the supplied position.
     /// </summary>
@@ -457,8 +389,6 @@ internal abstract partial class SyntaxNode
             throw new ArgumentOutOfRangeException(nameof(position));
         }
 
-        // Stack for walking efficiently back up the tree. Only used when includeWhitespace is false.
-        using var stack = new PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)>();
         SyntaxNode curNode = this;
 
         while (true)
@@ -468,11 +398,7 @@ internal abstract partial class SyntaxNode
 
             if (!curNode.IsToken)
             {
-                curNode = ChildSyntaxList.ChildThatContainsPosition(curNode, position, out var nodeIndexInParent);
-                if (!includeWhitespace)
-                {
-                    stack.Push((curNode, nodeIndexInParent));
-                }
+                curNode = ChildSyntaxList.ChildThatContainsPosition(curNode, position, out _);
             }
             else
             {
@@ -493,130 +419,61 @@ internal abstract partial class SyntaxNode
                     return foundToken;
                 }
 
+                var originalFoundToken = foundToken;
+
                 // Walk backwards until we find a non-whitespace token. We accomplish this by looking up the stack and walking nodes backwards from where we
                 // were located.
-                if (tryWalkBackwards(ref stack.AsRef(), out foundToken))
+                if (tryWalkBackwards(originalFoundToken, out foundToken))
                 {
                     return foundToken;
                 }
 
                 // Encountered a newline while backtracking, so we need to walk forward instead.
-                return walkForward(ref stack.AsRef());
+                return walkForward(originalFoundToken);
             }
 
-            bool tryWalkBackwards(ref PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack, [NotNullWhen(true)] out SyntaxToken? foundToken)
+            bool tryWalkBackwards(SyntaxToken originalFoundToken, [NotNullWhen(true)] out SyntaxToken? foundToken)
             {
-                // Can't just pop the stack, we may need to rewalk from the start to find the next node if this fails
-                for (var originalStackPosition = stack.Count - 1; originalStackPosition >= 0; originalStackPosition--)
+                foundToken = originalFoundToken;
+                do
                 {
-                    var (node, nodeIndexInParent) = stack[originalStackPosition];
-
-                    switch (walkNodeChildren(node.Parent, nodeIndexInParent, walkBackwards: true, stopOnNewline: true, out foundToken))
+                    foundToken = foundToken.GetPreviousToken(includeZeroWidth: true);
+                    if (foundToken is null or { Kind: SyntaxKind.NewLine })
                     {
-                        case true:
-                            return true;
-                        case false:
-                            return false;
-                        case null:
-                            // Didn't find anything in this node, keep walking
-                            continue;
+                        return false;
+                    }
+
+                    if (foundToken.SpanStart < this.SpanStart)
+                    {
+                        // User requested a position that is out of range of the root token requested.
+                        throw new ArgumentOutOfRangeException(nameof(position));
                     }
                 }
+                while (foundToken.Kind is SyntaxKind.Whitespace);
 
-                // Walked all the way back to the end of the node that was requested and did not find either a newline or non-whitespace token. The user requested
-                // something out of range.
-                throw new ArgumentOutOfRangeException(nameof(position));
+                return true;
             }
 
-            SyntaxToken walkForward(ref PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)> stack)
+            SyntaxToken walkForward(SyntaxToken originalFoundToken)
             {
-                while (stack.TryPop(out var entry))
+                var currentToken = originalFoundToken;
+                do
                 {
-                    var (node, nodeIndexInParent) = entry;
+                    currentToken = currentToken.GetNextToken(includeZeroWidth: true);
 
-                    switch (walkNodeChildren(node.Parent, nodeIndexInParent, walkBackwards: false, stopOnNewline: false, out var foundToken))
+                    if (currentToken is null || currentToken.Span.End > this.Span.End)
                     {
-                        case true:
-                            return foundToken;
-                        case null:
-                            // Didn't find anything in this node, keep walking
-                            continue;
-                        case false:
-                            // False is only returned when stopOnNewline is true
-                            return Assumed.Unreachable<SyntaxToken>();
+                        // Walked all the way forward to the end of the root that was requested and did not find any non-whitespace tokens. The user requested
+                        // something out of range.
+                        throw new ArgumentOutOfRangeException(nameof(position));
                     }
                 }
+                while (currentToken is { Kind: SyntaxKind.NewLine or SyntaxKind.Whitespace });
 
-                // Walked all the way forward to the end of the root that was requested and did not find any non-whitespace tokens. The user requested
-                // something out of range.
-                throw new ArgumentOutOfRangeException(nameof(position));
-            }
-
-            static bool? walkNodeChildren(SyntaxNode parent, int startIndex, bool walkBackwards, bool stopOnNewline, [NotNullWhen(true)] out SyntaxToken? foundToken)
-            {
-                Debug.Assert(parent != null, "Node should have been out of range of the document");
-
-                var (indexIncrement, endIndex) = walkBackwards
-                    ? (-1, -1)
-                    : (1, ChildSyntaxList.CountNodes(parent!.Green));
-
-                for (int currentIndex = startIndex + indexIncrement; currentIndex != endIndex; currentIndex += indexIncrement)
-                {
-                    var currentChild = ChildSyntaxList.ItemInternal(parent, currentIndex);
-                    switch (currentChild.Kind)
-                    {
-                        case SyntaxKind.NewLine when stopOnNewline:
-                            // We found a newline, we need to walk forwards until we find the first non-whitespace or newline token.
-                            foundToken = null;
-                            return false;
-                        case SyntaxKind.Whitespace:
-                            // We found whitespace, keep walking
-                            continue;
-                        default:
-                            if (currentChild.IsToken)
-                            {
-                                // This is the node we're looking for
-                                foundToken = (SyntaxToken)currentChild;
-                                return true;
-                            }
-                            else
-                            {
-                                // The previous node is something complex. Walk its children to find a desired token.
-                                // If this ever becomes a stack overflow concern, we could make it iterative, but this is much
-                                // simpler for now.
-                                switch (walkNodeChildren(parent: currentChild, startIndex: walkBackwards ? ChildSyntaxList.CountNodes(currentChild.Green) : -1, walkBackwards, stopOnNewline, out foundToken))
-                                {
-                                    case true:
-                                        return true;
-                                    case false:
-                                        return false;
-                                    case null:
-                                        // Couldn't find a desired node in the child, keep walking backwards. This is believed to be impossible,
-                                        // but isn't an inherent issue in itself, so if it's encountered we should understand the scenario and
-                                        // cover with a test if it's not decided to be a bug.
-                                        Debug.Fail("This is believed to be impossible. If this fails, add a test for the case.");
-                                        continue;
-                                }
-                            }
-                    }
-                }
-
-                foundToken = null;
-
-                // The start of the document is the only special case:
-                //  - If we're walking backwards and hit the start of the document, we need to treat this as if we should walk forward. There's no
-                //    previous node to attach the token to, so walking forward is the only option.
-                if (walkBackwards && parent!.SpanStart == 0)
-                {
-                    return false;
-                }
-
-                // Got to the end of the node without finding a desired token. Pop up the stack and try again
-                return null;
+                return currentToken;
             }
         }
     }
-#nullable disable
 
     public override string ToString()
     {

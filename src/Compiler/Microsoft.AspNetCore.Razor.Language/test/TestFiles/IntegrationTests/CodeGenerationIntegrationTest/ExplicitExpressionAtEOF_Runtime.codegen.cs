@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"32bee45d8028059ac44a7f812a2749196ee1be1683ed25d4e21d8d13f47da75c", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpressionAtEOF.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"32bee45d8028059ac44a7f812a2749196ee1be1683ed25d4e21d8d13f47da75c", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpressionAtEOF.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExplicitExpressionAtEOF_Runtime
     {
         #pragma warning disable 1998
@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
         {
             WriteLiteral("This is markup\r\n\r\n");
 #nullable restore
-#line (3,2)-(3,2) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpressionAtEOF.cshtml"
+#line (3,3)-(3,3) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpressionAtEOF.cshtml"
 Write();
 
 #line default

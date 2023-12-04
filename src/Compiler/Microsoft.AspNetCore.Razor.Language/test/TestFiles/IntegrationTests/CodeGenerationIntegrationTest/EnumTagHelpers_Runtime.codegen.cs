@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"77f2d2a6c05eb6fd6b50ca4e425c887ee527eddaca21ae01f7c0288ab53bff45", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"77f2d2a6c05eb6fd6b50ca4e425c887ee527eddaca21ae01f7c0288ab53bff45", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EnumTagHelpers_Runtime
     {
         #line hidden
@@ -75,7 +75,7 @@ __TestNamespace_InputTagHelper.Value = MyEnum.MyValue;
             __tagHelperExecutionContext.Add(__TestNamespace_CatchAllTagHelper);
             BeginAddHtmlAttributeValues(__tagHelperExecutionContext, "class", 1, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
 #nullable restore
-#line (8,14)-(8,35) 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
+#line (8,15)-(8,36) 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
 AddHtmlAttributeValue("", 130, MyEnum.MySecondValue, 130, 21, false);
 
 #line default

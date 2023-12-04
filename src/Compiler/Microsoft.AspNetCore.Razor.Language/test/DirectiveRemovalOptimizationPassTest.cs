@@ -48,7 +48,10 @@ public class DirectiveRemovalOptimizationPassTest
     public void Execute_MultipleCustomDirectives_RemovesDirectiveNodesFromDocument()
     {
         // Arrange
-        var content = "@custom \"Hello\"" + Environment.NewLine + "@custom \"World\"";
+        var content = """
+            @custom "Hello"
+            @custom "World"
+            """;
         var sourceDocument = TestRazorSourceDocument.Create(content);
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
         var defaultEngine = RazorProjectEngine.Create(b =>
@@ -80,7 +83,7 @@ public class DirectiveRemovalOptimizationPassTest
     {
         // Arrange
         var content = "@custom \"Hello\"";
-        var expectedDiagnostic = RazorDiagnostic.Create(new RazorDiagnosticDescriptor("RZ9999", () => "Some diagnostic message.", RazorDiagnosticSeverity.Error), SourceSpan.Undefined);
+        var expectedDiagnostic = RazorDiagnostic.Create(new RazorDiagnosticDescriptor("RZ9999", "Some diagnostic message.", RazorDiagnosticSeverity.Error));
         var sourceDocument = TestRazorSourceDocument.Create(content);
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
         var defaultEngine = RazorProjectEngine.Create(b =>
@@ -117,9 +120,8 @@ public class DirectiveRemovalOptimizationPassTest
 
     private static DocumentIntermediateNode Lower(RazorCodeDocument codeDocument, RazorEngine engine)
     {
-        for (var i = 0; i < engine.Phases.Count; i++)
+        foreach (var phase in engine.Phases)
         {
-            var phase = engine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorDirectiveClassifierPhase)

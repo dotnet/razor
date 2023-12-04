@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpVerbatimBlockTest : ParserTestBase
+public class CSharpVerbatimBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void VerbatimBlock()
@@ -31,18 +31,28 @@ public class CSharpVerbatimBlockTest : ParserTestBase
     [Fact]
     public void InnerImplicitExprWithOnlySingleAtAcceptsSingleSpaceOrNewlineAtDesignTime()
     {
-        ParseDocumentTest("@{" + Environment.NewLine + "    @" + Environment.NewLine + "}", designTime: true);
+        ParseDocumentTest("""
+            @{
+                @
+            }
+            """, designTime: true);
     }
 
     [Fact]
     public void InnerImplicitExprDoesNotAcceptTrailingNewlineInRunTimeMode()
     {
-        ParseDocumentTest("@{@foo." + Environment.NewLine + "}");
+        ParseDocumentTest("""
+            @{@foo.
+            }
+            """);
     }
 
     [Fact]
     public void InnerImplicitExprAcceptsTrailingNewlineInDesignTimeMode()
     {
-        ParseDocumentTest("@{@foo." + Environment.NewLine + "}", designTime: true);
+        ParseDocumentTest("""
+            @{@foo.
+            }
+            """, designTime: true);
     }
 }

@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Remote.Razor.Test;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -70,7 +69,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         // Arrange
         _projectManager.ProjectAdded(_hostProject_For_2_0);
 
-        var projectSnapshot = _projectManager.GetLoadedProject(_hostProject_For_2_0.Key);
+        var projectSnapshot = _projectManager.GetLoadedProject(_hostProject_For_2_0.Key).AssumeNotNull();
 
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance)
         {
@@ -95,7 +94,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         // Arrange
         _projectManager.ProjectAdded(_hostProject_For_NonSerializableConfiguration);
 
-        var projectSnapshot = _projectManager.GetLoadedProject(_hostProject_For_2_0.Key);
+        var projectSnapshot = _projectManager.GetLoadedProject(_hostProject_For_2_0.Key).AssumeNotNull();
 
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance)
         {
@@ -119,7 +118,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         // Arrange
         _projectManager.ProjectAdded(_hostProject_For_2_0);
 
-        var projectSnapshot = _projectManager.GetLoadedProject(_hostProject_For_2_0.Key);
+        var projectSnapshot = _projectManager.GetLoadedProject(_hostProject_For_2_0.Key).AssumeNotNull();
 
         var cancellationToken = new CancellationToken(canceled: true);
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance)
@@ -162,7 +161,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
         var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
         resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
-        var newTagHelperSet = ImmutableArray.Create(TagHelper1_Project1.GetChecksum());
+        var newTagHelperSet = ImmutableArray.Create(TagHelper1_Project1.Checksum);
         var failedDeltaApplication = new TagHelperDeltaResult(IsDelta: false, initialDelta.ResultId + 1, newTagHelperSet, ImmutableArray<Checksum>.Empty);
 
         // Act
@@ -195,7 +194,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
         var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
         resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
-        var changedDelta = new TagHelperDeltaResult(IsDelta: true, initialDelta.ResultId + 1, ImmutableArray.Create(TagHelper2_Project2.GetChecksum()), ImmutableArray.Create(TagHelper2_Project1.GetChecksum()));
+        var changedDelta = new TagHelperDeltaResult(IsDelta: true, initialDelta.ResultId + 1, ImmutableArray.Create(TagHelper2_Project2.Checksum), ImmutableArray.Create(TagHelper2_Project1.Checksum));
 
         // Act
         var tagHelperChecksums = resolver.PublicProduceChecksumsFromDelta(Project1Id, initialDelta.ResultId, changedDelta);
@@ -205,7 +204,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         set.AddRange(tagHelperChecksums);
 
         Assert.Equal(2, set.Count);
-        Assert.Contains(TagHelper1_Project1.GetChecksum(), set);
-        Assert.Contains(TagHelper2_Project2.GetChecksum(), set);
+        Assert.Contains(TagHelper1_Project1.Checksum, set);
+        Assert.Contains(TagHelper2_Project2.Checksum, set);
     }
 }
