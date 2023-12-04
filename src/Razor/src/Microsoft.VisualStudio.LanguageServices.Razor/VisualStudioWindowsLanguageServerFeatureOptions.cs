@@ -15,11 +15,13 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private const string ShowAllCSharpCodeActionsFeatureFlag = "Razor.LSP.ShowAllCSharpCodeActions";
     private const string IncludeProjectKeyInGeneratedFilePathFeatureFlag = "Razor.LSP.IncludeProjectKeyInGeneratedFilePath";
     private const string UsePreciseSemanticTokenRangesFeatureFlag = "Razor.LSP.UsePreciseSemanticTokenRanges";
+    private const string UseRazorCohostServerFeatureFlag = "Razor.LSP.UseRazorCohostServer";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
+    private readonly Lazy<bool> _useRazorCohostServer;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -50,6 +52,13 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
             var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
             var usePreciseSemanticTokenRanges = featureFlags.IsFeatureEnabled(UsePreciseSemanticTokenRangesFeatureFlag, defaultValue: false);
             return usePreciseSemanticTokenRanges;
+        });
+
+        _useRazorCohostServer = new Lazy<bool>(() =>
+        {
+            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+            var useRazorCohostServer = featureFlags.IsFeatureEnabled(UseRazorCohostServerFeatureFlag, defaultValue: false);
+            return useRazorCohostServer;
         });
     }
 
@@ -82,4 +91,6 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     public override bool UsePreciseSemanticTokenRanges => _usePreciseSemanticTokenRanges.Value;
 
     public override bool MonitorWorkspaceFolderForConfigurationFiles => false;
+
+    public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
 }

@@ -43,4 +43,6 @@ internal abstract class LanguageServerFeatureOptions
     /// razor/monitorProjectConfigurationFilePath notification is sent.
     /// </remarks>
     public abstract bool MonitorWorkspaceFolderForConfigurationFiles { get; }
+
+    public abstract bool UseRazorCohostServer { get; }
 }
