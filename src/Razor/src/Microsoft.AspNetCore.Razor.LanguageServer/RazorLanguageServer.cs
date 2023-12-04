@@ -164,8 +164,6 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
         services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
 
-        services.AddSingleton<IFaultExceptionHandler, JsonRPCFaultExceptionHandler>();
-
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
         // appinsights keys etc
