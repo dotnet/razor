@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -33,7 +34,12 @@ internal class TestDocumentSnapshot : DocumentSnapshot
     public static TestDocumentSnapshot Create(string filePath, string text, VersionStamp version, TestProjectSnapshot projectSnapshot)
     {
         using var testWorkspace = TestWorkspace.Create();
-        var hostDocument = new HostDocument(filePath, filePath);
+
+        var targetPath = Path.GetDirectoryName(projectSnapshot.FilePath) is string projectDirectory && filePath.StartsWith(projectDirectory)
+            ? filePath[projectDirectory.Length..]
+            : filePath;
+
+        var hostDocument = new HostDocument(filePath, targetPath);
         var sourceText = SourceText.From(text);
         var documentState = new DocumentState(
             testWorkspace.Services,
