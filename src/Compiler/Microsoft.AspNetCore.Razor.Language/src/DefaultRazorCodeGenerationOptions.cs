@@ -21,7 +21,7 @@ internal class DefaultRazorCodeGenerationOptions : RazorCodeGenerationOptions
         bool useEnhancedLinePragma,
         string suppressUniqueIds,
         bool suppressAddComponentParameter,
-        bool remapDesignTimeLinePragmaPathsOnWindows)
+        bool remapLinePragmaPathsOnWindows)
     {
         IndentWithTabs = indentWithTabs;
         IndentSize = indentSize;
@@ -36,7 +36,7 @@ internal class DefaultRazorCodeGenerationOptions : RazorCodeGenerationOptions
         UseEnhancedLinePragma = useEnhancedLinePragma;
         SuppressUniqueIds = suppressUniqueIds;
         SuppressAddComponentParameter = suppressAddComponentParameter;
-        RemapDesignTimeLinePragmaPathsOnWindows = remapDesignTimeLinePragmaPathsOnWindows;
+        RemapLinePragmaPathsOnWindows = remapLinePragmaPathsOnWindows;
     }
 
     public override bool DesignTime { get; }

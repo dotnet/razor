@@ -98,7 +98,7 @@ public abstract class RazorCodeGenerationOptionsBuilder
     /// <summary>
     /// Determines if the file paths emitted as part of line pragmas should be mapped back to a valid path on windows.
     /// </summary>
-    internal bool RemapDesignTimeLinePragmaPathsOnWindows { get; set; }
+    internal bool RemapLinePragmaPathsOnWindows { get; set; }
 
     public abstract RazorCodeGenerationOptions Build();
 

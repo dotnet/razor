@@ -25,7 +25,7 @@ public abstract class RazorCodeGenerationOptions
             useEnhancedLinePragma: true,
             suppressUniqueIds: null,
             suppressAddComponentParameter: false,
-            remapDesignTimeLinePragmaPathsOnWindows: false);
+            remapLinePragmaPathsOnWindows: false);
     }
 
     public static RazorCodeGenerationOptions CreateDesignTimeDefault()
@@ -44,7 +44,7 @@ public abstract class RazorCodeGenerationOptions
             useEnhancedLinePragma: true,
             suppressUniqueIds: null,
             suppressAddComponentParameter: false,
-            remapDesignTimeLinePragmaPathsOnWindows: true);
+            remapLinePragmaPathsOnWindows: true);
     }
 
     public static RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptionsBuilder> configure)
@@ -166,5 +166,5 @@ public abstract class RazorCodeGenerationOptions
     /// <summary>
     /// Determines if the file paths emitted as part of line pragmas should be mapped back to a valid path on windows.
     /// </summary>
-    public bool RemapDesignTimeLinePragmaPathsOnWindows { get; private protected init; }
+    public bool RemapLinePragmaPathsOnWindows { get; private protected init; }
 }
