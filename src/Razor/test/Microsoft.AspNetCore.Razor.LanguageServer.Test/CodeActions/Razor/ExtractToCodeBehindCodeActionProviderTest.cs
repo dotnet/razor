@@ -224,10 +224,9 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(removeSpan.Start, actionParams.RemoveStart);
-        Assert.Equal(extractSpan.Start, actionParams.ExtractStart);
-        Assert.Equal(extractSpan.End, actionParams.ExtractEnd);
-        Assert.Equal(removeSpan.End, actionParams.RemoveEnd);
+
+        Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));
+        Assert.Equal(extractSpan, TextSpan.FromBounds(actionParams.ExtractStart, actionParams.ExtractEnd));
     }
 
     [Fact]
@@ -270,10 +269,8 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
 
-        Assert.Equal(removeSpan.Start, actionParams.RemoveStart);
-        Assert.Equal(extractSpan.Start, actionParams.ExtractStart);
-        Assert.Equal(extractSpan.End, actionParams.ExtractEnd);
-        Assert.Equal(removeSpan.End, actionParams.RemoveEnd);
+        Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));
+        Assert.Equal(extractSpan, TextSpan.FromBounds(actionParams.ExtractStart, actionParams.ExtractEnd));
     }
 
     [Fact]
@@ -345,10 +342,9 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(removeSpan.Start, actionParams.RemoveStart);
-        Assert.Equal(extractSpan.Start, actionParams.ExtractStart);
-        Assert.Equal(extractSpan.End, actionParams.ExtractEnd);
-        Assert.Equal(removeSpan.End, actionParams.RemoveEnd);
+
+        Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));
+        Assert.Equal(extractSpan, TextSpan.FromBounds(actionParams.ExtractStart, actionParams.ExtractEnd));
     }
 
     [Fact]

@@ -20,6 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
 public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
 {
+    private static readonly string s_baseDirectory = PathUtilities.CreateRootedPath("path", "to");
+
     private readonly DocumentVersionCache _documentVersionCache;
     private readonly TestProjectSnapshotManager _projectSnapshotManagerBase;
     private readonly TestProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
@@ -37,8 +39,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateAsync_CanNotResolveDocument_ReturnsNull()
     {
         // Arrange
-        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
-        var filePath = FilePathNormalizer.Normalize(Path.Combine(baseDirectory, "file.cshtml"));
+        var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
@@ -54,8 +55,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateForOpenDocumentAsync_CanNotResolveDocument_ReturnsNull()
     {
         // Arrange
-        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
-        var filePath = FilePathNormalizer.Normalize(Path.Combine(baseDirectory, "file.cshtml"));
+        var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
         var factory = new DefaultDocumentContextFactory(_projectSnapshotManagerAccessor, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
@@ -71,8 +71,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateForOpenDocumentAsync_CanNotResolveVersion_ReturnsNull()
     {
         // Arrange
-        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
-        var filePath = FilePathNormalizer.Normalize(Path.Combine(baseDirectory, "file.cshtml"));
+        var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
@@ -90,8 +89,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateAsync_ResolvesContent()
     {
         // Arrange
-        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
-        var filePath = FilePathNormalizer.Normalize(Path.Combine(baseDirectory, "file.cshtml"));
+        var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
@@ -113,10 +111,9 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateAsync_WithProjectContext_Resolves()
     {
         // Arrange
-        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
-        var filePath = FilePathNormalizer.Normalize(Path.Combine(baseDirectory, "file.cshtml"));
-        var intermediateOutputPath = Path.Combine(baseDirectory, "obj");
-        var projectFilePath = Path.Combine(baseDirectory, "project.csproj");
+        var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
+        var intermediateOutputPath = Path.Combine(s_baseDirectory, "obj");
+        var projectFilePath = Path.Combine(s_baseDirectory, "project.csproj");
         var uri = new Uri(filePath);
 
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
@@ -142,10 +139,9 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public void TryCreateAsync_WithProjectContext_DoesntUseSnapshotResolver()
     {
         // Arrange
-        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
-        var filePath = FilePathNormalizer.Normalize(Path.Combine(baseDirectory, "file.cshtml"));
-        var intermediateOutputPath = Path.Combine(baseDirectory, "obj");
-        var projectFilePath = Path.Combine(baseDirectory, "project.csproj");
+        var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
+        var intermediateOutputPath = Path.Combine(s_baseDirectory, "obj");
+        var projectFilePath = Path.Combine(s_baseDirectory, "project.csproj");
         var uri = new Uri(filePath);
 
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
@@ -172,8 +168,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public async Task TryCreateForOpenDocumentAsync_ResolvesContent()
     {
         // Arrange
-        var baseDirectory = PathUtilities.CreateRootedPath("path", "to");
-        var filePath = FilePathNormalizer.Normalize(Path.Combine(baseDirectory, "file.cshtml"));
+        var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
