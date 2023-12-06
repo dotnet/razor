@@ -23,10 +23,6 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>06d7179e0a2ad184610fb9659ea35c7da8f47305</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler" Version="4.8.0-3.23475.1">
-      <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>06d7179e0a2ad184610fb9659ea35c7da8f47305</Sha>
-    </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.Common" Version="4.8.0-3.23475.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>06d7179e0a2ad184610fb9659ea35c7da8f47305</Sha>
