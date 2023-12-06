@@ -332,6 +332,19 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return true;
         }
 
+        foreach (var mapping in generatedDocument.ComponentMappings)
+        {
+            var generatedAbsoluteIndex = mapping.AbsoluteIndex;
+            var distanceIntoGeneratedSpan = generatedDocumentIndex - generatedAbsoluteIndex;
+            if (generatedAbsoluteIndex <= generatedDocumentIndex &&
+                distanceIntoGeneratedSpan <= mapping.Length)
+            {
+                hostDocumentIndex = 0;
+                hostDocumentPosition = new LinePosition(0, 0);
+                return true;
+            }
+        }
+
         hostDocumentPosition = default;
         hostDocumentIndex = default;
         return false;
