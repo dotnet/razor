@@ -16,13 +16,13 @@ public class LogIntegrationTestAttribute : BeforeAfterTestAttribute
 {
     public override void Before(MethodInfo methodUnderTest)
     {
-        Console.WriteLine("#### Integration test start: {method}", methodUnderTest.Name);
+        Console.WriteLine("##[debug] Integration test start: {0}", methodUnderTest.Name);
         GetLogger().LogInformation("#### Integration test start: {method}", methodUnderTest.Name);
     }
 
     public override void After(MethodInfo methodUnderTest)
     {
-        Console.WriteLine("#### Integration test start: {end}", methodUnderTest.Name);
+        Console.WriteLine("##[debug] Integration test start: {0}", methodUnderTest.Name);
         GetLogger().LogInformation("#### Integration test end: {method}", methodUnderTest.Name);
     }
 
