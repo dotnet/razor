@@ -95,6 +95,18 @@ internal class RazorSpanMappingService : IRazorSpanMappingService
             }
         }
 
+        foreach (var mapping in output.ComponentMappings)
+        {
+            var generated = mapping.AsTextSpan();
+
+            if (generated.Contains(span))
+            {
+                mappedSpan = new TextSpan(0, 0);
+                linePositionSpan = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0));
+                return true;
+            }
+        }
+
         mappedSpan = default;
         linePositionSpan = default;
         return false;
