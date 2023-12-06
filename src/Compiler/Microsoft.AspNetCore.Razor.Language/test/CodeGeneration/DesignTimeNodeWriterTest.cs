@@ -458,15 +458,15 @@ Render Children
     }
 
     [OSSkipConditionTheory(new[] { "Linux", "osx" })]
-    [InlineData("test.cshtml", "test.cshtml")]
-    [InlineData("pages/test.cshtml", "pages\\test.cshtml")]
-    [InlineData("pages\\test.cshtml", "pages\\test.cshtml")]
-    [InlineData("c:/pages/test.cshtml", "c:\\pages\\test.cshtml")]
-    [InlineData("c:\\pages\\test.cshtml", "c:\\pages\\test.cshtml")]
-    [InlineData("c:/pages with space/test.cshtml", "c:\\pages with space\\test.cshtml")]
-    [InlineData("c:\\pages with space\\test.cshtml", "c:\\pages with space\\test.cshtml")]
-    [InlineData("//SERVER/pages/test.cshtml", "\\\\SERVER\\pages\\test.cshtml")]
-    [InlineData("\\\\SERVER/pages\\test.cshtml", "\\\\SERVER\\pages\\test.cshtml")]
+    [InlineData(@"test.cshtml",                     @"test.cshtml")]
+    [InlineData(@"pages/test.cshtml",               @"pages\test.cshtml")]
+    [InlineData(@"pages\test.cshtml",               @"pages\test.cshtml")]
+    [InlineData(@"c:/pages/test.cshtml",            @"c:\pages\test.cshtml")]
+    [InlineData(@"c:\pages\test.cshtml",            @"c:\pages\test.cshtml")]
+    [InlineData(@"c:/pages with space/test.cshtml", @"c:\pages with space\test.cshtml")]
+    [InlineData(@"c:\pages with space\test.cshtml", @"c:\pages with space\test.cshtml")]
+    [InlineData(@"//SERVER/pages/test.cshtml",      @"\\SERVER\pages\test.cshtml")]
+    [InlineData(@"\\SERVER/pages\test.cshtml",      @"\\SERVER\pages\test.cshtml")]
     public void LinePragma_Is_Adjusted_On_Windows(string fileName, string expectedFileName)
     {
         var writer = new DesignTimeNodeWriter();
@@ -505,15 +505,15 @@ Render Children
     }
 
     [OSSkipConditionTheory(new[] { "Linux", "osx" })]
-    [InlineData("test.cshtml", "test.cshtml")]
-    [InlineData("pages/test.cshtml", "pages\\test.cshtml")]
-    [InlineData("pages\\test.cshtml", "pages\\test.cshtml")]
-    [InlineData("c:/pages/test.cshtml", "c:\\pages\\test.cshtml")]
-    [InlineData("c:\\pages\\test.cshtml", "c:\\pages\\test.cshtml")]
-    [InlineData("c:/pages with space/test.cshtml", "c:\\pages with space\\test.cshtml")]
-    [InlineData("c:\\pages with space\\test.cshtml", "c:\\pages with space\\test.cshtml")]
-    [InlineData("//SERVER/pages/test.cshtml", "\\\\SERVER\\pages\\test.cshtml")]
-    [InlineData("\\\\SERVER/pages\\test.cshtml", "\\\\SERVER\\pages\\test.cshtml")]
+    [InlineData(@"test.cshtml",                     @"test.cshtml")]
+    [InlineData(@"pages/test.cshtml",               @"pages\test.cshtml")]
+    [InlineData(@"pages\test.cshtml",               @"pages\test.cshtml")]
+    [InlineData(@"c:/pages/test.cshtml",            @"c:\pages\test.cshtml")]
+    [InlineData(@"c:\pages\test.cshtml",            @"c:\pages\test.cshtml")]
+    [InlineData(@"c:/pages with space/test.cshtml", @"c:\pages with space\test.cshtml")]
+    [InlineData(@"c:\pages with space\test.cshtml", @"c:\pages with space\test.cshtml")]
+    [InlineData(@"//SERVER/pages/test.cshtml",      @"\\SERVER\pages\test.cshtml")]
+    [InlineData(@"\\SERVER/pages\test.cshtml",      @"\\SERVER\pages\test.cshtml")]
     public void LinePragma_Enhanced_Is_Adjusted_On_Windows(string fileName, string expectedFileName)
     {
         var writer = new RuntimeNodeWriter();
