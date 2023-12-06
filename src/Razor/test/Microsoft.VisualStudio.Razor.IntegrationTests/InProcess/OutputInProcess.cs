@@ -34,6 +34,8 @@ internal partial class OutputInProcess
 
     public async Task LogStatusAsync(string message, CancellationToken cancellationToken)
     {
+        Console.WriteLine(message);
+
         var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
         logger.LogInformation(message);
     }
