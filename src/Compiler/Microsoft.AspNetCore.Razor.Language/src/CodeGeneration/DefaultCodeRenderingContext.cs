@@ -19,6 +19,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
     private readonly List<ScopeInternal> _scopes;
 
     private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _sourceMappingsBuilder;
+    private readonly PooledObject<ImmutableArray<SourceSpan>.Builder> _componentMappingsBuilder;
 
     public DefaultCodeRenderingContext(
         CodeWriter codeWriter,
@@ -61,6 +62,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
         Diagnostics = new RazorDiagnosticCollection();
         Items = new ItemCollection();
         _sourceMappingsBuilder = ArrayBuilderPool<SourceMapping>.GetPooledObject();
+        _componentMappingsBuilder = ArrayBuilderPool<SourceSpan>.GetPooledObject();
         LinePragmas = new List<LinePragma>();
 
         var diagnostics = _documentNode.GetAllDiagnostics();
@@ -99,6 +101,8 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
     public override ItemCollection Items { get; }
 
     public ImmutableArray<SourceMapping>.Builder SourceMappings => _sourceMappingsBuilder.Object;
+
+    public ImmutableArray<SourceSpan>.Builder ComponentMappings => _componentMappingsBuilder.Object;
 
     internal List<LinePragma> LinePragmas { get; }
 
@@ -140,6 +144,11 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
         var sourceMapping = new SourceMapping(source, generatedLocation);
 
         SourceMappings.Add(sourceMapping);
+    }
+
+    public override void AddComponentMapping(int length)
+    {
+        ComponentMappings.Add(new SourceSpan(CodeWriter.Location, length));
     }
 
     public override void RenderChildren(IntermediateNode node)
@@ -220,6 +229,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
     public override void Dispose()
     {
         _sourceMappingsBuilder.Dispose();
+        _componentMappingsBuilder.Dispose();
     }
 
     private struct ScopeInternal
