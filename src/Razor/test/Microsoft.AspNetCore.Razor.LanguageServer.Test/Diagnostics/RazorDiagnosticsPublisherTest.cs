@@ -535,9 +535,9 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             ClientNotifierServiceBase languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             RazorTranslateDiagnosticsService razorTranslateDiagnosticsService,
-            DocumentContextFactory documentContextFactory,
+            IDocumentContextFactory documentContextFactory,
             ILoggerFactory loggerFactory)
-            : base(projectSnapshotManagerDispatcher, languageServer, languageServerFeatureOptions, new Lazy<RazorTranslateDiagnosticsService>(razorTranslateDiagnosticsService), new Lazy<DocumentContextFactory>(documentContextFactory), loggerFactory)
+            : base(projectSnapshotManagerDispatcher, languageServer, languageServerFeatureOptions, new Lazy<RazorTranslateDiagnosticsService>(razorTranslateDiagnosticsService), new Lazy<IDocumentContextFactory>(documentContextFactory), loggerFactory)
         {
             // The diagnostics publisher by default will wait 2 seconds until publishing diagnostics. For testing purposes we reduce
             // the amount of time we wait for diagnostic publishing because we have more concrete control of the timer and its lifecycle.

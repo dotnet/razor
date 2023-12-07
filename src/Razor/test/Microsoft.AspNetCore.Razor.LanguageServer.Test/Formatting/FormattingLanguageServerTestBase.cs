@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public abstract class FormattingLanguageServerTestBase : LanguageServerTestBase
 {
-    internal DocumentContextFactory EmptyDocumentContextFactory { get; }
+    internal IDocumentContextFactory EmptyDocumentContextFactory { get; }
 
     public FormattingLanguageServerTestBase(ITestOutputHelper testOutput)
         : base(testOutput)

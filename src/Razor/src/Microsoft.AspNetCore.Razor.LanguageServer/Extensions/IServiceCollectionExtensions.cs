@@ -193,8 +193,8 @@ internal static class IServiceCollectionExtensions
     {
         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
         services.AddSingleton<IProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
-        services.AddSingleton<DocumentContextFactory, DefaultDocumentContextFactory>();
-        services.AddSingleton(sp => new Lazy<DocumentContextFactory>(sp.GetRequiredService<DocumentContextFactory>));
+        services.AddSingleton<IDocumentContextFactory, DefaultDocumentContextFactory>();
+        services.AddSingleton(sp => new Lazy<IDocumentContextFactory>(sp.GetRequiredService<IDocumentContextFactory>));
 
         services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
         services.AddSingleton<IProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DocumentVersionCache>());

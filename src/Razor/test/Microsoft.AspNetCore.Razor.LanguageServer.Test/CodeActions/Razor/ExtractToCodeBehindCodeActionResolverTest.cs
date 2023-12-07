@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
 {
-    private readonly DocumentContextFactory _emptyDocumentContextFactory;
+    private readonly IDocumentContextFactory _emptyDocumentContextFactory;
     private readonly TestLanguageServer _languageServer;
 
     public ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOutput)

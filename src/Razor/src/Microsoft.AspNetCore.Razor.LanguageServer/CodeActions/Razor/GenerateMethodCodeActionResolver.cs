@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 {
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly IRazorDocumentMappingService _documentMappingService;
@@ -44,7 +44,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
     public GenerateMethodCodeActionResolver(
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         RazorLSPOptionsMonitor razorLSPOptionsMonitor,
         ClientNotifierServiceBase languageServer,
         IRazorDocumentMappingService razorDocumentMappingService,

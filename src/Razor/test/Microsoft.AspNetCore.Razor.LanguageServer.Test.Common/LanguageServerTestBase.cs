@@ -100,7 +100,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return codeDocument;
     }
 
-    internal static DocumentContextFactory CreateDocumentContextFactory(Uri documentPath, string sourceText)
+    internal static IDocumentContextFactory CreateDocumentContextFactory(Uri documentPath, string sourceText)
     {
         var codeDocument = CreateCodeDocument(sourceText);
         return CreateDocumentContextFactory(documentPath, codeDocument);
@@ -120,7 +120,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return sourceString;
     }
 
-    internal static DocumentContextFactory CreateDocumentContextFactory(
+    internal static IDocumentContextFactory CreateDocumentContextFactory(
         Uri documentPath,
         RazorCodeDocument codeDocument,
         bool documentFound = true)

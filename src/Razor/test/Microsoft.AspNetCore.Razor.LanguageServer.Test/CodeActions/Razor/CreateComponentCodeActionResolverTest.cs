@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
 {
-    private readonly DocumentContextFactory _emptyDocumentContextFactory;
+    private readonly IDocumentContextFactory _emptyDocumentContextFactory;
 
     public CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
         : base(testOutput)

@@ -34,7 +34,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
     private readonly VSInternalClientCapabilities _clientCapabilities;
     private readonly DelegatedCompletionParams _csharpCompletionParams;
     private readonly DelegatedCompletionParams _htmlCompletionParams;
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly AsyncLazy<IRazorFormattingService> _formattingService;
 
     public DelegatedCompletionItemResolverTest(ITestOutputHelper testOutput)

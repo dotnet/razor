@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
 {
-    private readonly DocumentContextFactory _emptyDocumentContextFactory;
+    private readonly IDocumentContextFactory _emptyDocumentContextFactory;
 
     public AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput)
         : base(testOutput)

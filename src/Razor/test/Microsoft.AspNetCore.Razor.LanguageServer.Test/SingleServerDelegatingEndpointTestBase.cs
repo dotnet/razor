@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 [UseExportProvider]
 public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTestBase
 {
-    internal DocumentContextFactory DocumentContextFactory { get; private set; }
+    internal IDocumentContextFactory DocumentContextFactory { get; private set; }
     internal LanguageServerFeatureOptions LanguageServerFeatureOptions { get; private set; }
     internal TestLanguageServer LanguageServer { get; private set; }
     internal IRazorDocumentMappingService DocumentMappingService { get; private set; }
