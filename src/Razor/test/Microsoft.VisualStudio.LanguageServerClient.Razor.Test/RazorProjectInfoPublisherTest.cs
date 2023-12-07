@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -172,12 +174,15 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
         var projectSnapshot = _projectSnapshotManager.GetProjects()[0];
         var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.bin";
         _projectConfigurationFilePathStore.Set(projectSnapshot.Key, expectedConfigurationFilePath);
+
+        var signal = new AsyncManualResetEvent(initialState:false);
         var publisher = new TestRazorProjectInfoPublisher(
             _projectConfigurationFilePathStore,
             onSerializeToFile: (snapshot, configurationFilePath) =>
             {
                 Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
                 serializationSuccessful = true;
+                signal.Set();
             },
             configurationFileExists: false)
         {
@@ -193,7 +198,9 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Empty(publisher.DeferredPublishTasks);
+        using var cancellationSource = new CancellationTokenSource();
+        cancellationSource.CancelAfter(TimeSpan.FromSeconds(2));
+        await signal.WaitAsync(cancellationSource.Token);
         Assert.True(serializationSuccessful);
     }
 
