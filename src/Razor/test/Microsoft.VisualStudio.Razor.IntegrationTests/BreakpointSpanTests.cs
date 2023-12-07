@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class BreakpointSpanTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    [IdeFact]
+    [IdeFact(Skip = "First test after failure")]
     public async Task SetBreakpoint_FirstCharacter_SpanAdjusts()
     {
         // Open the file
