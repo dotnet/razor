@@ -196,8 +196,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<DocumentContextFactory, DefaultDocumentContextFactory>();
         services.AddSingleton(sp => new Lazy<DocumentContextFactory>(sp.GetRequiredService<DocumentContextFactory>));
 
-        services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DocumentVersionCache>());
+        services.AddSingleton<IDocumentVersionCache, DocumentVersionCache>();
+        services.AddSingleton((services) => (IProjectSnapshotChangeTrigger)services.GetRequiredService<IDocumentVersionCache>());
 
         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
         services.AddSingleton<ISnapshotResolver, SnapshotResolver>();
