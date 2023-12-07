@@ -15,12 +15,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal class HtmlFormatter
 {
-    private readonly DocumentVersionCache _documentVersionCache;
+    private readonly IDocumentVersionCache _documentVersionCache;
     private readonly ClientNotifierServiceBase _server;
 
     public HtmlFormatter(
         ClientNotifierServiceBase languageServer,
-        DocumentVersionCache documentVersionCache)
+        IDocumentVersionCache documentVersionCache)
     {
         _server = languageServer;
         _documentVersionCache = documentVersionCache;

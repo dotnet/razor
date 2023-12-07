@@ -19,13 +19,13 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
 {
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
     private readonly ISnapshotResolver _snapshotResolver;
-    private readonly DocumentVersionCache _documentVersionCache;
+    private readonly IDocumentVersionCache _documentVersionCache;
     private readonly ILogger<DefaultDocumentContextFactory> _logger;
 
     public DefaultDocumentContextFactory(
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
         ISnapshotResolver snapshotResolver,
-        DocumentVersionCache documentVersionCache,
+        IDocumentVersionCache documentVersionCache,
         ILoggerFactory loggerFactory)
     {
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;

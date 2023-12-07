@@ -29,7 +29,7 @@ internal static class TestRazorFormattingService
         var mappingService = new RazorDocumentMappingService(filePathService, new TestDocumentContextFactory(), loggerFactory);
 
         var dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactory);
-        var versionCache = new DefaultDocumentVersionCache();
+        var versionCache = new DocumentVersionCache();
         if (documentSnapshot is not null)
         {
             await dispatcher.RunOnDispatcherThreadAsync(() =>

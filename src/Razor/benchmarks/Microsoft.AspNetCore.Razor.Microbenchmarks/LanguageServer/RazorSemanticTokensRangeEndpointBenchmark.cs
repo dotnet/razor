@@ -29,7 +29,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private SemanticTokensRangeEndpoint SemanticTokensRangeEndpoint { get; set; }
 
-    private DocumentVersionCache VersionCache { get; set; }
+    private IDocumentVersionCache VersionCache { get; set; }
 
     private Uri DocumentUri => DocumentContext.Uri;
 
@@ -144,7 +144,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
-        VersionCache = languageServer.GetRequiredService<DocumentVersionCache>();
+        VersionCache = languageServer.GetRequiredService<IDocumentVersionCache>();
         ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
     }
 

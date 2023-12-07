@@ -20,14 +20,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
 public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
 {
-    private readonly DocumentVersionCache _documentVersionCache;
+    private readonly IDocumentVersionCache _documentVersionCache;
     private readonly TestProjectSnapshotManager _projectSnapshotManagerBase;
     private readonly TestProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
     public DefaultDocumentContextFactoryTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentVersionCache = new DefaultDocumentVersionCache();
+        _documentVersionCache = new DocumentVersionCache();
 
         _projectSnapshotManagerBase = TestProjectSnapshotManager.Create(ErrorReporter, Dispatcher);
         _projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(_projectSnapshotManagerBase);

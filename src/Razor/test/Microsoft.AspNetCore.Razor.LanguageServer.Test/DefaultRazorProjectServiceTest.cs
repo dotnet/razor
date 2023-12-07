@@ -893,7 +893,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
             TestProjectSnapshot.Create("C:/__MISC_PROJECT__"));
 
         var newText = SourceText.From("Something New");
-        var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
+        var documentVersionCache = new Mock<IDocumentVersionCache>(MockBehavior.Strict);
         documentVersionCache.Setup(cache => cache.TrackDocumentVersion(It.IsAny<IDocumentSnapshot>(), It.IsAny<int>()))
             .Callback<IDocumentSnapshot, int>((snapshot, version) =>
             {
@@ -938,7 +938,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
                 [documentFilePath] = ownerProject
             },
             TestProjectSnapshot.Create("C:/__MISC_PROJECT__"));
-        var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
+        var documentVersionCache = new Mock<IDocumentVersionCache>(MockBehavior.Strict);
         documentVersionCache.Setup(cache => cache.TrackDocumentVersion(It.IsAny<IDocumentSnapshot>(), It.IsAny<int>()))
             .Throws<XunitException>();
         var newText = SourceText.From("Something New");
@@ -1134,11 +1134,11 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
     private DefaultRazorProjectService CreateProjectService(
         ISnapshotResolver snapshotResolver,
         ProjectSnapshotManagerBase projectSnapshotManager,
-        DocumentVersionCache documentVersionCache = null)
+        IDocumentVersionCache documentVersionCache = null)
     {
         if (documentVersionCache is null)
         {
-            documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict).Object;
+            documentVersionCache = new Mock<IDocumentVersionCache>(MockBehavior.Strict).Object;
             Mock.Get(documentVersionCache).Setup(c => c.TrackDocumentVersion(It.IsAny<IDocumentSnapshot>(), It.IsAny<int>())).Verifiable();
         }
 
