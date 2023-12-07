@@ -27,7 +27,7 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
     public TextDocumentUriPresentationEndpoint(
         IRazorDocumentMappingService razorDocumentMappingService,
         RazorComponentSearchEngine razorComponentSearchEngine,
-        ClientNotifierServiceBase languageServer,
+        IClientNotifierService languageServer,
         FilePathService filePathService,
         DocumentContextFactory documentContextFactory,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,

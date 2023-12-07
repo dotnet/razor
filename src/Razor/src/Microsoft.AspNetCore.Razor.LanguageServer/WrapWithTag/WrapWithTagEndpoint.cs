@@ -20,11 +20,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 [LanguageServerEndpoint(LanguageServerConstants.RazorWrapWithTagEndpoint)]
 internal class WrapWithTagEndpoint : IRazorRequestHandler<WrapWithTagParams, WrapWithTagResponse?>
 {
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientNotifierService _languageServer;
     private readonly IRazorDocumentMappingService _razorDocumentMappingService;
 
     public WrapWithTagEndpoint(
-        ClientNotifierServiceBase languageServer,
+        IClientNotifierService languageServer,
         IRazorDocumentMappingService razorDocumentMappingService)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));

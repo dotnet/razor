@@ -41,13 +41,13 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly DocumentContextFactory _documentContextFactory;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientNotifierService _languageServer;
     private readonly FilePathService _filePathService;
 
     public MapCodeEndpoint(
         IRazorDocumentMappingService documentMappingService,
         DocumentContextFactory documentContextFactory,
-        ClientNotifierServiceBase languageServer,
+        IClientNotifierService languageServer,
         FilePathService filePathService)
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));

@@ -23,7 +23,7 @@ internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<Docum
     public DocumentHighlightEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
+        IClientNotifierService languageServer,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<DocumentHighlightEndpoint>())
     {

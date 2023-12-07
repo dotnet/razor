@@ -524,7 +524,7 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
         public override string Action { get; }
 
         internal MockCSharpCodeActionResolver(string action)
-            : base(Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict))
+            : base(Mock.Of<IClientNotifierService>(MockBehavior.Strict))
         {
             Action = action;
         }
@@ -541,7 +541,7 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
         public override string Action { get; }
 
         internal MockCSharpNullCodeActionResolver(string action)
-            : base(Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict))
+            : base(Mock.Of<IClientNotifierService>(MockBehavior.Strict))
         {
             Action = action;
         }

@@ -131,7 +131,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
     internal class TestRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
     {
         public TestRazorSemanticTokensInfoService(
-            ClientNotifierServiceBase languageServer,
+            IClientNotifierService languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             IRazorDocumentMappingService documentMappingService,
             RazorLSPOptionsMonitor razorLSPOptionsMonitor,

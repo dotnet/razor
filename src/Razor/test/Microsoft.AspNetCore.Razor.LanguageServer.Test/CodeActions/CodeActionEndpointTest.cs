@@ -26,7 +26,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientNotifierService _languageServer;
 
     public CodeActionEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -45,7 +45,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             l => l.SupportsFileManipulation == true,
             MockBehavior.Strict);
 
-        _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+        _languageServer = Mock.Of<IClientNotifierService>(MockBehavior.Strict);
     }
 
     [Fact]
@@ -775,7 +775,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         return documentMappingService;
     }
 
-    private static ClientNotifierServiceBase CreateLanguageServer()
+    private static IClientNotifierService CreateLanguageServer()
     {
         return new TestLanguageServer();
     }
@@ -846,12 +846,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         }
     }
 
-    private class TestLanguageServer : ClientNotifierServiceBase
+    private class TestLanguageServer : IClientNotifierService
     {
-        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => Task.CompletedTask;
-
-        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             if (method != CustomMessageNames.RazorProvideCodeActionsEndpoint)
             {
@@ -861,12 +858,12 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             return Task.CompletedTask;
         }
 
-        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             if (method != CustomMessageNames.RazorProvideCodeActionsEndpoint)
             {

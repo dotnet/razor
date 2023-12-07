@@ -34,7 +34,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
     public CSharpOnTypeFormattingPass(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase server,
+        IClientNotifierService server,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerFactory)
         : base(documentMappingService, server)

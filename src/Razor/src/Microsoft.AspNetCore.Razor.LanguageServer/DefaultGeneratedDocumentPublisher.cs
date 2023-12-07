@@ -19,7 +19,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
 {
     private readonly Dictionary<DocumentKey, PublishData> _publishedCSharpData;
     private readonly Dictionary<string, PublishData> _publishedHtmlData;
-    private readonly ClientNotifierServiceBase _server;
+    private readonly IClientNotifierService _server;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ILogger _logger;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -27,7 +27,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
 
     public DefaultGeneratedDocumentPublisher(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ClientNotifierServiceBase server,
+        IClientNotifierService server,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ILoggerFactory loggerFactory)
     {

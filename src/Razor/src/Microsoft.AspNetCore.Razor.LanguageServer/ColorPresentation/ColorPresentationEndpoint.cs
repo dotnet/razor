@@ -17,9 +17,9 @@ internal sealed class ColorPresentationEndpoint : IRazorRequestHandler<ColorPres
 {
     public const string ColorPresentationMethodName = "textDocument/colorPresentation";
 
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientNotifierService _languageServer;
 
-    public ColorPresentationEndpoint(ClientNotifierServiceBase languageServer)
+    public ColorPresentationEndpoint(IClientNotifierService languageServer)
     {
         if (languageServer is null)
         {

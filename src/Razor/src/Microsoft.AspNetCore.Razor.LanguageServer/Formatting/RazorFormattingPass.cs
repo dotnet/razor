@@ -23,7 +23,7 @@ internal class RazorFormattingPass : FormattingPassBase
 
     public RazorFormattingPass(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase server,
+        IClientNotifierService server,
         ILoggerFactory loggerFactory)
         : base(documentMappingService, server)
     {

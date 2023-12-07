@@ -51,7 +51,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
             razorCodeActionProviders: languageServer.GetRequiredService<IEnumerable<IRazorCodeActionProvider>>(),
             csharpCodeActionProviders: languageServer.GetRequiredService<IEnumerable<ICSharpCodeActionProvider>>(),
             htmlCodeActionProviders: languageServer.GetRequiredService<IEnumerable<IHtmlCodeActionProvider>>(),
-            languageServer: languageServer.GetRequiredService<ClientNotifierServiceBase>(),
+            languageServer: languageServer.GetRequiredService<IClientNotifierService>(),
             languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
             telemetryReporter: null);
 

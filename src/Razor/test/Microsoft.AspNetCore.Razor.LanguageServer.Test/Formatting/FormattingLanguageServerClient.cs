@@ -25,7 +25,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : ClientNotifierServiceBase
+internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : IClientNotifierService
 {
     private readonly Dictionary<string, RazorCodeDocument> _documents = [];
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
@@ -149,7 +149,7 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : Cl
         };
     }
 
-    public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+    public async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
     {
         if (@params is DocumentFormattingParams formattingParams &&
             string.Equals(method, CustomMessageNames.RazorHtmlFormattingEndpoint, StringComparison.Ordinal))
@@ -186,18 +186,13 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : Cl
         throw new NotImplementedException();
     }
 
-    public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+    public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+    public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
-    }
-
-    public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
     }
 }

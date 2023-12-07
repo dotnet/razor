@@ -21,7 +21,7 @@ internal class CSharpFormattingPass : CSharpFormattingPassBase
 
     public CSharpFormattingPass(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase server,
+        IClientNotifierService server,
         ILoggerFactory loggerFactory)
         : base(documentMappingService, server)
     {

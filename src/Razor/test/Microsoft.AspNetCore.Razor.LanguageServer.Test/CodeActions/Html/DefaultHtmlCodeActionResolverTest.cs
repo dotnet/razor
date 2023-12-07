@@ -111,11 +111,11 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
             });
     }
 
-    private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction)
+    private static IClientNotifierService CreateLanguageServer(CodeAction resolvedCodeAction)
     {
         var response = resolvedCodeAction;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
         languageServer
             .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);

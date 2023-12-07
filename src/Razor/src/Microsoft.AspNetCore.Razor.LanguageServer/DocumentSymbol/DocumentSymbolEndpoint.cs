@@ -18,12 +18,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbol;
 [LanguageServerEndpoint(Methods.TextDocumentDocumentSymbolName)]
 internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SymbolInformation[]>, ICapabilitiesProvider
 {
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientNotifierService _languageServer;
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     public DocumentSymbolEndpoint(
-        ClientNotifierServiceBase languageServer,
+        IClientNotifierService languageServer,
         IRazorDocumentMappingService documentMappingService,
         LanguageServerFeatureOptions languageServerFeatureOptions)
     {

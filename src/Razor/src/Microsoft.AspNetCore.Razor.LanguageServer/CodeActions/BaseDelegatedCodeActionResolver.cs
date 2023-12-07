@@ -13,9 +13,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal abstract class BaseDelegatedCodeActionResolver : ICodeActionResolver
 {
-    protected readonly ClientNotifierServiceBase LanguageServer;
+    protected readonly IClientNotifierService LanguageServer;
 
-    public BaseDelegatedCodeActionResolver(ClientNotifierServiceBase languageServer)
+    public BaseDelegatedCodeActionResolver(IClientNotifierService languageServer)
     {
         LanguageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
     }

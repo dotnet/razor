@@ -227,9 +227,9 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
         Assert.Equal(expectedOptions, options);
     }
 
-    private static ClientNotifierServiceBase GetLanguageServer<IResult>(IResult result, bool shouldThrow = false)
+    private static IClientNotifierService GetLanguageServer<IResult>(IResult result, bool shouldThrow = false)
     {
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
 
         if (shouldThrow)
         {

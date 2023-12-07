@@ -38,10 +38,10 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         var lspServices = languageServer.GetLspServices();
         var responseRewriters = lspServices.GetRequiredServices<DelegatedCompletionResponseRewriter>();
         var documentMappingService = lspServices.GetRequiredService<IRazorDocumentMappingService>();
-        var clientNotifierServiceBase = lspServices.GetRequiredService<ClientNotifierServiceBase>();
+        var IClientNotifierService = lspServices.GetRequiredService<IClientNotifierService>();
         var completionListCache = lspServices.GetRequiredService<CompletionListCache>();
 
-        var delegatedCompletionListProvider = new TestDelegatedCompletionListProvider(responseRewriters, documentMappingService, clientNotifierServiceBase, completionListCache);
+        var delegatedCompletionListProvider = new TestDelegatedCompletionListProvider(responseRewriters, documentMappingService, IClientNotifierService, completionListCache);
         var completionListProvider = new CompletionListProvider(razorCompletionListProvider, delegatedCompletionListProvider);
         CompletionEndpoint = new RazorCompletionEndpoint(completionListProvider, telemetryReporter: null);
 
@@ -142,7 +142,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 
     private class TestDelegatedCompletionListProvider : DelegatedCompletionListProvider
     {
-        public TestDelegatedCompletionListProvider(IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters, IRazorDocumentMappingService documentMappingService, ClientNotifierServiceBase languageServer, CompletionListCache completionListCache)
+        public TestDelegatedCompletionListProvider(IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters, IRazorDocumentMappingService documentMappingService, IClientNotifierService languageServer, CompletionListCache completionListCache)
             : base(responseRewriters, documentMappingService, languageServer, completionListCache)
         {
         }

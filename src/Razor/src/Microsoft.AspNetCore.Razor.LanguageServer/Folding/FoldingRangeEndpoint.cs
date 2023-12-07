@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangeParams, IEnumerable<FoldingRange>?>, ICapabilitiesProvider
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientNotifierService _languageServer;
     private readonly IEnumerable<IRazorFoldingRangeProvider> _foldingRangeProviders;
     private readonly ILogger _logger;
 
@@ -31,7 +31,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
 
     public FoldingRangeEndpoint(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
+        IClientNotifierService languageServer,
         IEnumerable<IRazorFoldingRangeProvider> foldingRangeProviders,
         ILoggerFactory loggerFactory)
     {

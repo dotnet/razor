@@ -16,12 +16,12 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
 {
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly IRazorFormattingService _formattingService;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientNotifierService _languageServer;
 
     public DelegatedCompletionItemResolver(
         DocumentContextFactory documentContextFactory,
         IRazorFormattingService formattingService,
-        ClientNotifierServiceBase languageServer)
+        IClientNotifierService languageServer)
     {
         _documentContextFactory = documentContextFactory;
         _formattingService = formattingService;

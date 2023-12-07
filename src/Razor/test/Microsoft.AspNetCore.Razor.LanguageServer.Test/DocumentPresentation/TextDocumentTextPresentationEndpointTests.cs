@@ -36,7 +36,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
         languageServer
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
@@ -83,7 +83,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
         languageServer
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
@@ -127,7 +127,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
         languageServer
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
@@ -172,7 +172,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = new WorkspaceEdit();
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
         languageServer
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);

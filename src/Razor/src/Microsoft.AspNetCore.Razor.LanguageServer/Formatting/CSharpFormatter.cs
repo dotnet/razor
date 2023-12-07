@@ -22,11 +22,11 @@ internal class CSharpFormatter
     private const string MarkerId = "RazorMarker";
 
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly ClientNotifierServiceBase _server;
+    private readonly IClientNotifierService _server;
 
     public CSharpFormatter(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer)
+        IClientNotifierService languageServer)
     {
         if (documentMappingService is null)
         {

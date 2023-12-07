@@ -25,13 +25,13 @@ internal class DelegatedCompletionListProvider
 
     private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _responseRewriters;
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientNotifierService _languageServer;
     private readonly CompletionListCache _completionListCache;
 
     public DelegatedCompletionListProvider(
         IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
+        IClientNotifierService languageServer,
         CompletionListCache completionListCache)
     {
         _responseRewriters = responseRewriters.OrderBy(rewriter => rewriter.Order).ToImmutableArray();

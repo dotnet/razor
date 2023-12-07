@@ -17,14 +17,14 @@ internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanti
     private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(250);
 
     private readonly IInitializeManager<InitializeParams, InitializeResult> _settingsManager;
-    private readonly ClientNotifierServiceBase _notifierService;
+    private readonly IClientNotifierService _notifierService;
     private readonly BatchingWorkQueue _workQueue;
 
     private bool _isColoringBackground;
 
     public DefaultWorkspaceSemanticTokensRefreshPublisher(
         IInitializeManager<InitializeParams, InitializeResult> settingsManager,
-        ClientNotifierServiceBase clientNotifier,
+        IClientNotifierService clientNotifier,
         IErrorReporter errorReporter,
         RazorLSPOptionsMonitor razorLSPOptionsMonitor)
     {
@@ -75,9 +75,9 @@ internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanti
 
     private class SemanticTokensRefreshWorkItem : BatchableWorkItem
     {
-        private readonly ClientNotifierServiceBase _languageServer;
+        private readonly IClientNotifierService _languageServer;
 
-        public SemanticTokensRefreshWorkItem(ClientNotifierServiceBase languageServer)
+        public SemanticTokensRefreshWorkItem(IClientNotifierService languageServer)
         {
             _languageServer = languageServer;
         }
