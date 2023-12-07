@@ -15,26 +15,19 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class DefaultDocumentContextFactory : DocumentContextFactory
+internal sealed class DefaultDocumentContextFactory(
+    ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+    ISnapshotResolver snapshotResolver,
+    DocumentVersionCache documentVersionCache,
+    ILoggerFactory loggerFactory)
+    : IDocumentContextFactory
 {
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
-    private readonly ISnapshotResolver _snapshotResolver;
-    private readonly DocumentVersionCache _documentVersionCache;
-    private readonly ILogger<DefaultDocumentContextFactory> _logger;
+    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+    private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
+    private readonly DocumentVersionCache _documentVersionCache = documentVersionCache;
+    private readonly ILogger<DefaultDocumentContextFactory> _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
 
-    public DefaultDocumentContextFactory(
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        ISnapshotResolver snapshotResolver,
-        DocumentVersionCache documentVersionCache,
-        ILoggerFactory loggerFactory)
-    {
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
-        _snapshotResolver = snapshotResolver;
-        _documentVersionCache = documentVersionCache;
-        _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
-    }
-
-    protected override DocumentContext? TryCreateCore(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+    public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
         var documentAndVersion = TryGetDocumentAndVersion(filePath, projectContext, versioned);
