@@ -14,10 +14,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -36,13 +35,8 @@ using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHe
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover;
 
 [UseExportProvider]
-public class HoverInfoServiceTest : TagHelperServiceTestBase
+public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
-    public HoverInfoServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     private static VSInternalClientCapabilities CreateMarkDownCapabilities()
         => CreateCapabilities(MarkupKind.Markdown);
 
@@ -770,10 +764,10 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
     {
         // Arrange
         var input = """
-                @addTagHelper *, Test$$Assembly
+            @addTagHelper *, Test$$Assembly
 
-                <test1></test1>
-                """;
+            <test1></test1>
+            """;
 
         // Act
         var result = await GetResultFromSingleServerEndpointAsync(input);
@@ -787,10 +781,15 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var rawContainer = (ContainerElement)result.RawContent;
         var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
 
+        if (embeddedContainerElement.Elements.FirstOrDefault() is ContainerElement headerContainer)
+        {
+            embeddedContainerElement = headerContainer;
+        }
+
         var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
         var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
         // Hover info is for a string
-        Assert.StartsWith("Represents text as a sequence of UTF-16", text);
+        Assert.StartsWith("class System.String", text);
     }
 
     private async Task<VSInternalHover> GetResultFromSingleServerEndpointAsync(string input)

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -578,7 +579,7 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
     {
         if (documentFilePaths is null)
         {
-            documentFilePaths = Array.Empty<string>();
+            documentFilePaths = [];
         }
 
         var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath, documentFilePaths, projectWorkspaceState);
@@ -600,21 +601,6 @@ public class RazorProjectInfoPublisherTest : LanguageServerTestBase
 
         return snapshotManager;
     }
-
-    protected Task RunOnDispatcherThreadAsync(Action action)
-        => Dispatcher.RunOnDispatcherThreadAsync(
-            action,
-            DisposalToken);
-
-    protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> func)
-        => Dispatcher.RunOnDispatcherThreadAsync(
-            func,
-            DisposalToken);
-
-    protected Task RunOnDispatcherThreadAsync(Func<Task> func)
-        => Dispatcher.RunOnDispatcherThreadAsync(
-            func,
-            DisposalToken);
 
     private class TestRazorProjectInfoPublisher : RazorProjectInfoPublisher
     {

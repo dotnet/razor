@@ -7,7 +7,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
@@ -15,18 +15,13 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class DocumentVersionCacheTest : LanguageServerTestBase
+public class DefaultDocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public DocumentVersionCacheTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void MarkAsLatestVersion_UntrackedDocument_Noops()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
         documentVersionCache.TrackDocumentVersion(document, 123);
         var untrackedDocument = TestDocumentSnapshot.Create("C:/other.cshtml");
@@ -43,7 +38,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void MarkAsLatestVersion_KnownDocument_TracksNewDocumentAsLatest()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var documentInitial = TestDocumentSnapshot.Create("C:/file.cshtml");
         documentVersionCache.TrackDocumentVersion(documentInitial, 123);
         var documentLatest = TestDocumentSnapshot.Create(documentInitial.FilePath);
@@ -60,7 +55,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void ProjectSnapshotManager_Changed_DocumentRemoved_DoesNotEvictDocument()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var projectSnapshotManager = GetSnapshotManager();
         projectSnapshotManager.AllowNotifyListeners = true;
         documentVersionCache.Initialize(projectSnapshotManager);
@@ -90,7 +85,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void ProjectSnapshotManager_Changed_OpenDocumentRemoved_DoesNotEvictDocument()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var projectSnapshotManager = GetSnapshotManager();
         projectSnapshotManager.AllowNotifyListeners = true;
         documentVersionCache.Initialize(projectSnapshotManager);
@@ -122,7 +117,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void ProjectSnapshotManager_Changed_DocumentClosed_EvictsDocument()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var projectSnapshotManager = GetSnapshotManager();
         projectSnapshotManager.AllowNotifyListeners = true;
         documentVersionCache.Initialize(projectSnapshotManager);
@@ -154,7 +149,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void TrackDocumentVersion_AddsFirstEntry()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
         // Act
@@ -173,10 +168,10 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void TrackDocumentVersion_EvictsOldEntries()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
-        for (var i = 0; i < DocumentVersionCache.MaxDocumentTrackingCount; i++)
+        for (var i = 0; i < DefaultDocumentVersionCache.MaxDocumentTrackingCount; i++)
         {
             documentVersionCache.TrackDocumentVersion(document, i);
         }
@@ -186,7 +181,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
 
         // Assert
         var kvp = Assert.Single(documentVersionCache.DocumentLookup_NeedsLock);
-        Assert.Equal(DocumentVersionCache.MaxDocumentTrackingCount, kvp.Value.Count);
+        Assert.Equal(DefaultDocumentVersionCache.MaxDocumentTrackingCount, kvp.Value.Count);
         Assert.Equal(1337, kvp.Value.Last().Version);
     }
 
@@ -194,7 +189,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void TryGetDocumentVersion_UntrackedDocumentPath_ReturnsFalse()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
         // Act
@@ -209,7 +204,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void TryGetDocumentVersion_EvictedDocument_ReturnsFalse()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
         var evictedDocument = TestDocumentSnapshot.Create(document.FilePath);
         documentVersionCache.TrackDocumentVersion(document, 1337);
@@ -226,7 +221,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void TryGetDocumentVersion_KnownDocument_ReturnsTrue()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
         documentVersionCache.TrackDocumentVersion(document, 1337);
 
@@ -242,7 +237,7 @@ public class DocumentVersionCacheTest : LanguageServerTestBase
     public void ProjectSnapshotManager_KnownDocumentAdded_TracksNewDocument()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DefaultDocumentVersionCache();
         var projectSnapshotManager = GetSnapshotManager();
         projectSnapshotManager.AllowNotifyListeners = true;
         documentVersionCache.Initialize(projectSnapshotManager);
