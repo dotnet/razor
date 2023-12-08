@@ -239,7 +239,7 @@ stages:
             -integrationTest
           name: Run_Integration_Tests
           displayName: Run Integration Tests
-          condition: and(RunIntegrationTests, succeeded(), in(variables['Build.Reason'], 'PullRequest'))
+          condition: and(eq(variables['RunIntegrationTests'], true), succeeded(), in(variables['Build.Reason'], 'PullRequest'))
 
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
