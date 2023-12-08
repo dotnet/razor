@@ -422,7 +422,7 @@ internal static class CodeWriterExtensions
         }
 
         writer.Write("class ");
-        context.AddGeneratedOnlyMapping(name.Length);
+        context?.AddGeneratedOnlyMapping(name.Length);
         writer.Write(name);
 
         if (typeParameters != null && typeParameters.Count > 0)

@@ -61,6 +61,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
             RazorCodeGenerationOptions.CreateDesignTimeDefault(),
             Array.Empty<RazorDiagnostic>(),
             SourceMappings,
+            ImmutableArray<SourceSpan>.Empty,
             new List<LinePragma>()
         );
 
