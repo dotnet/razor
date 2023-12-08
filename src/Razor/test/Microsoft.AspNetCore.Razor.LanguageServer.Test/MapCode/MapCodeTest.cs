@@ -9,9 +9,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
@@ -311,7 +311,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         var codeDocument = CreateCodeDocument(output, filePath: razorFilePath);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri(razorFilePath + "__virtual.g.cs");
-        var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+        await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpSourceText, csharpDocumentUri, new VSInternalServerCapabilities(), razorSpanMappingService: null, DisposalToken);
         await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 

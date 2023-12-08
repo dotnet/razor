@@ -7,22 +7,16 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
+public class DefaultDocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public DefaultDocumentVersionCacheTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void MarkAsLatestVersion_UntrackedDocument_Noops()
     {

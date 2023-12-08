@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
@@ -607,7 +608,7 @@ public class RenameEndpointTest : LanguageServerTestBase
             .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
         namespaceNode.Content = rootNamespaceName;
 
-        var sourceText = SourceText.From(new string(item.Content));
+        var sourceText = SourceText.From(item.Content);
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, LanguageVersion.Default);
         var projectSnapshot = TestProjectSnapshot.Create("C:/project.csproj", projectWorkspaceState);
         var snapshot = Mock.Of<IDocumentSnapshot>(d =>
@@ -697,8 +698,6 @@ public class RenameEndpointTest : LanguageServerTestBase
         var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { firstProject, secondProject }.ToImmutableArray(), MockBehavior.Strict);
         var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
 
-        var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-
         var searchEngine = new DefaultRazorComponentSearchEngine(projectSnapshotManagerAccessor, LoggerFactory);
         languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(
             options => options.SupportsFileManipulation == true && options.SingleServerSupport == false && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
@@ -717,7 +716,7 @@ public class RenameEndpointTest : LanguageServerTestBase
         clientConnection ??= Mock.Of<IClientConnection>(MockBehavior.Strict);
 
         var endpoint = new RenameEndpoint(
-            projectSnapshotManagerDispatcher,
+            Dispatcher,
             _documentContextFactory,
             searchEngine,
             projectSnapshotManagerAccessor,

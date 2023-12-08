@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
+public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     private static readonly CodeAction s_defaultResolvedCodeAction = new()
     {
@@ -32,34 +32,29 @@ public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
             DocumentChanges = new TextDocumentEdit[] {
                 new TextDocumentEdit()
                 {
-                    Edits = new TextEdit[]{
+                    Edits = [
                         new TextEdit()
                         {
                             NewText = "Generated C# Based Edit"
                         }
-                    }
+                    ]
                 }
             }
         }
     };
 
-    private static readonly TextEdit[] s_defaultFormattedEdits = new TextEdit[]
-    {
+    private static readonly TextEdit[] s_defaultFormattedEdits =
+    [
         new TextEdit()
         {
             NewText = "Remapped & Formatted Edit"
         }
-    };
+    ];
 
     private static readonly CodeAction s_defaultUnresolvedCodeAction = new CodeAction()
     {
         Title = "Unresolved Code Action"
     };
-
-    public DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
 
     [Fact]
     public async Task ResolveAsync_ReturnsResolvedCodeAction()

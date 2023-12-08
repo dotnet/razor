@@ -5,7 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -14,13 +14,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
+public class DefaultRazorConfigurationServiceTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public DefaultRazorConfigurationServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task GetLatestOptionsAsync_ReturnsExpectedOptions()
     {
