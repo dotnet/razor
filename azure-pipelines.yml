@@ -16,6 +16,8 @@ variables:
   value: 'Verbose'
 - name: RAZOR_TRACE
   value: 'Verbose'
+- name: RunIntegrationTests
+  value: false
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
   - group: DotNetBuilds storage account read tokens
   - name: _InternalRuntimeDownloadArgs
@@ -237,7 +239,7 @@ stages:
             -integrationTest
           name: Run_Integration_Tests
           displayName: Run Integration Tests
-          condition: and(succeeded(), in(variables['Build.Reason'], 'PullRequest'))
+          condition: and(RunIntegrationTests, succeeded(), in(variables['Build.Reason'], 'PullRequest'))
 
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
