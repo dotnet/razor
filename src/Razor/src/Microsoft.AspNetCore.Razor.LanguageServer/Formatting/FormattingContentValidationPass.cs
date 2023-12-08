@@ -19,9 +19,9 @@ internal class FormattingContentValidationPass : FormattingPassBase
 
     public FormattingContentValidationPass(
         IRazorDocumentMappingService documentMappingService,
-        IClientConnection server,
+        IClientConnection clientConnection,
         ILoggerFactory loggerFactory)
-        : base(documentMappingService, server)
+        : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)
         {

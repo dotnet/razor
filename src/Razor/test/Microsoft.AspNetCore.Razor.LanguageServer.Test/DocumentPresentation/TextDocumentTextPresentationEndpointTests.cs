@@ -36,14 +36,14 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentTextPresentationEndpoint(
             documentMappingService,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService);
 
         var parameters = new TextPresentationParams()
@@ -65,7 +65,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
         var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
 
         // Assert
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -83,14 +83,14 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentTextPresentationEndpoint(
             documentMappingService,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService);
 
         var parameters = new TextPresentationParams()
@@ -112,7 +112,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
         var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
 
         // Assert
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -127,14 +127,14 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentTextPresentationEndpoint(
             documentMappingService,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService);
 
         var parameters = new TextPresentationParams()
@@ -172,14 +172,14 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = new WorkspaceEdit();
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentTextPresentationEndpoint(
             documentMappingService,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService);
 
         var parameters = new TextPresentationParams()

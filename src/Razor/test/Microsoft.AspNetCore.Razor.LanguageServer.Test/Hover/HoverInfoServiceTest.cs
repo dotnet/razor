@@ -655,8 +655,8 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
         var delegatedHover = new VSInternalHover();
 
-        var languageServerMock = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServerMock
+        var clientConnectionMock = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnectionMock
             .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(CustomMessageNames.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedHover);
 
@@ -676,7 +676,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
             .Returns(true);
 
-        var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);
+        var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, clientConnectionMock.Object);
 
         var request = new TextDocumentPositionParams
         {
@@ -879,7 +879,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
     private HoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null,
         IRazorDocumentMappingService documentMappingService = null,
-        IClientConnection languageServer = null)
+        IClientConnection clientConnection = null)
     {
 
         languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
@@ -890,13 +890,13 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             .Returns(Protocol.RazorLanguageKind.Html);
         documentMappingService ??= documentMappingServiceMock.Object;
 
-        languageServer ??= Mock.Of<IClientConnection>(MockBehavior.Strict);
+        clientConnection ??= Mock.Of<IClientConnection>(MockBehavior.Strict);
 
         var endpoint = new HoverEndpoint(
             GetHoverInfoService(),
             languageServerFeatureOptions,
             documentMappingService,
-            languageServer,
+            clientConnection,
             LoggerFactory);
 
         return endpoint;

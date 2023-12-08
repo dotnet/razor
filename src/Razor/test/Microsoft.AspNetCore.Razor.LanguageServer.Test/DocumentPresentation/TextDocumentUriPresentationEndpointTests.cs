@@ -49,12 +49,12 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             s => s.TryGetTagHelperDescriptorAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
             MockBehavior.Strict);
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -109,12 +109,12 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             s => s.TryGetTagHelperDescriptorAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
             MockBehavior.Strict);
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -177,12 +177,12 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             s => s.TryGetTagHelperDescriptorAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
             MockBehavior.Strict);
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -238,15 +238,15 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -294,15 +294,15 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -353,15 +353,15 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -417,15 +417,15 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -477,15 +477,15 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -528,15 +528,15 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -580,15 +580,15 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var response = new WorkspaceEdit();
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,
@@ -631,15 +631,15 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
             documentMappingService,
             searchEngine,
-            languageServer.Object,
+            clientConnection.Object,
             FilePathService,
             documentContextFactory,
             Dispatcher,

@@ -26,7 +26,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IClientConnection _languageServer;
+    private readonly IClientConnection _clientConnection;
 
     public CodeActionEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -45,7 +45,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             l => l.SupportsFileManipulation == true,
             MockBehavior.Strict);
 
-        _languageServer = Mock.Of<IClientConnection>(MockBehavior.Strict);
+        _clientConnection = Mock.Of<IClientConnection>(MockBehavior.Strict);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IRazorCodeActionProvider>(),
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -93,7 +93,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IRazorCodeActionProvider>(),
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -126,7 +126,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IRazorCodeActionProvider>(),
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -161,7 +161,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -237,7 +237,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -362,7 +362,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -445,7 +445,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -547,7 +547,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -594,7 +594,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -635,7 +635,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {
@@ -679,7 +679,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
                     new MockCSharpCodeActionProvider()
             },
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
             telemetryReporter: null)
         {

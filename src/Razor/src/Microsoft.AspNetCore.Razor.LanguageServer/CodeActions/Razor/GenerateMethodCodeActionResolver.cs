@@ -27,7 +27,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 {
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
-    private readonly IClientConnection _languageServer;
+    private readonly IClientConnection _clientConnection;
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly IRazorFormattingService _razorFormattingService;
 
@@ -46,13 +46,13 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     public GenerateMethodCodeActionResolver(
         DocumentContextFactory documentContextFactory,
         RazorLSPOptionsMonitor razorLSPOptionsMonitor,
-        IClientConnection languageServer,
+        IClientConnection clientConnection,
         IRazorDocumentMappingService razorDocumentMappingService,
         IRazorFormattingService razorFormattingService)
     {
         _documentContextFactory = documentContextFactory;
         _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
-        _languageServer = languageServer;
+        _clientConnection = clientConnection;
         _documentMappingService = razorDocumentMappingService;
         _razorFormattingService = razorFormattingService;
     }
@@ -137,7 +137,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             RequiresVirtualDocument: false,
             edit);
 
-        var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
+        var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
             CustomMessageNames.RazorSimplifyMethodEndpointName,
             delegatedParams,
             cancellationToken).ConfigureAwait(false)
@@ -185,7 +185,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             };
 
             var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.Identifier, RequiresVirtualDocument: true, tempTextEdit);
-            var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
+            var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
                 CustomMessageNames.RazorSimplifyMethodEndpointName,
                 delegatedParams,
                 cancellationToken).ConfigureAwait(false);
@@ -217,7 +217,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             };
 
             var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.Identifier, RequiresVirtualDocument: true, remappedEdit);
-            var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
+            var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
                 CustomMessageNames.RazorSimplifyMethodEndpointName,
                 delegatedParams,
                 cancellationToken).ConfigureAwait(false);

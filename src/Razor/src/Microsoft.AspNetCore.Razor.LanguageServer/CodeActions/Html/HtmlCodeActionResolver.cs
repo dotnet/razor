@@ -5,8 +5,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal abstract class HtmlCodeActionResolver : BaseDelegatedCodeActionResolver
 {
-    public HtmlCodeActionResolver(IClientConnection languageServer)
-        : base(languageServer)
+    public HtmlCodeActionResolver(IClientConnection clientConnection)
+        : base(clientConnection)
     {
     }
 }

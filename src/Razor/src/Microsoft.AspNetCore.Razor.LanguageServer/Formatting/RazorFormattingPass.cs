@@ -23,9 +23,9 @@ internal class RazorFormattingPass : FormattingPassBase
 
     public RazorFormattingPass(
         IRazorDocumentMappingService documentMappingService,
-        IClientConnection server,
+        IClientConnection clientConnection,
         ILoggerFactory loggerFactory)
-        : base(documentMappingService, server)
+        : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)
         {
