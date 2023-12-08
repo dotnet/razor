@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly DocumentContextFactory _emptyDocumentContextFactory = new TestDocumentContextFactory();
+    private readonly IDocumentContextFactory _emptyDocumentContextFactory = new TestDocumentContextFactory();
 
     [Fact]
     public async Task Handle_MissingFile()
