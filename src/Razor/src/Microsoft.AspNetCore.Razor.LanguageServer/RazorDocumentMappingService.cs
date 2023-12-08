@@ -332,7 +332,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return true;
         }
 
-        foreach (var mapping in generatedDocument.ComponentMappings)
+        foreach (var mapping in generatedDocument.GeneratedOnlyMappings)
         {
             var generatedAbsoluteIndex = mapping.AbsoluteIndex;
             var distanceIntoGeneratedSpan = generatedDocumentIndex - generatedAbsoluteIndex;

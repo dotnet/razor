@@ -15,7 +15,7 @@ internal class DefaultRazorCSharpDocument : RazorCSharpDocument
     private readonly string _generatedCode;
     private readonly RazorDiagnostic[] _diagnostics;
     private readonly ImmutableArray<SourceMapping> _sourceMappings;
-    private readonly ImmutableArray<SourceSpan> _componentMappings;
+    private readonly ImmutableArray<SourceSpan> _generatedOnlyMappings;
     private readonly LinePragma[] _linePragmas;
     private readonly RazorCodeGenerationOptions _options;
     private readonly RazorCodeDocument _codeDocument;
@@ -26,7 +26,7 @@ internal class DefaultRazorCSharpDocument : RazorCSharpDocument
         RazorCodeGenerationOptions options,
         RazorDiagnostic[] diagnostics,
         ImmutableArray<SourceMapping> sourceMappings,
-        ImmutableArray<SourceSpan> componentMappings,
+        ImmutableArray<SourceSpan> generatedOnlyMappings,
         LinePragma[] linePragmas)
     {
         if (generatedCode == null)
@@ -45,9 +45,8 @@ internal class DefaultRazorCSharpDocument : RazorCSharpDocument
 
         _diagnostics = diagnostics ?? Array.Empty<RazorDiagnostic>();
         _sourceMappings = sourceMappings;
-        _componentMappings = componentMappings;
+        _generatedOnlyMappings = generatedOnlyMappings;
         _linePragmas = linePragmas ?? Array.Empty<LinePragma>();
-        _componentMappings = componentMappings;
     }
 
     public override IReadOnlyList<RazorDiagnostic> Diagnostics => _diagnostics;
@@ -56,7 +55,7 @@ internal class DefaultRazorCSharpDocument : RazorCSharpDocument
 
     public override ImmutableArray<SourceMapping> SourceMappings => _sourceMappings;
 
-    public override ImmutableArray<SourceSpan> ComponentMappings => _componentMappings;
+    public override ImmutableArray<SourceSpan> GeneratedOnlyMappings => _generatedOnlyMappings;
 
     internal override IReadOnlyList<LinePragma> LinePragmas => _linePragmas;
 

@@ -23,7 +23,7 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
     /// <remarks>
     /// Used to map the component class name, so go-to-definition navigates to the .razor file.
     /// </remarks>
-    public abstract ImmutableArray<SourceSpan> ComponentMappings { get; }
+    public abstract ImmutableArray<SourceSpan> GeneratedOnlyMappings { get; }
 
     public abstract IReadOnlyList<RazorDiagnostic> Diagnostics { get; }
 
@@ -58,7 +58,7 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
             throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings: ImmutableArray<SourceMapping>.Empty, componentMappings: ImmutableArray<SourceSpan>.Empty, linePragmas: null);
+        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings: ImmutableArray<SourceMapping>.Empty, generatedOnlyMappings: ImmutableArray<SourceSpan>.Empty, linePragmas: null);
     }
 
     public static RazorCSharpDocument Create(
@@ -67,7 +67,7 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
         RazorCodeGenerationOptions options,
         IEnumerable<RazorDiagnostic> diagnostics,
         ImmutableArray<SourceMapping> sourceMappings,
-        ImmutableArray<SourceSpan> componentMappings,
+        ImmutableArray<SourceSpan> generatedOnlyMappings,
         IEnumerable<LinePragma> linePragmas)
     {
         if (generatedCode == null)
@@ -85,6 +85,6 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
             throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings, componentMappings, linePragmas.ToArray());
+        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings, generatedOnlyMappings, linePragmas.ToArray());
     }
 }

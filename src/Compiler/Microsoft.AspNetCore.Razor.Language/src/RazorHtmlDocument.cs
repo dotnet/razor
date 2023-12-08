@@ -16,7 +16,7 @@ internal abstract class RazorHtmlDocument : IRazorGeneratedDocument
 
     public abstract ImmutableArray<SourceMapping> SourceMappings { get; }
 
-    public ImmutableArray<SourceSpan> ComponentMappings => ImmutableArray<SourceSpan>.Empty;
+    public ImmutableArray<SourceSpan> GeneratedOnlyMappings => ImmutableArray<SourceSpan>.Empty;
 
     public abstract RazorCodeDocument CodeDocument { get; }
 

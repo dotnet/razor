@@ -95,7 +95,7 @@ internal class RazorSpanMappingService : IRazorSpanMappingService
             }
         }
 
-        foreach (var mapping in output.ComponentMappings)
+        foreach (var mapping in output.GeneratedOnlyMappings)
         {
             var generated = mapping.AsTextSpan();
 
