@@ -31,7 +31,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
     private protected class TestLanguageServer(
         CSharpTestLspServer csharpServer,
         Uri csharpDocumentUri,
-        CancellationToken cancellationToken) : ClientNotifierServiceBase
+        CancellationToken cancellationToken) : IClientConnection
     {
         private readonly CSharpTestLspServer _csharpServer = csharpServer;
         private readonly Uri _csharpDocumentUri = csharpDocumentUri;
@@ -41,10 +41,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
 
         public int RequestCount => _requestCount;
 
-        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => Task.CompletedTask;
-
-        public async override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        public async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             _requestCount++;
 
@@ -300,12 +297,12 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 _cancellationToken);
         }
 
-        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
