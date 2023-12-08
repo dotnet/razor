@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -18,13 +18,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 
-public class WrapWithTagEndpointTest : LanguageServerTestBase
+public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public WrapWithTagEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_Html_ReturnsResult()
     {
@@ -274,21 +269,21 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         var computedEdits = new TextEdit[]
         {
-                new TextEdit
-                {
-                    NewText="<div>\r\n    ",
-                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-                },
-                new TextEdit
-                {
-                    NewText="    ",
-                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-                },
-                new TextEdit
-                {
-                    NewText="    }\r\n</div>",
-                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-                }
+            new()
+            {
+                NewText="<div>" + Environment.NewLine + "    ",
+                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+            },
+            new()
+            {
+                NewText="    ",
+                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+            },
+            new()
+            {
+                NewText="    }" + Environment.NewLine + "</div>",
+                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+            }
         };
 
         var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
@@ -324,22 +319,22 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         var computedEdits = new TextEdit[]
         {
-                new TextEdit
-                {
-                    NewText="<div>\r\n    ",
-                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-                },
-                new TextEdit
-                {
-                    NewText="    ",
-                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-                },
-                new TextEdit
-                {
-                    // This is the problematic edit.. the close brace has been replaced with a tilde
-                    NewText="    ~\r\n</div>",
-                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-                }
+            new()
+            {
+                NewText="<div>" + Environment.NewLine + "    ",
+                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+            },
+            new()
+            {
+                NewText="    ",
+                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+            },
+            new()
+            {
+                // This is the problematic edit.. the close brace has been replaced with a tilde
+                NewText="    ~" + Environment.NewLine + "</div>",
+                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+            }
         };
 
         var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
@@ -375,22 +370,22 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         var computedEdits = new TextEdit[]
         {
-                new TextEdit
-                {
-                    NewText="<div>\r\n    ",
-                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-                },
-                new TextEdit
-                {
-                    NewText="    ",
-                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-                },
-                new TextEdit
-                {
-                    // This looks like a bad edit, but the original source document had a tilde
-                    NewText="    ~\r\n</div>",
-                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-                }
+            new()
+            {
+                NewText="<div>" + Environment.NewLine + "    ",
+                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+            },
+            new()
+            {
+                NewText="    ",
+                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+            },
+            new()
+            {
+                // This looks like a bad edit, but the original source document had a tilde
+                NewText="    ~" + Environment.NewLine + "</div>",
+                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+            }
         };
 
         var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);

@@ -153,6 +153,7 @@
     <Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>$(MicrosoftVisualStudioLanguageServicesPackageVersion)</Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>
     <XunitAnalyzersPackageVersion>0.10.0</XunitAnalyzersPackageVersion>
     <XunitCombinatorialPackageVersion>1.4.1</XunitCombinatorialPackageVersion>
+    <XunitStaFactVersion>1.1.11</XunitStaFactVersion>
     <XunitVersion>2.4.2</XunitVersion>
     <XunitExtensibilityExecutionPackageVersion>$(XunitVersion)</XunitExtensibilityExecutionPackageVersion>
     <!-- Temporary hack to workaround package restrictions for dev17 -->
