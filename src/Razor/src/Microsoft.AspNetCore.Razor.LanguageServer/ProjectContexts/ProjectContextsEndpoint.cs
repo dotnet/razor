@@ -21,9 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
 //   c. This gets called a lot, so may as well save some work
 internal class ProjectContextsEndpoint : IRazorDocumentlessRequestHandler<VSGetProjectContextsParams, VSProjectContextList>, ICapabilitiesProvider
 {
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
 
-    public ProjectContextsEndpoint(IClientNotifierService languageServer)
+    public ProjectContextsEndpoint(IClientConnection languageServer)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
     }

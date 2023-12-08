@@ -94,7 +94,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
         DocumentMappingService = new RazorDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
     }
 
-    internal class TestLanguageServer : IClientNotifierService
+    internal class TestLanguageServer : IClientConnection
     {
         private readonly CSharpTestLspServer _csharpServer;
         private readonly Uri _csharpDocumentUri;

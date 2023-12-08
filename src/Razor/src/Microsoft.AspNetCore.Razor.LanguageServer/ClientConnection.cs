@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 // We need to wait until everything is initialized before we make any client requests, so
 // this class takes a TCS which will complete when everything is initialized.
-internal sealed class ClientNotifierService(JsonRpc jsonRpc) : IClientNotifierService, IOnInitialized
+internal sealed class ClientConnection(JsonRpc jsonRpc) : IClientConnection, IOnInitialized
 {
     private readonly JsonRpc _jsonRpc = jsonRpc ?? throw new ArgumentNullException(nameof(jsonRpc));
     private readonly TaskCompletionSource<bool> _initializedCompletionSource = new TaskCompletionSource<bool>();

@@ -26,7 +26,7 @@ internal class HtmlFormattingPass : FormattingPassBase
 
     public HtmlFormattingPass(
         IRazorDocumentMappingService documentMappingService,
-        IClientNotifierService server,
+        IClientConnection server,
         DocumentVersionCache documentVersionCache,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerFactory)

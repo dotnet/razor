@@ -30,11 +30,11 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
     private readonly ILogger _logger;
 
     public RazorSemanticTokensInfoService(
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         IRazorDocumentMappingService documentMappingService,
         RazorLSPOptionsMonitor razorLSPOptionsMonitor,
         LanguageServerFeatureOptions languageServerFeatureOptions,

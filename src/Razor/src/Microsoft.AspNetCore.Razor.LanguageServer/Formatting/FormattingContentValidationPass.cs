@@ -19,7 +19,7 @@ internal class FormattingContentValidationPass : FormattingPassBase
 
     public FormattingContentValidationPass(
         IRazorDocumentMappingService documentMappingService,
-        IClientNotifierService server,
+        IClientConnection server,
         ILoggerFactory loggerFactory)
         : base(documentMappingService, server)
     {

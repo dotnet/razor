@@ -25,7 +25,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : IClientNotifierService
+internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : IClientConnection
 {
     private readonly Dictionary<string, RazorCodeDocument> _documents = [];
     private readonly ILoggerFactory _loggerFactory = loggerFactory;

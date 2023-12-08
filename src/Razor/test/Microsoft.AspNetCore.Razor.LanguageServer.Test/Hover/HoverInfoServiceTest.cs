@@ -655,7 +655,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
         var delegatedHover = new VSInternalHover();
 
-        var languageServerMock = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServerMock = new Mock<IClientConnection>(MockBehavior.Strict);
         languageServerMock
             .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(CustomMessageNames.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedHover);
@@ -879,7 +879,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
     private HoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null,
         IRazorDocumentMappingService documentMappingService = null,
-        IClientNotifierService languageServer = null)
+        IClientConnection languageServer = null)
     {
 
         languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
@@ -890,7 +890,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             .Returns(Protocol.RazorLanguageKind.Html);
         documentMappingService ??= documentMappingServiceMock.Object;
 
-        languageServer ??= Mock.Of<IClientNotifierService>(MockBehavior.Strict);
+        languageServer ??= Mock.Of<IClientConnection>(MockBehavior.Strict);
 
         var endpoint = new HoverEndpoint(
             GetHoverInfoService(),
@@ -910,7 +910,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         return new HoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
     }
 
-    private class HoverLanguageServer : IClientNotifierService
+    private class HoverLanguageServer : IClientConnection
     {
         private readonly CSharpTestLspServer _csharpServer;
         private readonly Uri _csharpDocumentUri;

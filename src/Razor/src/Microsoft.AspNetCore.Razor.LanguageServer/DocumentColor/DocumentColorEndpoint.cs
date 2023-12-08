@@ -14,9 +14,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 [LanguageServerEndpoint(Methods.TextDocumentDocumentColorName)]
 internal sealed class DocumentColorEndpoint : IRazorRequestHandler<DocumentColorParams, ColorInformation[]>, ICapabilitiesProvider
 {
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
 
-    public DocumentColorEndpoint(IClientNotifierService languageServer)
+    public DocumentColorEndpoint(IClientConnection languageServer)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
     }

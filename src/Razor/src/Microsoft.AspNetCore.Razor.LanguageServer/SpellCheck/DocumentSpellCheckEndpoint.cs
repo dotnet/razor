@@ -23,12 +23,12 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
 
     public DocumentSpellCheckEndpoint(
         IRazorDocumentMappingService documentMappingService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IClientNotifierService languageServer)
+        IClientConnection languageServer)
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));

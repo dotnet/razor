@@ -183,7 +183,7 @@ public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
     private static void CreateCodeActionResolver(
         out CodeActionResolveParams codeActionParams,
         out DefaultCSharpCodeActionResolver csharpCodeActionResolver,
-        IClientNotifierService? languageServer = null,
+        IClientConnection? languageServer = null,
         IRazorFormattingService? razorFormattingService = null)
     {
         var documentPath = "c:/Test.razor";
@@ -221,11 +221,11 @@ public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
         return razorFormattingService;
     }
 
-    private static IClientNotifierService CreateLanguageServer(CodeAction? resolvedCodeAction = null)
+    private static IClientConnection CreateLanguageServer(CodeAction? resolvedCodeAction = null)
     {
         var response = resolvedCodeAction ?? s_defaultResolvedCodeAction;
 
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         languageServer
             .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);

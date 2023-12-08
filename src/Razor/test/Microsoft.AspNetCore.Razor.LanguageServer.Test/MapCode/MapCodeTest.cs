@@ -367,7 +367,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         AssertEx.EqualOrDiff(expectedCode, actualCode.ToString());
     }
 
-    private class MapCodeServer : IClientNotifierService
+    private class MapCodeServer : IClientConnection
     {
         private readonly CSharpTestLspServer _csharpServer;
         private readonly Uri _csharpDocumentUri;

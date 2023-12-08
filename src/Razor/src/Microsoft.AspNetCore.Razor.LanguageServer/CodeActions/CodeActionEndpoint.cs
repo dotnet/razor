@@ -36,7 +36,7 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders;
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
     private readonly ITelemetryReporter? _telemetryReporter;
 
     internal bool _supportsCodeActionResolve = false;
@@ -50,7 +50,7 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
         IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
         IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
         IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ITelemetryReporter? telemetryReporter)
     {

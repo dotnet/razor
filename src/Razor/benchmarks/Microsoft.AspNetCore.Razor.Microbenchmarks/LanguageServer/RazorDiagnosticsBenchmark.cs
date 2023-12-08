@@ -185,7 +185,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         }
     }
 
-    private class ClientNotifierService : IClientNotifierService
+    private class ClientNotifierService : IClientConnection
     {
         private readonly object _diagnostics;
 

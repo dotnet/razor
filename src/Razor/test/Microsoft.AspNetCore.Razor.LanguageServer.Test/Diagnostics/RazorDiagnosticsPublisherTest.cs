@@ -92,7 +92,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(s_singleRazorDiagnostic);
         processedOpenDocument.With(codeDocument);
         // ILanguageServerDocument
-        var languageServerDocument = new Mock<IClientNotifierService>(MockBehavior.Strict).Object;
+        var languageServerDocument = new Mock<IClientConnection>(MockBehavior.Strict).Object;
         Mock.Get(languageServerDocument)
             .Setup(d => d.SendNotificationAsync(
                 "textDocument/publishDiagnostics",
@@ -158,7 +158,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(shouldContainRazorDiagnostic ? s_singleRazorDiagnostic : s_emptyRazorDiagnostics);
         processedOpenDocument.With(codeDocument);
 
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         var requestResult = new FullDocumentDiagnosticReport();
         if (shouldContainCSharpDiagnostic)
         {
@@ -232,7 +232,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var processedOpenDocument = TestDocumentSnapshot.Create(_openedDocument.FilePath);
         var codeDocument = CreateCodeDocument(s_singleRazorDiagnostic);
         processedOpenDocument.With(codeDocument);
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         languageServer
             .Setup(server => server.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
@@ -290,7 +290,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(s_emptyRazorDiagnostics);
         processedOpenDocument.With(codeDocument);
         var arranging = true;
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         languageServer
             .Setup(server => server.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
@@ -344,7 +344,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public async Task PublishDiagnosticsAsync_NoopsIfRazorDiagnosticsAreSameAsPreviousPublish()
     {
         // Arrange
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         languageServer
             .Setup(server => server.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
@@ -381,7 +381,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var processedOpenDocument = TestDocumentSnapshot.Create(_openedDocument.FilePath);
         var codeDocument = CreateCodeDocument(s_emptyRazorDiagnostics);
         processedOpenDocument.With(codeDocument);
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         var arranging = true;
 
         languageServer
@@ -429,7 +429,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public void ClearClosedDocuments_ClearsDiagnosticsForClosedDocument()
     {
         // Arrange
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         languageServer
             .Setup(server => server.SendNotificationAsync(
                 "textDocument/publishDiagnostics",
@@ -463,7 +463,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public void ClearClosedDocuments_NoopsIfDocumentIsStillOpen()
     {
         // Arrange
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         var documentContextFactory = new TestDocumentContextFactory();
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
@@ -481,7 +481,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public void ClearClosedDocuments_NoopsIfDocumentIsClosedButNoDiagnostics()
     {
         // Arrange
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         var documentContextFactory = new TestDocumentContextFactory();
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
@@ -499,7 +499,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public void ClearClosedDocuments_RestartsTimerIfDocumentsStillOpen()
     {
         // Arrange
-        var languageServer = new Mock<IClientNotifierService>(MockBehavior.Strict);
+        var languageServer = new Mock<IClientConnection>(MockBehavior.Strict);
         var documentContextFactory = new TestDocumentContextFactory();
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
@@ -532,7 +532,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     {
         public TestRazorDiagnosticsPublisher(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            IClientNotifierService languageServer,
+            IClientConnection languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             RazorTranslateDiagnosticsService razorTranslateDiagnosticsService,
             DocumentContextFactory documentContextFactory,

@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 [UseExportProvider]
 public class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
-    private readonly Mock<IClientNotifierService> _languageServer = new(MockBehavior.Strict);
+    private readonly Mock<IClientConnection> _languageServer = new(MockBehavior.Strict);
     private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase), layer: TestProject.Layer.Tooling);
 
     private static readonly VSInternalServerCapabilities s_semanticTokensServerCapabilities = new()

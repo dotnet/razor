@@ -27,7 +27,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
     public FindAllReferencesEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         ILoggerFactory loggerFactory,
         FilePathService filePathService)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())

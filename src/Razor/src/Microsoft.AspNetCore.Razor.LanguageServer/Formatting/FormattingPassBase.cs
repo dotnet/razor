@@ -16,7 +16,7 @@ internal abstract class FormattingPassBase : IFormattingPass
 
     public FormattingPassBase(
         IRazorDocumentMappingService documentMappingService,
-        IClientNotifierService server)
+        IClientConnection server)
     {
         if (documentMappingService is null)
         {

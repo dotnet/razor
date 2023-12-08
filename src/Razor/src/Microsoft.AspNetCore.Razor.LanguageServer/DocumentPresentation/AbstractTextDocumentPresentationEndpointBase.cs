@@ -21,12 +21,12 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
     where TParams : IPresentationParams
 {
     private readonly IRazorDocumentMappingService _razorDocumentMappingService;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
     private readonly FilePathService _filePathService;
 
     protected AbstractTextDocumentPresentationEndpointBase(
         IRazorDocumentMappingService razorDocumentMappingService,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         FilePathService filePathService)
     {
         _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));

@@ -18,7 +18,7 @@ internal sealed class DefaultHtmlCodeActionResolver : HtmlCodeActionResolver
 
     public DefaultHtmlCodeActionResolver(
         DocumentContextFactory documentContextFactory,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         IRazorDocumentMappingService documentMappingService)
         : base(languageServer)
     {

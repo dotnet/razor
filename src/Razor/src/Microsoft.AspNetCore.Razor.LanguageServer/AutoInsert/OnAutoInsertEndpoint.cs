@@ -33,7 +33,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
     public OnAutoInsertEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerFactory)

@@ -14,7 +14,7 @@ internal class TextDocumentTextPresentationEndpoint : AbstractTextDocumentPresen
 {
     public TextDocumentTextPresentationEndpoint(
         IRazorDocumentMappingService razorDocumentMappingService,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         FilePathService filePathService)
         : base(razorDocumentMappingService, languageServer, filePathService)
     {

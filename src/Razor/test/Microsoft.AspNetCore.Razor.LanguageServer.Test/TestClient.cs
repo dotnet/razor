@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class TestClient : IClientNotifierService
+internal class TestClient : IClientConnection
 {
     public TestClient()
     {

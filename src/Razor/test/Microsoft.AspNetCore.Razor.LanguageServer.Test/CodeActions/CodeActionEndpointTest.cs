@@ -26,7 +26,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
 
     public CodeActionEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -45,7 +45,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             l => l.SupportsFileManipulation == true,
             MockBehavior.Strict);
 
-        _languageServer = Mock.Of<IClientNotifierService>(MockBehavior.Strict);
+        _languageServer = Mock.Of<IClientConnection>(MockBehavior.Strict);
     }
 
     [Fact]
@@ -775,7 +775,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         return documentMappingService;
     }
 
-    private static IClientNotifierService CreateLanguageServer()
+    private static IClientConnection CreateLanguageServer()
     {
         return new TestLanguageServer();
     }
@@ -846,7 +846,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         }
     }
 
-    private class TestLanguageServer : IClientNotifierService
+    private class TestLanguageServer : IClientConnection
     {
         public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {

@@ -5,7 +5,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal abstract class CSharpCodeActionResolver : BaseDelegatedCodeActionResolver
 {
-    public CSharpCodeActionResolver(IClientNotifierService languageServer)
+    public CSharpCodeActionResolver(IClientConnection languageServer)
         : base(languageServer)
     {
     }

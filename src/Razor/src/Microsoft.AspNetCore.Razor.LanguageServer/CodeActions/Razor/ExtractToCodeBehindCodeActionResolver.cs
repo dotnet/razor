@@ -30,12 +30,12 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
 
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
 
     public ExtractToCodeBehindCodeActionResolver(
         DocumentContextFactory documentContextFactory,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IClientNotifierService languageServer)
+        IClientConnection languageServer)
     {
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));

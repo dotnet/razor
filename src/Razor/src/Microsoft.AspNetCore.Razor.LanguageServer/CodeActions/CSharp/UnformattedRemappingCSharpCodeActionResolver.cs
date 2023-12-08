@@ -25,7 +25,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeA
 
     public UnformattedRemappingCSharpCodeActionResolver(
         DocumentContextFactory documentContextFactory,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         IRazorDocumentMappingService documentMappingService)
         : base(languageServer)
     {

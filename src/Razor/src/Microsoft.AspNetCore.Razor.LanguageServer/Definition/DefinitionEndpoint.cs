@@ -37,7 +37,7 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
         RazorComponentSearchEngine componentSearchEngine,
         IRazorDocumentMappingService documentMappingService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<DefinitionEndpoint>())
     {

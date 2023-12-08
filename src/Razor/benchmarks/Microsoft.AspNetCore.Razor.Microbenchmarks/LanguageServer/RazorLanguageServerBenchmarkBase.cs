@@ -31,7 +31,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, NoOpTelemetryReporter.Instance, configure: (collection) =>
         {
             collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
-            collection.AddSingleton<IClientNotifierService, NoopClientNotifierService>();
+            collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
             Builder(collection);
         }, featureOptions: BuildFeatureOptions());
     }
@@ -70,7 +70,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         return documentSnapshot;
     }
 
-    private class NoopClientNotifierService : IClientNotifierService, IOnInitialized
+    private class NoopClientNotifierService : IClientConnection, IOnInitialized
     {
         public Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

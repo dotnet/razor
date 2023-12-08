@@ -27,7 +27,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 {
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly IRazorFormattingService _razorFormattingService;
 
@@ -46,7 +46,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     public GenerateMethodCodeActionResolver(
         DocumentContextFactory documentContextFactory,
         RazorLSPOptionsMonitor razorLSPOptionsMonitor,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         IRazorDocumentMappingService razorDocumentMappingService,
         IRazorFormattingService razorFormattingService)
     {

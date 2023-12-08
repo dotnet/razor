@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal interface IClientNotifierService
+internal interface IClientConnection
 {
     Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken);
 

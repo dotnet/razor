@@ -14,10 +14,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultRazorConfigurationService : IConfigurationSyncService
 {
-    private readonly IClientNotifierService _server;
+    private readonly IClientConnection _server;
     private readonly ILogger _logger;
 
-    public DefaultRazorConfigurationService(IClientNotifierService languageServer, ILoggerFactory loggerFactory)
+    public DefaultRazorConfigurationService(IClientConnection languageServer, ILoggerFactory loggerFactory)
     {
         if (languageServer is null)
         {

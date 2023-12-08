@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-internal class TestLanguageServer : IClientNotifierService
+internal class TestLanguageServer : IClientConnection
 {
     private readonly IReadOnlyDictionary<string, Func<object?, Task<object>>> _requestResponseFactory;
 

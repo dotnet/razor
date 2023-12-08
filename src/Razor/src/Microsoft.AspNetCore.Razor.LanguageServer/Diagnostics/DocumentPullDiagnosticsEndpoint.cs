@@ -21,14 +21,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternalDocumentDiagnosticsParams, IEnumerable<VSInternalDiagnosticReport>?>, ICapabilitiesProvider
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
     private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService;
     private readonly ITelemetryReporter? _telemetryReporter;
 
     public DocumentPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorTranslateDiagnosticsService translateDiagnosticsService,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         ITelemetryReporter? telemetryReporter)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));

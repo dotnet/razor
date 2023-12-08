@@ -164,7 +164,7 @@ public class DocumentHighlightEndpointTest : LanguageServerTestBase
         Assert.Equal(actual, expected);
     }
 
-    private class DocumentHighlightServer : IClientNotifierService
+    private class DocumentHighlightServer : IClientConnection
     {
         private readonly CSharpTestLspServer _csharpServer;
         private readonly Uri _csharpDocumentUri;

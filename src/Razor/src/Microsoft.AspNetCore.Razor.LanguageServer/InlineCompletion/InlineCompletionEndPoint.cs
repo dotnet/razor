@@ -31,7 +31,7 @@ internal sealed class InlineCompletionEndpoint : IRazorRequestHandler<VSInternal
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
     private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
 
     public bool MutatesSolutionState => false;
@@ -39,7 +39,7 @@ internal sealed class InlineCompletionEndpoint : IRazorRequestHandler<VSInternal
     [ImportingConstructor]
     public InlineCompletionEndpoint(
         IRazorDocumentMappingService documentMappingService,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         AdhocWorkspaceFactory adhocWorkspaceFactory)
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));

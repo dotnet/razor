@@ -20,13 +20,13 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly IClientNotifierService _languageServer;
+    private readonly IClientConnection _languageServer;
     protected readonly ILogger Logger;
 
     protected AbstractRazorDelegatingEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         ILogger logger)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
@@ -53,7 +53,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
 
     /// <summary>
     /// The name of the endpoint to delegate to, from <see cref="CustomMessageNames"/>. This is the
-    /// custom endpoint that is sent via <see cref="IClientNotifierService"/> which returns
+    /// custom endpoint that is sent via <see cref="IClientConnection"/> which returns
     /// a response by delegating to C#/HTML.
     /// </summary>
     /// <remarks>

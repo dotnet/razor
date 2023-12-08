@@ -37,7 +37,7 @@ internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
 
     public DefaultCSharpCodeActionResolver(
         DocumentContextFactory documentContextFactory,
-        IClientNotifierService languageServer,
+        IClientConnection languageServer,
         IRazorFormattingService razorFormattingService)
         : base(languageServer)
     {
