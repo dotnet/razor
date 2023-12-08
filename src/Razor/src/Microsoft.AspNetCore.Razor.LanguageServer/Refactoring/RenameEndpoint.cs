@@ -41,9 +41,9 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         ILoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RenameEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<RenameEndpoint>())
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
