@@ -15,17 +15,17 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class DefaultDocumentContextFactory(
+internal sealed class DocumentContextFactory(
     ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
     ISnapshotResolver snapshotResolver,
-    DocumentVersionCache documentVersionCache,
+    IDocumentVersionCache documentVersionCache,
     ILoggerFactory loggerFactory)
     : IDocumentContextFactory
 {
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
     private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
-    private readonly DocumentVersionCache _documentVersionCache = documentVersionCache;
-    private readonly ILogger<DefaultDocumentContextFactory> _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
+    private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<IDocumentContextFactory>();
 
     public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
     {

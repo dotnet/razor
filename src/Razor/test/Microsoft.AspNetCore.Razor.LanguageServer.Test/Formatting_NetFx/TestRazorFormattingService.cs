@@ -31,7 +31,7 @@ internal static class TestRazorFormattingService
         var filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new RazorDocumentMappingService(filePathService, new TestDocumentContextFactory(), loggerFactory);
 
-        var versionCache = new DefaultDocumentVersionCache();
+        var versionCache = new DocumentVersionCache();
         if (documentSnapshot is not null)
         {
             await dispatcher.RunOnDispatcherThreadAsync(() =>
