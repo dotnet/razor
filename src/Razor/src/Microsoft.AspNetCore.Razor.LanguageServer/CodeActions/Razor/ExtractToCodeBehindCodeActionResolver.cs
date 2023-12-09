@@ -28,12 +28,12 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
 {
     private static readonly Workspace s_workspace = new AdhocWorkspace();
 
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection;
 
     public ExtractToCodeBehindCodeActionResolver(
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IClientConnection clientConnection)
     {

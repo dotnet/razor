@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
+public class DocumentContextFactoryTest : LanguageServerTestBase
 {
     private static readonly string s_baseDirectory = PathUtilities.CreateRootedPath("path", "to");
 
@@ -26,7 +26,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     private readonly TestProjectSnapshotManager _projectSnapshotManagerBase;
     private readonly TestProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
-    public DefaultDocumentContextFactoryTest(ITestOutputHelper testOutput)
+    public DocumentContextFactoryTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _documentVersionCache = new DocumentVersionCache();

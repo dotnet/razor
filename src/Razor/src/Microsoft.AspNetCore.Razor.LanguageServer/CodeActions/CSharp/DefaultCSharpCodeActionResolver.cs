@@ -32,11 +32,11 @@ internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
         },
     };
 
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly IRazorFormattingService _razorFormattingService;
 
     public DefaultCSharpCodeActionResolver(
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         IClientConnection clientConnection,
         IRazorFormattingService razorFormattingService)
         : base(clientConnection)

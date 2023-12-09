@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 public class RenameEndpointTest : LanguageServerTestBase
 {
     private readonly RenameEndpoint _endpoint;
-    private DocumentContextFactory _documentContextFactory;
+    private IDocumentContextFactory _documentContextFactory;
 
     public RenameEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -728,7 +728,7 @@ public class RenameEndpointTest : LanguageServerTestBase
         return endpoint;
     }
 
-    private class TestDocumentContextFactory : DocumentContextFactory
+    private class TestDocumentContextFactory : IDocumentContextFactory
     {
         private readonly ImmutableDictionary<string, DocumentContext> _pathToContextMap;
 
@@ -737,7 +737,7 @@ public class RenameEndpointTest : LanguageServerTestBase
             _pathToContextMap = pathToContextMap.ToImmutableDictionary(kvp => FilePathNormalizer.Normalize(kvp.Key), kvp => kvp.Value);
         }
 
-        protected override DocumentContext TryCreateCore(Uri documentUri, VSProjectContext projectContext, bool versioned)
+        public DocumentContext TryCreate(Uri documentUri, VSProjectContext projectContext, bool versioned)
         {
             var path = FilePathNormalizer.Normalize(documentUri.AbsolutePath);
             _pathToContextMap.TryGetValue(path, out var context);

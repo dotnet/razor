@@ -1108,7 +1108,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             }
         }
 
-        protected override DocumentContext? TryCreateCore(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+        public override DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
         {
             if (FilePath is null || CodeDocument is null)
             {

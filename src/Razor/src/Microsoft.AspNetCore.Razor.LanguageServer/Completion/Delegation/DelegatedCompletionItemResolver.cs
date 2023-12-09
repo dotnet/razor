@@ -14,12 +14,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 internal class DelegatedCompletionItemResolver : CompletionItemResolver
 {
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly IRazorFormattingService _formattingService;
     private readonly IClientConnection _clientConnection;
 
     public DelegatedCompletionItemResolver(
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         IRazorFormattingService formattingService,
         IClientConnection clientConnection)
     {
