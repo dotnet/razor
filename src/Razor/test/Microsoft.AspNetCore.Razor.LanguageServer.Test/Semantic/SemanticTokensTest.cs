@@ -1211,9 +1211,9 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         return builder.ToString();
     }
 
-    private class TestDocumentContextFactory(VersionedDocumentContext? documentContext = null) : DocumentContextFactory
+    private class TestDocumentContextFactory(VersionedDocumentContext? documentContext = null) : IDocumentContextFactory
     {
-        protected override DocumentContext? TryCreateCore(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+        public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
         {
             return documentContext;
         }

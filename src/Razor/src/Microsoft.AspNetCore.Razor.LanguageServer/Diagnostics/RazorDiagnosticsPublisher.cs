@@ -35,14 +35,14 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     private ProjectSnapshotManager? _projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly Lazy<RazorTranslateDiagnosticsService> _razorTranslateDiagnosticsService;
-    private readonly Lazy<DocumentContextFactory> _documentContextFactory;
+    private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
 
     public RazorDiagnosticsPublisher(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         Lazy<RazorTranslateDiagnosticsService> razorTranslateDiagnosticsService,
-        Lazy<DocumentContextFactory> documentContextFactory,
+        Lazy<IDocumentContextFactory> documentContextFactory,
         ILoggerFactory loggerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)

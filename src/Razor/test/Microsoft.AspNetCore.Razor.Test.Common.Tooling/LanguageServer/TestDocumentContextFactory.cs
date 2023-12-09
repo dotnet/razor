@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-internal class TestDocumentContextFactory : DocumentContextFactory
+internal class TestDocumentContextFactory : IDocumentContextFactory
 {
     private protected readonly string? FilePath;
     private protected readonly RazorCodeDocument? CodeDocument;
@@ -25,7 +25,7 @@ internal class TestDocumentContextFactory : DocumentContextFactory
         _version = version;
     }
 
-    protected override DocumentContext? TryCreateCore(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+    public virtual DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
     {
         if (FilePath is null || CodeDocument is null)
         {

@@ -40,13 +40,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.MapCodeParams, LSP.WorkspaceEdit?>
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly IClientConnection _clientConnection;
     private readonly FilePathService _filePathService;
 
     public MapCodeEndpoint(
         IRazorDocumentMappingService documentMappingService,
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         IClientConnection clientConnection,
         FilePathService filePathService)
     {
