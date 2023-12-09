@@ -119,8 +119,8 @@ public class Foo { }
     {
         var mappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
-        var client = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
-        var pass = new FormattingContentValidationPass(mappingService, client, LoggerFactory)
+        var clientConnection = Mock.Of<IClientConnection>(MockBehavior.Strict);
+        var pass = new FormattingContentValidationPass(mappingService, clientConnection, LoggerFactory)
         {
             DebugAssertsEnabled = false
         };

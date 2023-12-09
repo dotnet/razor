@@ -92,7 +92,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
 
         var languageServer = CreateLanguageServer(resolvedCodeAction);
 
-        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
+        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, clientConnection: languageServer);
 
         // Act
         var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
@@ -136,7 +136,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
 
         var languageServer = CreateLanguageServer(resolvedCodeAction);
 
-        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
+        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, clientConnection: languageServer);
 
         // Act
         var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
@@ -166,7 +166,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
 
         var languageServer = CreateLanguageServer(resolvedCodeAction);
 
-        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
+        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, clientConnection: languageServer);
 
         // Act
         var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
@@ -178,7 +178,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
     private static void CreateCodeActionResolver(
         out CodeActionResolveParams codeActionParams,
         out DefaultCSharpCodeActionResolver csharpCodeActionResolver,
-        ClientNotifierServiceBase? languageServer = null,
+        IClientConnection? clientConnection = null,
         IRazorFormattingService? razorFormattingService = null)
     {
         var documentPath = "c:/Test.razor";
@@ -195,12 +195,12 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
             }
         };
 
-        languageServer ??= CreateLanguageServer();
+        clientConnection ??= CreateLanguageServer();
         razorFormattingService ??= CreateRazorFormattingService(documentUri);
 
         csharpCodeActionResolver = new DefaultCSharpCodeActionResolver(
             CreateDocumentContextFactory(documentUri, codeDocument),
-            languageServer,
+            clientConnection,
             razorFormattingService);
     }
 
@@ -216,16 +216,16 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         return razorFormattingService;
     }
 
-    private static ClientNotifierServiceBase CreateLanguageServer(CodeAction? resolvedCodeAction = null)
+    private static IClientConnection CreateLanguageServer(CodeAction? resolvedCodeAction = null)
     {
         var response = resolvedCodeAction ?? s_defaultResolvedCodeAction;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        return languageServer.Object;
+        return clientConnection.Object;
     }
 
     private static RazorCodeDocument CreateCodeDocument(string text, string documentPath)

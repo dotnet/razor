@@ -106,15 +106,15 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
             });
     }
 
-    private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction)
+    private static IClientConnection CreateLanguageServer(CodeAction resolvedCodeAction)
     {
         var response = resolvedCodeAction;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        return languageServer.Object;
+        return clientConnection.Object;
     }
 }

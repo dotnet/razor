@@ -649,8 +649,8 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
 
         var delegatedHover = new VSInternalHover();
 
-        var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServerMock
+        var clientConnectionMock = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnectionMock
             .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(CustomMessageNames.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedHover);
 
@@ -670,7 +670,7 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
             c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
             .Returns(true);
 
-        var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);
+        var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, clientConnectionMock.Object);
 
         var request = new TextDocumentPositionParams
         {
@@ -878,7 +878,7 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
 
     private HoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null,
         IRazorDocumentMappingService documentMappingService = null,
-        ClientNotifierServiceBase languageServer = null)
+        IClientConnection clientConnection = null)
     {
 
         languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
@@ -889,13 +889,13 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
             .Returns(Protocol.RazorLanguageKind.Html);
         documentMappingService ??= documentMappingServiceMock.Object;
 
-        languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+        clientConnection ??= Mock.Of<IClientConnection>(MockBehavior.Strict);
 
         var endpoint = new HoverEndpoint(
             GetHoverInfoService(),
             languageServerFeatureOptions,
             documentMappingService,
-            languageServer,
+            clientConnection,
             LoggerFactory);
 
         return endpoint;
@@ -909,7 +909,7 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
         return new HoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
     }
 
-    private class HoverLanguageServer : ClientNotifierServiceBase
+    private class HoverLanguageServer : IClientConnection
     {
         private readonly CSharpTestLspServer _csharpServer;
         private readonly Uri _csharpDocumentUri;
@@ -925,22 +925,17 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
             _cancellationToken = cancellationToken;
         }
 
-        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        public async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             Assert.Equal(CustomMessageNames.RazorHoverEndpointName, method);
             var hoverParams = Assert.IsType<DelegatedPositionParams>(@params);
