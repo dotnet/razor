@@ -94,7 +94,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     }
 
     [Fact]
-    public void ProjectManager_Changed_DocumentOpened_UninitializedProject_NotActive_Noops()
+    public async Task ProjectManager_Changed_DocumentOpened_UninitializedProject_NotActive_Noops()
     {
         // Arrange
         var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
@@ -114,7 +114,10 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         publisher.Initialize(projectSnapshotManager);
 
         // Act
-        projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
+        });
 
         // Assert
         Assert.Empty(publisher.DeferredPublishTasks);
@@ -155,7 +158,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
             projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
         });
 
-
         // Assert
         Assert.Empty(publisher.DeferredPublishTasks);
         Assert.True(serializationSuccessful);
@@ -171,9 +173,14 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         var serializationSuccessful = false;
         var hostProject = new HostProject(@"C:\path\to\project.csproj", @"C:\path\to\obj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
         var hostDocument = new HostDocument(@"C:\path\to\file.razor", "file.razor");
-        projectSnapshotManager.ProjectAdded(hostProject);
-        projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, ProjectWorkspaceState.Default);
-        projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectSnapshotManager.ProjectAdded(hostProject);
+            projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, ProjectWorkspaceState.Default);
+            projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+        });
+
         var projectSnapshot = projectSnapshotManager.GetProjects()[0];
         var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.bin";
         projectConfigurationFilePathStore.Set(projectSnapshot.Key, expectedConfigurationFilePath);
