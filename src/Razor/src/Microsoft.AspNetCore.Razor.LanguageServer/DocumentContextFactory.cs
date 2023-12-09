@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal sealed class DocumentContextFactory(
     ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
     ISnapshotResolver snapshotResolver,
-    IDocumentVersion documentVersionCache,
+    IDocumentVersionCache documentVersionCache,
     ILoggerFactory loggerFactory)
     : IDocumentContextFactory
 {
