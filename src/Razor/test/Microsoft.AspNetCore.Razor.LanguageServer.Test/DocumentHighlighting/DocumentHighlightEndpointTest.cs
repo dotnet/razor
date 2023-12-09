@@ -158,7 +158,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         Assert.Equal(actual, expected);
     }
 
-    private class DocumentHighlightServer : ClientNotifierServiceBase
+    private class DocumentHighlightServer : IClientConnection
     {
         private readonly CSharpTestLspServer _csharpServer;
         private readonly Uri _csharpDocumentUri;
@@ -169,22 +169,17 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
             _csharpDocumentUri = csharpDocumentUri;
         }
 
-        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        public async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             Assert.Equal(CustomMessageNames.RazorDocumentHighlightEndpointName, method);
             var highlightParams = Assert.IsType<DelegatedPositionParams>(@params);

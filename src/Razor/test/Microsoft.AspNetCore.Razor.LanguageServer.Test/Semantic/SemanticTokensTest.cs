@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 [UseExportProvider]
 public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
-    private readonly Mock<ClientNotifierServiceBase> _languageServer = new(MockBehavior.Strict);
+    private readonly Mock<IClientConnection> _clientConnection = new(MockBehavior.Strict);
     private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase), layer: TestProject.Layer.Tooling);
 
     private static readonly VSInternalServerCapabilities s_semanticTokensServerCapabilities = new()
@@ -965,14 +965,14 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         bool serverSupportsPreciseRanges,
         bool precise)
     {
-        _languageServer
+        _clientConnection
             .Setup(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
                 CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(csharpTokens);
 
-        _languageServer
+        _clientConnection
             .Setup(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
                 CustomMessageNames.RazorProvidePreciseRangeSemanticTokensEndpoint,
                 It.IsAny<SemanticTokensParams>(),
@@ -1007,7 +1007,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             MockBehavior.Strict);
 
         return new RazorSemanticTokensInfoService(
-            _languageServer.Object,
+            _clientConnection.Object,
             documentMappingService,
             optionsMonitor,
             featureOptions,
@@ -1057,13 +1057,13 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     private void VerifyTimesLanguageServerCalled(bool serverSupportsPreciseRanges, bool precise)
     {
-        _languageServer
+        _clientConnection
             .Verify(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
                 CustomMessageNames.RazorProvidePreciseRangeSemanticTokensEndpoint,
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()), Times.Exactly(precise ? 1 : 0));
 
-        _languageServer
+        _clientConnection
             .Verify(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
                 CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
                 It.IsAny<SemanticTokensParams>(),

@@ -43,7 +43,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     private GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolvers(
         string filePath,
         RazorCodeDocument codeDocument,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         IRazorFormattingService razorFormattingService,
         RazorLSPOptionsMonitor? optionsMonitor = null)
             => new[]
@@ -51,7 +51,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                 new GenerateMethodCodeActionResolver(
                     new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
                     optionsMonitor ?? TestRazorLSPOptionsMonitor.Create(),
-                    languageServer,
+                    clientConnection,
                     new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
             };
@@ -966,7 +966,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<string, RazorCodeDocument, ClientNotifierServiceBase, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        Func<string, RazorCodeDocument, IClientConnection, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -1016,7 +1016,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         TextSpan textSpan,
         SourceText sourceText,
         RazorRequestContext requestContext,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         IRazorCodeActionProvider[]? razorProviders = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -1025,7 +1025,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             razorCodeActionProviders: razorProviders ?? [],
             csharpCodeActionProviders: [new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance)],
             htmlCodeActionProviders: [],
-            languageServer,
+            clientConnection,
             LanguageServerFeatureOptions.AssumeNotNull(),
             telemetryReporter: null);
 
@@ -1056,7 +1056,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     private async Task<TextDocumentEdit[]> GetEditsAsync(
         SumType<Command, CodeAction>[] result,
         RazorRequestContext requestContext,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         string codeAction,
         IRazorCodeActionResolver[] razorResolvers,
         int childActionIndex = 0)
@@ -1072,7 +1072,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
         var csharpResolvers = new CSharpCodeActionResolver[]
         {
-            new DefaultCSharpCodeActionResolver(DocumentContextFactory.AssumeNotNull(), languageServer, formattingService)
+            new DefaultCSharpCodeActionResolver(DocumentContextFactory.AssumeNotNull(), clientConnection, formattingService)
         };
 
         var htmlResolvers = Array.Empty<HtmlCodeActionResolver>();

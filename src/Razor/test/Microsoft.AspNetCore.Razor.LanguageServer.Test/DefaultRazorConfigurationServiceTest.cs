@@ -222,20 +222,20 @@ public class DefaultRazorConfigurationServiceTest(ITestOutputHelper testOutput) 
         Assert.Equal(expectedOptions, options);
     }
 
-    private static ClientNotifierServiceBase GetLanguageServer<IResult>(IResult result, bool shouldThrow = false)
+    private static IClientConnection GetLanguageServer<IResult>(IResult result, bool shouldThrow = false)
     {
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
         if (shouldThrow)
         {
         }
         else
         {
-            languageServer
+            clientConnection
                 .Setup(l => l.SendRequestAsync<ConfigurationParams, IResult>("workspace/configuration", It.IsAny<ConfigurationParams>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
         }
 
-        return languageServer.Object;
+        return clientConnection.Object;
     }
 }

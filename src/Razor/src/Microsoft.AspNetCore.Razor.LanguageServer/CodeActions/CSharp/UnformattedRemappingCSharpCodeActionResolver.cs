@@ -25,9 +25,9 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeA
 
     public UnformattedRemappingCSharpCodeActionResolver(
         IDocumentContextFactory documentContextFactory,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         IRazorDocumentMappingService documentMappingService)
-        : base(languageServer)
+        : base(clientConnection)
     {
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));

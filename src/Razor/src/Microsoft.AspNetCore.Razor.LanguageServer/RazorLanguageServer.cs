@@ -89,11 +89,11 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             _configureServer(services);
         }
 
-        var serverManager = new DefaultClientNotifierService(_jsonRpc);
-        services.AddSingleton<ClientNotifierServiceBase>(serverManager);
+        var clientConnection = new ClientConnection(_jsonRpc);
+        services.AddSingleton<IClientConnection>(clientConnection);
         if (_logger is LspLogger lspLogger)
         {
-            lspLogger.Initialize(serverManager);
+            lspLogger.Initialize(clientConnection);
         }
 
         if (_logger is LoggerAdapter adapter)
@@ -139,7 +139,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         services.AddSingleton<FilePathService>();
 
-        services.AddLifeCycleServices(this, serverManager, _lspServerActivationTracker);
+        services.AddLifeCycleServices(this, clientConnection, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices();

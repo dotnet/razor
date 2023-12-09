@@ -519,7 +519,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         public override string Action { get; }
 
         internal MockCSharpCodeActionResolver(string action)
-            : base(Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict))
+            : base(Mock.Of<IClientConnection>(MockBehavior.Strict))
         {
             Action = action;
         }
@@ -536,7 +536,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         public override string Action { get; }
 
         internal MockCSharpNullCodeActionResolver(string action)
-            : base(Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict))
+            : base(Mock.Of<IClientConnection>(MockBehavior.Strict))
         {
             Action = action;
         }
