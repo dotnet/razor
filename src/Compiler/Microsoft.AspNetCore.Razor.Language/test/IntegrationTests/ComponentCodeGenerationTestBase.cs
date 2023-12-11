@@ -6827,6 +6827,41 @@ namespace Test
         Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9631")]
+    public void CascadingGenericInference_GenericArgumentNested()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            using System;
+            using System.Collections.Generic;
+
+            namespace Test;
+
+            [CascadingTypeParameter(nameof(T))]
+            public class Grid<T> : ComponentBase
+            {
+                [Parameter] public Func<List<T>>? Data { get; set; }
+            }
+
+            public partial class GridColumn<T> : ComponentBase
+            {
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Grid Data="@(() => new List<string>())">
+                <GridColumn />
+            </Grid>
+            """, nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [IntegrationTestFact]
     public void CascadingGenericInference_CombiningMultipleAncestors()
     {

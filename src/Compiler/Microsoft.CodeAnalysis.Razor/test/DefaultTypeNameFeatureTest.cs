@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
@@ -24,6 +25,7 @@ public class DefaultTypeNameFeatureTest
     [InlineData("C<(T X, T Y)[]>", 2)]
     [InlineData("C<(T[], T)[]>", 2)]
     [InlineData("C<(T[] X, T Y)[]>", 2)]
+    [InlineData("C<D<T>>", 1), WorkItem("https://github.com/dotnet/razor/issues/9631")]
     public void ParseTypeParameters(string input, int expectedNumberOfTs)
     {
         // Arrange.
