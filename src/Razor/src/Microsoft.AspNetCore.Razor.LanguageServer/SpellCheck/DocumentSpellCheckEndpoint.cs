@@ -159,10 +159,14 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
 
                 // We need to map the start index to produce results, and we validate that we can map the end index so we don't have
                 // squiggles that go from C# into Razor/Html.
-                if (_documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex, out var _1, out var hostDocumentIndex) &&
-                    _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex + length, out var _2, out var _3))
+                if (_documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex, out var _1, out var hostDocumentStartIndex) &&
+                    _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex + length, out var _2, out var hostDocumentEndIndex))
                 {
-                    ranges.Add(new(kind, hostDocumentIndex, length));
+                    var mappedLength = hostDocumentEndIndex - hostDocumentStartIndex;
+                    if (mappedLength > 0)
+                    {
+                        ranges.Add(new(kind, hostDocumentStartIndex, mappedLength));
+                    }
                 }
 
                 absoluteCSharpStartIndex += length;
