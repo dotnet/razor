@@ -61,7 +61,12 @@ internal class DefaultTypeNameFeature : TypeNameFeature
                 return list;
             }
 
-            return ImmutableArray.Create(parsed.ToString());
+            if (parsed is IdentifierNameSyntax identifier)
+            {
+                return ImmutableArray.Create(identifier.Identifier.Text);
+            }
+
+            return ImmutableArray<string>.Empty;
         }
     }
 
