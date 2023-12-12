@@ -6975,6 +6975,43 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9631")]
+    public void CascadingGenericInference_GenericArgumentNested_Dictionary_Dynamic()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            using System;
+            using System.Collections.Generic;
+
+            namespace Test
+            {
+                [CascadingTypeParameter(nameof(T))]
+                public class Grid<T> : ComponentBase
+                {
+                    [Parameter] public Dictionary<dynamic, T>? Data { get; set; }
+                }
+
+                public partial class GridColumn<T> : ComponentBase
+                {
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Grid Data="@(new Dictionary<dynamic, string>())">
+                <GridColumn />
+            </Grid>
+            """, nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var diagnostic = Assert.Single(generated.Diagnostics);
+        Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
+    }
+
     [IntegrationTestFact]
     public void CascadingGenericInference_CombiningMultipleAncestors()
     {
