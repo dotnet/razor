@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-[Export(typeof(RazorProjectService))]
+[Export(typeof(RazorProjectService)), Shared]
 [method: ImportingConstructor]
 internal class DefaultRazorProjectService(
     ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-[Export(typeof(RemoteTextLoaderFactory))]
+[Export(typeof(RemoteTextLoaderFactory)), Shared]
 [method: ImportingConstructor]
 internal class DefaultRemoteTextLoaderFactory() : RemoteTextLoaderFactory
 {

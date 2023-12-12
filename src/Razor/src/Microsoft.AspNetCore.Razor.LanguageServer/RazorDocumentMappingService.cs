@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-[Export(typeof(IRazorDocumentMappingService))]
+[Export(typeof(IRazorDocumentMappingService)), Shared]
 [method: ImportingConstructor]
 internal sealed class RazorDocumentMappingService(
         FilePathService filePathService,

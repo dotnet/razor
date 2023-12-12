@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-[Export(typeof(ISnapshotResolver))]
+[Export(typeof(ISnapshotResolver)), Shared]
 internal sealed class SnapshotResolver : ISnapshotResolver
 {
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;

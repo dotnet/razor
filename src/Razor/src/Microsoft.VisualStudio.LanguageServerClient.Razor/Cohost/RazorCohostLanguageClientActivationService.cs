@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
-[Export(typeof(IRazorCohostLanguageClientActivationService))]
+[Export(typeof(IRazorCohostLanguageClientActivationService)), Shared]
 [method: ImportingConstructor]
 internal class RazorCohostLanguageClientActivationService(LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCohostLanguageClientActivationService
 {

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
-[Export(typeof(IRazorCohostDidChangeHandler))]
+[Export(typeof(IRazorCohostDidChangeHandler)), Shared]
 [method: ImportingConstructor]
 internal class DidChangeHandler(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService) : IRazorCohostDidChangeHandler
 {

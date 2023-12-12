@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-[Export(typeof(IDocumentContextFactory))]
+[Export(typeof(IDocumentContextFactory)), Shared]
 [method: ImportingConstructor]
 internal sealed class DocumentContextFactory(
     ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,

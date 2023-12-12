@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
-[Export(typeof(IRazorCohostCapabilitiesProvider))]
+[Export(typeof(IRazorCohostCapabilitiesProvider)), System.Composition.Shared]
 [method: ImportingConstructor]
 internal class RazorCohostCapabilitiesProvider([ImportMany(typeof(ICapabilitiesProvider))] IEnumerable<Lazy<ICapabilitiesProvider>> cohostCapabilitiesProviders) : IRazorCohostCapabilitiesProvider
 {
