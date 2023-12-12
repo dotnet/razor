@@ -26,6 +26,9 @@ public class DefaultTypeNameFeatureTest
     [InlineData("C<(T[], T)[]>", 2)]
     [InlineData("C<(T[] X, T Y)[]>", 2)]
     [InlineData("C<D<T>>", 1), WorkItem("https://github.com/dotnet/razor/issues/9631")]
+    [InlineData("C<D<T>[]>>", 1)]
+    [InlineData("C<D<T[]>>", 1)]
+    [InlineData("C<NS.T>", 0)]
     public void ParseTypeParameters(string input, int expectedNumberOfTs)
     {
         // Arrange.

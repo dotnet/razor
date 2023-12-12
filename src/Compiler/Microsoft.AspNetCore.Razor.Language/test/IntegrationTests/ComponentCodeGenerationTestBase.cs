@@ -6862,6 +6862,121 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9631")]
+    public void CascadingGenericInference_GenericArgumentNested_Dictionary()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            using System;
+            using System.Collections.Generic;
+
+            namespace Test
+            {
+                [CascadingTypeParameter(nameof(T))]
+                public class Grid<T> : ComponentBase
+                {
+                    [Parameter] public Func<Dictionary<X, T>>? Data { get; set; }
+                }
+
+                public partial class GridColumn<T> : ComponentBase
+                {
+                }
+            }
+
+            public class X { }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Grid Data="@(() => new Dictionary<X, string>())">
+                <GridColumn />
+            </Grid>
+            """, nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var diagnostic = Assert.Single(generated.Diagnostics);
+        Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9631")]
+    public void CascadingGenericInference_GenericArgumentNested_Dictionary_02()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            using System;
+            using System.Collections.Generic;
+
+            namespace Test;
+
+            [CascadingTypeParameter(nameof(T))]
+            public class Grid<T> : ComponentBase
+            {
+                [Parameter] public Func<Dictionary<X, T>>? Data { get; set; }
+            }
+
+            public partial class GridColumn<T> : ComponentBase
+            {
+            }
+            
+            public class X { }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Grid Data="@(() => new Dictionary<X, string>())">
+                <GridColumn />
+            </Grid>
+            """, nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9631")]
+    public void CascadingGenericInference_GenericArgumentNested_Dictionary_03()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            using System;
+            using System.Collections.Generic;
+
+            namespace Test
+            {
+                [CascadingTypeParameter(nameof(T))]
+                public class Grid<T> : ComponentBase
+                {
+                    [Parameter] public Dictionary<X, T>? Data { get; set; }
+                }
+
+                public partial class GridColumn<T> : ComponentBase
+                {
+                }
+            }
+
+            public class X { }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Grid Data="@(new Dictionary<X, string>())">
+                <GridColumn />
+            </Grid>
+            """, nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var diagnostic = Assert.Single(generated.Diagnostics);
+        Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
+    }
+
     [IntegrationTestFact]
     public void CascadingGenericInference_CombiningMultipleAncestors()
     {
