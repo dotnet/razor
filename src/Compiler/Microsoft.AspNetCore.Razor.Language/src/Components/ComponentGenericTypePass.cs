@@ -142,6 +142,9 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             {
                 if (attribute != null && TryFindGenericTypeNames(attribute.BoundAttribute, attribute.GloballyQualifiedTypeName, out var typeParameters))
                 {
+                    // Keep only type parameters defined by this component.
+                    typeParameters = typeParameters.Where(bindings.ContainsKey).ToArray();
+
                     var attributeValueIsLambda = _pass.TypeNameFeature.IsLambda(GetContent(attribute));
                     var provideCascadingGenericTypes = new CascadingGenericTypeParameter
                     {

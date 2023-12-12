@@ -7008,8 +7008,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var diagnostic = Assert.Single(generated.Diagnostics);
-        Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
