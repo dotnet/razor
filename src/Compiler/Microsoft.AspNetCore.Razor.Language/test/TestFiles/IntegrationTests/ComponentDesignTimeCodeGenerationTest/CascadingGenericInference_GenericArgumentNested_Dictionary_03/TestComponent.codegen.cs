@@ -31,6 +31,7 @@ namespace Test
 #nullable disable
                 , out var __typeInferenceArg_0___arg0);
                 var __typeInference_CreateGrid_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateGrid_0(__builder, -1, -1, __typeInferenceArg_0___arg0, -1, (__builder2) => {
+                    var __typeInference_CreateGridColumn_1 = global::__Blazor.Test.TestComponent.TypeInference.CreateGridColumn_1(__builder2, -1, __typeInferenceArg_0___arg0);
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.GridColumn<>);
@@ -81,9 +82,9 @@ namespace __Blazor.Test.TestComponent
         {
             __arg0_out = __arg0;
         }
-        public static global::Test.GridColumn<System.Object> CreateGridColumn_1<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq)
+        public static global::Test.GridColumn<T> CreateGridColumn_1<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::System.Collections.Generic.Dictionary<global::X, T> __syntheticArg0)
         {
-        __builder.OpenComponent<global::Test.GridColumn<System.Object>>(seq);
+        __builder.OpenComponent<global::Test.GridColumn<T>>(seq);
         __builder.CloseComponent();
         return default;
         }

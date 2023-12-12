@@ -6897,8 +6897,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var diagnostic = Assert.Single(generated.Diagnostics);
-        Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9631")]
@@ -6973,8 +6972,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var diagnostic = Assert.Single(generated.Diagnostics);
-        Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
