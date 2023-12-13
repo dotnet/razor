@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31415.485
 MinimumVisualStudioVersion = 16.0.0.0
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.RazorExtension", "src\Razor\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj", "{BCF712D4-329A-4C7A-8292-9EFC864B2ABA}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tooling", "Tooling", "{3C0D6505-79B3-49D0-B4C3-176F0F1836ED}"
 	ProjectSection(SolutionItems) = preProject
 		src\Razor\src\Directory.Build.props = src\Razor\src\Directory.Build.props
@@ -37,8 +39,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib", "src\Razor\test\Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib\Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib.csproj", "{72E89155-86C7-454E-BDD9-39F497F2F61B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X", "src\Razor\test\Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X\Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X.csproj", "{D87E5501-B832-46B6-ACD3-EC989E3D14ED}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.RazorExtension", "src\Razor\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj", "{BCF712D4-329A-4C7A-8292-9EFC864B2ABA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LiveShare.Razor", "src\Razor\src\Microsoft.VisualStudio.LiveShare.Razor\Microsoft.VisualStudio.LiveShare.Razor.csproj", "{20193C6A-8981-447F-99B3-120DD3B06279}"
 EndProject
