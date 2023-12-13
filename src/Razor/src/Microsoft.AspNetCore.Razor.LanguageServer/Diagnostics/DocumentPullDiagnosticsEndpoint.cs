@@ -67,12 +67,11 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
 
         var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
 
-        var (csharpDiagnostics, htmlDiagnostics, csharpAdditionalDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
+        var delegatedDiagnostics = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
 
         var diagnosticCount =
             (razorDiagnostics?.Length ?? 0) +
-            (csharpDiagnostics?.Length ?? 0) +
-            (htmlDiagnostics?.Length ?? 0);
+            (delegatedDiagnostics?.Length ?? 0);
 
         using var _ = ListPool<VSInternalDiagnosticReport>.GetPooledObject(out var allDiagnostics);
         allDiagnostics.SetCapacityIfLarger(diagnosticCount);
@@ -83,38 +82,9 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             allDiagnostics.AddRange(razorDiagnostics);
         }
 
-        if (csharpDiagnostics is not null)
+        if (delegatedDiagnostics is not null)
         {
-            foreach (var report in csharpDiagnostics)
-            {
-                if (report.Diagnostics is not null)
-                {
-                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
-                    report.Diagnostics = mappedDiagnostics;
-                }
-
-                allDiagnostics.Add(report);
-            }
-        }
-
-        if (htmlDiagnostics is not null)
-        {
-            foreach (var report in htmlDiagnostics)
-            {
-                if (report.Diagnostics is not null)
-                {
-                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
-                    report.Diagnostics = mappedDiagnostics;
-                }
-
-                allDiagnostics.Add(report);
-            }
-        }
-
-        if (csharpAdditionalDiagnostics is not null)
-        {
-            // No extra work needed, these were issued as a request for the razor/cshtml file already
-            allDiagnostics.AddRange(csharpAdditionalDiagnostics);
+            await delegatedDiagnostics.AppendDiagnosticsAsync(_translateDiagnosticsService, documentContext, allDiagnostics, cancellationToken).ConfigureAwait(false);
         }
 
         return allDiagnostics.ToArray();
@@ -144,20 +114,13 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         ];
     }
 
-    private async Task<(VSInternalDiagnosticReport[]? CSharpDiagnostics, VSInternalDiagnosticReport[]? HtmlDiagnostics, VSInternalDiagnosticReport[]? CSharpAdditionalDiagnostics)>
+    private async Task<RazorPullDiagnosticResponse?>
         GetHtmlCSharpDiagnosticsAsync(VersionedDocumentContext documentContext, Guid correlationId, CancellationToken cancellationToken)
     {
         var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier, correlationId);
-        var delegatedResponse = await _clientConnection.SendRequestAsync<DelegatedDiagnosticParams, RazorPullDiagnosticResponse?>(
+        return await _clientConnection.SendRequestAsync<DelegatedDiagnosticParams, RazorPullDiagnosticResponse?>(
             CustomMessageNames.RazorPullDiagnosticEndpointName,
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
-
-        if (delegatedResponse is null)
-        {
-            return (null, null, null);
-        }
-
-        return (delegatedResponse.CSharpDiagnostics, delegatedResponse.HtmlDiagnostics, delegatedResponse.CSharpAdditionalDiagnostics);
     }
 }
