@@ -248,8 +248,6 @@ public class TelemetryReporterTests
         var ae = new ApplicationException("expectedText");
         var rie = new RemoteInvocationException("a", 0, ae);
 
-
-        var p3Value = Guid.NewGuid();
         reporter.ReportFault(rie, rie.Message);
 
         Assert.Collection(reporter.Events,
@@ -257,13 +255,10 @@ public class TelemetryReporterTests
             {
                 Assert.Equal(TelemetrySeverity.High, e1.Severity);
                 Assert.Equal("dotnet/razor/fault", e1.Name);
-                if (e1 is not FaultEvent faultEvent1)
-                {
-                    // faultEvent doesn't expose any interesting properties,
-                    // like the ExceptionObject, or the resulting Description,
-                    // or really anything we would explicitly want to verify against.
-                    Assert.Fail("It should be a fault event");
-                }
+                // faultEvent doesn't expose any interesting properties,
+                // like the ExceptionObject, or the resulting Description,
+                // or really anything we would explicitly want to verify against.
+                Assert.IsType<FaultEvent>(e1);
             });
     }
 
@@ -274,7 +269,6 @@ public class TelemetryReporterTests
 
         var rie = new RemoteInvocationException("a", 0, errorData:null);
 
-        var p3Value = Guid.NewGuid();
         reporter.ReportFault(rie, rie.Message);
 
         Assert.Collection(reporter.Events,
@@ -282,13 +276,10 @@ public class TelemetryReporterTests
             {
                 Assert.Equal(TelemetrySeverity.High, e1.Severity);
                 Assert.Equal("dotnet/razor/fault", e1.Name);
-                if (e1 is not FaultEvent faultEvent1)
-                {
-                    // faultEvent doesn't expose any interesting properties,
-                    // like the ExceptionObject, or the resulting Description,
-                    // or really anything we would explicitly want to verify against.
-                    Assert.Fail("It should be a fault event");
-                }
+                // faultEvent doesn't expose any interesting properties,
+                // like the ExceptionObject, or the resulting Description,
+                // or really anything we would explicitly want to verify against.
+                Assert.IsType<FaultEvent>(e1);
             });
     }
 
