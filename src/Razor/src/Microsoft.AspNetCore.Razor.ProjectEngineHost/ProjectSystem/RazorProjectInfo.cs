@@ -21,7 +21,7 @@ internal sealed class RazorProjectInfo
 
     public string SerializedFilePath { get; }
     public string FilePath { get; }
-    public RazorConfiguration? Configuration { get; }
+    public RazorConfiguration Configuration { get; }
     public string? RootNamespace { get; }
     public string DisplayName { get; }
     public ProjectWorkspaceState ProjectWorkspaceState { get; }
@@ -30,7 +30,7 @@ internal sealed class RazorProjectInfo
     public RazorProjectInfo(
         string serializedFilePath,
         string filePath,
-        RazorConfiguration? configuration,
+        RazorConfiguration configuration,
         string? rootNamespace,
         string displayName,
         ProjectWorkspaceState projectWorkspaceState,

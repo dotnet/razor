@@ -29,7 +29,7 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
 
         var serializedFilePath = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var filePath = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
-        var configuration = reader.DeserializeOrNull<RazorConfiguration>(options);
+        var configuration = reader.Deserialize<RazorConfiguration>(options);
         var projectWorkspaceState = reader.Deserialize<ProjectWorkspaceState>(options);
         var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();

@@ -30,7 +30,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public ProjectState State { get; }
 
-    public RazorConfiguration? Configuration => HostProject.Configuration;
+    public RazorConfiguration Configuration => HostProject.Configuration;
 
     public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
 

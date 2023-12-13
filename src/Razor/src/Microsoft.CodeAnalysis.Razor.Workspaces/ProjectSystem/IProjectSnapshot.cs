@@ -13,7 +13,7 @@ internal interface IProjectSnapshot
 {
     ProjectKey Key { get; }
 
-    RazorConfiguration? Configuration { get; }
+    RazorConfiguration Configuration { get; }
     IEnumerable<string> DocumentFilePaths { get; }
 
     /// <summary>

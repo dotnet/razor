@@ -44,7 +44,7 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
 
     public ProjectKey Key { get; }
 
-    public RazorConfiguration? Configuration => FallbackRazorConfiguration.Latest;
+    public RazorConfiguration Configuration => FallbackRazorConfiguration.Latest;
 
     public IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
 
