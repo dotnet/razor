@@ -56,16 +56,20 @@ internal class DefaultTypeNameFeature : TypeNameFeature
 
         static ImmutableArray<string> ParseCore(TypeSyntax parsed)
         {
+            // Recursively drill into arrays `T[]` and tuples `(T, T)`.
             if (TryParseCore(parsed) is { IsDefault: false } list)
             {
                 return list;
             }
 
+            // When we encounter an identifier, we assume it's a type parameter.
             if (parsed is IdentifierNameSyntax identifier)
             {
                 return ImmutableArray.Create(identifier.Identifier.Text);
             }
 
+            // Generic names like `C<T>` are ignored here because we will visit their type argument list
+            // via the `.DescendantNodesAndSelf().OfType<TypeArgumentListSyntax>()` call above.
             return ImmutableArray<string>.Empty;
         }
     }
