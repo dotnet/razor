@@ -13,7 +13,7 @@ variables:
 - name: LogLevel
   value: 'All'
 - name: RunIntegrationTests
-  value: false
+  value: true
 - name: _InternalRuntimeDownloadArgs
   value: ''
 - name: Codeql.Enabled
@@ -52,7 +52,7 @@ stages:
         displayName: Code check
         pool:
           name: $(DncEngPublicBuildPool)
-          demands: ImageOverride -equals windows.vs2022preview.amd64.open
+          demands: ImageOverride -equals windows.vs2022preview.amd64.scout.open
         steps:
         - task: NuGetCommand@2
           displayName: 'Clear NuGet caches'
@@ -79,7 +79,7 @@ stages:
         timeoutInMinutes: 120
         pool:
           name: $(DncEngPublicBuildPool)
-          demands: ImageOverride -equals windows.vs2022preview.amd64.open
+          demands: ImageOverride -equals windows.vs2022preview.amd64.scout.open
         strategy:
           matrix:
             debug:
