@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
@@ -193,7 +194,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         var projectSnapshot = new ProjectSnapshot(
             ProjectState.Create(
                 _workspace.Services,
-                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path")));
+                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path"),
+                ProjectWorkspaceState.Default));
         var expectedProjectPath = projectSnapshot.FilePath;
 
         var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);

@@ -442,7 +442,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 return false;
             }
 
-            var state = ProjectState.Create(Workspace.Services, projectAddedAction.HostProject);
+            var state = ProjectState.Create(
+                Workspace.Services,
+                projectAddedAction.HostProject,
+                ProjectWorkspaceState.Default);
             var newEntry = new Entry(state);
 
             oldSnapshot = newSnapshot = newEntry.GetSnapshot();

@@ -53,7 +53,8 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
             LanguageNames.CSharp,
             TestProjectData.SomeProject.FilePath));
         _workspaceProject = solution.GetProject(projectId);
-        _projectSnapshot = new ProjectSnapshot(ProjectState.Create(_workspace.Services, TestProjectData.SomeProject));
+        _projectSnapshot = new ProjectSnapshot(
+            ProjectState.Create(_workspace.Services, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
         _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
             csharpLanguageVersion: default);

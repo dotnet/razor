@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -41,7 +42,7 @@ public class DefaultDocumentSnapshotTest : WorkspaceTestBase
         _legacyHostDocument = new HostDocument(TestProjectData.SomeProjectFile1);
         _nestedComponentHostDocument = new HostDocument(TestProjectData.SomeProjectNestedComponentFile3);
 
-        var projectState = ProjectState.Create(Workspace.Services, TestProjectData.SomeProject);
+        var projectState = ProjectState.Create(Workspace.Services, TestProjectData.SomeProject, ProjectWorkspaceState.Default);
         var project = new ProjectSnapshot(projectState);
 
         var textAndVersion = TextAndVersion.Create(_sourceText, _version);

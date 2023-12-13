@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -35,12 +33,12 @@ internal class ProjectState
     private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathComparer.Instance);
     private readonly object _lock;
 
-    private RazorProjectEngine _projectEngine;
+    private RazorProjectEngine? _projectEngine;
 
     public static ProjectState Create(
         HostWorkspaceServices services,
         HostProject hostProject,
-        ProjectWorkspaceState projectWorkspaceState = null)
+        ProjectWorkspaceState projectWorkspaceState)
     {
         if (services is null)
         {
@@ -50,6 +48,11 @@ internal class ProjectState
         if (hostProject is null)
         {
             throw new ArgumentNullException(nameof(hostProject));
+        }
+
+        if (projectWorkspaceState is null)
+        {
+            throw new ArgumentNullException(nameof(projectWorkspaceState));
         }
 
         return new ProjectState(services, hostProject, projectWorkspaceState);
@@ -66,6 +69,7 @@ internal class ProjectState
         Documents = s_emptyDocuments;
         ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
         Version = VersionStamp.Create();
+        ProjectWorkspaceStateVersion = Version;
         DocumentCollectionVersion = Version;
 
         _lock = new object();
@@ -97,6 +101,11 @@ internal class ProjectState
         if (importsToRelatedDocuments is null)
         {
             throw new ArgumentNullException(nameof(importsToRelatedDocuments));
+        }
+
+        if (projectWorkspaceState is null)
+        {
+            throw new ArgumentNullException(nameof(projectWorkspaceState));
         }
 
         Services = older.Services;
@@ -132,7 +141,7 @@ internal class ProjectState
 
         if ((difference & ClearProjectWorkspaceStateVersionMask) == 0 ||
             ProjectWorkspaceState == older.ProjectWorkspaceState ||
-            ProjectWorkspaceState?.Equals(older.ProjectWorkspaceState) == true)
+            ProjectWorkspaceState.Equals(older.ProjectWorkspaceState))
         {
             ProjectWorkspaceStateVersion = older.ProjectWorkspaceStateVersion;
         }
@@ -359,7 +368,7 @@ internal class ProjectState
             return this;
         }
 
-        if (ProjectWorkspaceState != null && ProjectWorkspaceState.Equals(projectWorkspaceState))
+        if (ProjectWorkspaceState.Equals(projectWorkspaceState))
         {
             return this;
         }

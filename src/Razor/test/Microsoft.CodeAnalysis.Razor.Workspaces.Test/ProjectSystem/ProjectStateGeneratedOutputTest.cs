@@ -58,7 +58,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var original =
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(Workspace.Services, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
@@ -77,7 +77,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var original =
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(Workspace.Services, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
@@ -97,7 +97,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var original =
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(Workspace.Services, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
@@ -119,7 +119,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var original =
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(Workspace.Services, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
@@ -141,7 +141,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var original =
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(Workspace.Services, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
@@ -162,12 +162,11 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var original =
-            ProjectState.Create(Workspace.Services, _hostProject)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
-            .WithProjectWorkspaceState(ProjectWorkspaceState.Default);
+            ProjectState.Create(Workspace.Services, _hostProject, ProjectWorkspaceState.Default)
+            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
-        var changed = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
+        var changed = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.Default);
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);
@@ -176,7 +175,6 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
         Assert.Same(originalOutput, actualOutput);
         Assert.Equal(originalInputVersion, actualInputVersion);
-        Assert.Equal(state.ProjectWorkspaceStateVersion, actualInputVersion);
     }
 
     // The generated code's text doesn't change as a result, so the output version does not change
@@ -185,7 +183,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var original =
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(Workspace.Services, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
@@ -230,7 +228,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var original =
-            ProjectState.Create(Workspace.Services, _hostProject)
+            ProjectState.Create(Workspace.Services, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
