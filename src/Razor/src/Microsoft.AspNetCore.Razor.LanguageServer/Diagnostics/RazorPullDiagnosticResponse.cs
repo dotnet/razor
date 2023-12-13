@@ -16,7 +16,7 @@ internal record RazorPullDiagnosticResponse(VSInternalDiagnosticReport[] CSharpD
         + HtmlDiagnostics.Length
         + (CSharpAdditionalDiagnostics?.Length ?? 0);
 
-    internal async Task AppendDiagnosticsAsync(RazorTranslateDiagnosticsService translateDiagnosticsService, VersionedDocumentContext documentContext, List<VSInternalDiagnosticReport> allDiagnostics, CancellationToken cancellationToken)
+    public async Task AppendDiagnosticsAsync(RazorTranslateDiagnosticsService translateDiagnosticsService, VersionedDocumentContext documentContext, List<VSInternalDiagnosticReport> allDiagnostics, CancellationToken cancellationToken)
     {
         foreach (var report in CSharpDiagnostics)
         {
