@@ -44,7 +44,7 @@ internal sealed class SignatureHelpEndpoint(
     {
         if (request.Context is not null && request.Context.TriggerKind != SignatureHelpTriggerKind.Invoked && !optionsMonitor.CurrentValue.AutoListParams)
         {
-            // Return nothing is "Parameter Information" option is disabled unless signature help is invoked explicitly via command as opposed to typing or content change
+            // Return nothing if "Parameter Information" option is disabled unless signature help is invoked explicitly via command as opposed to typing or content change
             return Task.FromResult<IDelegatedParams?>(null);
         }
 
