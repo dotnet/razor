@@ -3,7 +3,6 @@
 
 using System;
 using System.Reflection;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
@@ -16,12 +15,12 @@ public class LogIntegrationTestAttribute : BeforeAfterTestAttribute
 {
     public override void Before(MethodInfo methodUnderTest)
     {
-        GetLogger().LogInformation("#### Integration test start: {method}", methodUnderTest.Name);
+        // GetLogger().LogInformation("#### Integration test start: {method}", methodUnderTest.Name);
     }
 
     public override void After(MethodInfo methodUnderTest)
     {
-        GetLogger().LogInformation("#### Integration test end: {method}", methodUnderTest.Name);
+        // GetLogger().LogInformation("#### Integration test end: {method}", methodUnderTest.Name);
     }
 
     private static IOutputWindowLogger GetLogger()

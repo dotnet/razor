@@ -4,9 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Test.Common.Logging;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Razor.IntegrationTests.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -20,22 +17,25 @@ internal partial class OutputInProcess
 {
     private const string RazorPaneName = "Razor Logger Output";
 
-    public async Task SetupIntegrationTestLoggerAsync(ITestOutputHelper testOutputHelper, CancellationToken cancellationToken)
+    public Task SetupIntegrationTestLoggerAsync(ITestOutputHelper testOutputHelper, CancellationToken cancellationToken)
     {
-        var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
-        logger.SetTestLogger(new TestOutputLogger(testOutputHelper));
+        // var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
+        // logger.SetTestLogger(new TestOutputLogger(testOutputHelper));
+        return Task.CompletedTask;
     }
 
-    public async Task ClearIntegrationTestLoggerAsync(CancellationToken cancellationToken)
+    public Task ClearIntegrationTestLoggerAsync(CancellationToken cancellationToken)
     {
-        var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
-        logger.SetTestLogger(null);
+        // var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
+        // logger.SetTestLogger(null);
+        return Task.CompletedTask;
     }
 
-    public async Task LogStatusAsync(string message, CancellationToken cancellationToken)
+    public Task LogStatusAsync(string message, CancellationToken cancellationToken)
     {
-        var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
-        logger.LogInformation(message);
+        // var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
+        // logger.LogInformation(message);
+        return Task.CompletedTask;
     }
 
     public async Task<bool> HasErrorsAsync(CancellationToken cancellationToken)
