@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -35,10 +36,11 @@ internal partial class RazorCustomMessageTarget
 
         var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(hostDocument, request.Identifier.Version, request.Identifier.TextDocumentIdentifier, request.CorrelationId, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);
         var htmlTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<HtmlVirtualDocumentSnapshot>(hostDocument, request.Identifier.Version, request.Identifier.TextDocumentIdentifier, request.CorrelationId, RazorLSPConstants.HtmlLanguageServerName, cancellationToken), cancellationToken);
+        var csharpAdditionalTask = Task.Run(() => GetCSharpAdditionalDiagnosticsAsync(hostDocument, request.CorrelationId, cancellationToken), cancellationToken);
 
         try
         {
-            await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
+            await Task.WhenAll(htmlTask, csharpTask, csharpAdditionalTask).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -52,6 +54,7 @@ internal partial class RazorCustomMessageTarget
 
         var csharpDiagnostics = await csharpTask.ConfigureAwait(false);
         var htmlDiagnostics = await htmlTask.ConfigureAwait(false);
+        var csharpAdditionalDiagnostics = await csharpAdditionalTask.ConfigureAwait(false);
 
         if (csharpDiagnostics is null || htmlDiagnostics is null)
         {
@@ -59,7 +62,28 @@ internal partial class RazorCustomMessageTarget
             return null;
         }
 
-        return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
+        return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics, csharpAdditionalDiagnostics);
+    }
+
+    /// <summary>
+    /// Roslyn analyzers are allowed to report diagnostics for additional files, which can be .razor files in this case. We issue a request to Roslyn to see if they want to
+    /// report any diagnostics on the razor file. If so, those will be added to the csharp diagnostics being reported.
+    /// </summary>
+    private async Task<VSInternalDiagnosticReport[]?> GetCSharpAdditionalDiagnosticsAsync(VSTextDocumentIdentifier hostDocument, Guid correlationId, CancellationToken cancellationToken)
+    {
+        using var _ = _telemetryReporter.TrackLspRequest(VSInternalMethods.DocumentPullDiagnosticName, RazorLSPConstants.RazorCSharpLanguageServerName, correlationId);
+        var request = new VSInternalDocumentDiagnosticsParams
+        {
+            TextDocument = hostDocument,
+        };
+
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
+            VSInternalMethods.DocumentPullDiagnosticName,
+            RazorLSPConstants.RazorCSharpLanguageServerName,
+            request,
+            cancellationToken).ConfigureAwait(false);
+
+        return response.Result;
     }
 
     private async Task<VSInternalDiagnosticReport[]?> GetVirtualDocumentPullDiagnosticsAsync<TVirtualDocumentSnapshot>(TextDocumentIdentifier hostDocument, int hostDocumentVersion, TextDocumentIdentifier identifierFromOriginalRequest, Guid correlationId, string delegatedLanguageServerName, CancellationToken cancellationToken)

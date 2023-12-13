@@ -5,4 +5,4 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-internal record RazorPullDiagnosticResponse(VSInternalDiagnosticReport[] CSharpDiagnostics, VSInternalDiagnosticReport[] HtmlDiagnostics);
+internal record RazorPullDiagnosticResponse(VSInternalDiagnosticReport[] CSharpDiagnostics, VSInternalDiagnosticReport[] HtmlDiagnostics, VSInternalDiagnosticReport[]? CSharpAdditionalDiagnostics);

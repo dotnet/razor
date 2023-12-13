@@ -67,7 +67,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
 
         var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
 
-        var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
+        var (csharpDiagnostics, htmlDiagnostics, csharpAdditionalDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
 
         var diagnosticCount =
             (razorDiagnostics?.Length ?? 0) +
@@ -111,6 +111,12 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             }
         }
 
+        if (csharpAdditionalDiagnostics is not null)
+        {
+            // No extra work needed, these were issued as a request for the razor/cshtml file already
+            allDiagnostics.AddRange(csharpAdditionalDiagnostics);
+        }
+
         return allDiagnostics.ToArray();
     }
 
@@ -138,7 +144,8 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         ];
     }
 
-    private async Task<(VSInternalDiagnosticReport[]? CSharpDiagnostics, VSInternalDiagnosticReport[]? HtmlDiagnostics)> GetHtmlCSharpDiagnosticsAsync(VersionedDocumentContext documentContext, Guid correlationId, CancellationToken cancellationToken)
+    private async Task<(VSInternalDiagnosticReport[]? CSharpDiagnostics, VSInternalDiagnosticReport[]? HtmlDiagnostics, VSInternalDiagnosticReport[]? CSharpAdditionalDiagnostics)>
+        GetHtmlCSharpDiagnosticsAsync(VersionedDocumentContext documentContext, Guid correlationId, CancellationToken cancellationToken)
     {
         var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier, correlationId);
         var delegatedResponse = await _clientConnection.SendRequestAsync<DelegatedDiagnosticParams, RazorPullDiagnosticResponse?>(
@@ -148,9 +155,9 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
 
         if (delegatedResponse is null)
         {
-            return (null, null);
+            return (null, null, null);
         }
 
-        return (delegatedResponse.CSharpDiagnostics, delegatedResponse.HtmlDiagnostics);
+        return (delegatedResponse.CSharpDiagnostics, delegatedResponse.HtmlDiagnostics, delegatedResponse.CSharpAdditionalDiagnostics);
     }
 }
