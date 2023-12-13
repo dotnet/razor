@@ -343,7 +343,7 @@ internal static partial class ObjectReaders
         var serializedFilePath = reader.ReadNonNullString(nameof(RazorProjectInfo.SerializedFilePath));
         var filePath = reader.ReadNonNullString(nameof(RazorProjectInfo.FilePath));
         var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties);
-        var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties);
+        var projectWorkspaceState = reader.ReadNonNullObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties);
         var rootNamespace = reader.ReadString(nameof(RazorProjectInfo.RootNamespace));
         var documents = reader.ReadImmutableArray(nameof(RazorProjectInfo.Documents), static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties));
 

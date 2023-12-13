@@ -52,7 +52,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => State.TagHelpers;
 
-    public ProjectWorkspaceState? ProjectWorkspaceState => State.ProjectWorkspaceState;
+    public ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
 
     public virtual IDocumentSnapshot? GetDocument(string filePath)
     {

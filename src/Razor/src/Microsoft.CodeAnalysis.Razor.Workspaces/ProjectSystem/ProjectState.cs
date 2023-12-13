@@ -171,9 +171,9 @@ internal class ProjectState
 
     public HostWorkspaceServices Services { get; }
 
-    public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? ImmutableArray<TagHelperDescriptor>.Empty;
+    public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
-    public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState?.CSharpLanguageVersion ?? LanguageVersion.Default;
+    public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
 
     /// <summary>
     /// Gets the version of this project, INCLUDING content changes. The <see cref="Version"/> is

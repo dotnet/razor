@@ -24,7 +24,7 @@ internal sealed class RazorProjectInfo
     public RazorConfiguration? Configuration { get; }
     public string? RootNamespace { get; }
     public string DisplayName { get; }
-    public ProjectWorkspaceState? ProjectWorkspaceState { get; }
+    public ProjectWorkspaceState ProjectWorkspaceState { get; }
     public ImmutableArray<DocumentSnapshotHandle> Documents { get; }
 
     public RazorProjectInfo(
@@ -33,7 +33,7 @@ internal sealed class RazorProjectInfo
         RazorConfiguration? configuration,
         string? rootNamespace,
         string displayName,
-        ProjectWorkspaceState? projectWorkspaceState,
+        ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<DocumentSnapshotHandle> documents)
     {
         SerializedFilePath = serializedFilePath;
