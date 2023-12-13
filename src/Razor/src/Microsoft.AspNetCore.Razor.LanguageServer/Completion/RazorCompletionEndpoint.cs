@@ -15,23 +15,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-internal class RazorCompletionEndpoint : IVSCompletionEndpoint
-{
-    private readonly CompletionListProvider _completionListProvider;
-    private readonly ITelemetryReporter? _telemetryReporter;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-    private VSInternalClientCapabilities? _clientCapabilities;
-
-    public RazorCompletionEndpoint(
+internal class RazorCompletionEndpoint(
         CompletionListProvider completionListProvider,
         ITelemetryReporter? telemetryReporter,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor
-    )
-    {
-        _completionListProvider = completionListProvider;
-        _telemetryReporter = telemetryReporter;
-        _optionsMonitor = optionsMonitor;
-    }
+    ) : IVSCompletionEndpoint
+{
+    private VSInternalClientCapabilities? _clientCapabilities;
 
     public bool MutatesSolutionState => false;
 
@@ -42,7 +32,7 @@ internal class RazorCompletionEndpoint : IVSCompletionEndpoint
         serverCapabilities.CompletionProvider = new CompletionOptions()
         {
             ResolveProvider = true,
-            TriggerCharacters = _completionListProvider.AggregateTriggerCharacters.ToArray(),
+            TriggerCharacters = completionListProvider.AggregateTriggerCharacters.ToArray(),
             AllCommitCharacters = new[] { ":", ">", " ", "=" },
         };
     }
@@ -74,14 +64,14 @@ internal class RazorCompletionEndpoint : IVSCompletionEndpoint
         }
 
         var autoShownCompletion = completionContext.InvokeKind != VSInternalCompletionInvokeKind.Explicit;
-        if (autoShownCompletion && !_optionsMonitor.CurrentValue.AutoShowCompletion)
+        if (autoShownCompletion && !optionsMonitor.CurrentValue.AutoShowCompletion)
         {
             return null;
         }
 
         var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentCompletionName, LanguageServerConstants.RazorLanguageServerName, correlationId);
-        var completionList = await _completionListProvider.GetCompletionListAsync(
+        using var _ = telemetryReporter?.TrackLspRequest(Methods.TextDocumentCompletionName, LanguageServerConstants.RazorLanguageServerName, correlationId);
+        var completionList = await completionListProvider.GetCompletionListAsync(
             hostDocumentIndex,
             completionContext,
             documentContext,

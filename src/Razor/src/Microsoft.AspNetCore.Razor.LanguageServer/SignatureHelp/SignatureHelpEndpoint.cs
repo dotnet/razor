@@ -16,21 +16,19 @@ using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 
 [LanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
-internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>, ICapabilitiesProvider
-{
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-
-    public SignatureHelpEndpoint(
+internal sealed class SignatureHelpEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerProvider)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerProvider.CreateLogger<SignatureHelpEndpoint>())
-    {
-        _optionsMonitor = optionsMonitor;
-    }
-
+    : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>(
+        languageServerFeatureOptions,
+        documentMappingService,
+        clientConnection,
+        loggerProvider.CreateLogger<SignatureHelpEndpoint>()),
+    ICapabilitiesProvider
+{
     protected override string CustomMessageTarget => CustomMessageNames.RazorSignatureHelpEndpointName;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
@@ -44,7 +42,7 @@ internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<Si
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        if (request.Context is not null && request.Context.TriggerKind != SignatureHelpTriggerKind.Invoked && !_optionsMonitor.CurrentValue.AutoListParams)
+        if (request.Context is not null && request.Context.TriggerKind != SignatureHelpTriggerKind.Invoked && !optionsMonitor.CurrentValue.AutoListParams)
         {
             // Return nothing is "Parameter Information" option is disabled unless signature help is invoked explicitly via command as opposed to typing or content change
             return Task.FromResult<IDelegatedParams?>(null);
