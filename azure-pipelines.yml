@@ -17,7 +17,7 @@ variables:
 - name: RAZOR_TRACE
   value: 'Verbose'
 - name: RunIntegrationTests
-  value: false
+  value: true
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
   - group: DotNetBuilds storage account read tokens
   - name: _InternalRuntimeDownloadArgs
