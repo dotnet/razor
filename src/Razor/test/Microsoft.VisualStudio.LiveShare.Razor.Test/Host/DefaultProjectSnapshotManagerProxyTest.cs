@@ -30,9 +30,8 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
         _workspace = TestWorkspace.Create();
         AddDisposable(_workspace);
 
-        var projectWorkspaceState1 = new ProjectWorkspaceState(ImmutableArray.Create(
-            TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build()),
-            csharpLanguageVersion: default);
+        var projectWorkspaceState1 = ProjectWorkspaceState.Create(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build()));
 
         _projectSnapshot1 = new ProjectSnapshot(
             ProjectState.Create(
@@ -40,9 +39,8 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
                 new HostProject("/host/path/to/project1.csproj", "/host/path/to/obj", RazorConfiguration.Default, "project1"),
                 projectWorkspaceState1));
 
-        var projectWorkspaceState2 = new ProjectWorkspaceState(ImmutableArray.Create(
-            TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build()),
-            csharpLanguageVersion: default);
+        var projectWorkspaceState2 = ProjectWorkspaceState.Create(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build()));
 
         _projectSnapshot2 = new ProjectSnapshot(
             ProjectState.Create(

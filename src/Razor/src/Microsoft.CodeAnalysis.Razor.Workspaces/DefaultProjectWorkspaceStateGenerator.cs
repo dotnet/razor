@@ -182,7 +182,7 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
                         new Property("result", "success"),
                         new Property("tagHelperCount", tagHelpers.Length));
 
-                    workspaceState = new ProjectWorkspaceState(tagHelpers, csharpLanguageVersion);
+                    workspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
                 }
             }
             catch (OperationCanceledException)

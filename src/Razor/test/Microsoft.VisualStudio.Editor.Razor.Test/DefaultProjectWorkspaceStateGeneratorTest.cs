@@ -55,9 +55,8 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
         _workspaceProject = solution.GetProject(projectId);
         _projectSnapshot = new ProjectSnapshot(
             ProjectState.Create(_workspace.Services, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
-        _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(ImmutableArray.Create(
-            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
-            csharpLanguageVersion: default);
+        _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()));
     }
 
     [UIFact]

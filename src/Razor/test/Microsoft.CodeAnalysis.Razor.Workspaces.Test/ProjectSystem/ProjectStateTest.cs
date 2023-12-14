@@ -37,10 +37,9 @@ public class ProjectStateTest : WorkspaceTestBase
     {
         _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
         _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
-        _projectWorkspaceState = new ProjectWorkspaceState(
+        _projectWorkspaceState = ProjectWorkspaceState.Create(
             ImmutableArray.Create(
-                TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
-            csharpLanguageVersion: default);
+                TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()));
 
         _someTagHelpers = ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build());
@@ -679,7 +678,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalTagHelpers = original.TagHelpers;
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
-        var changed = new ProjectWorkspaceState(_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
+        var changed = ProjectWorkspaceState.Create(_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);
@@ -718,7 +717,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalTagHelpers = original.TagHelpers;
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
-        var changed = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
+        var changed = ProjectWorkspaceState.Default;
 
         // Now create some tag helpers
         _tagHelperResolver.TagHelpers = _someTagHelpers;
@@ -755,7 +754,7 @@ public class ProjectStateTest : WorkspaceTestBase
         _ = original.TagHelpers;
         _ = original.ProjectWorkspaceStateVersion;
 
-        var changed = new ProjectWorkspaceState(original.TagHelpers, original.CSharpLanguageVersion);
+        var changed = ProjectWorkspaceState.Create(original.TagHelpers, original.CSharpLanguageVersion);
 
         // Now create some tag helpers
         _tagHelperResolver.TagHelpers = _someTagHelpers;
@@ -780,7 +779,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
 
-        var changed = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
+        var changed = ProjectWorkspaceState.Default;
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);
