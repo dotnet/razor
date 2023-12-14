@@ -442,8 +442,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 return false;
             }
 
+            var projectEngineFactory = Workspace.Services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
+
             var state = ProjectState.Create(
-                Workspace.Services,
+                projectEngineFactory,
                 projectAddedAction.HostProject,
                 ProjectWorkspaceState.Default);
             var newEntry = new Entry(state);

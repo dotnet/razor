@@ -2,14 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -31,17 +28,9 @@ internal class TestProjectSnapshot : ProjectSnapshot
         ProjectWorkspaceState? projectWorkspaceState = null,
         string? displayName = null)
     {
-        var workspaceServices = new List<IWorkspaceService>()
-        {
-            new TestProjectSnapshotProjectEngineFactory(),
-        };
-
-        var languageServices = new List<ILanguageService>();
-
-        var hostServices = TestServices.Create(workspaceServices, languageServices);
-        using var workspace = TestWorkspace.Create(hostServices);
+        var projectEngineFactory = new TestProjectSnapshotProjectEngineFactory();
         var hostProject = new HostProject(filePath, intermediateOutputPath, configuration, "TestRootNamespace", displayName);
-        var state = ProjectState.Create(workspace.Services, hostProject, projectWorkspaceState ?? ProjectWorkspaceState.Default);
+        var state = ProjectState.Create(projectEngineFactory, hostProject, projectWorkspaceState ?? ProjectWorkspaceState.Default);
 
         foreach (var documentFilePath in documentFilePaths)
         {
