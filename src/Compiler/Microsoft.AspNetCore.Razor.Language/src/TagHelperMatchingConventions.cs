@@ -25,7 +25,7 @@ internal static class TagHelperMatchingConventions
                SatisfiesAttributes(tagAttributes, rule);
     }
 
-    public static bool SatisfiesTagName(ReadOnlySpan<char> tagNameWithoutPrefix, TagMatchingRuleDescriptor rule)
+    public static bool SatisfiesTagName(ReadOnlySpan<char> tagNameWithoutPrefix, TagMatchingRuleDescriptor rule, StringComparison? comparisonOverride = null)
     {
         if (tagNameWithoutPrefix.IsEmpty)
         {
@@ -39,7 +39,7 @@ internal static class TagHelperMatchingConventions
         }
 
         if (rule.TagName is not (null or ElementCatchAllName) &&
-            !tagNameWithoutPrefix.Equals(rule.TagName.AsSpan(), rule.GetComparison()))
+            !tagNameWithoutPrefix.Equals(rule.TagName.AsSpan(), comparisonOverride ?? rule.GetComparison()))
         {
             return false;
         }
