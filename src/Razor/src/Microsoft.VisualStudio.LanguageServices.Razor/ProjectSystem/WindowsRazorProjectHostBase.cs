@@ -116,8 +116,8 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         //
         // Configuration    | Platform     | Configuration Groups (slices)
         // -----------------------------------------------------
-        // Debug            | Any CPU      | net6.0, net7.0
-        // Release          | Any CPU      | net6.0, net7.0
+        // Debug            | Any CPU      | net8.0, net9.0
+        // Release          | Any CPU      | net8.0, net9.0
         //
         // This subscription hooks to the ActiveConfigurationGroupSubscriptionService which will feed us data whenever a
         // "slice" is added or removed, for the current active Configuration/Platform combination. This is a nice mix between

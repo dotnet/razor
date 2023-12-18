@@ -90,15 +90,6 @@ internal static class CSharpTestLspServerHelpers
         var workspace = TestWorkspace.Create(hostServices);
 
         // Add project and solution to workspace
-        var projectInfoNet60 = ProjectInfo.Create(
-            id: ProjectId.CreateNewId("TestProject (net6.0)"),
-            version: VersionStamp.Default,
-            name: "TestProject (net6.0)",
-            assemblyName: "TestProject.dll",
-            language: LanguageNames.CSharp,
-            filePath: @"C:\TestSolution\TestProject.csproj",
-            metadataReferences: metadataReferences).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(@"C:\TestSolution\obj\TestProject.dll"));
-
         var projectInfoNet80 = ProjectInfo.Create(
             id: ProjectId.CreateNewId("TestProject (net8.0)"),
             version: VersionStamp.Default,
@@ -106,9 +97,18 @@ internal static class CSharpTestLspServerHelpers
             assemblyName: "TestProject.dll",
             language: LanguageNames.CSharp,
             filePath: @"C:\TestSolution\TestProject.csproj",
+            metadataReferences: metadataReferences).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(@"C:\TestSolution\obj\TestProject.dll"));
+
+        var projectInfoNet90 = ProjectInfo.Create(
+            id: ProjectId.CreateNewId("TestProject (net9.0)"),
+            version: VersionStamp.Default,
+            name: "TestProject (net9.0)",
+            assemblyName: "TestProject.dll",
+            language: LanguageNames.CSharp,
+            filePath: @"C:\TestSolution\TestProject.csproj",
             metadataReferences: metadataReferences);
 
-        var projectInfos = new ProjectInfo[] { projectInfoNet60, projectInfoNet80 };
+        var projectInfos = new ProjectInfo[] { projectInfoNet80, projectInfoNet90 };
 
         var solutionInfo = SolutionInfo.Create(
             id: SolutionId.CreateNewId("TestSolution"),

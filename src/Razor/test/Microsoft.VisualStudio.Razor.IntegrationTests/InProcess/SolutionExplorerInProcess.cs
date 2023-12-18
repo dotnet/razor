@@ -161,7 +161,7 @@ internal partial class SolutionExplorerInProcess
 
         var localPath = (string)project.Properties.Item("LocalPath").Value;
         var style = "Debug";
-        var framework = "net6.0";
+        var framework = "net8.0";
 
         var razorJsonPath = Path.Combine(localPath, "obj", style, framework, "project.razor.vs.bin");
 

@@ -32,9 +32,9 @@ public class ProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdi
         await TestServices.Editor.PlaceCaretAsync("<TargetFramework", charsOffset: -1, ControlledHangMitigatingCancellationToken);
 
         var currentLine = await TestServices.Editor.GetCurrentLineTextAsync(ControlledHangMitigatingCancellationToken);
-        var tfElement = currentLine.Contains("net6.0")
-            ? "<TargetFramework>net7.0</TargetFramework>"
-            : "<TargetFramework>net6.0</TargetFramework>";
+        var tfElement = currentLine.Contains("net9.0")
+            ? "<TargetFramework>net9.0</TargetFramework>"
+            : "<TargetFramework>net8.0</TargetFramework>";
 
         await TestServices.Editor.InvokeDeleteLineAsync(ControlledHangMitigatingCancellationToken);
 
@@ -80,7 +80,7 @@ public class ProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdi
         {
             if (line.Contains("<TargetFramework>"))
             {
-                sb.AppendLine("<TargetFrameworks>net6.0;net7.0</TargetFrameworks>");
+                sb.AppendLine("<TargetFrameworks>net8.0;net9.0</TargetFrameworks>");
             }
             else
             {

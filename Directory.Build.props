@@ -75,8 +75,8 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <DefaultNetCoreTargetFramework>net8.0</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework);net7.0</DefaultNetCoreTargetFrameworks>
+        <DefaultNetCoreTargetFramework>net9.0</DefaultNetCoreTargetFramework>
+        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework);net8.0</DefaultNetCoreTargetFrameworks>
       </PropertyGroup>
     </Otherwise>
   </Choose>
