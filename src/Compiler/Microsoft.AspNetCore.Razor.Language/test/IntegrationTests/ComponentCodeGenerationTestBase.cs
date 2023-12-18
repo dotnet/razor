@@ -9954,11 +9954,15 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         var result = CompileToAssembly(generated, throwOnFailure: false);
+        // Error reported twice due to https://github.com/dotnet/roslyn/issues/71303.
         result.Diagnostics.Verify(
             // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS0119: 'TestComponent.MyEnum' is a type, which is not valid in the given context
             //                               MyEnum
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "MyEnum").WithArguments("Test.TestComponent.MyEnum", "type").WithLocation(1, 31),
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS0119: 'TestComponent.MyEnum' is a type, which is not valid in the given context
+            //                               MyEnum
             Diagnostic(ErrorCode.ERR_BadSKunknown, "MyEnum").WithArguments("Test.TestComponent.MyEnum", "type").WithLocation(1, 31));
-        Assert.NotEmpty(generated.Diagnostics);
+        Assert.Empty(generated.Diagnostics);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9346")]
@@ -9994,11 +9998,15 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         var result = CompileToAssembly(generated, throwOnFailure: false);
+        // Error reported twice due to https://github.com/dotnet/roslyn/issues/71303.
         result.Diagnostics.Verify(
             // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS0119: 'TestComponent.MyEnum' is a type, which is not valid in the given context
             //                               MyEnum
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "MyEnum").WithArguments("Test.TestComponent.MyEnum", "type").WithLocation(1, 31),
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS0119: 'TestComponent.MyEnum' is a type, which is not valid in the given context
+            //                               MyEnum
             Diagnostic(ErrorCode.ERR_BadSKunknown, "MyEnum").WithArguments("Test.TestComponent.MyEnum", "type").WithLocation(1, 31));
-        Assert.NotEmpty(generated.Diagnostics);
+        Assert.Empty(generated.Diagnostics);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9346")]
@@ -10030,18 +10038,8 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,32): error CS1003: Syntax error, ',' expected
-            //                               x
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
-            DesignTime
-            // (23,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
-            //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            ? Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(23, 91)
-            // (17,138): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
-            //             __builder.AddComponentParameter(1, "StringProperty", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            : Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(17, 138));
-        Assert.NotEmpty(generated.Diagnostics);
+        result.Diagnostics.Verify();
+        Assert.Empty(generated.Diagnostics);
     }
 
     [IntegrationTestFact]
@@ -10659,7 +10657,7 @@ Time: @DateTime.Now
         {
             result.Diagnostics.Verify();
         }
-        Assert.NotEmpty(generated.Diagnostics);
+        Assert.Empty(generated.Diagnostics);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]

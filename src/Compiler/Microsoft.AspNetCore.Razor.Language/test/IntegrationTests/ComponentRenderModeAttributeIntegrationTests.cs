@@ -19,7 +19,7 @@ public class ComponentRenderModeAttributeIntegrationTests : RazorIntegrationTest
     public void RenderMode_Attribute_With_Diagnostics()
     {
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="@Microsoft.AspNetCore.Components.Web.RenderMode.Server)" />
+                <{{ComponentName}} @rendermode="@{Microsoft.AspNetCore.Components.Web.RenderMode.Server}" />
                 """, throwOnFailure: true);
 
         // Assert

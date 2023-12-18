@@ -92,7 +92,7 @@ namespace Test
     }
 
     [Fact]
-    public void DirectiveAttribute_ComplexContent_ReportsError()
+    public void DirectiveAttribute_ComplexContent_Works()
     {
         // Arrange & Act
         var generated = CompileToCSharp(@"
@@ -102,11 +102,7 @@ namespace Test
 }");
 
         // Assert
-        var diagnostic = Assert.Single(generated.Diagnostics);
-        Assert.Equal("RZ9986", diagnostic.Id);
-        Assert.Equal(
-            "Component attributes do not support complex content (mixed C# and markup). Attribute: '@key', text: 'Foo @Text'",
-            diagnostic.GetMessage(CultureInfo.CurrentCulture));
+        Assert.Empty(generated.Diagnostics);
     }
 
     [Fact]
