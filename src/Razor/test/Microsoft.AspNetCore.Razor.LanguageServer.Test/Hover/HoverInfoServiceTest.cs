@@ -506,6 +506,36 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
     }
 
     [Fact]
+    public void GetHoverInfo_TagHelper_TextComponent_NestedInHtml()
+    {
+        // Arrange
+        var txt = """
+                <div>
+                    <$$Text></Text>
+                </div>
+                """;
+        TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
+
+        var codeDocument = CreateCodeDocument(txt, isRazorFile: true, DefaultTagHelpers);
+
+        var service = GetHoverInfoService();
+        var location = new SourceLocation(cursorPosition, -1, -1);
+
+        // Act
+        var hover = service.GetHoverInfo("file.razor", codeDocument, location, CreatePlainTextCapabilities());
+
+        // Assert
+        Assert.Contains("Text", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+        Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
+        var expectedRange = new Range
+        {
+            Start = new Position(1, 5),
+            End = new Position(1, 9),
+        };
+        Assert.Equal(expectedRange, hover.Range);
+    }
+
+    [Fact]
     public void GetHoverInfo_TagHelper_TextComponent_NestedInCSharp()
     {
         // Arrange
@@ -527,6 +557,39 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
 
         // Assert
         Assert.Null(hover);
+    }
+
+    [Fact]
+    public void GetHoverInfo_TagHelper_TextComponent_NestedInCSharpAndText()
+    {
+        // Arrange
+        var txt = """
+                @if (true)
+                {
+                    <text>
+                        <$$Text></Text>
+                    </text>
+                }
+                """;
+        TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
+
+        var codeDocument = CreateCodeDocument(txt, isRazorFile: true, DefaultTagHelpers);
+
+        var service = GetHoverInfoService();
+        var location = new SourceLocation(cursorPosition, -1, -1);
+
+        // Act
+        var hover = service.GetHoverInfo("file.razor", codeDocument, location, CreatePlainTextCapabilities());
+
+        // Assert
+        Assert.Contains("Text", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+        Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
+        var expectedRange = new Range
+        {
+            Start = new Position(3, 9),
+            End = new Position(3, 13),
+        };
+        Assert.Equal(expectedRange, hover.Range);
     }
 
     [Fact]
