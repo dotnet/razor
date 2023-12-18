@@ -35,7 +35,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range{ Start = new Position(0, 1), End = new Position(0, 1), },
+            Range = new Range { Start = new Position(0, 1), End = new Position(0, 1), },
             Context = new VSInternalCodeActionContext()
         };
 
@@ -189,7 +189,58 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
+                Assert.Equal("Component - @using Fully.Qualified", e.Title);
+                Assert.NotNull(e.Data);
+                Assert.Null(e.Edit);
+            },
+            e =>
+            {
                 Assert.Equal("Fully.Qualified.Component", e.Title);
+                Assert.NotNull(e.Edit);
+                Assert.NotNull(e.Edit.DocumentChanges);
+                Assert.Null(e.Data);
+            },
+            e =>
+            {
+                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.NotNull(e.Data);
+                Assert.Null(e.Edit);
+            });
+    }
+
+    [Fact]
+    public async Task Handle_ExistingComponent_CaseIncorrect_WithUsing_ReturnsResults()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = """
+            @using Fully.Qualified
+
+            <$$CompOnent></CompOnent>
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var location = new SourceLocation(cursorPosition, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
+
+        var provider = new ComponentAccessibilityCodeActionProvider(new TagHelperFactsService());
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
+        Assert.Collection(commandOrCodeActionContainer,
+            e =>
+            {
+                Assert.Equal("Component", e.Title);
                 Assert.NotNull(e.Edit);
                 Assert.NotNull(e.Edit.DocumentChanges);
                 Assert.Null(e.Data);

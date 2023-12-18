@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -50,7 +51,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         // We also check for tag helper start tags here, because an invalid start tag with a valid tag helper
         // anywhere in it  would otherwise not match. We rely on the IsTagUnknown method below, to ensure we
         // only offer on actual potential component tags (because it checks for the compiler diagnostic)
-        var startTag = (IStartTagSyntaxNode?)node.FirstAncestorOrSelf<SyntaxNode>(n => n is MarkupStartTagSyntax or MarkupTagHelperStartTagSyntax);
+        var startTag = (IStartTagSyntaxNode?)node.FirstAncestorOrSelf<SyntaxNode>(n => n is IStartTagSyntaxNode);
         if (startTag is null)
         {
             return s_emptyResult;
@@ -138,6 +139,23 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
 
     private void AddComponentAccessFromTag(RazorCodeActionContext context, IStartTagSyntaxNode startTag, List<RazorVSInternalCodeAction> container)
     {
+        var haveAddedNonQualifiedFix = false;
+
+        // First see if there are any components that match in name, but not case, without qualification
+        foreach (var t in context.CodeDocument.GetTagHelperContext().TagHelpers)
+        {
+            if (t.TagMatchingRules is [{ CaseSensitive: true } rule] &&
+                rule.TagName.Equals(startTag.Name.Content, StringComparison.OrdinalIgnoreCase) &&
+                rule.TagName != startTag.Name.Content)
+            {
+                var renameTagWorkspaceEdit = CreateRenameTagEdit(context, startTag, rule.TagName);
+                var fixCasingCodeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(rule.TagName, renameTagWorkspaceEdit);
+                container.Add(fixCasingCodeAction);
+                haveAddedNonQualifiedFix = true;
+                break;
+            }
+        }
+
         var matching = FindMatchingTagHelpers(context, startTag);
 
         // For all the matches, add options for add @using and fully qualify
@@ -148,22 +166,43 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
                 continue;
             }
 
-            // if fqn contains a generic typeparam, we should strip it out. Otherwise, replacing tag name will leave generic parameters in razor code, which are illegal
-            // e.g. <Component /> -> <Component<T> />
-            var fullyQualifiedName = DefaultRazorComponentSearchEngine.RemoveGenericContent(tagHelperPair._short.Name.AsMemory()).ToString();
-
-            // Insert @using, but only if the match was case sensitive
-            if (!tagHelperPair._caseInsensitiveMatch &&
-                AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument.Uri, out var @namespace, out var resolutionParams))
+            // If they have a typo, eg <CounTer /> and we've offered them <Counter /> above, then it would be odd to offer
+            // them <BlazorApp.Pages.Counter /> as well. We will offer them <BlazorApp.MisTypedPages.CounTer /> though, if it
+            // exists.
+            if (!haveAddedNonQualifiedFix || !tagHelperPair._caseInsensitiveMatch)
             {
-                var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, resolutionParams);
-                container.Add(addUsingCodeAction);
-            }
+                // if fqn contains a generic typeparam, we should strip it out. Otherwise, replacing tag name will leave generic parameters in razor code, which are illegal
+                // e.g. <Component /> -> <Component<T> />
+                var fullyQualifiedName = DefaultRazorComponentSearchEngine.RemoveGenericContent(tagHelperPair._short.Name.AsMemory()).ToString();
 
-            // Fully qualify
-            var renameTagWorkspaceEdit = CreateRenameTagEdit(context, startTag, fullyQualifiedName);
-            var fullyQualifiedCodeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(fullyQualifiedName, renameTagWorkspaceEdit);
-            container.Add(fullyQualifiedCodeAction);
+                // If the match was case insensitive, then see if we can work out a new tag name to use as part of adding a using statement
+                TextDocumentEdit? additionalEdit = null;
+                string? newTagName = null;
+                if (tagHelperPair._caseInsensitiveMatch)
+                {
+                    newTagName = tagHelperPair._short.TagMatchingRules.FirstOrDefault()?.TagName;
+                    if (newTagName is not null)
+                    {
+                        additionalEdit = CreateRenameTagEdit(context, startTag, newTagName).DocumentChanges!.Value.First().First.AssumeNotNull();
+                    }
+                }
+
+                // We only want to add a using statement if this was a case sensitive match, or if we were able to determine a new tag
+                // name to give the tag.
+                if (!tagHelperPair._caseInsensitiveMatch || newTagName is not null)
+                {
+                    if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument.Uri, additionalEdit, out var @namespace, out var resolutionParams))
+                    {
+                        var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName, resolutionParams);
+                        container.Add(addUsingCodeAction);
+                    }
+                }
+
+                // Fully qualify
+                var renameTagWorkspaceEdit = CreateRenameTagEdit(context, startTag, fullyQualifiedName);
+                var fullyQualifiedCodeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(fullyQualifiedName, renameTagWorkspaceEdit);
+                container.Add(fullyQualifiedCodeAction);
+            }
         }
     }
 
