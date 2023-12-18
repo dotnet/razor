@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -142,6 +143,47 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         // Make sure completion doesn't come up for 15 seconds
         var completionSession = await WaitForCompletionSessionAsync(textView, TimeSpan.FromSeconds(15));
         Assert.Null(completionSession);
+    }
+
+    [IdeTheory]
+    [InlineData("<PageTitle")]
+    [InlineData("</PageTitle")]
+    [InlineData("<div")]
+    [InlineData("</div")]
+    [WorkItem("https://github.com/dotnet/razor/issues/9427")]
+    public async Task Snippets_DoNotTrigger_InsideTag(string tag)
+    {
+        await TestServices.SolutionExplorer.AddFileAsync(
+            RazorProjectConstants.BlazorProjectName,
+            "Test.razor",
+            """
+            @page "Test"
+
+            <PageTitle>Test</PageTitle>
+
+            <div></div>
+            """,
+            open: true,
+            ControlledHangMitigatingCancellationToken);
+
+        var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync(tag, charsOffset: 1, ControlledHangMitigatingCancellationToken);
+        TestServices.Input.Send(" ");
+        TestServices.Input.Send("dd");
+
+        // Make sure completion doesn't come up for 15 seconds
+        var completionSession = await WaitForCompletionSessionAsync(textView, TimeSpan.FromSeconds(15));
+        var items = completionSession?.GetComputedItems(HangMitigatingCancellationToken);
+
+        if (items is null)
+        {
+            // No items to check, we're good
+            return;
+        }
+
+        Assert.DoesNotContain("dd", items.Items.Select(i => i.DisplayText));
     }
 
     [IdeFact, WorkItem("https://github.com/dotnet/razor/issues/9346")]

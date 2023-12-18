@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -126,4 +127,11 @@ internal static class RazorSyntaxFacts
 
         return null;
     }
+
+    public static bool IsAnyStartTag(SyntaxNode n)
+        => n.Kind is SyntaxKind.MarkupStartTag or SyntaxKind.MarkupTagHelperStartTag;
+            
+
+    public static bool IsAnyEndTag(SyntaxNode n)
+        => n.Kind is SyntaxKind.MarkupEndTag or SyntaxKind.MarkupTagHelperEndTag;
 }

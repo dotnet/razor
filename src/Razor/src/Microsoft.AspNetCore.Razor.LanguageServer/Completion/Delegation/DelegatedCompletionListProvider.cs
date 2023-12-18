@@ -7,8 +7,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -70,12 +73,15 @@ internal class DelegatedCompletionListProvider
 
         completionContext = RewriteContext(completionContext, positionInfo.LanguageKind);
 
+        var shouldIncludeSnippets = await ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+
         var delegatedParams = new DelegatedCompletionParams(
             documentContext.Identifier,
             positionInfo.Position,
             positionInfo.LanguageKind,
             completionContext,
             provisionalTextEdit,
+            shouldIncludeSnippets,
             correlationId);
 
         var delegatedResponse = await _clientConnection.SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
@@ -110,6 +116,24 @@ internal class DelegatedCompletionListProvider
         rewrittenResponse.SetResultId(resultId, completionCapability);
 
         return rewrittenResponse;
+    }
+
+    private async Task<bool> ShouldIncludeSnippetsAsync(VersionedDocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
+    {
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var tree = codeDocument.GetSyntaxTree();
+
+        var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: true);
+
+        if (token.Kind is SyntaxKind.OpenAngle or SyntaxKind.CloseAngle)
+        {
+            return false;
+        }
+
+        var node = token.Parent;
+        var startOrEndTag = node?.FirstAncestorOrSelf<SyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
+
+        return startOrEndTag is null;
     }
 
     private static VSInternalCompletionContext RewriteContext(VSInternalCompletionContext context, RazorLanguageKind languageKind)
