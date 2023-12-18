@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
+
 internal static class SettingsNames
 {
     public record Setting(string LegacyName, string UnifiedName);
