@@ -16,6 +16,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
+    private static readonly TimeSpan SnippetTimeout = TimeSpan.FromSeconds(10);
+
     [IdeFact]
     public async Task SnippetCompletion_Html()
     {
@@ -141,7 +143,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         TestServices.Input.Send("{DELETE}");
 
         // Make sure completion doesn't come up for 15 seconds
-        var completionSession = await WaitForCompletionSessionAsync(textView, TimeSpan.FromSeconds(15));
+        var completionSession = await WaitForCompletionSessionAsync(textView, SnippetTimeout);
         Assert.Null(completionSession);
     }
 
@@ -174,7 +176,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         TestServices.Input.Send("dd");
 
         // Make sure completion doesn't come up for 15 seconds
-        var completionSession = await WaitForCompletionSessionAsync(textView, TimeSpan.FromSeconds(15));
+        var completionSession = await WaitForCompletionSessionAsync(textView, SnippetTimeout);
         var items = completionSession?.GetComputedItems(HangMitigatingCancellationToken);
 
         if (items is null)
