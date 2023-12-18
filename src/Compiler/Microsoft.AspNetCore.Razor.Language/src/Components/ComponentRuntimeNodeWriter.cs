@@ -630,12 +630,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
     {
-        if (node.Children.Count > 1)
-        {
-            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-            // We render the children anyway, so tooling works.
-        }
-
         if (node.AttributeStructure == AttributeStructure.Minimized)
         {
             // Minimized attributes always map to 'true'
@@ -650,7 +644,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         else
         {
             // See comments in ComponentDesignTimeNodeWriter for a description of the cases that are possible.
-            var tokens = GetCSharpTokens(node);
             if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
                 (node.BoundAttribute?.IsChildContentProperty() ?? false))
             {
@@ -662,9 +655,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     context.CodeWriter.Write("(");
                 }
 
-                for (var i = 0; i < tokens.Count; i++)
+                foreach (var token in GetCSharpTokens(node))
                 {
-                    WriteCSharpToken(context, tokens[i]);
+                    WriteCSharpToken(context, token);
                 }
 
                 if (canTypeCheck)
@@ -711,9 +704,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write("this");
                 context.CodeWriter.Write(", ");
 
-                for (var i = 0; i < tokens.Count; i++)
+                foreach (var token in GetCSharpTokens(node))
                 {
-                    WriteCSharpToken(context, tokens[i]);
+                    WriteCSharpToken(context, token);
                 }
 
                 context.CodeWriter.Write(")");
@@ -742,10 +735,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     context.CodeWriter.Write("(");
                 }
 
-                for (var i = 0; i < tokens.Count; i++)
-                {
-                    WriteCSharpToken(context, tokens[i]);
-                }
+                WriteAttributeValue(context, node.FindDescendantNodes<IntermediateToken>());
 
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
@@ -945,11 +935,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
     {
-        if (node.Children.Count > 1)
-        {
-            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-        }
-
         // string __formName = expression;
         context.CodeWriter.Write("string ");
         context.CodeWriter.Write(_scopeStack.FormNameVarName);

@@ -758,12 +758,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
     {
-        if (node.Children.Count > 1)
-        {
-            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-            // We render the children anyway, so tooling works.
-        }
-
         // We limit component attributes to simple cases. However there is still a lot of complexity
         // to handle here, since there are a few different cases for how an attribute might be structured.
         //
@@ -1131,11 +1125,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
     {
-        if (node.Children.Count > 1)
-        {
-            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-        }
-
         foreach (var token in node.FindDescendantNodes<IntermediateToken>())
         {
             if (token.IsCSharp)
