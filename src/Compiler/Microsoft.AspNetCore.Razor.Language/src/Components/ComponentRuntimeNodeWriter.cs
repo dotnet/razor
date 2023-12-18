@@ -1096,7 +1096,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     // Only the mixed case is complicated, we want to turn it into code that will concatenate
     // the values into a string at runtime.
 
-    private static void WriteAttributeValue(CodeRenderingContext context, IReadOnlyList<IntermediateToken> tokens)
+    internal static void WriteAttributeValue(CodeRenderingContext context, IReadOnlyList<IntermediateToken> tokens)
     {
         if (tokens == null)
         {

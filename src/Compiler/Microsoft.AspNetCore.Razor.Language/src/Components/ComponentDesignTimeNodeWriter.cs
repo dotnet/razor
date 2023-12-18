@@ -782,9 +782,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             //
             // Or a CSharpExpressionIntermediateNode when the attribute has an explicit transition like:
             //      <MyComponent Value="@value" />
-            //
-            // Of a list of tokens directly in the attribute.
-            var tokens = GetCSharpTokens(node);
 
             if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
                 (node.BoundAttribute?.IsChildContentProperty() ?? false))
@@ -799,9 +796,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 }
                 context.CodeWriter.WriteLine();
 
-                for (var i = 0; i < tokens.Count; i++)
+                foreach (var token in GetCSharpTokens(node))
                 {
-                    WriteCSharpToken(context, tokens[i]);
+                    WriteCSharpToken(context, token);
                 }
 
                 if (canTypeCheck)
@@ -855,9 +852,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
                 context.CodeWriter.WriteLine();
 
-                for (var i = 0; i < tokens.Count; i++)
+                foreach (var token in GetCSharpTokens(node))
                 {
-                    WriteCSharpToken(context, tokens[i]);
+                    WriteCSharpToken(context, token);
                 }
 
                 context.CodeWriter.Write(")");
@@ -889,10 +886,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     context.CodeWriter.Write("(");
                 }
 
-                for (var i = 0; i < tokens.Count; i++)
-                {
-                    WriteCSharpToken(context, tokens[i]);
-                }
+                ComponentRuntimeNodeWriter.WriteAttributeValue(context, node.FindDescendantNodes<IntermediateToken>());
 
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
