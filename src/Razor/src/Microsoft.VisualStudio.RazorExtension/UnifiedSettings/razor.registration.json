@@ -115,7 +115,7 @@
     },
     "textEditor.razor.advanced.logLevel": {
       "type": "string",
-      "default": "all",
+      "default": "warning",
       "enum": [
         "trace",
         "debug",
