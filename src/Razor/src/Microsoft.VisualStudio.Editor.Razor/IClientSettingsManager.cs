@@ -12,12 +12,14 @@ internal interface IClientSettingsManager
 
     void Update(ClientSpaceSettings updateSettings);
 
+    void Update(ClientCompletionSettings updateSettings);
+
     void Update(ClientAdvancedSettings updateSettings);
 
     ClientSettings GetClientSettings();
 }
 
-internal interface IAdvancedSettingsStorage
+internal interface IAdvancedSettingsStorage : IDisposable
 {
     ClientAdvancedSettings GetAdvancedSettings();
 
