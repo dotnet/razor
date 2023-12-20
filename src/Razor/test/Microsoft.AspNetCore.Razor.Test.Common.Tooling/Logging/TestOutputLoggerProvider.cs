@@ -9,12 +9,19 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.Logging;
 
 public class TestOutputLoggerProvider(ITestOutputHelper output) : IRazorLoggerProvider
 {
-    private readonly ITestOutputHelper _output = output;
+    private ITestOutputHelper? _output = output;
+
+    public ITestOutputHelper? TestOutputHelper => _output;
 
     public ILogger CreateLogger(string categoryName)
-        =>new TestOutputLogger(_output, categoryName);
+        => new TestOutputLogger(this, categoryName);
 
     public void Dispose()
     {
+    }
+
+    internal void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
+    {
+        _output = testOutputHelper;
     }
 }

@@ -104,6 +104,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     {
         _testLogger!.LogInformation("#### Razor integration test dispose.");
 
+        TestServices.Output.ClearIntegrationTestLogger();
+
         await base.DisposeAsync();
     }
 
