@@ -79,6 +79,6 @@ internal sealed class RazorLogHubLoggerProvider : IRazorLoggerProvider
 
     internal void Queue(TraceEventType level, string message, params object[] args)
     {
-        _outputQueue.Enqueue((level, message, args));
+        _outputQueue.TryEnqueue((level, message, args));
     }
 }
