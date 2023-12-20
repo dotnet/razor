@@ -11,9 +11,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal class LspLogger : IRazorLogger
 {
     private readonly LogLevel _logLevel;
+    private readonly string _categoryName;
     private IClientConnection? _clientConnection;
 
-    public LspLogger(Trace trace)
+    public LspLogger(string categoryName, Trace trace)
     {
         var logLevel = trace switch
         {
@@ -23,6 +24,7 @@ internal class LspLogger : IRazorLogger
             _ => throw new NotImplementedException(),
         };
         _logLevel = logLevel;
+        _categoryName = categoryName;
     }
 
     public void Initialize(IClientConnection clientConnection)
@@ -66,7 +68,7 @@ internal class LspLogger : IRazorLogger
         var @params = new LogMessageParams
         {
             MessageType = messageType,
-            Message = message,
+            Message = $"[{_categoryName}] message",
         };
 
         if (_clientConnection is null)

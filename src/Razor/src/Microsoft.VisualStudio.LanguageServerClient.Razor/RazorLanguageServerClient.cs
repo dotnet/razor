@@ -13,15 +13,14 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
@@ -35,8 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
 internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
 {
-    private const string LogFileIdentifier = "Razor.RazorLanguageServerClient";
-
     private readonly ILanguageClientBroker _languageClientBroker;
     private readonly ILanguageServiceBroker2 _languageServiceBroker;
     private readonly ITelemetryReporter _telemetryReporter;
@@ -46,12 +43,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     private readonly ILanguageClientMiddleLayer _middleLayer;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-    private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
-    private readonly IOutputWindowLogger? _outputWindowLogger;
+    private readonly IRazorLoggerFactory _razorLoggerFactory;
+    private readonly RazorLogHubTraceProvider _traceProvider;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
     private RazorLanguageServerWrapper? _server;
-    private LogHubLoggerProvider? _loggerProvider;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
     private const string RazorLSPLogLevel = "RAZOR_TRACE";
@@ -69,8 +65,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         RazorLanguageClientMiddleLayer middleLayer,
         LSPRequestInvoker requestInvoker,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger,
+        IRazorLoggerFactory razorLoggerFactory,
+        RazorLogHubTraceProvider traceProvider,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ILanguageClientBroker languageClientBroker,
@@ -98,11 +94,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         if (projectConfigurationFilePathStore is null)
         {
             throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-        }
-
-        if (logHubLoggerProviderFactory is null)
-        {
-            throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
         }
 
         if (projectSnapshotManagerDispatcher is null)
@@ -144,8 +135,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _middleLayer = middleLayer;
         _requestInvoker = requestInvoker;
         _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-        _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
-        _outputWindowLogger = outputWindowLogger;
+        _razorLoggerFactory = razorLoggerFactory;
+        _traceProvider = traceProvider;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
         _languageClientBroker = languageClientBroker;
@@ -187,24 +178,17 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var traceLevel = GetVerbosity();
 
         // Initialize Logging Infrastructure
-        _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
-        var traceSource = _loggerProvider.GetTraceSource();
-        var logHubLogger = _loggerProvider.CreateLogger("Razor");
-        var loggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
-        var razorLogger = new LoggerAdapter(loggers, _telemetryReporter, traceSource);
-        var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
+        var traceSource = _traceProvider.GetTraceSource();
 
-        // We want the LogHub logs to include logs from custom messages, but they are scoped to the lifetime of the
-        // server. The lifetime of the custom message logger is defined by MEF, and StreamJsonRpc has some static
-        // caching around messages it can handle etc. so we have to inject our logging separately. 
-        var customMessageLogger = _loggerProvider.CreateLogger("CustomMessage");
-        var customMessageLoggers = _outputWindowLogger == null ? new ILogger[] { customMessageLogger } : new ILogger[] { customMessageLogger, _outputWindowLogger };
-        var logAdapter = new LoggerAdapter(customMessageLoggers, telemetryReporter: null, traceSource);
-        _customMessageTarget.SetLogger(logAdapter);
+        // We're creating this logger on behalf of the language server, so use its type name
+        var logger = _razorLoggerFactory.CreateLogger<RazorLanguageServer>();
+        var razorLogger = new LoggerAdapter(logger, _telemetryReporter, traceSource);
+        var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
             serverStream,
+            _razorLoggerFactory,
             razorLogger,
             _telemetryReporter,
             _projectSnapshotManagerDispatcher,
@@ -280,17 +264,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     private void ConfigureLanguageServer(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddLogging(logging =>
-        {
-            logging.AddFilter<LogHubLoggerProvider>(level => true);
-            logging.AddProvider(_loggerProvider);
-
-            if (_outputWindowLogger is not null)
-            {
-                logging.AddProvider(new RazorOutputWindowLoggerProvider(_outputWindowLogger));
-            }
-        });
-
         if (_vsHostWorkspaceServicesProvider is not null)
         {
             var wrapper = new HostServicesProviderWrapper(_vsHostWorkspaceServicesProvider);
@@ -313,8 +286,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             // Server was already cleaned up
             return;
         }
-
-        _customMessageTarget.SetLogger(logger: null);
 
         if (_server is not null)
         {
