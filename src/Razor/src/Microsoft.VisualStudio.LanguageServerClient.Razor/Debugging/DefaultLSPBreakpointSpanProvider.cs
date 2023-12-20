@@ -43,7 +43,6 @@ internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
 
     public async override Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
     {
-        _logger.LogError("Hello from teh breakpoint span provider");
         if (documentSnapshot is null)
         {
             throw new ArgumentNullException(nameof(documentSnapshot));
