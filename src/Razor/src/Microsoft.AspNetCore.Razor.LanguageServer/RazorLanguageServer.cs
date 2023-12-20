@@ -45,6 +45,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     private readonly RazorLSPOptions _lspOptions;
     private readonly ILspServerActivationTracker? _lspServerActivationTracker;
     private readonly ITelemetryReporter _telemetryReporter;
+    private readonly ClientConnection _clientConnection;
 
     // Cached for testing
     private IHandlerProvider? _handlerProvider;
@@ -69,6 +70,12 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
         _lspServerActivationTracker = lspServerActivationTracker;
         _telemetryReporter = telemetryReporter;
+
+        _clientConnection = new ClientConnection(_jsonRpc);
+        if (_logger is LspLogger lspLogger)
+        {
+            lspLogger.Initialize(_clientConnection);
+        }
 
         Initialize();
     }
@@ -98,12 +105,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             _configureServer(services);
         }
 
-        var clientConnection = new ClientConnection(_jsonRpc);
-        services.AddSingleton<IClientConnection>(clientConnection);
-        if (_logger is LspLogger lspLogger)
-        {
-            lspLogger.Initialize(clientConnection);
-        }
+        services.AddSingleton<IClientConnection>(_clientConnection);
 
         if (_logger is LoggerAdapter adapter)
         {
@@ -148,7 +150,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
         services.AddSingleton<FilePathService>();
 
-        services.AddLifeCycleServices(this, clientConnection, _lspServerActivationTracker);
+        services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices();

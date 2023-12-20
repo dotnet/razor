@@ -14,7 +14,7 @@ internal class LspLogger : IRazorLogger
     private readonly string _categoryName;
     private IClientConnection? _clientConnection;
 
-    public LspLogger(string categoryName, Trace trace)
+    public LspLogger(string categoryName, Trace trace, IClientConnection? clientConnection)
     {
         var logLevel = trace switch
         {
@@ -25,6 +25,7 @@ internal class LspLogger : IRazorLogger
         };
         _logLevel = logLevel;
         _categoryName = categoryName;
+        _clientConnection = clientConnection;
     }
 
     public void Initialize(IClientConnection clientConnection)
@@ -68,7 +69,7 @@ internal class LspLogger : IRazorLogger
         var @params = new LogMessageParams
         {
             MessageType = messageType,
-            Message = $"[{_categoryName}] message",
+            Message = $"[{_categoryName}] {message}",
         };
 
         if (_clientConnection is null)
@@ -108,6 +109,11 @@ internal class LspLogger : IRazorLogger
     public void LogWarning(string message, params object[] @params)
     {
         ((ILogger)this).LogWarning(message, @params);
+    }
+
+    internal IClientConnection? GetClientConnection()
+    {
+        return _clientConnection;
     }
 #pragma warning restore CA2254 // Template should be a static expression
 
