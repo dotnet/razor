@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -17,7 +16,7 @@ using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 // Based on the DesignTimeNodeWriter from Razor repo.
-internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
+internal sealed class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 {
     private readonly ScopeStack _scopeStack = new ScopeStack();
 
@@ -886,7 +885,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     context.CodeWriter.Write("(");
                 }
 
-                ComponentRuntimeNodeWriter.WriteAttributeValue(context, node.FindDescendantNodes<IntermediateToken>());
+                WriteAttributeValue(context, node.FindDescendantNodes<IntermediateToken>());
 
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
@@ -1230,7 +1229,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         });
     }
 
-    private void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)
+    protected override void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)
     {
         if (string.IsNullOrWhiteSpace(token.Content))
         {

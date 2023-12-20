@@ -1,4 +1,9 @@
-﻿Source Location: (13:0,13 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (30:0,30 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyEnum|
+Generated Location: (1057:25,30 [6] )
+|MyEnum|
+
+Source Location: (13:0,13 [14] x:\dir\subdir\Test\TestComponent.cshtml)
 |StringProperty|
 Generated Location: (1478:38,13 [14] )
 |StringProperty|
