@@ -30,7 +30,8 @@ internal partial class RazorLanguageServer
         public ILogger CreateLogger(string categoryName)
         {
             // Adding [LSP] to the start to identify the LSP server, as some of our services exist in the server, and in VS
-            return _loggerFactory.CreateLogger($"[LSP]{categoryName}");
+            // It looks weird because the category is surround with square brackets, so this ends up being [LSP][Category]
+            return _loggerFactory.CreateLogger($"LSP][{categoryName}");
         }
 
         public void Dispose()
