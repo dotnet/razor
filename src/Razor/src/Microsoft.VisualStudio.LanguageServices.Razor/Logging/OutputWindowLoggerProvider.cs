@@ -17,13 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 [Shared]
 [Export(typeof(IRazorLoggerProvider))]
 [method: ImportingConstructor]
-internal class OutputWindowLoggerProvider(JoinableTaskContext joinableTaskContext) : IRazorLoggerProvider
+internal class OutputWindowLoggerProvider(IClientSettingsManager clientSettingsManager, JoinableTaskContext joinableTaskContext) : IRazorLoggerProvider
 {
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly OutputPane _outputPane = new OutputPane(joinableTaskContext);
 
     public ILogger CreateLogger(string categoryName)
     {
-        return new OutputPaneLogger(categoryName, _outputPane);
+        return new OutputPaneLogger(categoryName, _outputPane, _clientSettingsManager);
     }
 
     public void Dispose()
@@ -33,13 +34,15 @@ internal class OutputWindowLoggerProvider(JoinableTaskContext joinableTaskContex
 
     private class OutputPaneLogger : ILogger
     {
-        private string _categoryName;
-        private OutputPane _outputPane;
+        private readonly string _categoryName;
+        private readonly OutputPane _outputPane;
+        private readonly IClientSettingsManager _clientSettingsManager;
 
-        public OutputPaneLogger(string categoryName, OutputPane outputPane)
+        public OutputPaneLogger(string categoryName, OutputPane outputPane, IClientSettingsManager clientSettingsManager)
         {
             _categoryName = categoryName;
             _outputPane = outputPane;
+            _clientSettingsManager = clientSettingsManager;
         }
 
         public IDisposable BeginScope<TState>(TState state)
@@ -49,8 +52,7 @@ internal class OutputWindowLoggerProvider(JoinableTaskContext joinableTaskContex
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            //TODO:
-            return true;
+            return logLevel >= _clientSettingsManager.GetClientSettings().AdvancedSettings.LogLevel;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)

@@ -5,6 +5,7 @@ using System;
 using System.Composition;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -27,6 +28,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     private const string ColorBackgroundName = "ColorBackground";
     private const string CommitElementsWithSpaceName = "CommitElementsWithSpace";
     private const string SnippetsName = "Snippets";
+    private const string LogLevelName = "LogLevel";
 
     public bool FormatOnType
     {
@@ -64,6 +66,12 @@ internal class OptionsStorage : IAdvancedSettingsStorage
         set => SetInt(SnippetsName, (int)value);
     }
 
+    public LogLevel LogLevel
+    {
+        get => (LogLevel)GetInt(LogLevelName, (int)LogLevel.Warning);
+        set => SetInt(LogLevelName, (int)value);
+    }
+
     [ImportingConstructor]
     public OptionsStorage(SVsServiceProvider vsServiceProvider, ITelemetryReporter telemetryReporter)
     {
@@ -76,7 +84,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
 
     public event EventHandler<ClientAdvancedSettingsChangedEventArgs>? Changed;
 
-    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CommitElementsWithSpace, Snippets);
+    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CommitElementsWithSpace, Snippets, LogLevel);
 
     public bool GetBool(string name, bool defaultValue)
     {
