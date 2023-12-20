@@ -263,12 +263,20 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
     }
 
     [Theory]
+    [InlineData("$$", true)]
+    [InlineData("<$$", true)]
+    [InlineData(">$$", true)]
+    [InlineData("$$<", true)]
+    [InlineData("$$>", false)] // This is the only case that returns false but should return true. It's unlikely a user will type this, but it's complex to solve. Consider this a known and acceptable bug.
     [InlineData("<div>$$</div>", true)]
+    [InlineData("$$<div></div>", true)]
+    [InlineData("<div></div>$$", true)]
+    [InlineData("<$$div></div>", false)]
     [InlineData("<div$$></div>", false)]
     [InlineData("<div class=\"$$\"></div>", false)]
     [InlineData("<div><$$/div>", false)]
     [InlineData("<div></div$$>", false)]
-    public async Task SnippetsIncludedInsideTagBody(string input, bool shouldIncludeSnippets)
+    public async Task ShouldIncludeSnippets(string input, bool shouldIncludeSnippets)
     {
         var clientConnection = new TestClientConnection();
 

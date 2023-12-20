@@ -122,17 +122,23 @@ internal class DelegatedCompletionListProvider
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var tree = codeDocument.GetSyntaxTree();
 
-        var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: true);
-
-        if (token.Kind is SyntaxKind.OpenAngle or SyntaxKind.CloseAngle)
-        {
-            return false;
-        }
-
+        var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: false);
         var node = token.Parent;
         var startOrEndTag = node?.FirstAncestorOrSelf<SyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
 
-        return startOrEndTag is null;
+        if (startOrEndTag is null)
+        {
+            return token.Kind is not (SyntaxKind.OpenAngle or SyntaxKind.CloseAngle);
+        }
+
+        if (startOrEndTag.Span.Start == absoluteIndex)
+        {
+            // We're at the start of the tag, we should include snippets. This is the case for things like $$<div></div> or <div>$$</div>, since the
+            // index is right associative to the token when using FindToken.
+            return true;
+        }
+
+        return !startOrEndTag.Span.Contains(absoluteIndex);
     }
 
     private static VSInternalCompletionContext RewriteContext(VSInternalCompletionContext context, RazorLanguageKind languageKind)
