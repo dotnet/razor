@@ -10,7 +10,7 @@ internal static class IRazorLoggerFactoryExtensions
 {
     public static ILogger CreateLogger<T>(this IRazorLoggerFactory factory)
     {
-        return factory.CreateLogger(TrimTypeName(typeof(T).Name));
+        return factory.CreateLogger(TrimTypeName(typeof(T).FullName));
     }
 
     private static string TrimTypeName(string name)
@@ -23,9 +23,9 @@ internal static class IRazorLoggerFactoryExtensions
 
         static bool TryTrim(string name, string prefix, out string trimmedName)
         {
-            if (prefix.StartsWith(name, StringComparison.Ordinal))
+            if (name.StartsWith(prefix, StringComparison.Ordinal))
             {
-                trimmedName = prefix.Substring(name.Length);
+                trimmedName = name.Substring(prefix.Length);
                 return true;
             }
 

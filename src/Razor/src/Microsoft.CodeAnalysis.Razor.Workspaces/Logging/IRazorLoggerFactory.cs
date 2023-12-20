@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
-// Very light wrapper for ILoggerFactory, so that we're not MEF importing general use types
+// Our version of ILoggerFactory, so that we're not MEF importing general use types
 internal interface IRazorLoggerFactory : IDisposable
 {
     void AddLoggerProvider(IRazorLoggerProvider provider);
