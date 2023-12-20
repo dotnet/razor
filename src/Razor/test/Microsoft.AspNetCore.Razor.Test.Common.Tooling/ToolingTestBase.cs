@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
@@ -64,14 +65,14 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     ///  An <see cref="ILoggerFactory"/> that creates <see cref="ILogger"/> instances that
     ///  write to xUnit's <see cref="ITestOutputHelper"/> for the currently running test.
     /// </summary>
-    protected ILoggerFactory LoggerFactory { get; }
+    internal IRazorLoggerFactory LoggerFactory { get; }
 
     private IRazorLogger? _logger;
 
     /// <summary>
     ///  An <see cref="IRazorLogger"/> for the currently running test.
     /// </summary>
-    private protected IRazorLogger Logger => _logger ??= LoggerFactory.CreateLogger(GetType()).ToRazorLogger();
+    private protected IRazorLogger Logger => _logger ??= LoggerFactory.CreateLogger(GetType().Name).ToRazorLogger();
 
     private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 
@@ -84,8 +85,7 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
         _disposalTokenSource = new();
         DisposalToken = _disposalTokenSource.Token;
 
-        LoggerFactory = Extensions.Logging.LoggerFactory.Create(
-            builder => builder.AddTestOutput(testOutput));
+        LoggerFactory = new RazorLoggerFactory([new TestOutputLoggerProvider(testOutput)]);
 
         // Give this thread a name, so it's easier to find in the VS Threads window.
         Thread.CurrentThread.Name ??= "Main Thread";

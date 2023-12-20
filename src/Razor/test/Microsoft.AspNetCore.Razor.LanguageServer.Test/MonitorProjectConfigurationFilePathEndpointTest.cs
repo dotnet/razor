@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -422,7 +422,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            ILoggerFactory loggerFactory)
+            IRazorLoggerFactory loggerFactory)
             : this(
                 fileChangeDetectorFactory: null!,
                 projectSnapshotManagerDispatcher,
@@ -437,7 +437,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            ILoggerFactory loggerFactory,
+            IRazorLoggerFactory loggerFactory,
             LanguageServerFeatureOptions? options = null)
             : base(
                 projectSnapshotManagerDispatcher,
