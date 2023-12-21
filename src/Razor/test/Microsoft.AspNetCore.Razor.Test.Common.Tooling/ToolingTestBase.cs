@@ -76,13 +76,11 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     internal IRazorLoggerFactory LoggerFactory { get; }
 
     private ILogger? _logger;
-    private ILspLogger? _lspLogger;
 
     /// <summary>
     ///  An <see cref="ILogger"/> for the currently running test.
     /// </summary>
     private protected ILogger Logger => _logger ??= LoggerFactory.CreateLogger(GetType().Name);
-    private protected ILspLogger LspLogger => _lspLogger ??= new ClaspLoggingBridge(LoggerFactory);
 
     private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 
