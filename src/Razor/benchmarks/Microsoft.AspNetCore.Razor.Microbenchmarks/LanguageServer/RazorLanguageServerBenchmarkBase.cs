@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 #nullable disable
@@ -31,7 +31,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
         var razorLoggerFactory = new RazorLoggerFactory([new NoopLoggerProvider()]);
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLoggerFactory, Logger, NoOpTelemetryReporter.Instance, configure: (collection) =>
+        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLoggerFactory, NoOpTelemetryReporter.Instance, configure: (collection) =>
         {
             collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
             collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
