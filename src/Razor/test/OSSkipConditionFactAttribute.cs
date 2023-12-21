@@ -23,13 +23,13 @@ public class OSSkipConditionFactAttribute : FactAttribute
     {
         foreach (var platform in skippedPlatforms)
         {
-            var osPlatform = platform.ToLowerInvariant() switch
+            var osPlatform = platform switch
             {
-                "windows" => OSPlatform.Windows,
-                "linux" => OSPlatform.Linux,
-                "osx" => OSPlatform.OSX,
+                "Windows" => OSPlatform.Windows,
+                "Linux" => OSPlatform.Linux,
+                "OSX" => OSPlatform.OSX,
 #if NET
-                "freebsd" => OSPlatform.FreeBSD,
+                "FreeBSD" => OSPlatform.FreeBSD,
 #endif
                 _ => throw new NotSupportedException($"Unsupported platform: {platform}")
             };
