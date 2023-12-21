@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Other">
         <source>Other</source>
-        <target state="new">Other</target>
+        <target state="translated">其他</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorSyntaxVisualizer">
