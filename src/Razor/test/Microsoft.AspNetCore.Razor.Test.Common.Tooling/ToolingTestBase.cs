@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
@@ -74,12 +75,14 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     /// </summary>
     internal IRazorLoggerFactory LoggerFactory { get; }
 
-    private IRazorLogger? _logger;
+    private ILogger? _logger;
+    private ILspLogger? _lspLogger;
 
     /// <summary>
-    ///  An <see cref="IRazorLogger"/> for the currently running test.
+    ///  An <see cref="ILogger"/> for the currently running test.
     /// </summary>
-    private protected IRazorLogger Logger => _logger ??= LoggerFactory.CreateLogger(GetType().Name).ToRazorLogger();
+    private protected ILogger Logger => _logger ??= LoggerFactory.CreateLogger(GetType().Name);
+    private protected ILspLogger LspLogger => _lspLogger ??= new ClaspLoggingBridge(LoggerFactory);
 
     private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 

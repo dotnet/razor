@@ -3,12 +3,13 @@
 
 using System;
 using System.Threading;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LspLogger : IRazorLogger
+internal class LspLogger : ILspLogger, ILogger
 {
     private readonly LogLevel _logLevel;
     private readonly string _categoryName;

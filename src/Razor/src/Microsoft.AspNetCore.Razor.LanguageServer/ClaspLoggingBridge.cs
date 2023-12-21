@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -11,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// <summary>
 /// Providers a bridge from CLaSP, which uses ILspLogger, to our logging infrastructure, which uses ILogger
 /// </summary>
-internal class ClaspLoggingBridge : IRazorLogger
+internal class ClaspLoggingBridge : ILspLogger
 {
     public const string LogStartContextMarker = "[StartContext]";
     public const string LogEndContextMarker = "[EndContext]";

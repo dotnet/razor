@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -107,30 +106,8 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
         services.AddSingleton<IClientConnection>(_clientConnection);
 
-        if (_logger is LoggerAdapter adapter)
-        {
-            services.AddSingleton<LoggerAdapter>(adapter);
-        }
-        else
-        {
-            services.AddSingleton<LoggerAdapter>(static (provider) =>
-            {
-                var loggers = provider.GetServices<ILogger>();
-                if (!loggers.Any())
-                {
-                    throw new InvalidOperationException("No loggers were registered");
-                }
-
-                var telemetryReporter = provider.GetRequiredService<ITelemetryReporter>();
-                return new LoggerAdapter(loggers, telemetryReporter);
-            });
-        }
-
+        // Add the logger as a service in case anything in CLaSP pulls it out to do logging
         services.AddSingleton<ILspLogger>(_logger);
-        if (_logger is ILogger iLogger)
-        {
-            services.AddSingleton<ILogger>(iLogger);
-        }
 
         services.AddSingleton<IErrorReporter, LanguageServerErrorReporter>();
 
