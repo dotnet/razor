@@ -39,7 +39,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         // Arrange
         var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>(MockBehavior.Strict);
         directoryPathResolver.Setup(resolver => resolver.Resolve())
-            .Throws<XunitException>();
+            .Throws<Exception>();
         var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
             Dispatcher,
             directoryPathResolver.Object,
@@ -69,7 +69,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         // Arrange
         var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>(MockBehavior.Strict);
         directoryPathResolver.Setup(resolver => resolver.Resolve())
-            .Throws<XunitException>();
+            .Throws<Exception>();
         var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
             Dispatcher,
             directoryPathResolver.Object,
