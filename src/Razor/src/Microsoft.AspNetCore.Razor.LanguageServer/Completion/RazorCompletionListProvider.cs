@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -23,12 +24,12 @@ internal class RazorCompletionListProvider(
     IRazorCompletionFactsService completionFactsService,
     HtmlFactsService htmlFactsService,
     CompletionListCache completionListCache,
-    ILoggerFactory loggerFactory)
+    IRazorLoggerFactory loggerFactory)
 {
     private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
     private readonly HtmlFactsService _htmlFactsService = htmlFactsService;
     private readonly CompletionListCache _completionListCache = completionListCache;
-    private readonly ILogger<RazorCompletionListProvider> _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
+    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
     private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = "editor.action.triggerSuggest",
@@ -148,7 +149,7 @@ internal class RazorCompletionListProvider(
                         FilterText = razorCompletionItem.DisplayText,
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
-                        Kind = razorCompletionItem.IsSnippet ? CompletionItemKind.Snippet : CompletionItemKind.Struct, // TODO: Make separate CompletionItemKind for razor directives. See https://github.com/dotnet/razor-tooling/issues/6504 and https://github.com/dotnet/razor-tooling/issues/6505
+                        Kind = razorCompletionItem.IsSnippet ? CompletionItemKind.Snippet : CompletionItemKind.Keyword,
                     };
 
                     directiveCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);

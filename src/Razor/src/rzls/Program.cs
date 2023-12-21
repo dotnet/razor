@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Exports;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -16,7 +17,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var trace = Trace.Messages;
+        var traceLevel = Trace.Messages;
         var telemetryLevel = string.Empty;
         var sessionId = string.Empty;
         var telemetryExtensionPath = string.Empty;
@@ -48,10 +49,10 @@ public class Program
             if (args[i] == "--trace" && i + 1 < args.Length)
             {
                 var traceArg = args[++i];
-                if (!Enum.TryParse(traceArg, out trace))
+                if (!Enum.TryParse(traceArg, out traceLevel))
                 {
-                    trace = Trace.Messages;
-                    await Console.Error.WriteLineAsync($"Invalid Razor trace '{traceArg}'. Defaulting to {trace}.").ConfigureAwait(true);
+                    traceLevel = Trace.Messages;
+                    await Console.Error.WriteLineAsync($"Invalid Razor trace '{traceArg}'. Defaulting to {traceLevel}.").ConfigureAwait(true);
                 }
             }
 
@@ -75,10 +76,14 @@ public class Program
 
         var devKitTelemetryReporter = await TryGetTelemetryReporterAsync(telemetryLevel, sessionId, telemetryExtensionPath).ConfigureAwait(true);
 
-        var logger = new LspLogger(trace);
+        // Client connection will be initialized by the language server when it creates the connection
+        var logger = new LspLogger("LSP", traceLevel, clientConnection: null);
+        var loggerFactory = new RazorLoggerFactory([new LoggerProvider(traceLevel, logger)]);
+
         var server = RazorLanguageServerWrapper.Create(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput(),
+            loggerFactory,
             logger,
             devKitTelemetryReporter ?? NoOpTelemetryReporter.Instance,
             featureOptions: languageServerFeatureOptions);

@@ -11,9 +11,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal class LspLogger : IRazorLogger
 {
     private readonly LogLevel _logLevel;
+    private readonly string _categoryName;
     private IClientConnection? _clientConnection;
 
-    public LspLogger(Trace trace)
+    public LspLogger(string categoryName, Trace trace, IClientConnection? clientConnection)
     {
         var logLevel = trace switch
         {
@@ -23,6 +24,8 @@ internal class LspLogger : IRazorLogger
             _ => throw new NotImplementedException(),
         };
         _logLevel = logLevel;
+        _categoryName = categoryName;
+        _clientConnection = clientConnection;
     }
 
     public void Initialize(IClientConnection clientConnection)
@@ -66,7 +69,7 @@ internal class LspLogger : IRazorLogger
         var @params = new LogMessageParams
         {
             MessageType = messageType,
-            Message = message,
+            Message = $"[{_categoryName}] {message}",
         };
 
         if (_clientConnection is null)
@@ -106,6 +109,11 @@ internal class LspLogger : IRazorLogger
     public void LogWarning(string message, params object[] @params)
     {
         ((ILogger)this).LogWarning(message, @params);
+    }
+
+    internal IClientConnection? GetClientConnection()
+    {
+        return _clientConnection;
     }
 #pragma warning restore CA2254 // Template should be a static expression
 
