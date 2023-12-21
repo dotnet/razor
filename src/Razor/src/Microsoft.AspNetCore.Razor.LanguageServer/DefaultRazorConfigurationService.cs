@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
@@ -17,7 +18,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
     private readonly IClientConnection _clientConnection;
     private readonly ILogger _logger;
 
-    public DefaultRazorConfigurationService(IClientConnection clientConnection, ILoggerFactory loggerFactory)
+    public DefaultRazorConfigurationService(IClientConnection clientConnection, IRazorLoggerFactory loggerFactory)
     {
         if (clientConnection is null)
         {
