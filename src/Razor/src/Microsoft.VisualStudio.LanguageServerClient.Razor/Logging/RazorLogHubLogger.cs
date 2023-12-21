@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
@@ -31,9 +32,24 @@ internal sealed class RazorLogHubLogger : ILogger
 
         switch (logLevel)
         {
+            // We separate out Information because we want to check for specific log messages set from CLaSP
+            case LogLevel.Information:
+                if (formattedResult.StartsWith(ClaspLoggingBridge.LogStartContextMarker))
+                {
+                    _razorLogHubLoggerProvider.Queue(TraceEventType.Start, "[{0}] {1}", _categoryName, formattedResult);
+                }
+
+                _razorLogHubLoggerProvider.Queue(TraceEventType.Information, "[{0}] {1}", _categoryName, formattedResult);
+
+                if (formattedResult.StartsWith(ClaspLoggingBridge.LogEndContextMarker))
+                {
+                    _razorLogHubLoggerProvider.Queue(TraceEventType.Stop, "[{0}] {1}", _categoryName, formattedResult);
+                }
+
+                break;
+
             case LogLevel.Trace:
             case LogLevel.Debug:
-            case LogLevel.Information:
             case LogLevel.None:
                 _razorLogHubLoggerProvider.Queue(TraceEventType.Information, "[{0}] {1}", _categoryName, formattedResult);
                 break;

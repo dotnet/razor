@@ -177,19 +177,16 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
         var traceLevel = GetVerbosity();
 
-        // Initialize Logging Infrastructure
         var traceSource = _traceProvider.GetTraceSource();
 
-        // We're creating this logger on behalf of the language server, so use its type name
-        var logger = _razorLoggerFactory.CreateLogger<RazorLanguageServer>();
-        var razorLogger = new LoggerAdapter(logger, _telemetryReporter, traceSource);
+        var claspLogger = new ClaspLoggingBridge(_razorLoggerFactory, _telemetryReporter);
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
             serverStream,
             _razorLoggerFactory,
-            razorLogger,
+            claspLogger,
             _telemetryReporter,
             _projectSnapshotManagerDispatcher,
             ConfigureLanguageServer,
