@@ -16,7 +16,7 @@ internal static class TestRazorFormattingService
 #pragma warning disable IDE0060 // Remove unused parameter
 
     public static Task<IRazorFormattingService> CreateWithFullSupportAsync(
-        ILoggerFactory loggerFactory,
+        IRazorLoggerFactory loggerFactory,
         RazorCodeDocument? codeDocument = null,
         IDocumentSnapshot? documentSnapshot = null,
         RazorLSPOptions? razorLSPOptions = null)

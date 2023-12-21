@@ -96,8 +96,6 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         var loggerFactoryWrapper = new LoggerFactoryWrapper(_loggerFactory);
         // Wrap the logger factory so that we can add [LSP] to the start of all the categories
         services.AddSingleton<IRazorLoggerFactory>(loggerFactoryWrapper);
-        // Just in case anything in CLaSP tries to resolve ILoggerFactory
-        services.AddSingleton<ILoggerFactory>(loggerFactoryWrapper);
 
         if (_configureServer is not null)
         {
