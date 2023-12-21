@@ -37,6 +37,13 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 /// </summary>
 public abstract partial class ToolingTestBase : IAsyncLifetime
 {
+    static ToolingTestBase()
+    {
+#if NET472
+        XunitDisposeHook.Initialize();
+#endif
+    }
+
     private readonly JoinableTaskCollection _joinableTaskCollection;
     private readonly CancellationTokenSource _disposalTokenSource;
     private List<IDisposable>? _disposables;
