@@ -70,7 +70,7 @@ public class RazorLanguageServerTest : ToolingTestBase
         if (registeredMethods.Length != typeMethods.Count)
         {
             var unregisteredHandlers = typeMethods.Where(t => !registeredMethods.Any(m => m.MethodName == t));
-            Assert.True(false, $"Unregistered handlers: {string.Join(";", unregisteredHandlers.Select(t => t))}");
+            Assert.Fail($"Unregistered handlers: {string.Join(";", unregisteredHandlers.Select(t => t))}");
         }
 
         static string GetMethodFromType(Type t)
