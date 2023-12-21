@@ -14,15 +14,8 @@ internal class LspLogger : IRazorLogger
     private readonly string _categoryName;
     private IClientConnection? _clientConnection;
 
-    public LspLogger(string categoryName, Trace trace, IClientConnection? clientConnection)
+    public LspLogger(string categoryName, LogLevel logLevel, IClientConnection? clientConnection)
     {
-        var logLevel = trace switch
-        {
-            Trace.Off => LogLevel.None,
-            Trace.Messages => LogLevel.Information,
-            Trace.Verbose => LogLevel.Trace,
-            _ => throw new NotImplementedException(),
-        };
         _logLevel = logLevel;
         _categoryName = categoryName;
         _clientConnection = clientConnection;

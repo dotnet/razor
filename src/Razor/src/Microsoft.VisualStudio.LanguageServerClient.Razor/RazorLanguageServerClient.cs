@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
 using StreamJsonRpc;
 using Task = System.Threading.Tasks.Task;
-using Trace = Microsoft.AspNetCore.Razor.LanguageServer.Trace;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
@@ -49,8 +48,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
     private RazorLanguageServerWrapper? _server;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-
-    private const string RazorLSPLogLevel = "RAZOR_TRACE";
 
     public event AsyncEventHandler<EventArgs>? StartAsync;
     public event AsyncEventHandler<EventArgs>? StopAsync
@@ -175,8 +172,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
         await EnsureCleanedUpServerAsync().ConfigureAwait(false);
 
-        var traceLevel = GetVerbosity();
-
         // Initialize Logging Infrastructure
         var traceSource = _traceProvider.GetTraceSource();
 
@@ -269,14 +264,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             var wrapper = new HostServicesProviderWrapper(_vsHostWorkspaceServicesProvider);
             serviceCollection.AddSingleton<HostServicesProvider>(wrapper);
         }
-    }
-
-    private Trace GetVerbosity()
-    {
-        var logString = Environment.GetEnvironmentVariable(RazorLSPLogLevel);
-        var result = Enum.TryParse<Trace>(logString, out var parsedTrace) ? parsedTrace : Trace.Off;
-
-        return result;
     }
 
     private async Task EnsureCleanedUpServerAsync()
