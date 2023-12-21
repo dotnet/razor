@@ -20,6 +20,7 @@ public abstract partial class ToolingTestBase
             _logger = logger;
         }
 
+#pragma warning disable CA2254 // Template should be a static expression
         public void ReportError(Exception exception)
         {
             if (exception is null)
@@ -49,5 +50,6 @@ public abstract partial class ToolingTestBase
 
             _logger.LogError(exception, message: null);
         }
+#pragma warning restore CA2254 // Template should be a static expression
     }
 }
