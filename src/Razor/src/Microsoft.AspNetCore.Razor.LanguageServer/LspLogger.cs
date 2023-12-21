@@ -3,19 +3,21 @@
 
 using System;
 using System.Threading;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LspLogger : ILspLogger, ILogger
+/// <summary>
+/// ILogger implementation that logs via the window/logMessage LSP method
+/// </summary>
+internal class LspLogger : ILogger
 {
     private readonly LogLevel _logLevel;
     private readonly string _categoryName;
-    private IClientConnection? _clientConnection;
+    private IClientConnection _clientConnection;
 
-    public LspLogger(string categoryName, Trace trace, IClientConnection? clientConnection)
+    public LspLogger(string categoryName, Trace trace, IClientConnection clientConnection)
     {
         var logLevel = trace switch
         {
@@ -26,11 +28,6 @@ internal class LspLogger : ILspLogger, ILogger
         };
         _logLevel = logLevel;
         _categoryName = categoryName;
-        _clientConnection = clientConnection;
-    }
-
-    public void Initialize(IClientConnection clientConnection)
-    {
         _clientConnection = clientConnection;
     }
 
@@ -80,43 +77,6 @@ internal class LspLogger : ILspLogger, ILogger
 
         _ = _clientConnection.SendNotificationAsync(Methods.WindowLogMessageName, @params, CancellationToken.None);
     }
-
-    // Not doing anything for now.
-    public void LogStartContext(string message, params object[] @params)
-    {
-    }
-
-    // Not doing anything for now.
-    public void LogEndContext(string message, params object[] @params)
-    {
-    }
-
-    public void LogError(string message, params object[] @params)
-    {
-#pragma warning disable CA2254 // Template should be a static expression
-        ((ILogger)this).LogError(message, @params);
-    }
-
-    public void LogException(Exception exception, string? message = null, params object[] @params)
-    {
-        ((ILogger)this).LogError(exception, message, @params);
-    }
-
-    public void LogInformation(string message, params object[] @params)
-    {
-        ((ILogger)this).LogInformation(message, @params);
-    }
-
-    public void LogWarning(string message, params object[] @params)
-    {
-        ((ILogger)this).LogWarning(message, @params);
-    }
-
-    internal IClientConnection? GetClientConnection()
-    {
-        return _clientConnection;
-    }
-#pragma warning restore CA2254 // Template should be a static expression
 
     private class Disposable : IDisposable
     {

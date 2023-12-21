@@ -52,14 +52,13 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     public RazorLanguageServer(
         JsonRpc jsonRpc,
         IRazorLoggerFactory loggerFactory,
-        ILspLogger logger,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer,
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
         ITelemetryReporter telemetryReporter)
-        : base(jsonRpc, logger)
+        : base(jsonRpc, CreateILspLogger(loggerFactory, telemetryReporter))
     {
         _jsonRpc = jsonRpc;
         _loggerFactory = loggerFactory;
@@ -71,12 +70,13 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         _telemetryReporter = telemetryReporter;
 
         _clientConnection = new ClientConnection(_jsonRpc);
-        if (_logger is LspLogger lspLogger)
-        {
-            lspLogger.Initialize(_clientConnection);
-        }
 
         Initialize();
+    }
+
+    private static ILspLogger CreateILspLogger(IRazorLoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)
+    {
+        return new ClaspLoggingBridge(loggerFactory, telemetryReporter);
     }
 
     protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()

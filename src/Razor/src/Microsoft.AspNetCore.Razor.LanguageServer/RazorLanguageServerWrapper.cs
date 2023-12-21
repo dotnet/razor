@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Serialization;
@@ -38,7 +37,6 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
         Stream input,
         Stream output,
         IRazorLoggerFactory loggerFactory,
-        ILspLogger razorLogger,
         ITelemetryReporter telemetryReporter,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher = null,
         Action<IServiceCollection>? configure = null,
@@ -58,7 +56,6 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
         var server = new RazorLanguageServer(
             jsonRpc,
             loggerFactory,
-            razorLogger,
             projectSnapshotManagerDispatcher,
             featureOptions,
             configure,

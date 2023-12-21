@@ -179,14 +179,12 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
         var traceSource = _traceProvider.GetTraceSource();
 
-        var claspLogger = new ClaspLoggingBridge(_razorLoggerFactory, _telemetryReporter);
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
             serverStream,
             _razorLoggerFactory,
-            claspLogger,
             _telemetryReporter,
             _projectSnapshotManagerDispatcher,
             ConfigureLanguageServer,
