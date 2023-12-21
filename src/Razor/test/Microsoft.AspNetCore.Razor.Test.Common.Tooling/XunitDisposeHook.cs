@@ -13,6 +13,10 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
+// Resolves issues with "System.AppDomainUnloadedException: Attempted to access an unloaded AppDomain." after a test run has finished,
+// failing the CI leg/console test run, without any failing tests.
+// Copied from https://github.com/dotnet/roslyn/pull/49355
+
 internal sealed class XunitDisposeHook : MarshalByRefObject
 {
     internal static void Initialize()
