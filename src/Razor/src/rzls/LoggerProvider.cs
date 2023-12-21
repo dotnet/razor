@@ -13,8 +13,6 @@ internal class LoggerProvider(Trace trace, IClientConnection clientConnection) :
 
     public ILogger CreateLogger(string categoryName)
     {
-        // The main LSP logger is the only one the server will have initialized with a client connection, so
-        // we have to make sure we pass it along.
         return new LspLogger(categoryName, _trace, _clientConnection);
     }
 
