@@ -11,12 +11,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 internal sealed class RazorLogHubLogger : ILogger
 {
     private string _categoryName;
-    private RazorLogHubLoggerProvider _razorLogHubLoggerProvider;
+    private TraceSource _traceSource;
 
-    public RazorLogHubLogger(string categoryName, RazorLogHubLoggerProvider razorLogHubLoggerProvider)
+    public RazorLogHubLogger(string categoryName, TraceSource traceSource)
     {
         _categoryName = categoryName;
-        _razorLogHubLoggerProvider = razorLogHubLoggerProvider;
+        _traceSource = traceSource;
     }
 
     public IDisposable BeginScope<TState>(TState state) => Scope.Instance;
@@ -34,16 +34,18 @@ internal sealed class RazorLogHubLogger : ILogger
         {
             // We separate out Information because we want to check for specific log messages set from CLaSP
             case LogLevel.Information:
+                // The category for start and stop will only ever be "CLaSP" so no point logging it
                 if (formattedResult.StartsWith(ClaspLoggingBridge.LogStartContextMarker))
                 {
-                    _razorLogHubLoggerProvider.TryLog(TraceEventType.Start, "[{0}] {1}", _categoryName, formattedResult);
+                    _traceSource.TraceEvent(TraceEventType.Start, id: 0, "{0}", formattedResult);
                 }
-
-                _razorLogHubLoggerProvider.TryLog(TraceEventType.Information, "[{0}] {1}", _categoryName, formattedResult);
-
-                if (formattedResult.StartsWith(ClaspLoggingBridge.LogEndContextMarker))
+                else if (formattedResult.StartsWith(ClaspLoggingBridge.LogEndContextMarker))
                 {
-                    _razorLogHubLoggerProvider.TryLog(TraceEventType.Stop, "[{0}] {1}", _categoryName, formattedResult);
+                    _traceSource.TraceEvent(TraceEventType.Stop, id: 0, "{0}", formattedResult);
+                }
+                else
+                {
+                    _traceSource.TraceEvent(TraceEventType.Information, id: 0, "[{0}] {1}", _categoryName, formattedResult);
                 }
 
                 break;
@@ -51,14 +53,14 @@ internal sealed class RazorLogHubLogger : ILogger
             case LogLevel.Trace:
             case LogLevel.Debug:
             case LogLevel.None:
-                _razorLogHubLoggerProvider.TryLog(TraceEventType.Information, "[{0}] {1}", _categoryName, formattedResult);
+                _traceSource.TraceEvent(TraceEventType.Information, id: 0, "[{0}] {1}", _categoryName, formattedResult);
                 break;
             case LogLevel.Warning:
-                _razorLogHubLoggerProvider.TryLog(TraceEventType.Warning, "[{0}] {1}", _categoryName, formattedResult);
+                _traceSource.TraceEvent(TraceEventType.Warning, id: 0, "[{0}] {1}", _categoryName, formattedResult);
                 break;
             case LogLevel.Error:
             case LogLevel.Critical:
-                _razorLogHubLoggerProvider.TryLog(TraceEventType.Error, "[{0}] {1} {2}", _categoryName, formattedResult, exception!);
+                _traceSource.TraceEvent(TraceEventType.Error, id: 0, "[{0}] {1} {2}", _categoryName, formattedResult, exception!);
                 break;
         }
     }
