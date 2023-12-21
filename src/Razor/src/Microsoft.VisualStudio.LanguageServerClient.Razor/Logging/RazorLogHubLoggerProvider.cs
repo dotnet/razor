@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -25,8 +26,9 @@ internal sealed class RazorLogHubLoggerProvider : IRazorLoggerProvider
 
     private readonly RazorLogHubTraceProvider _traceProvider;
     private readonly RazorLogger _razorLogger;
-    private readonly AsyncQueue<(TraceEventType Level, string Message, object[] Args)> _outputQueue;
+    private readonly Queue<(TraceEventType Level, string Message, object[] Args)> _messageQueue;
     private readonly CancellationTokenSource _disposalTokenSource;
+    private TraceSource? _traceSource;
 
     [ImportingConstructor]
     public RazorLogHubLoggerProvider(RazorLogHubTraceProvider traceProvider, RazorLogger razorLogger)
@@ -34,15 +36,15 @@ internal sealed class RazorLogHubLoggerProvider : IRazorLoggerProvider
         _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
         _razorLogger = razorLogger ?? throw new ArgumentNullException(nameof(razorLogger));
 
-        _outputQueue = new();
-        _disposalTokenSource = new CancellationTokenSource();
+        _messageQueue = new();
+        _disposalTokenSource = new();
 
-        _ = StartListeningAsync(_disposalTokenSource.Token);
+        _ = InitializeAsync(_disposalTokenSource.Token);
     }
 
-    private async Task StartListeningAsync(CancellationToken cancellationToken)
+    private async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        // Ensure that we're never on the UI thread before we start listening, in case the async queue doesn't yield
+        // Ensure that we're never on the UI thread before initialize
         // I suspect this is overkill :D
         await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
@@ -50,13 +52,17 @@ internal sealed class RazorLogHubLoggerProvider : IRazorLoggerProvider
         var traceSource = await _traceProvider.InitializeTraceAsync(LogFileIdentifier, logInstanceNumber, cancellationToken).ConfigureAwait(false);
         if (traceSource is null)
         {
+            traceSource = new TraceSource("None", SourceLevels.Off) ;
+            traceSource.Listeners.Clear();
             _razorLogger.LogError("Could not initialize trace source for Razor LogHub logger. No LogHub log will be created.");
             return;
         }
 
-        while (!cancellationToken.IsCancellationRequested)
+        _traceSource = traceSource;
+
+        while (_messageQueue.Count > 0)
         {
-            var value = await _outputQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+            var value = _messageQueue.Dequeue();
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
@@ -73,12 +79,25 @@ internal sealed class RazorLogHubLoggerProvider : IRazorLoggerProvider
 
     public void Dispose()
     {
-        _outputQueue.Complete();
         _disposalTokenSource.Cancel();
     }
 
-    internal void Queue(TraceEventType level, string message, params object[] args)
+    /// <summary>
+    /// Tries to log the specified method to LogHub
+    /// </summary>
+    /// <remarks>
+    /// LogHub initialization is <see langword="async"/>, so its possible we'll start to receive log messages
+    /// before things are initialized. In that case this logger will queue up the messages to be logged later.
+    /// </remarks>
+    internal void TryLog(TraceEventType level, string message, params object[] args)
     {
-        _outputQueue.TryEnqueue((level, message, args));
+        if (_traceSource is not null)
+        {
+            _traceSource.TraceEvent(level, id: 0, message, args);
+        }
+        else
+        {
+            _messageQueue.Enqueue((level, message, args));
+        }
     }
 }

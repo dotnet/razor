@@ -36,14 +36,14 @@ internal sealed class RazorLogHubLogger : ILogger
             case LogLevel.Information:
                 if (formattedResult.StartsWith(ClaspLoggingBridge.LogStartContextMarker))
                 {
-                    _razorLogHubLoggerProvider.Queue(TraceEventType.Start, "[{0}] {1}", _categoryName, formattedResult);
+                    _razorLogHubLoggerProvider.TryLog(TraceEventType.Start, "[{0}] {1}", _categoryName, formattedResult);
                 }
 
-                _razorLogHubLoggerProvider.Queue(TraceEventType.Information, "[{0}] {1}", _categoryName, formattedResult);
+                _razorLogHubLoggerProvider.TryLog(TraceEventType.Information, "[{0}] {1}", _categoryName, formattedResult);
 
                 if (formattedResult.StartsWith(ClaspLoggingBridge.LogEndContextMarker))
                 {
-                    _razorLogHubLoggerProvider.Queue(TraceEventType.Stop, "[{0}] {1}", _categoryName, formattedResult);
+                    _razorLogHubLoggerProvider.TryLog(TraceEventType.Stop, "[{0}] {1}", _categoryName, formattedResult);
                 }
 
                 break;
@@ -51,14 +51,14 @@ internal sealed class RazorLogHubLogger : ILogger
             case LogLevel.Trace:
             case LogLevel.Debug:
             case LogLevel.None:
-                _razorLogHubLoggerProvider.Queue(TraceEventType.Information, "[{0}] {1}", _categoryName, formattedResult);
+                _razorLogHubLoggerProvider.TryLog(TraceEventType.Information, "[{0}] {1}", _categoryName, formattedResult);
                 break;
             case LogLevel.Warning:
-                _razorLogHubLoggerProvider.Queue(TraceEventType.Warning, "[{0}] {1}", _categoryName, formattedResult);
+                _razorLogHubLoggerProvider.TryLog(TraceEventType.Warning, "[{0}] {1}", _categoryName, formattedResult);
                 break;
             case LogLevel.Error:
             case LogLevel.Critical:
-                _razorLogHubLoggerProvider.Queue(TraceEventType.Error, "[{0}] {1} {2}", _categoryName, formattedResult, exception!);
+                _razorLogHubLoggerProvider.TryLog(TraceEventType.Error, "[{0}] {1} {2}", _categoryName, formattedResult, exception!);
                 break;
         }
     }
