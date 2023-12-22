@@ -3,14 +3,12 @@
 
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-internal readonly struct RazorRequestContext(VersionedDocumentContext? documentContext, ILogger logger, ILspServices lspServices, string method, Uri? uri)
+internal readonly struct RazorRequestContext(VersionedDocumentContext? documentContext, ILspServices lspServices, string method, Uri? uri)
 {
     public readonly VersionedDocumentContext? DocumentContext = documentContext;
-    public readonly ILogger Logger = logger;
     public readonly ILspServices LspServices = lspServices;
     public readonly string Method = method;
     public readonly Uri? Uri = uri;
