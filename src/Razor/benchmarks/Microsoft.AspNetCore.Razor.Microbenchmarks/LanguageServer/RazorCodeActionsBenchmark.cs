@@ -86,7 +86,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         // Need a root namespace for the Extract to Code Behind light bulb to be happy
         codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(c => c.RootNamespace = "Root.Namespace"));
 
-        RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
+        RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices(), "lsp/method", uri: null);
 
         Range ToRange(int index)
         {

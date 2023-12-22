@@ -89,7 +89,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         await UpdateDocumentAsync(documentVersion, DocumentSnapshot, CancellationToken).ConfigureAwait(false);
 
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RequestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
+        RequestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices(), "lsp/method", uri: null);
 
         var random = new Random();
         var codeDocument = await DocumentContext.GetCodeDocumentAsync(CancellationToken);
