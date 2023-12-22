@@ -62,11 +62,7 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
             }
         }
 
-        var requestContext = new RazorRequestContext(documentContext, logger, _lspServices
-#if DEBUG
-            , queueItem.MethodName, uri
-#endif
-            );
+        var requestContext = new RazorRequestContext(documentContext, logger, _lspServices, queueItem.MethodName, uri);
 
         return Task.FromResult(requestContext);
     }
