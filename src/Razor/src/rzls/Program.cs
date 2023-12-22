@@ -90,7 +90,7 @@ public class Program
 
         // Now we have a server, and hence a connection, we have somewhere to log
         var clientConnection = server.GetRequiredService<IClientConnection>();
-        var loggerProvider = new LoggerProvider(traceLevel, clientConnection);
+        var loggerProvider = new LoggerProvider(logLevel, clientConnection);
         loggerFactory.AddLoggerProvider(loggerProvider);
 
         loggerFactory.CreateLogger("RZLS").LogInformation("Razor Language Server started successfully.");
