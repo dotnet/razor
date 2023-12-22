@@ -88,12 +88,12 @@ internal class RazorTranslateDiagnosticsService
             : FilterHTMLDiagnostics(diagnostics, codeDocument, sourceText, _logger);
         if (!filteredDiagnostics.Any())
         {
-            _logger.LogInformation("No diagnostics remaining after filtering.");
+            _logger.LogDebug("No diagnostics remaining after filtering.");
 
             return Array.Empty<Diagnostic>();
         }
 
-        _logger.LogInformation("{filteredDiagnosticsLength}/{unmappedDiagnosticsLength} diagnostics remain after filtering.", filteredDiagnostics.Length, diagnostics.Length);
+        _logger.LogDebug("{filteredDiagnosticsLength}/{unmappedDiagnosticsLength} diagnostics remain after filtering.", filteredDiagnostics.Length, diagnostics.Length);
 
         var mappedDiagnostics = MapDiagnostics(
             diagnosticKind,

@@ -18,7 +18,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var traceLevel = Trace.Messages;
+        var logLevel = LogLevel.Information;
         var telemetryLevel = string.Empty;
         var sessionId = string.Empty;
         var telemetryExtensionPath = string.Empty;
@@ -47,13 +47,13 @@ public class Program
                 continue;
             }
 
-            if (args[i] == "--trace" && i + 1 < args.Length)
+            if (args[i] == "--logLevel" && i + 1 < args.Length)
             {
-                var traceArg = args[++i];
-                if (!Enum.TryParse(traceArg, out traceLevel))
+                var logLevelArg = args[++i];
+                if (!Enum.TryParse(logLevelArg, out logLevel))
                 {
-                    traceLevel = Trace.Messages;
-                    await Console.Error.WriteLineAsync($"Invalid Razor trace '{traceArg}'. Defaulting to {traceLevel}.").ConfigureAwait(true);
+                    logLevel = LogLevel.Information;
+                    await Console.Error.WriteLineAsync($"Invalid Razor log level '{logLevelArg}'. Defaulting to {logLevel}.").ConfigureAwait(true);
                 }
             }
 

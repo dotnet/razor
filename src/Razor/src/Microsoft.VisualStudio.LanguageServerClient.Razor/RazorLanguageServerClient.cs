@@ -25,126 +25,51 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
 using StreamJsonRpc;
-using Task = System.Threading.Tasks.Task;
-using Trace = Microsoft.AspNetCore.Razor.LanguageServer.Trace;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 [Export(typeof(ILanguageClient))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
-internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
+[method: ImportingConstructor]
+internal class RazorLanguageServerClient(
+    RazorCustomMessageTarget customTarget,
+    RazorLanguageClientMiddleLayer middleLayer,
+    LSPRequestInvoker requestInvoker,
+    ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+    IRazorLoggerFactory razorLoggerFactory,
+    RazorLogHubTraceProvider traceProvider,
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+    ILanguageClientBroker languageClientBroker,
+    ILanguageServiceBroker2 languageServiceBroker,
+    ITelemetryReporter telemetryReporter,
+    IClientSettingsManager clientSettingsManager,
+    ILspServerActivationTracker lspServerActivationTracker,
+    VisualStudioHostServicesProvider vsHostWorkspaceServicesProvider)
+    : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
 {
-    private readonly ILanguageClientBroker _languageClientBroker;
-    private readonly ILanguageServiceBroker2 _languageServiceBroker;
-    private readonly ITelemetryReporter _telemetryReporter;
-    private readonly IClientSettingsManager _clientSettingsManager;
-    private readonly ILspServerActivationTracker _lspServerActivationTracker;
-    private readonly RazorCustomMessageTarget _customMessageTarget;
-    private readonly ILanguageClientMiddleLayer _middleLayer;
-    private readonly LSPRequestInvoker _requestInvoker;
-    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-    private readonly IRazorLoggerFactory _razorLoggerFactory;
-    private readonly RazorLogHubTraceProvider _traceProvider;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
-    private RazorLanguageServerWrapper? _server;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ILanguageClientBroker _languageClientBroker = languageClientBroker ?? throw new ArgumentNullException(nameof(languageClientBroker));
+    private readonly ILanguageServiceBroker2 _languageServiceBroker = languageServiceBroker ?? throw new ArgumentNullException(nameof(languageServiceBroker));
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager ?? throw new ArgumentNullException(nameof(clientSettingsManager));
+    private readonly ILspServerActivationTracker _lspServerActivationTracker = lspServerActivationTracker ?? throw new ArgumentNullException(nameof(lspServerActivationTracker));
+    private readonly RazorCustomMessageTarget _customMessageTarget = customTarget ?? throw new ArgumentNullException(nameof(customTarget));
+    private readonly ILanguageClientMiddleLayer _middleLayer = middleLayer ?? throw new ArgumentNullException(nameof(middleLayer));
+    private readonly LSPRequestInvoker _requestInvoker = requestInvoker ?? throw new ArgumentNullException(nameof(requestInvoker));
+    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+    private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider ?? throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
+    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+    private readonly IRazorLoggerFactory _razorLoggerFactory = razorLoggerFactory ?? throw new ArgumentNullException(nameof(razorLoggerFactory));
+    private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
 
-    private const string RazorLSPLogLevel = "RAZOR_TRACE";
+    private RazorLanguageServerWrapper? _server;
 
     public event AsyncEventHandler<EventArgs>? StartAsync;
     public event AsyncEventHandler<EventArgs>? StopAsync
     {
         add { }
         remove { }
-    }
-
-    [ImportingConstructor]
-    public RazorLanguageServerClient(
-        RazorCustomMessageTarget customTarget,
-        RazorLanguageClientMiddleLayer middleLayer,
-        LSPRequestInvoker requestInvoker,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        IRazorLoggerFactory razorLoggerFactory,
-        RazorLogHubTraceProvider traceProvider,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ILanguageClientBroker languageClientBroker,
-        ILanguageServiceBroker2 languageServiceBroker,
-        ITelemetryReporter telemetryReporter,
-        IClientSettingsManager clientSettingsManager,
-        ILspServerActivationTracker lspServerActivationTracker,
-        [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
-    {
-        if (customTarget is null)
-        {
-            throw new ArgumentNullException(nameof(customTarget));
-        }
-
-        if (middleLayer is null)
-        {
-            throw new ArgumentNullException(nameof(middleLayer));
-        }
-
-        if (requestInvoker is null)
-        {
-            throw new ArgumentNullException(nameof(requestInvoker));
-        }
-
-        if (projectConfigurationFilePathStore is null)
-        {
-            throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-        }
-
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
-
-        if (languageClientBroker is null)
-        {
-            throw new ArgumentNullException(nameof(languageClientBroker));
-        }
-
-        if (languageServiceBroker is null)
-        {
-            throw new ArgumentNullException(nameof(languageServiceBroker));
-        }
-
-        if (telemetryReporter is null)
-        {
-            throw new ArgumentNullException(nameof(telemetryReporter));
-        }
-
-        if (clientSettingsManager is null)
-        {
-            throw new ArgumentNullException(nameof(clientSettingsManager));
-        }
-
-        if (lspServerActivationTracker is null)
-        {
-            throw new ArgumentNullException(nameof(lspServerActivationTracker));
-        }
-
-        _customMessageTarget = customTarget;
-        _middleLayer = middleLayer;
-        _requestInvoker = requestInvoker;
-        _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-        _razorLoggerFactory = razorLoggerFactory;
-        _traceProvider = traceProvider;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-        _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
-        _languageClientBroker = languageClientBroker;
-        _languageServiceBroker = languageServiceBroker;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _telemetryReporter = telemetryReporter;
-        _clientSettingsManager = clientSettingsManager;
-        _lspServerActivationTracker = lspServerActivationTracker;
     }
 
     public string Name => RazorLSPConstants.RazorLanguageServerName;
@@ -174,8 +99,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
         await EnsureCleanedUpServerAsync().ConfigureAwait(false);
-
-        var traceLevel = GetVerbosity();
 
         var traceSource = _traceProvider.GetTraceSource();
 
@@ -266,14 +189,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         }
     }
 
-    private Trace GetVerbosity()
-    {
-        var logString = Environment.GetEnvironmentVariable(RazorLSPLogLevel);
-        var result = Enum.TryParse<Trace>(logString, out var parsedTrace) ? parsedTrace : Trace.Off;
-
-        return result;
-    }
-
     private async Task EnsureCleanedUpServerAsync()
     {
         if (_server is null)
@@ -317,7 +232,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             //
             // Note: When moving between solutions this can fail with a null reference exception because the underlying LSP platform's
             // JsonRpc object will be `null`. This can happen in two situations:
-            //      1.  There's currently a race in the platform on shutting down/activating so we don't get the opportunity to properly detatch
+            //      1.  There's currently a race in the platform on shutting down/activating so we don't get the opportunity to properly detach
             //          from the configuration file path store changed event properly.
             //          Tracked by: https://github.com/dotnet/aspnetcore/issues/23819
             //      2.  The LSP platform failed to shutdown our language server properly due to a JsonRpc timeout. There's currently a limitation in
@@ -365,14 +280,9 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         }
     }
 
-    private class HostServicesProviderWrapper : HostServicesProvider
+    private sealed class HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider) : HostServicesProvider
     {
-        private readonly VisualStudioHostServicesProvider _vsHostServicesProvider;
-
-        public HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider)
-        {
-            _vsHostServicesProvider = vsHostServicesProvider;
-        }
+        private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider;
 
         public override HostServices GetServices() => _vsHostServicesProvider.GetServices();
     }

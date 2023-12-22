@@ -6,14 +6,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LoggerProvider(Trace trace, IClientConnection clientConnection) : IRazorLoggerProvider
+internal class LoggerProvider(LogLevel logLevel, IClientConnection clientConnection) : IRazorLoggerProvider
 {
-    private readonly Trace _trace = trace;
-    private IClientConnection _clientConnection = clientConnection;
+    private readonly LogLevel _logLevel = logLevel;
+    private readonly IClientConnection _clientConnection = clientConnection;
 
-    public ILogger CreateLogger(string categoryName)
+	public ILogger CreateLogger(string categoryName)
     {
-        return new LspLogger(categoryName, _trace, _clientConnection);
+        return new LspLogger(categoryName, _logLevel, _clientConnection);
     }
 
     public void Dispose()
