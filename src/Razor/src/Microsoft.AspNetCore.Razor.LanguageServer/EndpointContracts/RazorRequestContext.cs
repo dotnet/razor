@@ -6,10 +6,9 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-internal readonly struct RazorRequestContext(VersionedDocumentContext? documentContext, IRazorLogger logger, ILspServices lspServices, string method, Uri? uri)
+internal readonly struct RazorRequestContext(VersionedDocumentContext? documentContext, ILspServices lspServices, string method, Uri? uri)
 {
     public readonly VersionedDocumentContext? DocumentContext = documentContext;
-    public readonly IRazorLogger Logger = logger;
     public readonly ILspServices LspServices = lspServices;
     public readonly string Method = method;
     public readonly Uri? Uri = uri;
