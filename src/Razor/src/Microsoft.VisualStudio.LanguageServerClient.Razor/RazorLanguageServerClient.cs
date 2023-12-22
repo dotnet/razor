@@ -65,8 +65,6 @@ internal class RazorLanguageServerClient(
 
     private RazorLanguageServerWrapper? _server;
 
-    private const string RazorLSPLogLevel = "RAZOR_TRACE";
-
     public event AsyncEventHandler<EventArgs>? StartAsync;
     public event AsyncEventHandler<EventArgs>? StopAsync
     {
@@ -101,8 +99,6 @@ internal class RazorLanguageServerClient(
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
         await EnsureCleanedUpServerAsync().ConfigureAwait(false);
-
-        var traceLevel = GetVerbosity();
 
         // Initialize Logging Infrastructure
         var traceSource = _traceProvider.GetTraceSource();
@@ -196,14 +192,6 @@ internal class RazorLanguageServerClient(
             var wrapper = new HostServicesProviderWrapper(_vsHostWorkspaceServicesProvider);
             serviceCollection.AddSingleton<HostServicesProvider>(wrapper);
         }
-    }
-
-    private Trace GetVerbosity()
-    {
-        var logString = Environment.GetEnvironmentVariable(RazorLSPLogLevel);
-        var result = Enum.TryParse<Trace>(logString, out var parsedTrace) ? parsedTrace : Trace.Off;
-
-        return result;
     }
 
     private async Task EnsureCleanedUpServerAsync()
