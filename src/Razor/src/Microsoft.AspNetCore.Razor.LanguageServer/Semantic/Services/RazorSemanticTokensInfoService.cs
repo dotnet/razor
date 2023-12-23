@@ -24,35 +24,21 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
+internal class RazorSemanticTokensInfoService(
+    IClientConnection clientConnection,
+    IRazorDocumentMappingService documentMappingService,
+    RazorLSPOptionsMonitor razorLSPOptionsMonitor,
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IRazorLoggerFactory loggerFactory)
+    : IRazorSemanticTokensInfoService
 {
     private const int TokenSize = 5;
 
-    private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
-    private readonly IClientConnection _clientConnection;
-    private readonly ILogger _logger;
-
-    public RazorSemanticTokensInfoService(
-        IClientConnection clientConnection,
-        IRazorDocumentMappingService documentMappingService,
-        RazorLSPOptionsMonitor razorLSPOptionsMonitor,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorLoggerFactory loggerFactory)
-    {
-        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-        _razorLSPOptionsMonitor = razorLSPOptionsMonitor ?? throw new ArgumentNullException(nameof(razorLSPOptionsMonitor));
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _logger = loggerFactory.CreateLogger<RazorSemanticTokensInfoService>();
-    }
+    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor ?? throw new ArgumentNullException(nameof(razorLSPOptionsMonitor));
+    private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
+    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorSemanticTokensInfoService>();
 
     public async Task<SemanticTokens?> GetSemanticTokensAsync(
         TextDocumentIdentifier textDocumentIdentifier,
