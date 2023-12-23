@@ -10,16 +10,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 [LanguageServerEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
-internal sealed class SemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, ICapabilitiesProvider
+internal sealed class SemanticTokensRangeEndpoint(
+    IRazorSemanticTokensInfoService semanticTokensInfoService,
+    IClientConnection clientConnection)
+    : IRazorRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, ICapabilitiesProvider
 {
-    private readonly IRazorSemanticTokensInfoService _semanticTokensInfoService;
-    private readonly IClientConnection _clientConnection;
-
-    public SemanticTokensRangeEndpoint(IRazorSemanticTokensInfoService semanticTokensInfoService, IClientConnection clientConnection)
-    {
-        _semanticTokensInfoService = semanticTokensInfoService;
-        _clientConnection = clientConnection;
-    }
+    private readonly IRazorSemanticTokensInfoService _semanticTokensInfoService = semanticTokensInfoService;
+    private readonly IClientConnection _clientConnection = clientConnection;
 
     public bool MutatesSolutionState { get; } = false;
 
