@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 
@@ -22,12 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 internal sealed class CohostDocumentColorEndpoint(
     IDocumentColorService documentColorService,
     IDocumentContextFactory documentContextFactory,
-    IOutputWindowLogger outputWindowLogger)
+    IRazorLoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<DocumentColorParams, ColorInformation[]>, ICapabilitiesProvider
 {
     private readonly IDocumentColorService _documentColorService = documentColorService;
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
-    private readonly ILogger _logger = outputWindowLogger; // TODO: better logging
+    private readonly ILogger _logger = loggerFactory.CreateLogger<CohostDocumentColorEndpoint>();
 
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
@@ -44,7 +44,7 @@ internal sealed class CohostDocumentColorEndpoint(
         var documentContext = _documentContextFactory.TryCreateForOpenDocument(request.TextDocument);
 
         _logger.LogDebug("[Cohost] Received document color request for {requestPath} and got document {documentPath}", request.TextDocument.Uri, documentContext?.FilePath);
-        
+
         // TODO: We can't MEF import IRazorCohostClientLanguageServerManager in the constructor. We can make this work
         //       by having it implement a base class, RazorClientConnectionBase or something, that in turn implements
         //       AbstractRazorLspService (defined in Roslyn) and then move everything from importing IClientConnection
