@@ -6,7 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -22,7 +24,8 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
 
     public Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, TRequestParams @params, CancellationToken cancellationToken)
     {
-        var logger = _lspServices.GetRequiredService<LoggerAdapter>();
+        // To make things easier for endpoints, we create a logger here for them, with the LSP message as the category
+        var logger = _lspServices.GetRequiredService<IRazorLoggerFactory>().CreateLogger(queueItem.MethodName);
 
         VersionedDocumentContext? documentContext = null;
         var textDocumentHandler = queueItem.MethodHandler as ITextDocumentIdentifierHandler;

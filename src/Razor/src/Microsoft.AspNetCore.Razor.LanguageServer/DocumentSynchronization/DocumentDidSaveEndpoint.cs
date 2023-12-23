@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
@@ -22,7 +23,7 @@ internal class DocumentDidSaveEndpoint : IRazorNotificationHandler<DidSaveTextDo
 
     public Task HandleNotificationAsync(DidSaveTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        requestContext.Logger.LogInformation($"Saved Document {request.TextDocument.Uri.GetAbsoluteOrUNCPath()}");
+        requestContext.Logger.LogInformation("Saved Document {document}", request.TextDocument.Uri.GetAbsoluteOrUNCPath());
 
         return Task.CompletedTask;
     }

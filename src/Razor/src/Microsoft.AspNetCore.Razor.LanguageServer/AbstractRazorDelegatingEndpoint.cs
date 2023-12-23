@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -166,7 +167,8 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         }
         catch (RemoteInvocationException e)
         {
-            requestContext.Logger.LogException(e);
+            Logger.LogError(e, "Error calling delegate server for {method}", CustomMessageTarget);
+            requestContext.GetRequiredService<ITelemetryReporter>().ReportFault(e, "Error calling delegate server for {method}", CustomMessageTarget);
             throw;
         }
 
