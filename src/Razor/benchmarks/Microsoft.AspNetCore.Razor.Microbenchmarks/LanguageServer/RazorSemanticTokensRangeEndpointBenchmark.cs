@@ -74,7 +74,10 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var version = 1;
         DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
         Logger = new NoopLogger();
-        SemanticTokensRangeEndpoint = new SemanticTokensRangeEndpoint(telemetryReporter: null);
+
+        var razorOptionsMonitor = RazorLanguageServer.GetRequiredService<RazorLSPOptionsMonitor>();
+        var clientConnection = RazorLanguageServer.GetRequiredService<IClientConnection>();
+        SemanticTokensRangeEndpoint = new SemanticTokensRangeEndpoint(RazorSemanticTokenService, razorOptionsMonitor, clientConnection);
         SemanticTokensRangeEndpoint.ApplyCapabilities(new(), new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
@@ -151,21 +154,21 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     internal class TestCustomizableRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
     {
         public TestCustomizableRazorSemanticTokensInfoService(
-            IClientConnection clientConnection,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             IRazorDocumentMappingService documentMappingService,
-            RazorLSPOptionsMonitor razorLSPOptionsMonitor,
             IRazorLoggerFactory loggerFactory)
-            : base(clientConnection, documentMappingService, razorLSPOptionsMonitor, languageServerFeatureOptions, loggerFactory)
+            : base(documentMappingService, languageServerFeatureOptions, loggerFactory, telemetryReporter: null)
         {
         }
 
         // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
         internal override Task<ImmutableArray<SemanticRange>?> GetCSharpSemanticRangesAsync(
+            IClientConnection clientConnection,
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range razorRange,
             RazorSemanticTokensLegend razorSemanticTokensLegend,
+            bool colorBackground,
             long documentVersion,
             Guid correlationId,
             CancellationToken cancellationToken,
