@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -39,7 +40,7 @@ internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
     private readonly CSharpVirtualDocumentAddListener _csharpVirtualDocumentAddListener;
-    private ILogger? _logger;
+    private readonly ILogger _logger;
 
     [ImportingConstructor]
     public RazorCustomMessageTarget(
@@ -53,7 +54,8 @@ internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget
         ITelemetryReporter telemetryReporter,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        SnippetCache snippetCache)
+        SnippetCache snippetCache,
+        IRazorLoggerFactory loggerFactory)
     {
         if (documentManager is null)
         {
@@ -82,11 +84,7 @@ internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
         _snippetCache = snippetCache ?? throw new ArgumentNullException(nameof(snippetCache));
-    }
-
-    internal void SetLogger(ILogger? logger)
-    {
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger<RazorCustomMessageTarget>();
     }
 
     private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)

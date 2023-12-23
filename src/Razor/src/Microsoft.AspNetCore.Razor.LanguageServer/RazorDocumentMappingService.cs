@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,12 +29,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal sealed class RazorDocumentMappingService(
         FilePathService filePathService,
         IDocumentContextFactory documentContextFactory,
-        [Import(AllowDefault = true)] ILoggerFactory? loggerFactory)
+        IRazorLoggerFactory loggerFactory)
          : IRazorDocumentMappingService
 {
     private readonly FilePathService _documentFilePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-    private readonly ILogger _logger = loggerFactory?.CreateLogger<RazorDocumentMappingService>() ?? (ILogger)NullLogger.Instance; // TODO: Better logging
+    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorDocumentMappingService>();
 
     public TextEdit[] GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] generatedDocumentEdits)
     {

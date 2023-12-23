@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -26,12 +27,10 @@ internal sealed class SnapshotResolver : ISnapshotResolver
     internal readonly HostProject MiscellaneousHostProject;
 
     [ImportingConstructor]
-    public SnapshotResolver(
-            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-            [Import(AllowDefault = true)] ILoggerFactory? loggerFactory)
+    public SnapshotResolver(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor, IRazorLoggerFactory loggerFactory)
     {
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        _logger = loggerFactory?.CreateLogger<SnapshotResolver>() ?? (ILogger)NullLogger.Instance; // TODO: Better logging
+        _logger = loggerFactory.CreateLogger<SnapshotResolver>();
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         var normalizedPath = FilePathNormalizer.Normalize(miscellaneousProjectPath);

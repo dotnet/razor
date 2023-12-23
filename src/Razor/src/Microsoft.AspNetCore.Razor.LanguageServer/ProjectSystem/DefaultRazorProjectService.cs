@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -32,7 +33,7 @@ internal class DefaultRazorProjectService(
     ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
     ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-    [Import(AllowDefault = true)] ILoggerFactory? loggerFactory)
+    IRazorLoggerFactory loggerFactory)
     : RazorProjectService
 {
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
@@ -40,7 +41,7 @@ internal class DefaultRazorProjectService(
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory = remoteTextLoaderFactory ?? throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
     private readonly ISnapshotResolver _snapshotResolver = snapshotResolver ?? throw new ArgumentNullException(nameof(snapshotResolver));
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
-    private readonly ILogger _logger = loggerFactory?.CreateLogger<DefaultRazorProjectService>() ?? (ILogger)NullLogger.Instance;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<DefaultRazorProjectService>();
 
     public override void AddDocument(string filePath)
     {
