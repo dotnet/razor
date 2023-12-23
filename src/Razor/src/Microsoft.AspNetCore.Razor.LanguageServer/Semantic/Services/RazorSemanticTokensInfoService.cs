@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -24,12 +26,15 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
+[Export(typeof(IRazorSemanticTokensInfoService)), Shared]
+[method: ImportingConstructor]
 internal class RazorSemanticTokensInfoService(
     IClientConnection clientConnection,
     IRazorDocumentMappingService documentMappingService,
     RazorLSPOptionsMonitor razorLSPOptionsMonitor,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRazorLoggerFactory loggerFactory)
+    IRazorLoggerFactory loggerFactory,
+    ITelemetryReporter? telemetryReporter)
     : IRazorSemanticTokensInfoService
 {
     private const int TokenSize = 5;
@@ -39,24 +44,64 @@ internal class RazorSemanticTokensInfoService(
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor ?? throw new ArgumentNullException(nameof(razorLSPOptionsMonitor));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly ILogger _logger = loggerFactory.CreateLogger<RazorSemanticTokensInfoService>();
+    private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
+
+    private RazorSemanticTokensLegend? _razorSemanticTokensLegend;
+
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
+    {
+        _razorSemanticTokensLegend = new RazorSemanticTokensLegend(clientCapabilities);
+
+        serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
+        {
+            Full = false,
+            Legend = _razorSemanticTokensLegend.Legend,
+            Range = true,
+        };
+    }
 
     public async Task<SemanticTokens?> GetSemanticTokensAsync(
         TextDocumentIdentifier textDocumentIdentifier,
         Range range,
         VersionedDocumentContext documentContext,
-        RazorSemanticTokensLegend razorSemanticTokensLegend,
+        CancellationToken cancellationToken)
+    {
+        _razorSemanticTokensLegend.AssumeNotNull();
+
+        var correlationId = Guid.NewGuid();
+        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, LanguageServerConstants.RazorLanguageServerName, correlationId);
+
+        var semanticTokens = await GetSemanticTokensAsync(textDocumentIdentifier, range, documentContext, correlationId, cancellationToken).ConfigureAwait(false);
+
+        var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
+
+        _logger.LogInformation("Returned {amount} semantic tokens for range ({startLine},{startChar})-({endLine},{endChar}) in {request.TextDocument.Uri}.", amount, range.Start.Line, range.Start.Character, range.End.Line, range.End.Character, textDocumentIdentifier.Uri);
+
+        if (semanticTokens is not null)
+        {
+            Debug.Assert(semanticTokens.Data.Length % 5 == 0, $"Number of semantic token-ints should be divisible by 5. Actual number: {semanticTokens.Data.Length}");
+            Debug.Assert(semanticTokens.Data.Length == 0 || semanticTokens.Data[0] >= 0, $"Line offset should not be negative.");
+        }
+
+        return semanticTokens;
+    }
+
+    private async Task<SemanticTokens?> GetSemanticTokensAsync(
+        TextDocumentIdentifier textDocumentIdentifier,
+        Range range,
+        VersionedDocumentContext documentContext,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend, _razorLSPOptionsMonitor.CurrentValue.ColorBackground);
+        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, _razorSemanticTokensLegend, _razorLSPOptionsMonitor.CurrentValue.ColorBackground);
         ImmutableArray<SemanticRange>? csharpSemanticRangesResult = null;
 
         try
         {
-            csharpSemanticRangesResult = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, razorSemanticTokensLegend, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
+            csharpSemanticRangesResult = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, _razorSemanticTokensLegend, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
