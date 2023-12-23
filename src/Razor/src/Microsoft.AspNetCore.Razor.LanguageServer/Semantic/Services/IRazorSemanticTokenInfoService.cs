@@ -9,5 +9,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal interface IRazorSemanticTokensInfoService : ICapabilitiesProvider
 {
-    Task<SemanticTokens?> GetSemanticTokensAsync(IClientConnection clientConnection, TextDocumentIdentifier textDocumentIdentifier, Range range, VersionedDocumentContext documentContext, CancellationToken cancellationToken);
+    Task<SemanticTokens?> GetSemanticTokensAsync(IClientConnection clientConnection, TextDocumentIdentifier textDocumentIdentifier, Range range, VersionedDocumentContext documentContext, bool colorBackground, CancellationToken cancellationToken);
 }

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 
@@ -22,11 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 [method: ImportingConstructor]
 internal sealed class CohostSemanticTokensRangeEndpoint(
     IRazorSemanticTokensInfoService semanticTokensInfoService,
+    IClientSettingsManager clientSettingsManager,
     IDocumentContextFactory documentContextFactory,
     IRazorLoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, ICapabilitiesProvider
 {
     private readonly IRazorSemanticTokensInfoService _semanticTokensInfoService = semanticTokensInfoService;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly ILogger _logger = loggerFactory.CreateLogger<CohostSemanticTokensRangeEndpoint>();
 
@@ -55,6 +58,10 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
         var clientLanguageServerManager = context.GetRequiredService<IRazorCohostClientLanguageServerManager>();
         var clientConnection = new RazorCohostClientConnection(clientLanguageServerManager);
 
-        return _semanticTokensInfoService.GetSemanticTokensAsync(clientConnection, request.TextDocument, request.Range, documentContext.AssumeNotNull(), cancellationToken);
+        // TODO: This is currently using the "VS" client settings manager, since that's where we are running. In future
+        //       we should create a hook into Roslyn's LSP options infra so we get the option values from the LSP client
+        var colorBackground = _clientSettingsManager.GetClientSettings().AdvancedSettings.ColorBackground;
+
+        return _semanticTokensInfoService.GetSemanticTokensAsync(clientConnection, request.TextDocument, request.Range, documentContext.AssumeNotNull(), colorBackground, cancellationToken);
     }
 }

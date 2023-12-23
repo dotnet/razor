@@ -30,7 +30,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 [method: ImportingConstructor]
 internal class RazorSemanticTokensInfoService(
     IRazorDocumentMappingService documentMappingService,
-    RazorLSPOptionsMonitor razorLSPOptionsMonitor,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IRazorLoggerFactory loggerFactory,
     ITelemetryReporter? telemetryReporter)
@@ -40,7 +39,6 @@ internal class RazorSemanticTokensInfoService(
 
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor ?? throw new ArgumentNullException(nameof(razorLSPOptionsMonitor));
     private readonly ILogger _logger = loggerFactory.CreateLogger<RazorSemanticTokensInfoService>();
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
 
@@ -63,6 +61,7 @@ internal class RazorSemanticTokensInfoService(
         TextDocumentIdentifier textDocumentIdentifier,
         Range range,
         VersionedDocumentContext documentContext,
+        bool colorBackground,
         CancellationToken cancellationToken)
     {
         _razorSemanticTokensLegend.AssumeNotNull();
@@ -70,7 +69,7 @@ internal class RazorSemanticTokensInfoService(
         var correlationId = Guid.NewGuid();
         using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, LanguageServerConstants.RazorLanguageServerName, correlationId);
 
-        var semanticTokens = await GetSemanticTokensAsync(clientConnection, textDocumentIdentifier, range, documentContext, correlationId, cancellationToken).ConfigureAwait(false);
+        var semanticTokens = await GetSemanticTokensAsync(clientConnection, textDocumentIdentifier, range, documentContext, correlationId, colorBackground, cancellationToken).ConfigureAwait(false);
 
         var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
 
@@ -91,17 +90,19 @@ internal class RazorSemanticTokensInfoService(
         Range range,
         VersionedDocumentContext documentContext,
         Guid correlationId,
+        bool colorBackground,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, _razorSemanticTokensLegend.AssumeNotNull(), _razorLSPOptionsMonitor.CurrentValue.ColorBackground);
+
+        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, _razorSemanticTokensLegend.AssumeNotNull(), colorBackground);
         ImmutableArray<SemanticRange>? csharpSemanticRangesResult = null;
 
         try
         {
-            csharpSemanticRangesResult = await GetCSharpSemanticRangesAsync(clientConnection, codeDocument, textDocumentIdentifier, range, _razorSemanticTokensLegend, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
+            csharpSemanticRangesResult = await GetCSharpSemanticRangesAsync(clientConnection, codeDocument, textDocumentIdentifier, range, _razorSemanticTokensLegend, colorBackground, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -169,6 +170,7 @@ internal class RazorSemanticTokensInfoService(
         TextDocumentIdentifier textDocumentIdentifier,
         Range razorRange,
         RazorSemanticTokensLegend razorSemanticTokensLegend,
+        bool colorBackground,
         long documentVersion,
         Guid correlationId,
         CancellationToken cancellationToken,
@@ -216,7 +218,6 @@ internal class RazorSemanticTokensInfoService(
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var razorRanges);
         razorRanges.SetCapacityIfLarger(csharpResponse.Length / TokenSize);
 
-        var colorBackground = _razorLSPOptionsMonitor.CurrentValue.ColorBackground;
         var textClassification = razorSemanticTokensLegend.MarkupTextLiteral;
         var razorSource = codeDocument.GetSourceText();
 
