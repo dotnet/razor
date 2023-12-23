@@ -13,10 +13,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 internal sealed class SemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, ICapabilitiesProvider
 {
     private readonly IRazorSemanticTokensInfoService _semanticTokensInfoService;
+    private readonly IClientConnection _clientConnection;
 
-    public SemanticTokensRangeEndpoint(IRazorSemanticTokensInfoService semanticTokensInfoService)
+    public SemanticTokensRangeEndpoint(IRazorSemanticTokensInfoService semanticTokensInfoService, IClientConnection clientConnection)
     {
         _semanticTokensInfoService = semanticTokensInfoService;
+        _clientConnection = clientConnection;
     }
 
     public bool MutatesSolutionState { get; } = false;
@@ -35,7 +37,7 @@ internal sealed class SemanticTokensRangeEndpoint : IRazorRequestHandler<Semanti
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
 
-        var semanticTokens = await _semanticTokensInfoService.GetSemanticTokensAsync(request.TextDocument, request.Range, documentContext, cancellationToken).ConfigureAwait(false);
+        var semanticTokens = await _semanticTokensInfoService.GetSemanticTokensAsync(_clientConnection, request.TextDocument, request.Range, documentContext, cancellationToken).ConfigureAwait(false);
 
         return semanticTokens;
     }
