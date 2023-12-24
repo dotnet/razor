@@ -45,4 +45,6 @@ internal abstract class LanguageServerFeatureOptions
     public abstract bool MonitorWorkspaceFolderForConfigurationFiles { get; }
 
     public abstract bool UseRazorCohostServer { get; }
+
+    public abstract bool DisableRazorLanguageServer { get; }
 }
