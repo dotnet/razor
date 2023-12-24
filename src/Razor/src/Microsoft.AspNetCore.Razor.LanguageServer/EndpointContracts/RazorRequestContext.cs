@@ -3,13 +3,14 @@
 
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 internal readonly struct RazorRequestContext
 {
     public readonly VersionedDocumentContext? DocumentContext;
-    public readonly IRazorLogger Logger;
+    public readonly ILogger Logger;
     public readonly ILspServices LspServices;
 
 #if DEBUG
@@ -19,7 +20,7 @@ internal readonly struct RazorRequestContext
 
     public RazorRequestContext(
         VersionedDocumentContext? documentContext,
-        IRazorLogger logger,
+        ILogger logger,
         ILspServices lspServices)
     {
         DocumentContext = documentContext;
@@ -30,7 +31,7 @@ internal readonly struct RazorRequestContext
 #if DEBUG
     public RazorRequestContext(
         VersionedDocumentContext? documentContext,
-        IRazorLogger logger,
+        ILogger logger,
         ILspServices lspServices,
         string lspMethodName,
         Uri? uri) : this(documentContext, logger, lspServices)

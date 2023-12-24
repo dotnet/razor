@@ -39,8 +39,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private Range Range { get; set; }
 
-    private new IRazorLogger Logger { get; set; }
-
     private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
     private string PagesDirectory { get; set; }
@@ -73,7 +71,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
         var version = 1;
         DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
-        Logger = new NoopLogger();
 
         var razorOptionsMonitor = RazorLanguageServer.GetRequiredService<RazorLSPOptionsMonitor>();
         var clientConnection = RazorLanguageServer.GetRequiredService<IClientConnection>();
