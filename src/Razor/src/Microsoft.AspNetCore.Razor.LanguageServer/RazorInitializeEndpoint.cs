@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,6 +17,21 @@ internal class RazorInitializeEndpoint : IRazorDocumentlessRequestHandler<Initia
 
     public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
+        var featureOptions = requestContext.GetRequiredService<LanguageServerFeatureOptions>();
+
+        // If the user hasn't turned on the Cohost server, then don't disable the Razor server either
+        if (featureOptions.UseRazorCohostServer && featureOptions.DisableRazorLanguageServer)
+        {
+            return Task.FromResult<InitializeResult>(
+                new()
+                {
+                    Capabilities = new()
+                    {
+                        TextDocumentSync = new TextDocumentSyncOptions { OpenClose = false, Change = TextDocumentSyncKind.None, Save = false, WillSave = false, WillSaveWaitUntil = false }
+                    }
+                });
+        }
+
         var capabilitiesManager = requestContext.GetRequiredService<IInitializeManager<InitializeParams, InitializeResult>>();
 
         capabilitiesManager.SetInitializeParams(request);
