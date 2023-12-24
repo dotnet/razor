@@ -24,6 +24,7 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly bool? _includeProjectKeyInGeneratedFilePath;
     private readonly bool? _monitorWorkspaceFolderForConfigurationFiles;
     private readonly bool? _useRazorCohostServer;
+    private readonly bool? _disableRazorLanguageServer;
 
     public override bool SupportsFileManipulation => _supportsFileManipulation ?? _defaults.SupportsFileManipulation;
     public override string ProjectConfigurationFileName => _projectConfigurationFileName ?? _defaults.ProjectConfigurationFileName;
@@ -39,6 +40,7 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath ?? _defaults.IncludeProjectKeyInGeneratedFilePath;
     public override bool MonitorWorkspaceFolderForConfigurationFiles => _monitorWorkspaceFolderForConfigurationFiles ?? _defaults.MonitorWorkspaceFolderForConfigurationFiles;
     public override bool UseRazorCohostServer => _useRazorCohostServer ?? _defaults.UseRazorCohostServer;
+    public override bool DisableRazorLanguageServer => _disableRazorLanguageServer ?? _defaults.DisableRazorLanguageServer;
 
     public ConfigurableLanguageServerFeatureOptions(string[] args)
     {
@@ -63,6 +65,7 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
             TryProcessBoolOption(nameof(IncludeProjectKeyInGeneratedFilePath), ref _includeProjectKeyInGeneratedFilePath, option, args, i);
             TryProcessBoolOption(nameof(MonitorWorkspaceFolderForConfigurationFiles), ref _monitorWorkspaceFolderForConfigurationFiles, option, args, i);
             TryProcessBoolOption(nameof(UseRazorCohostServer), ref _useRazorCohostServer, option, args, i);
+            TryProcessBoolOption(nameof(DisableRazorLanguageServer), ref _disableRazorLanguageServer, option, args, i);
         }
     }
 
