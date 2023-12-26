@@ -135,7 +135,7 @@ function Build {
     $dotnetRoot = InitializeDotNetCli -install:$restore
     $dotnetPath = Join-Path $dotnetRoot (GetExecutableFileName 'dotnet')
     Write-Host "Using $dotnetPath"
-    & "$dotnetPath complog Build.binlog"
+    & $dotnetPath complog Build.binlog
     Pop-Location
   }
 }
