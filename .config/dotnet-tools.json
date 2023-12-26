@@ -7,6 +7,12 @@
       "commands": [
         "pwsh"
       ]
+    },
+    "complog": {
+      "version": "0.5.6",
+      "commands": [
+        "complog"
+      ]
     }
   }
 }
