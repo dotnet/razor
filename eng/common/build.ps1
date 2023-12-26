@@ -132,7 +132,10 @@ function Build {
   if ($binaryLog) {
     Write-Host "Binary log: $(Join-Path $LogDir 'Build.binlog')"
     Push-Location $LogDir
-    & "dotnet complog Build.binlog"
+    $dotnetRoot = InitializeDotNetCli -install:$restore
+    $dotnetPath = Join-Path $dotnetRoot (GetExecutableFileName 'dotnet')
+    Write-Host "Using $dotnetPath"
+    & "$dotnetPath complog Build.binlog"
     Pop-Location
   }
 }
