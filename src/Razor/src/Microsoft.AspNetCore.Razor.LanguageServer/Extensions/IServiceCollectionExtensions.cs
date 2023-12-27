@@ -228,7 +228,12 @@ internal static class IServiceCollectionExtensions
             services.AddSingleton<DocumentProcessedListener, RazorDiagnosticsPublisher>();
         }
 
-        services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
+        // Don't generate documents in the language server if cohost is enabled, let cohost do it.
+        if (!featureOptions.UseRazorCohostServer)
+        {
+            services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
+        }
+
         services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
 
         services.AddSingleton<ProjectSnapshotManagerAccessor, DefaultProjectSnapshotManagerAccessor>();
