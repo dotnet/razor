@@ -22,7 +22,7 @@ internal sealed class RazorLogHubLoggerProvider : IRazorLoggerProvider
 
     public ILogger CreateLogger(string categoryName)
     {
-        return new RazorLogHubLogger(categoryName, _traceProvider.GetTraceSource());
+        return new RazorLogHubLogger(categoryName, _traceProvider);
     }
 
     public void Dispose()
