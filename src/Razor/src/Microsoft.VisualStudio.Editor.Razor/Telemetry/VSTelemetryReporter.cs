@@ -24,7 +24,7 @@ internal class VSTelemetryReporter : TelemetryReporter
             // appinsights keys etc
             : base(ImmutableArray.Create(TelemetryService.DefaultSession))
     {
-        _logger = loggerFactory?.CreateLogger<VSTelemetryReporter>();
+        _logger = loggerFactory.CreateLogger<VSTelemetryReporter>();
     }
 
     protected override bool HandleException(Exception exception, string? message, params object?[] @params)

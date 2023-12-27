@@ -100,7 +100,7 @@ internal class RazorLanguageServerClient(
 
         await EnsureCleanedUpServerAsync().ConfigureAwait(false);
 
-        var traceSource = _traceProvider.GetTraceSource();
+        var traceSource = _traceProvider.TryGetTraceSource();
 
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -45,9 +44,9 @@ internal class VisualStudioWindowsLogHubTraceProvider : RazorLogHubTraceProvider
         _traceSource = await traceConfig.RegisterLogSourceAsync(logId, s_logOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    public override TraceSource GetTraceSource()
+    public override TraceSource? TryGetTraceSource()
     {
-        return _traceSource ?? throw new InvalidOperationException("Trace source requested before it was initialized.");
+        return _traceSource;
     }
 
     private async Task<bool> TryInitializeServiceBrokerAsync(CancellationToken cancellationToken)

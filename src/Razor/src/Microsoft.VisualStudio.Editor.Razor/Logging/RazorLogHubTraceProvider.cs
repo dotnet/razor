@@ -10,5 +10,5 @@ namespace Microsoft.VisualStudio.Editor.Razor.Logging;
 internal abstract class RazorLogHubTraceProvider
 {
     public abstract Task InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken);
-    public abstract TraceSource GetTraceSource();
+    public abstract TraceSource? TryGetTraceSource();
 }
