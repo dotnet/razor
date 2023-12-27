@@ -71,13 +71,13 @@ internal class RazorSemanticTokensInfoService(
 
         var semanticTokens = await GetSemanticTokensAsync(clientConnection, textDocumentIdentifier, range, documentContext, correlationId, colorBackground, cancellationToken).ConfigureAwait(false);
 
-        var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
+        var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / TokenSize).ToString(Thread.CurrentThread.CurrentCulture);
 
         _logger.LogInformation("Returned {amount} semantic tokens for range ({startLine},{startChar})-({endLine},{endChar}) in {request.TextDocument.Uri}.", amount, range.Start.Line, range.Start.Character, range.End.Line, range.End.Character, textDocumentIdentifier.Uri);
 
         if (semanticTokens is not null)
         {
-            Debug.Assert(semanticTokens.Data.Length % 5 == 0, $"Number of semantic token-ints should be divisible by 5. Actual number: {semanticTokens.Data.Length}");
+            Debug.Assert(semanticTokens.Data.Length % TokenSize == 0, $"Number of semantic token-ints should be divisible by {TokenSize}. Actual number: {semanticTokens.Data.Length}");
             Debug.Assert(semanticTokens.Data.Length == 0 || semanticTokens.Data[0] >= 0, $"Line offset should not be negative.");
         }
 
