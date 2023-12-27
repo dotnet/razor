@@ -6,6 +6,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -16,20 +17,24 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
-[Export(typeof(OpenDocumentGenerator)), Shared]
+[Shared]
+[Export(typeof(OpenDocumentGenerator))]
+[Export(typeof(IProjectSnapshotChangeTrigger))]
 [method: ImportingConstructor]
 internal sealed class OpenDocumentGenerator(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     LSPDocumentManager documentManager,
     CSharpVirtualDocumentAddListener csharpVirtualDocumentAddListener,
     JoinableTaskContext joinableTaskContext,
-    IRazorLoggerFactory loggerFactory)
+    IRazorLoggerFactory loggerFactory) : IProjectSnapshotChangeTrigger
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
     private readonly TrackingLSPDocumentManager _documentManager = documentManager as TrackingLSPDocumentManager ?? throw new ArgumentNullException(nameof(documentManager));
     private readonly CSharpVirtualDocumentAddListener _csharpVirtualDocumentAddListener = csharpVirtualDocumentAddListener ?? throw new ArgumentNullException(nameof(csharpVirtualDocumentAddListener));
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
     private readonly ILogger _logger = loggerFactory.CreateLogger<OpenDocumentGenerator>();
+
+    private ProjectSnapshotManager? _projectManager;
 
     public async Task DocumentOpenedOrChangedAsync(IDocumentSnapshot document, int version, CancellationToken cancellationToken)
     {
@@ -144,5 +149,34 @@ internal sealed class OpenDocumentGenerator(
     {
         _ = documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocumentSnapshot);
         return htmlVirtualDocumentSnapshot;
+    }
+
+    public void Initialize(ProjectSnapshotManagerBase projectManager)
+    {
+        _projectManager = projectManager;
+        _projectManager.Changed += ProjectManager_Changed;
+    }
+
+    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
+    {
+        // We only respond to ProjectChanged events, as opens and changes are handled by LSP endpoints, which call into this class too
+        if (e.Kind == ProjectChangeKind.ProjectChanged)
+        {
+            var newProject = e.Newer.AssumeNotNull();
+
+            foreach (var documentFilePath in newProject.DocumentFilePaths)
+            {
+                if (_projectManager!.IsDocumentOpen(documentFilePath) &&
+                    newProject.GetDocument(documentFilePath) is { } document &&
+                    _documentManager.TryGetDocument(new Uri(document.FilePath), out var documentSnapshot))
+                {
+                    // This is not ideal, but we need to re-use the existing snapshot version because our system uses the version
+                    // of the text buffer, but a project change doesn't change the text buffer.
+                    // See https://github.com/dotnet/razor/issues/9197 for more info and some issues this causese
+                    // This should all be moot eventually in Cohosting eventually anyway (ie, this whole file should be deleted)
+                    _ = DocumentOpenedOrChangedAsync(document, documentSnapshot.Version, CancellationToken.None);
+                }
+            }
+        }
     }
 }
