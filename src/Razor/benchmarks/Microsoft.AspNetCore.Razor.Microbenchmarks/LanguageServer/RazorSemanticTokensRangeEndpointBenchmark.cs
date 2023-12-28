@@ -61,6 +61,8 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     {
         EnsureServicesInitialized();
 
+        var loggerFactory = RazorLanguageServer.GetRequiredService<IRazorLoggerFactory>();
+
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         ProjectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         PagesDirectory = Path.Combine(projectRoot, "Components", "Pages");
@@ -89,7 +91,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         await UpdateDocumentAsync(documentVersion, DocumentSnapshot, CancellationToken).ConfigureAwait(false);
 
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RequestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
+        RequestContext = new RazorRequestContext(DocumentContext, languageServer.GetLspServices(), "lsp/method", uri: null);
 
         var random = new Random();
         var codeDocument = await DocumentContext.GetCodeDocumentAsync(CancellationToken);

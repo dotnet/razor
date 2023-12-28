@@ -3,53 +3,21 @@
 
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-internal readonly struct RazorRequestContext
+internal readonly struct RazorRequestContext(VersionedDocumentContext? documentContext, ILspServices lspServices, string method, Uri? uri)
 {
-    public readonly VersionedDocumentContext? DocumentContext;
-    public readonly ILogger Logger;
-    public readonly ILspServices LspServices;
-
-#if DEBUG
-    public readonly string? LspMethodName;
-    public readonly Uri? Uri;
-#endif
-
-    public RazorRequestContext(
-        VersionedDocumentContext? documentContext,
-        ILogger logger,
-        ILspServices lspServices)
-    {
-        DocumentContext = documentContext;
-        LspServices = lspServices;
-        Logger = logger;
-    }
-
-#if DEBUG
-    public RazorRequestContext(
-        VersionedDocumentContext? documentContext,
-        ILogger logger,
-        ILspServices lspServices,
-        string lspMethodName,
-        Uri? uri) : this(documentContext, logger, lspServices)
-    {
-        LspMethodName = lspMethodName;
-        Uri = uri;
-    }
-#endif
+    public readonly VersionedDocumentContext? DocumentContext = documentContext;
+    public readonly ILspServices LspServices = lspServices;
+    public readonly string Method = method;
+    public readonly Uri? Uri = uri;
 
     public VersionedDocumentContext GetRequiredDocumentContext()
     {
         if (DocumentContext is null)
         {
-            throw new ArgumentNullException(nameof(DocumentContext)
-#if DEBUG
-                , $"Could not find a document context for '{LspMethodName}' on '{Uri}'"
-#endif
-                );
+            throw new ArgumentNullException(nameof(DocumentContext), $"Could not find a document context for '{Method}' on '{Uri}'");
         }
 
         return DocumentContext;
