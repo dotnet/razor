@@ -36,8 +36,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 /// This class and its mapping heuristics will likely be constantly evolving as we receive
 /// more advanced inputs from the client.
 /// </remarks>
-[LanguageServerEndpoint(LSP.MapperMethods.WorkspaceMapCodeName)]
-internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.MapCodeParams, LSP.WorkspaceEdit?>
+[LanguageServerEndpoint(MapperMethods.WorkspaceMapCodeName)]
+internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<VSInternalMapCodeParams, WorkspaceEdit?>
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly IDocumentContextFactory _documentContextFactory;
@@ -59,7 +59,7 @@ internal sealed class MapCodeEndpoint : IRazorDocumentlessRequestHandler<LSP.Map
     public bool MutatesSolutionState => false;
 
     public async Task<LSP.WorkspaceEdit?> HandleRequestAsync(
-        LSP.MapCodeParams request,
+        LSP.VSInternalMapCodeParams request,
         RazorRequestContext context,
         CancellationToken cancellationToken)
     {
