@@ -26,6 +26,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
     private ILogger? _testLogger;
 
+    protected virtual bool ComponentClassificationExpected => true;
+
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
@@ -59,7 +61,11 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         EnsureMEFCompositionSuccessForRazor();
 
         await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
+
+        if (ComponentClassificationExpected)
+        {
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
+        }
 
         // Making a code change gets us flowing new generated code versions around the system
         // which seems to have a positive effect on Web Tools in particular. Given the relatively
@@ -90,9 +96,15 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         var slnFile = Directory.EnumerateFiles(solutionPath, "*.sln").First();
         var projectFile = Directory.EnumerateFiles(solutionPath, "*.csproj", SearchOption.AllDirectories).First();
 
+        PrepareProjectForFirstOpen(projectFile);
+
         await TestServices.SolutionExplorer.OpenSolutionAsync(slnFile, cancellationToken);
 
         return projectFile;
+    }
+
+    protected virtual void PrepareProjectForFirstOpen(string projectFileName)
+    {
     }
 
     private static string CreateTemporaryPath()
