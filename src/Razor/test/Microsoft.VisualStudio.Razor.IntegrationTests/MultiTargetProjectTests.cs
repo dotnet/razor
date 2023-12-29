@@ -3,7 +3,6 @@
 
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -12,23 +11,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    protected override void PrepareProjectForFirstOpen(string projectFileName)
-    {
-        var sb = new StringBuilder();
-        foreach (var line in File.ReadAllLines(projectFileName))
-        {
-            if (line.Contains("<TargetFramework>"))
-            {
-                sb.AppendLine("<TargetFrameworks>net7.0;net8.0</TargetFrameworks>");
-            }
-            else
-            {
-                sb.AppendLine(line);
-            }
-        }
-
-        File.WriteAllText(projectFileName, sb.ToString());
-    }
+    protected override string TargetFrameworkElement => $"""<TargetFrameworks>net7.0;{TargetFramework}</TargetFrameworks>""";
 
     [IdeFact]
     public async Task ValidateMultipleJsonFiles()

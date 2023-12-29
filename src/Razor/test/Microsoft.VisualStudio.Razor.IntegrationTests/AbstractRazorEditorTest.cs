@@ -31,6 +31,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
     protected virtual string TargetFramework => "net8.0";
 
+    protected virtual string TargetFrameworkElement => $"""<TargetFramework>{TargetFramework}</TargetFramework>""";
+
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
@@ -113,7 +115,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         {
             if (line.Contains("<TargetFramework"))
             {
-                sb.AppendLine($"""<TargetFramework>{TargetFramework}</TargetFramework>""");
+                sb.AppendLine(TargetFrameworkElement);
             }
             else
             {
