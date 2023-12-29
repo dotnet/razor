@@ -62,3 +62,10 @@
 "Title"="Use precise semantic token ranges when requesting semantic token information on Razor files (requires restart)"
 "PreviewPaneChannels"="*"
 "VisibleToInternalUsersOnlyChannels"="*"
+
+[$RootKey$\FeatureFlags\Razor\LSP\UseRoslynAnalyzerDiagnostics]]
+"Description"="Use Roslyn analyzer diagnostics when requesting diagnostics on razor files. Note: This is experimental, some actions may not apply correctly, or at all!"
+"Value"=dword:00000001
+"Title"="Use Roslyn analyzer diagnostics when requesting diagnostics on razor files (requires restart)"
+"PreviewPaneChannels"="*"
+"VisibleToInternalUsersOnlyChannels"="*"

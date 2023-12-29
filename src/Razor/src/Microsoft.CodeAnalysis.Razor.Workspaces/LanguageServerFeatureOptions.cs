@@ -43,4 +43,10 @@ internal abstract class LanguageServerFeatureOptions
     /// razor/monitorProjectConfigurationFilePath notification is sent.
     /// </remarks>
     public abstract bool MonitorWorkspaceFolderForConfigurationFiles { get; }
+
+    /// <summary>
+    /// If enabled, attempts to use a joined custom endpoint provided by Roslyn that will provide diagnostics for generated cs files as well
+    /// as any analyzer diagnostics provided for a given razor document.
+    /// </summary>
+    public abstract bool UseRoslynAnalyzerDiagnostics { get; }
 }

@@ -45,4 +45,6 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath;
 
     public override bool MonitorWorkspaceFolderForConfigurationFiles => _monitorWorkspaceFolderForConfigurationFiles;
+
+    public override bool UseRoslynAnalyzerDiagnostics => false;
 }

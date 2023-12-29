@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -74,19 +76,41 @@ internal partial class RazorCustomMessageTarget
             return null;
         }
 
-        var request = new VSInternalDocumentDiagnosticsParams
-        {
-            TextDocument = identifierFromOriginalRequest.WithUri(virtualDocument.Uri),
-        };
-
         var lspMethodName = VSInternalMethods.DocumentPullDiagnosticName;
         using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, delegatedLanguageServerName, correlationId);
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
-            virtualDocument.Snapshot.TextBuffer,
-            lspMethodName,
-            delegatedLanguageServerName,
-            request,
-            cancellationToken).ConfigureAwait(false);
+
+        ReinvocationResponse<VSInternalDiagnosticReport[]?>? response = null;
+        if (_languageServerFeatureOptions.UseRoslynAnalyzerDiagnostics && delegatedLanguageServerName == RazorLSPConstants.RazorCSharpLanguageServerName)
+        {
+            var diagnosticParams = new RazorDiagnosticsParams
+            {
+                RazorTextDocument = identifierFromOriginalRequest,
+                TextDocument = identifierFromOriginalRequest.WithUri(virtualDocument.Uri),
+            };
+
+            response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, VSInternalDiagnosticReport[]?>(
+                virtualDocument.Snapshot.TextBuffer,
+                RazorLSPConstants.RoslynDiagnosticsName,
+                delegatedLanguageServerName,
+                SupportsRoslynDiagnostics,
+                diagnosticParams,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        if (response is null)
+        {
+            var request = new VSInternalDocumentDiagnosticsParams
+            {
+                TextDocument = identifierFromOriginalRequest.WithUri(virtualDocument.Uri),
+            };
+
+            response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
+                virtualDocument.Snapshot.TextBuffer,
+                lspMethodName,
+                delegatedLanguageServerName,
+                request,
+                cancellationToken).ConfigureAwait(false);
+        }
 
         // If the delegated server wants to remove all diagnostics about a document, they will send back a response with an item, but that
         // item will have null diagnostics (and every other property). We don't want to propagate that back out to the client, because
@@ -100,5 +124,30 @@ internal partial class RazorCustomMessageTarget
         }
 
         return response.Response;
+    }
+
+    private static bool SupportsRoslynDiagnostics(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+        return serverCapabilities?.Experimental is JObject experimental
+            && experimental.TryGetValue(RazorLSPConstants.RoslynDiagnosticsName, out var supportsRoslynDiagnostics)
+            && supportsRoslynDiagnostics.ToObject<bool>();
+    }
+
+    [DataContract]
+    internal class RazorDiagnosticsParams : IPartialResultParams<VSInternalDiagnosticReport[]>
+    {
+        [DataMember(Name = "partialResultToken", IsRequired = false)]
+        public IProgress<VSInternalDiagnosticReport[]>? PartialResultToken { get; set; }
+
+        [DataMember(Name = "previousResultId")]
+        public string? PreviousResultId { get; set; }
+
+        [DataMember(Name = "_razor_textDocument", IsRequired = true)]
+        public TextDocumentIdentifier? RazorTextDocument { get; set; }
+
+        [DataMember(Name = "_vs_textDocument", IsRequired = true)]
+        public TextDocumentIdentifier? TextDocument { get; set; }
     }
 }
