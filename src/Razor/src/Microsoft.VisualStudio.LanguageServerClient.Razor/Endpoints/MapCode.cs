@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -80,10 +81,8 @@ internal partial class RazorCustomMessageTarget
 
     private static bool SupportsMapCode(JToken token)
     {
-        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
-
-        return serverCapabilities?.Experimental is JObject experimental
-            && experimental.TryGetValue(MapperMethods.WorkspaceMapCodeName, out var supportsMapCode)
+        return token is JObject obj
+            && obj.TryGetValue(MapperMethods.WorkspaceMapCodeName, out var supportsMapCode)
             && supportsMapCode.ToObject<bool>();
     }
 }

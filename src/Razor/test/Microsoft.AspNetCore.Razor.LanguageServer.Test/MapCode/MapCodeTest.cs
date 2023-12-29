@@ -318,9 +318,8 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
         var languageServer = new MapCodeServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
-        var filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
 
-        var endpoint = new MapCodeEndpoint(documentMappingService, documentContextFactory, languageServer, filePathService);
+        var endpoint = new MapCodeEndpoint(documentMappingService, documentContextFactory, languageServer);
 
         var sourceText = codeDocument.GetSourceText();
         sourceText.GetLineAndOffset(cursorPosition, out var line, out var offset);
