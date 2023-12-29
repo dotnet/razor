@@ -31,6 +31,8 @@ public class NonRazorSdkTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         }
 
         File.WriteAllText(projectFileName, sb.ToString());
+
+        base.PrepareProjectForFirstOpen(projectFileName);
     }
 
     [IdeFact]
