@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -27,6 +28,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     private ILogger? _testLogger;
 
     protected virtual bool ComponentClassificationExpected => true;
+
+    protected virtual string TargetFramework => "net8.0";
 
     public override async Task InitializeAsync()
     {
@@ -93,8 +96,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         using var zip = new ZipArchive(zipStream);
         zip.ExtractToDirectory(solutionPath);
 
-        var slnFile = Directory.EnumerateFiles(solutionPath, "*.sln").First();
-        var projectFile = Directory.EnumerateFiles(solutionPath, "*.csproj", SearchOption.AllDirectories).First();
+        var slnFile = Directory.EnumerateFiles(solutionPath, "*.sln").Single();
+        var projectFile = Directory.EnumerateFiles(solutionPath, "*.csproj", SearchOption.AllDirectories).Single();
 
         PrepareProjectForFirstOpen(projectFile);
 
@@ -105,6 +108,20 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
     protected virtual void PrepareProjectForFirstOpen(string projectFileName)
     {
+        var sb = new StringBuilder();
+        foreach (var line in File.ReadAllLines(projectFileName))
+        {
+            if (line.Contains("<TargetFramework"))
+            {
+                sb.AppendLine($"""<TargetFramework>{TargetFramework}</TargetFramework>""");
+            }
+            else
+            {
+                sb.AppendLine(line);
+            }
+        }
+
+        File.WriteAllText(projectFileName, sb.ToString());
     }
 
     private static string CreateTemporaryPath()
