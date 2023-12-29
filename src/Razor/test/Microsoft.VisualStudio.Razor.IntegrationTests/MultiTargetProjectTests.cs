@@ -1,56 +1,39 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-public class ProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
+public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    [IdeFact]
-    public async Task CreateFromTemplateAsync()
+    protected override void PrepareProjectForFirstOpen(string projectFileName)
     {
-        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.CloseSolutionAsync(ControlledHangMitigatingCancellationToken);
+        var sb = new StringBuilder();
+        foreach (var line in File.ReadAllLines(projectFileName))
+        {
+            if (line.Contains("<TargetFramework>"))
+            {
+                sb.AppendLine("<TargetFrameworks>net7.0;net8.0</TargetFrameworks>");
+            }
+            else
+            {
+                sb.AppendLine(line);
+            }
+        }
+
+        File.WriteAllText(projectFileName, sb.ToString());
     }
 
-    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/9200")]
-    public async Task ChangeTargetFramework()
+    [IdeFact]
+    public async Task ValidateMultipleJsonFiles()
     {
         var solutionPath = await TestServices.SolutionExplorer.GetDirectoryNameAsync(ControlledHangMitigatingCancellationToken);
-
-        Assert.Equal(1, GetProjectRazorJsonFileCount());
-
-        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ProjectFile, ControlledHangMitigatingCancellationToken);
-
-        await TestServices.Editor.PlaceCaretAsync("<TargetFramework", charsOffset: -1, ControlledHangMitigatingCancellationToken);
-
-        var currentLine = await TestServices.Editor.GetCurrentLineTextAsync(ControlledHangMitigatingCancellationToken);
-        var tfElement = currentLine.Contains("net6.0")
-            ? "<TargetFramework>net7.0</TargetFramework>"
-            : "<TargetFramework>net6.0</TargetFramework>";
-
-        await TestServices.Editor.InvokeDeleteLineAsync(ControlledHangMitigatingCancellationToken);
-
-        await TestServices.Editor.InsertTextAsync(tfElement + Environment.NewLine, ControlledHangMitigatingCancellationToken);
-
-        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ProjectFile, saveFile: true, ControlledHangMitigatingCancellationToken);
-
-        await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
-
-        // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
-        // way we know the LSP server is up, running, and has processed both local and library-sourced Components
-        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
-
-        await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
-
-        await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
         // This is a little odd, but there is no "real" way to check this via VS, and one of the most important things this test can do
         // is ensure that each target framework gets its own project.razor.bin file, and doesn't share one from a cache or anything.
