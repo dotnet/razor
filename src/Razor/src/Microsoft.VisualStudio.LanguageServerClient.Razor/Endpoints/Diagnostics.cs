@@ -76,21 +76,21 @@ internal partial class RazorCustomMessageTarget
             return null;
         }
 
-        var lspMethodName = VSInternalMethods.DocumentPullDiagnosticName;
-        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, delegatedLanguageServerName, correlationId);
-
         ReinvocationResponse<VSInternalDiagnosticReport[]?>? response = null;
         if (_languageServerFeatureOptions.UseRoslynAnalyzerDiagnostics && delegatedLanguageServerName == RazorLSPConstants.RazorCSharpLanguageServerName)
         {
             var diagnosticParams = new RazorDiagnosticsParams
             {
                 RazorTextDocument = identifierFromOriginalRequest,
-                TextDocument = identifierFromOriginalRequest.WithUri(virtualDocument.Uri),
+                TextDocument = new() { Uri = virtualDocument.Uri },
             };
+
+            var lspMethodName = RazorLSPConstants.RoslynDiagnosticsName;
+            using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, delegatedLanguageServerName, correlationId);
 
             response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, VSInternalDiagnosticReport[]?>(
                 virtualDocument.Snapshot.TextBuffer,
-                RazorLSPConstants.RoslynDiagnosticsName,
+                lspMethodName,
                 delegatedLanguageServerName,
                 SupportsRoslynDiagnostics,
                 diagnosticParams,
@@ -99,6 +99,9 @@ internal partial class RazorCustomMessageTarget
 
         if (response is null)
         {
+            var lspMethodName = VSInternalMethods.DocumentPullDiagnosticName;
+            using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, delegatedLanguageServerName, correlationId);
+
             var request = new VSInternalDocumentDiagnosticsParams
             {
                 TextDocument = identifierFromOriginalRequest.WithUri(virtualDocument.Uri),
