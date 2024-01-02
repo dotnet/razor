@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -72,8 +73,18 @@ internal class DocumentDidChangeEndpoint(
             }
 
             var startLinePosition = new LinePosition(change.Range.Start.Line, change.Range.Start.Character);
+            if (!sourceText.IsLinePositionValid(startLinePosition, _logger))
+            {
+                continue;
+            }
+
             var startPosition = sourceText.Lines.GetPosition(startLinePosition);
             var endLinePosition = new LinePosition(change.Range.End.Line, change.Range.End.Character);
+            if (!sourceText.IsLinePositionValid(endLinePosition, _logger))
+            {
+                continue;
+            }
+
             var endPosition = sourceText.Lines.GetPosition(endLinePosition);
 
             var textSpan = new TextSpan(startPosition, change.RangeLength ?? endPosition - startPosition);

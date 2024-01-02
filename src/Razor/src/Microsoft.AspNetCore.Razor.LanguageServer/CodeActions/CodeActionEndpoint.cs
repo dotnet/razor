@@ -167,6 +167,12 @@ internal sealed class CodeActionEndpoint(
         var linePosition = new LinePosition(
             request.Range.Start.Line,
             request.Range.Start.Character);
+
+        if (!sourceText.IsLinePositionValid(linePosition, _logger))
+        {
+            return null;
+        }
+
         var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
         var location = new SourceLocation(
             hostDocumentIndex,
