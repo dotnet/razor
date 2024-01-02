@@ -19,7 +19,7 @@ internal static class SourceTextHelper
         }
 
         var textLine = textLines[linePosition.Line];
-        if (linePosition.Character >= textLine.SpanIncludingLineBreak.Length)
+        if (linePosition.Character > textLine.SpanIncludingLineBreak.Length)
         {
             Debug.Fail("Invalid request for position at column {linePosition.Character} on a line with {textLine.SpanIncludingLineBreak.Length} character(s).");
             logger?.LogError("Invalid request for position at column {columnNumber} on a line with {characterCount} character(s).", linePosition.Character, textLine.SpanIncludingLineBreak.Length);
