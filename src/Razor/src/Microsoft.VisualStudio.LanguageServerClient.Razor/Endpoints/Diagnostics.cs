@@ -77,12 +77,13 @@ internal partial class RazorCustomMessageTarget
         }
 
         ReinvocationResponse<VSInternalDiagnosticReport[]?>? response = null;
+        var virtualDocumentIdentifier = identifierFromOriginalRequest.WithUri(virtualDocument.Uri);
         if (_languageServerFeatureOptions.UseRoslynAnalyzerDiagnostics && delegatedLanguageServerName == RazorLSPConstants.RazorCSharpLanguageServerName)
         {
             var diagnosticParams = new RazorDiagnosticsParams
             {
-                RazorTextDocument = identifierFromOriginalRequest,
-                TextDocument = new() { Uri = virtualDocument.Uri },
+                RazorTextDocument = new() { Uri = hostDocument.Uri },
+                TextDocument = virtualDocumentIdentifier,
             };
 
             var lspMethodName = RazorLSPConstants.RoslynDiagnosticsName;
@@ -104,7 +105,7 @@ internal partial class RazorCustomMessageTarget
 
             var request = new VSInternalDocumentDiagnosticsParams
             {
-                TextDocument = identifierFromOriginalRequest.WithUri(virtualDocument.Uri),
+                TextDocument = virtualDocumentIdentifier,
             };
 
             response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
 using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
@@ -84,7 +85,7 @@ internal class RazorTranslateDiagnosticsService
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
         var filteredDiagnostics = diagnosticKind == RazorLanguageKind.CSharp
-        ? FilterCSharpDiagnostics(diagnostics, codeDocument, sourceText)
+            ? FilterCSharpDiagnostics(diagnostics, codeDocument, sourceText)
             : FilterHTMLDiagnostics(diagnostics, codeDocument, sourceText, _logger);
         if (!filteredDiagnostics.Any())
         {
@@ -479,6 +480,18 @@ internal class RazorTranslateDiagnosticsService
             MappingBehavior.Inferred,
             out originalRange))
         {
+            if (!IsCompilerDiagnostic(diagnostic))
+            {
+                if (diagnostic.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var _) &&
+                    diagnostic.Range.End.TryGetAbsoluteIndex(sourceText, _logger, out var _))
+                {
+                    // We can't remap the range correctly, but it's probably an analyzer diagnostic so we still want to show it to the user
+                    // if it's still in the razor document range
+                    originalRange = diagnostic.Range;
+                    return true;
+                }
+            }
+
             // Couldn't remap the range correctly.
             // If this isn't an `Error` Severity Diagnostic we can discard it.
             if (diagnostic.Severity != DiagnosticSeverity.Error)
@@ -493,6 +506,19 @@ internal class RazorTranslateDiagnosticsService
         }
 
         return true;
+    }
+
+    private bool IsCompilerDiagnostic(Diagnostic diagnostic)
+    {
+        if (diagnostic is not VSDiagnostic vsDiagnostic)
+        {
+            return false;
+        }
+
+        // This is an attempt to handle analyzer diagnostics. They could still fail if for some reason the analyzer
+        // reports as "Compiler", but that shouldn't happen. If it does, at least we'll know why this is broken in razor.
+        // This logic can be removed after https://github.com/dotnet/roslyn/issues/71449 is fixed.
+        return string.Equals(vsDiagnostic.DiagnosticType, "Compiler", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsRudeEditDiagnostic(Diagnostic diagnostic)
