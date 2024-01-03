@@ -24,7 +24,7 @@ internal class VSInternalMapCodeMapping
     /// Gets or sets strings of code/text to map into TextDocument.
     /// </summary>
     [DataMember(Name = "_vs_contents")]
-    public string[] Contents
+    public required string[] Contents
     {
         get;
         set;

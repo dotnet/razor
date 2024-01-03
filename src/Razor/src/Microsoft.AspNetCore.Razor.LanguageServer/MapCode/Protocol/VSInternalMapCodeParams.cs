@@ -16,7 +16,7 @@ internal class VSInternalMapCodeParams
     /// Set of code blocks, associated with documents and regions, to map.
     /// </summary>
     [DataMember(Name = "_vs_mappings")]
-    public VSInternalMapCodeMapping[] Mappings
+    public required VSInternalMapCodeMapping[] Mappings
     {
         get;
         set;
