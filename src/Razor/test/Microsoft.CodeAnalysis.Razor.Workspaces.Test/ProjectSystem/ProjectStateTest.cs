@@ -635,8 +635,8 @@ public class ProjectStateTest : WorkspaceTestBase
         var callCount = 0;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[_documents[1].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[1], onConfigurationChange: () => callCount++);
-        documents[_documents[2].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[2], onConfigurationChange: () => callCount++);
+        documents[_documents[1].FilePath] = TestDocumentState.Create(_documents[1], onConfigurationChange: () => callCount++);
+        documents[_documents[2].FilePath] = TestDocumentState.Create(_documents[2], onConfigurationChange: () => callCount++);
 
         var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
@@ -849,8 +849,8 @@ public class ProjectStateTest : WorkspaceTestBase
         var callCount = 0;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[_documents[1].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[1], onProjectWorkspaceStateChange: () => callCount++);
-        documents[_documents[2].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[2], onProjectWorkspaceStateChange: () => callCount++);
+        documents[_documents[1].FilePath] = TestDocumentState.Create(_documents[1], onProjectWorkspaceStateChange: () => callCount++);
+        documents[_documents[2].FilePath] = TestDocumentState.Create(_documents[2], onProjectWorkspaceStateChange: () => callCount++);
 
         var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
@@ -877,10 +877,10 @@ public class ProjectStateTest : WorkspaceTestBase
         var document4 = TestProjectData.AnotherProjectNestedFile4;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -920,10 +920,10 @@ public class ProjectStateTest : WorkspaceTestBase
         var document4 = TestProjectData.AnotherProjectNestedFile4;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -964,11 +964,11 @@ public class ProjectStateTest : WorkspaceTestBase
         var document5 = TestProjectData.AnotherProjectNestedImportFile;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
-        documents[document5.FilePath] = TestDocumentState.Create(Workspace.Services, document5, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
+        documents[document5.FilePath] = TestDocumentState.Create(document5, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -1010,11 +1010,11 @@ public class ProjectStateTest : WorkspaceTestBase
         var document5 = TestProjectData.AnotherProjectNestedImportFile;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
-        documents[document5.FilePath] = TestDocumentState.Create(Workspace.Services, document5, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
+        documents[document5.FilePath] = TestDocumentState.Create(document5, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -1056,11 +1056,11 @@ public class ProjectStateTest : WorkspaceTestBase
         var document5 = TestProjectData.AnotherProjectNestedImportFile;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
-        documents[document5.FilePath] = TestDocumentState.Create(Workspace.Services, document5, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
+        documents[document5.FilePath] = TestDocumentState.Create(document5, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -1092,7 +1092,6 @@ public class ProjectStateTest : WorkspaceTestBase
     private class TestDocumentState : DocumentState
     {
         public static TestDocumentState Create(
-            HostWorkspaceServices services,
             HostDocument hostDocument,
             Func<Task<TextAndVersion>> loader = null,
             Action onTextChange = null,
@@ -1102,7 +1101,6 @@ public class ProjectStateTest : WorkspaceTestBase
             Action onProjectWorkspaceStateChange = null)
         {
             return new TestDocumentState(
-                services,
                 hostDocument,
                 null,
                 null,
@@ -1121,7 +1119,6 @@ public class ProjectStateTest : WorkspaceTestBase
         private readonly Action _onProjectWorkspaceStateChange;
 
         private TestDocumentState(
-            HostWorkspaceServices services,
             HostDocument hostDocument,
             SourceText text,
             VersionStamp? version,
@@ -1131,7 +1128,7 @@ public class ProjectStateTest : WorkspaceTestBase
             Action onConfigurationChange,
             Action onImportsChange,
             Action onProjectWorkspaceStateChange)
-            : base(services, hostDocument, text, version, loader)
+            : base(hostDocument, text, version, loader)
         {
             _onTextChange = onTextChange;
             _onTextLoaderChange = onTextLoaderChange;
