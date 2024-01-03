@@ -30,7 +30,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
@@ -406,7 +405,7 @@ internal static class Extensions
     {
         if (expectedOutput.Length == 1 && string.IsNullOrWhiteSpace(expectedOutput[0]))
         {
-            Assert.True(false, GenerateExpectedPageOutput(result));
+            Assert.Fail(GenerateExpectedPageOutput(result));
         }
         else
         {
@@ -415,29 +414,6 @@ internal static class Extensions
             {
                 var text = TrimChecksum(result.GeneratedSources[i].SourceText.ToString());
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(text, TrimChecksum(expectedOutput[i]));
-            }
-        }
-
-        return result;
-    }
-
-    public static GeneratorRunResult VerifyHostOutput(this GeneratorRunResult result, params (string hintName, string text)[] expectedOutputs)
-    {
-        if (expectedOutputs.Length == 1 && string.IsNullOrWhiteSpace(expectedOutputs[0].text))
-        {
-            Assert.True(false, GenerateExpectedHostOutput(result));
-        }
-        else
-        {
-            var hostOutputs = result.GetHostOutputs();
-            Assert.Equal(expectedOutputs.Length, hostOutputs.Length);
-            for (int i = 0; i < hostOutputs.Length; i++)
-            {
-                var expectedOutput = expectedOutputs[i];
-                var actualOutput = hostOutputs[i];
-
-                Assert.Equal(expectedOutput.hintName, actualOutput.Key);
-                Assert.Equal(expectedOutput.text, actualOutput.Value, ignoreWhiteSpaceDifferences: true);
             }
         }
 
@@ -520,22 +496,6 @@ internal static class Extensions
                 sb.AppendLine(",");
             }
             sb.Append("@\"").Append(result.GeneratedSources[i].SourceText.ToString().Replace("\"", "\"\"")).Append('"');
-        }
-        return sb.ToString();
-    }
-
-    private static string GenerateExpectedHostOutput(GeneratorRunResult result)
-    {
-        StringBuilder sb = new StringBuilder("Generated Host Output:").AppendLine().AppendLine();
-        var hostOutputs = result.GetHostOutputs();
-        for (int i = 0; i < hostOutputs.Length; i++)
-        {
-            if (i > 0)
-            {
-                sb.AppendLine(",");
-            }
-            sb.Append("(@\"").Append(hostOutputs[i].Key.Replace("\"", "\"\"")).Append("\", ");
-            sb.Append("@\"").Append(hostOutputs[i].Value.Replace("\"", "\"\"")).Append("\")");
         }
         return sb.ToString();
     }

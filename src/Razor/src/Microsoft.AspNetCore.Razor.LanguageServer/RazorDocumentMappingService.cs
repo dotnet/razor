@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,13 +25,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 {
     private readonly FilePathService _documentFilePathService;
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly ILogger _logger;
 
     public RazorDocumentMappingService(
         FilePathService filePathService,
-        DocumentContextFactory documentContextFactory,
-        ILoggerFactory loggerFactory)
+        IDocumentContextFactory documentContextFactory,
+        IRazorLoggerFactory loggerFactory)
     {
         _documentFilePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));

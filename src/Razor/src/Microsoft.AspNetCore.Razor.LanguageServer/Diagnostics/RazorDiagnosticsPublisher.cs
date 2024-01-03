@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -29,30 +30,30 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
     private readonly Dictionary<string, IDocumentSnapshot> _work;
-    private readonly ILogger<RazorDiagnosticsPublisher> _logger;
+    private readonly ILogger _logger;
     private ProjectSnapshotManager? _projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly Lazy<RazorTranslateDiagnosticsService> _razorTranslateDiagnosticsService;
-    private readonly Lazy<DocumentContextFactory> _documentContextFactory;
+    private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
 
     public RazorDiagnosticsPublisher(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         Lazy<RazorTranslateDiagnosticsService> razorTranslateDiagnosticsService,
-        Lazy<DocumentContextFactory> documentContextFactory,
-        ILoggerFactory loggerFactory)
+        Lazy<IDocumentContextFactory> documentContextFactory,
+        IRazorLoggerFactory loggerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
         {
             throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        if (languageServer is null)
+        if (clientConnection is null)
         {
-            throw new ArgumentNullException(nameof(languageServer));
+            throw new ArgumentNullException(nameof(clientConnection));
         }
 
         if (languageServerFeatureOptions is null)
@@ -76,7 +77,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         }
 
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _languageServer = languageServer;
+        _clientConnection = clientConnection;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _razorTranslateDiagnosticsService = razorTranslateDiagnosticsService;
         _documentContextFactory = documentContextFactory;
@@ -223,7 +224,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
                 TextDocument = new TextDocumentIdentifier { Uri = uriBuilder.Uri },
             };
 
-            var delegatedResponse = await _languageServer.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+            var delegatedResponse = await _clientConnection.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
                 delegatedParams,
                 CancellationToken.None).ConfigureAwait(false);
@@ -359,7 +360,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             Host = string.Empty,
         };
 
-        _ = _languageServer.SendNotificationAsync(
+        _ = _clientConnection.SendNotificationAsync(
             Methods.TextDocumentPublishDiagnosticsName,
             new PublishDiagnosticParams()
             {

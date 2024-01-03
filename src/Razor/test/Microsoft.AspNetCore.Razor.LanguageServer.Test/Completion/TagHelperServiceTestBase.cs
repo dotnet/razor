@@ -2,20 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.LanguageServerTagHelperCompletionService;
@@ -107,6 +99,14 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             attribute.SetMetadata(PropertyName("Title"));
             attribute.TypeName = typeof(string).FullName;
         });
+
+        var textComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TextTagHelper", "TestAssembly");
+        textComponent.TagMatchingRule(rule => rule.TagName = "Text");
+        textComponent.SetMetadata(
+            TypeName("Text"),
+            TypeNamespace("System"),
+            TypeNameIdentifier("Text"),
+            new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch));
 
         var directiveAttribute1 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestDirectiveAttribute", "TestAssembly");
         directiveAttribute1.TagMatchingRule(rule =>
@@ -243,6 +243,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             builder1WithRequiredParent.Build(),
             builder2.Build(),
             builder3.Build(),
+            textComponent.Build(),
             directiveAttribute1.Build(),
             directiveAttribute2.Build(),
             directiveAttribute3.Build(),

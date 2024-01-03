@@ -9,8 +9,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -486,7 +487,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapToGeneratedDocumentPosition)} should have returned true");
+            Assert.Fail($"{nameof(service.TryMapToGeneratedDocumentPosition)} should have returned true");
         }
     }
 
@@ -516,7 +517,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
         }
         else
         {
-            Assert.False(true, "TryMapToGeneratedDocumentPosition should have been true");
+            Assert.Fail("TryMapToGeneratedDocumentPosition should have been true");
         }
     }
 
@@ -546,7 +547,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
         }
         else
         {
-            Assert.True(false, "TryMapToGeneratedDocumentPosition should have returned true");
+            Assert.Fail("TryMapToGeneratedDocumentPosition should have returned true");
         }
     }
 
@@ -599,7 +600,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
+            Assert.Fail($"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
         }
     }
 
@@ -629,7 +630,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
+            Assert.Fail($"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
         }
     }
 
@@ -659,7 +660,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
+            Assert.Fail($"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
         }
     }
 
@@ -690,7 +691,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapToGeneratedDocumentRange)} should have returned true");
+            Assert.Fail($"{nameof(service.TryMapToGeneratedDocumentRange)} should have returned true");
         }
     }
 

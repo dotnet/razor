@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -28,16 +29,16 @@ internal class DefaultRazorProjectService : RazorProjectService
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
     private readonly ISnapshotResolver _snapshotResolver;
-    private readonly DocumentVersionCache _documentVersionCache;
+    private readonly IDocumentVersionCache _documentVersionCache;
     private readonly ILogger _logger;
 
     public DefaultRazorProjectService(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         RemoteTextLoaderFactory remoteTextLoaderFactory,
         ISnapshotResolver snapshotResolver,
-        DocumentVersionCache documentVersionCache,
+        IDocumentVersionCache documentVersionCache,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        ILoggerFactory loggerFactory)
+        IRazorLoggerFactory loggerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
         {

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,7 +26,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
 
     public CodeActionEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -45,7 +45,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             l => l.SupportsFileManipulation == true,
             MockBehavior.Strict);
 
-        _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+        _clientConnection = Mock.Of<IClientConnection>(MockBehavior.Strict);
     }
 
     [Fact]
@@ -58,8 +58,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IRazorCodeActionProvider>(),
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -93,8 +94,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IRazorCodeActionProvider>(),
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -126,8 +128,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IRazorCodeActionProvider>(),
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -161,8 +164,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -202,6 +206,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -237,8 +242,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -283,6 +289,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -327,6 +334,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -362,8 +370,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -408,6 +417,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -445,8 +455,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = true
@@ -498,6 +509,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = true
@@ -547,8 +559,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -594,8 +607,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -635,8 +649,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -679,8 +694,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
                     new MockCSharpCodeActionProvider()
             },
             Array.Empty<IHtmlCodeActionProvider>(),
-            _languageServer,
+            _clientConnection,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -698,7 +714,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.NotNull(context);
 
         // Act
-        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Guid.Empty, Logger, cancellationToken: default);
+        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Guid.Empty, cancellationToken: default);
 
         // Assert
         Assert.Empty(results);
@@ -724,6 +740,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
             _languageServerFeatureOptions,
+            LoggerFactory,
             telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
@@ -744,7 +761,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.NotNull(context);
 
         // Act
-        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Guid.Empty, Logger, cancellationToken: default);
+        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Guid.Empty, cancellationToken: default);
 
         // Assert
         var result = Assert.Single(results);
@@ -775,7 +792,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         return documentMappingService;
     }
 
-    private static ClientNotifierServiceBase CreateLanguageServer()
+    private static IClientConnection CreateLanguageServer()
     {
         return new TestLanguageServer();
     }
@@ -846,12 +863,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         }
     }
 
-    private class TestLanguageServer : ClientNotifierServiceBase
+    private class TestLanguageServer : IClientConnection
     {
-        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => Task.CompletedTask;
-
-        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             if (method != CustomMessageNames.RazorProvideCodeActionsEndpoint)
             {
@@ -861,12 +875,12 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             return Task.CompletedTask;
         }
 
-        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             if (method != CustomMessageNames.RazorProvideCodeActionsEndpoint)
             {

@@ -14,13 +14,8 @@ using static Microsoft.AspNetCore.Razor.LanguageServer.DirectoryHelper;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-public class DirectoryHelperTest : TagHelperServiceTestBase
+public class DirectoryHelperTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
-    public DirectoryHelperTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void GetFilteredFiles_FindsFiles()
     {
@@ -78,7 +73,7 @@ public class DirectoryHelperTest : TagHelperServiceTestBase
             {
                 if (results is null)
                 {
-                    Assert.True(false, "Tried to walk a directory which should have been ignored");
+                    Assert.Fail("Tried to walk a directory which should have been ignored");
                 }
 
                 if (results.Any(s => s.Equals("LONGPATH")))
@@ -101,7 +96,7 @@ public class DirectoryHelperTest : TagHelperServiceTestBase
             {
                 if (results is null)
                 {
-                    Assert.True(false, "Tried to walk a directory which should have been ignored");
+                    Assert.Fail("Tried to walk a directory which should have been ignored");
                 }
 
                 if (results.Any(s => s.Equals("LONGPATH")))

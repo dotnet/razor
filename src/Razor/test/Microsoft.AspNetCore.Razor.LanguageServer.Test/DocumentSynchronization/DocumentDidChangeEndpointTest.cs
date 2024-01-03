@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -13,21 +13,15 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-public class DocumentDidChangeEndpointTest : LanguageServerTestBase
+public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly RazorProjectService _projectService;
-
-    public DocumentDidChangeEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _projectService = Mock.Of<RazorProjectService>(MockBehavior.Strict);
-    }
+    private readonly RazorProjectService _projectService = Mock.Of<RazorProjectService>(MockBehavior.Strict);
 
     [Fact]
     public void ApplyContentChanges_SingleChange()
     {
         // Arrange
-        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, _projectService);
+        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, _projectService, LoggerFactory);
         var sourceText = SourceText.From("Hello World");
         var change = new TextDocumentContentChangeEvent()
         {
@@ -41,18 +35,17 @@ public class DocumentDidChangeEndpointTest : LanguageServerTestBase
         };
 
         // Act
-        var result = endpoint.ApplyContentChanges(new[] { change }, sourceText, Logger);
+        var result = endpoint.ApplyContentChanges(new[] { change }, sourceText);
 
         // Assert
-        var resultString = GetString(result);
-        Assert.Equal("Hello! World", resultString);
+        Assert.Equal("Hello! World", result.ToString());
     }
 
     [Fact]
     public void ApplyContentChanges_MultipleChanges()
     {
         // Arrange
-        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, _projectService);
+        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, _projectService, LoggerFactory);
         var sourceText = SourceText.From("Hello World");
         var changes = new[] {
             new TextDocumentContentChangeEvent()
@@ -97,13 +90,12 @@ public class DocumentDidChangeEndpointTest : LanguageServerTestBase
         };
 
         // Act
-        var result = endpoint.ApplyContentChanges(changes, sourceText, Logger);
+        var result = endpoint.ApplyContentChanges(changes, sourceText);
 
         // Assert
-        var resultString = GetString(result);
         Assert.Equal(@"Hi!
 
-! World", resultString);
+! World", result.ToString());
     }
 
     // This is more of an integration test to validate that all the pieces work together
@@ -119,12 +111,11 @@ public class DocumentDidChangeEndpointTest : LanguageServerTestBase
         projectService.Setup(service => service.UpdateDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
             .Callback<string, SourceText, int>((path, text, version) =>
             {
-                var resultString = GetString(text);
-                Assert.Equal("<p></p>", resultString);
+                Assert.Equal("<p></p>", text.ToString());
                 Assert.Equal(documentPath.OriginalString, path);
                 Assert.Equal(1337, version);
             });
-        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, projectService.Object);
+        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, projectService.Object, LoggerFactory);
         var change = new TextDocumentContentChangeEvent()
         {
             Range = new Range

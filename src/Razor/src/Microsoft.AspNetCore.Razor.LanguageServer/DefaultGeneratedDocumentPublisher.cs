@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +20,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
 {
     private readonly Dictionary<DocumentKey, PublishData> _publishedCSharpData;
     private readonly Dictionary<string, PublishData> _publishedHtmlData;
-    private readonly ClientNotifierServiceBase _server;
+    private readonly IClientConnection _clientConnection;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ILogger _logger;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -27,18 +28,18 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
 
     public DefaultGeneratedDocumentPublisher(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ClientNotifierServiceBase server,
+        IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        ILoggerFactory loggerFactory)
+        IRazorLoggerFactory loggerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
         {
             throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        if (server is null)
+        if (clientConnection is null)
         {
-            throw new ArgumentNullException(nameof(server));
+            throw new ArgumentNullException(nameof(clientConnection));
         }
 
         if (languageServerFeatureOptions is null)
@@ -52,7 +53,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         }
 
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _server = server;
+        _clientConnection = clientConnection;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _logger = loggerFactory.CreateLogger<DefaultGeneratedDocumentPublisher>();
         _publishedCSharpData = new Dictionary<DocumentKey, PublishData>();
@@ -139,7 +140,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
         };
 
-        _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
+        _ = _clientConnection.SendNotificationAsync(CustomMessageNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
     }
 
     public override void PublishHtml(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
@@ -194,7 +195,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
         };
 
-        _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
+        _ = _clientConnection.SendNotificationAsync(CustomMessageNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
     }
 
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)

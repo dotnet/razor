@@ -5,21 +5,16 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class ClientSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBase
+public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
-    private readonly IEnumerable<ClientSettingsChangedTrigger> _editorSettingsChangeTriggers;
-
-    public ClientSettingsManagerTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _editorSettingsChangeTriggers = Array.Empty<ClientSettingsChangedTrigger>();
-    }
+    private readonly IEnumerable<ClientSettingsChangedTrigger> _editorSettingsChangeTriggers = Array.Empty<ClientSettingsChangedTrigger>();
 
     [Fact]
     public void ChangeTriggersGetInitialized()
@@ -87,7 +82,7 @@ public class ClientSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBas
         var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
         var called = false;
         manager.Changed += (caller, args) => called = true;
-        var settings = new ClientAdvancedSettings(FormatOnType: false, AutoClosingTags: true, AutoInsertAttributeQuotes: true, ColorBackground: true, CommitElementsWithSpace: false, SnippetSetting: default);
+        var settings = new ClientAdvancedSettings(FormatOnType: false, AutoClosingTags: true, AutoInsertAttributeQuotes: true, ColorBackground: true, CommitElementsWithSpace: false, SnippetSetting: default, LogLevel: default);
 
         // Act
         manager.Update(settings);
@@ -154,6 +149,10 @@ public class ClientSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBas
         public ClientAdvancedSettings GetAdvancedSettings()
         {
             return _settings;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
