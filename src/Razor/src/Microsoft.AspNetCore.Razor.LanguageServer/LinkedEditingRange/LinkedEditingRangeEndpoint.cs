@@ -7,12 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -80,7 +78,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
         }
 
         // We only care if the user is within a TagHelper or HTML tag with a valid start and end tag.
-        if (TryGetNearestMarkupNameTokens(syntaxTree, validLocation!, out var startTagNameToken, out var endTagNameToken) &&
+        if (TryGetNearestMarkupNameTokens(syntaxTree, validLocation, out var startTagNameToken, out var endTagNameToken) &&
             (startTagNameToken.Span.Contains(validLocation.AbsoluteIndex) || endTagNameToken.Span.Contains(validLocation.AbsoluteIndex) ||
             startTagNameToken.Span.End == validLocation.AbsoluteIndex || endTagNameToken.Span.End == validLocation.AbsoluteIndex))
         {
@@ -104,13 +102,8 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
             CancellationToken cancellationToken)
         {
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-
-            if (sourceText.IsLinePositionValid(linePosition, _logger))
+            if (request.Position.TryGetSourceLocation(sourceText, _logger, out var location))
             {
-                var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-                var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);
-
                 return location;
             }
             else

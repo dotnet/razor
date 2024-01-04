@@ -205,11 +205,21 @@ internal static class SourceTextExtensions
 
     public static bool TryGetAbsoluteIndex(this SourceText sourceText, int line, int character, out int absoluteIndex)
     {
+        return sourceText.TryGetAbsoluteIndex(line, character, logger: null, out absoluteIndex);
+    }
+
+    public static bool TryGetAbsoluteIndex(this SourceText sourceText, int line, int character, ILogger? logger, out int absoluteIndex)
+    {
         absoluteIndex = 0;
         var lineCount = sourceText.Lines.Count;
         if (line > lineCount ||
             (line == lineCount && character > 0))
         {
+#pragma warning disable CA2254 // Template should be a static expression.
+            // This is actually static, the compiler just doesn't know it.
+            logger?.LogError(SR.FormatPositionLine_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count));
+#pragma warning restore CA2254 // Template should be a static expression
+
             return false;
         }
 
@@ -220,22 +230,19 @@ internal static class SourceTextExtensions
         }
         else
         {
-            absoluteIndex = sourceText.Lines[line].Start + character;
-        }
-
-        return true;
-    }
-
-    public static bool TryGetAbsoluteIndex(this SourceText sourceText, int line, int character, ILogger? logger, out int absoluteIndex)
-    {
-        if (!TryGetAbsoluteIndex(sourceText, line, character, out absoluteIndex))
-        {
+            var sourceLine = sourceText.Lines[line];
+            var lineLengthIncludingLineBreak = sourceLine.SpanIncludingLineBreak.Length;
+            if (character > lineLengthIncludingLineBreak)
+            {
 #pragma warning disable CA2254 // Template should be a static expression.
-            // This is actually static, the compiler just doesn't know it.
-            logger?.LogError(SR.FormatPositionIndex_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count));
+                // This is actually static, the compiler just doesn't know it.
+                logger?.LogError(SR.FormatPositionCharacter_Outside_Range(character, nameof(sourceText), lineLengthIncludingLineBreak));
 #pragma warning restore CA2254 // Template should be a static expression
-            absoluteIndex = -1;
-            return false;
+
+                return false;
+            }
+
+            absoluteIndex = sourceLine.Start + character;
         }
 
         return true;

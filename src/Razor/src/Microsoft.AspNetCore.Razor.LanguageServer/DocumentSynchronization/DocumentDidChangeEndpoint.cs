@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -72,20 +72,15 @@ internal class DocumentDidChangeEndpoint(
                 throw new ArgumentNullException(nameof(change.Range), "Range of change should not be null.");
             }
 
-            var startLinePosition = new LinePosition(change.Range.Start.Line, change.Range.Start.Character);
-            if (!sourceText.IsLinePositionValid(startLinePosition, _logger))
+            if (!change.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var startPosition))
             {
                 continue;
             }
 
-            var startPosition = sourceText.Lines.GetPosition(startLinePosition);
-            var endLinePosition = new LinePosition(change.Range.End.Line, change.Range.End.Character);
-            if (!sourceText.IsLinePositionValid(endLinePosition, _logger))
+            if (!change.Range.End.TryGetAbsoluteIndex(sourceText, _logger, out var endPosition))
             {
                 continue;
             }
-
-            var endPosition = sourceText.Lines.GetPosition(endLinePosition);
 
             var textSpan = new TextSpan(startPosition, change.RangeLength ?? endPosition - startPosition);
             var textChange = new TextChange(textSpan, change.Text);
