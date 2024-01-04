@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -23,7 +24,7 @@ internal class ProjectSnapshot : IProjectSnapshot
         State = state ?? throw new ArgumentNullException(nameof(state));
 
         _lock = new object();
-        _documents = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
+        _documents = new Dictionary<string, DocumentSnapshot>(FilePathNormalizer.Comparer);
     }
 
     public ProjectKey Key => State.HostProject.Key;

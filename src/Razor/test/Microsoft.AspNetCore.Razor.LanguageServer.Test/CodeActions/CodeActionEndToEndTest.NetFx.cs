@@ -140,7 +140,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/71335")]
     public async Task Handle_IntroduceLocal_All()
     {
         var input = """

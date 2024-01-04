@@ -23,6 +23,7 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly bool? _updateBuffersForClosedDocuments;
     private readonly bool? _includeProjectKeyInGeneratedFilePath;
     private readonly bool? _monitorWorkspaceFolderForConfigurationFiles;
+    private readonly bool? _useRazorCohostServer;
 
     public override bool SupportsFileManipulation => _supportsFileManipulation ?? _defaults.SupportsFileManipulation;
     public override string ProjectConfigurationFileName => _projectConfigurationFileName ?? _defaults.ProjectConfigurationFileName;
@@ -37,6 +38,7 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool UpdateBuffersForClosedDocuments => _updateBuffersForClosedDocuments ?? _defaults.UpdateBuffersForClosedDocuments;
     public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath ?? _defaults.IncludeProjectKeyInGeneratedFilePath;
     public override bool MonitorWorkspaceFolderForConfigurationFiles => _monitorWorkspaceFolderForConfigurationFiles ?? _defaults.MonitorWorkspaceFolderForConfigurationFiles;
+    public override bool UseRazorCohostServer => _useRazorCohostServer ?? _defaults.UseRazorCohostServer;
 
     public ConfigurableLanguageServerFeatureOptions(string[] args)
     {
@@ -60,6 +62,7 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
             TryProcessBoolOption(nameof(UpdateBuffersForClosedDocuments), ref _updateBuffersForClosedDocuments, option, args, i);
             TryProcessBoolOption(nameof(IncludeProjectKeyInGeneratedFilePath), ref _includeProjectKeyInGeneratedFilePath, option, args, i);
             TryProcessBoolOption(nameof(MonitorWorkspaceFolderForConfigurationFiles), ref _monitorWorkspaceFolderForConfigurationFiles, option, args, i);
+            TryProcessBoolOption(nameof(UseRazorCohostServer), ref _useRazorCohostServer, option, args, i);
         }
     }
 

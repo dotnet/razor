@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
@@ -28,8 +29,8 @@ internal class ProjectState
         ProjectDifference.DocumentAdded |
         ProjectDifference.DocumentRemoved;
 
-    private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathComparer.Instance);
-    private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathComparer.Instance);
+    private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathNormalizer.Comparer);
+    private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizer.Comparer);
     private readonly object _lock;
 
     private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
@@ -357,7 +358,7 @@ internal class ProjectState
             return this;
         }
 
-        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithConfigurationChange(), FilePathComparer.Instance);
+        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithConfigurationChange(), FilePathNormalizer.Comparer);
 
         // If the host project has changed then we need to recompute the imports map
         var importsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
@@ -385,7 +386,7 @@ internal class ProjectState
         }
 
         var difference = ProjectDifference.ProjectWorkspaceStateChanged;
-        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithProjectWorkspaceStateChange(), FilePathComparer.Instance);
+        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithProjectWorkspaceStateChange(), FilePathNormalizer.Comparer);
         var state = new ProjectState(this, difference, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments);
         return state;
     }
@@ -441,7 +442,7 @@ internal class ProjectState
         {
             var itemTargetPath = importItem.FilePath.Replace('/', '\\').TrimStart('\\');
 
-            if (FilePathComparer.Instance.Equals(itemTargetPath, hostDocument.TargetPath))
+            if (FilePathNormalizer.Comparer.Equals(itemTargetPath, hostDocument.TargetPath))
             {
                 // We've normalized the original importItem.FilePath into the HostDocument.TargetPath. For instance, if the HostDocument.TargetPath
                 // was '/_Imports.razor' it'd be normalized down into '_Imports.razor'. The purpose of this method is to get the associated document
