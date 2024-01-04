@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -215,10 +216,15 @@ internal static class SourceTextExtensions
         if (line > lineCount ||
             (line == lineCount && character > 0))
         {
+            if (logger != null)
+            {
 #pragma warning disable CA2254 // Template should be a static expression.
-            // This is actually static, the compiler just doesn't know it.
-            logger?.LogError(SR.FormatPositionLine_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count));
+                // This is actually static, the compiler just doesn't know it.
+                var errorMessage = SR.FormatPositionLine_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count);
+                logger?.LogError(errorMessage);
 #pragma warning restore CA2254 // Template should be a static expression
+                Debug.Fail(SR.FormatPositionLine_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count));
+            }
 
             return false;
         }
@@ -234,10 +240,15 @@ internal static class SourceTextExtensions
             var lineLengthIncludingLineBreak = sourceLine.SpanIncludingLineBreak.Length;
             if (character > lineLengthIncludingLineBreak)
             {
+                if (logger != null)
+                {
 #pragma warning disable CA2254 // Template should be a static expression.
-                // This is actually static, the compiler just doesn't know it.
-                logger?.LogError(SR.FormatPositionCharacter_Outside_Range(character, nameof(sourceText), lineLengthIncludingLineBreak));
+                    // This is actually static, the compiler just doesn't know it.
+                    var errorMessage = SR.FormatPositionCharacter_Outside_Range(character, nameof(sourceText), lineLengthIncludingLineBreak);
+                    logger?.LogError(errorMessage);
+                    Debug.Fail(errorMessage);
 #pragma warning restore CA2254 // Template should be a static expression
+                }
 
                 return false;
             }
