@@ -68,4 +68,3 @@
 "Value"=dword:00000001
 "Title"="Use Roslyn analyzer diagnostics when requesting diagnostics on razor files (requires restart)"
 "PreviewPaneChannels"="*"
-"VisibleToInternalUsersOnlyChannels"="*"
