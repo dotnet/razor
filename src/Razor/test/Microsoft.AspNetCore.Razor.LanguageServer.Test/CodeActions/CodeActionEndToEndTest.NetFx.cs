@@ -1178,7 +1178,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                 return null;
             }
 
-            var projectWorkspaceState = new ProjectWorkspaceState(_tagHelperDescriptors.ToImmutableArray(), LanguageVersion.Default);
+            var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
             var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
             testDocumentSnapshot.With(CodeDocument);
 
