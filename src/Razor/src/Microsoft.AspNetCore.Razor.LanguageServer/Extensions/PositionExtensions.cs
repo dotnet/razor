@@ -33,8 +33,8 @@ internal static class PositionExtensions
     
     public static bool TryGetSourceLocation(
         this Position position,
-        SourceText sourceText, ILogger?
-        logger,
+        SourceText sourceText,
+        ILogger? logger,
         [NotNullWhen(true)] out SourceLocation? sourceLocation)
     {
         if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
