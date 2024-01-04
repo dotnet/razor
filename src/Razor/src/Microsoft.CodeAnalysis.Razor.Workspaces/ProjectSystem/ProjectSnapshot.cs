@@ -30,7 +30,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public ProjectState State { get; }
 
-    public RazorConfiguration? Configuration => HostProject.Configuration;
+    public RazorConfiguration Configuration => HostProject.Configuration;
 
     public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
 
@@ -52,7 +52,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => State.TagHelpers;
 
-    public ProjectWorkspaceState? ProjectWorkspaceState => State.ProjectWorkspaceState;
+    public ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
 
     public virtual IDocumentSnapshot? GetDocument(string filePath)
     {
