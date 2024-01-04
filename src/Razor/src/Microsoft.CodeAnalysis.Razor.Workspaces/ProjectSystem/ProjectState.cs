@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -36,16 +33,17 @@ internal class ProjectState
     private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizer.Comparer);
     private readonly object _lock;
 
-    private RazorProjectEngine _projectEngine;
+    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private RazorProjectEngine? _projectEngine;
 
     public static ProjectState Create(
-        HostWorkspaceServices services,
+        ProjectSnapshotProjectEngineFactory projectEngineFactory,
         HostProject hostProject,
-        ProjectWorkspaceState projectWorkspaceState = null)
+        ProjectWorkspaceState projectWorkspaceState)
     {
-        if (services is null)
+        if (projectEngineFactory is null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(projectEngineFactory));
         }
 
         if (hostProject is null)
@@ -53,20 +51,26 @@ internal class ProjectState
             throw new ArgumentNullException(nameof(hostProject));
         }
 
-        return new ProjectState(services, hostProject, projectWorkspaceState);
+        if (projectWorkspaceState is null)
+        {
+            throw new ArgumentNullException(nameof(projectWorkspaceState));
+        }
+
+        return new ProjectState(projectEngineFactory, hostProject, projectWorkspaceState);
     }
 
     private ProjectState(
-        HostWorkspaceServices services,
+        ProjectSnapshotProjectEngineFactory projectEngineFactory,
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState)
     {
-        Services = services;
+        _projectEngineFactory = projectEngineFactory;
         HostProject = hostProject;
         ProjectWorkspaceState = projectWorkspaceState;
         Documents = s_emptyDocuments;
         ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
         Version = VersionStamp.Create();
+        ProjectWorkspaceStateVersion = Version;
         DocumentCollectionVersion = Version;
 
         _lock = new object();
@@ -100,7 +104,12 @@ internal class ProjectState
             throw new ArgumentNullException(nameof(importsToRelatedDocuments));
         }
 
-        Services = older.Services;
+        if (projectWorkspaceState is null)
+        {
+            throw new ArgumentNullException(nameof(projectWorkspaceState));
+        }
+
+        _projectEngineFactory = older._projectEngineFactory;
         Version = older.Version.GetNewerVersion();
 
         HostProject = hostProject;
@@ -133,7 +142,7 @@ internal class ProjectState
 
         if ((difference & ClearProjectWorkspaceStateVersionMask) == 0 ||
             ProjectWorkspaceState == older.ProjectWorkspaceState ||
-            ProjectWorkspaceState?.Equals(older.ProjectWorkspaceState) == true)
+            ProjectWorkspaceState.Equals(older.ProjectWorkspaceState))
         {
             ProjectWorkspaceStateVersion = older.ProjectWorkspaceStateVersion;
         }
@@ -161,11 +170,9 @@ internal class ProjectState
 
     public ProjectWorkspaceState ProjectWorkspaceState { get; }
 
-    public HostWorkspaceServices Services { get; }
+    public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
-    public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? ImmutableArray<TagHelperDescriptor>.Empty;
-
-    public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState?.CSharpLanguageVersion ?? LanguageVersion.Default;
+    public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
 
     /// <summary>
     /// Gets the version of this project, INCLUDING content changes. The <see cref="Version"/> is
@@ -190,6 +197,19 @@ internal class ProjectState
             }
 
             return _projectEngine;
+
+            RazorProjectEngine CreateProjectEngine()
+            {
+                return _projectEngineFactory.Create(
+                    HostProject.Configuration,
+                    Path.GetDirectoryName(HostProject.FilePath),
+                    configure: builder =>
+                    {
+                        builder.SetRootNamespace(HostProject.RootNamespace);
+                        builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                        builder.SetSupportLocalizedComponentNames();
+                    });
+            }
         }
     }
 
@@ -221,7 +241,7 @@ internal class ProjectState
             return this;
         }
 
-        var documents = Documents.Add(hostDocument.FilePath, DocumentState.Create(Services, hostDocument, loader));
+        var documents = Documents.Add(hostDocument.FilePath, DocumentState.Create(hostDocument, loader));
 
         // Compute the effect on the import map
         var importTargetPaths = GetImportDocumentTargetPaths(hostDocument);
@@ -360,7 +380,7 @@ internal class ProjectState
             return this;
         }
 
-        if (ProjectWorkspaceState != null && ProjectWorkspaceState.Equals(projectWorkspaceState))
+        if (ProjectWorkspaceState.Equals(projectWorkspaceState))
         {
             return this;
         }
@@ -407,20 +427,6 @@ internal class ProjectState
         }
 
         return importsToRelatedDocuments;
-    }
-
-    private RazorProjectEngine CreateProjectEngine()
-    {
-        var factory = Services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
-        return factory.Create(
-            HostProject.Configuration,
-            Path.GetDirectoryName(HostProject.FilePath),
-            configure: builder =>
-            {
-                builder.SetRootNamespace(HostProject.RootNamespace);
-                builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
-                builder.SetSupportLocalizedComponentNames();
-            });
     }
 
     public List<string> GetImportDocumentTargetPaths(HostDocument hostDocument)
