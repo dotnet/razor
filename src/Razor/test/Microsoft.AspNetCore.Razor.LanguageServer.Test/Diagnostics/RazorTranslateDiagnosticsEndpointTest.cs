@@ -523,7 +523,8 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
             Diagnostics = new[] {
                 new VSDiagnostic() {
                     Severity = DiagnosticSeverity.Warning,
-                    Range = new Range { Start = new Position(0, 0), End = new Position(0, 3)}
+                    Range = new Range { Start = new Position(0, 0), End = new Position(0, 3)},
+                    DiagnosticType = "Compiler"
                 }
             },
             RazorDocumentUri = documentPath,
@@ -540,7 +541,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task Handle_ProcessDiagnostics_CSharpError_Unmapped_ReturnsUndefinedRangeDiagnostic()
+    public async Task Handle_ProcessDiagnostics_CSharpError_Unmapped_Compiler_ReturnsUndefinedRangeDiagnostic()
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
@@ -561,7 +562,128 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
             Diagnostics = new[] {
                 new VSDiagnostic() {
                     Severity = DiagnosticSeverity.Error,
-                    Range = new Range { Start = new Position(0, 0), End = new Position(0, 3)}
+                    Range = new Range { Start = new Position(0, 0), End = new Position(0, 3)},
+                    DiagnosticType = "Compiler"
+                }
+            },
+            RazorDocumentUri = documentPath,
+        };
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+
+        // Assert
+        Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics![0].Range);
+        Assert.Equal(1337, response.HostDocumentVersion);
+    }
+
+    [Fact]
+    public async Task Handle_ProcessDiagnostics_CSharpError_Unmapped_Analyzer_ReturnsUndefinedRangeDiagnostic()
+    {
+        // Arrange
+        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var codeDocument = CreateCodeDocumentWithCSharpProjection(
+            "<p>@DateTime.Now</p>",
+            "var __o = DateTime.Now",
+            new[] {
+                new SourceMapping(
+                    new SourceSpan(4, 12),
+                    new SourceSpan(10, 12))
+            });
+
+        var diagnosticRange = new Range { Start = new Position(0, 0), End = new Position(0, 3) };
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var diagnosticsService = new RazorTranslateDiagnosticsService(_mappingService, LoggerFactory);
+        var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(diagnosticsService, LoggerFactory);
+        var request = new RazorDiagnosticsParams()
+        {
+            Kind = RazorLanguageKind.CSharp,
+            Diagnostics = new[] {
+                new VSDiagnostic() {
+                    Severity = DiagnosticSeverity.Error,
+                    Range = diagnosticRange,
+                    DiagnosticType = "Analyzer"
+                }
+            },
+            RazorDocumentUri = documentPath,
+        };
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+
+        // Assert
+        Assert.Equal(diagnosticRange, response.Diagnostics![0].Range);
+        Assert.Equal(1337, response.HostDocumentVersion);
+    }
+
+    [Fact]
+    public async Task Handle_ProcessDiagnostics_CSharpError_OutOfStartRange_Analyzer_ReturnsUndefinedRangeDiagnostic()
+    {
+        // Arrange
+        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var codeDocument = CreateCodeDocumentWithCSharpProjection(
+            "<p>@DateTime.Now</p>",
+            "var __o = DateTime.Now",
+            new[] {
+                new SourceMapping(
+                    new SourceSpan(4, 12),
+                    new SourceSpan(10, 12))
+            });
+
+        var diagnosticRange = new Range { Start = new Position(1337, 1337), End = new Position(1338, 1338) };
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var diagnosticsService = new RazorTranslateDiagnosticsService(_mappingService, LoggerFactory);
+        var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(diagnosticsService, LoggerFactory);
+        var request = new RazorDiagnosticsParams()
+        {
+            Kind = RazorLanguageKind.CSharp,
+            Diagnostics = new[] {
+                new VSDiagnostic() {
+                    Severity = DiagnosticSeverity.Error,
+                    Range = diagnosticRange,
+                    DiagnosticType = "Analyzer"
+                }
+            },
+            RazorDocumentUri = documentPath,
+        };
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+
+        // Assert
+        Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics![0].Range);
+        Assert.Equal(1337, response.HostDocumentVersion);
+    }
+
+    [Fact]
+    public async Task Handle_ProcessDiagnostics_CSharpError_OutOfEndRange_Analyzer_ReturnsUndefinedRangeDiagnostic()
+    {
+        // Arrange
+        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var codeDocument = CreateCodeDocumentWithCSharpProjection(
+            "<p>@DateTime.Now</p>",
+            "var __o = DateTime.Now",
+            new[] {
+                new SourceMapping(
+                    new SourceSpan(4, 12),
+                    new SourceSpan(10, 12))
+            });
+
+        var diagnosticRange = new Range { Start = new Position(0, 0), End = new Position(1337, 1337) };
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var diagnosticsService = new RazorTranslateDiagnosticsService(_mappingService, LoggerFactory);
+        var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(diagnosticsService, LoggerFactory);
+        var request = new RazorDiagnosticsParams()
+        {
+            Kind = RazorLanguageKind.CSharp,
+            Diagnostics = new[] {
+                new VSDiagnostic() {
+                    Severity = DiagnosticSeverity.Error,
+                    Range = diagnosticRange,
+                    DiagnosticType = "Analyzer"
                 }
             },
             RazorDocumentUri = documentPath,
@@ -595,7 +717,8 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
                 new VSDiagnostic() {
                     Code = "CS1525",
                     Severity = DiagnosticSeverity.Error,
-                    Range = new Range { Start = new Position(0, 0),End =  new Position(0, 3)}
+                    Range = new Range { Start = new Position(0, 0),End =  new Position(0, 3)},
+                    DiagnosticType = "Compiler"
                 }
             },
             RazorDocumentUri = documentPath,
@@ -629,7 +752,8 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
                 new VSDiagnostic() {
                     Code = "CS1525",
                     Severity = DiagnosticSeverity.Error,
-                    Range = new Range { Start = new Position(0, 128), End = new Position(0, 128)}
+                    Range = new Range { Start = new Position(0, 128), End = new Position(0, 128)},
+                    DiagnosticType = "Compiler"
                 }
             },
             RazorDocumentUri = documentPath,
