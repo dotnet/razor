@@ -4,35 +4,64 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 
-internal class CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory) : IProjectSnapshot
+internal class CohostProjectSnapshot : IProjectSnapshot
 {
-    private readonly Project _project = project;
-    private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
+    private static readonly EmptyProjectEngineFactory s_fallbackProjectEngineFactory = new();
+    private static readonly (IProjectEngineFactory Value, ICustomProjectEngineFactoryMetadata)[] s_projectEngineFactories = ProjectEngineFactories.Factories.Select(f => (f.Item1.Value, f.Item2)).ToArray();
 
-    public ProjectKey Key => ProjectKey.From(_project)!.Value;
+    private readonly Project _project;
+    private readonly DocumentSnapshotFactory _documentSnapshotFactory;
+    private readonly ProjectKey _projectKey;
+    private readonly Lazy<RazorConfiguration> _lazyConfiguration;
+    private readonly Lazy<RazorProjectEngine> _lazyProjectEngine;
 
-    public RazorConfiguration? Configuration => throw new NotImplementedException();
+    public CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory)
+    {
+        _project = project;
+        _documentSnapshotFactory = documentSnapshotFactory;
+        _projectKey = ProjectKey.From(_project)!.Value;
+
+        _lazyConfiguration = new Lazy<RazorConfiguration>(CreateRazorConfiguration);
+        _lazyProjectEngine = new Lazy<RazorProjectEngine>(() => DefaultProjectEngineFactory.Create(
+            Configuration,
+            fileSystem: RazorProjectFileSystem.Create(Path.GetDirectoryName(FilePath)),
+            configure: builder =>
+            {
+                builder.SetRootNamespace(RootNamespace);
+                builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                builder.SetSupportLocalizedComponentNames();
+            },
+            fallback: s_fallbackProjectEngineFactory,
+            factories: s_projectEngineFactories));
+    }
+
+    public ProjectKey Key => _projectKey;
+
+    public RazorConfiguration Configuration => _lazyConfiguration.Value;
 
     public IEnumerable<string> DocumentFilePaths
         => _project.AdditionalDocuments
-            .Where(d => d.FilePath.AssumeNotNull().EndsWith(".razor", StringComparison.OrdinalIgnoreCase) || d.FilePath.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
+            .Where(d => d.FilePath!.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) || d.FilePath.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
             .Select(d => d.FilePath.AssumeNotNull());
 
     public string FilePath => _project.FilePath!;
 
     public string IntermediateOutputPath => FilePathNormalizer.GetNormalizedDirectoryName(_project.CompilationOutputInfo.AssemblyPath);
 
-    public string? RootNamespace => _project.DefaultNamespace;
+    public string? RootNamespace => _project.DefaultNamespace ?? "ASP";
 
     public string DisplayName => _project.Name;
 
@@ -42,7 +71,7 @@ internal class CohostProjectSnapshot(Project project, DocumentSnapshotFactory do
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => throw new NotImplementedException();
 
-    public ProjectWorkspaceState? ProjectWorkspaceState => throw new NotImplementedException();
+    public ProjectWorkspaceState ProjectWorkspaceState => throw new NotImplementedException();
 
     public IDocumentSnapshot? GetDocument(string filePath)
     {
@@ -55,10 +84,7 @@ internal class CohostProjectSnapshot(Project project, DocumentSnapshotFactory do
         return _documentSnapshotFactory.GetOrCreate(textDocument);
     }
 
-    public RazorProjectEngine GetProjectEngine()
-    {
-        throw new NotImplementedException();
-    }
+    public RazorProjectEngine GetProjectEngine() => _lazyProjectEngine.Value;
 
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
@@ -68,5 +94,24 @@ internal class CohostProjectSnapshot(Project project, DocumentSnapshotFactory do
     public bool IsImportDocument(IDocumentSnapshot document)
     {
         throw new NotImplementedException();
+    }
+
+    private RazorConfiguration CreateRazorConfiguration()
+    {
+        // See RazorSourceGenerator.RazorProviders.cs
+
+        var globalOptions = _project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
+
+        globalOptions.TryGetValue("build_property.RazorConfiguration", out var configurationName);
+
+        configurationName ??= "MVC-3.0"; // TODO: Source generator uses "default" here??
+
+        if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
+            !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
+        {
+            razorLanguageVersion = RazorLanguageVersion.Latest;
+        }
+
+        return RazorConfiguration.Create(razorLanguageVersion, configurationName, Enumerable.Empty<RazorExtension>(), useConsolidatedMvcViews: true);
     }
 }
