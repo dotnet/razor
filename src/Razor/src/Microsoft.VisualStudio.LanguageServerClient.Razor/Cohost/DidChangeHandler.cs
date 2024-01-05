@@ -6,6 +6,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
@@ -14,15 +15,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
 [Export(typeof(IRazorCohostDidChangeHandler)), Shared]
 [method: ImportingConstructor]
-internal class DidChangeHandler(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService) : IRazorCohostDidChangeHandler
+internal class DidChangeHandler(
+    ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+    RazorProjectService razorProjectService,
+    OpenDocumentGenerator openDocumentGenerator) : IRazorCohostDidChangeHandler
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _razorProjectService = razorProjectService;
+    private readonly OpenDocumentGenerator _openDocumentGenerator = openDocumentGenerator;
 
-    public Task HandleAsync(Uri uri, int version, SourceText sourceText, CancellationToken cancellationToken)
+    public async Task HandleAsync(Uri uri, int version, SourceText sourceText, CancellationToken cancellationToken)
     {
-        return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-            () => _razorProjectService.UpdateDocument(uri.GetAbsoluteOrUNCPath(), sourceText, version),
-            cancellationToken);
+        await await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+        {
+            var textDocumentPath = FilePathNormalizer.Normalize(uri.GetAbsoluteOrUNCPath());
+            _razorProjectService.UpdateDocument(textDocumentPath, sourceText, version);
+
+            return _openDocumentGenerator.DocumentOpenedOrChangedAsync(textDocumentPath, version, cancellationToken);
+        }, cancellationToken).ConfigureAwait(false);
     }
 }

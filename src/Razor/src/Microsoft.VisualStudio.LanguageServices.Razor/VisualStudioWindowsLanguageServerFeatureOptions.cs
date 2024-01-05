@@ -16,12 +16,14 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private const string IncludeProjectKeyInGeneratedFilePathFeatureFlag = "Razor.LSP.IncludeProjectKeyInGeneratedFilePath";
     private const string UsePreciseSemanticTokenRangesFeatureFlag = "Razor.LSP.UsePreciseSemanticTokenRanges";
     private const string UseRazorCohostServerFeatureFlag = "Razor.LSP.UseRazorCohostServer";
+    private const string DisableRazorLanguageServerFeatureFlag = "Razor.LSP.DisableRazorLanguageServer";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
     private readonly Lazy<bool> _useRazorCohostServer;
+    private readonly Lazy<bool> _disableRazorLanguageServer;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -60,6 +62,13 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
             var useRazorCohostServer = featureFlags.IsFeatureEnabled(UseRazorCohostServerFeatureFlag, defaultValue: false);
             return useRazorCohostServer;
         });
+
+        _disableRazorLanguageServer = new Lazy<bool>(() =>
+        {
+            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+            var disableRazorLanguageServer = featureFlags.IsFeatureEnabled(DisableRazorLanguageServerFeatureFlag, defaultValue: false);
+            return disableRazorLanguageServer;
+        });
     }
 
     // We don't currently support file creation operations on VS Codespaces or VS Liveshare
@@ -93,4 +102,6 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     public override bool MonitorWorkspaceFolderForConfigurationFiles => false;
 
     public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
+
+    public override bool DisableRazorLanguageServer => _disableRazorLanguageServer.Value;
 }
