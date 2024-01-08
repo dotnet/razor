@@ -210,12 +210,12 @@ public abstract class RazorSourceGeneratorTestsBase
     }
 
     protected static async Task VerifyRazorPageMatchesBaselineAsync(Compilation compilation, string name,
-        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "", string suffix = "")
     {
         var html = await RenderRazorPageAsync(compilation, name);
         Extensions.VerifyTextMatchesBaseline(
             actualText: html,
-            fileName: name,
+            fileName: name + (suffix.Length == 0 ? "" : "_" + suffix),
             extension: "html",
             testPath: testPath,
             testName: testName);
