@@ -9,32 +9,32 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal abstract class ProjectSnapshotManagerDispatcherBase : IProjectSnapshotManagerDispatcher, IDisposable
+internal abstract class SingleThreadProjectSnapshotManagerDispatcher : IProjectSnapshotManagerDispatcher, IDisposable
 {
-    private readonly ProjectSnapshotManagerTaskScheduler _dispatcherScheduler;
+    private readonly ThreadScheduler _scheduler;
 
-    public ProjectSnapshotManagerDispatcherBase(string threadName)
+    public SingleThreadProjectSnapshotManagerDispatcher(string threadName)
     {
         if (threadName is null)
         {
             throw new ArgumentNullException(nameof(threadName));
         }
 
-        _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName, LogException);
+        _scheduler = new ThreadScheduler(threadName, LogException);
     }
 
     public abstract void LogException(Exception ex);
 
     public void Dispose()
     {
-        _dispatcherScheduler.Dispose();
+        _scheduler.Dispose();
     }
 
-    public bool IsRunningOnDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
+    public bool IsRunningOnDispatcherThread => Thread.CurrentThread.ManagedThreadId == _scheduler.ThreadId;
 
-    public TaskScheduler Scheduler => _dispatcherScheduler;
+    public TaskScheduler Scheduler => _scheduler;
 
-    private class ProjectSnapshotManagerTaskScheduler : TaskScheduler, IDisposable
+    private class ThreadScheduler : TaskScheduler, IDisposable
     {
         private readonly Thread _thread;
         private readonly BlockingCollection<Task> _tasks = new();
@@ -42,7 +42,7 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : IProjectSnapshotM
         private bool _disposed;
         private readonly object _disposalLock = new();
 
-        public ProjectSnapshotManagerTaskScheduler(string threadName, Action<Exception> logException)
+        public ThreadScheduler(string threadName, Action<Exception> logException)
         {
             _thread = new Thread(ThreadStart)
             {
@@ -50,8 +50,9 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : IProjectSnapshotM
                 IsBackground = true,
             };
 
-            _thread.Start();
             _logException = logException;
+
+            _thread.Start();
         }
 
         public int ThreadId => _thread.ManagedThreadId;

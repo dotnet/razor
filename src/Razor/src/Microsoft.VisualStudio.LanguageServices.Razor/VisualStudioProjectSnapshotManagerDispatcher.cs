@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
 [Export(typeof(IProjectSnapshotManagerDispatcher))]
-internal class VisualStudioProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
+internal class VisualStudioProjectSnapshotManagerDispatcher : SingleThreadProjectSnapshotManagerDispatcher
 {
     private const string ThreadName = "Razor." + nameof(VisualStudioProjectSnapshotManagerDispatcher);
 

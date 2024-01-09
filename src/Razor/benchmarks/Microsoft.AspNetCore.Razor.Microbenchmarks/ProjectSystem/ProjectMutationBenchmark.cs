@@ -87,7 +87,7 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
         }
     }
 
-    private class SnapshotDispatcher : ProjectSnapshotManagerDispatcherBase
+    private class SnapshotDispatcher : SingleThreadProjectSnapshotManagerDispatcher
     {
         public SnapshotDispatcher(string threadName) : base(threadName)
         {

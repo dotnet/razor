@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LSPProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
+internal class LSPProjectSnapshotManagerDispatcher : SingleThreadProjectSnapshotManagerDispatcher
 {
     private const string ThreadName = "Razor." + nameof(LSPProjectSnapshotManagerDispatcher);
 
