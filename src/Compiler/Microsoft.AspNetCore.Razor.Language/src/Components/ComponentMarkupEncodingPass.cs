@@ -45,7 +45,7 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
         // 1. New lines (\r, \n), tabs (\t), angle brackets (<, >) - so they get rendered as actual new lines, tabs, brackets instead of &#xA;
         // 2. Any character outside the ASCII range
 
-        private static readonly char[] EncodedCharacters = new[] { '\r', '\n', '\t', '<', '>' };
+        private static readonly char[] EncodedCharacters = new[] { '\r', '\n', '\t', '<', '>', '\'' };
 
         private readonly Dictionary<string, string> _seenEntities = new Dictionary<string, string>(StringComparer.Ordinal);
 
