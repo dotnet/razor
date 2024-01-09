@@ -5,7 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Serialziation.Json.Internal;
+using Microsoft.AspNetCore.Razor.Serialization.Json.Internal;
 using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json;
 

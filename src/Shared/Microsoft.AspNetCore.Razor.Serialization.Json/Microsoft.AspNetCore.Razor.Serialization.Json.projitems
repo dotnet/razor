@@ -24,7 +24,7 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Internal\SR.resx">
       <GenerateSource>true</GenerateSource>
-      <ClassName>Microsoft.AspNetCore.Razor.Serialziation.Json.Internal.SR</ClassName>
+      <ClassName>Microsoft.AspNetCore.Razor.Serialization.Json.Internal.SR</ClassName>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
