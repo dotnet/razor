@@ -66,7 +66,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             InsertSpaces = insertSpaces,
         };
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, dispatcher, codeDocument, documentSnapshot, razorLSPOptions);
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
@@ -111,7 +111,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(
             LoggerFactory, dispatcher, codeDocument, documentSnapshot, razorLSPOptions);
@@ -181,7 +181,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             throw new InvalidOperationException("Could not map from Razor document to generated document");
         }
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, dispatcher, codeDocument);
         var options = new FormattingOptions()

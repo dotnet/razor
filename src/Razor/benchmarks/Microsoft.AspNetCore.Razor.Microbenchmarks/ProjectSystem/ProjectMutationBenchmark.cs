@@ -7,6 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -20,7 +21,7 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
     public ProjectMutationBenchmark()
         : base(100000)
     {
-        _dispatcher = new SnapshotDispatcher(nameof(ProjectMutationBenchmark));
+        _dispatcher = new SnapshotDispatcher(new ConsoleErrorReporter());
     }
 
     private Thread _addRemoveThread;
@@ -87,11 +88,25 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
         }
     }
 
-    private class SnapshotDispatcher(string threadName) : SingleThreadProjectSnapshotManagerDispatcher(threadName)
+    private class ConsoleErrorReporter : IErrorReporter
     {
-        protected override void LogException(Exception ex)
+        public void ReportError(Exception exception)
         {
-            Console.Error.WriteLine(ex.ToString());
+            Console.Error.WriteLine(exception.ToString());
         }
+
+        public void ReportError(Exception exception, IProjectSnapshot project)
+        {
+            Console.Error.WriteLine(exception.ToString());
+        }
+
+        public void ReportError(Exception exception, Project workspaceProject)
+        {
+            Console.Error.WriteLine(exception.ToString());
+        }
+    }
+
+    private class SnapshotDispatcher(IErrorReporter errorReporter) : ProjectSnapshotManagerDispatcher(errorReporter)
+    {
     }
 }

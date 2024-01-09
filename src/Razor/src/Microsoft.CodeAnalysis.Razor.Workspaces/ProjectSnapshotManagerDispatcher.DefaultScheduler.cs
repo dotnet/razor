@@ -2,42 +2,36 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher
+internal abstract partial class ProjectSnapshotManagerDispatcher
 {
-    private sealed class ThreadScheduler : TaskScheduler, IDisposable
+    private sealed class DefaultScheduler : TaskScheduler, IDisposable
     {
-        private readonly Thread _thread;
-        private readonly BlockingCollection<Task> _taskQueue;
-        private readonly Action<Exception> _logException;
+        private readonly IErrorReporter _errorReporter;
+        private readonly AsyncQueue<Task> _taskQueue;
         private readonly CancellationTokenSource _disposeCancellationSource;
 
-        public ThreadScheduler(string threadName, Action<Exception> logException)
+        public DefaultScheduler(IErrorReporter errorReporter)
         {
-            _logException = logException;
+            _errorReporter = errorReporter;
             _disposeCancellationSource = new CancellationTokenSource();
-            _taskQueue = [];
+            _taskQueue = new AsyncQueue<Task>();
 
-            _thread = new Thread(ThreadStart)
-            {
-                Name = threadName,
-                IsBackground = true,
-            };
-
-            _thread.Start();
+            _ = Task.Run(ProcessQueueAsync);
         }
 
         public override int MaximumConcurrencyLevel => 1;
 
         protected override void QueueTask(Task task)
         {
-            _taskQueue.TryAdd(task, Timeout.Infinite, _disposeCancellationSource.Token);
+            _taskQueue.TryEnqueue(task);
         }
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
@@ -52,9 +46,10 @@ internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher
             return false;
         }
 
-        protected override IEnumerable<Task> GetScheduledTasks() => _taskQueue.ToArray();
+        protected override IEnumerable<Task> GetScheduledTasks()
+            => _taskQueue.ToArray();
 
-        private void ThreadStart()
+        private async Task ProcessQueueAsync()
         {
             var disposeToken = _disposeCancellationSource.Token;
 
@@ -64,10 +59,12 @@ internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher
                 {
                     try
                     {
-                        if (_taskQueue.TryTake(out var task, Timeout.Infinite, disposeToken))
-                        {
-                            TryExecuteTask(task);
-                        }
+                        // ConfigureAwait(true) is used below because this method runs on the
+                        // ThreadPool and we want to continue running on the ThreadPool.
+                        var task = await _taskQueue.DequeueAsync(disposeToken).ConfigureAwait(true);
+
+                        var result = TryExecuteTask(task);
+                        Debug.Assert(result);
                     }
                     catch (OperationCanceledException)
                     {
@@ -75,7 +72,7 @@ internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher
                     }
                     catch (Exception ex)
                     {
-                        _logException(ex);
+                        _errorReporter.ReportError(ex);
 
                         if (ex is ThreadAbortException)
                         {
@@ -89,11 +86,11 @@ internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher
             }
             finally
             {
-                if (_taskQueue.IsAddingCompleted)
+                if (_taskQueue.IsCompleted)
                 {
-                    while (_taskQueue.Count > 0)
+                    while (_taskQueue.TryDequeue(out _))
                     {
-                        _taskQueue.TryTake(out _);
+                        // Intentionally empty
                     }
                 }
             }
@@ -101,7 +98,7 @@ internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher
 
         public void Dispose()
         {
-            _taskQueue.CompleteAdding();
+            _taskQueue.Complete();
 
             _disposeCancellationSource.Cancel();
             _disposeCancellationSource.Dispose();

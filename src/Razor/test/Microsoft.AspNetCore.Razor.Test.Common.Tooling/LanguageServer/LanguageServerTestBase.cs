@@ -37,7 +37,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
     public LanguageServerTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        Dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
         AddDisposable((IDisposable)Dispatcher);
 
         SpanMappingService = new ThrowingRazorSpanMappingService();
