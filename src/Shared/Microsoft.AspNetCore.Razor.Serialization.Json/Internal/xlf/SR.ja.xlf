@@ -32,16 +32,6 @@
         <target state="new">Expected JSON token '{0}', but it was '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unsupported_argument_kind">
-        <source>Unsupported argument kind: '{0}'.</source>
-        <target state="new">Unsupported argument kind: '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unsupported_argument_type">
-        <source>Unsupported argument type: '{0}'.</source>
-        <target state="new">Unsupported argument type: '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_razor_project_info_version_encountered">
         <source>Unsupported razor project info version encounted.</source>
         <target state="new">Unsupported razor project info version encounted.</target>
