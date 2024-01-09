@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,13 +21,4 @@ internal abstract class ProjectSnapshotManagerDispatcher
 
     public Task<TResult> RunOnDispatcherThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
         => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, DispatcherScheduler);
-
-    public virtual void AssertDispatcherThread([CallerMemberName] string? caller = null)
-    {
-        if (!IsDispatcherThread)
-        {
-            caller = caller is null ? "The method" : $"'{caller}'";
-            throw new InvalidOperationException(caller + " must be called on the project snapshot manager's thread.");
-        }
-    }
 }
