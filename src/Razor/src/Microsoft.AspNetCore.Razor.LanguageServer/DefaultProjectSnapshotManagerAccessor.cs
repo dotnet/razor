@@ -15,7 +15,7 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
     private readonly IEnumerable<IProjectSnapshotChangeTrigger> _changeTriggers;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
     private readonly AdhocWorkspaceFactory _workspaceFactory;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private ProjectSnapshotManagerBase? _instance;
     private bool _disposed;
 
@@ -23,12 +23,12 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
         IEnumerable<IProjectSnapshotChangeTrigger> changeTriggers,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         AdhocWorkspaceFactory workspaceFactory,
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        IProjectSnapshotManagerDispatcher dispatcher)
     {
         _changeTriggers = changeTriggers ?? throw new ArgumentNullException(nameof(changeTriggers));
         _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
         _workspaceFactory = workspaceFactory ?? throw new ArgumentNullException(nameof(workspaceFactory));
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
     }
 
     public override ProjectSnapshotManagerBase Instance
@@ -46,7 +46,7 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
                     ErrorReporter.Instance,
                     _changeTriggers,
                     workspace,
-                    _projectSnapshotManagerDispatcher);
+                    _dispatcher);
             }
 
             return _instance;

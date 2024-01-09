@@ -20,18 +20,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly RazorProjectService _projectService;
     private readonly ILogger _logger;
     private readonly Dictionary<string, ProjectKey> _configurationToProjectMap;
     internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
 
     public ProjectConfigurationStateSynchronizer(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         RazorProjectService projectService,
         IRazorLoggerFactory loggerFactory)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _projectService = projectService;
         _logger = loggerFactory.CreateLogger<ProjectConfigurationStateSynchronizer>();
         _configurationToProjectMap = new Dictionary<string, ProjectKey>(FilePathComparer.Instance);
@@ -47,7 +47,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             throw new ArgumentNullException(nameof(args));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         switch (args.Kind)
         {

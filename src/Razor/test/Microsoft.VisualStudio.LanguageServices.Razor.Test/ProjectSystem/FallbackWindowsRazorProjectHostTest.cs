@@ -642,10 +642,10 @@ public class FallbackWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatc
         internal TestFallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
-            IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IProjectSnapshotManagerDispatcher dispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
-            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
+            : base(commonServices, workspace, dispatcher, projectConfigurationFilePathStore, projectManager)
         {
             base.SkipIntermediateOutputPathExistCheck_TestOnly = true;
         }

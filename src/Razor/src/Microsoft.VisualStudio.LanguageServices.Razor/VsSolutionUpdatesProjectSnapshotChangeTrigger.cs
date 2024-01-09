@@ -23,7 +23,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotC
     private readonly IServiceProvider _services;
     private readonly TextBufferProjectService _projectService;
     private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private ProjectSnapshotManagerBase? _projectManager;
     private CancellationTokenSource? _activeSolutionCancellationTokenSource;
@@ -35,7 +35,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotC
         [Import(typeof(SVsServiceProvider))] IServiceProvider services,
         TextBufferProjectService projectService,
         ProjectWorkspaceStateGenerator workspaceStateGenerator,
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (services is null)
@@ -53,9 +53,9 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotC
             throw new ArgumentNullException(nameof(workspaceStateGenerator));
         }
 
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (joinableTaskContext is null)
@@ -66,7 +66,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotC
         _services = services;
         _projectService = projectService;
         _workspaceStateGenerator = workspaceStateGenerator;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _activeSolutionCancellationTokenSource = new CancellationTokenSource();
     }
@@ -142,7 +142,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotC
     internal Task OnProjectBuiltAsync(IVsHierarchy projectHierarchy, CancellationToken cancellationToken)
     {
         var projectFilePath = _projectService.GetProjectPath(projectHierarchy);
-        return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+        return _dispatcher.RunAsync(() =>
         {
             if (_projectManager is null)
             {

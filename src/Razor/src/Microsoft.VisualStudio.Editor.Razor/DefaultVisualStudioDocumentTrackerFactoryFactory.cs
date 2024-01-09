@@ -17,19 +17,19 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [ExportLanguageServiceFactory(typeof(VisualStudioDocumentTrackerFactory), RazorLanguage.Name, ServiceLayer.Default)]
 internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServiceFactory
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
 
     [ImportingConstructor]
     public DefaultVisualStudioDocumentTrackerFactoryFactory(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         ITextDocumentFactoryService textDocumentFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (joinableTaskContext is null)
@@ -42,7 +42,7 @@ internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServi
             throw new ArgumentNullException(nameof(textDocumentFactory));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _textDocumentFactory = textDocumentFactory;
     }
@@ -61,7 +61,7 @@ internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServi
         var projectPathProvider = languageServices.WorkspaceServices.GetRequiredService<ProjectPathProvider>();
 
         return new DefaultVisualStudioDocumentTrackerFactory(
-            _projectSnapshotManagerDispatcher,
+            _dispatcher,
             _joinableTaskContext,
             projectManager,
             workspaceEditorSettings,

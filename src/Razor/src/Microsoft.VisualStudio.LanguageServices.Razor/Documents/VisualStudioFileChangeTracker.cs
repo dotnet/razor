@@ -16,7 +16,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
 
     private readonly IErrorReporter _errorReporter;
     private readonly IVsAsyncFileChangeEx _fileChangeService;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     // Internal for testing
@@ -30,7 +30,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
         string filePath,
         IErrorReporter errorReporter,
         IVsAsyncFileChangeEx fileChangeService,
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (string.IsNullOrEmpty(filePath))
@@ -48,9 +48,9 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
             throw new ArgumentNullException(nameof(fileChangeService));
         }
 
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (joinableTaskContext is null)
@@ -61,7 +61,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
         FilePath = filePath;
         _errorReporter = errorReporter;
         _fileChangeService = fileChangeService;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
     }
 
@@ -69,7 +69,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
 
     public override void StartListening()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (_fileChangeAdviseTask is not null)
         {
@@ -108,7 +108,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
 
     public override void StopListening()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (_fileChangeAdviseTask is null || _fileChangeUnadviseTask?.IsCompleted == false)
         {

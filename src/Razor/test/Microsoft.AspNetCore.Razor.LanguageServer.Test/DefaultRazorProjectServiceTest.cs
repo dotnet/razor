@@ -41,7 +41,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectWorkspaceState = ProjectWorkspaceState.Create(LanguageVersion.LatestMajor);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 hostProject.Key,
                 hostProject.Configuration,
@@ -68,7 +68,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var newDocument = new DocumentSnapshotHandle("file.cshtml", "file.cshtml", FileKinds.Component);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 hostProject.Key,
                 hostProject.Configuration,
@@ -98,7 +98,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 hostProject.Key,
                 hostProject.Configuration,
@@ -136,7 +136,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var addedDocument = new DocumentSnapshotHandle("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 hostProject.Key,
                 hostProject.Configuration,
@@ -176,7 +176,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 hostProject.Key,
                 hostProject.Configuration,
@@ -216,7 +216,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         };
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 hostProject.Key,
                 hostProject.Configuration,
@@ -239,7 +239,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var newDocument = new DocumentSnapshotHandle(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 hostProject.Key,
                 hostProject.Configuration,
@@ -271,7 +271,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 ownerProject.Key,
                 ownerProject.Configuration,
@@ -299,7 +299,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 ownerProject.Key,
                 ownerProject.Configuration,
@@ -328,7 +328,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 ownerProject.Key,
                 configuration: null,
@@ -360,7 +360,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 ownerProject.Key,
                 FallbackRazorConfiguration.MVC_1_1,
@@ -386,7 +386,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateProject(
                 projectKey,
                 FallbackRazorConfiguration.MVC_1_1,
@@ -419,7 +419,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.CloseDocument(expectedDocumentFilePath));
 
         // Assert
@@ -445,7 +445,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.CloseDocument(expectedDocumentFilePath));
 
         // Assert
@@ -472,7 +472,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.CloseDocument(expectedDocumentFilePath));
 
         // Assert
@@ -506,7 +506,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var sourceText = SourceText.From("Hello World");
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.OpenDocument(expectedDocumentFilePath, sourceText, 1));
 
         // Assert
@@ -537,7 +537,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var sourceText = SourceText.From("Hello World");
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.OpenDocument(expectedDocumentFilePath, sourceText, 1));
 
         // Assert
@@ -571,7 +571,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var sourceText = SourceText.From("Hello World");
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.OpenDocument(expectedDocumentFilePath, sourceText, 1));
 
         // Assert
@@ -612,7 +612,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var sourceText = SourceText.From("Hello World");
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.OpenDocument(expectedDocumentFilePath, sourceText, 1));
 
         // Assert
@@ -636,7 +636,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(snapshotResolver.Object, projectSnapshotManager.Object);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.AddDocument(documentFilePath));
     }
 
@@ -664,7 +664,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.AddDocument(documentFilePath));
 
         // Assert
@@ -690,7 +690,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.AddDocument(documentFilePath));
 
         // Assert
@@ -726,7 +726,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.RemoveDocument(documentFilePath));
 
         // Assert
@@ -771,7 +771,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.RemoveDocument(documentFilePath));
 
         // Assert
@@ -815,7 +815,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.RemoveDocument(documentFilePath));
 
         // Assert
@@ -847,7 +847,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.RemoveDocument(documentFilePath));
 
         // Assert
@@ -872,7 +872,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.RemoveDocument(documentFilePath));
     }
 
@@ -891,7 +891,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.RemoveDocument(documentFilePath));
     }
 
@@ -919,7 +919,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateDocument(documentFilePath, newText, 1337));
 
         // Assert
@@ -948,7 +948,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateDocument(documentFilePath, newText, 1337));
 
         // Assert
@@ -976,7 +976,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateDocument(documentFilePath, newText, 1337));
 
         // Assert
@@ -1024,7 +1024,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
             documentVersionCache.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateDocument(documentFilePath, newText, 1337));
 
         // Assert
@@ -1055,7 +1055,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
             documentVersionCache: documentVersionCache.Object);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.UpdateDocument(documentFilePath, newText, 1337));
     }
 
@@ -1077,7 +1077,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.AddProject(projectFilePath, "C:/path/to/obj", configuration: null, rootNamespace: null, displayName: ""));
 
         // Assert
@@ -1105,7 +1105,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.AddProject(projectFilePath, "C:/path/to/obj", configuration, "My.Root.Namespace", displayName: ""));
 
         // Assert
@@ -1141,7 +1141,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.TryMigrateDocumentsFromRemovedProject(removedProject));
 
         // Assert
@@ -1172,7 +1172,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.TryMigrateDocumentsFromRemovedProject(removedProject));
 
         // Assert
@@ -1195,7 +1195,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.TryMigrateMiscellaneousDocumentsToProject());
     }
 
@@ -1234,7 +1234,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
             projectService.TryMigrateMiscellaneousDocumentsToProject());
 
         // Assert

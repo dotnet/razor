@@ -15,16 +15,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 [LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
 internal class DocumentDidCloseEndpoint : IRazorNotificationHandler<DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly RazorProjectService _projectService;
 
     public bool MutatesSolutionState => true;
 
     public DocumentDidCloseEndpoint(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         RazorProjectService projectService)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _projectService = projectService ?? throw new ArgumentNullException(nameof(projectService));
     }
 
@@ -35,7 +35,7 @@ internal class DocumentDidCloseEndpoint : IRazorNotificationHandler<DidCloseText
 
     public async Task HandleNotificationAsync(DidCloseTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _dispatcher.RunAsync(
             () => _projectService.CloseDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath()),
             cancellationToken).ConfigureAwait(false);
     }

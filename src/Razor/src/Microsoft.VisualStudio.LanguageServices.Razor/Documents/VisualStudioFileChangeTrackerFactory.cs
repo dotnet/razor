@@ -12,13 +12,13 @@ internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
 {
     private readonly IErrorReporter _errorReporter;
     private readonly IVsAsyncFileChangeEx _fileChangeService;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     public VisualStudioFileChangeTrackerFactory(
         IErrorReporter errorReporter,
         IVsAsyncFileChangeEx fileChangeService,
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (errorReporter is null)
@@ -31,9 +31,9 @@ internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
             throw new ArgumentNullException(nameof(fileChangeService));
         }
 
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (joinableTaskContext is null)
@@ -43,7 +43,7 @@ internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
 
         _errorReporter = errorReporter;
         _fileChangeService = fileChangeService;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
     }
 
@@ -54,7 +54,7 @@ internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
             throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
-        var fileChangeTracker = new VisualStudioFileChangeTracker(filePath, _errorReporter, _fileChangeService, _projectSnapshotManagerDispatcher, _joinableTaskContext);
+        var fileChangeTracker = new VisualStudioFileChangeTracker(filePath, _errorReporter, _fileChangeService, _dispatcher, _joinableTaskContext);
         return fileChangeTracker;
     }
 }

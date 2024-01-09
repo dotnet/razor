@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 [LanguageServerEndpoint(Methods.TextDocumentRenameName)]
 internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, ICapabilitiesProvider
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IDocumentContextFactory _documentContextFactory;
     private readonly ProjectSnapshotManager _projectSnapshotManager;
     private readonly RazorComponentSearchEngine _componentSearchEngine;
@@ -36,7 +36,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
     private readonly IRazorDocumentMappingService _documentMappingService;
 
     public RenameEndpoint(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         IDocumentContextFactory documentContextFactory,
         RazorComponentSearchEngine componentSearchEngine,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
@@ -46,7 +46,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         IRazorLoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<RenameEndpoint>())
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
         _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
@@ -162,7 +162,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         var documentSnapshots = new List<IDocumentSnapshot?>();
         var documentPaths = new HashSet<string>();
 
-        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => _projectSnapshotManager.GetProjects(), cancellationToken).ConfigureAwait(false);
+        var projects = await _dispatcher.RunAsync(() => _projectSnapshotManager.GetProjects(), cancellationToken).ConfigureAwait(false);
 
         foreach (var project in projects)
         {

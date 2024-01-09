@@ -21,7 +21,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
     // Internal for testing
     internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
 
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IEnumerable<IRazorFileChangeListener> _listeners;
     private readonly List<FileSystemWatcher> _watchers;
     private readonly object _pendingNotificationsLock = new();
@@ -32,12 +32,12 @@ internal class RazorFileChangeDetector : IFileChangeDetector
     };
 
     public RazorFileChangeDetector(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         IEnumerable<IRazorFileChangeListener> listeners)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (listeners is null)
@@ -45,7 +45,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
             throw new ArgumentNullException(nameof(listeners));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _listeners = listeners;
         _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Count);
         PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
@@ -73,7 +73,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
         var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+        await _dispatcher.RunAsync(() =>
         {
             foreach (var razorFilePath in existingRazorFiles)
             {
@@ -204,7 +204,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
         OnStartingDelayedNotificationWork();
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _dispatcher.RunAsync(
             () => NotifyAfterDelay_ProjectSnapshotManagerDispatcher(physicalFilePath),
             CancellationToken.None).ConfigureAwait(false);
     }

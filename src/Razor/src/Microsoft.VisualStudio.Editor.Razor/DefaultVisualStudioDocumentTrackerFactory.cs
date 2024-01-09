@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentTrackerFactory
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
     private readonly ProjectPathProvider _projectPathProvider;
@@ -24,7 +24,7 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
     private readonly WorkspaceEditorSettings _workspaceEditorSettings;
 
     public DefaultVisualStudioDocumentTrackerFactory(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         ProjectSnapshotManager projectManager,
         WorkspaceEditorSettings workspaceEditorSettings,
@@ -33,9 +33,9 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
         ImportDocumentManager importDocumentManager,
         Workspace workspace)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (projectManager is null)
@@ -68,7 +68,7 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
             throw new ArgumentNullException(nameof(workspace));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _projectManager = projectManager;
         _workspaceEditorSettings = workspaceEditorSettings;
@@ -98,7 +98,7 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
 
         var filePath = textDocument.FilePath;
         var tracker = new DefaultVisualStudioDocumentTracker(
-            _projectSnapshotManagerDispatcher, _joinableTaskContext, filePath, projectPath, _projectManager, _workspaceEditorSettings, _workspace, textBuffer, _importDocumentManager);
+            _dispatcher, _joinableTaskContext, filePath, projectPath, _projectManager, _workspaceEditorSettings, _workspace, textBuffer, _importDocumentManager);
 
         return tracker;
     }

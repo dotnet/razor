@@ -13,14 +13,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
 [Export(typeof(IRazorCohostDidCloseHandler)), Shared]
 [method: ImportingConstructor]
-internal class DidCloseHandler(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService) : IRazorCohostDidCloseHandler
+internal class DidCloseHandler(IProjectSnapshotManagerDispatcher dispatcher, RazorProjectService razorProjectService) : IRazorCohostDidCloseHandler
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly RazorProjectService _razorProjectService = razorProjectService;
 
     public Task HandleAsync(Uri uri, CancellationToken cancellationToken)
     {
-        return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        return _dispatcher.RunAsync(
             () => _razorProjectService.CloseDocument(uri.GetAbsoluteOrUNCPath()),
             cancellationToken);
     }

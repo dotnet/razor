@@ -42,17 +42,17 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
     private readonly ICompletionBroker _completionBroker;
     private readonly IVisualStudioDescriptionFactory _descriptionFactory;
     private readonly JoinableTaskFactory _joinableTaskFactory;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
 
     public RazorDirectiveAttributeCompletionSource(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         VisualStudioRazorParser parser,
         IRazorCompletionFactsService completionFactsService,
         ICompletionBroker completionBroker,
         IVisualStudioDescriptionFactory descriptionFactory,
         JoinableTaskFactory joinableTaskFactory)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _parser = parser ?? throw new ArgumentNullException(nameof(parser));
         _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
         _completionBroker = completionBroker;

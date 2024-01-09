@@ -47,7 +47,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -71,7 +71,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -96,7 +96,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -124,7 +124,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -150,7 +150,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);

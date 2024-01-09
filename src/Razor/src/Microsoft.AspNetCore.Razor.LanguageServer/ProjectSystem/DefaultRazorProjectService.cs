@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 [Export(typeof(RazorProjectService)), Shared]
 [method: ImportingConstructor]
 internal class DefaultRazorProjectService(
-    IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+    IProjectSnapshotManagerDispatcher dispatcher,
     RemoteTextLoaderFactory remoteTextLoaderFactory,
     ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
@@ -36,7 +36,7 @@ internal class DefaultRazorProjectService(
     : RazorProjectService
 {
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory = remoteTextLoaderFactory ?? throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
     private readonly ISnapshotResolver _snapshotResolver = snapshotResolver ?? throw new ArgumentNullException(nameof(snapshotResolver));
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
@@ -44,7 +44,7 @@ internal class DefaultRazorProjectService(
 
     public override void AddDocument(string filePath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
@@ -101,7 +101,7 @@ internal class DefaultRazorProjectService(
 
     public override void OpenDocument(string filePath, SourceText sourceText, int version)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
@@ -130,7 +130,7 @@ internal class DefaultRazorProjectService(
 
     public override void CloseDocument(string filePath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
         {
@@ -142,7 +142,7 @@ internal class DefaultRazorProjectService(
 
     public override void RemoveDocument(string filePath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
         {
@@ -180,7 +180,7 @@ internal class DefaultRazorProjectService(
 
     public override void UpdateDocument(string filePath, SourceText sourceText, int version)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         ActOnDocumentInMultipleProjects(filePath, (project, textDocumentPath) =>
         {
@@ -211,7 +211,7 @@ internal class DefaultRazorProjectService(
 
     public override ProjectKey AddProject(string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string displayName)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
         var hostProject = new HostProject(normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
@@ -233,7 +233,7 @@ internal class DefaultRazorProjectService(
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<DocumentSnapshotHandle> documents)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var project = (ProjectSnapshot?)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
 
@@ -409,7 +409,7 @@ internal class DefaultRazorProjectService(
     // Internal for testing
     internal void TryMigrateDocumentsFromRemovedProject(IProjectSnapshot project)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
 
@@ -436,7 +436,7 @@ internal class DefaultRazorProjectService(
     // Internal for testing
     internal void TryMigrateMiscellaneousDocumentsToProject()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
 

@@ -18,14 +18,14 @@ internal class VisualStudioEditorDocumentManagerFactory : IWorkspaceServiceFacto
 {
     private readonly SVsServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     [ImportingConstructor]
     public VisualStudioEditorDocumentManagerFactory(
         SVsServiceProvider serviceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (serviceProvider is null)
@@ -45,7 +45,7 @@ internal class VisualStudioEditorDocumentManagerFactory : IWorkspaceServiceFacto
 
         _serviceProvider = serviceProvider;
         _editorAdaptersFactory = editorAdaptersFactory;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
     }
 
@@ -59,6 +59,6 @@ internal class VisualStudioEditorDocumentManagerFactory : IWorkspaceServiceFacto
         var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
         var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
         return new VisualStudioEditorDocumentManager(
-            _projectSnapshotManagerDispatcher, _joinableTaskContext, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
+            _dispatcher, _joinableTaskContext, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
     }
 }

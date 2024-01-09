@@ -27,12 +27,12 @@ internal class VisualStudioEditorDocumentManager : EditorDocumentManagerBase
     private bool _advised;
 
     public VisualStudioEditorDocumentManager(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         FileChangeTrackerFactory fileChangeTrackerFactory,
         IVsRunningDocumentTable runningDocumentTable,
         IVsEditorAdaptersFactoryService editorAdaptersFactory)
-        : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
+        : base(dispatcher, joinableTaskContext, fileChangeTrackerFactory)
     {
         if (runningDocumentTable is null)
         {

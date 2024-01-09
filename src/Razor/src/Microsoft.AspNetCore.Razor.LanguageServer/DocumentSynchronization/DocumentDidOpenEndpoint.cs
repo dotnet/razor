@@ -17,12 +17,12 @@ internal class DocumentDidOpenEndpoint : IRazorNotificationHandler<DidOpenTextDo
 {
     public bool MutatesSolutionState => true;
 
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly RazorProjectService _projectService;
 
-    public DocumentDidOpenEndpoint(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService)
+    public DocumentDidOpenEndpoint(IProjectSnapshotManagerDispatcher dispatcher, RazorProjectService razorProjectService)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _projectService = razorProjectService;
     }
 
@@ -30,7 +30,7 @@ internal class DocumentDidOpenEndpoint : IRazorNotificationHandler<DidOpenTextDo
     {
         var sourceText = SourceText.From(request.TextDocument.Text);
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _dispatcher.RunAsync(
             () => _projectService.OpenDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, request.TextDocument.Version),
             cancellationToken).ConfigureAwait(false);
     }

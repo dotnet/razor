@@ -419,13 +419,13 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         private readonly Func<IFileChangeDetector> _fileChangeDetectorFactory;
 
         public TestMonitorProjectConfigurationFilePathEndpoint(
-            IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IProjectSnapshotManagerDispatcher dispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             IRazorLoggerFactory loggerFactory)
             : this(
                 fileChangeDetectorFactory: null!,
-                projectSnapshotManagerDispatcher,
+                dispatcher,
                 workspaceDirectoryPathResolver,
                 listeners,
                 loggerFactory)
@@ -434,13 +434,13 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
 
         public TestMonitorProjectConfigurationFilePathEndpoint(
             Func<IFileChangeDetector> fileChangeDetectorFactory,
-            IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IProjectSnapshotManagerDispatcher dispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             IRazorLoggerFactory loggerFactory,
             LanguageServerFeatureOptions? options = null)
             : base(
-                projectSnapshotManagerDispatcher,
+                dispatcher,
                 workspaceDirectoryPathResolver,
                 listeners,
                 options ?? TestLanguageServerFeatureOptions.Instance,

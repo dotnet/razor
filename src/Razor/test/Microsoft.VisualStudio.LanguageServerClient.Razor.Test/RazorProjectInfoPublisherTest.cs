@@ -114,7 +114,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         publisher.Initialize(projectSnapshotManager);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
         {
             projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
         });
@@ -153,7 +153,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         publisher.Initialize(projectSnapshotManager);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
         {
             projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
         });
@@ -174,7 +174,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         var hostProject = new HostProject(@"C:\path\to\project.csproj", @"C:\path\to\obj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
         var hostDocument = new HostDocument(@"C:\path\to\file.razor", "file.razor");
 
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
         {
             projectSnapshotManager.ProjectAdded(hostProject);
             projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, ProjectWorkspaceState.Default);
@@ -199,7 +199,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         publisher.Initialize(projectSnapshotManager);
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
         {
             projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
         });
@@ -521,7 +521,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         var projectWorkspaceState = ProjectWorkspaceState.Default;
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
         {
             projectSnapshotManager.ProjectAdded(hostProject);
             projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
@@ -556,7 +556,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         projectConfigurationFilePathStore.Set(hostProject.Key, expectedConfigurationFilePath);
 
         // Act
-        await RunOnDispatcherThreadAsync(() => projectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
+        await RunOnDispatcherAsync(() => projectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
         Assert.Empty(publisher.DeferredPublishTasks);
 
@@ -578,10 +578,10 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         };
         publisher.Initialize(projectSnapshotManager);
         var hostProject = new HostProject(@"C:\path\to\project.csproj", @"C:\path\to\obj", RazorConfiguration.Default, "TestRootNamespace");
-        await RunOnDispatcherThreadAsync(() => projectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
+        await RunOnDispatcherAsync(() => projectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() => projectSnapshotManager.ProjectRemoved(hostProject.Key)).ConfigureAwait(false);
+        await RunOnDispatcherAsync(() => projectSnapshotManager.ProjectRemoved(hostProject.Key)).ConfigureAwait(false);
 
         Assert.Empty(publisher.DeferredPublishTasks);
     }
@@ -614,7 +614,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         var projectWorkspaceState = ProjectWorkspaceState.Default;
 
         // Act
-        await RunOnDispatcherThreadAsync(() =>
+        await RunOnDispatcherAsync(() =>
         {
             projectSnapshotManager.ProjectAdded(hostProject);
             projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);

@@ -23,18 +23,18 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
     private readonly IClientConnection _clientConnection;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ILogger _logger;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
     public DefaultGeneratedDocumentPublisher(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorLoggerFactory loggerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (clientConnection is null)
@@ -52,7 +52,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _clientConnection = clientConnection;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _logger = loggerFactory.CreateLogger<DefaultGeneratedDocumentPublisher>();
@@ -88,7 +88,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             throw new ArgumentNullException(nameof(sourceText));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         // If our generated documents don't have unique file paths, then using project key information is problematic for the client.
         // For example, when a document moves from the Misc Project to a real project, we will update it here, and each version would
@@ -155,7 +155,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             throw new ArgumentNullException(nameof(sourceText));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (!_publishedHtmlData.TryGetValue(filePath, out var previouslyPublishedData))
         {
@@ -206,7 +206,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             return;
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         Assumes.NotNull(_projectSnapshotManager);
 

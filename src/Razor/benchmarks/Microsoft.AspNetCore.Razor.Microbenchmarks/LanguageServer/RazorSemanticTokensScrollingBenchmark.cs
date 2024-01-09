@@ -32,7 +32,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     private Range Range { get; set; }
 
-    private IProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
+    private IProjectSnapshotManagerDispatcher Dispatcher { get; set; }
 
     private RazorSemanticTokensLegend SemanticTokensLegend { get; set; }
 
@@ -117,7 +117,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot)
     {
-        await ProjectSnapshotManagerDispatcher!.RunOnDispatcherThreadAsync(
+        await Dispatcher!.RunAsync(
             () => VersionCache!.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None).ConfigureAwait(false);
     }
 
@@ -140,6 +140,6 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<IDocumentVersionCache>();
-        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<IProjectSnapshotManagerDispatcher>();
+        Dispatcher = languageServer.GetRequiredService<IProjectSnapshotManagerDispatcher>();
     }
 }

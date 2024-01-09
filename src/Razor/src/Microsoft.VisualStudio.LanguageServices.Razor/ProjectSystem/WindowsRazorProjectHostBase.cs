@@ -23,7 +23,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     private static readonly DataflowLinkOptions s_dataflowLinkOptions = new DataflowLinkOptions() { PropagateCompletion = true };
 
     private readonly Workspace _workspace;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly AsyncSemaphore _lock;
 
     private ProjectSnapshotManagerBase? _projectManager;
@@ -44,7 +44,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     public WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
         [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
         : base(commonServices.ThreadingService.JoinableTaskContext)
     {
@@ -58,9 +58,9 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             throw new ArgumentNullException(nameof(workspace));
         }
 
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (projectConfigurationFilePathStore is null)
@@ -70,7 +70,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
 
         CommonServices = commonServices;
         _workspace = workspace;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
 
         _lock = new AsyncSemaphore(initialCount: 1);
         ProjectConfigurationFilePathStore = projectConfigurationFilePathStore;
@@ -80,10 +80,10 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
         Workspace workspace,
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         ProjectSnapshotManagerBase projectManager)
-        : this(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
+        : this(commonServices, workspace, dispatcher, projectConfigurationFilePathStore)
     {
         if (projectManager is null)
         {
@@ -279,7 +279,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     // Should only be called from the project snapshot manager's specialized thread.
     protected ProjectSnapshotManagerBase GetProjectManager()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         _projectManager ??= (ProjectSnapshotManagerBase)_workspace.Services.GetLanguageServices(RazorLanguage.Name).GetRequiredService<ProjectSnapshotManager>();
 
@@ -287,7 +287,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     }
 
     protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
-        => _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
+        => _dispatcher.RunAsync(action, cancellationToken);
 
     protected void UninitializeProjectUnsafe(ProjectKey projectKey)
     {

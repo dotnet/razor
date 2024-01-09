@@ -25,7 +25,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
     // a document for each keystroke.
     private static readonly TimeSpan s_batchingTimeSpan = TimeSpan.FromMilliseconds(10);
 
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IReadOnlyList<DocumentProcessedListener> _documentProcessedListeners;
     private readonly BatchingWorkQueue _workQueue;
@@ -33,7 +33,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
 
     public OpenDocumentGenerator(
         IEnumerable<DocumentProcessedListener> documentProcessedListeners,
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IErrorReporter errorReporter)
     {
@@ -42,9 +42,9 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
             throw new ArgumentNullException(nameof(documentProcessedListeners));
         }
 
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (languageServerFeatureOptions is null)
@@ -53,7 +53,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
         }
 
         _documentProcessedListeners = documentProcessedListeners.ToArray();
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _workQueue = new BatchingWorkQueue(s_batchingTimeSpan, FilePathComparer.Instance, errorReporter);
     }
@@ -85,7 +85,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
             return;
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         switch (args.Kind)
         {
@@ -177,7 +177,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
             }
 
             var key = $"{document.Project.Key.Id}:{document.FilePath.AssumeNotNull()}";
-            var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
+            var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _dispatcher);
             _workQueue.Enqueue(key, workItem);
         }
     }
@@ -202,7 +202,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
         {
             var codeDocument = await _latestDocument.GetGeneratedOutputAsync().ConfigureAwait(false);
 
-            await _dispatcher.RunOnDispatcherThreadAsync(() =>
+            await _dispatcher.RunAsync(() =>
             {
                 foreach (var listener in _documentProcessedListeners)
                 {

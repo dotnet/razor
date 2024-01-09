@@ -124,8 +124,8 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return monitor.Object;
     }
 
-    protected Task RunOnDispatcherThreadAsync(Action action)
-        => Dispatcher.RunOnDispatcherThreadAsync(action, DisposalToken);
+    protected Task RunOnDispatcherAsync(Action action)
+        => Dispatcher.RunAsync(action, DisposalToken);
 
     private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
     {

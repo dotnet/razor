@@ -10,7 +10,7 @@ internal abstract partial class ProjectSnapshotManagerDispatcher : IProjectSnaps
 {
     private readonly DefaultScheduler _scheduler;
 
-    public bool IsRunningOnDispatcher => TaskScheduler.Current == _scheduler;
+    public bool IsRunningOnScheduler => TaskScheduler.Current == _scheduler;
     public TaskScheduler Scheduler => _scheduler;
 
     protected ProjectSnapshotManagerDispatcher(IErrorReporter errorReporter)

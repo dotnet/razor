@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 [ContentType(RazorConstants.LegacyCoreContentType)]
 internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletionSourceProvider
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly ICompletionBroker _completionBroker;
     private readonly IVisualStudioDescriptionFactory _descriptionFactory;
@@ -30,13 +30,13 @@ internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletio
 
     [ImportingConstructor]
     public RazorDirectiveAttributeCompletionSourceProvider(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         IRazorCompletionFactsService completionFactsService,
         ICompletionBroker completionBroker,
         IVisualStudioDescriptionFactory descriptionFactory,
         JoinableTaskContext joinableTaskContext)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
         _completionBroker = completionBroker ?? throw new ArgumentNullException(nameof(completionBroker));
         _descriptionFactory = descriptionFactory ?? throw new ArgumentNullException(nameof(descriptionFactory));
@@ -71,7 +71,7 @@ internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletio
         }
 
         return new RazorDirectiveAttributeCompletionSource(
-            _projectSnapshotManagerDispatcher,
+            _dispatcher,
             parser,
             _completionFactsService,
             _completionBroker,

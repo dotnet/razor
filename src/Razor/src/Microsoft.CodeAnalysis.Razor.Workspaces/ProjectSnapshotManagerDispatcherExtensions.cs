@@ -10,21 +10,21 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class ProjectSnapshotManagerDispatcherExtensions
 {
-    public static void AssertDispatcherThread(this IProjectSnapshotManagerDispatcher dispatcher, [CallerMemberName] string? caller = null)
+    public static void AssertRunningOnScheduler(this IProjectSnapshotManagerDispatcher dispatcher, [CallerMemberName] string? caller = null)
     {
-        if (!dispatcher.IsRunningOnDispatcher)
+        if (!dispatcher.IsRunningOnScheduler)
         {
             caller = caller is null ? "The method" : $"'{caller}'";
             throw new InvalidOperationException(caller + " must be called on the project snapshot manager's thread.");
         }
     }
 
-    public static Task RunOnDispatcherThreadAsync(this IProjectSnapshotManagerDispatcher dispatcher, Action action, CancellationToken cancellationToken)
+    public static Task RunAsync(this IProjectSnapshotManagerDispatcher dispatcher, Action action, CancellationToken cancellationToken)
         => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, dispatcher.Scheduler);
 
-    public static Task RunOnDispatcherThreadAsync<TArg>(this IProjectSnapshotManagerDispatcher dispatcher, Action<TArg, CancellationToken> action, TArg arg, CancellationToken cancellationToken)
+    public static Task RunAsync<TArg>(this IProjectSnapshotManagerDispatcher dispatcher, Action<TArg, CancellationToken> action, TArg arg, CancellationToken cancellationToken)
         => Task.Factory.StartNew(() => action(arg, cancellationToken), cancellationToken, TaskCreationOptions.None, dispatcher.Scheduler);
 
-    public static Task<TResult> RunOnDispatcherThreadAsync<TResult>(this IProjectSnapshotManagerDispatcher dispatcher, Func<TResult> action, CancellationToken cancellationToken)
+    public static Task<TResult> RunAsync<TResult>(this IProjectSnapshotManagerDispatcher dispatcher, Func<TResult> action, CancellationToken cancellationToken)
         => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, dispatcher.Scheduler);
 }

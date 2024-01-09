@@ -39,7 +39,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private Range Range { get; set; }
 
-    private IProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
+    private IProjectSnapshotManagerDispatcher Dispatcher { get; set; }
 
     private string PagesDirectory { get; set; }
 
@@ -124,7 +124,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot,
         CancellationToken cancellationToken)
     {
-        await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await Dispatcher.RunAsync(
                 () => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), cancellationToken)
             .ConfigureAwait(false);
     }
@@ -147,7 +147,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<IDocumentVersionCache>();
-        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<IProjectSnapshotManagerDispatcher>();
+        Dispatcher = languageServer.GetRequiredService<IProjectSnapshotManagerDispatcher>();
     }
 
     internal class TestCustomizableRazorSemanticTokensInfoService : RazorSemanticTokensInfoService

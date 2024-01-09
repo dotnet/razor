@@ -29,7 +29,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     internal Timer? _documentClosedTimer;
 
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IClientConnection _clientConnection;
     private readonly Dictionary<string, IDocumentSnapshot> _work;
     private readonly ILogger _logger;
@@ -39,16 +39,16 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
 
     public RazorDiagnosticsPublisher(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         Lazy<RazorTranslateDiagnosticsService> razorTranslateDiagnosticsService,
         Lazy<IDocumentContextFactory> documentContextFactory,
         IRazorLoggerFactory loggerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (clientConnection is null)
@@ -76,7 +76,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _clientConnection = clientConnection;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _razorTranslateDiagnosticsService = razorTranslateDiagnosticsService;
@@ -110,7 +110,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             throw new ArgumentNullException(nameof(document));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         lock (_work)
         {
@@ -140,7 +140,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
     private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
     {
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _dispatcher.RunAsync(
             ClearClosedDocuments,
             cancellationToken).ConfigureAwait(false);
     }

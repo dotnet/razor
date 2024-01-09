@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Razor;
 [Export(typeof(ProjectWorkspaceStateGenerator))]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
 [method: ImportingConstructor]
-internal class DefaultProjectWorkspaceStateGenerator(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, ITelemetryReporter telemetryReporter) : ProjectWorkspaceStateGenerator, IDisposable
+internal class DefaultProjectWorkspaceStateGenerator(IProjectSnapshotManagerDispatcher dispatcher, ITelemetryReporter telemetryReporter) : ProjectWorkspaceStateGenerator, IDisposable
 {
     // Internal for testing
     internal readonly Dictionary<ProjectKey, UpdateItem> Updates = new();
 
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 1);
 
@@ -60,7 +60,7 @@ internal class DefaultProjectWorkspaceStateGenerator(IProjectSnapshotManagerDisp
             throw new ArgumentNullException(nameof(projectSnapshot));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (_disposed)
         {
@@ -199,7 +199,7 @@ internal class DefaultProjectWorkspaceStateGenerator(IProjectSnapshotManagerDisp
                     new Property("id", telemetryId),
                     new Property("result", "error"));
 
-                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                await _dispatcher.RunAsync(
                    () => _projectManager.ReportError(ex, projectSnapshot),
                    // Don't allow errors to be cancelled
                    CancellationToken.None).ConfigureAwait(false);
@@ -212,7 +212,7 @@ internal class DefaultProjectWorkspaceStateGenerator(IProjectSnapshotManagerDisp
                 return;
             }
 
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+            await _dispatcher.RunAsync(
                 () =>
                 {
                     if (cancellationToken.IsCancellationRequested)
@@ -232,7 +232,7 @@ internal class DefaultProjectWorkspaceStateGenerator(IProjectSnapshotManagerDisp
         catch (Exception ex)
         {
             // This is something totally unexpected, let's just send it over to the project manager.
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+            await _dispatcher.RunAsync(
                 () => _projectManager.ReportError(ex),
                 // Don't allow errors to be cancelled
                 CancellationToken.None).ConfigureAwait(false);
@@ -259,7 +259,7 @@ internal class DefaultProjectWorkspaceStateGenerator(IProjectSnapshotManagerDisp
 
     private void ReportWorkspaceStateChange(ProjectKey projectKey, ProjectWorkspaceState workspaceStateChange)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         _projectManager.ProjectWorkspaceStateChanged(projectKey, workspaceStateChange);
     }

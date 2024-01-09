@@ -18,19 +18,19 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [Export(typeof(RazorDocumentManager))]
 internal class DefaultRazorDocumentManager : RazorDocumentManager
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly RazorEditorFactoryService _editorFactoryService;
 
     [ImportingConstructor]
     public DefaultRazorDocumentManager(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         RazorEditorFactoryService editorFactoryService)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (joinableTaskContext is null)
@@ -43,7 +43,7 @@ internal class DefaultRazorDocumentManager : RazorDocumentManager
             throw new ArgumentNullException(nameof(editorFactoryService));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _editorFactoryService = editorFactoryService;
     }
@@ -82,7 +82,7 @@ internal class DefaultRazorDocumentManager : RazorDocumentManager
             {
                 // tracker.Subscribe() accesses the project snapshot manager, which needs to be run on the
                 // project snapshot manager's specialized thread.
-                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => tracker.Subscribe(), CancellationToken.None).ConfigureAwait(false);
+                await _dispatcher.RunAsync(() => tracker.Subscribe(), CancellationToken.None).ConfigureAwait(false);
             }
         }
     }
@@ -116,7 +116,7 @@ internal class DefaultRazorDocumentManager : RazorDocumentManager
                 {
                     // tracker.Unsubscribe() should be in sync with tracker.Subscribe(). The latter of needs to be run
                     // on the project snapshot manager's specialized thread, so we run both on it.
-                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => documentTracker.Unsubscribe(), CancellationToken.None).ConfigureAwait(false);
+                    await _dispatcher.RunAsync(() => documentTracker.Unsubscribe(), CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }

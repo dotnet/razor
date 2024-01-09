@@ -39,7 +39,7 @@ internal class RazorLanguageServerClient(
     IRazorLoggerFactory razorLoggerFactory,
     RazorLogHubTraceProvider traceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+    IProjectSnapshotManagerDispatcher dispatcher,
     ILanguageClientBroker languageClientBroker,
     ILanguageServiceBroker2 languageServiceBroker,
     ITelemetryReporter telemetryReporter,
@@ -59,7 +59,7 @@ internal class RazorLanguageServerClient(
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
     private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider ?? throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
     private readonly IRazorLoggerFactory _razorLoggerFactory = razorLoggerFactory ?? throw new ArgumentNullException(nameof(razorLoggerFactory));
     private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
 
@@ -109,7 +109,7 @@ internal class RazorLanguageServerClient(
             serverStream,
             _razorLoggerFactory,
             _telemetryReporter,
-            _projectSnapshotManagerDispatcher,
+            _dispatcher,
             ConfigureLanguageServer,
             _languageServerFeatureOptions,
             lspOptions,

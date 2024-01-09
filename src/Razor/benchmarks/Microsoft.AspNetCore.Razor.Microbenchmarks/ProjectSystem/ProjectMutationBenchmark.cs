@@ -38,7 +38,7 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
     [Benchmark(Description = "Does thread contention add/remove of documents", OperationsPerInvoke = 100)]
     public async Task ProjectMutation_Mutates100kFilesAsync()
     {
-        await _dispatcher.RunOnDispatcherThreadAsync(() =>
+        await _dispatcher.RunAsync(() =>
         {
             SnapshotManager.ProjectAdded(HostProject);
         }, CancellationToken.None);
@@ -52,9 +52,9 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
             for (var i = 0; i < Documents.Length; i++)
             {
                 var document = Documents[i];
-                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.DocumentAdded(HostProject.Key, document, TextLoaders[i % 4]), CancellationToken.None).ConfigureAwait(false);
+                await _dispatcher.RunAsync(() => SnapshotManager.DocumentAdded(HostProject.Key, document, TextLoaders[i % 4]), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
-                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.DocumentRemoved(HostProject.Key, document), CancellationToken.None).ConfigureAwait(false);
+                await _dispatcher.RunAsync(() => SnapshotManager.DocumentRemoved(HostProject.Key, document), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
             }
 
@@ -71,9 +71,9 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
                     return;
                 }
 
-                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.GetProjects(), CancellationToken.None).ConfigureAwait(false);
+                await _dispatcher.RunAsync(() => SnapshotManager.GetProjects(), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
-                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.GetOpenDocuments(), CancellationToken.None).ConfigureAwait(false);
+                await _dispatcher.RunAsync(() => SnapshotManager.GetOpenDocuments(), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
             }
         });

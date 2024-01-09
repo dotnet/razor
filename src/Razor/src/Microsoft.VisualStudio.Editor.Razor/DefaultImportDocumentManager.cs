@@ -14,20 +14,20 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 internal class DefaultImportDocumentManager : ImportDocumentManager
 {
     private readonly FileChangeTrackerFactory _fileChangeTrackerFactory;
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IErrorReporter _errorReporter;
     private readonly Dictionary<string, ImportTracker> _importTrackerCache;
 
     public override event EventHandler<ImportChangedEventArgs>? Changed;
 
     public DefaultImportDocumentManager(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter,
         FileChangeTrackerFactory fileChangeTrackerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (errorReporter is null)
@@ -40,7 +40,7 @@ internal class DefaultImportDocumentManager : ImportDocumentManager
             throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _errorReporter = errorReporter;
         _fileChangeTrackerFactory = fileChangeTrackerFactory;
         _importTrackerCache = new Dictionary<string, ImportTracker>(StringComparer.OrdinalIgnoreCase);
@@ -53,7 +53,7 @@ internal class DefaultImportDocumentManager : ImportDocumentManager
             throw new ArgumentNullException(nameof(tracker));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var imports = GetImportItems(tracker);
         foreach (var import in imports)
@@ -86,7 +86,7 @@ internal class DefaultImportDocumentManager : ImportDocumentManager
             throw new ArgumentNullException(nameof(tracker));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var imports = GetImportItems(tracker);
         foreach (var import in imports)
@@ -123,7 +123,7 @@ internal class DefaultImportDocumentManager : ImportDocumentManager
 
     private void OnChanged(ImportTracker importTracker, FileChangeKind changeKind)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (Changed is null)
         {
@@ -136,7 +136,7 @@ internal class DefaultImportDocumentManager : ImportDocumentManager
 
     private void FileChangeTracker_Changed(object sender, FileChangeEventArgs args)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (_importTrackerCache.TryGetValue(args.FilePath, out var importTracker))
         {

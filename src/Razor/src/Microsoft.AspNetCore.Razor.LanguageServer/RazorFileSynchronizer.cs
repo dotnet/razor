@@ -10,16 +10,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class RazorFileSynchronizer : IRazorFileChangeListener
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly RazorProjectService _projectService;
 
     public RazorFileSynchronizer(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         RazorProjectService projectService)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (projectService is null)
@@ -27,7 +27,7 @@ internal class RazorFileSynchronizer : IRazorFileChangeListener
             throw new ArgumentNullException(nameof(projectService));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _projectService = projectService;
     }
 
@@ -38,7 +38,7 @@ internal class RazorFileSynchronizer : IRazorFileChangeListener
             throw new ArgumentNullException(nameof(filePath));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         switch (kind)
         {

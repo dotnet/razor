@@ -38,7 +38,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
         Stream output,
         IRazorLoggerFactory loggerFactory,
         ITelemetryReporter telemetryReporter,
-        IProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher = null,
+        IProjectSnapshotManagerDispatcher? dispatcher = null,
         Action<IServiceCollection>? configure = null,
         LanguageServerFeatureOptions? featureOptions = null,
         RazorLSPOptions? razorLSPOptions = null,
@@ -56,7 +56,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
         var server = new RazorLanguageServer(
             jsonRpc,
             loggerFactory,
-            projectSnapshotManagerDispatcher,
+            dispatcher,
             featureOptions,
             configure,
             razorLSPOptions,

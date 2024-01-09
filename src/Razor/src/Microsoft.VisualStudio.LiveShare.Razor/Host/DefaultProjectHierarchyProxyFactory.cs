@@ -21,7 +21,7 @@ internal class DefaultProjectHierarchyProxyFactory : ICollaborationServiceFactor
 
     [ImportingConstructor]
     public DefaultProjectHierarchyProxyFactory(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (joinableTaskContext is null)

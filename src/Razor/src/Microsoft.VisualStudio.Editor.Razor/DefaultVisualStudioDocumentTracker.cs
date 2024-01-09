@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 {
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly string _filePath;
     private readonly string _projectPath;
@@ -36,7 +36,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     public override event EventHandler<ContextChangeEventArgs>? ContextChanged;
 
     public DefaultVisualStudioDocumentTracker(
-        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         string filePath,
         string projectPath,
@@ -46,9 +46,9 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         ITextBuffer textBuffer,
         ImportDocumentManager importDocumentManager)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (joinableTaskContext is null)
@@ -91,7 +91,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             throw new ArgumentNullException(nameof(importDocumentManager));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _filePath = filePath;
         _projectPath = projectPath;
@@ -171,7 +171,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 
     public void Subscribe()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (_subscribeCount++ > 0)
         {
@@ -192,7 +192,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 
     private IProjectSnapshot? GetOrCreateProject(string projectPath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         var projectKey = _projectManager.GetAllProjectKeys(projectPath).FirstOrDefault();
 
@@ -206,7 +206,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 
     public void Unsubscribe()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (_subscribeCount == 0 || _subscribeCount-- > 1)
         {
@@ -241,7 +241,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             return;
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         if (_projectPath is not null &&
             string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
@@ -292,7 +292,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     // Internal for testing
     internal void Import_Changed(object sender, ImportChangedEventArgs args)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnScheduler();
 
         foreach (var path in args.AssociatedDocuments)
         {

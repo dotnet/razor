@@ -128,7 +128,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
             AllowNotifyListeners = true,
         };
         var expectedProjectPath = _someProject.FilePath;
-        var expectedProjectSnapshot = await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        var expectedProjectSnapshot = await s_dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_someProject);
             projectManager.ProjectAdded(_someOtherProject);
@@ -146,7 +146,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         await trigger.CurrentUpdateTaskForTests;
 
         // Act
-        await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        await s_dispatcher.RunAsync(() =>
         {
             projectManager.SolutionClosed();
             projectManager.ProjectRemoved(_someProject.Key);
@@ -165,7 +165,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         // Arrange
         var projectManager = new TestProjectSnapshotManager(_workspace, s_dispatcher);
         var expectedProjectPath = _someProject.FilePath;
-        var expectedProjectSnapshot = await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        var expectedProjectSnapshot = await s_dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_someProject);
             projectManager.ProjectAdded(_someOtherProject);
@@ -287,7 +287,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 
     private class TestDispatcher : IProjectSnapshotManagerDispatcher
     {
-        public bool IsRunningOnDispatcher => true;
+        public bool IsRunningOnScheduler => true;
 
         public TaskScheduler Scheduler => TaskScheduler.Default;
     }

@@ -20,15 +20,15 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IProjectSnapsho
 {
     private readonly HashSet<string> _openDocuments = new(FilePathComparer.Instance);
     private readonly Dictionary<string, ProjectKey> _documentProjectMap = new(FilePathComparer.Instance);
-    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private ProjectSnapshotManagerBase? _projectManager;
 
     public event EventHandler<string>? DocumentReady;
 
     [ImportingConstructor]
-    public RazorCodeDocumentProvidingSnapshotChangeTrigger(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+    public RazorCodeDocumentProvidingSnapshotChangeTrigger(IProjectSnapshotManagerDispatcher dispatcher)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
     }
 
     public void Initialize(ProjectSnapshotManagerBase projectManager)
@@ -76,7 +76,7 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IProjectSnapsho
             return null;
         }
 
-        var project = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        var project = await _dispatcher.RunAsync(
             () => _projectManager?.GetLoadedProject(projectKey), cancellationToken);
 
         if (project is null)
