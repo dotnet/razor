@@ -12,12 +12,12 @@ internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
 {
     private readonly GeneratedDocumentPublisher _publisher;
     private readonly IDocumentVersionCache _documentVersionCache;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
 
     public GeneratedDocumentSynchronizer(
         GeneratedDocumentPublisher publisher,
         IDocumentVersionCache documentVersionCache,
-        ProjectSnapshotManagerDispatcher dispatcher)
+        IProjectSnapshotManagerDispatcher dispatcher)
     {
         _publisher = publisher;
         _documentVersionCache = documentVersionCache;

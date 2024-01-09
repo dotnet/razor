@@ -18,14 +18,14 @@ internal class VisualStudioEditorDocumentManagerFactory : IWorkspaceServiceFacto
 {
     private readonly SVsServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     [ImportingConstructor]
     public VisualStudioEditorDocumentManagerFactory(
         SVsServiceProvider serviceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (serviceProvider is null)

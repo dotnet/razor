@@ -15,7 +15,7 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
     private readonly IEnumerable<IProjectSnapshotChangeTrigger> _changeTriggers;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
     private readonly AdhocWorkspaceFactory _workspaceFactory;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private ProjectSnapshotManagerBase? _instance;
     private bool _disposed;
 
@@ -23,7 +23,7 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
         IEnumerable<IProjectSnapshotChangeTrigger> changeTriggers,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         AdhocWorkspaceFactory workspaceFactory,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
         _changeTriggers = changeTriggers ?? throw new ArgumentNullException(nameof(changeTriggers));
         _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));

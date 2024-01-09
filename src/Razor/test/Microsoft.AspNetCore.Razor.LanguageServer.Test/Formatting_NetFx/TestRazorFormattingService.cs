@@ -21,7 +21,7 @@ internal static class TestRazorFormattingService
 {
     public static async Task<IRazorFormattingService> CreateWithFullSupportAsync(
         IRazorLoggerFactory loggerFactory,
-        ProjectSnapshotManagerDispatcher dispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         RazorCodeDocument? codeDocument = null,
         IDocumentSnapshot? documentSnapshot = null,
         RazorLSPOptions? razorLSPOptions = null)

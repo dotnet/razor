@@ -24,7 +24,7 @@ internal abstract class EditorDocumentManagerBase : EditorDocumentManager
     protected readonly object Lock;
 
     public EditorDocumentManagerBase(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         FileChangeTrackerFactory fileChangeTrackerFactory)
     {
@@ -53,7 +53,7 @@ internal abstract class EditorDocumentManagerBase : EditorDocumentManager
         Lock = new object();
     }
 
-    protected ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; }
+    protected IProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; }
 
     protected JoinableTaskContext JoinableTaskContext { get; }
 

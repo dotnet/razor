@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
 public abstract class ProjectSnapshotManagerDispatcherWorkspaceTestBase : WorkspaceTestBase
 {
-    internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
+    internal IProjectSnapshotManagerDispatcher Dispatcher { get; }
 
     protected ProjectSnapshotManagerDispatcherWorkspaceTestBase(ITestOutputHelper testOutput)
         : base(testOutput)

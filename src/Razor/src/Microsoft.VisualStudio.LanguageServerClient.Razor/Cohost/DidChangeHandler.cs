@@ -16,11 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 [Export(typeof(IRazorCohostDidChangeHandler)), Shared]
 [method: ImportingConstructor]
 internal class DidChangeHandler(
-    ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+    IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
     RazorProjectService razorProjectService,
     OpenDocumentGenerator openDocumentGenerator) : IRazorCohostDidChangeHandler
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _razorProjectService = razorProjectService;
     private readonly OpenDocumentGenerator _openDocumentGenerator = openDocumentGenerator;
 

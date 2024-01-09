@@ -180,7 +180,7 @@ public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTes
 
     private class TestEditorDocumentManager : EditorDocumentManagerBase
     {
-        public TestEditorDocumentManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
+        public TestEditorDocumentManager(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
             : base(projectSnapshotManagerDispatcher, joinableTaskContext, new DefaultFileChangeTrackerFactory())
         {
         }

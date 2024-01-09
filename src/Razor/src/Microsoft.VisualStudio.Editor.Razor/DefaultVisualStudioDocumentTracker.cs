@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly string _filePath;
     private readonly string _projectPath;
@@ -36,7 +36,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     public override event EventHandler<ContextChangeEventArgs>? ContextChanged;
 
     public DefaultVisualStudioDocumentTracker(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         string filePath,
         string projectPath,

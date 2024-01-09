@@ -25,7 +25,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
     // a document for each keystroke.
     private static readonly TimeSpan s_batchingTimeSpan = TimeSpan.FromMilliseconds(10);
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IReadOnlyList<DocumentProcessedListener> _documentProcessedListeners;
     private readonly BatchingWorkQueue _workQueue;
@@ -33,7 +33,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
 
     public OpenDocumentGenerator(
         IEnumerable<DocumentProcessedListener> documentProcessedListeners,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IErrorReporter errorReporter)
     {
@@ -186,12 +186,12 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
     {
         private readonly IDocumentSnapshot _latestDocument;
         private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
-        private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+        private readonly IProjectSnapshotManagerDispatcher _dispatcher;
 
         public ProcessWorkItem(
             IDocumentSnapshot latestDocument,
             IReadOnlyList<DocumentProcessedListener> documentProcessedListeners,
-            ProjectSnapshotManagerDispatcher dispatcher)
+            IProjectSnapshotManagerDispatcher dispatcher)
         {
             _latestDocument = latestDocument;
             _documentProcessedListeners = documentProcessedListeners;

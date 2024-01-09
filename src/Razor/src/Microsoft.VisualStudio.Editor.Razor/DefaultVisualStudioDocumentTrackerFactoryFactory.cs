@@ -17,13 +17,13 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [ExportLanguageServiceFactory(typeof(VisualStudioDocumentTrackerFactory), RazorLanguage.Name, ServiceLayer.Default)]
 internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServiceFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
 
     [ImportingConstructor]
     public DefaultVisualStudioDocumentTrackerFactoryFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         ITextDocumentFactoryService textDocumentFactory)
     {

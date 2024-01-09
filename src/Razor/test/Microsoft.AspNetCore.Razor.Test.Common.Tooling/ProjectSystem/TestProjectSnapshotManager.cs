@@ -10,7 +10,7 @@ using Moq;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
-internal class TestProjectSnapshotManager(Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
+internal class TestProjectSnapshotManager(Workspace workspace, IProjectSnapshotManagerDispatcher dispatcher)
     : DefaultProjectSnapshotManager(
         Mock.Of<IErrorReporter>(MockBehavior.Strict),
         Array.Empty<IProjectSnapshotChangeTrigger>(),

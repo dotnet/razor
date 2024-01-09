@@ -134,12 +134,12 @@ public class CSharpVirtualDocumentFactoryTest : ToolingTestBase
             item => Assert.Equal("C:/path/to/file.razor.jGYrFHvWEciJi85y.ide.g.cs", item.Uri.OriginalString));
     }
 
-    private class TestDispatcher : ProjectSnapshotManagerDispatcher
+    private class TestDispatcher : IProjectSnapshotManagerDispatcher
     {
         // The tests run synchronously without the dispatcher, so just assert that
         // we're always on the right thread
-        public override bool IsRunningOnDispatcherThread => true;
+        public bool IsRunningOnDispatcherThread => true;
 
-        public override TaskScheduler Scheduler => TaskScheduler.Default;
+        public TaskScheduler Scheduler => TaskScheduler.Default;
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentTrackerFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
     private readonly ProjectPathProvider _projectPathProvider;
@@ -24,7 +24,7 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
     private readonly WorkspaceEditorSettings _workspaceEditorSettings;
 
     public DefaultVisualStudioDocumentTrackerFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         ProjectSnapshotManager projectManager,
         WorkspaceEditorSettings workspaceEditorSettings,

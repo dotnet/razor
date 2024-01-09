@@ -80,7 +80,7 @@ public class ProjectConfigurationFileChangeDetectorTest : LanguageServerTestBase
 
         public TestProjectConfigurationFileChangeDetector(
             CancellationTokenSource cancellationTokenSource,
-            ProjectSnapshotManagerDispatcher dispatcher,
+            IProjectSnapshotManagerDispatcher dispatcher,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             IReadOnlyList<string> existingConfigurationFiles,
             IRazorLoggerFactory loggerFactory)

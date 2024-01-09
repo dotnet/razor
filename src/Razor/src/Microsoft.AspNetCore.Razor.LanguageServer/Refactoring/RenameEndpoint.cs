@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 [LanguageServerEndpoint(Methods.TextDocumentRenameName)]
 internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, ICapabilitiesProvider
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IDocumentContextFactory _documentContextFactory;
     private readonly ProjectSnapshotManager _projectSnapshotManager;
     private readonly RazorComponentSearchEngine _componentSearchEngine;
@@ -36,7 +36,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
     private readonly IRazorDocumentMappingService _documentMappingService;
 
     public RenameEndpoint(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IDocumentContextFactory documentContextFactory,
         RazorComponentSearchEngine componentSearchEngine,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,

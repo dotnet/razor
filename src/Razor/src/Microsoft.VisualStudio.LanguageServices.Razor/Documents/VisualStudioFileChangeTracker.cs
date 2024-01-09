@@ -16,7 +16,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
 
     private readonly IErrorReporter _errorReporter;
     private readonly IVsAsyncFileChangeEx _fileChangeService;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     // Internal for testing
@@ -30,7 +30,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
         string filePath,
         IErrorReporter errorReporter,
         IVsAsyncFileChangeEx fileChangeService,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (string.IsNullOrEmpty(filePath))

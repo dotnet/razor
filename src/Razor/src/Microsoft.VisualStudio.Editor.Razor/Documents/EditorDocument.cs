@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 internal sealed class EditorDocument : IDisposable
 {
     private readonly EditorDocumentManager _documentManager;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly FileChangeTracker _fileTracker;
     private readonly SnapshotChangeTracker _snapshotTracker;
@@ -30,7 +30,7 @@ internal sealed class EditorDocument : IDisposable
 
     public EditorDocument(
         EditorDocumentManager documentManager,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         string projectFilePath,
         string documentFilePath,

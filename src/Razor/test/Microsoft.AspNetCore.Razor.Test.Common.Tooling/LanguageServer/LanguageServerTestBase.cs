@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 public abstract class LanguageServerTestBase : ToolingTestBase
 {
-    private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
+    private protected IProjectSnapshotManagerDispatcher Dispatcher { get; }
     private protected IRazorSpanMappingService SpanMappingService { get; }
     private protected FilePathService FilePathService { get; }
 

@@ -14,10 +14,10 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [ExportLanguageServiceFactory(typeof(ImportDocumentManager), RazorLanguage.Name, ServiceLayer.Default)]
 internal class DefaultImportDocumentManagerFactory : ILanguageServiceFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
     [ImportingConstructor]
-    public DefaultImportDocumentManagerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+    public DefaultImportDocumentManagerFactory(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
         if (projectSnapshotManagerDispatcher is null)
         {

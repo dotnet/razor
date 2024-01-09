@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
     private readonly LanguageServerFeatureOptions _options;
     private readonly ILogger _logger;
@@ -31,7 +31,7 @@ internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
     };
 
     public ProjectConfigurationFileChangeDetector(
-        ProjectSnapshotManagerDispatcher dispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         IEnumerable<IProjectConfigurationFileChangeListener> listeners,
         LanguageServerFeatureOptions options,
         IRazorLoggerFactory loggerFactory)

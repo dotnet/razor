@@ -63,12 +63,12 @@ public class DefaultWorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTe
         public void ReportError(Exception exception, Project workspaceProject) => throw new NotImplementedException();
     }
 
-    private class TestDispatcher : ProjectSnapshotManagerDispatcher
+    private class TestDispatcher : IProjectSnapshotManagerDispatcher
     {
         // The tests run synchronously without the dispatcher, so just assert that
         // we're always on the right thread
-        public override bool IsRunningOnDispatcherThread => true;
+        public bool IsRunningOnDispatcherThread => true;
 
-        public override TaskScheduler Scheduler => TaskScheduler.Default;
+        public TaskScheduler Scheduler => TaskScheduler.Default;
     }
 }

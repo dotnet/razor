@@ -29,7 +29,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     internal Timer? _documentClosedTimer;
 
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IClientConnection _clientConnection;
     private readonly Dictionary<string, IDocumentSnapshot> _work;
     private readonly ILogger _logger;
@@ -39,7 +39,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
 
     public RazorDiagnosticsPublisher(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         Lazy<RazorTranslateDiagnosticsService> razorTranslateDiagnosticsService,

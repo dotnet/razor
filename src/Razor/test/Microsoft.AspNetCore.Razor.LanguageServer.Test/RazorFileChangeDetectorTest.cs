@@ -158,7 +158,7 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
 
         public TestRazorFileChangeDetector(
             CancellationTokenSource cancellationTokenSource,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             IEnumerable<IRazorFileChangeListener> listeners,
             IReadOnlyList<string> existingprojectFiles)
             : base(projectSnapshotManagerDispatcher, listeners)

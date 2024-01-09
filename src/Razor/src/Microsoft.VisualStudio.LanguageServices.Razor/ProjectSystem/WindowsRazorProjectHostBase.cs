@@ -23,7 +23,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     private static readonly DataflowLinkOptions s_dataflowLinkOptions = new DataflowLinkOptions() { PropagateCompletion = true };
 
     private readonly Workspace _workspace;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly AsyncSemaphore _lock;
 
     private ProjectSnapshotManagerBase? _projectManager;
@@ -44,7 +44,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     public WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
         [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
         : base(commonServices.ThreadingService.JoinableTaskContext)
     {
@@ -80,7 +80,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
         Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         ProjectSnapshotManagerBase projectManager)
         : this(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)

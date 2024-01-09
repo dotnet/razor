@@ -532,7 +532,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     private class TestRazorDiagnosticsPublisher : RazorDiagnosticsPublisher, IDisposable
     {
         public TestRazorDiagnosticsPublisher(
-            ProjectSnapshotManagerDispatcher dispatcher,
+            IProjectSnapshotManagerDispatcher dispatcher,
             IClientConnection clientConnection,
             LanguageServerFeatureOptions options,
             RazorTranslateDiagnosticsService razorTranslateDiagnosticsService,

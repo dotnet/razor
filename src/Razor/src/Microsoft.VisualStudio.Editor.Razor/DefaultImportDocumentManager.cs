@@ -14,14 +14,14 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 internal class DefaultImportDocumentManager : ImportDocumentManager
 {
     private readonly FileChangeTrackerFactory _fileChangeTrackerFactory;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IErrorReporter _errorReporter;
     private readonly Dictionary<string, ImportTracker> _importTrackerCache;
 
     public override event EventHandler<ImportChangedEventArgs>? Changed;
 
     public DefaultImportDocumentManager(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IErrorReporter errorReporter,
         FileChangeTrackerFactory fileChangeTrackerFactory)
     {

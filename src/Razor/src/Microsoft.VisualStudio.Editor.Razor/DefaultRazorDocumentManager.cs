@@ -18,13 +18,13 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [Export(typeof(RazorDocumentManager))]
 internal class DefaultRazorDocumentManager : RazorDocumentManager
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly RazorEditorFactoryService _editorFactoryService;
 
     [ImportingConstructor]
     public DefaultRazorDocumentManager(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         RazorEditorFactoryService editorFactoryService)
     {

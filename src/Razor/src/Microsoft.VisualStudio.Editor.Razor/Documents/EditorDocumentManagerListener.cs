@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 [Export(typeof(IProjectSnapshotChangeTrigger))]
 internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTrigger
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly EventHandler? _onChangedOnDisk;
@@ -42,7 +42,7 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
     public ProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} called before {nameof(Initialize)}");
 
     [ImportingConstructor]
-    public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext, ITelemetryReporter telemetryReporter)
+    public EditorDocumentManagerListener(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext, ITelemetryReporter telemetryReporter)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
@@ -56,7 +56,7 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
 
     // For testing purposes only.
     internal EditorDocumentManagerListener(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         EditorDocumentManager documentManager,
         EventHandler? onChangedOnDisk,

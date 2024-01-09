@@ -21,7 +21,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
     // Internal for testing
     internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IEnumerable<IRazorFileChangeListener> _listeners;
     private readonly List<FileSystemWatcher> _watchers;
     private readonly object _pendingNotificationsLock = new();
@@ -32,7 +32,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
     };
 
     public RazorFileChangeDetector(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IEnumerable<IRazorFileChangeListener> listeners)
     {
         if (projectSnapshotManagerDispatcher is null)

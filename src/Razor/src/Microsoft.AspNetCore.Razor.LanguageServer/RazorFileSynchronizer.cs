@@ -10,11 +10,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class RazorFileSynchronizer : IRazorFileChangeListener
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _projectService;
 
     public RazorFileSynchronizer(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         RazorProjectService projectService)
     {
         if (projectSnapshotManagerDispatcher is null)

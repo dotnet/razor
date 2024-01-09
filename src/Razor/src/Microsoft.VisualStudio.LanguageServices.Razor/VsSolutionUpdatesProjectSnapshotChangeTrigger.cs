@@ -23,7 +23,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotC
     private readonly IServiceProvider _services;
     private readonly TextBufferProjectService _projectService;
     private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private ProjectSnapshotManagerBase? _projectManager;
     private CancellationTokenSource? _activeSolutionCancellationTokenSource;
@@ -35,7 +35,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotC
         [Import(typeof(SVsServiceProvider))] IServiceProvider services,
         TextBufferProjectService projectService,
         ProjectWorkspaceStateGenerator workspaceStateGenerator,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (services is null)

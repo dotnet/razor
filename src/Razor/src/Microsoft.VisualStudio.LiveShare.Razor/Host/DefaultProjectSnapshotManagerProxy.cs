@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
 internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy, ICollaborationService, IDisposable
 {
     private readonly CollaborationSession _session;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly ProjectSnapshotManager _projectSnapshotManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly AsyncSemaphore _latestStateSemaphore;
@@ -28,7 +28,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     public DefaultProjectSnapshotManagerProxy(
         CollaborationSession session,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ProjectSnapshotManager projectSnapshotManager,
         JoinableTaskFactory joinableTaskFactory)
     {

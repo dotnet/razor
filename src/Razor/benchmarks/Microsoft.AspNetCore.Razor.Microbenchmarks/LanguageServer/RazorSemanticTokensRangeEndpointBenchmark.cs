@@ -39,7 +39,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private Range Range { get; set; }
 
-    private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
+    private IProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
     private string PagesDirectory { get; set; }
 
@@ -147,7 +147,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<IDocumentVersionCache>();
-        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
+        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<IProjectSnapshotManagerDispatcher>();
     }
 
     internal class TestCustomizableRazorSemanticTokensInfoService : RazorSemanticTokensInfoService

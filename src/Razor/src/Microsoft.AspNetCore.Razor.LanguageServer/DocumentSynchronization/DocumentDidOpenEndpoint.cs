@@ -17,10 +17,10 @@ internal class DocumentDidOpenEndpoint : IRazorNotificationHandler<DidOpenTextDo
 {
     public bool MutatesSolutionState => true;
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _projectService;
 
-    public DocumentDidOpenEndpoint(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService)
+    public DocumentDidOpenEndpoint(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = razorProjectService;

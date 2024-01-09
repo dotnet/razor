@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 [LanguageServerEndpoint(LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint)]
 internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationHandler<MonitorProjectConfigurationFilePathParams>, IDisposable
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
     private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
     private readonly LanguageServerFeatureOptions _options;
@@ -34,7 +34,7 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationH
     public bool MutatesSolutionState => false;
 
     public MonitorProjectConfigurationFilePathEndpoint(
-        ProjectSnapshotManagerDispatcher dispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
         IEnumerable<IProjectConfigurationFileChangeListener> listeners,
         LanguageServerFeatureOptions options,

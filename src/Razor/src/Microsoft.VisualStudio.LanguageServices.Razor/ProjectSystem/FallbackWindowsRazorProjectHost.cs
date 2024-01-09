@@ -43,7 +43,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     public FallbackWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
         [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         LanguageServerFeatureOptions languageServerFeatureOptions)
         : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
@@ -57,7 +57,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
 #pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
         IUnconfiguredProjectCommonServices commonServices,
         Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         ProjectSnapshotManagerBase projectManager)
         : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)

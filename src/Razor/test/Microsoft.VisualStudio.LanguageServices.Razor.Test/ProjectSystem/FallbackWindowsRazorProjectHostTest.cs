@@ -642,7 +642,7 @@ public class FallbackWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatc
         internal TestFallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
             : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
@@ -666,7 +666,7 @@ public class FallbackWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatc
 
     private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
-        public TestProjectSnapshotManager(Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
+        public TestProjectSnapshotManager(Workspace workspace, IProjectSnapshotManagerDispatcher dispatcher)
             : base(Mock.Of<IErrorReporter>(MockBehavior.Strict), Array.Empty<IProjectSnapshotChangeTrigger>(), workspace, dispatcher)
         {
         }

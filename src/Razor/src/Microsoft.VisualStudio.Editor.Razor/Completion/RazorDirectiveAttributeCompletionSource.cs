@@ -42,10 +42,10 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
     private readonly ICompletionBroker _completionBroker;
     private readonly IVisualStudioDescriptionFactory _descriptionFactory;
     private readonly JoinableTaskFactory _joinableTaskFactory;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
     public RazorDirectiveAttributeCompletionSource(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         VisualStudioRazorParser parser,
         IRazorCompletionFactsService completionFactsService,
         ICompletionBroker completionBroker,

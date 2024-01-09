@@ -28,7 +28,7 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
         var languageServerFeatureOptions = TestLanguageServerFeatureOptions.Instance;
         _projectConfigurationFilePathStore = new TestProjectConfigurationFilePathStore();
 
-        var dispatcher = Mock.Of<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
+        var dispatcher = Mock.Of<IProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
         _projectSnapshotManager = new TestProjectSnapshotManager(Workspace, dispatcher);
 
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == _projectSnapshotManager, MockBehavior.Strict);

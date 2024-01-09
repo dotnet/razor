@@ -38,7 +38,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     private readonly JsonRpc _jsonRpc;
     private readonly IRazorLoggerFactory _loggerFactory;
     private readonly LanguageServerFeatureOptions? _featureOptions;
-    private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
     private readonly RazorLSPOptions _lspOptions;
     private readonly ILspServerActivationTracker? _lspServerActivationTracker;
@@ -51,7 +51,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     public RazorLanguageServer(
         JsonRpc jsonRpc,
         IRazorLoggerFactory loggerFactory,
-        ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer,
         RazorLSPOptions? lspOptions,
@@ -110,11 +110,11 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
         if (_projectSnapshotManagerDispatcher is null)
         {
-            services.AddSingleton<ProjectSnapshotManagerDispatcher, LSPProjectSnapshotManagerDispatcher>();
+            services.AddSingleton<IProjectSnapshotManagerDispatcher, LSPProjectSnapshotManagerDispatcher>();
         }
         else
         {
-            services.AddSingleton<ProjectSnapshotManagerDispatcher>(_projectSnapshotManagerDispatcher);
+            services.AddSingleton<IProjectSnapshotManagerDispatcher>(_projectSnapshotManagerDispatcher);
         }
 
         services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();

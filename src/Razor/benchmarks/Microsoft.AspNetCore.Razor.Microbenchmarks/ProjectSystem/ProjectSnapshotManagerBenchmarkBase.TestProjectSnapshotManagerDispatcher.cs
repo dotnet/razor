@@ -8,10 +8,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
 public abstract partial class ProjectSnapshotManagerBenchmarkBase
 {
-    private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
+    private class TestProjectSnapshotManagerDispatcher : IProjectSnapshotManagerDispatcher
     {
-        public override bool IsRunningOnDispatcherThread => true;
+        public bool IsRunningOnDispatcherThread => true;
 
-        public override TaskScheduler Scheduler => TaskScheduler.Default;
+        public TaskScheduler Scheduler => TaskScheduler.Default;
     }
 }

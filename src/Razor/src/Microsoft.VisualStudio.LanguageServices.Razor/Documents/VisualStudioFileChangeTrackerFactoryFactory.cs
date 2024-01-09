@@ -17,13 +17,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 internal class VisualStudioFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
 {
     private readonly IVsAsyncFileChangeEx? _fileChangeService;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     [ImportingConstructor]
     public VisualStudioFileChangeTrackerFactoryFactory(
         SVsServiceProvider serviceProvider,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (serviceProvider is null)

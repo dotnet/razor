@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotManagerDispatcher, IDisposable
+internal abstract class ProjectSnapshotManagerDispatcherBase : IProjectSnapshotManagerDispatcher, IDisposable
 {
     private readonly ProjectSnapshotManagerTaskScheduler _dispatcherScheduler;
 
@@ -30,9 +30,9 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotMa
         _dispatcherScheduler.Dispose();
     }
 
-    public override bool IsRunningOnDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
+    public bool IsRunningOnDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
 
-    public override TaskScheduler Scheduler => _dispatcherScheduler;
+    public TaskScheduler Scheduler => _dispatcherScheduler;
 
     private class ProjectSnapshotManagerTaskScheduler : TaskScheduler, IDisposable
     {

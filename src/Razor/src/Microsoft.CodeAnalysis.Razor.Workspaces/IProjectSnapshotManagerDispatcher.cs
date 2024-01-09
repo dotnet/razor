@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal abstract class ProjectSnapshotManagerDispatcher
+internal interface IProjectSnapshotManagerDispatcher
 {
-    public abstract bool IsRunningOnDispatcherThread { get; }
+    public bool IsRunningOnDispatcherThread { get; }
 
-    public abstract TaskScheduler Scheduler { get; }
+    public TaskScheduler Scheduler { get; }
 }

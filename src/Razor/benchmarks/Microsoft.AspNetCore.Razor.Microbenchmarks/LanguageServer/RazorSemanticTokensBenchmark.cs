@@ -36,7 +36,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     private Range Range { get; set; }
 
-    private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
+    private IProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
     private string PagesDirectory { get; set; }
 
@@ -123,7 +123,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
         RazorSemanticTokenService.ApplyCapabilities(new(), new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
         VersionCache = languageServer.GetRequiredService<IDocumentVersionCache>();
-        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
+        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<IProjectSnapshotManagerDispatcher>();
     }
 
     internal class TestRazorSemanticTokensInfoService : RazorSemanticTokensInfoService

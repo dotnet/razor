@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Razor;
 [Export(typeof(ProjectWorkspaceStateGenerator))]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
 [method: ImportingConstructor]
-internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, ITelemetryReporter telemetryReporter) : ProjectWorkspaceStateGenerator, IDisposable
+internal class DefaultProjectWorkspaceStateGenerator(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, ITelemetryReporter telemetryReporter) : ProjectWorkspaceStateGenerator, IDisposable
 {
     // Internal for testing
     internal readonly Dictionary<ProjectKey, UpdateItem> Updates = new();
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 1);
 

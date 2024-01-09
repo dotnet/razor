@@ -419,7 +419,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         private readonly Func<IFileChangeDetector> _fileChangeDetectorFactory;
 
         public TestMonitorProjectConfigurationFilePathEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             IRazorLoggerFactory loggerFactory)
@@ -434,7 +434,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
 
         public TestMonitorProjectConfigurationFilePathEndpoint(
             Func<IFileChangeDetector> fileChangeDetectorFactory,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             IRazorLoggerFactory loggerFactory,

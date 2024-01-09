@@ -27,7 +27,7 @@ internal class VisualStudioEditorDocumentManager : EditorDocumentManagerBase
     private bool _advised;
 
     public VisualStudioEditorDocumentManager(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         FileChangeTrackerFactory fileChangeTrackerFactory,
         IVsRunningDocumentTable runningDocumentTable,

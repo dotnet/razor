@@ -24,7 +24,7 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
     private readonly object _disposedLock = new();
     private readonly object _workQueueAccessLock = new();
     private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly LanguageServerFeatureOptions _options;
     private BatchingWorkQueue? _workQueue;
     private ProjectSnapshotManagerBase? _projectManager;
@@ -36,7 +36,7 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
     [ImportingConstructor]
     public WorkspaceProjectStateChangeDetector(
         ProjectWorkspaceStateGenerator workspaceStateGenerator,
-        ProjectSnapshotManagerDispatcher dispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         LanguageServerFeatureOptions options)
     {
         _workspaceStateGenerator = workspaceStateGenerator ?? throw new ArgumentNullException(nameof(workspaceStateGenerator));
@@ -47,7 +47,7 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
     // Internal for testing
     internal WorkspaceProjectStateChangeDetector(
         ProjectWorkspaceStateGenerator workspaceStateGenerator,
-        ProjectSnapshotManagerDispatcher dispatcher,
+        IProjectSnapshotManagerDispatcher dispatcher,
         LanguageServerFeatureOptions options,
         BatchingWorkQueue workQueue)
     {
@@ -515,13 +515,13 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
         private readonly Project? _workspaceProject;
         private readonly IProjectSnapshot _projectSnapshot;
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-        private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+        private readonly IProjectSnapshotManagerDispatcher _dispatcher;
 
         public UpdateWorkspaceWorkItem(
             Project? workspaceProject,
             IProjectSnapshot projectSnapshot,
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ProjectSnapshotManagerDispatcher dispatcher)
+            IProjectSnapshotManagerDispatcher dispatcher)
         {
             _workspaceProject = workspaceProject;
             _projectSnapshot = projectSnapshot ?? throw new ArgumentNullException(nameof(projectSnapshot));

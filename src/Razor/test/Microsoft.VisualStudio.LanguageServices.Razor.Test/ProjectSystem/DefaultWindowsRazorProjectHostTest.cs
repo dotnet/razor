@@ -1239,7 +1239,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
 
     private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
-        public TestProjectSnapshotManager(Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
+        public TestProjectSnapshotManager(Workspace workspace, IProjectSnapshotManagerDispatcher dispatcher)
             : base(Mock.Of<IErrorReporter>(MockBehavior.Strict), Array.Empty<IProjectSnapshotChangeTrigger>(), workspace, dispatcher)
         {
         }

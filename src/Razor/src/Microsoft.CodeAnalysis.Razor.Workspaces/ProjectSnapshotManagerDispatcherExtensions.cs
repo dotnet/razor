@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class ProjectSnapshotManagerDispatcherExtensions
 {
-    public static void AssertDispatcherThread(this ProjectSnapshotManagerDispatcher dispatcher, [CallerMemberName] string? caller = null)
+    public static void AssertDispatcherThread(this IProjectSnapshotManagerDispatcher dispatcher, [CallerMemberName] string? caller = null)
     {
         if (!dispatcher.IsRunningOnDispatcherThread)
         {
@@ -19,12 +19,12 @@ internal static class ProjectSnapshotManagerDispatcherExtensions
         }
     }
 
-    public static Task RunOnDispatcherThreadAsync(this ProjectSnapshotManagerDispatcher dispatcher, Action action, CancellationToken cancellationToken)
+    public static Task RunOnDispatcherThreadAsync(this IProjectSnapshotManagerDispatcher dispatcher, Action action, CancellationToken cancellationToken)
         => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, dispatcher.Scheduler);
 
-    public static Task RunOnDispatcherThreadAsync<TArg>(this ProjectSnapshotManagerDispatcher dispatcher, Action<TArg, CancellationToken> action, TArg arg, CancellationToken cancellationToken)
+    public static Task RunOnDispatcherThreadAsync<TArg>(this IProjectSnapshotManagerDispatcher dispatcher, Action<TArg, CancellationToken> action, TArg arg, CancellationToken cancellationToken)
         => Task.Factory.StartNew(() => action(arg, cancellationToken), cancellationToken, TaskCreationOptions.None, dispatcher.Scheduler);
 
-    public static Task<TResult> RunOnDispatcherThreadAsync<TResult>(this ProjectSnapshotManagerDispatcher dispatcher, Func<TResult> action, CancellationToken cancellationToken)
+    public static Task<TResult> RunOnDispatcherThreadAsync<TResult>(this IProjectSnapshotManagerDispatcher dispatcher, Func<TResult> action, CancellationToken cancellationToken)
         => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, dispatcher.Scheduler);
 }

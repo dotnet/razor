@@ -35,13 +35,13 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
 
     public DefaultProjectSnapshotManager(
         IErrorReporter errorReporter,
         IEnumerable<IProjectSnapshotChangeTrigger> triggers,
         Workspace workspace,
-        ProjectSnapshotManagerDispatcher dispatcher)
+        IProjectSnapshotManagerDispatcher dispatcher)
     {
         ErrorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
         Workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));

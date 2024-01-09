@@ -23,7 +23,7 @@ internal class BackgroundDocumentGenerator : IProjectSnapshotChangeTrigger
     // Internal for testing
     internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work;
 
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
     private readonly RazorDynamicFileInfoProvider _infoProvider;
     private readonly HashSet<string> _suppressedDocuments;
     private ProjectSnapshotManagerBase? _projectManager;
@@ -31,7 +31,7 @@ internal class BackgroundDocumentGenerator : IProjectSnapshotChangeTrigger
     private bool _solutionIsClosing;
 
     [ImportingConstructor]
-    public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher dispatcher, RazorDynamicFileInfoProvider infoProvider)
+    public BackgroundDocumentGenerator(IProjectSnapshotManagerDispatcher dispatcher, RazorDynamicFileInfoProvider infoProvider)
     {
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _infoProvider = infoProvider ?? throw new ArgumentNullException(nameof(infoProvider));

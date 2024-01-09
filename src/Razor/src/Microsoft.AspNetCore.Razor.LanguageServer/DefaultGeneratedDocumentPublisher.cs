@@ -23,11 +23,11 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
     private readonly IClientConnection _clientConnection;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ILogger _logger;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
     public DefaultGeneratedDocumentPublisher(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorLoggerFactory loggerFactory)

@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 [ContentType(RazorConstants.LegacyCoreContentType)]
 internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletionSourceProvider
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly ICompletionBroker _completionBroker;
     private readonly IVisualStudioDescriptionFactory _descriptionFactory;
@@ -30,7 +30,7 @@ internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletio
 
     [ImportingConstructor]
     public RazorDirectiveAttributeCompletionSourceProvider(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IRazorCompletionFactsService completionFactsService,
         ICompletionBroker completionBroker,
         IVisualStudioDescriptionFactory descriptionFactory,

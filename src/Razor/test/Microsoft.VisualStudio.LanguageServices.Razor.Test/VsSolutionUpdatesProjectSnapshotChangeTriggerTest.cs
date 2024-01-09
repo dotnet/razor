@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
 public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 {
-    private static readonly ProjectSnapshotManagerDispatcher s_dispatcher = new TestDispatcher();
+    private static readonly IProjectSnapshotManagerDispatcher s_dispatcher = new TestDispatcher();
 
     private readonly HostProject _someProject;
     private readonly HostProject _someOtherProject;
@@ -285,10 +285,10 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         }
     }
 
-    private class TestDispatcher : ProjectSnapshotManagerDispatcher
+    private class TestDispatcher : IProjectSnapshotManagerDispatcher
     {
-        public override bool IsRunningOnDispatcherThread => true;
+        public bool IsRunningOnDispatcherThread => true;
 
-        public override TaskScheduler Scheduler => TaskScheduler.Default;
+        public TaskScheduler Scheduler => TaskScheduler.Default;
     }
 }

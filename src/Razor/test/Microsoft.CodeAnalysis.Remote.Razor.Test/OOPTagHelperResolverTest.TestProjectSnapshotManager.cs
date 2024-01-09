@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 public partial class OOPTagHelperResolverTest
 {
-    private static readonly Lazy<ProjectSnapshotManagerDispatcher> s_projectSnapshotManagerDispatcher = new(() =>
+    private static readonly Lazy<IProjectSnapshotManagerDispatcher> s_projectSnapshotManagerDispatcher = new(() =>
     {
-        var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
+        var dispatcher = new Mock<IProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
         dispatcher.SetupGet(d => d.IsRunningOnDispatcherThread).Returns(true);
         return dispatcher.Object;
     });

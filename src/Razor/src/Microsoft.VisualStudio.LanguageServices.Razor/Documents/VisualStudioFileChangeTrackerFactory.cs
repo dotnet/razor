@@ -12,13 +12,13 @@ internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
 {
     private readonly IErrorReporter _errorReporter;
     private readonly IVsAsyncFileChangeEx _fileChangeService;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     public VisualStudioFileChangeTrackerFactory(
         IErrorReporter errorReporter,
         IVsAsyncFileChangeEx fileChangeService,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext)
     {
         if (errorReporter is null)

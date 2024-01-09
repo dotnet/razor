@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.Editor;
 
-internal class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
+internal class TestProjectSnapshotManagerDispatcher : IProjectSnapshotManagerDispatcher
 {
     public TestProjectSnapshotManagerDispatcher()
     {
@@ -19,11 +19,11 @@ internal class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDisp
             : TaskScheduler.FromCurrentSynchronizationContext();
     }
 
-    public override TaskScheduler Scheduler { get; }
+    public TaskScheduler Scheduler { get; }
 
     private Thread Thread { get; } = Thread.CurrentThread;
 
-    public override bool IsRunningOnDispatcherThread => Thread.CurrentThread == Thread;
+    public bool IsRunningOnDispatcherThread => Thread.CurrentThread == Thread;
 
     private class ThrowingTaskScheduler : TaskScheduler
     {

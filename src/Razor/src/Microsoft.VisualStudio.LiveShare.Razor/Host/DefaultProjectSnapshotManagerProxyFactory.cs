@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
     Role = ServiceRole.RemoteService)]
 internal class DefaultProjectSnapshotManagerProxyFactory : ICollaborationServiceFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly Workspace _workspace;
 
     [ImportingConstructor]
     public DefaultProjectSnapshotManagerProxyFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         [Import(typeof(VisualStudioWorkspace))] Workspace workspace)
     {

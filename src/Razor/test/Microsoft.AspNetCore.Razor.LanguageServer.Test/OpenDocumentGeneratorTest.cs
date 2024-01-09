@@ -174,7 +174,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     private class TestOpenDocumentGenerator : OpenDocumentGenerator
     {
         public TestOpenDocumentGenerator(
-            ProjectSnapshotManagerDispatcher dispatcher,
+            IProjectSnapshotManagerDispatcher dispatcher,
             IErrorReporter errorReporter,
             params DocumentProcessedListener[] listeners)
             : base(listeners, dispatcher, TestLanguageServerFeatureOptions.Instance, errorReporter)

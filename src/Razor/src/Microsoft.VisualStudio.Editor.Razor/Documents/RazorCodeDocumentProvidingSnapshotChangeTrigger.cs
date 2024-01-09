@@ -20,13 +20,13 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IProjectSnapsho
 {
     private readonly HashSet<string> _openDocuments = new(FilePathComparer.Instance);
     private readonly Dictionary<string, ProjectKey> _documentProjectMap = new(FilePathComparer.Instance);
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private ProjectSnapshotManagerBase? _projectManager;
 
     public event EventHandler<string>? DocumentReady;
 
     [ImportingConstructor]
-    public RazorCodeDocumentProvidingSnapshotChangeTrigger(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+    public RazorCodeDocumentProvidingSnapshotChangeTrigger(IProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
     }

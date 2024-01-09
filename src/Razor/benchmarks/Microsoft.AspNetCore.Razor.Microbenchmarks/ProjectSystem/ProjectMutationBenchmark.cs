@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
 public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManagerDispatcher _dispatcher;
 
     public ProjectMutationBenchmark()
         : base(100000)
