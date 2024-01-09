@@ -383,7 +383,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         // For now, consumers of the Changed event often assume the threaded
         // behavior and can error. Once that is fixed we can remove this.
         // https://github.com/dotnet/razor/issues/9162
-        if (_dispatcher.IsDispatcherThread)
+        if (_dispatcher.IsRunningOnDispatcherThread)
         {
             NotifyListenersCore(e);
         }

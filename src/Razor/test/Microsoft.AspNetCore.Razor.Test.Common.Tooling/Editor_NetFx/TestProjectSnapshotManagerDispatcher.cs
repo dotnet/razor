@@ -14,16 +14,16 @@ internal class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDisp
 {
     public TestProjectSnapshotManagerDispatcher()
     {
-        DispatcherScheduler = SynchronizationContext.Current is null
+        Scheduler = SynchronizationContext.Current is null
             ? new ThrowingTaskScheduler()
             : TaskScheduler.FromCurrentSynchronizationContext();
     }
 
-    public override TaskScheduler DispatcherScheduler { get; }
+    public override TaskScheduler Scheduler { get; }
 
     private Thread Thread { get; } = Thread.CurrentThread;
 
-    public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
+    public override bool IsRunningOnDispatcherThread => Thread.CurrentThread == Thread;
 
     private class ThrowingTaskScheduler : TaskScheduler
     {

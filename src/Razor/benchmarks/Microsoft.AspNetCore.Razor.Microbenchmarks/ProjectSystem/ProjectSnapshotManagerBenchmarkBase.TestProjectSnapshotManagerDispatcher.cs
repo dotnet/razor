@@ -10,8 +10,8 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 {
     private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
     {
-        public override bool IsDispatcherThread => true;
+        public override bool IsRunningOnDispatcherThread => true;
 
-        public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
+        public override TaskScheduler Scheduler => TaskScheduler.Default;
     }
 }

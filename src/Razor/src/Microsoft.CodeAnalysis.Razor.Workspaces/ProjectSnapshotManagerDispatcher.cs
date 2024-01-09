@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal abstract class ProjectSnapshotManagerDispatcher
 {
-    public abstract bool IsDispatcherThread { get; }
+    public abstract bool IsRunningOnDispatcherThread { get; }
 
-    public abstract TaskScheduler DispatcherScheduler { get; }
+    public abstract TaskScheduler Scheduler { get; }
 }

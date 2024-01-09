@@ -30,9 +30,9 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotMa
         _dispatcherScheduler.Dispose();
     }
 
-    public override bool IsDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
+    public override bool IsRunningOnDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
 
-    public override TaskScheduler DispatcherScheduler => _dispatcherScheduler;
+    public override TaskScheduler Scheduler => _dispatcherScheduler;
 
     private class ProjectSnapshotManagerTaskScheduler : TaskScheduler, IDisposable
     {

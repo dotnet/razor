@@ -16,7 +16,7 @@ public partial class OOPTagHelperResolverTest
     private static readonly Lazy<ProjectSnapshotManagerDispatcher> s_projectSnapshotManagerDispatcher = new(() =>
     {
         var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
-        dispatcher.SetupGet(d => d.IsDispatcherThread).Returns(true);
+        dispatcher.SetupGet(d => d.IsRunningOnDispatcherThread).Returns(true);
         return dispatcher.Object;
     });
 

@@ -287,8 +287,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 
     private class TestDispatcher : ProjectSnapshotManagerDispatcher
     {
-        public override bool IsDispatcherThread => true;
+        public override bool IsRunningOnDispatcherThread => true;
 
-        public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
+        public override TaskScheduler Scheduler => TaskScheduler.Default;
     }
 }

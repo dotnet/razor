@@ -138,8 +138,8 @@ public class CSharpVirtualDocumentFactoryTest : ToolingTestBase
     {
         // The tests run synchronously without the dispatcher, so just assert that
         // we're always on the right thread
-        public override bool IsDispatcherThread => true;
+        public override bool IsRunningOnDispatcherThread => true;
 
-        public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
+        public override TaskScheduler Scheduler => TaskScheduler.Default;
     }
 }
