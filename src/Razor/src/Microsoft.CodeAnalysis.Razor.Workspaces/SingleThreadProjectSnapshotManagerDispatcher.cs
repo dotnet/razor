@@ -2,16 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal abstract class SingleThreadProjectSnapshotManagerDispatcher : IProjectSnapshotManagerDispatcher, IDisposable
+internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher : IProjectSnapshotManagerDispatcher, IDisposable
 {
     private readonly ThreadScheduler _scheduler;
+
+    public bool IsRunningOnThread => _scheduler.IsRunningOnThread;
+    public TaskScheduler Scheduler => _scheduler;
 
     public SingleThreadProjectSnapshotManagerDispatcher(string threadName)
     {
@@ -23,114 +23,10 @@ internal abstract class SingleThreadProjectSnapshotManagerDispatcher : IProjectS
         _scheduler = new ThreadScheduler(threadName, LogException);
     }
 
-    public abstract void LogException(Exception ex);
-
     public void Dispose()
     {
         _scheduler.Dispose();
     }
 
-    public bool IsRunningOnDispatcherThread => Thread.CurrentThread.ManagedThreadId == _scheduler.ThreadId;
-
-    public TaskScheduler Scheduler => _scheduler;
-
-    private class ThreadScheduler : TaskScheduler, IDisposable
-    {
-        private readonly Thread _thread;
-        private readonly BlockingCollection<Task> _tasks = new();
-        private readonly Action<Exception> _logException;
-        private bool _disposed;
-        private readonly object _disposalLock = new();
-
-        public ThreadScheduler(string threadName, Action<Exception> logException)
-        {
-            _thread = new Thread(ThreadStart)
-            {
-                Name = threadName,
-                IsBackground = true,
-            };
-
-            _logException = logException;
-
-            _thread.Start();
-        }
-
-        public int ThreadId => _thread.ManagedThreadId;
-
-        public override int MaximumConcurrencyLevel => 1;
-
-        protected override void QueueTask(Task task)
-        {
-            lock (_disposalLock)
-            {
-                if (_disposed)
-                {
-                    return;
-                }
-            }
-
-            _tasks.Add(task);
-        }
-
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
-        {
-            // If the task was previously queued it means that we're ensuring it's running on our single threaded scheduler.
-            // Otherwise, we can't enforce that behavior and therefore need it to be re-queued before execution.
-            if (taskWasPreviouslyQueued)
-            {
-                return TryExecuteTask(task);
-            }
-
-            return false;
-        }
-
-        protected override IEnumerable<Task> GetScheduledTasks() => _tasks.ToArray();
-
-        private void ThreadStart()
-        {
-            while (!_disposed)
-            {
-                try
-                {
-                    var task = _tasks.Take();
-                    TryExecuteTask(task);
-                }
-                catch (ThreadAbortException ex)
-                {
-                    // Fires when things shut down or in tests. Log exception and bail out.
-                    _logException(ex);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    lock (_disposalLock)
-                    {
-                        if (_disposed)
-                        {
-                            // Graceful teardown
-                            return;
-                        }
-                    }
-
-                    // Unexpected exception. Log and throw.
-                    _logException(ex);
-                    throw;
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-            lock (_disposalLock)
-            {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                _disposed = true;
-                _tasks.CompleteAdding();
-            }
-        }
-    }
+    protected abstract void LogException(Exception ex);
 }

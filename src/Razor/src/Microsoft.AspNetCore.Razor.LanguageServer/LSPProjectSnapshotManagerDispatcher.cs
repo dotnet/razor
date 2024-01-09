@@ -24,5 +24,6 @@ internal class LSPProjectSnapshotManagerDispatcher : SingleThreadProjectSnapshot
         _logger = loggerFactory.CreateLogger<LSPProjectSnapshotManagerDispatcher>();
     }
 
-    public override void LogException(Exception ex) => _logger.LogError(ex, ThreadName + " encountered an exception.");
+    protected override void LogException(Exception ex)
+        => _logger.LogError(ex, ThreadName + " encountered an exception.");
 }

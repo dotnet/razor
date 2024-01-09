@@ -9,17 +9,13 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
 [Export(typeof(IProjectSnapshotManagerDispatcher))]
-internal class VisualStudioProjectSnapshotManagerDispatcher : SingleThreadProjectSnapshotManagerDispatcher
+[method: ImportingConstructor]
+internal class VisualStudioProjectSnapshotManagerDispatcher(IErrorReporter errorReporter) : SingleThreadProjectSnapshotManagerDispatcher(ThreadName)
 {
     private const string ThreadName = "Razor." + nameof(VisualStudioProjectSnapshotManagerDispatcher);
 
-    private readonly IErrorReporter _errorReporter;
+    private readonly IErrorReporter _errorReporter = errorReporter;
 
-    [ImportingConstructor]
-    public VisualStudioProjectSnapshotManagerDispatcher(IErrorReporter errorReporter) : base(ThreadName)
-    {
-        _errorReporter = errorReporter;
-    }
-
-    public override void LogException(Exception ex) => _errorReporter.ReportError(ex);
+    protected override void LogException(Exception ex)
+        => _errorReporter.ReportError(ex);
 }

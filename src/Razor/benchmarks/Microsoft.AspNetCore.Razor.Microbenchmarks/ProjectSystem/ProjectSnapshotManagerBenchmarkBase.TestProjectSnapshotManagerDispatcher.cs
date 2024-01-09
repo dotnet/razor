@@ -10,7 +10,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 {
     private class TestProjectSnapshotManagerDispatcher : IProjectSnapshotManagerDispatcher
     {
-        public bool IsRunningOnDispatcherThread => true;
+        public bool IsRunningOnThread => true;
 
         public TaskScheduler Scheduler => TaskScheduler.Default;
     }

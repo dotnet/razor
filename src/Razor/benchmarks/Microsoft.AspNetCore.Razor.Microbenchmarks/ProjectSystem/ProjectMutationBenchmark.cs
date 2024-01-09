@@ -87,13 +87,9 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
         }
     }
 
-    private class SnapshotDispatcher : SingleThreadProjectSnapshotManagerDispatcher
+    private class SnapshotDispatcher(string threadName) : SingleThreadProjectSnapshotManagerDispatcher(threadName)
     {
-        public SnapshotDispatcher(string threadName) : base(threadName)
-        {
-        }
-
-        public override void LogException(Exception ex)
+        protected override void LogException(Exception ex)
         {
             Console.Error.WriteLine(ex.ToString());
         }

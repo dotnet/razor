@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal interface IProjectSnapshotManagerDispatcher
 {
-    public bool IsRunningOnDispatcherThread { get; }
+    public bool IsRunningOnThread { get; }
 
     public TaskScheduler Scheduler { get; }
 }

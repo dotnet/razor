@@ -23,7 +23,7 @@ internal class TestProjectSnapshotManagerDispatcher : IProjectSnapshotManagerDis
 
     private Thread Thread { get; } = Thread.CurrentThread;
 
-    public bool IsRunningOnDispatcherThread => Thread.CurrentThread == Thread;
+    public bool IsRunningOnThread => Thread.CurrentThread == Thread;
 
     private class ThrowingTaskScheduler : TaskScheduler
     {

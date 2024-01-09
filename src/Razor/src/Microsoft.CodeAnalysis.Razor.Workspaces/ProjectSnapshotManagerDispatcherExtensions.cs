@@ -12,7 +12,7 @@ internal static class ProjectSnapshotManagerDispatcherExtensions
 {
     public static void AssertDispatcherThread(this IProjectSnapshotManagerDispatcher dispatcher, [CallerMemberName] string? caller = null)
     {
-        if (!dispatcher.IsRunningOnDispatcherThread)
+        if (!dispatcher.IsRunningOnThread)
         {
             caller = caller is null ? "The method" : $"'{caller}'";
             throw new InvalidOperationException(caller + " must be called on the project snapshot manager's thread.");

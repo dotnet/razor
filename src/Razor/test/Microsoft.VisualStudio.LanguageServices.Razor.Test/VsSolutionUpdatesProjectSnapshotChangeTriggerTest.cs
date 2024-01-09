@@ -287,7 +287,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 
     private class TestDispatcher : IProjectSnapshotManagerDispatcher
     {
-        public bool IsRunningOnDispatcherThread => true;
+        public bool IsRunningOnThread => true;
 
         public TaskScheduler Scheduler => TaskScheduler.Default;
     }

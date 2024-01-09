@@ -286,7 +286,7 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     {
         // The tests run synchronously without the dispatcher, so just assert that
         // we're always on the right thread
-        public bool IsRunningOnDispatcherThread => true;
+        public bool IsRunningOnThread => true;
 
         public TaskScheduler Scheduler => TaskScheduler.Default;
     }
