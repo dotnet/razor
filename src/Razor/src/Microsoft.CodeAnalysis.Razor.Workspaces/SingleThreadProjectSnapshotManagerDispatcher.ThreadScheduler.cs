@@ -33,8 +33,6 @@ internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher
             _thread.Start();
         }
 
-        public bool IsRunningOnThread => _thread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId;
-
         public override int MaximumConcurrencyLevel => 1;
 
         protected override void QueueTask(Task task)

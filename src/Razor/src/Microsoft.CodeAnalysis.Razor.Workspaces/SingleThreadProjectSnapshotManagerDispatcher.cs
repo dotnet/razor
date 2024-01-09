@@ -10,7 +10,7 @@ internal abstract partial class SingleThreadProjectSnapshotManagerDispatcher : I
 {
     private readonly ThreadScheduler _scheduler;
 
-    public bool IsRunningOnThread => _scheduler.IsRunningOnThread;
+    public bool IsRunningOnDispatcher => TaskScheduler.Current == _scheduler;
     public TaskScheduler Scheduler => _scheduler;
 
     public SingleThreadProjectSnapshotManagerDispatcher(string threadName)
