@@ -3,6 +3,8 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -16,4 +18,13 @@ internal static class ProjectSnapshotManagerDispatcherExtensions
             throw new InvalidOperationException(caller + " must be called on the project snapshot manager's thread.");
         }
     }
+
+    public static Task RunOnDispatcherThreadAsync(this ProjectSnapshotManagerDispatcher dispatcher, Action action, CancellationToken cancellationToken)
+        => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, dispatcher.DispatcherScheduler);
+
+    public static Task RunOnDispatcherThreadAsync<TArg>(this ProjectSnapshotManagerDispatcher dispatcher, Action<TArg, CancellationToken> action, TArg arg, CancellationToken cancellationToken)
+        => Task.Factory.StartNew(() => action(arg, cancellationToken), cancellationToken, TaskCreationOptions.None, dispatcher.DispatcherScheduler);
+
+    public static Task<TResult> RunOnDispatcherThreadAsync<TResult>(this ProjectSnapshotManagerDispatcher dispatcher, Func<TResult> action, CancellationToken cancellationToken)
+        => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, dispatcher.DispatcherScheduler);
 }

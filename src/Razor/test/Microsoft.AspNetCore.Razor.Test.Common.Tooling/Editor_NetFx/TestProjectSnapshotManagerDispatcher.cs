@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
@@ -30,7 +29,7 @@ internal class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDisp
     {
         protected override IEnumerable<Task> GetScheduledTasks()
         {
-            return Enumerable.Empty<Task>();
+            return [];
         }
 
         protected override void QueueTask(Task task)
