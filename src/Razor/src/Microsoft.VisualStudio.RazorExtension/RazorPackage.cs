@@ -56,6 +56,12 @@ internal sealed class RazorPackage : AsyncPackage
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+        // Add this before any other services are added in case they would like to resolve options
+        // in their constructor. This can prevent background threads from initializing this via MEF, such
+        // as by Lazy<T>, and potentially causing thread dependencies.
+        var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
+        _optionsStorage = componentModel.GetService<OptionsStorage>();
+
         cancellationToken.ThrowIfCancellationRequested();
 
         var container = this as IServiceContainer;
@@ -81,8 +87,6 @@ internal sealed class RazorPackage : AsyncPackage
             mcs.AddCommand(menuToolWin);
         }
 
-        var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
-        _optionsStorage = componentModel.GetService<OptionsStorage>();
         CreateSnippetService(componentModel);
 
         // LogHub can be initialized off the UI thread

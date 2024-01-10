@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 using System.Linq;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
 
@@ -69,8 +70,12 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     }
 
     [ImportingConstructor]
-    public OptionsStorage(SVsServiceProvider vsServiceProvider, Lazy<ITelemetryReporter> telemetryReporter)
+    public OptionsStorage(SVsServiceProvider vsServiceProvider, Lazy<ITelemetryReporter> telemetryReporter, JoinableTaskContext joinableTaskContext)
     {
+        // OptionsStorage loads AsyncPackages using GetService, which will cause a JTF.Run to be invoked.
+        // To avoid any deadlocks, this service MUST be initialized on the UI thread.
+        joinableTaskContext.AssertUIThread();
+
         var shellSettingsManager = new ShellSettingsManager(vsServiceProvider);
         _writableSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
