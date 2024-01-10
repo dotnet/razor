@@ -34,11 +34,11 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
             throw new ArgumentNullException(nameof(documentSnapshot));
         }
 
-        using var upgradeableReadLock = _lock.EnterUpgradeAbleReadLock();
-        TrackDocumentVersion(documentSnapshot, version, upgradeableReadLock);
+        using var upgradeableReadLock = _lock.EnterUpgradeableReadLock();
+        TrackDocumentVersion(documentSnapshot, version, ref upgradeableReadLock.AsRef());
     }
 
-    private void TrackDocumentVersion(IDocumentSnapshot documentSnapshot, int version, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
+    private void TrackDocumentVersion(IDocumentSnapshot documentSnapshot, int version, ref ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
         // Need to ensure the write lock covers all uses of documentEntries, not just DocumentLookup
         using (upgradeableReadLock.EnterWriteLock())
@@ -121,7 +121,7 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
             return;
         }
 
-        var upgradeableLock = _lock.EnterUpgradeAbleReadLock();
+        using var upgradeableLock = _lock.EnterUpgradeableReadLock();
 
         switch (args.Kind)
         {
@@ -149,29 +149,29 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
             return;
         }
 
-        CaptureProjectDocumentsAsLatest(project, upgradeableLock);
+        CaptureProjectDocumentsAsLatest(project, ref upgradeableLock.AsRef());
     }
 
     // Internal for testing
     internal void MarkAsLatestVersion(IDocumentSnapshot document)
     {
-        using var upgradeableLock = _lock.EnterUpgradeAbleReadLock();
-        MarkAsLatestVersion(document, upgradeableLock);
+        using var upgradeableLock = _lock.EnterUpgradeableReadLock();
+        MarkAsLatestVersion(document, ref upgradeableLock.AsRef());
     }
 
-    private void CaptureProjectDocumentsAsLatest(IProjectSnapshot projectSnapshot, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
+    private void CaptureProjectDocumentsAsLatest(IProjectSnapshot projectSnapshot, ref ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
         foreach (var documentPath in projectSnapshot.DocumentFilePaths)
         {
             if (DocumentLookup_NeedsLock.ContainsKey(documentPath) &&
                 projectSnapshot.GetDocument(documentPath) is { } document)
             {
-                MarkAsLatestVersion(document, upgradeableReadLock);
+                MarkAsLatestVersion(document, ref upgradeableReadLock);
             }
         }
     }
 
-    private void MarkAsLatestVersion(IDocumentSnapshot document, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
+    private void MarkAsLatestVersion(IDocumentSnapshot document, ref ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
         if (!DocumentLookup_NeedsLock.TryGetValue(document.FilePath.AssumeNotNull(), out var documentEntries))
         {
@@ -181,7 +181,7 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
         var latestEntry = documentEntries[^1];
 
         // Update our internal tracking state to track the changed document as the latest document.
-        TrackDocumentVersion(document, latestEntry.Version, upgradeableReadLock);
+        TrackDocumentVersion(document, latestEntry.Version, ref upgradeableReadLock);
     }
 
     internal class DocumentEntry

@@ -3,7 +3,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using static Microsoft.AspNetCore.Razor.ReadWriterLocker;
 
 namespace Microsoft.AspNetCore.Razor;
 
@@ -13,9 +15,9 @@ internal class ReadWriterLocker
     // get another read lock on the same thread
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
 
-    public ReadOnlyLock EnterReadLock() => new ReadOnlyLock(_lock);
-    public WriteOnlyLock EnterWriteLock() => new WriteOnlyLock(_lock);
-    public UpgradeableReadLock EnterUpgradeAbleReadLock() => new UpgradeableReadLock(_lock);
+    public ReadLock EnterReadLock() => new ReadLock(_lock);
+    public WriteLock EnterWriteLock() => new WriteLock(_lock);
+    public UpgradeableReadLock EnterUpgradeableReadLock() => new UpgradeableReadLock(_lock);
 
     public void EnsureNoWriteLock()
     {
@@ -43,12 +45,12 @@ internal class ReadWriterLocker
         return s_timeout;
     }
 
-    public ref struct ReadOnlyLock
+    public struct ReadLock : IDisposable
     {
         private readonly ReaderWriterLockSlim _rwLock;
         private bool _disposed;
 
-        public ReadOnlyLock(ReaderWriterLockSlim rwLock)
+        public ReadLock(ReaderWriterLockSlim rwLock)
         {
             _rwLock = rwLock;
             if (!_rwLock.TryEnterReadLock(GetTimeout()))
@@ -69,12 +71,12 @@ internal class ReadWriterLocker
         }
     }
 
-    public ref struct WriteOnlyLock
+    public struct WriteLock : IDisposable
     {
         private readonly ReaderWriterLockSlim _rwLock;
         private bool _disposed;
 
-        public WriteOnlyLock(ReaderWriterLockSlim rwLock)
+        public WriteLock(ReaderWriterLockSlim rwLock)
         {
             _rwLock = rwLock;
             if (!_rwLock.TryEnterWriteLock(GetTimeout()))
@@ -95,7 +97,7 @@ internal class ReadWriterLocker
         }
     }
 
-    public ref struct UpgradeableReadLock
+    public struct UpgradeableReadLock : IDisposable
     {
         private readonly ReaderWriterLockSlim _rwLock;
         private bool _disposed;
@@ -120,9 +122,21 @@ internal class ReadWriterLocker
             _rwLock.ExitUpgradeableReadLock();
         }
 
-        public WriteOnlyLock EnterWriteLock()
+        public WriteLock EnterWriteLock()
         {
-            return new WriteOnlyLock(_rwLock);
+            return new WriteLock(_rwLock);
         }
     }
+}
+
+internal static class ReaderWriterLockExtensions
+{
+    public static ref ReadLock AsRef(this in ReadLock readLock)
+        => ref Unsafe.AsRef(in readLock);
+
+    public static ref UpgradeableReadLock AsRef(this in UpgradeableReadLock upgradeableReadLock)
+        => ref Unsafe.AsRef(in upgradeableReadLock);
+
+    public static ref WriteLock AsRef(this in WriteLock writeLock)
+        => ref Unsafe.AsRef(in writeLock);
 }
