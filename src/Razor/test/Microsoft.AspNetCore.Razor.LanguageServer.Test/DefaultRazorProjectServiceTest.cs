@@ -38,7 +38,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
         var hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
         projectManager.ProjectAdded(hostProject);
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectManager);
-        var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.LatestMajor);
+        var projectWorkspaceState = ProjectWorkspaceState.Create(LanguageVersion.LatestMajor);
 
         // Act
         await RunOnDispatcherThreadAsync(() =>
@@ -1045,7 +1045,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
             TestProjectSnapshot.Create("C:/__MISC_PROJECT__"));
         var documentVersionCache = new Mock<IDocumentVersionCache>(MockBehavior.Strict);
         documentVersionCache.Setup(cache => cache.TrackDocumentVersion(It.IsAny<IDocumentSnapshot>(), It.IsAny<int>()))
-            .Throws<XunitException>();
+            .Throws<Exception>();
         var newText = SourceText.From("Something New");
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectSnapshotManager.Setup(m => m.DocumentChanged(It.IsAny<ProjectKey>(), It.IsAny<string>(), It.IsAny<SourceText>())).Verifiable();

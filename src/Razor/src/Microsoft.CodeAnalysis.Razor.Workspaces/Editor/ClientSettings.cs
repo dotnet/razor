@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.Razor.Editor;
 
@@ -12,10 +13,16 @@ namespace Microsoft.CodeAnalysis.Razor.Editor;
 /// settings back to the server.
 /// </summary>
 /// <param name="ClientSpaceSettings"></param>
+/// <param name="ClientCompletionSettings"></param>
 /// <param name="AdvancedSettings"></param>
-internal record ClientSettings(ClientSpaceSettings ClientSpaceSettings, ClientAdvancedSettings AdvancedSettings)
+internal record ClientSettings(ClientSpaceSettings ClientSpaceSettings, ClientCompletionSettings ClientCompletionSettings, ClientAdvancedSettings AdvancedSettings)
 {
-    public static readonly ClientSettings Default = new(ClientSpaceSettings.Default, ClientAdvancedSettings.Default);
+    public static readonly ClientSettings Default = new(ClientSpaceSettings.Default, ClientCompletionSettings.Default, ClientAdvancedSettings.Default);
+}
+
+internal sealed record ClientCompletionSettings(bool AutoShowCompletion, bool AutoListParams)
+{
+    public static readonly ClientCompletionSettings Default = new(AutoShowCompletion: true, AutoListParams: true);
 }
 
 internal sealed record ClientSpaceSettings(bool IndentWithTabs, int IndentSize)
@@ -25,9 +32,9 @@ internal sealed record ClientSpaceSettings(bool IndentWithTabs, int IndentSize)
     public int IndentSize { get; } = IndentSize >= 0 ? IndentSize : throw new ArgumentOutOfRangeException(nameof(IndentSize));
 }
 
-internal sealed record ClientAdvancedSettings(bool FormatOnType, bool AutoClosingTags, bool AutoInsertAttributeQuotes, bool ColorBackground, bool CommitElementsWithSpace, SnippetSetting SnippetSetting)
+internal sealed record ClientAdvancedSettings(bool FormatOnType, bool AutoClosingTags, bool AutoInsertAttributeQuotes, bool ColorBackground, bool CommitElementsWithSpace, SnippetSetting SnippetSetting, LogLevel LogLevel)
 {
-    public static readonly ClientAdvancedSettings Default = new(FormatOnType: true, AutoClosingTags: true, AutoInsertAttributeQuotes: true, ColorBackground: false, CommitElementsWithSpace: true, SnippetSetting.All);
+    public static readonly ClientAdvancedSettings Default = new(FormatOnType: true, AutoClosingTags: true, AutoInsertAttributeQuotes: true, ColorBackground: false, CommitElementsWithSpace: true, SnippetSetting.All, LogLevel.Warning);
 }
 
 internal enum SnippetSetting

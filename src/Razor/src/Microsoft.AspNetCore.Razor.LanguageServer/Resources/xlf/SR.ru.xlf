@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Changes">
         <source>Changes:</source>
-        <target state="new">Changes:</target>
+        <target state="translated">Изменения:</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="Diagnostics_after">
         <source>Diagnostics after:</source>
-        <target state="new">Diagnostics after:</target>
+        <target state="translated">Диагностика после:</target>
         <note />
       </trans-unit>
       <trans-unit id="Diagnostics_before">
         <source>Diagnostics before:</source>
-        <target state="new">Diagnostics before:</target>
+        <target state="translated">Диагностика до:</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Not_Found">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Edit_at_adds">
         <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="new">Edit at {0} adds the non-whitespace content '{1}'.</target>
+        <target state="translated">Редактирование {0} добавляет содержимое, не являющееся пробелами "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_at_deletes">
         <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="new">Edit at {0} deletes the non-whitespace content '{1}'.</target>
+        <target state="translated">Редактирование {0} удаляет содержимое, не являющееся пробелами "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
@@ -54,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="new">A format operation is being abandoned because it would introduce or remove one of more diagnostics.</target>
+        <target state="translated">Операция форматирования отменяется, поскольку она вводит или удаляет одну или несколько диагностик.</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_operation_changed_nonwhitespace">
         <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="new">A format operation is being abandoned because it would add or delete non-whitespace content.</target>
+        <target state="translated">Операция форматирования отменяется, поскольку она может добавить или удалить содержимое, отличное от пробелов.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
@@ -87,7 +87,12 @@
         <target state="translated">Недоступно в</target>
         <note />
       </trans-unit>
-      <trans-unit id="PositionIndex_Outside_Range">
+      <trans-unit id="PositionCharacter_Outside_Range">
+        <source>Character '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
+        <target state="translated">Запрошен символ "{0}" за пределами диапазона {1} "{2}". Возможно, документ не обновлен.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PositionLine_Outside_Range">
         <source>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
         <target state="translated">Запрошена строка "{0}" за пределами диапазона {1} "{2}". Возможно, документ не обновлен.</target>
         <note />

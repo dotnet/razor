@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.Extensions.Logging;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -940,8 +940,8 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
             Kind = RazorLanguageKind.Html,
             Diagnostics = new[]
             {
-                new VSDiagnostic() { Range = new Range { Start = new Position(0, addTagHelper.Length + 20),End =  new Position(0, addTagHelper.Length + 25)} },
-                new VSDiagnostic() { Range = new Range { Start = new Position(0, addTagHelper.Length + 38),End =  new Position(0, addTagHelper.Length + 47)} }
+                new VSDiagnostic() { Range = new Range { Start = new Position(1, 20),End =  new Position(1, 25)} },
+                new VSDiagnostic() { Range = new Range { Start = new Position(1, 38),End =  new Position(1, 47)} }
             },
             RazorDocumentUri = documentPath,
         };
@@ -1224,7 +1224,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         public TestRazorDiagnosticsServiceWithRazorDiagnostic(
             IRazorDocumentMappingService documentMappingService,
-            ILoggerFactory loggerFactory)
+            IRazorLoggerFactory loggerFactory)
             : base(documentMappingService, loggerFactory)
         {
         }
@@ -1239,7 +1239,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         public TestRazorDiagnosticsServiceWithoutRazorDiagnostic(
             IRazorDocumentMappingService documentMappingService,
-            ILoggerFactory loggerFactory)
+            IRazorLoggerFactory loggerFactory)
             : base(documentMappingService, loggerFactory)
         {
         }

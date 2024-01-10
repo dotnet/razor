@@ -918,10 +918,10 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         var service = await CreateServiceAsync(documentContext, csharpTokens, withCSharpBackground, serverSupportsPreciseRanges, precise);
 
         var range = GetRange(documentText);
-        var tokens = await service.GetSemanticTokensAsync(new() { Uri = documentContext.Uri }, range, documentContext, TestRazorSemanticTokensLegend.Instance, Guid.Empty, DisposalToken);
+        var tokens = await service.GetSemanticTokensAsync(_clientConnection.Object, new() { Uri = documentContext.Uri }, range, documentContext, withCSharpBackground, DisposalToken);
 
         var sourceText = await documentContext.GetSourceTextAsync(DisposalToken);
-        AssertSemanticTokensMatchesBaseline(sourceText, tokens?.Data, precise, testName.AssumeNotNull());
+        AssertSemanticTokensMatchesBaseline(sourceText, tokens?.Data, testName.AssumeNotNull());
     }
 
     private static VersionedDocumentContext CreateDocumentContext(
@@ -1006,12 +1006,13 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             options.HtmlVirtualDocumentSuffix == "__virtual.html",
             MockBehavior.Strict);
 
-        return new RazorSemanticTokensInfoService(
-            _clientConnection.Object,
+        var service = new RazorSemanticTokensInfoService(
             documentMappingService,
-            optionsMonitor,
             featureOptions,
-            LoggerFactory);
+            LoggerFactory,
+            telemetryReporter: null);
+        service.ApplyCapabilities(new(), new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+        return service;
     }
 
     private async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(string documentText, bool precise, bool isRazorFile = false)
@@ -1084,10 +1085,9 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         return range;
     }
 
-    private void AssertSemanticTokensMatchesBaseline(SourceText sourceText, int[]? actualSemanticTokens, bool precise, string testName)
+    private void AssertSemanticTokensMatchesBaseline(SourceText sourceText, int[]? actualSemanticTokens, string testName)
     {
-        var folderName = precise ? "Precise" : "Normal";
-        var fileName = $"Semantic\\TestFiles\\{folderName}\\{testName}";
+        var fileName = $"Semantic\\TestFiles\\{testName}";
 
         var baselineFileName = Path.ChangeExtension(fileName, ".semantic.txt");
 

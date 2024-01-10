@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -24,41 +23,44 @@ using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
+internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
+    private readonly IRazorLoggerFactory _loggerFactory;
     private readonly LanguageServerFeatureOptions? _featureOptions;
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
     private readonly RazorLSPOptions _lspOptions;
     private readonly ILspServerActivationTracker? _lspServerActivationTracker;
     private readonly ITelemetryReporter _telemetryReporter;
+    private readonly ClientConnection _clientConnection;
 
     // Cached for testing
     private IHandlerProvider? _handlerProvider;
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
-        ILspLogger logger,
+        IRazorLoggerFactory loggerFactory,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer,
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
         ITelemetryReporter telemetryReporter)
-        : base(jsonRpc, logger)
+        : base(jsonRpc, CreateILspLogger(loggerFactory, telemetryReporter))
     {
         _jsonRpc = jsonRpc;
+        _loggerFactory = loggerFactory;
         _featureOptions = featureOptions;
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
@@ -66,7 +68,14 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         _lspServerActivationTracker = lspServerActivationTracker;
         _telemetryReporter = telemetryReporter;
 
+        _clientConnection = new ClientConnection(_jsonRpc);
+
         Initialize();
+    }
+
+    private static ILspLogger CreateILspLogger(IRazorLoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)
+    {
+        return new ClaspLoggingBridge(loggerFactory, telemetryReporter);
     }
 
     protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()
@@ -81,45 +90,21 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
     protected override ILspServices ConstructLspServices()
     {
         var services = new ServiceCollection()
-            .AddOptions()
-            .AddLogging();
+            .AddOptions();
+
+        var loggerFactoryWrapper = new LoggerFactoryWrapper(_loggerFactory);
+        // Wrap the logger factory so that we can add [LSP] to the start of all the categories
+        services.AddSingleton<IRazorLoggerFactory>(loggerFactoryWrapper);
 
         if (_configureServer is not null)
         {
             _configureServer(services);
         }
 
-        var clientConnection = new ClientConnection(_jsonRpc);
-        services.AddSingleton<IClientConnection>(clientConnection);
-        if (_logger is LspLogger lspLogger)
-        {
-            lspLogger.Initialize(clientConnection);
-        }
+        services.AddSingleton<IClientConnection>(_clientConnection);
 
-        if (_logger is LoggerAdapter adapter)
-        {
-            services.AddSingleton<LoggerAdapter>(adapter);
-        }
-        else
-        {
-            services.AddSingleton<LoggerAdapter>(static (provider) =>
-            {
-                var loggers = provider.GetServices<ILogger>();
-                if (!loggers.Any())
-                {
-                    throw new InvalidOperationException("No loggers were registered");
-                }
-
-                var telemetryReporter = provider.GetRequiredService<ITelemetryReporter>();
-                return new LoggerAdapter(loggers, telemetryReporter);
-            });
-        }
-
+        // Add the logger as a service in case anything in CLaSP pulls it out to do logging
         services.AddSingleton<ILspLogger>(_logger);
-        if (_logger is ILogger iLogger)
-        {
-            services.AddSingleton<ILogger>(iLogger);
-        }
 
         services.AddSingleton<IErrorReporter, LanguageServerErrorReporter>();
 
@@ -139,10 +124,10 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         services.AddSingleton<FilePathService>();
 
-        services.AddLifeCycleServices(this, clientConnection, _lspServerActivationTracker);
+        services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
-        services.AddSemanticTokensServices();
+        services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
         services.AddCompletionServices(featureOptions);
         services.AddFormattingServices();
@@ -172,13 +157,13 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         // Defaults: For when the caller hasn't provided them through the `configure` action.
         services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
 
-        AddHandlers(services);
+        AddHandlers(services, featureOptions);
 
         var lspServices = new LspServices(services);
 
         return lspServices;
 
-        static void AddHandlers(IServiceCollection services)
+        static void AddHandlers(IServiceCollection services, LanguageServerFeatureOptions featureOptions)
         {
             // Not calling AddHandler because we want to register this endpoint as an IOnInitialized too
             services.AddSingleton<RazorConfigurationEndpoint>();
@@ -197,7 +182,13 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();
             services.AddHandler<RazorProximityExpressionsEndpoint>();
-            services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
+
+            if (!featureOptions.UseRazorCohostServer)
+            {
+                services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
+                services.AddSingleton<IDocumentColorService, DocumentColorService>();
+            }
+
             services.AddHandler<ColorPresentationEndpoint>();
             services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
             services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();

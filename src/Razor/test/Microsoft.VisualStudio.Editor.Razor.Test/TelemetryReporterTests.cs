@@ -3,8 +3,10 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Editor.Razor.Test.Shared;
 using Microsoft.VisualStudio.Telemetry;
+using StreamJsonRpc;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Test;
@@ -14,7 +16,7 @@ public class TelemetryReporterTests
     [Fact]
     public void NoArgument()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         reporter.ReportEvent("EventName", Severity.Normal);
         Assert.Collection(reporter.Events,
             e1 =>
@@ -28,7 +30,7 @@ public class TelemetryReporterTests
     [Fact]
     public void OneArgument()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         reporter.ReportEvent("EventName", Severity.Normal, new Property("P1", false));
         Assert.Collection(reporter.Events,
             e1 =>
@@ -45,7 +47,7 @@ public class TelemetryReporterTests
     [Fact]
     public void TwoArguments()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         reporter.ReportEvent("EventName", Severity.Normal, new("P1", false), new("P2", "test"));
         Assert.Collection(reporter.Events,
             e1 =>
@@ -62,7 +64,7 @@ public class TelemetryReporterTests
     [Fact]
     public void ThreeArguments()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         var p3Value = Guid.NewGuid();
         reporter.ReportEvent("EventName",
             Severity.Normal,
@@ -89,7 +91,7 @@ public class TelemetryReporterTests
     [Fact]
     public void FourArguments()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         var p3Value = Guid.NewGuid();
         reporter.ReportEvent("EventName",
             Severity.Normal,
@@ -119,7 +121,7 @@ public class TelemetryReporterTests
     [Fact]
     public void Block_NoArguments()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         using (var scope = reporter.BeginBlock("EventName", Severity.Normal))
         {
         }
@@ -138,7 +140,7 @@ public class TelemetryReporterTests
     [Fact]
     public void Block_OneArgument()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         using (reporter.BeginBlock("EventName", Severity.Normal, new Property("P1", false)))
         {
         }
@@ -158,7 +160,7 @@ public class TelemetryReporterTests
     [Fact]
     public void Block_TwoArguments()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         using (reporter.BeginBlock("EventName", Severity.Normal, new("P1", false), new("P2", "test")))
         {
         }
@@ -179,7 +181,7 @@ public class TelemetryReporterTests
     [Fact]
     public void Block_ThreeArguments()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         var p3Value = Guid.NewGuid();
         using (reporter.BeginBlock("EventName",
             Severity.Normal,
@@ -209,7 +211,7 @@ public class TelemetryReporterTests
     [Fact]
     public void Block_FourArguments()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         var p3Value = Guid.NewGuid();
         using (reporter.BeginBlock("EventName",
             Severity.Normal,
@@ -240,9 +242,52 @@ public class TelemetryReporterTests
     }
 
     [Fact]
+    public void HandleRIEWithInnerException()
+    {
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
+
+        var ae = new ApplicationException("expectedText");
+        var rie = new RemoteInvocationException("a", 0, ae);
+
+        reporter.ReportFault(rie, rie.Message);
+
+        Assert.Collection(reporter.Events,
+            e1 =>
+            {
+                Assert.Equal(TelemetrySeverity.High, e1.Severity);
+                Assert.Equal("dotnet/razor/fault", e1.Name);
+                // faultEvent doesn't expose any interesting properties,
+                // like the ExceptionObject, or the resulting Description,
+                // or really anything we would explicitly want to verify against.
+                Assert.IsType<FaultEvent>(e1);
+            });
+    }
+
+    [Fact]
+    public void HandleRIEWithNoInnerException()
+    {
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
+
+        var rie = new RemoteInvocationException("a", 0, errorData:null);
+
+        reporter.ReportFault(rie, rie.Message);
+
+        Assert.Collection(reporter.Events,
+            e1 =>
+            {
+                Assert.Equal(TelemetrySeverity.High, e1.Severity);
+                Assert.Equal("dotnet/razor/fault", e1.Name);
+                // faultEvent doesn't expose any interesting properties,
+                // like the ExceptionObject, or the resulting Description,
+                // or really anything we would explicitly want to verify against.
+                Assert.IsType<FaultEvent>(e1);
+            });
+    }
+
+    [Fact]
     public void TrackLspRequest()
     {
-        var reporter = new TestTelemetryReporter();
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         var correlationId = Guid.NewGuid();
         using (reporter.TrackLspRequest("MethodName", "ServerName", correlationId))
         {
