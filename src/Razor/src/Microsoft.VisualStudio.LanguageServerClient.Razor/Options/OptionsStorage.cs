@@ -3,23 +3,22 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.Extensions.Logging;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Settings;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Utilities.UnifiedSettings;
-using System.Linq;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
 
-[System.Composition.Shared]
 [Export(typeof(OptionsStorage))]
 [Export(typeof(IAdvancedSettingsStorage))]
 internal class OptionsStorage : IAdvancedSettingsStorage
