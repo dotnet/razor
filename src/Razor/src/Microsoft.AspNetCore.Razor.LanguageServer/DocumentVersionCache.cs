@@ -40,7 +40,7 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
             throw new ArgumentNullException(nameof(documentSnapshot));
         }
 
-        using var upgradeableReadLock = _lock.EnterUpgradeAbleReadLock();
+        using var upgradeableReadLock = _lock.EnterUpgradeableReadLock();
         TrackDocumentVersion(documentSnapshot, version, upgradeableReadLock);
     }
 
@@ -123,7 +123,7 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
             return;
         }
 
-        using var upgradeableLock = _lock.EnterUpgradeAbleReadLock();
+        using var upgradeableLock = _lock.EnterUpgradeableReadLock();
 
         switch (args.Kind)
         {

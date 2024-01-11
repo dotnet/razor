@@ -19,7 +19,7 @@ internal class ReadWriterLocker
 
     public ReadOnlyLock EnterReadLock() => new ReadOnlyLock(_lock);
     public WriteOnlyLock EnterWriteLock() => new WriteOnlyLock(_lock);
-    public UpgradeableReadLock EnterUpgradeAbleReadLock() => new UpgradeableReadLock(_lock);
+    public UpgradeableReadLock EnterUpgradeableReadLock() => new UpgradeableReadLock(_lock);
 
     public void EnsureNoWriteLock()
     {
