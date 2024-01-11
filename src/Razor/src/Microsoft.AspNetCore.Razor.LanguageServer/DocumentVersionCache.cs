@@ -15,12 +15,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 //       but leaving this note here because you never know.
 [Export(typeof(IDocumentVersionCache)), Shared]
 [method: ImportingConstructor]
-internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSnapshotChangeTrigger
+internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IProjectSnapshotChangeTrigger
 {
     internal const int MaxDocumentTrackingCount = 20;
 
-    // Internal for testing
-    internal readonly Dictionary<string, List<DocumentEntry>> DocumentLookup_NeedsLock = new(FilePathComparer.Instance);
+    private readonly Dictionary<string, List<DocumentEntry>> _documentLookup_NeedsLock = new(FilePathComparer.Instance);
     private readonly ReadWriterLocker _lock = new();
     private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
@@ -44,10 +43,10 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
         using (upgradeableReadLock.EnterWriteLock())
         {
             var key = documentSnapshot.FilePath.AssumeNotNull();
-            if (!DocumentLookup_NeedsLock.TryGetValue(key, out var documentEntries))
+            if (!_documentLookup_NeedsLock.TryGetValue(key, out var documentEntries))
             {
                 documentEntries = new List<DocumentEntry>();
-                DocumentLookup_NeedsLock[key] = documentEntries;
+                _documentLookup_NeedsLock[key] = documentEntries;
             }
 
             if (documentEntries.Count == MaxDocumentTrackingCount)
@@ -68,7 +67,7 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
     {
         using var _ = _lock.EnterReadLock();
 
-        if (!DocumentLookup_NeedsLock.TryGetValue(filePath, out var documentEntries))
+        if (!_documentLookup_NeedsLock.TryGetValue(filePath, out var documentEntries))
         {
             return -1;
         }
@@ -86,7 +85,7 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
         using var _ = _lock.EnterReadLock();
 
         var key = documentSnapshot.FilePath.AssumeNotNull();
-        if (!DocumentLookup_NeedsLock.TryGetValue(key, out var documentEntries))
+        if (!_documentLookup_NeedsLock.TryGetValue(key, out var documentEntries))
         {
             version = null;
             return false;
@@ -139,13 +138,13 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
         {
             case ProjectChangeKind.DocumentChanged:
                 var documentFilePath = args.DocumentFilePath!;
-                if (DocumentLookup_NeedsLock.ContainsKey(documentFilePath) &&
+                if (_documentLookup_NeedsLock.ContainsKey(documentFilePath) &&
                     !ProjectSnapshotManager.IsDocumentOpen(documentFilePath))
                 {
                     using (upgradeableLock.EnterWriteLock())
                     {
                         // Document closed, evict entry.
-                        DocumentLookup_NeedsLock.Remove(documentFilePath);
+                        _documentLookup_NeedsLock.Remove(documentFilePath);
                     }
                 }
 
@@ -175,7 +174,7 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
     {
         foreach (var documentPath in projectSnapshot.DocumentFilePaths)
         {
-            if (DocumentLookup_NeedsLock.ContainsKey(documentPath) &&
+            if (_documentLookup_NeedsLock.ContainsKey(documentPath) &&
                 projectSnapshot.GetDocument(documentPath) is { } document)
             {
                 MarkAsLatestVersion(document, upgradeableReadLock);
@@ -185,7 +184,7 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
 
     private void MarkAsLatestVersion(IDocumentSnapshot document, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
-        if (!DocumentLookup_NeedsLock.TryGetValue(document.FilePath.AssumeNotNull(), out var documentEntries))
+        if (!_documentLookup_NeedsLock.TryGetValue(document.FilePath.AssumeNotNull(), out var documentEntries))
         {
             return;
         }

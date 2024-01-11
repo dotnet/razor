@@ -4,7 +4,7 @@
 #nullable disable
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -21,16 +21,16 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void MarkAsLatestVersion_UntrackedDocument_Noops()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
-        documentVersionCache.TrackDocumentVersion(document, 123);
+        cache.TrackDocumentVersion(document, 123);
         var untrackedDocument = TestDocumentSnapshot.Create("C:/other.cshtml");
 
         // Act
-        documentVersionCache.MarkAsLatestVersion(untrackedDocument);
+        cache.MarkAsLatestVersion(untrackedDocument);
 
         // Assert
-        Assert.False(documentVersionCache.TryGetDocumentVersion(untrackedDocument, out var version));
+        Assert.False(cache.TryGetDocumentVersion(untrackedDocument, out var version));
         Assert.Null(version);
     }
 
@@ -38,16 +38,16 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void MarkAsLatestVersion_KnownDocument_TracksNewDocumentAsLatest()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
         var documentInitial = TestDocumentSnapshot.Create("C:/file.cshtml");
-        documentVersionCache.TrackDocumentVersion(documentInitial, 123);
+        cache.TrackDocumentVersion(documentInitial, 123);
         var documentLatest = TestDocumentSnapshot.Create(documentInitial.FilePath);
 
         // Act
-        documentVersionCache.MarkAsLatestVersion(documentLatest);
+        cache.MarkAsLatestVersion(documentLatest);
 
         // Assert
-        Assert.True(documentVersionCache.TryGetDocumentVersion(documentLatest, out var version));
+        Assert.True(cache.TryGetDocumentVersion(documentLatest, out var version));
         Assert.Equal(123, version);
     }
 
@@ -55,27 +55,27 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void ProjectSnapshotManager_Changed_DocumentRemoved_DoesNotEvictDocument()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
         var projectSnapshotManager = GetSnapshotManager();
         projectSnapshotManager.AllowNotifyListeners = true;
-        documentVersionCache.Initialize(projectSnapshotManager);
+        cache.Initialize(projectSnapshotManager);
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
         document.TryGetText(out var text);
         document.TryGetTextVersion(out var textVersion);
         var textAndVersion = TextAndVersion.Create(text, textVersion);
-        documentVersionCache.TrackDocumentVersion(document, 1337);
+        cache.TrackDocumentVersion(document, 1337);
         projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
         projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, TextLoader.From(textAndVersion));
 
         // Act - 1
-        var result = documentVersionCache.TryGetDocumentVersion(document, out _);
+        var result = cache.TryGetDocumentVersion(document, out _);
 
         // Assert - 1
         Assert.True(result);
 
         // Act - 2
         projectSnapshotManager.DocumentRemoved(document.ProjectInternal.Key, document.State.HostDocument);
-        result = documentVersionCache.TryGetDocumentVersion(document, out _);
+        result = cache.TryGetDocumentVersion(document, out _);
 
         // Assert - 2
         Assert.True(result);
@@ -85,21 +85,21 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void ProjectSnapshotManager_Changed_OpenDocumentRemoved_DoesNotEvictDocument()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
         var projectSnapshotManager = GetSnapshotManager();
         projectSnapshotManager.AllowNotifyListeners = true;
-        documentVersionCache.Initialize(projectSnapshotManager);
+        cache.Initialize(projectSnapshotManager);
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
         document.TryGetText(out var text);
         document.TryGetTextVersion(out var textVersion);
         var textAndVersion = TextAndVersion.Create(text, textVersion);
-        documentVersionCache.TrackDocumentVersion(document, 1337);
+        cache.TrackDocumentVersion(document, 1337);
         projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
         projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, TextLoader.From(textAndVersion));
         projectSnapshotManager.DocumentOpened(document.ProjectInternal.Key, document.FilePath, textAndVersion.Text);
 
         // Act - 1
-        var result = documentVersionCache.TryGetDocumentVersion(document, out _);
+        var result = cache.TryGetDocumentVersion(document, out _);
 
         // Assert - 1
         Assert.True(result);
@@ -107,7 +107,7 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
 
         // Act - 2
         projectSnapshotManager.DocumentRemoved(document.ProjectInternal.Key, document.State.HostDocument);
-        result = documentVersionCache.TryGetDocumentVersion(document, out _);
+        result = cache.TryGetDocumentVersion(document, out _);
 
         // Assert - 2
         Assert.True(result);
@@ -117,28 +117,28 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void ProjectSnapshotManager_Changed_DocumentClosed_EvictsDocument()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
         var projectSnapshotManager = GetSnapshotManager();
         projectSnapshotManager.AllowNotifyListeners = true;
-        documentVersionCache.Initialize(projectSnapshotManager);
+        cache.Initialize(projectSnapshotManager);
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
         document.TryGetText(out var text);
         document.TryGetTextVersion(out var textVersion);
         var textAndVersion = TextAndVersion.Create(text, textVersion);
-        documentVersionCache.TrackDocumentVersion(document, 1337);
+        cache.TrackDocumentVersion(document, 1337);
         projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
         var textLoader = TextLoader.From(textAndVersion);
         projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, textLoader);
 
         // Act - 1
-        var result = documentVersionCache.TryGetDocumentVersion(document, out _);
+        var result = cache.TryGetDocumentVersion(document, out _);
 
         // Assert - 1
         Assert.True(result);
 
         // Act - 2
         projectSnapshotManager.DocumentClosed(document.ProjectInternal.HostProject.Key, document.State.HostDocument.FilePath, textLoader);
-        result = documentVersionCache.TryGetDocumentVersion(document, out var version);
+        result = cache.TryGetDocumentVersion(document, out var version);
 
         // Assert - 2
         Assert.False(result);
@@ -149,51 +149,53 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void TrackDocumentVersion_AddsFirstEntry()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
+        var cacheAccessor = cache.GetTestAccessor();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
         // Act
-        documentVersionCache.TrackDocumentVersion(document, 1337);
+        cache.TrackDocumentVersion(document, 1337);
 
         // Assert
-        var kvp = Assert.Single(documentVersionCache.DocumentLookup_NeedsLock);
-        Assert.Equal(document.FilePath, kvp.Key);
-        var entry = Assert.Single(kvp.Value);
-        Assert.True(entry.Document.TryGetTarget(out var actualDocument));
+        var entries = cacheAccessor.GetEntries();
+        var (filePath, entry) = Assert.Single(entries);
+        Assert.Equal(document.FilePath, filePath);
+        var (actualDocument, actualVersion) = Assert.Single(entry);
         Assert.Same(document, actualDocument);
-        Assert.Equal(1337, entry.Version);
+        Assert.Equal(1337, actualVersion);
     }
 
     [Fact]
     public void TrackDocumentVersion_EvictsOldEntries()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
+        var cacheAccessor = cache.GetTestAccessor();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
         for (var i = 0; i < DocumentVersionCache.MaxDocumentTrackingCount; i++)
         {
-            documentVersionCache.TrackDocumentVersion(document, i);
+            cache.TrackDocumentVersion(document, i);
         }
 
         // Act
-        documentVersionCache.TrackDocumentVersion(document, 1337);
+        cache.TrackDocumentVersion(document, 1337);
 
         // Assert
-        var kvp = Assert.Single(documentVersionCache.DocumentLookup_NeedsLock);
-        Assert.Equal(DocumentVersionCache.MaxDocumentTrackingCount, kvp.Value.Count);
-        Assert.Equal(1337, kvp.Value.Last().Version);
+        var (_, entry) = Assert.Single(cacheAccessor.GetEntries());
+        Assert.Equal(DocumentVersionCache.MaxDocumentTrackingCount, entry.Length);
+        Assert.Equal(1337, entry[^1].Version);
     }
 
     [Fact]
     public void TryGetDocumentVersion_UntrackedDocumentPath_ReturnsFalse()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
         // Act
-        var result = documentVersionCache.TryGetDocumentVersion(document, out var version);
+        var result = cache.TryGetDocumentVersion(document, out var version);
 
         // Assert
         Assert.False(result);
@@ -204,13 +206,13 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void TryGetDocumentVersion_EvictedDocument_ReturnsFalse()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
         var evictedDocument = TestDocumentSnapshot.Create(document.FilePath);
-        documentVersionCache.TrackDocumentVersion(document, 1337);
+        cache.TrackDocumentVersion(document, 1337);
 
         // Act
-        var result = documentVersionCache.TryGetDocumentVersion(evictedDocument, out var version);
+        var result = cache.TryGetDocumentVersion(evictedDocument, out var version);
 
         // Assert
         Assert.False(result);
@@ -221,12 +223,12 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void TryGetDocumentVersion_KnownDocument_ReturnsTrue()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
-        documentVersionCache.TrackDocumentVersion(document, 1337);
+        cache.TrackDocumentVersion(document, 1337);
 
         // Act
-        var result = documentVersionCache.TryGetDocumentVersion(document, out var version);
+        var result = cache.TryGetDocumentVersion(document, out var version);
 
         // Assert
         Assert.True(result);
@@ -237,25 +239,25 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     public void ProjectSnapshotManager_KnownDocumentAdded_TracksNewDocument()
     {
         // Arrange
-        var documentVersionCache = new DocumentVersionCache();
+        var cache = new DocumentVersionCache();
+        var cacheAccessor = cache.GetTestAccessor();
         var projectSnapshotManager = GetSnapshotManager();
         projectSnapshotManager.AllowNotifyListeners = true;
-        documentVersionCache.Initialize(projectSnapshotManager);
+        cache.Initialize(projectSnapshotManager);
 
         var project1 = TestProjectSnapshot.Create("C:/path/to/project1.csproj", intermediateOutputPath: "C:/path/to/obj1", documentFilePaths: Array.Empty<string>(), RazorConfiguration.Default, projectWorkspaceState: null);
         projectSnapshotManager.ProjectAdded(project1.HostProject);
         var document1 = projectSnapshotManager.CreateAndAddDocument(project1, @"C:\path\to\file.razor");
 
         // Act
-        documentVersionCache.TrackDocumentVersion(document1, 1337);
+        cache.TrackDocumentVersion(document1, 1337);
 
         // Assert
-        var kvp = Assert.Single(documentVersionCache.DocumentLookup_NeedsLock);
-        Assert.Equal(document1.FilePath, kvp.Key);
-        var entry = Assert.Single(kvp.Value);
-        Assert.True(entry.Document.TryGetTarget(out var actualDocument));
+        var (filePath, entries) = Assert.Single(cacheAccessor.GetEntries());
+        Assert.Equal(document1.FilePath, filePath);
+        var (actualDocument, actualVersion) = Assert.Single(entries);
         Assert.Same(document1, actualDocument);
-        Assert.Equal(1337, entry.Version);
+        Assert.Equal(1337, actualVersion);
 
         // Act II
         var project2 = TestProjectSnapshot.Create("C:/path/to/project2.csproj", intermediateOutputPath: "C:/path/to/obj2", documentFilePaths: Array.Empty<string>(), RazorConfiguration.Default, projectWorkspaceState: null);
@@ -265,18 +267,18 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         var document2 = projectSnapshotManager.GetLoadedProject(project2.Key).GetDocument(document1.FilePath);
 
         // Assert II
-        kvp = Assert.Single(documentVersionCache.DocumentLookup_NeedsLock);
-        Assert.Equal(document1.FilePath, kvp.Key);
-        Assert.Equal(2, kvp.Value.Count);
+        (filePath, entries) = Assert.Single(cacheAccessor.GetEntries());
+        Assert.Equal(document1.FilePath, filePath);
+        Assert.Equal(2, entries.Length);
 
         // Should still be tracking document 1 with no changes
-        Assert.True(kvp.Value[0].Document.TryGetTarget(out actualDocument));
+        (actualDocument, actualVersion) = entries[0];
         Assert.Same(document1, actualDocument);
-        Assert.Equal(1337, kvp.Value[0].Version);
+        Assert.Equal(1337, actualVersion);
 
-        Assert.True(kvp.Value[1].Document.TryGetTarget(out actualDocument));
+        (actualDocument, actualVersion) = entries[1];
         Assert.Same(document2, actualDocument);
-        Assert.Equal(1337, kvp.Value[1].Version);
+        Assert.Equal(1337, actualVersion);
     }
 
     private TestProjectSnapshotManager GetSnapshotManager()
