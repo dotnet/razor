@@ -12,16 +12,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 //       RazorCohostRequestContextExtensions looking like the previous code in the non-cohost world.
 [ExportRazorStatelessLspService(typeof(CohostDocumentContextFactory))]
 [method: ImportingConstructor]
-internal class CohostDocumentContextFactory(DocumentSnapshotFactory documentSnapshotFactory) : AbstractRazorLspService
+internal class CohostDocumentContextFactory(DocumentSnapshotFactory documentSnapshotFactory, IDocumentVersionCache documentVersionCache) : AbstractRazorLspService
 {
     private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
+    private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
 
     public VersionedDocumentContext Create(Uri documentUri, TextDocument textDocument)
     {
         var documentSnapshot = _documentSnapshotFactory.GetOrCreate(textDocument);
 
-        // TODO: There is no need for this to be "versioned" in cohosting, but easier to fake it for now so that existing
-        //       code can be reused.
-        return new VersionedDocumentContext(documentUri, documentSnapshot, null, -1337);
+        // HACK: For cohosting, we just grab the "current" version, because we know it will have been updated
+        //       since the change handling is synchronous. In future we can just remove the whole concept of
+        //       document versions because TextDocument is inherently versioned.
+        var version = _documentVersionCache.GetLatestDocumentVersion(documentSnapshot.FilePath.AssumeNotNull());
+
+        return new VersionedDocumentContext(documentUri, documentSnapshot, null, version);
     }
 }
