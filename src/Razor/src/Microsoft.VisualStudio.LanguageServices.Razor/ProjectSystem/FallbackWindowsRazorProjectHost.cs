@@ -115,6 +115,12 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         var documents = GetCurrentDocuments(update.Value);
         var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
 
+        ProjectKey beforeProjectKey = default;
+        if (TryGetBeforeIntermeidateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath))
+        {
+            beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+        }
+
         await UpdateAsync(() =>
         {
             var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
@@ -131,7 +137,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
                 ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
             }
 
-            UpdateProjectUnsafe(hostProject);
+            UpdateProjectUnsafe(hostProject, beforeProjectKey);
 
             for (var i = 0; i < changedDocuments.Length; i++)
             {

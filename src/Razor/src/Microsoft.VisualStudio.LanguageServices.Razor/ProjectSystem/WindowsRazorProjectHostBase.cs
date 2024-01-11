@@ -235,8 +235,8 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                 {
                     UninitializeProjectUnsafe(projectKey);
 
-                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace, current.DisplayName);
-                    UpdateProjectUnsafe(hostProject);
+                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
+                    UpdateProjectUnsafe(hostProject, beforeProjectKey:default);
 
                     // This should no-op in the common case, just putting it here for insurance.
                     foreach (var documentFilePath in current.DocumentFilePaths)
@@ -274,7 +274,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         }
     }
 
-    protected void UpdateProjectUnsafe(HostProject project)
+    protected void UpdateProjectUnsafe(HostProject project, ProjectKey beforeProjectKey)
     {
         var projectManager = GetProjectManager();
 
@@ -285,6 +285,16 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             // If VS did tell us, then this is a no-op.
             projectManager.SolutionOpened();
 
+            // We had a before project, but that is no longer the current project, means the customer did something that changes
+            // the project key.  Remove the old project object.
+            if (!project.Key.Equals(beforeProjectKey))
+            {
+                var before = projectManager.GetLoadedProject(beforeProjectKey);
+                if (before is not null)
+                { 
+                    projectManager.ProjectRemoved(beforeProjectKey);
+                }
+            }
             projectManager.ProjectAdded(project);
         }
         else
@@ -330,6 +340,20 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     private Task UnconfiguredProject_ProjectRenamingAsync(object? sender, ProjectRenamedEventArgs args)
         => OnProjectRenamingAsync(args.OldFullPath, args.NewFullPath);
 
+    protected bool TryGetBeforeIntermeidateOutputPath(IImmutableDictionary<string, IProjectChangeDescription> state,
+        [NotNullWhen(returnValue: true)] out string? path)
+    {
+        if (!state.TryGetValue(ConfigurationGeneralSchemaName, out var rule))
+        {
+            path = null;
+            return false;
+        }
+
+        var beforeValues = rule.Before;
+
+        return TryGetIntermediateOutputPathFromProjectRuleSnapshot(beforeValues, out path);
+    }
+
     // virtual for testing
     protected virtual bool TryGetIntermediateOutputPath(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
@@ -341,6 +365,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             return false;
         }
 
+        return TryGetIntermediateOutputPathFromProjectRuleSnapshot(rule, out path);
+    }
+
+    private bool TryGetIntermediateOutputPathFromProjectRuleSnapshot(IProjectRuleSnapshot rule, out string? path)
+    {
         if (!rule.Properties.TryGetValue(BaseIntermediateOutputPathPropertyName, out var baseIntermediateOutputPathValue))
         {
             path = null;

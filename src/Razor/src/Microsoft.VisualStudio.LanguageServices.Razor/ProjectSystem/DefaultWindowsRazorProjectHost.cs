@@ -57,6 +57,12 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
 
+            ProjectKey beforeProjectKey = default;
+            if (TryGetBeforeIntermeidateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath))
+            {
+                beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+            }
+
             // We need to deal with the case where the project was uninitialized, but now
             // is valid for Razor. In that case we might have previously seen all of the documents
             // but ignored them because the project wasn't active.
@@ -82,7 +88,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
                     ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
                 }
 
-                UpdateProjectUnsafe(hostProject);
+                UpdateProjectUnsafe(hostProject, beforeProjectKey);
 
                 for (var i = 0; i < changedDocuments.Length; i++)
                 {
