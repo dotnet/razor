@@ -48,8 +48,10 @@ internal sealed partial class DocumentVersionCache
 
         public void MarkAsLatestVersion(IDocumentSnapshot document)
         {
-            using var upgradeableLock = _this._lock.EnterUpgradeableReadLock();
-            _this.MarkAsLatestVersion(document, upgradeableLock);
+            using (_this._lock.EnterUpgradeableReadLock())
+            {
+                _this.MarkAsLatestVersion(document);
+            }
         }
     }
 }
