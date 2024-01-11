@@ -46,5 +46,7 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool MonitorWorkspaceFolderForConfigurationFiles => _monitorWorkspaceFolderForConfigurationFiles;
 
-    public override bool UseRazorCohostServer => throw new System.NotImplementedException();
+    public override bool UseRazorCohostServer => false;
+
+    public override bool DisableRazorLanguageServer => false;
 }

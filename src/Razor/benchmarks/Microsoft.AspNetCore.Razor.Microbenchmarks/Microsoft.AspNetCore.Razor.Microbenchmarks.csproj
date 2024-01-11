@@ -29,6 +29,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\**\*.*" />
+    <EmbeddedResource Include="..\..\..\Compiler\perf\Microbenchmarks\MSN.cshtml">
+      <Link>Resources\%(FileName)%(Extension)</Link>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -57,5 +60,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
   </ItemGroup>
+
+  <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.Serialization.Json\Microsoft.AspNetCore.Razor.Serialization.Json.projitems" Label="Shared" />
 
 </Project>
