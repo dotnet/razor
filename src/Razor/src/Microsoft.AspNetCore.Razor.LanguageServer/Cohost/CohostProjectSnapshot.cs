@@ -6,14 +6,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 
@@ -24,14 +27,17 @@ internal class CohostProjectSnapshot : IProjectSnapshot
 
     private readonly Project _project;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory;
+    private readonly ITelemetryReporter _telemetryReporter;
     private readonly ProjectKey _projectKey;
     private readonly Lazy<RazorConfiguration> _lazyConfiguration;
     private readonly Lazy<RazorProjectEngine> _lazyProjectEngine;
+    private readonly AsyncLazy<ImmutableArray<TagHelperDescriptor>> _tagHelpersLazy;
 
-    public CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory)
+    public CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter, JoinableTaskContext joinableTaskContext)
     {
         _project = project;
         _documentSnapshotFactory = documentSnapshotFactory;
+        _telemetryReporter = telemetryReporter;
         _projectKey = ProjectKey.From(_project)!.Value;
 
         _lazyConfiguration = new Lazy<RazorConfiguration>(CreateRazorConfiguration);
@@ -46,6 +52,12 @@ internal class CohostProjectSnapshot : IProjectSnapshot
             },
             fallback: s_fallbackProjectEngineFactory,
             factories: s_projectEngineFactories));
+
+        _tagHelpersLazy = new AsyncLazy<ImmutableArray<TagHelperDescriptor>>(() =>
+        {
+            var resolver = new CompilationTagHelperResolver(_telemetryReporter);
+            return resolver.GetTagHelpersAsync(_project, GetProjectEngine(), CancellationToken.None).AsTask();
+        }, joinableTaskContext.Factory);
     }
 
     public ProjectKey Key => _projectKey;
@@ -69,9 +81,9 @@ internal class CohostProjectSnapshot : IProjectSnapshot
 
     public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions!).LanguageVersion;
 
-    public ImmutableArray<TagHelperDescriptor> TagHelpers => throw new NotImplementedException();
+    public ImmutableArray<TagHelperDescriptor> TagHelpers => _tagHelpersLazy.GetValue();
 
-    public ProjectWorkspaceState ProjectWorkspaceState => throw new NotImplementedException();
+    public ProjectWorkspaceState ProjectWorkspaceState => ProjectWorkspaceState.Create(TagHelpers, CSharpLanguageVersion);
 
     public IDocumentSnapshot? GetDocument(string filePath)
     {
