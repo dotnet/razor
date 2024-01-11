@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -17,13 +16,15 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
         RazorLanguageVersion.Latest,
         "unnamed",
         Array.Empty<RazorExtension>(),
-        false);
+        false,
+        suppressDesignTime: false);
 
     public static RazorConfiguration Create(
         RazorLanguageVersion languageVersion,
         string configurationName,
         IEnumerable<RazorExtension> extensions,
-        bool useConsolidatedMvcViews = false)
+        bool useConsolidatedMvcViews = false,
+        bool suppressDesignTime = false)
     {
         if (languageVersion == null)
         {
@@ -40,7 +41,7 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
             throw new ArgumentNullException(nameof(extensions));
         }
 
-        return new DefaultRazorConfiguration(languageVersion, configurationName, extensions.ToArray(), useConsolidatedMvcViews);
+        return new DefaultRazorConfiguration(languageVersion, configurationName, extensions.ToArray(), useConsolidatedMvcViews, suppressDesignTime);
     }
 
     public abstract string ConfigurationName { get; }
@@ -50,6 +51,8 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
     public abstract RazorLanguageVersion LanguageVersion { get; }
 
     public abstract bool UseConsolidatedMvcViews { get; }
+
+    public abstract bool SuppressDesignTime { get; }
 
     internal RazorConfiguration WithVersion(RazorLanguageVersion version)
     {
@@ -88,6 +91,11 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
             return false;
         }
 
+        if (SuppressDesignTime != other.SuppressDesignTime)
+        {
+            return false;
+        }
+
         for (var i = 0; i < Extensions.Count; i++)
         {
             if (Extensions[i].ExtensionName != other.Extensions[i].ExtensionName)
@@ -104,6 +112,7 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
         var hash = HashCodeCombiner.Start();
         hash.Add(LanguageVersion);
         hash.Add(ConfigurationName);
+        hash.Add(SuppressDesignTime);
 
         for (var i = 0; i < Extensions.Count; i++)
         {
@@ -119,12 +128,14 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
             RazorLanguageVersion languageVersion,
             string configurationName,
             RazorExtension[] extensions,
-            bool useConsolidatedMvcViews = false)
+            bool useConsolidatedMvcViews = false,
+            bool suppressDesignTime = false)
         {
             LanguageVersion = languageVersion;
             ConfigurationName = configurationName;
             Extensions = extensions;
             UseConsolidatedMvcViews = useConsolidatedMvcViews;
+            SuppressDesignTime = suppressDesignTime;
         }
 
         public override string ConfigurationName { get; }
@@ -134,5 +145,7 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
         public override RazorLanguageVersion LanguageVersion { get; }
 
         public override bool UseConsolidatedMvcViews { get; }
+
+        public override bool SuppressDesignTime { get; }
     }
 }

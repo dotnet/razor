@@ -38,7 +38,8 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return RazorConfiguration.Create(languageVersion, configurationName, extensions);
+        // TODO: right now we hardcode the suppress design time flag, we need to thread it through a feature flag at a later date
+        return RazorConfiguration.Create(languageVersion, configurationName, extensions, suppressDesignTime: true);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)

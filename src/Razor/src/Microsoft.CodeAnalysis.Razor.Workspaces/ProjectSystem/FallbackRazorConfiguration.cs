@@ -82,7 +82,8 @@ internal class FallbackRazorConfiguration : RazorConfiguration
         RazorLanguageVersion languageVersion,
         string configurationName,
         RazorExtension[] extensions,
-        bool useConsolidatedMvcViews = false)
+        bool useConsolidatedMvcViews = false,
+        bool suppressDesignTime = false)
     {
         if (languageVersion is null)
         {
@@ -103,6 +104,7 @@ internal class FallbackRazorConfiguration : RazorConfiguration
         ConfigurationName = configurationName;
         Extensions = extensions;
         UseConsolidatedMvcViews = useConsolidatedMvcViews;
+        SuppressDesignTime = suppressDesignTime;
     }
 
     public override string ConfigurationName { get; }
@@ -112,4 +114,6 @@ internal class FallbackRazorConfiguration : RazorConfiguration
     public override RazorLanguageVersion LanguageVersion { get; }
 
     public override bool UseConsolidatedMvcViews { get; }
+
+    public override bool SuppressDesignTime { get; }
 }

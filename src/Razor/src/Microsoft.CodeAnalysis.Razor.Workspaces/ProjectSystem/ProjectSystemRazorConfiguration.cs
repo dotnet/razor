@@ -13,16 +13,20 @@ internal class ProjectSystemRazorConfiguration : RazorConfiguration
     public override IReadOnlyList<RazorExtension> Extensions { get; }
     public override RazorLanguageVersion LanguageVersion { get; }
     public override bool UseConsolidatedMvcViews { get; }
+    public override bool SuppressDesignTime { get; }
 
     public ProjectSystemRazorConfiguration(
         RazorLanguageVersion languageVersion,
         string configurationName,
         RazorExtension[] extensions,
-        bool useConsolidatedMvcViews = false)
+        bool useConsolidatedMvcViews = false,
+        // TODO: right now we hardcode the suppress design time flag, we need to thread it through a feature flag at a later date
+        bool suppressDesignTime = true)  
     {
         LanguageVersion = languageVersion ?? throw new ArgumentNullException(nameof(languageVersion));
         ConfigurationName = configurationName ?? throw new ArgumentNullException(nameof(configurationName));
         Extensions = extensions ?? throw new ArgumentNullException(nameof(extensions));
         UseConsolidatedMvcViews = useConsolidatedMvcViews;
+        SuppressDesignTime = suppressDesignTime;
     }
 }
