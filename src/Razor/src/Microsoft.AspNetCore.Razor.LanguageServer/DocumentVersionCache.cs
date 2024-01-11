@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -45,6 +46,8 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
 
     private void TrackDocumentVersion(IDocumentSnapshot documentSnapshot, int version, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
+        Debug.Assert(_lock.IsUpgradeableReadLockHeld);
+
         // Need to ensure the write lock covers all uses of documentEntries, not just DocumentLookup
         using (upgradeableReadLock.EnterWriteLock())
         {
@@ -153,6 +156,8 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
 
     private void CaptureProjectDocumentsAsLatest(IProjectSnapshot projectSnapshot, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
+        Debug.Assert(_lock.IsUpgradeableReadLockHeld);
+
         foreach (var documentPath in projectSnapshot.DocumentFilePaths)
         {
             if (_documentLookup_NeedsLock.ContainsKey(documentPath) &&
@@ -165,6 +170,8 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
 
     private void MarkAsLatestVersion(IDocumentSnapshot document, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
+        Debug.Assert(_lock.IsUpgradeableReadLockHeld);
+
         if (!_documentLookup_NeedsLock.TryGetValue(document.FilePath.AssumeNotNull(), out var documentEntries))
         {
             return;
