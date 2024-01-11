@@ -18,6 +18,8 @@ internal sealed partial class DocumentVersionCache
     {
         private readonly DocumentVersionCache _this = @this;
 
+        public record struct DocumentEntry(IDocumentSnapshot? Document, int Version);
+
         public ImmutableDictionary<string, ImmutableArray<DocumentEntry>> GetEntries()
         {
             using var result = new PooledDictionaryBuilder<string, ImmutableArray<DocumentEntry>>();
@@ -44,6 +46,10 @@ internal sealed partial class DocumentVersionCache
             return result.ToImmutable();
         }
 
-        public record struct DocumentEntry(IDocumentSnapshot? Document, int Version);
+        public void MarkAsLatestVersion(IDocumentSnapshot document)
+        {
+            using var upgradeableLock = _this._lock.EnterUpgradeAbleReadLock();
+            _this.MarkAsLatestVersion(document, upgradeableLock);
+        }
     }
 }

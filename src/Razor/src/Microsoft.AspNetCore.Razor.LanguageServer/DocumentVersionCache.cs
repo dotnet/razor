@@ -26,6 +26,12 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
     private ProjectSnapshotManagerBase ProjectSnapshotManager
         => _projectSnapshotManager ?? throw new InvalidOperationException("ProjectSnapshotManager accessed before Initialized was called.");
 
+    public void Initialize(ProjectSnapshotManagerBase projectManager)
+    {
+        _projectSnapshotManager = projectManager;
+        ProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+    }
+
     public void TrackDocumentVersion(IDocumentSnapshot documentSnapshot, int version)
     {
         if (documentSnapshot is null)
@@ -106,17 +112,6 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
         return false;
     }
 
-    public void Initialize(ProjectSnapshotManagerBase projectManager)
-    {
-        if (projectManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectManager));
-        }
-
-        _projectSnapshotManager = projectManager;
-        ProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
-    }
-
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
@@ -154,13 +149,6 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
         }
 
         CaptureProjectDocumentsAsLatest(project, upgradeableLock);
-    }
-
-    // Internal for testing
-    internal void MarkAsLatestVersion(IDocumentSnapshot document)
-    {
-        using var upgradeableLock = _lock.EnterUpgradeAbleReadLock();
-        MarkAsLatestVersion(document, upgradeableLock);
     }
 
     private void CaptureProjectDocumentsAsLatest(IProjectSnapshot projectSnapshot, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)

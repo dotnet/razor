@@ -19,12 +19,13 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     {
         // Arrange
         var cache = new DocumentVersionCache();
+        var cacheAccessor = cache.GetTestAccessor();
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
         cache.TrackDocumentVersion(document, 123);
         var untrackedDocument = TestDocumentSnapshot.Create("C:/other.cshtml");
 
         // Act
-        cache.MarkAsLatestVersion(untrackedDocument);
+        cacheAccessor.MarkAsLatestVersion(untrackedDocument);
 
         // Assert
         Assert.False(cache.TryGetDocumentVersion(untrackedDocument, out var version));
@@ -36,12 +37,13 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     {
         // Arrange
         var cache = new DocumentVersionCache();
+        var cacheAccessor = cache.GetTestAccessor();
         var documentInitial = TestDocumentSnapshot.Create("C:/file.cshtml");
         cache.TrackDocumentVersion(documentInitial, 123);
         var documentLatest = TestDocumentSnapshot.Create(documentInitial.FilePath);
 
         // Act
-        cache.MarkAsLatestVersion(documentLatest);
+        cacheAccessor.MarkAsLatestVersion(documentLatest);
 
         // Assert
         Assert.True(cache.TryGetDocumentVersion(documentLatest, out var version));
