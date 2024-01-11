@@ -46,7 +46,7 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
             if (!_documentLookup_NeedsLock.TryGetValue(key, out var documentEntries))
             {
                 documentEntries = new List<DocumentEntry>();
-                _documentLookup_NeedsLock[key] = documentEntries;
+                _documentLookup_NeedsLock.Add(key, documentEntries);
             }
 
             if (documentEntries.Count == MaxDocumentTrackingCount)
@@ -84,33 +84,26 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
 
         using var _ = _lock.EnterReadLock();
 
-        var key = documentSnapshot.FilePath.AssumeNotNull();
-        if (!_documentLookup_NeedsLock.TryGetValue(key, out var documentEntries))
+        var filePath = documentSnapshot.FilePath.AssumeNotNull();
+        if (!_documentLookup_NeedsLock.TryGetValue(filePath, out var documentEntries))
         {
             version = null;
             return false;
         }
 
-        DocumentEntry? entry = null;
+        // We iterate backwards over the entries to prioritize newer entries.
         for (var i = documentEntries.Count - 1; i >= 0; i--)
         {
-            // We iterate backwards over the entries to prioritize newer entries.
             if (documentEntries[i].Document.TryGetTarget(out var document) &&
                 document == documentSnapshot)
             {
-                entry = documentEntries[i];
-                break;
+                version = documentEntries[i].Version;
+                return true;
             }
         }
 
-        if (entry is null)
-        {
-            version = null;
-            return false;
-        }
-
-        version = entry.Version;
-        return true;
+        version = null;
+        return false;
     }
 
     public void Initialize(ProjectSnapshotManagerBase projectManager)
@@ -132,7 +125,7 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
             return;
         }
 
-        var upgradeableLock = _lock.EnterUpgradeAbleReadLock();
+        using var upgradeableLock = _lock.EnterUpgradeAbleReadLock();
 
         switch (args.Kind)
         {
@@ -193,18 +186,5 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
 
         // Update our internal tracking state to track the changed document as the latest document.
         TrackDocumentVersion(document, latestEntry.Version, upgradeableReadLock);
-    }
-
-    internal class DocumentEntry
-    {
-        public DocumentEntry(IDocumentSnapshot document, int version)
-        {
-            Document = new WeakReference<IDocumentSnapshot>(document);
-            Version = version;
-        }
-
-        public WeakReference<IDocumentSnapshot> Document { get; }
-
-        public int Version { get; }
     }
 }

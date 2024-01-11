@@ -1,15 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -52,20 +49,24 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     }
 
     [Fact]
-    public void ProjectSnapshotManager_Changed_DocumentRemoved_DoesNotEvictDocument()
+    public async Task ProjectSnapshotManager_Changed_DocumentRemoved_DoesNotEvictDocument()
     {
         // Arrange
         var cache = new DocumentVersionCache();
-        var projectSnapshotManager = GetSnapshotManager();
-        projectSnapshotManager.AllowNotifyListeners = true;
+        var projectSnapshotManager = CreateProjectSnapshotManager();
         cache.Initialize(projectSnapshotManager);
+
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
-        document.TryGetText(out var text);
-        document.TryGetTextVersion(out var textVersion);
+        Assert.True(document.TryGetText(out var text));
+        Assert.True(document.TryGetTextVersion(out var textVersion));
         var textAndVersion = TextAndVersion.Create(text, textVersion);
         cache.TrackDocumentVersion(document, 1337);
-        projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
-        projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, TextLoader.From(textAndVersion));
+
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
+            projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, TextLoader.From(textAndVersion));
+        });
 
         // Act - 1
         var result = cache.TryGetDocumentVersion(document, out _);
@@ -74,7 +75,8 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         Assert.True(result);
 
         // Act - 2
-        projectSnapshotManager.DocumentRemoved(document.ProjectInternal.Key, document.State.HostDocument);
+        await RunOnDispatcherThreadAsync(() =>
+            projectSnapshotManager.DocumentRemoved(document.ProjectInternal.Key, document.State.HostDocument));
         result = cache.TryGetDocumentVersion(document, out _);
 
         // Assert - 2
@@ -82,21 +84,25 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     }
 
     [Fact]
-    public void ProjectSnapshotManager_Changed_OpenDocumentRemoved_DoesNotEvictDocument()
+    public async Task ProjectSnapshotManager_Changed_OpenDocumentRemoved_DoesNotEvictDocument()
     {
         // Arrange
         var cache = new DocumentVersionCache();
-        var projectSnapshotManager = GetSnapshotManager();
-        projectSnapshotManager.AllowNotifyListeners = true;
+        var projectSnapshotManager = CreateProjectSnapshotManager();
         cache.Initialize(projectSnapshotManager);
+
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
-        document.TryGetText(out var text);
-        document.TryGetTextVersion(out var textVersion);
+        Assert.True(document.TryGetText(out var text));
+        Assert.True(document.TryGetTextVersion(out var textVersion));
         var textAndVersion = TextAndVersion.Create(text, textVersion);
         cache.TrackDocumentVersion(document, 1337);
-        projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
-        projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, TextLoader.From(textAndVersion));
-        projectSnapshotManager.DocumentOpened(document.ProjectInternal.Key, document.FilePath, textAndVersion.Text);
+
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
+            projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, TextLoader.From(textAndVersion));
+            projectSnapshotManager.DocumentOpened(document.ProjectInternal.Key, document.FilePath, textAndVersion.Text);
+        });
 
         // Act - 1
         var result = cache.TryGetDocumentVersion(document, out _);
@@ -106,7 +112,8 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         Assert.True(projectSnapshotManager.IsDocumentOpen(document.FilePath));
 
         // Act - 2
-        projectSnapshotManager.DocumentRemoved(document.ProjectInternal.Key, document.State.HostDocument);
+        await RunOnDispatcherThreadAsync(() =>
+            projectSnapshotManager.DocumentRemoved(document.ProjectInternal.Key, document.State.HostDocument));
         result = cache.TryGetDocumentVersion(document, out _);
 
         // Assert - 2
@@ -114,21 +121,25 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     }
 
     [Fact]
-    public void ProjectSnapshotManager_Changed_DocumentClosed_EvictsDocument()
+    public async Task ProjectSnapshotManager_Changed_DocumentClosed_EvictsDocument()
     {
         // Arrange
         var cache = new DocumentVersionCache();
-        var projectSnapshotManager = GetSnapshotManager();
-        projectSnapshotManager.AllowNotifyListeners = true;
+        var projectSnapshotManager = CreateProjectSnapshotManager();
         cache.Initialize(projectSnapshotManager);
+
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
-        document.TryGetText(out var text);
-        document.TryGetTextVersion(out var textVersion);
+        Assert.True(document.TryGetText(out var text));
+        Assert.True(document.TryGetTextVersion(out var textVersion));
         var textAndVersion = TextAndVersion.Create(text, textVersion);
         cache.TrackDocumentVersion(document, 1337);
-        projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
         var textLoader = TextLoader.From(textAndVersion);
-        projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, textLoader);
+
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
+            projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, textLoader);
+        });
 
         // Act - 1
         var result = cache.TryGetDocumentVersion(document, out _);
@@ -137,7 +148,8 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         Assert.True(result);
 
         // Act - 2
-        projectSnapshotManager.DocumentClosed(document.ProjectInternal.HostProject.Key, document.State.HostDocument.FilePath, textLoader);
+        await RunOnDispatcherThreadAsync(() =>
+            projectSnapshotManager.DocumentClosed(document.ProjectInternal.HostProject.Key, document.State.HostDocument.FilePath, textLoader));
         result = cache.TryGetDocumentVersion(document, out var version);
 
         // Assert - 2
@@ -236,18 +248,26 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
     }
 
     [Fact]
-    public void ProjectSnapshotManager_KnownDocumentAdded_TracksNewDocument()
+    public async Task ProjectSnapshotManager_KnownDocumentAdded_TracksNewDocument()
     {
         // Arrange
         var cache = new DocumentVersionCache();
         var cacheAccessor = cache.GetTestAccessor();
-        var projectSnapshotManager = GetSnapshotManager();
-        projectSnapshotManager.AllowNotifyListeners = true;
+        var projectSnapshotManager = CreateProjectSnapshotManager();
         cache.Initialize(projectSnapshotManager);
 
-        var project1 = TestProjectSnapshot.Create("C:/path/to/project1.csproj", intermediateOutputPath: "C:/path/to/obj1", documentFilePaths: Array.Empty<string>(), RazorConfiguration.Default, projectWorkspaceState: null);
-        projectSnapshotManager.ProjectAdded(project1.HostProject);
-        var document1 = projectSnapshotManager.CreateAndAddDocument(project1, @"C:\path\to\file.razor");
+        var project1 = TestProjectSnapshot.Create(
+            "C:/path/to/project1.csproj",
+            intermediateOutputPath: "C:/path/to/obj1",
+            documentFilePaths: [],
+            RazorConfiguration.Default,
+            projectWorkspaceState: null);
+
+        var document1 = await RunOnDispatcherThreadAsync(() =>
+        {
+            projectSnapshotManager.ProjectAdded(project1.HostProject);
+            return projectSnapshotManager.CreateAndAddDocument(project1, @"C:\path\to\file.razor");
+        });
 
         // Act
         cache.TrackDocumentVersion(document1, 1337);
@@ -260,11 +280,23 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         Assert.Equal(1337, actualVersion);
 
         // Act II
-        var project2 = TestProjectSnapshot.Create("C:/path/to/project2.csproj", intermediateOutputPath: "C:/path/to/obj2", documentFilePaths: Array.Empty<string>(), RazorConfiguration.Default, projectWorkspaceState: null);
-        projectSnapshotManager.ProjectAdded(project2.HostProject);
-        projectSnapshotManager.CreateAndAddDocument(project2, @"C:\path\to\file.razor");
+        var project2 = TestProjectSnapshot.Create(
+            "C:/path/to/project2.csproj",
+            intermediateOutputPath: "C:/path/to/obj2",
+            documentFilePaths: [],
+            RazorConfiguration.Default,
+            projectWorkspaceState: null);
 
-        var document2 = projectSnapshotManager.GetLoadedProject(project2.Key).GetDocument(document1.FilePath);
+        var document2 = await RunOnDispatcherThreadAsync(() =>
+        {
+            projectSnapshotManager.ProjectAdded(project2.HostProject);
+            projectSnapshotManager.CreateAndAddDocument(project2, @"C:\path\to\file.razor");
+
+            return projectSnapshotManager
+                .GetLoadedProject(project2.Key)
+                .AssumeNotNull()
+                .GetDocument(document1.FilePath);
+        });
 
         // Assert II
         (filePath, entries) = Assert.Single(cacheAccessor.GetEntries());
@@ -281,15 +313,11 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         Assert.Equal(1337, actualVersion);
     }
 
-    private TestProjectSnapshotManager GetSnapshotManager()
-        => TestProjectSnapshotManager.Create(ErrorReporter, new TestDispatcher());
-
-    private class TestDispatcher : ProjectSnapshotManagerDispatcher
+    private TestProjectSnapshotManager CreateProjectSnapshotManager()
     {
-        // The tests run synchronously without the dispatcher, so just assert that
-        // we're always on the right thread
-        public override bool IsDispatcherThread => true;
+        var result = TestProjectSnapshotManager.Create(ErrorReporter, Dispatcher);
+        result.AllowNotifyListeners = true;
 
-        public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
+        return result;
     }
 }
