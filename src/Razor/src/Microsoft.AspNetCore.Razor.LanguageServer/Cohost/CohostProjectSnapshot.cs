@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -32,6 +33,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
     private readonly Lazy<RazorConfiguration> _lazyConfiguration;
     private readonly Lazy<RazorProjectEngine> _lazyProjectEngine;
     private readonly AsyncLazy<ImmutableArray<TagHelperDescriptor>> _tagHelpersLazy;
+    private readonly Lazy<ImmutableDictionary<string, ImmutableArray<string>>> _importsToRelatedDocumentsLazy;
 
     public CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter, JoinableTaskContext joinableTaskContext)
     {
@@ -58,6 +60,18 @@ internal class CohostProjectSnapshot : IProjectSnapshot
             var resolver = new CompilationTagHelperResolver(_telemetryReporter);
             return resolver.GetTagHelpersAsync(_project, GetProjectEngine(), CancellationToken.None).AsTask();
         }, joinableTaskContext.Factory);
+
+        _importsToRelatedDocumentsLazy = new Lazy<ImmutableDictionary<string, ImmutableArray<string>>>(() =>
+        {
+            var importsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizer.Comparer);
+            foreach (var document in DocumentFilePaths)
+            {
+                var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(document, FileKinds.GetFileKindFromFilePath(document), GetProjectEngine());
+                importsToRelatedDocuments = ProjectState.AddToImportsToRelatedDocuments(importsToRelatedDocuments, document, importTargetPaths);
+            }
+
+            return importsToRelatedDocuments;
+        });
     }
 
     public ProjectKey Key => _projectKey;
@@ -100,12 +114,29 @@ internal class CohostProjectSnapshot : IProjectSnapshot
 
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
-        throw new NotImplementedException();
+        var targetPath = document.TargetPath.AssumeNotNull();
+
+        if (!_importsToRelatedDocumentsLazy.Value.TryGetValue(targetPath, out var relatedDocuments))
+        {
+            return ImmutableArray<IDocumentSnapshot>.Empty;
+        }
+
+        using var _ = ArrayBuilderPool<IDocumentSnapshot>.GetPooledObject(out var builder);
+
+        foreach (var relatedDocumentFilePath in relatedDocuments)
+        {
+            if (GetDocument(relatedDocumentFilePath) is { } relatedDocument)
+            {
+                builder.Add(relatedDocument);
+            }
+        }
+
+        return builder.ToImmutableArray();
     }
 
     public bool IsImportDocument(IDocumentSnapshot document)
     {
-        throw new NotImplementedException();
+        return document.TargetPath is { } targetPath && _importsToRelatedDocumentsLazy.Value.ContainsKey(targetPath);
     }
 
     private RazorConfiguration CreateRazorConfiguration()
