@@ -64,6 +64,18 @@ internal sealed class DocumentVersionCache() : IDocumentVersionCache, IProjectSn
         }
     }
 
+    public int GetLatestDocumentVersion(string filePath)
+    {
+        using var _ = _lock.EnterReadLock();
+
+        if (!DocumentLookup_NeedsLock.TryGetValue(filePath, out var documentEntries))
+        {
+            return -1;
+        }
+
+        return documentEntries[^1].Version;
+    }
+
     public bool TryGetDocumentVersion(IDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out int? version)
     {
         if (documentSnapshot is null)
