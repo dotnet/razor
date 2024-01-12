@@ -14,11 +14,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 [method: ImportingConstructor]
 internal class ProjectSnapshotFactory(DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter, JoinableTaskContext joinableTaskContext)
 {
+    private static readonly ConditionalWeakTable<Project, IProjectSnapshot> _projectSnapshots = new();
+
     private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
-
-    private readonly ConditionalWeakTable<Project, IProjectSnapshot> _projectSnapshots = new();
 
     public IProjectSnapshot GetOrCreate(Project project)
     {

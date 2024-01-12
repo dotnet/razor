@@ -13,9 +13,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 [method: ImportingConstructor]
 internal class DocumentSnapshotFactory(Lazy<ProjectSnapshotFactory> projectSnapshotFactory)
 {
-    private readonly Lazy<ProjectSnapshotFactory> _projectSnapshotFactory = projectSnapshotFactory;
+    private static readonly ConditionalWeakTable<TextDocument, IDocumentSnapshot> _documentSnapshots = new();
 
-    private readonly ConditionalWeakTable<TextDocument, IDocumentSnapshot> _documentSnapshots = new();
+    private readonly Lazy<ProjectSnapshotFactory> _projectSnapshotFactory = projectSnapshotFactory;
 
     public IDocumentSnapshot GetOrCreate(TextDocument textDocument)
     {
