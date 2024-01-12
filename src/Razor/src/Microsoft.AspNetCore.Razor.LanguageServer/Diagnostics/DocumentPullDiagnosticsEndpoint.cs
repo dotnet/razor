@@ -42,12 +42,8 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
         serverCapabilities.SupportsDiagnosticRequests = true;
-        if (serverCapabilities.DiagnosticProvider is null)
-        {
-            serverCapabilities.DiagnosticProvider = new VSInternalDiagnosticOptions();
-        }
-
-        serverCapabilities.DiagnosticProvider.DiagnosticKinds = [ VSInternalDiagnosticKind.Syntax];
+        serverCapabilities.DiagnosticProvider ??= new();
+        serverCapabilities.DiagnosticProvider.DiagnosticKinds = [VSInternalDiagnosticKind.Syntax];
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)

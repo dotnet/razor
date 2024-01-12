@@ -3,9 +3,7 @@
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -14,26 +12,23 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Diagnostics;
 
-public class DocumentPullDiagnosticsEndpointTest(ITestOutputHelper testOutput)
+public sealed class DocumentPullDiagnosticsEndpointTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly ITestOutputHelper _testOutput = testOutput;
-
     [Fact]
     public void ApplyCapabilities_AddsExpectedCapabilities()
     {
         // Arrange
-        var loggerFactory = new RazorLoggerFactory(new[] { new TestOutputLoggerProvider(_testOutput) });
-        var documentMappingService = new RazorDocumentMappingService(new FilePathService(TestLanguageServerFeatureOptions.Instance), new TestDocumentContextFactory(), loggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(new FilePathService(TestLanguageServerFeatureOptions.Instance), new TestDocumentContextFactory(), LoggerFactory);
         var featureOptions = new Mock<LanguageServerFeatureOptions>(MockBehavior.Strict);
         var razorTranslate = new Mock<RazorTranslateDiagnosticsService>(MockBehavior.Strict,
             documentMappingService,
-            loggerFactory);
+            LoggerFactory);
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
         var endpoint = new DocumentPullDiagnosticsEndpoint(
             featureOptions.Object,
             razorTranslate.Object,
             clientConnection.Object,
-            telemetryReporter:null);
+            telemetryReporter: null);
 
         // Act
         VSInternalServerCapabilities serverCapabilities = new();
@@ -48,6 +43,6 @@ public class DocumentPullDiagnosticsEndpointTest(ITestOutputHelper testOutput)
         Assert.Single(serverCapabilities.DiagnosticProvider.DiagnosticKinds);
 
         // use the expected value directly; if the underlying library changes values, there is likely a downstream impact
-        Assert.Equal("syntax", serverCapabilities.DiagnosticProvider.DiagnosticKinds[0].Value); 
+        Assert.Equal("syntax", serverCapabilities.DiagnosticProvider.DiagnosticKinds[0].Value);
     }
 }
