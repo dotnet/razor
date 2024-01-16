@@ -41,25 +41,22 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
             return;
         }
 
-        switch (args.Kind)
+        if (args.Kind == ProjectChangeKind.DocumentChanged)
         {
-            case ProjectChangeKind.DocumentChanged:
-                var documentFilePath = args.DocumentFilePath.AssumeNotNull();
+            var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                using (_lock.EnterUpgradeableReadLock())
+            using (_lock.EnterUpgradeableReadLock())
+            {
+                if (_documentLookup_NeedsLock.ContainsKey(documentFilePath) &&
+                    !ProjectSnapshotManager.IsDocumentOpen(documentFilePath))
                 {
-                    if (_documentLookup_NeedsLock.ContainsKey(documentFilePath) &&
-                        !ProjectSnapshotManager.IsDocumentOpen(documentFilePath))
+                    using (_lock.EnterWriteLock())
                     {
-                        using (_lock.EnterWriteLock())
-                        {
-                            // Document closed, evict entry.
-                            _documentLookup_NeedsLock.Remove(documentFilePath);
-                        }
+                        // Document closed, evict entry.
+                        _documentLookup_NeedsLock.Remove(documentFilePath);
                     }
                 }
-
-                break;
+            }
         }
 
         // Any event that has a project may have changed the state of the documents
@@ -67,7 +64,7 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
         var project = ProjectSnapshotManager.GetLoadedProject(args.ProjectKey);
         if (project is null)
         {
-            // Project no longer loaded, wait for document removed event.
+            // Project no longer loaded, so there's no work to do.
             return;
         }
 
@@ -162,7 +159,7 @@ internal sealed partial class DocumentVersionCache() : IDocumentVersionCache, IP
     {
         Debug.Assert(!_lock.IsUpgradeableReadLockHeld);
 
-        using var upgradeableReadLock = _lock.EnterUpgradeableReadLock();
+        using var _ = _lock.EnterUpgradeableReadLock();
 
         foreach (var documentPath in projectSnapshot.DocumentFilePaths)
         {

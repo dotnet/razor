@@ -21,14 +21,6 @@ internal class ReadWriterLocker
     public WriteOnlyLock EnterWriteLock() => new WriteOnlyLock(_lock);
     public UpgradeableReadLock EnterUpgradeableReadLock() => new UpgradeableReadLock(_lock);
 
-    public void EnsureNoWriteLock()
-    {
-        if (_lock.IsWriteLockHeld)
-        {
-            throw new InvalidOperationException("Expected no write lock to be held");
-        }
-    }
-
     private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
     private static readonly TimeSpan s_timeout =
 #if DEBUG
