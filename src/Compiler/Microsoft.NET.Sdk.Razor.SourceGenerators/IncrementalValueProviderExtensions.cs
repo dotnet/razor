@@ -90,10 +90,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             bool IsOn(bool value) => value != check;
         }
 
+        /// <summary>
+        /// Ensures that <paramref name="input"/> reports as up to date if <paramref name="suppressionCheck"/> returns <see langword="true"/>.
+        /// </summary>
         internal static IncrementalValueProvider<(T, bool)> SuppressIfNeeded<T>(this IncrementalValueProvider<T> input, IncrementalValueProvider<bool> suppressionCheck)
         {
             return input
                 .Combine(suppressionCheck)
+                // when the suppression check is true, we always say its up to date. Otherwise we perform the default comparison on the item itself.
                 .WithLambdaComparer((old, @new) => @new.Right || old.Left?.Equals(@new.Left) == true);
         }
 
