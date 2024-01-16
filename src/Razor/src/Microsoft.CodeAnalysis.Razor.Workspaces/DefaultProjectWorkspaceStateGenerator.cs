@@ -19,15 +19,15 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.CodeAnalysis.Razor;
 
 [Shared]
-[Export(typeof(ProjectWorkspaceStateGenerator))]
+[Export(typeof(IProjectWorkspaceStateGenerator))]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
 [method: ImportingConstructor]
-internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, ITelemetryReporter telemetryReporter) : ProjectWorkspaceStateGenerator, IDisposable
+internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher dispatcher, ITelemetryReporter telemetryReporter) : IProjectWorkspaceStateGenerator, IProjectSnapshotChangeTrigger, IDisposable
 {
     // Internal for testing
     internal readonly Dictionary<ProjectKey, UpdateItem> Updates = new();
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 1);
 
@@ -41,7 +41,7 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
     // Used in unit tests to ensure we can know when background work finishes.
     public ManualResetEventSlim NotifyBackgroundWorkCompleted { get; set; }
 
-    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    public void Initialize(ProjectSnapshotManagerBase projectManager)
     {
         if (projectManager is null)
         {
@@ -53,14 +53,14 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
         _tagHelperResolver = _projectManager.Workspace.Services.GetRequiredService<ITagHelperResolver>();
     }
 
-    public override void Update(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    public void Update(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         if (projectSnapshot is null)
         {
             throw new ArgumentNullException(nameof(projectSnapshot));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         if (_disposed)
         {
@@ -199,7 +199,7 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
                     new Property("id", telemetryId),
                     new Property("result", "error"));
 
-                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                await _dispatcher.RunOnDispatcherThreadAsync(
                    () => _projectManager.ReportError(ex, projectSnapshot),
                    // Don't allow errors to be cancelled
                    CancellationToken.None).ConfigureAwait(false);
@@ -212,7 +212,7 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
                 return;
             }
 
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+            await _dispatcher.RunOnDispatcherThreadAsync(
                 () =>
                 {
                     if (cancellationToken.IsCancellationRequested)
@@ -232,7 +232,7 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
         catch (Exception ex)
         {
             // This is something totally unexpected, let's just send it over to the project manager.
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+            await _dispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
                 // Don't allow errors to be cancelled
                 CancellationToken.None).ConfigureAwait(false);
@@ -259,7 +259,7 @@ internal class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispa
 
     private void ReportWorkspaceStateChange(ProjectKey projectKey, ProjectWorkspaceState workspaceStateChange)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         _projectManager.ProjectWorkspaceStateChanged(projectKey, workspaceStateChange);
     }
