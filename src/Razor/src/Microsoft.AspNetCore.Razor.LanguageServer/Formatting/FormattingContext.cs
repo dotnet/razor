@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal class FormattingContext : IDisposable
 {
-    private readonly AdhocWorkspaceFactory _workspaceFactory;
+    private readonly IAdhocWorkspaceFactory _workspaceFactory;
     private Document? _csharpWorkspaceDocument;
     private AdhocWorkspace? _csharpWorkspace;
 
@@ -30,7 +30,7 @@ internal class FormattingContext : IDisposable
     private RazorProjectEngine? _engine;
     private ImmutableArray<RazorSourceDocument> _importSources;
 
-    private FormattingContext(AdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
+    private FormattingContext(IAdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
         bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
     {
         _workspaceFactory = workspaceFactory;
@@ -44,7 +44,7 @@ internal class FormattingContext : IDisposable
         TriggerCharacter = triggerCharacter;
     }
 
-    private FormattingContext(RazorProjectEngine engine, ImmutableArray<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
+    private FormattingContext(RazorProjectEngine engine, ImmutableArray<RazorSourceDocument> importSources, IAdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
         bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
         : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings, hostDocumentIndex, triggerCharacter)
     {
@@ -351,7 +351,7 @@ internal class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
-        AdhocWorkspaceFactory workspaceFactory,
+        IAdhocWorkspaceFactory workspaceFactory,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
@@ -364,7 +364,7 @@ internal class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
-        AdhocWorkspaceFactory workspaceFactory)
+        IAdhocWorkspaceFactory workspaceFactory)
     {
         return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
     }
@@ -374,7 +374,7 @@ internal class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
-        AdhocWorkspaceFactory workspaceFactory,
+        IAdhocWorkspaceFactory workspaceFactory,
         bool isFormatOnType,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
