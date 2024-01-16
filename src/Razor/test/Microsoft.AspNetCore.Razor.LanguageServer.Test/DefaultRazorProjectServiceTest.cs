@@ -1254,7 +1254,7 @@ public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : Lang
             Mock.Get(documentVersionCache).Setup(c => c.TrackDocumentVersion(It.IsAny<IDocumentSnapshot>(), It.IsAny<int>())).Verifiable();
         }
 
-        var accessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
+        var accessor = Mock.Of<IProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
         if (snapshotResolver is null)
         {
             snapshotResolver = new Mock<ISnapshotResolver>(MockBehavior.Strict).Object;

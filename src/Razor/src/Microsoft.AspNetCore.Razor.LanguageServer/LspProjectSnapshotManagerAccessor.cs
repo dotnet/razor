@@ -10,12 +10,12 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class DefaultProjectSnapshotManagerAccessor(
+internal class LspProjectSnapshotManagerAccessor(
     IEnumerable<IProjectSnapshotChangeTrigger> changeTriggers,
     IOptionsMonitor<RazorLSPOptions> optionsMonitor,
     IAdhocWorkspaceFactory workspaceFactory,
     ProjectSnapshotManagerDispatcher dispatcher,
-    IErrorReporter errorReporter) : ProjectSnapshotManagerAccessor, IDisposable
+    IErrorReporter errorReporter) : IProjectSnapshotManagerAccessor, IDisposable
 {
     private readonly IEnumerable<IProjectSnapshotChangeTrigger> _changeTriggers = changeTriggers;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor;
@@ -25,7 +25,7 @@ internal class DefaultProjectSnapshotManagerAccessor(
     private ProjectSnapshotManagerBase? _instance;
     private bool _disposed;
 
-    public override ProjectSnapshotManagerBase Instance
+    public ProjectSnapshotManagerBase Instance
     {
         get
         {
