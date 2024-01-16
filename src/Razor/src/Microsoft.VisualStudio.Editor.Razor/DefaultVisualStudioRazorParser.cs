@@ -38,7 +38,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
     private readonly VisualStudioCompletionBroker _completionBroker;
     private readonly VisualStudioDocumentTracker _documentTracker;
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly IErrorReporter _errorReporter;
     private readonly List<CodeDocumentRequest> _codeDocumentRequests;
     private readonly TaskScheduler _uiThreadScheduler;
@@ -60,7 +60,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
     public DefaultVisualStudioRazorParser(
         JoinableTaskContext joinableTaskContext,
         VisualStudioDocumentTracker documentTracker,
-        ProjectSnapshotProjectEngineFactory projectEngineFactory,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         IErrorReporter errorReporter,
         VisualStudioCompletionBroker completionBroker)
     {
@@ -246,7 +246,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         // Make sure any tests use the real thing or a good mock. These tests can cause failures
         // that are hard to understand when this throws.
         Debug.Assert(_documentTracker.IsSupportedProject);
-        Debug.Assert(_documentTracker.ProjectSnapshot is not null);
+        Assumes.NotNull(_documentTracker.ProjectSnapshot);
 
         _projectEngine = _projectEngineFactory.Create(_documentTracker.ProjectSnapshot, ConfigureProjectEngine);
 

@@ -1,15 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal class DefaultProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
+internal class DefaultProjectSnapshotProjectEngineFactory : IProjectSnapshotProjectEngineFactory
 {
     private readonly static RazorConfiguration s_defaultConfiguration = FallbackRazorConfiguration.Latest;
 
@@ -34,8 +32,7 @@ internal class DefaultProjectSnapshotProjectEngineFactory : ProjectSnapshotProje
         _factories = factories;
     }
 
-#nullable enable
-    public override RazorProjectEngine? Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
+    public virtual RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder>? configure)
     {
         if (fileSystem is null)
         {
@@ -62,9 +59,8 @@ internal class DefaultProjectSnapshotProjectEngineFactory : ProjectSnapshotProje
         var factory = SelectFactory(configuration) ?? _fallback;
         return factory.Create(configuration, fileSystem, configure);
     }
-#nullable disable
 
-    public override IProjectEngineFactory FindFactory(IProjectSnapshot project)
+    public IProjectEngineFactory? FindFactory(IProjectSnapshot project)
     {
         if (project is null)
         {
@@ -74,7 +70,7 @@ internal class DefaultProjectSnapshotProjectEngineFactory : ProjectSnapshotProje
         return SelectFactory(project.Configuration, requireSerializable: false);
     }
 
-    public override IProjectEngineFactory FindSerializableFactory(IProjectSnapshot project)
+    public IProjectEngineFactory? FindSerializableFactory(IProjectSnapshot project)
     {
         if (project is null)
         {
@@ -84,7 +80,7 @@ internal class DefaultProjectSnapshotProjectEngineFactory : ProjectSnapshotProje
         return SelectFactory(project.Configuration, requireSerializable: true);
     }
 
-    private IProjectEngineFactory SelectFactory(RazorConfiguration configuration, bool requireSerializable = false)
+    private IProjectEngineFactory? SelectFactory(RazorConfiguration configuration, bool requireSerializable = false)
     {
         for (var i = 0; i < _factories.Length; i++)
         {

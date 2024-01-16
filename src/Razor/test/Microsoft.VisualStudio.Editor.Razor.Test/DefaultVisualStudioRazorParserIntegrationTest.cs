@@ -587,7 +587,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
         return CreateParserManager(documentTracker);
     }
 
-    private static ProjectSnapshotProjectEngineFactory CreateProjectEngineFactory(IEnumerable<TagHelperDescriptor> tagHelpers = null)
+    private static IProjectSnapshotProjectEngineFactory CreateProjectEngineFactory(IEnumerable<TagHelperDescriptor> tagHelpers = null)
     {
         var fileSystem = new TestRazorProjectFileSystem();
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem, builder =>

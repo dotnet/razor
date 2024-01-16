@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-[ExportWorkspaceServiceFactory(typeof(ProjectSnapshotProjectEngineFactory))]
+[ExportWorkspaceServiceFactory(typeof(IProjectSnapshotProjectEngineFactory))]
 internal class DefaultProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
 {
     private readonly IFallbackProjectEngineFactory _fallback;

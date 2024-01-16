@@ -17,7 +17,7 @@ public abstract class WorkspaceTestBase : ToolingTestBase
     private bool _initialized;
     private HostServices? _hostServices;
     private Workspace? _workspace;
-    private ProjectSnapshotProjectEngineFactory? _projectEngineFactory;
+    private IProjectSnapshotProjectEngineFactory? _projectEngineFactory;
 
     protected WorkspaceTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -42,7 +42,7 @@ public abstract class WorkspaceTestBase : ToolingTestBase
         }
     }
 
-    private protected ProjectSnapshotProjectEngineFactory ProjectEngineFactory
+    private protected IProjectSnapshotProjectEngineFactory ProjectEngineFactory
     {
         get
         {

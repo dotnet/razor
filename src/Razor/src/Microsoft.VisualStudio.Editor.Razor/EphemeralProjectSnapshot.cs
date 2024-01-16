@@ -101,7 +101,7 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
 
     private RazorProjectEngine CreateProjectEngine()
     {
-        var factory = _services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
+        var factory = _services.GetRequiredService<IProjectSnapshotProjectEngineFactory>();
         return factory.Create(this);
     }
 }

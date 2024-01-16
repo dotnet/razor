@@ -442,7 +442,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 return false;
             }
 
-            var projectEngineFactory = Workspace.Services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
+            var projectEngineFactory = Workspace.Services.GetRequiredService<IProjectSnapshotProjectEngineFactory>();
 
             var state = ProjectState.Create(
                 projectEngineFactory,

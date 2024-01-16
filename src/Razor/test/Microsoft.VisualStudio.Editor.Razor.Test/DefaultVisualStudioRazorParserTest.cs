@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private readonly IProjectSnapshot _projectSnapshot;
-    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly CodeAnalysis.Workspace _workspace;
 
     public DefaultVisualStudioRazorParserTest(ITestOutputHelper testOutput)
@@ -32,7 +32,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
         _projectSnapshot = new EphemeralProjectSnapshot(_workspace.Services, "c:\\SomeProject.csproj");
 
         var engine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Empty);
-        _projectEngineFactory = Mock.Of<ProjectSnapshotProjectEngineFactory>(
+        _projectEngineFactory = Mock.Of<IProjectSnapshotProjectEngineFactory>(
             f => f.Create(
                 It.IsAny<RazorConfiguration>(),
                 It.IsAny<RazorProjectFileSystem>(),

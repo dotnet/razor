@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
 {
-    private readonly ProjectSnapshotProjectEngineFactory _engineFactory;
+    private readonly IProjectSnapshotProjectEngineFactory _engineFactory;
     private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _customFactories;
     private readonly HostProject _hostProject_For_2_0;
     private readonly HostProject _hostProject_For_NonSerializableConfiguration;

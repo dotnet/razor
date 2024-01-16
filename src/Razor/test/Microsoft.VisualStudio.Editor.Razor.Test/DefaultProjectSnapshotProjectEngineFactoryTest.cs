@@ -52,7 +52,7 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
             projectFilePath, intermediateOutputPath,
             new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", Array.Empty<RazorExtension>()), rootNamespace: null);
 
-        var projectEngineFactory = Mock.Of<ProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
+        var projectEngineFactory = Mock.Of<IProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
 
         _snapshot_For_1_0 = new ProjectSnapshot(ProjectState.Create(projectEngineFactory, hostProject_For_1_0, ProjectWorkspaceState.Default));
         _snapshot_For_1_1 = new ProjectSnapshot(ProjectState.Create(projectEngineFactory, hostProject_For_1_1, ProjectWorkspaceState.Default));

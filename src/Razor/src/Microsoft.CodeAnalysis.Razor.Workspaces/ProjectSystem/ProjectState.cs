@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -33,11 +34,11 @@ internal class ProjectState
     private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizer.Comparer);
     private readonly object _lock;
 
-    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private RazorProjectEngine? _projectEngine;
 
     public static ProjectState Create(
-        ProjectSnapshotProjectEngineFactory projectEngineFactory,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState)
     {
@@ -60,7 +61,7 @@ internal class ProjectState
     }
 
     private ProjectState(
-        ProjectSnapshotProjectEngineFactory projectEngineFactory,
+        IProjectSnapshotProjectEngineFactory projectEngineFactory,
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState)
     {
@@ -202,7 +203,7 @@ internal class ProjectState
             {
                 return _projectEngineFactory.Create(
                     HostProject.Configuration,
-                    Path.GetDirectoryName(HostProject.FilePath),
+                    Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull(),
                     configure: builder =>
                     {
                         builder.SetRootNamespace(HostProject.RootNamespace);

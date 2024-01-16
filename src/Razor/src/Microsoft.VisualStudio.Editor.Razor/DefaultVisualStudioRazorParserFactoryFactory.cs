@@ -26,7 +26,7 @@ internal class DefaultVisualStudioRazorParserFactoryFactory(
 
         var workspaceServices = languageServices.WorkspaceServices;
         var completionBroker = languageServices.GetRequiredService<VisualStudioCompletionBroker>();
-        var projectEngineFactory = workspaceServices.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
+        var projectEngineFactory = workspaceServices.GetRequiredService<IProjectSnapshotProjectEngineFactory>();
 
         return new DefaultVisualStudioRazorParserFactory(
             joinableTaskContext,

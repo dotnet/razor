@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 public partial class OOPTagHelperResolverTest
 {
     private class TestResolver(
-        ProjectSnapshotProjectEngineFactory factory,
+        IProjectSnapshotProjectEngineFactory factory,
         IErrorReporter errorReporter,
         Workspace workspace,
         ITelemetryReporter telemetryReporter)

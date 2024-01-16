@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFactory
 {
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly VisualStudioCompletionBroker _completionBroker;
     private readonly IErrorReporter _errorReporter;
 
@@ -18,7 +18,7 @@ internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFa
         JoinableTaskContext joinableTaskContext,
         IErrorReporter errorReporter,
         VisualStudioCompletionBroker completionBroker,
-        ProjectSnapshotProjectEngineFactory projectEngineFactory)
+        IProjectSnapshotProjectEngineFactory projectEngineFactory)
     {
         if (joinableTaskContext is null)
         {

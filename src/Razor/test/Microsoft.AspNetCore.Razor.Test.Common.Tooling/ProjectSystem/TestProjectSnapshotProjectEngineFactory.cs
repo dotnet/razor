@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
-internal class TestProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
+internal class TestProjectSnapshotProjectEngineFactory : IProjectSnapshotProjectEngineFactory
 {
     public Action<RazorProjectEngineBuilder>? Configure { get; set; }
 
     public RazorProjectEngine? Engine { get; set; }
 
-    public override RazorProjectEngine Create(
+    public RazorProjectEngine Create(
         RazorConfiguration configuration,
         RazorProjectFileSystem fileSystem,
         Action<RazorProjectEngineBuilder>? configure)
@@ -26,12 +26,12 @@ internal class TestProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectE
         });
     }
 
-    public override IProjectEngineFactory FindFactory(IProjectSnapshot project)
+    public IProjectEngineFactory FindFactory(IProjectSnapshot project)
     {
         throw new NotImplementedException();
     }
 
-    public override IProjectEngineFactory FindSerializableFactory(IProjectSnapshot project)
+    public IProjectEngineFactory FindSerializableFactory(IProjectSnapshot project)
     {
         throw new NotImplementedException();
     }

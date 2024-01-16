@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
@@ -27,15 +26,14 @@ internal class RemoteProjectSnapshotProjectEngineFactory : DefaultProjectSnapsho
         _optionsMonitor = optionsMonitor;
     }
 
-    public override RazorProjectEngine? Create(
+    public override RazorProjectEngine Create(
         RazorConfiguration configuration,
         RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure)
+        Action<RazorProjectEngineBuilder>? configure)
     {
         if (fileSystem is not DefaultRazorProjectFileSystem defaultFileSystem)
         {
-            Debug.Fail("Unexpected file system.");
-            return null;
+            throw new InvalidOperationException("Unexpected file system.");
         }
 
         var remoteFileSystem = new RemoteRazorProjectFileSystem(defaultFileSystem.Root);
@@ -43,7 +41,7 @@ internal class RemoteProjectSnapshotProjectEngineFactory : DefaultProjectSnapsho
 
         void Configure(RazorProjectEngineBuilder builder)
         {
-            configure(builder);
+            configure?.Invoke(builder);
             builder.Features.Add(new RemoteCodeGenerationOptionsFeature(_optionsMonitor));
         }
     }
