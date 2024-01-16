@@ -194,8 +194,8 @@ internal static class IServiceCollectionExtensions
 
     public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
-        services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
+        services.AddSingleton<IGeneratedDocumentPublisher, GeneratedDocumentPublisher>();
+        services.AddSingleton<IProjectSnapshotChangeTrigger>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
         services.AddSingleton<IDocumentContextFactory, DocumentContextFactory>();
         services.AddSingleton(sp => new Lazy<IDocumentContextFactory>(sp.GetRequiredService<IDocumentContextFactory>));
 
