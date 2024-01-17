@@ -2679,7 +2679,7 @@ namespace MyApp.Pages
             documents = Assert.Contains("CSharpDocuments", (IReadOnlyDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>)result.TrackedSteps);
             Assert.Collection(documents,
                (o) => Assert.Equal(IncrementalStepRunReason.Modified, Assert.Single(o.Outputs).Reason),
-               (o) => Assert.Equal(IncrementalStepRunReason.Cached, Assert.Single(o.Outputs).Reason) 
+               (o) => Assert.Equal(IncrementalStepRunReason.Cached, Assert.Single(o.Outputs).Reason)
             );
 
             Assert.Collection(eventListener.Events,
@@ -2696,6 +2696,35 @@ namespace MyApp.Pages
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
                 e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
+
+            // Flip suppression on, change the compilation, no changes
+            driver = SetSuppressionState(true);
+            eventListener.Events.Clear();
+            RunGenerator(compilation!, ref driver).VerifyPageOutput();
+
+            project = project.AddDocument("viewcomponent.cs", """
+                public class MyViewComponent : Microsoft.AspNetCore.Mvc.ViewComponent{}
+                """).Project;
+
+            compilation = await project.GetCompilationAsync();
+            RunGenerator(compilation!, ref driver).VerifyPageOutput();
+
+            Assert.Empty(eventListener.Events);
+
+            // Un-suppress, check that tag helper discovery runs for the compilation that changed during suppression
+            driver = SetSuppressionState(false);
+            result = RunGenerator(compilation!, ref driver).VerifyOutputsMatch(result);
+            Assert.Collection(eventListener.Events,
+               e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
+               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
+               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
             );
 
             GeneratorDriver SetSuppressionState(bool state)
@@ -2789,7 +2818,8 @@ namespace MyApp
 {
     public class X {}
 }
-"""});
+"""
+            });
 
             var compilation = await project.GetCompilationAsync();
             var driver = await GetDriverAsync(project);
