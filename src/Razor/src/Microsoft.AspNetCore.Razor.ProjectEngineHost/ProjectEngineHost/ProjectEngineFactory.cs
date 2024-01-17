@@ -8,21 +8,24 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
-internal abstract class ProjectEngineFactory : IProjectEngineFactory
+internal sealed class ProjectEngineFactory(string configurationName, string assemblyName) : IProjectEngineFactory
 {
-    protected abstract string AssemblyName { get; }
+    private readonly string _assemblyName = assemblyName;
+
+    public string ConfigurationName => configurationName;
+    public bool SupportsSerialization => true;
 
     public RazorProjectEngine Create(
         RazorConfiguration configuration,
         RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure)
+        Action<RazorProjectEngineBuilder>? configure)
     {
         // Rewrite the assembly name into a full name just like this one, but with the name of the MVC design time assembly.
         var assemblyFullName = typeof(RazorProjectEngine).Assembly.FullName.AssumeNotNull();
 
         var assemblyName = new AssemblyName(assemblyFullName)
         {
-            Name = AssemblyName
+            Name = _assemblyName
         };
 
         var extension = new AssemblyExtension(configuration.ConfigurationName, Assembly.Load(assemblyName));

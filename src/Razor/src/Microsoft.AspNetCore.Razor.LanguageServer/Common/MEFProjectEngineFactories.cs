@@ -12,6 +12,6 @@ internal static class MefProjectEngineFactories
 {
     // The actual factories are defined in the ProjectEngineHost project, but we need to convert them
     // to Lazy<,> to be MEF compatible.
-    public static readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] Factories =
-        ProjectEngineFactories.Factories.Select(f => new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(() => f.Item1.Value, f.Item2)).ToArray();
+    public static readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] All =
+        ProjectEngineFactories.All.Select(f => new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(() => f, new CustomProjectEngineFactoryMetadata(f.ConfigurationName) { SupportsSerialization = f.SupportsSerialization })).ToArray();
 }

@@ -10,7 +10,10 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 internal class ProjectEngineFactory_Unsupported : IProjectEngineFactory
 {
-    public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
+    public string ConfigurationName => UnsupportedRazorConfiguration.Instance.ConfigurationName;
+    public bool SupportsSerialization => true;
+
+    public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder>? configure)
     {
         return RazorProjectEngine.Create(configuration, fileSystem, builder =>
         {

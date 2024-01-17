@@ -24,7 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 internal class CohostProjectSnapshot : IProjectSnapshot
 {
     private static readonly EmptyProjectEngineFactory s_fallbackProjectEngineFactory = new();
-    private static readonly (IProjectEngineFactory Value, ICustomProjectEngineFactoryMetadata)[] s_projectEngineFactories = ProjectEngineFactories.Factories.Select(f => (f.Item1.Value, f.Item2)).ToArray();
 
     private readonly Project _project;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory;
@@ -54,7 +53,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
                 builder.SetSupportLocalizedComponentNames();
             },
             fallback: s_fallbackProjectEngineFactory,
-            factories: s_projectEngineFactories));
+            factories: ProjectEngineFactories.All));
 
         _tagHelpersLazy = new AsyncLazy<ImmutableArray<TagHelperDescriptor>>(() =>
         {

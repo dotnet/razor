@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 [ExportCustomProjectEngineFactory("MVC-1.1", SupportsSerialization = true)]
 internal class LegacyProjectEngineFactory_1_1 : IProjectEngineFactory
 {
+    public string ConfigurationName => "MVC-1.1";
+    public bool SupportsSerialization => true;
+
     private const string AssemblyName = "Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version1_X";
 
     public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)

@@ -10,7 +10,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 [ExportCustomProjectEngineFactory("Default", SupportsSerialization = true)]
 internal class DefaultProjectEngineFactory : IProjectEngineFactory
 {
-    public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
+    public string ConfigurationName => "Default";
+    public bool SupportsSerialization => true;
+
+    public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder>? configure)
     {
         return RazorProjectEngine.Create(configuration, fileSystem, b =>
         {

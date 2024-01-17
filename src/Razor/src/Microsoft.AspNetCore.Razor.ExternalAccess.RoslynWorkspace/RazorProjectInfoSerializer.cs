@@ -22,7 +22,6 @@ internal static class RazorProjectInfoSerializer
 {
     private static readonly EmptyProjectEngineFactory s_fallbackProjectEngineFactory;
     private static readonly StringComparison s_stringComparison;
-    private static readonly (IProjectEngineFactory Value, ICustomProjectEngineFactoryMetadata)[] s_projectEngineFactories;
 
     static RazorProjectInfoSerializer()
     {
@@ -30,8 +29,6 @@ internal static class RazorProjectInfoSerializer
         s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
             ? StringComparison.Ordinal
             : StringComparison.OrdinalIgnoreCase;
-
-        s_projectEngineFactories = ProjectEngineFactories.Factories.Select(f => (f.Item1.Value, f.Item2)).ToArray();
     }
 
     public static async Task SerializeAsync(Project project, string configurationFileName, CancellationToken cancellationToken)
@@ -80,7 +77,7 @@ internal static class RazorProjectInfoSerializer
             fileSystem: fileSystem,
             configure: defaultConfigure,
             fallback: s_fallbackProjectEngineFactory,
-            factories: s_projectEngineFactories);
+            factories: ProjectEngineFactories.All);
 
         var resolver = new CompilationTagHelperResolver(NoOpTelemetryReporter.Instance);
         var tagHelpers = await resolver.GetTagHelpersAsync(project, engine, cancellationToken).ConfigureAwait(false);
