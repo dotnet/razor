@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
-using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 

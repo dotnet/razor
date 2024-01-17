@@ -3,6 +3,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 namespace Microsoft.CodeAnalysis.Razor;
 

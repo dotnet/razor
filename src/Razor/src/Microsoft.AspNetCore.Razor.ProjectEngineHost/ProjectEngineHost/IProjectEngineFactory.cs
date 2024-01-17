@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 internal interface IProjectEngineFactory
 {

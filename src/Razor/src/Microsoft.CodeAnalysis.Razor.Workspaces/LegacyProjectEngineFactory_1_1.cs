@@ -6,6 +6,7 @@
 using System;
 using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
