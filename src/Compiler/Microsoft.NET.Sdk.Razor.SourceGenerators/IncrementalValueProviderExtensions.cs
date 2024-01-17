@@ -98,7 +98,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             return input
                 .Combine(suppressionCheck)
                 // when the suppression check is true, we always say its up to date. Otherwise we perform the default comparison on the item itself.
-                .WithLambdaComparer((old, @new) => @new.Right || old.Left?.Equals(@new.Left) == true);
+                .WithLambdaComparer((old, @new) => @new.Right || EqualityComparer<T>.Default.Equals(old.Left, @new.Left));
         }
 
         internal static IncrementalValueProvider<bool> CheckGlobalFlagSet(this IncrementalValueProvider<AnalyzerConfigOptionsProvider> optionsProvider, string flagName)
