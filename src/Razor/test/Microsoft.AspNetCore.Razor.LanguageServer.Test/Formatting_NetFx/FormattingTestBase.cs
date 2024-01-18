@@ -267,13 +267,22 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             Assert.False(codeDocument.GetCSharpDocument().Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, codeDocument.GetCSharpDocument().Diagnostics));
         }
 
+        var imports = ImmutableArray.Create(importsSnapshot.Object);
+        var importsDocuments = ImmutableArray.Create(importsDocument);
+        var documentSnapshot = CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument);
+
+        return (codeDocument, documentSnapshot);
+    }
+
+    internal static IDocumentSnapshot CreateDocumentSnapshot(string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind, ImmutableArray<RazorSourceDocument> importsDocuments, ImmutableArray<IDocumentSnapshot> imports, RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
+    {
         var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
             .Setup(d => d.GetGeneratedOutputAsync())
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.GetImports())
-            .Returns(ImmutableArray.Create(importsSnapshot.Object));
+            .Returns(imports);
         documentSnapshot
             .Setup(d => d.Project.GetProjectEngine())
             .Returns(projectEngine);
@@ -292,7 +301,14 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         documentSnapshot
             .Setup(d => d.FileKind)
             .Returns(fileKind);
-
-        return (codeDocument, documentSnapshot.Object);
+        documentSnapshot
+            .Setup(d => d.WithText(It.IsAny<SourceText>()))
+            .Returns<SourceText>(text =>
+            {
+                var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
+                var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importsDocuments, tagHelpers);
+                return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument);
+            });
+        return documentSnapshot.Object;
     }
 }
