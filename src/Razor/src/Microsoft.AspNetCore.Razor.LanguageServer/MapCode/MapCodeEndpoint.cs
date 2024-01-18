@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Location = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -35,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 /// This class and its mapping heuristics will likely be constantly evolving as we receive
 /// more advanced inputs from the client.
 /// </remarks>
-[LanguageServerEndpoint(MapperMethods.WorkspaceMapCodeName)]
+[RazorLanguageServerEndpoint(MapperMethods.WorkspaceMapCodeName)]
 internal sealed class MapCodeEndpoint(
     IRazorDocumentMappingService documentMappingService,
     IDocumentContextFactory documentContextFactory,

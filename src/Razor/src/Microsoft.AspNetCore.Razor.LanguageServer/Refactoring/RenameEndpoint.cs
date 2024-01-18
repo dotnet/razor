@@ -19,13 +19,12 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
-[LanguageServerEndpoint(Methods.TextDocumentRenameName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentRenameName)]
 internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, ICapabilitiesProvider
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
