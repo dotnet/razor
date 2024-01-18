@@ -350,10 +350,10 @@ public class CodeFoldingTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         TestServices.Input.Send("{ENTER}");
 
         await AssertFoldableBlocksAsync(
-        """
-        <div>
-            <h1>Test</h1>
-        </div>
-        """);
+            """
+            <div>
+                <h1>Test</h1>
+            </div>
+            """);
     }
 }
