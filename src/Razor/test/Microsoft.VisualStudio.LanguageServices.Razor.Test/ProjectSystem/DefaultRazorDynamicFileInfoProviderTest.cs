@@ -40,7 +40,7 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
     {
         _documentServiceFactory = new DefaultRazorDocumentServiceProviderFactory();
         _editorFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(MockBehavior.Strict);
-        _projectSnapshotManager = new TestProjectSnapshotManager(Workspace, new TestProjectSnapshotManagerDispatcher())
+        _projectSnapshotManager = new TestProjectSnapshotManager(Workspace, ProjectEngineFactoryProvider, new TestProjectSnapshotManagerDispatcher())
         {
             AllowNotifyListeners = true
         };

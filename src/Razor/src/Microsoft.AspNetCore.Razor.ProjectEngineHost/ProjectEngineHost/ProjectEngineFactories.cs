@@ -5,8 +5,10 @@ using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
-internal static class ProjectEngineFactories
+internal static partial class ProjectEngineFactories
 {
+    public static IProjectEngineFactory Empty { get; } = new EmptyProjectEngineFactory();
+
     public static IProjectEngineFactory Default { get; } = new DefaultProjectEngineFactory();
 
     public static IProjectEngineFactory MVC_1_0 { get; } = new ProjectEngineFactory("MVC-1.0", "Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version1_X");
@@ -27,4 +29,6 @@ internal static class ProjectEngineFactories
         MVC_3_0,
         // Unsupported (Legacy/System.Web.Razor)
         Unsupported);
+
+    public static IProjectEngineFactoryProvider DefaultProvider { get; } = new ProjectEngineFactoryProvider(All);
 }

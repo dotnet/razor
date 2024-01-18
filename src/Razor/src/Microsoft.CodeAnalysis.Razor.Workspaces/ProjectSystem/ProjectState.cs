@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
@@ -34,17 +35,17 @@ internal class ProjectState
     private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizer.Comparer);
     private readonly object _lock;
 
-    private readonly IProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private RazorProjectEngine? _projectEngine;
 
     public static ProjectState Create(
-        IProjectSnapshotProjectEngineFactory projectEngineFactory,
+        IProjectEngineFactoryProvider projectEngineFactoryProvider,
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState)
     {
-        if (projectEngineFactory is null)
+        if (projectEngineFactoryProvider is null)
         {
-            throw new ArgumentNullException(nameof(projectEngineFactory));
+            throw new ArgumentNullException(nameof(projectEngineFactoryProvider));
         }
 
         if (hostProject is null)
@@ -57,15 +58,15 @@ internal class ProjectState
             throw new ArgumentNullException(nameof(projectWorkspaceState));
         }
 
-        return new ProjectState(projectEngineFactory, hostProject, projectWorkspaceState);
+        return new ProjectState(projectEngineFactoryProvider, hostProject, projectWorkspaceState);
     }
 
     private ProjectState(
-        IProjectSnapshotProjectEngineFactory projectEngineFactory,
+        IProjectEngineFactoryProvider projectEngineFactoryProvider,
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState)
     {
-        _projectEngineFactory = projectEngineFactory;
+        _projectEngineFactoryProvider = projectEngineFactoryProvider;
         HostProject = hostProject;
         ProjectWorkspaceState = projectWorkspaceState;
         Documents = s_emptyDocuments;
@@ -110,7 +111,7 @@ internal class ProjectState
             throw new ArgumentNullException(nameof(projectWorkspaceState));
         }
 
-        _projectEngineFactory = older._projectEngineFactory;
+        _projectEngineFactoryProvider = older._projectEngineFactoryProvider;
         Version = older.Version.GetNewerVersion();
 
         HostProject = hostProject;
@@ -201,15 +202,16 @@ internal class ProjectState
 
             RazorProjectEngine CreateProjectEngine()
             {
-                return _projectEngineFactory.Create(
-                    HostProject.Configuration,
-                    Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull(),
-                    configure: builder =>
-                    {
-                        builder.SetRootNamespace(HostProject.RootNamespace);
-                        builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
-                        builder.SetSupportLocalizedComponentNames();
-                    });
+                var configuration = HostProject.Configuration;
+                var rootDirectoryPath = Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull();
+                var fallbackFactory = ProjectEngineFactories.Empty;
+
+                return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, fallbackFactory, builder =>
+                {
+                    builder.SetRootNamespace(HostProject.RootNamespace);
+                    builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                    builder.SetSupportLocalizedComponentNames();
+                });
             }
         }
     }

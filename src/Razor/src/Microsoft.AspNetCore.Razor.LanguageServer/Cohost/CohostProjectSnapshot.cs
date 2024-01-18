@@ -23,8 +23,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 
 internal class CohostProjectSnapshot : IProjectSnapshot
 {
-    private static readonly EmptyProjectEngineFactory s_fallbackProjectEngineFactory = new();
-
     private readonly Project _project;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory;
     private readonly ITelemetryReporter _telemetryReporter;
@@ -43,17 +41,20 @@ internal class CohostProjectSnapshot : IProjectSnapshot
         _projectKey = ProjectKey.From(_project).AssumeNotNull();
 
         _lazyConfiguration = new Lazy<RazorConfiguration>(CreateRazorConfiguration);
-        _lazyProjectEngine = new Lazy<RazorProjectEngine>(() => DefaultProjectEngineFactory.Create(
-            Configuration,
-            fileSystem: RazorProjectFileSystem.Create(Path.GetDirectoryName(FilePath)),
-            configure: builder =>
-            {
-                builder.SetRootNamespace(RootNamespace);
-                builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
-                builder.SetSupportLocalizedComponentNames();
-            },
-            fallback: s_fallbackProjectEngineFactory,
-            factories: ProjectEngineFactories.All));
+        _lazyProjectEngine = new Lazy<RazorProjectEngine>(() =>
+        {
+            var factory = ProjectEngineFactories.DefaultProvider.GetFactory(Configuration, ProjectEngineFactories.Empty);
+
+            return factory.Create(
+                Configuration,
+                fileSystem: RazorProjectFileSystem.Create(Path.GetDirectoryName(FilePath)),
+                configure: builder =>
+                {
+                    builder.SetRootNamespace(RootNamespace);
+                    builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                    builder.SetSupportLocalizedComponentNames();
+                });
+        });
 
         _tagHelpersLazy = new AsyncLazy<ImmutableArray<TagHelperDescriptor>>(() =>
         {

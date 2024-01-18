@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
-internal class EmptyProjectEngineFactory : IProjectEngineFactory
+internal sealed class EmptyProjectEngineFactory : IProjectEngineFactory
 {
     public string ConfigurationName => "Empty";
     public bool SupportsSerialization => true;

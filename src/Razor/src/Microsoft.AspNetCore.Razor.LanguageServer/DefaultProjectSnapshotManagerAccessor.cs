@@ -31,15 +31,14 @@ internal class DefaultProjectSnapshotManagerAccessor(
         {
             if (_instance is null)
             {
-                var workspace = _workspaceFactory.Create(
-                    workspaceServices: new[]
-                    {
-                        new RemoteProjectSnapshotProjectEngineFactory(_optionsMonitor)
-                    });
+                var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(_optionsMonitor);
+                var workspace = _workspaceFactory.Create();
+
                 _instance = new DefaultProjectSnapshotManager(
                     _errorReporter,
                     _changeTriggers,
                     workspace,
+                    projectEngineFactoryProvider,
                     _dispatcher);
             }
 

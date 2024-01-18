@@ -20,12 +20,10 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 
 internal static class RazorProjectInfoSerializer
 {
-    private static readonly EmptyProjectEngineFactory s_fallbackProjectEngineFactory;
     private static readonly StringComparison s_stringComparison;
 
     static RazorProjectInfoSerializer()
     {
-        s_fallbackProjectEngineFactory = new EmptyProjectEngineFactory();
         s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
             ? StringComparison.Ordinal
             : StringComparison.OrdinalIgnoreCase;
@@ -72,12 +70,13 @@ internal static class RazorProjectInfoSerializer
             builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
         };
 
-        var engine = DefaultProjectEngineFactory.Create(
+        var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(
+            configuration, ProjectEngineFactories.Empty);
+
+        var engine = engineFactory.Create(
             configuration,
-            fileSystem: fileSystem,
-            configure: defaultConfigure,
-            fallback: s_fallbackProjectEngineFactory,
-            factories: ProjectEngineFactories.All);
+            fileSystem,
+            configure: defaultConfigure);
 
         var resolver = new CompilationTagHelperResolver(NoOpTelemetryReporter.Instance);
         var tagHelpers = await resolver.GetTagHelpersAsync(project, engine, cancellationToken).ConfigureAwait(false);

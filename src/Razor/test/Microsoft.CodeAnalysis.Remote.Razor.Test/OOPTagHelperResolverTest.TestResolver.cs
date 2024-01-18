@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 public partial class OOPTagHelperResolverTest
 {
     private class TestResolver(
-        IProjectSnapshotProjectEngineFactory factory,
+        IProjectEngineFactoryProvider projectEngineFactoryProvider,
         IErrorReporter errorReporter,
         Workspace workspace,
         ITelemetryReporter telemetryReporter)
-        : OOPTagHelperResolver(factory, errorReporter, workspace, telemetryReporter)
+        : OOPTagHelperResolver(projectEngineFactoryProvider, errorReporter, workspace, telemetryReporter)
     {
         public Func<IProjectEngineFactory, IProjectSnapshot, ValueTask<ImmutableArray<TagHelperDescriptor>>>? OnResolveOutOfProcess { get; init; }
 
