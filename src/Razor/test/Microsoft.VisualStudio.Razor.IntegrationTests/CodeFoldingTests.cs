@@ -333,8 +333,9 @@ public class CodeFoldingTests(ITestOutputHelper testOutputHelper) : AbstractRazo
             RazorProjectConstants.BlazorProjectName,
             "Test.razor",
             """
-
             @page "/Test"
+
+            <PageTitle>Test</PageTitle>
 
             <div>
                 <h1>Test</h1>
