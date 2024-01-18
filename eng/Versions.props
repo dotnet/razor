@@ -52,24 +52,24 @@
     <MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>6.0.2-servicing.22064.6</MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>6.0.1</MicrosoftNETCorePlatformsPackageVersion>
     <MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>9.0.0-alpha.1.24059.3</MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>
-    <MicrosoftNetCompilersToolsetPackageVersion>4.9.0-3.23613.4</MicrosoftNetCompilersToolsetPackageVersion>
-    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.9.0-3.23613.4</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
-    <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
-    <MicrosoftCodeAnalysisCommonPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisCommonPackageVersion>
-    <MicrosoftCodeAnalysisCSharpPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisCSharpPackageVersion>
-    <MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>
-    <MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
-    <MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisEditorFeaturesPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>
-    <MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>
-    <MicrosoftCodeAnalysisTestUtilitiesPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisTestUtilitiesPackageVersion>
-    <MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
-    <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
-    <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.9.0-3.23613.4</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
-    <MicrosoftVisualStudioLanguageServicesPackageVersion>4.9.0-3.23613.4</MicrosoftVisualStudioLanguageServicesPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>4.10.0-1.24067.21</MicrosoftNetCompilersToolsetPackageVersion>
+    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.10.0-1.24067.21</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
+    <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
+    <MicrosoftCodeAnalysisCommonPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisCommonPackageVersion>
+    <MicrosoftCodeAnalysisCSharpPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisCSharpPackageVersion>
+    <MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>
+    <MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
+    <MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
+    <MicrosoftCodeAnalysisEditorFeaturesPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisEditorFeaturesPackageVersion>
+    <MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>
+    <MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
+    <MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>
+    <MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>
+    <MicrosoftCodeAnalysisTestUtilitiesPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisTestUtilitiesPackageVersion>
+    <MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
+    <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
+    <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.10.0-1.24067.21</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
+    <MicrosoftVisualStudioLanguageServicesPackageVersion>4.10.0-1.24067.21</MicrosoftVisualStudioLanguageServicesPackageVersion>
     <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23475.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!--
       Exception - Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages are not updated by automation,
