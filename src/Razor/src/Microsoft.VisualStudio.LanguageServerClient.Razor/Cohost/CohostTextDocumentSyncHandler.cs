@@ -63,11 +63,12 @@ internal class CohostTextDocumentSyncHandler(
 
         // To handle multi-targeting, whilst we get given a TextDocument, we have to actually find all of the linked documents
         // it might have.
-        var documentIds = context.Solution!.GetDocumentIdsWithFilePath(textDocumentPath);
+        var solution = context.Solution.AssumeNotNull();
+        var documentIds = solution.GetDocumentIdsWithFilePath(textDocumentPath);
 
         foreach (var documentId in documentIds)
         {
-            var document = context.Solution.GetAdditionalDocument(documentId);
+            var document = solution.GetAdditionalDocument(documentId);
             if (document is null)
             {
                 continue;
