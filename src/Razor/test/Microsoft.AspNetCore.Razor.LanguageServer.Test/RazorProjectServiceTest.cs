@@ -28,7 +28,7 @@ using TestProjectSnapshotManager = Microsoft.AspNetCore.Razor.Test.Common.Langua
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class DefaultRazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
     public async Task UpdateProject_UpdatesProjectWorkspaceState()

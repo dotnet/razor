@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
+public class GeneratedDocumentPublisherTest : LanguageServerTestBase
 {
     private readonly TestClient _serverClient;
     private readonly TestProjectSnapshotManager _projectManager;
@@ -21,7 +21,7 @@ public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     private readonly HostProject _hostProject2;
     private readonly HostDocument _hostDocument;
 
-    public DefaultGeneratedDocumentPublisherTest(ITestOutputHelper testOutput)
+    public GeneratedDocumentPublisherTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _serverClient = new TestClient();

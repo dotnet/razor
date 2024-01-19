@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.Razor;
 [Export(typeof(IProjectWorkspaceStateGenerator))]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
 [method: ImportingConstructor]
-internal sealed class DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher dispatcher, ITelemetryReporter telemetryReporter) : IProjectWorkspaceStateGenerator, IProjectSnapshotChangeTrigger, IDisposable
+internal sealed class ProjectWorkspaceStateGenerator(
+    ProjectSnapshotManagerDispatcher dispatcher,
+    ITelemetryReporter telemetryReporter)
+    : IProjectWorkspaceStateGenerator, IProjectSnapshotChangeTrigger, IDisposable
 {
     // Internal for testing
     internal readonly Dictionary<ProjectKey, UpdateItem> Updates = new();

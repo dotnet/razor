@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 [System.Composition.Shared]
 [Export(typeof(IProjectSnapshotManagerAccessor))]
 [method: ImportingConstructor]
-internal sealed class VisualStudioWindowsProjectSnapshotManagerAccessor(
+internal sealed class VisualStudioProjectSnapshotManagerAccessor(
     [Import(typeof(VisualStudioWorkspace))] Workspace workspace)
     : IProjectSnapshotManagerAccessor
 {
