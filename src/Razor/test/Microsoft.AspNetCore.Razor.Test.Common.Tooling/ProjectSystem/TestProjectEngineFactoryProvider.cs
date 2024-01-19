@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
@@ -12,11 +11,7 @@ internal class TestProjectEngineFactoryProvider : IProjectEngineFactoryProvider
 {
     public Action<RazorProjectEngineBuilder>? Configure { get; set; }
 
-    [return: NotNullIfNotNull(nameof(fallbackFactory))]
-    public IProjectEngineFactory? GetFactory(
-        RazorConfiguration configuration,
-        IProjectEngineFactory? fallbackFactory = null,
-        bool requireSerializationSupport = false)
+    public IProjectEngineFactory GetFactory(RazorConfiguration configuration)
     {
         return new Factory(Configure);
     }
@@ -24,7 +19,6 @@ internal class TestProjectEngineFactoryProvider : IProjectEngineFactoryProvider
     private sealed class Factory(Action<RazorProjectEngineBuilder>? outerConfigure) : IProjectEngineFactory
     {
         public string ConfigurationName => "Test";
-        public bool SupportsSerialization => false;
 
         public RazorProjectEngine Create(
             RazorConfiguration configuration,

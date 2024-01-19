@@ -9,8 +9,6 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 internal sealed class EmptyProjectEngineFactory : IProjectEngineFactory
 {
     public string ConfigurationName => "Empty";
-    public bool SupportsSerialization => true;
-
     public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder>? configure)
     {
         if (configuration is null)

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
@@ -19,11 +18,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         {
         }
 
-        [return: NotNullIfNotNull(nameof(fallbackFactory))]
-        public IProjectEngineFactory? GetFactory(
-            RazorConfiguration configuration,
-            IProjectEngineFactory? fallbackFactory = null,
-            bool requireSerializationSupport = false)
+        public IProjectEngineFactory GetFactory(RazorConfiguration configuration)
             => Factory.Instance;
 
         private sealed class Factory : IProjectEngineFactory
@@ -35,7 +30,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             }
 
             public string ConfigurationName => "Static";
-            public bool SupportsSerialization => false;
 
             public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder>? configure)
                 => RazorProjectEngine.Create(configuration, fileSystem, RazorExtensions.Register);

@@ -16,7 +16,6 @@ internal sealed partial class ProjectEngineFactory(string configurationName, str
     private readonly string _assemblyName = assemblyName;
 
     public string ConfigurationName => configurationName;
-    public bool SupportsSerialization => true;
 
     public RazorProjectEngine Create(
         RazorConfiguration configuration,

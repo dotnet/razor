@@ -77,7 +77,7 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
         var provider = new ProjectEngineFactoryProvider(_customFactories);
 
         // Act
-        var factory = provider.GetFactory(snapshot.Configuration, ProjectEngineFactories.Empty);
+        var factory = provider.GetFactory(snapshot.Configuration);
         var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
@@ -96,7 +96,7 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
         var provider = new ProjectEngineFactoryProvider(_customFactories);
 
         // Act
-        var factory = provider.GetFactory(snapshot.Configuration, ProjectEngineFactories.Empty);
+        var factory = provider.GetFactory(snapshot.Configuration);
         var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
@@ -117,7 +117,7 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
         var provider = new ProjectEngineFactoryProvider(_customFactories);
 
         // Act
-        var factory = provider.GetFactory(snapshot.Configuration, ProjectEngineFactories.Empty);
+        var factory = provider.GetFactory(snapshot.Configuration);
         var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
@@ -136,7 +136,7 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
         var provider = new ProjectEngineFactoryProvider(_customFactories);
 
         // Act
-        var factory = provider.GetFactory(snapshot.Configuration, ProjectEngineFactories.Empty);
+        var factory = provider.GetFactory(snapshot.Configuration);
         var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
@@ -155,7 +155,7 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
         var provider = new ProjectEngineFactoryProvider(_customFactories);
 
         // Act
-        var factory = provider.GetFactory(snapshot.Configuration, ProjectEngineFactories.Empty);
+        var factory = provider.GetFactory(snapshot.Configuration);
         var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
@@ -182,7 +182,7 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
         var provider = new ProjectEngineFactoryProvider(_customFactories);
 
         // Act
-        var factory = provider.GetFactory(snapshot.Configuration, ProjectEngineFactories.Empty);
+        var factory = provider.GetFactory(snapshot.Configuration);
         var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert

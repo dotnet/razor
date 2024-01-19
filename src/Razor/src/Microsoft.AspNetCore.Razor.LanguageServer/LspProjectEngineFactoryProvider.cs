@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.Extensions.Options;
@@ -16,13 +15,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// </summary>
 internal sealed class LspProjectEngineFactoryProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor) : IProjectEngineFactoryProvider
 {
-    [return: NotNullIfNotNull(nameof(fallbackFactory))]
-    public IProjectEngineFactory? GetFactory(
-        RazorConfiguration configuration,
-        IProjectEngineFactory? fallbackFactory = null,
-        bool requireSerializationSupport = false)
+    public IProjectEngineFactory GetFactory(RazorConfiguration configuration)
     {
-        var factory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration, ProjectEngineFactories.Empty);
+        var factory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);
 
         return new Factory(factory, optionsMonitor);
     }
@@ -30,7 +25,6 @@ internal sealed class LspProjectEngineFactoryProvider(IOptionsMonitor<RazorLSPOp
     private class Factory(IProjectEngineFactory innerFactory, IOptionsMonitor<RazorLSPOptions> optionsMonitor) : IProjectEngineFactory
     {
         public string ConfigurationName => innerFactory.ConfigurationName;
-        public bool SupportsSerialization => false;
 
         public RazorProjectEngine Create(
             RazorConfiguration configuration,

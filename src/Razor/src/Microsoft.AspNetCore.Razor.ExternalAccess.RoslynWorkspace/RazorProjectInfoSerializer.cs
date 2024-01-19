@@ -70,8 +70,7 @@ internal static class RazorProjectInfoSerializer
             builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
         };
 
-        var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(
-            configuration, ProjectEngineFactories.Empty);
+        var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);
 
         var engine = engineFactory.Create(
             configuration,

@@ -10,7 +10,6 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 internal class DefaultProjectEngineFactory : IProjectEngineFactory
 {
     public string ConfigurationName => "Default";
-    public bool SupportsSerialization => true;
 
     public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder>? configure)
     {

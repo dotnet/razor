@@ -2,28 +2,22 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 internal class ProjectEngineFactoryProvider(ImmutableArray<IProjectEngineFactory> factories) : IProjectEngineFactoryProvider
 {
-    [return: NotNullIfNotNull(nameof(fallbackFactory))]
-    public IProjectEngineFactory? GetFactory(
-        RazorConfiguration configuration,
-        IProjectEngineFactory? fallbackFactory = null,
-        bool requireSerializationSupport = false)
+    public IProjectEngineFactory GetFactory(RazorConfiguration configuration)
     {
         foreach (var factory in factories)
         {
-            if (factory.ConfigurationName == configuration.ConfigurationName &&
-                (!requireSerializationSupport || factory.SupportsSerialization))
+            if (factory.ConfigurationName == configuration.ConfigurationName)
             {
                 return factory;
             }
         }
 
-        return fallbackFactory;
+        return ProjectEngineFactories.Empty;
     }
 }

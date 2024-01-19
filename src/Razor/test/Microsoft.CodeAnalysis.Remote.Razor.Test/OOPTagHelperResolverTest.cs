@@ -63,8 +63,6 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
 
             mock.SetupGet(x => x.ConfigurationName)
                 .Returns(configurationName);
-            mock.SetupGet(x => x.SupportsSerialization)
-                .Returns(true);
 
             return mock.Object;
         }
@@ -80,13 +78,12 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
 
         var calledOutOfProcess = false;
 
-        var resolver = new TestResolver(_projectEngineFactoryProvider, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance)
+        var resolver = new TestResolver(_workspace, ErrorReporter, NoOpTelemetryReporter.Instance)
         {
-            OnResolveOutOfProcess = (f, p) =>
+            OnResolveOutOfProcess = (p) =>
             {
                 calledOutOfProcess = true;
 
-                Assert.Same(_customFactories[0], f);
                 Assert.Same(projectSnapshot, p);
 
                 return new(ImmutableArray<TagHelperDescriptor>.Empty);
@@ -110,7 +107,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
 
         var calledInProcess = false;
 
-        var resolver = new TestResolver(_projectEngineFactoryProvider, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance)
+        var resolver = new TestResolver(_workspace, ErrorReporter, NoOpTelemetryReporter.Instance)
         {
             OnResolveInProcess = (p) =>
             {
@@ -141,7 +138,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         var calledInProcess = false;
 
         var cancellationToken = new CancellationToken(canceled: true);
-        var resolver = new TestResolver(_projectEngineFactoryProvider, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance)
+        var resolver = new TestResolver(_workspace, ErrorReporter, NoOpTelemetryReporter.Instance)
         {
             OnResolveInProcess = (p) =>
             {
@@ -150,7 +147,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
 
                 return new(ImmutableArray<TagHelperDescriptor>.Empty);
             },
-            OnResolveOutOfProcess = (f, p) =>
+            OnResolveOutOfProcess = (p) =>
             {
                 calledOutOfProcess = true;
                 Assert.Same(projectSnapshot, p);
@@ -169,7 +166,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     public void CalculateTagHelpersFromDelta_NewProject()
     {
         // Arrange
-        var resolver = new TestResolver(_projectEngineFactoryProvider, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
+        var resolver = new TestResolver(_workspace, ErrorReporter, NoOpTelemetryReporter.Instance);
         var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
 
         // Act
@@ -183,7 +180,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     public void CalculateTagHelpersFromDelta_DeltaFailedToApplyToKnownProject()
     {
         // Arrange
-        var resolver = new TestResolver(_projectEngineFactoryProvider, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
+        var resolver = new TestResolver(_workspace, ErrorReporter, NoOpTelemetryReporter.Instance);
         var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
         resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
         var newTagHelperSet = ImmutableArray.Create(TagHelper1_Project1.Checksum);
@@ -200,7 +197,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     public void CalculateTagHelpersFromDelta_NoopResult()
     {
         // Arrange
-        var resolver = new TestResolver(_projectEngineFactoryProvider, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
+        var resolver = new TestResolver(_workspace, ErrorReporter, NoOpTelemetryReporter.Instance);
         var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
         resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
         var noopDelta = new TagHelperDeltaResult(IsDelta: true, initialDelta.ResultId, ImmutableArray<Checksum>.Empty, ImmutableArray<Checksum>.Empty);
@@ -216,7 +213,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     public void CalculateTagHelpersFromDelta_ReplacedTagHelpers()
     {
         // Arrange
-        var resolver = new TestResolver(_projectEngineFactoryProvider, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
+        var resolver = new TestResolver(_workspace, ErrorReporter, NoOpTelemetryReporter.Instance);
         var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
         resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
         var changedDelta = new TagHelperDeltaResult(IsDelta: true, initialDelta.ResultId + 1, ImmutableArray.Create(TagHelper2_Project2.Checksum), ImmutableArray.Create(TagHelper2_Project1.Checksum));

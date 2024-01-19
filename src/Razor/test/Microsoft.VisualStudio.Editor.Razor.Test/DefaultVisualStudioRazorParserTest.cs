@@ -38,7 +38,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
 
         var factoryProviderMock = new Mock<IProjectEngineFactoryProvider>(MockBehavior.Strict);
         factoryProviderMock
-            .Setup(x => x.GetFactory(It.IsAny<RazorConfiguration>(), It.IsAny<IProjectEngineFactory>(), It.IsAny<bool>()))
+            .Setup(x => x.GetFactory(It.IsAny<RazorConfiguration>()))
             .Returns(factoryMock.Object);
 
         _projectEngineFactoryProvider = factoryProviderMock.Object;

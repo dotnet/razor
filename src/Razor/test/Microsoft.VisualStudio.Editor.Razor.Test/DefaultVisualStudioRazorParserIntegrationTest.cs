@@ -605,7 +605,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
 
         var providerMock = new Mock<IProjectEngineFactoryProvider>(MockBehavior.Strict);
         providerMock
-            .Setup(x => x.GetFactory(It.IsAny<RazorConfiguration>(), It.IsAny<IProjectEngineFactory>(), It.IsAny<bool>()))
+            .Setup(x => x.GetFactory(It.IsAny<RazorConfiguration>()))
             .Returns(factoryMock.Object);
 
         return providerMock.Object;

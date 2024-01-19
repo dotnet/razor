@@ -204,9 +204,8 @@ internal class ProjectState
             {
                 var configuration = HostProject.Configuration;
                 var rootDirectoryPath = Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull();
-                var fallbackFactory = ProjectEngineFactories.Empty;
 
-                return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, fallbackFactory, builder =>
+                return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
                     builder.SetRootNamespace(HostProject.RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);

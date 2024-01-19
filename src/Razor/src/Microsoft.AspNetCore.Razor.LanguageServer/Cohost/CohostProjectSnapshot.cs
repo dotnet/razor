@@ -43,11 +43,9 @@ internal class CohostProjectSnapshot : IProjectSnapshot
         _lazyConfiguration = new Lazy<RazorConfiguration>(CreateRazorConfiguration);
         _lazyProjectEngine = new Lazy<RazorProjectEngine>(() =>
         {
-            var factory = ProjectEngineFactories.DefaultProvider.GetFactory(Configuration, ProjectEngineFactories.Empty);
-
-            return factory.Create(
+            return ProjectEngineFactories.DefaultProvider.Create(
                 Configuration,
-                fileSystem: RazorProjectFileSystem.Create(Path.GetDirectoryName(FilePath)),
+                rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
                 configure: builder =>
                 {
                     builder.SetRootNamespace(RootNamespace);

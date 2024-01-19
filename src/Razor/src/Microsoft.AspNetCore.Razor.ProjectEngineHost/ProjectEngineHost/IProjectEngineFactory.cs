@@ -9,7 +9,6 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 internal interface IProjectEngineFactory
 {
     string ConfigurationName { get; }
-    bool SupportsSerialization { get; }
 
     RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder>? configure);
 }

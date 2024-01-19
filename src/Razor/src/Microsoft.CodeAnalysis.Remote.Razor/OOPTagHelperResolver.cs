@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -21,15 +20,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal class OOPTagHelperResolver : ITagHelperResolver
 {
-    private readonly TagHelperResultCache _resultCache;
-    private readonly CompilationTagHelperResolver _innerResolver;
-    private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
-    private readonly IErrorReporter _errorReporter;
     private readonly Workspace _workspace;
+    private readonly IErrorReporter _errorReporter;
+    private readonly CompilationTagHelperResolver _innerResolver;
+    private readonly TagHelperResultCache _resultCache;
 
-    public OOPTagHelperResolver(IProjectEngineFactoryProvider projectEngineFactoryProvider, IErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
+    public OOPTagHelperResolver(Workspace workspace, IErrorReporter errorReporter, ITelemetryReporter telemetryReporter)
     {
-        _projectEngineFactoryProvider = projectEngineFactoryProvider ?? throw new ArgumentNullException(nameof(projectEngineFactoryProvider));
         _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
         _workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
 
@@ -42,49 +39,36 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         IProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
     {
-        // Not every custom factory supports the OOP host. Our priority system should work like this:
-        //
-        // 1. Use custom factory out of process
-        // 2. Use custom factory in process
-        // 3. Use fallback factory in process
+        // First, try to retrieve tag helpers out-of-proc. If that fails, try in-proc.
 
-        var factory = _projectEngineFactoryProvider.GetFactory(projectSnapshot.Configuration, requireSerializationSupport: true);
-
-        ImmutableArray<TagHelperDescriptor> result = default;
-
-        if (factory != null)
+        try
         {
-            try
+            var result = await ResolveTagHelpersOutOfProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
+
+            // We received tag helpers, so we're done.
+            if (!result.IsDefault)
             {
-                result = await ResolveTagHelpersOutOfProcessAsync(factory, workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                throw new InvalidOperationException(
-                    "An unexpected exception occurred when resolving tag helpers out-of-process.",
-                    ex);
+                return result;
             }
         }
-
-        // Was unable to get tag helpers OOP, fallback to default behavior.
-        if (result.IsDefault)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            try
-            {
-                result = await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                throw new InvalidOperationException(
-                    $"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.",
-                    ex);
-            }
+            _errorReporter.ReportError(ex, projectSnapshot);
+            return default;
         }
 
-        return result;
+        try
+        {
+            return await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _errorReporter.ReportError(ex, projectSnapshot);
+            return default;
+        }
     }
 
-    protected virtual async ValueTask<ImmutableArray<TagHelperDescriptor>> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    protected virtual async ValueTask<ImmutableArray<TagHelperDescriptor>> ResolveTagHelpersOutOfProcessAsync(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         // We're being overly defensive here because the OOP host can return null for the client/session/operation
         // when it's disconnected (user stops the process).
