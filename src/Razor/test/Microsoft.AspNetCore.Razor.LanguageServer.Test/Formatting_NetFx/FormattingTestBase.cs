@@ -284,9 +284,6 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.GetImports())
             .Returns(imports);
         documentSnapshot
-            .Setup(d => d.Project.GetProjectEngine())
-            .Returns(projectEngine);
-        documentSnapshot
             .Setup(d => d.FilePath)
             .Returns(path);
         documentSnapshot
