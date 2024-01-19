@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LspProjectSnapshotManagerAccessor(
+internal sealed class LspProjectSnapshotManagerAccessor(
     IEnumerable<IProjectSnapshotChangeTrigger> changeTriggers,
     IOptionsMonitor<RazorLSPOptions> optionsMonitor,
     IAdhocWorkspaceFactory workspaceFactory,

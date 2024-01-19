@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, IProjectSnapshotChangeTrigger
+internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, IProjectSnapshotChangeTrigger
 {
     private readonly Dictionary<DocumentKey, PublishData> _publishedCSharpData;
     private readonly Dictionary<string, PublishData> _publishedHtmlData;

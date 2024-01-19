@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class AdhocWorkspaceFactory(HostServicesProvider hostServicesProvider) : IAdhocWorkspaceFactory
+internal sealed class AdhocWorkspaceFactory(HostServicesProvider hostServicesProvider) : IAdhocWorkspaceFactory
 {
     public AdhocWorkspace Create(params IWorkspaceService[] workspaceServices)
     {

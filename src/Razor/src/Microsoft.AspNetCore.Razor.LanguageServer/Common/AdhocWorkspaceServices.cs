@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-internal class AdhocWorkspaceServices : HostWorkspaceServices
+internal sealed class AdhocWorkspaceServices : HostWorkspaceServices
 {
     private readonly AdhocServices _hostServices;
     private readonly AdhocLanguageServices _languageServices;
