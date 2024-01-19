@@ -180,7 +180,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
             var newCharacter = Math.Min(offset.Value + 1, lineSpan.Length);
 
             range.StartCharacter = newCharacter;
-            range.CollapsedText = "...";
+            range.CollapsedText = null; // Let the client deside what to show
             return range;
         }
 
