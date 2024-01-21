@@ -46,7 +46,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     private readonly ClientConnection _clientConnection;
 
     // Cached for testing
-    private AbstractHandlerProvider? _handlerProvider;
+    private IHandlerProvider? _handlerProvider;
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
@@ -80,7 +80,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
     protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()
     {
-        var handlerProvider = this.HandlerProvider;
+        var handlerProvider = GetHandlerProvider();
         var queue = new RazorRequestExecutionQueue(this, _logger, handlerProvider);
         queue.Start();
         return queue;
@@ -199,14 +199,11 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         }
     }
 
-    protected override AbstractHandlerProvider HandlerProvider
+    protected override IHandlerProvider GetHandlerProvider()
     {
-        get
-        {
-            _handlerProvider ??= base.HandlerProvider;
+        _handlerProvider ??= base.GetHandlerProvider();
 
-            return _handlerProvider;
-        }
+        return _handlerProvider;
     }
 
     internal T GetRequiredService<T>() where T : notnull
@@ -231,7 +228,10 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             _server = server;
         }
 
-        public AbstractHandlerProvider HandlerProvider => _server.HandlerProvider;
+        public IHandlerProvider GetHandlerProvider()
+        {
+            return _server.GetHandlerProvider();
+        }
 
         public RazorRequestExecutionQueue GetRequestExecutionQueue()
         {
