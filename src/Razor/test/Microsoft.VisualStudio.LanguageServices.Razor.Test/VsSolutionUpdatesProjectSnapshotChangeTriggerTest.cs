@@ -78,7 +78,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             services.Object,
             Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
-            Mock.Of<ProjectWorkspaceStateGenerator>(MockBehavior.Strict),
+            Mock.Of<IProjectWorkspaceStateGenerator>(MockBehavior.Strict),
             s_dispatcher,
             JoinableTaskFactory.Context);
 
@@ -107,7 +107,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             services.Object,
             Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
-            Mock.Of<ProjectWorkspaceStateGenerator>(MockBehavior.Strict),
+            Mock.Of<IProjectWorkspaceStateGenerator>(MockBehavior.Strict),
             s_dispatcher,
             context);
 

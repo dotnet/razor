@@ -25,7 +25,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatcherTestBase
+public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly ImmutableArray<TagHelperDescriptor> _resolvableTagHelpers;
@@ -34,7 +34,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     private readonly ProjectSnapshot _projectSnapshot;
     private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
 
-    public DefaultProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
+    public ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _projectEngineFactoryProvider = Mock.Of<IProjectEngineFactoryProvider>(MockBehavior.Strict);
@@ -68,7 +68,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public void Dispose_MakesUpdateNoop()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
+        using (var stateGenerator = new ProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
@@ -85,7 +85,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public void Update_StartsUpdateTask()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
+        using (var stateGenerator = new ProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
@@ -102,7 +102,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public void Update_SoftCancelsIncompleteTaskForSameProject()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
+        using (var stateGenerator = new ProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
             stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
@@ -120,7 +120,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
+        using (var stateGenerator = new ProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
             var projectManager = new TestProjectSnapshotManager(_workspace, _projectEngineFactoryProvider, Dispatcher);
@@ -144,7 +144,7 @@ public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerD
     public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
     {
         // Arrange
-        using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
+        using (var stateGenerator = new ProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
             var projectManager = new TestProjectSnapshotManager(_workspace, _projectEngineFactoryProvider, Dispatcher);
