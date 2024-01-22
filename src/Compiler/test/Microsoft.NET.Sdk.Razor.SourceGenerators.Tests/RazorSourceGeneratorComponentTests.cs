@@ -633,7 +633,9 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // Assert
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
-        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index", suffix: razorLangVersion == "7.0" ? "7" : "8");
+        var suffix = razorLangVersion == "7.0" ? "7" : "8";
+        result.VerifyOutputsMatchBaseline(suffix: suffix);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index", suffix: suffix);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/9051")]

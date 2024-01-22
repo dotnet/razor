@@ -420,21 +420,22 @@ internal static class Extensions
         return result;
     }
 
-    private static string CreateBaselineDirectory(string testPath, string testName)
+    private static string CreateBaselineDirectory(string testPath, string testName, string suffix = "")
     {
         var baselineDirectory = Path.Join(
             _testProjectRoot,
             "TestFiles",
             Path.GetFileNameWithoutExtension(testPath)!,
-            testName);
+            testName,
+            suffix);
         Directory.CreateDirectory(baselineDirectory);
         return baselineDirectory;
     }
 
     public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
-        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "", string suffix = "")
     {
-        var baselineDirectory = CreateBaselineDirectory(testPath, testName);
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName, suffix);
         var touchedFiles = new HashSet<string>();
 
         foreach (var source in result.GeneratedSources)
