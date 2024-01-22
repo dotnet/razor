@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatcherTestBase
 {
+    private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly ImmutableArray<TagHelperDescriptor> _resolvableTagHelpers;
     private readonly Workspace _workspace;
     private readonly Project _workspaceProject;
@@ -35,7 +37,7 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
     public ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        var projectEngineFactory = Mock.Of<ProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
+        _projectEngineFactoryProvider = Mock.Of<IProjectEngineFactoryProvider>(MockBehavior.Strict);
 
         var tagHelperResolver = new TestTagHelperResolver()
         {
@@ -43,7 +45,7 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
         };
 
         _resolvableTagHelpers = tagHelperResolver.TagHelpers;
-        var workspaceServices = new List<IWorkspaceService>() { tagHelperResolver, projectEngineFactory };
+        var workspaceServices = new List<IWorkspaceService>() { tagHelperResolver };
         var testServices = TestServices.Create(workspaceServices, Enumerable.Empty<ILanguageService>());
         _workspace = TestWorkspace.Create(testServices);
         AddDisposable(_workspace);
@@ -57,7 +59,7 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
             TestProjectData.SomeProject.FilePath));
         _workspaceProject = solution.GetProject(projectId);
         _projectSnapshot = new ProjectSnapshot(
-            ProjectState.Create(projectEngineFactory, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
+            ProjectState.Create(_projectEngineFactoryProvider, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
         _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()));
     }
@@ -121,7 +123,7 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
         using (var stateGenerator = new ProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
-            var projectManager = new TestProjectSnapshotManager(_workspace, Dispatcher);
+            var projectManager = new TestProjectSnapshotManager(_workspace, _projectEngineFactoryProvider, Dispatcher);
             stateGenerator.Initialize(projectManager);
             projectManager.ProjectAdded(_projectSnapshot.HostProject);
             projectManager.ProjectWorkspaceStateChanged(_projectSnapshot.Key, _projectWorkspaceStateWithTagHelpers);
@@ -145,7 +147,7 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
         using (var stateGenerator = new ProjectWorkspaceStateGenerator(Dispatcher, NoOpTelemetryReporter.Instance))
         {
             stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
-            var projectManager = new TestProjectSnapshotManager(_workspace, Dispatcher);
+            var projectManager = new TestProjectSnapshotManager(_workspace, _projectEngineFactoryProvider, Dispatcher);
             stateGenerator.Initialize(projectManager);
             projectManager.ProjectAdded(_projectSnapshot.HostProject);
 

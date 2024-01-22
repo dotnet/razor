@@ -29,7 +29,7 @@ public class FallbackProjectManagerTest : WorkspaceTestBase
         _projectConfigurationFilePathStore = new TestProjectConfigurationFilePathStore();
 
         var dispatcher = Mock.Of<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
-        _projectSnapshotManager = new TestProjectSnapshotManager(Workspace, dispatcher);
+        _projectSnapshotManager = new TestProjectSnapshotManager(Workspace, ProjectEngineFactoryProvider, dispatcher);
 
         var projectSnapshotManagerAccessor = Mock.Of<IProjectSnapshotManagerAccessor>(a => a.Instance == _projectSnapshotManager, MockBehavior.Strict);
 
