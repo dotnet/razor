@@ -215,10 +215,11 @@ public abstract class RazorSourceGeneratorTestsBase
         var html = await RenderRazorPageAsync(compilation, name);
         Extensions.VerifyTextMatchesBaseline(
             actualText: html,
-            fileName: name + (suffix.Length == 0 ? "" : "_" + suffix),
+            fileName: name,
             extension: "html",
             testPath: testPath,
-            testName: testName);
+            testName: testName,
+            suffix: suffix);
     }
 
     protected static Project CreateTestProject(
@@ -420,7 +421,7 @@ internal static class Extensions
         return result;
     }
 
-    private static string CreateBaselineDirectory(string testPath, string testName, string suffix = "")
+    private static string CreateBaselineDirectory(string testPath, string testName, string suffix)
     {
         var baselineDirectory = Path.Join(
             _testProjectRoot,
@@ -454,10 +455,10 @@ internal static class Extensions
     }
 
     public static void VerifyTextMatchesBaseline(string actualText, string fileName, string extension,
-        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "", string suffix = "")
     {
         // Create output directory.
-        var baselineDirectory = CreateBaselineDirectory(testPath, testName);
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName, suffix);
 
         // Generate baseline if enabled.
         var baselinePath = Path.Join(baselineDirectory, $"{fileName}.{extension}");
