@@ -204,7 +204,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
 
                     var project = expectedRazorDiagnostic.Projects.Single();
                     Assert.Equal(_openedDocument.Project.DisplayName, project.ProjectName);
-                    Assert.Equal(_openedDocument.Project.Key.Id, project.ProjectIdentifier);
+                    Assert.Equal(_openedDocument.ProjectKey.Id, project.ProjectIdentifier);
 
                 }
             })
@@ -264,7 +264,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 Assert.NotNull(expectedDiagnostic.Projects);
                 var project = expectedDiagnostic.Projects.Single();
                 Assert.Equal(_openedDocument.Project.DisplayName, project.ProjectName);
-                Assert.Equal(_openedDocument.Project.Key.Id, project.ProjectIdentifier);
+                Assert.Equal(_openedDocument.ProjectKey.Id, project.ProjectIdentifier);
             })
             .Returns(Task.CompletedTask);
 

@@ -70,7 +70,7 @@ internal sealed class OpenDocumentGenerator(
         // Fortunate this code will be removed in time
         var hostDocumentUri = new Uri(document.FilePath);
 
-        _logger.LogDebug("[Cohost] Updating generated document buffers for {version} of {uri} in {projectKey}", version, hostDocumentUri, document.Project.Key);
+        _logger.LogDebug("[Cohost] Updating generated document buffers for {version} of {uri} in {projectKey}", version, hostDocumentUri, document.ProjectKey);
 
         if (_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
         {
@@ -81,7 +81,7 @@ internal sealed class OpenDocumentGenerator(
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // CSharp
-            var csharpVirtualDocumentSnapshot = await TryGetCSharpSnapshotAsync(documentSnapshot, document.Project.Key, version, cancellationToken).ConfigureAwait(true);
+            var csharpVirtualDocumentSnapshot = await TryGetCSharpSnapshotAsync(documentSnapshot, document.ProjectKey, version, cancellationToken).ConfigureAwait(true);
 
             Debug.Assert(htmlVirtualDocumentSnapshot is not null && csharpVirtualDocumentSnapshot is not null ||
                 htmlVirtualDocumentSnapshot is null && csharpVirtualDocumentSnapshot is null, "Found a Html XOR a C# document. Expected both or neither.");

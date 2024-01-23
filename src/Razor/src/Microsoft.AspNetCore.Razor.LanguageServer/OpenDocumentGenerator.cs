@@ -176,7 +176,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
                 return;
             }
 
-            var key = $"{document.Project.Key.Id}:{document.FilePath.AssumeNotNull()}";
+            var key = $"{document.ProjectKey.Id}:{document.FilePath.AssumeNotNull()}";
             var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
             _workQueue.Enqueue(key, workItem);
         }

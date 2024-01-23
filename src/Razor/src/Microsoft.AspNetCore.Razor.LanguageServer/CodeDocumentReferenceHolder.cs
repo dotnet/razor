@@ -25,7 +25,7 @@ internal class CodeDocumentReferenceHolder : DocumentProcessedListener
         // (brains of DocumentSnapshot) will garbage collect its generated output aggressively and due to the
         // nature of LSP being heavily asynchronous (multiple requests for single keystrokes) we don't want to cause
         // multiple parses/regenerations across LSP requests that are all for the same document version.
-        var key = new DocumentKey(documentSnapshot.Project.Key, documentSnapshot.FilePath.AssumeNotNull());
+        var key = new DocumentKey(documentSnapshot.ProjectKey, documentSnapshot.FilePath.AssumeNotNull());
         _codeDocumentCache[key] = codeDocument;
     }
 

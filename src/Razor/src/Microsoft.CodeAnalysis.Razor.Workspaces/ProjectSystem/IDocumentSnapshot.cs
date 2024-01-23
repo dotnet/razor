@@ -15,6 +15,8 @@ internal interface IDocumentSnapshot
     string? TargetPath { get; }
     bool SupportsOutput { get; }
 
+    ProjectKey ProjectKey { get; }
+
     Task<SourceText> GetTextAsync();
     Task<VersionStamp> GetTextVersionAsync();
     Task<RazorCodeDocument> GetGeneratedOutputAsync();

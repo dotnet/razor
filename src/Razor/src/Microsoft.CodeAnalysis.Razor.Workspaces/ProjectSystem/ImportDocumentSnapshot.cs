@@ -18,7 +18,8 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
     public string? TargetPath => null;
 
     public bool SupportsOutput => false;
-    public IProjectSnapshot Project => _project;
+
+    public ProjectKey ProjectKey => _project.Key;
 
     private readonly IProjectSnapshot _project;
     private readonly RazorProjectItem _importItem;
