@@ -70,9 +70,9 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         TargetPath = "/Components/Pages/SemanticTokens.razor";
 
         var documentUri = new Uri(filePath);
-        var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+        var (documentSnapshot, projectSnapshot) = GetDocumentAndProjectSnapshot(ProjectFilePath, filePath, TargetPath);
         var version = 1;
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
+        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectSnapshot, projectContext: null, version);
 
         var razorOptionsMonitor = RazorLanguageServer.GetRequiredService<RazorLSPOptionsMonitor>();
         var clientConnection = RazorLanguageServer.GetRequiredService<IClientConnection>();

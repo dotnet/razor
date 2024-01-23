@@ -36,6 +36,8 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
 
     private IDocumentSnapshot DocumentSnapshot { get; set; }
 
+    private IProjectSnapshot ProjectSnapshot { get; set; }
+
     private SourceText DocumentText { get; set; }
 
     /// <summary>
@@ -61,7 +63,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
         var targetPath = "/Components/Pages/Generated.razor";
 
         DocumentUri = new Uri(_filePath);
-        DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
+        (DocumentSnapshot, ProjectSnapshot) = GetDocumentAndProjectSnapshot(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync();
     }
 
@@ -118,7 +120,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
             InsertSpaces = true
         };
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, version: 1);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, ProjectSnapshot, projectContext: null, version: 1);
 
         var edits = await RazorFormattingService.FormatAsync(documentContext, range: null, options, CancellationToken.None);
 

@@ -27,6 +27,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
     private Uri? DocumentUri { get; set; }
     private RazorCompletionEndpoint? CompletionEndpoint { get; set; }
     private IDocumentSnapshot? DocumentSnapshot { get; set; }
+    private IProjectSnapshot? ProjectSnapshot { get; set; }
     private SourceText? DocumentText { get; set; }
     private Position? RazorPosition { get; set; }
     private RazorRequestContext RazorRequestContext { get; set; }
@@ -74,12 +75,12 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         var targetPath = "/Components/Pages/Generated.razor";
 
         DocumentUri = new Uri(_filePath);
-        DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
+        (DocumentSnapshot, ProjectSnapshot) = GetDocumentAndProjectSnapshot(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync();
 
         RazorPosition = ToPosition(razorCodeActionIndex);
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, 1);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, ProjectSnapshot, projectContext: null, 1);
         RazorRequestContext = new RazorRequestContext(documentContext, languageServer.GetLspServices(), "lsp/method", uri: null);
 
         Position ToPosition(int index)

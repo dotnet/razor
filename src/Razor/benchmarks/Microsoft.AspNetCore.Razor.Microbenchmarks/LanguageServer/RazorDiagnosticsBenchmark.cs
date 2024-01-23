@@ -73,7 +73,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         SourceText = RazorCodeDocument.Source.Text;
         var documentContext = new Mock<VersionedDocumentContext>(
             MockBehavior.Strict,
-            new object[] { It.IsAny<Uri>(), It.IsAny<IDocumentSnapshot>(), It.IsAny<VSProjectContext>(), It.IsAny<int>() });
+            new object[] { It.IsAny<Uri>(), It.IsAny<IDocumentSnapshot>(), It.IsAny<IProjectSnapshot>(), It.IsAny<VSProjectContext>(), It.IsAny<int>() });
         documentContext
             .Setup(r => r.GetCodeDocumentAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(RazorCodeDocument);

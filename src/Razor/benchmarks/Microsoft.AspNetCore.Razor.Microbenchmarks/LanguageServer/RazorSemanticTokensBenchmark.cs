@@ -61,9 +61,9 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         TargetPath = $"/Components/Pages/{fileName}.razor";
 
         var documentUri = new Uri(filePath);
-        var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+        var (documentSnapshot, projectSnapshot) = GetDocumentAndProjectSnapshot(ProjectFilePath, filePath, TargetPath);
         var version = 1;
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
+        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectSnapshot, projectContext: null, version);
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = new Range

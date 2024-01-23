@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 #nullable disable
@@ -52,7 +52,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     private protected NoopLogger Logger { get; }
 
-    internal IDocumentSnapshot GetDocumentSnapshot(string projectFilePath, string filePath, string targetPath)
+    internal (IDocumentSnapshot, IProjectSnapshot) GetDocumentAndProjectSnapshot(string projectFilePath, string filePath, string targetPath)
     {
         var intermediateOutputPath = Path.Combine(Path.GetDirectoryName(projectFilePath), "obj");
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
@@ -70,7 +70,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var projectSnapshot = projectSnapshotManager.GetLoadedProject(hostProject.Key);
 
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
-        return documentSnapshot;
+        return (documentSnapshot, projectSnapshot);
     }
 
     private class NoopClientNotifierService : IClientConnection, IOnInitialized

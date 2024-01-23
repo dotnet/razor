@@ -27,6 +27,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
     private Uri? DocumentUri { get; set; }
     private CodeActionEndpoint? CodeActionEndpoint { get; set; }
     private IDocumentSnapshot? DocumentSnapshot { get; set; }
+    private IProjectSnapshot? ProjectSnapshot { get; set; }
     private SourceText? DocumentText { get; set; }
     private Range? RazorCodeActionRange { get; set; }
     private Range? CSharpCodeActionRange { get; set; }
@@ -75,14 +76,14 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         var targetPath = "/Components/Pages/Generated.razor";
 
         DocumentUri = new Uri(_filePath);
-        DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
+        (DocumentSnapshot, ProjectSnapshot) = GetDocumentAndProjectSnapshot(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync();
 
         RazorCodeActionRange = ToRange(razorCodeActionIndex);
         CSharpCodeActionRange = ToRange(csharpCodeActionIndex);
         HtmlCodeActionRange = ToRange(htmlCodeActionIndex);
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, 1);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, ProjectSnapshot, projectContext: null, 1);
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(CancellationToken.None);
         // Need a root namespace for the Extract to Code Behind light bulb to be happy

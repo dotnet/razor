@@ -54,8 +54,9 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         TargetPath = "/Components/Pages/FormattingTest.razor";
 
         var documentUri = new Uri(filePath);
-        var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version: 1);
+        var (documentSnapshot, projectSnapshot) = GetDocumentAndProjectSnapshot(ProjectFilePath, filePath, TargetPath);
+
+        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectSnapshot, projectContext: null, version: 1);
 
         SemanticTokensLegend = new RazorSemanticTokensLegend(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
         RazorSemanticTokenService.ApplyCapabilities(new(), new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
