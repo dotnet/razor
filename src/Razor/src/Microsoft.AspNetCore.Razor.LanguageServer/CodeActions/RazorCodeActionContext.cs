@@ -13,6 +13,7 @@ internal sealed class RazorCodeActionContext
     public RazorCodeActionContext(
         VSCodeActionParams request,
         IDocumentSnapshot documentSnapshot,
+        IProjectSnapshot projectSnapshot,
         RazorCodeDocument codeDocument,
         SourceLocation location,
         SourceText sourceText,
@@ -21,6 +22,7 @@ internal sealed class RazorCodeActionContext
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
         DocumentSnapshot = documentSnapshot ?? throw new ArgumentNullException(nameof(documentSnapshot));
+        ProjectSnapshot = projectSnapshot ?? throw new ArgumentNullException(nameof(projectSnapshot));
         CodeDocument = codeDocument ?? throw new ArgumentNullException(nameof(codeDocument));
         Location = location;
         SourceText = sourceText ?? throw new ArgumentNullException(nameof(sourceText));
@@ -30,6 +32,7 @@ internal sealed class RazorCodeActionContext
 
     public VSCodeActionParams Request { get; }
     public IDocumentSnapshot DocumentSnapshot { get; }
+    public IProjectSnapshot ProjectSnapshot { get; }
     public RazorCodeDocument CodeDocument { get; }
     public SourceLocation Location { get; }
     public SourceText SourceText { get; }

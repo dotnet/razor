@@ -70,7 +70,7 @@ internal sealed class CodeActionEndpoint(
             return null;
         }
 
-        var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot).ConfigureAwait(false);
+        var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, documentContext.Project).ConfigureAwait(false);
         if (razorCodeActionContext is null)
         {
             return null;
@@ -139,7 +139,7 @@ internal sealed class CodeActionEndpoint(
     }
 
     // internal for testing
-    internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot)
+    internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot, IProjectSnapshot projectSnapshot)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
@@ -171,6 +171,7 @@ internal sealed class CodeActionEndpoint(
         var context = new RazorCodeActionContext(
             request,
             documentSnapshot,
+            projectSnapshot,
             codeDocument,
             location.Value,
             sourceText,

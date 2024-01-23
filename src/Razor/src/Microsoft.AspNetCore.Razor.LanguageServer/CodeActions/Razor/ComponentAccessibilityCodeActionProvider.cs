@@ -225,7 +225,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         // Find all matching tag helpers
         using var _ = DictionaryPool<string, TagHelperPair>.GetPooledObject(out var matching);
 
-        foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
+        foreach (var tagHelper in context.ProjectSnapshot.TagHelpers)
         {
             if (SatisfiesRules(tagHelper.TagMatchingRules, tagName.AsSpan(), parentTagName.AsSpan(), attributes, out var caseInsensitiveMatch))
             {
@@ -234,7 +234,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         }
 
         // Iterate and find the fully qualified version
-        foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
+        foreach (var tagHelper in context.ProjectSnapshot.TagHelpers)
         {
             if (matching.TryGetValue(tagHelper.Name, out var tagHelperPair))
             {
