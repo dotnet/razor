@@ -17,26 +17,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal class RazorDocumentExcerptService : DocumentExcerptServiceBase
+internal class RazorDocumentExcerptService(IDocumentSnapshot document, IProjectSnapshot project, IRazorSpanMappingService mappingService)
+    : DocumentExcerptServiceBase
 {
-    private readonly IDocumentSnapshot _document;
-    private readonly IRazorSpanMappingService _mappingService;
-
-    public RazorDocumentExcerptService(IDocumentSnapshot document, IRazorSpanMappingService mappingService)
-    {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        if (mappingService is null)
-        {
-            throw new ArgumentNullException(nameof(mappingService));
-        }
-
-        _document = document;
-        _mappingService = mappingService;
-    }
+    private readonly IDocumentSnapshot _document = document ?? throw new ArgumentNullException(nameof(document));
+    private readonly IProjectSnapshot _project = project ?? throw new ArgumentNullException(nameof(project));
+    private readonly IRazorSpanMappingService _mappingService = mappingService ?? throw new ArgumentNullException(nameof(mappingService));
 
     internal override async Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
         Document document,
@@ -56,8 +42,7 @@ internal class RazorDocumentExcerptService : DocumentExcerptServiceBase
             return null;
         }
 
-        var project = _document.Project;
-        var razorDocument = project.GetDocument(mappedSpans[0].FilePath);
+        var razorDocument = _project.GetDocument(mappedSpans[0].FilePath);
         if (razorDocument is null)
         {
             return null;

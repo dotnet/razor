@@ -287,7 +287,7 @@ internal class BackgroundDocumentGenerator : IProjectSnapshotChangeTrigger
 
             if (!_suppressedDocuments.Contains(filePath))
             {
-                var container = new DefaultDynamicDocumentContainer(document);
+                var container = new DefaultDynamicDocumentContainer(document, project);
                 _infoProvider.UpdateFileInfo(project.Key, container);
             }
         }
