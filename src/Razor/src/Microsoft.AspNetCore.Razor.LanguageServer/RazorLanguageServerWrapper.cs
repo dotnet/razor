@@ -53,6 +53,9 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
             TraceSource = traceSource
         };
 
+        // Get more information about exceptions that occur during RPC method invocations.
+        jsonRpc.ExceptionStrategy = ExceptionProcessing.ISerializable;
+
         var server = new RazorLanguageServer(
             jsonRpc,
             loggerFactory,
