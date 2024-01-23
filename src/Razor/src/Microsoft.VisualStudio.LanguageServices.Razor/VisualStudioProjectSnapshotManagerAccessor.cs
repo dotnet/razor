@@ -23,7 +23,6 @@ internal sealed class VisualStudioProjectSnapshotManagerAccessor(
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly JoinableTaskFactory _jtf = joinableTaskContext.Factory;
 
-    private readonly object _gate = new();
     private ProjectSnapshotManagerBase? _projectManager;
 
     public ProjectSnapshotManagerBase Instance
