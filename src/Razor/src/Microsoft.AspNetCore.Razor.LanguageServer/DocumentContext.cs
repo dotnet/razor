@@ -23,10 +23,12 @@ internal class DocumentContext
     public DocumentContext(
         Uri uri,
         IDocumentSnapshot snapshot,
+        IProjectSnapshot projectSnapshot,
         VSProjectContext? projectContext)
     {
         Uri = uri;
         Snapshot = snapshot;
+        Project = projectSnapshot;
         _projectContext = projectContext;
     }
 
@@ -38,7 +40,7 @@ internal class DocumentContext
 
     public virtual string FileKind => Snapshot.FileKind.AssumeNotNull();
 
-    public virtual IProjectSnapshot Project => Snapshot.Project;
+    public virtual IProjectSnapshot Project { get; }
 
     public virtual TextDocumentIdentifier Identifier => new VSTextDocumentIdentifier()
     {

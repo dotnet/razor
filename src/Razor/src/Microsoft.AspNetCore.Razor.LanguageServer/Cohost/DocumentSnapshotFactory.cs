@@ -5,7 +5,6 @@ using System;
 using System.Composition;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 
@@ -13,11 +12,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 [method: ImportingConstructor]
 internal class DocumentSnapshotFactory(Lazy<ProjectSnapshotFactory> projectSnapshotFactory)
 {
-    private static readonly ConditionalWeakTable<TextDocument, IDocumentSnapshot> _documentSnapshots = new();
+    private static readonly ConditionalWeakTable<TextDocument, CohostDocumentSnapshot> _documentSnapshots = new();
 
     private readonly Lazy<ProjectSnapshotFactory> _projectSnapshotFactory = projectSnapshotFactory;
 
-    public IDocumentSnapshot GetOrCreate(TextDocument textDocument)
+    public CohostDocumentSnapshot GetOrCreate(TextDocument textDocument)
     {
         if (!_documentSnapshots.TryGetValue(textDocument, out var documentSnapshot))
         {

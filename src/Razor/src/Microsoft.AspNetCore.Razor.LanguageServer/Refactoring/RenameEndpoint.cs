@@ -381,7 +381,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         }
 
         var originTagHelpers = new List<TagHelperDescriptor>() { primaryTagHelper };
-        var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, documentContext.Snapshot.Project.TagHelpers);
+        var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, documentContext.Project.TagHelpers);
         if (associatedTagHelper is null)
         {
             Debug.Fail("Components should always have an associated TagHelper.");

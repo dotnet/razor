@@ -74,7 +74,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         return miscellaneousProject;
     }
 
-    public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+    public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
     {
         _logger.LogTrace("Looking for {documentFilePath}.", documentFilePath);
 
@@ -90,6 +90,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         foreach (var project in potentialProjects)
         {
             documentSnapshot = project.GetDocument(normalizedDocumentPath);
+            projectSnapshot = project;
             if (documentSnapshot is not null)
             {
                 _logger.LogTrace("Found {documentFilePath} in {project}", documentFilePath, project.FilePath);
@@ -100,6 +101,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         _logger.LogTrace("Looking for {documentFilePath} in miscellaneous project.", documentFilePath);
         var miscellaneousProject = GetMiscellaneousProject();
         documentSnapshot = miscellaneousProject.GetDocument(normalizedDocumentPath);
+        projectSnapshot = miscellaneousProject;
         if (documentSnapshot is not null)
         {
             _logger.LogTrace("Found {documentFilePath} in miscellaneous project.", documentFilePath);
@@ -109,6 +111,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectSnapshotManagerAccessor.Instance.GetProjects().SelectMany(p => p.DocumentFilePaths));
 
         documentSnapshot = null;
+        projectSnapshot = null;
         return false;
     }
 }

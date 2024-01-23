@@ -26,6 +26,6 @@ internal class CohostDocumentContextFactory(DocumentSnapshotFactory documentSnap
         //       document versions because TextDocument is inherently versioned.
         var version = _documentVersionCache.GetLatestDocumentVersion(documentSnapshot.FilePath.AssumeNotNull());
 
-        return new VersionedDocumentContext(documentUri, documentSnapshot, null, version);
+        return new VersionedDocumentContext(documentUri, documentSnapshot, documentSnapshot.Project, null, version);
     }
 }

@@ -27,6 +27,8 @@ internal class CohostDocumentSnapshot(TextDocument textDocument, CohostProjectSn
 
     public ProjectKey ProjectKey => _projectSnapshot.Key;
 
+    internal CohostProjectSnapshot Project => _projectSnapshot;
+
     public Task<SourceText> GetTextAsync() => _textDocument.GetTextAsync();
 
     public Task<VersionStamp> GetTextVersionAsync() => _textDocument.GetTextVersionAsync();

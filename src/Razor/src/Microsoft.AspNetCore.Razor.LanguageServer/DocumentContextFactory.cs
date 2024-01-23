@@ -42,7 +42,7 @@ internal sealed class DocumentContextFactory(
             return null;
         }
 
-        var (documentSnapshot, version) = documentAndVersion;
+        var (documentSnapshot, projectSnapshot, version) = documentAndVersion;
         if (documentSnapshot is null)
         {
             Debug.Fail($"Document snapshot should never be null here for '{filePath}'. This indicates that our acquisition of documents / versions did not behave as expected.");
@@ -57,24 +57,24 @@ internal sealed class DocumentContextFactory(
                 return null;
             }
 
-            return new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value);
+            return new VersionedDocumentContext(documentUri, documentSnapshot, projectSnapshot, projectContext, version.Value);
         }
 
-        return new DocumentContext(documentUri, documentSnapshot, projectContext);
+        return new DocumentContext(documentUri, documentSnapshot, projectSnapshot, projectContext);
     }
 
     private DocumentSnapshotAndVersion? TryGetDocumentAndVersion(string filePath, VSProjectContext? projectContext, bool versioned)
     {
-        if (TryResolveDocument(filePath, projectContext, out var documentSnapshot))
+        if (TryResolveDocument(filePath, projectContext, out var documentSnapshot, out var projectSnapshot))
         {
             if (!versioned)
             {
-                return new DocumentSnapshotAndVersion(documentSnapshot, Version: null);
+                return new DocumentSnapshotAndVersion(documentSnapshot, projectSnapshot, Version: null);
             }
 
             if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
             {
-                return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
+                return new DocumentSnapshotAndVersion(documentSnapshot, projectSnapshot, version.Value);
             }
 
             _logger.LogWarning("Tried to create context for document {filePath} and project {projectContext} and a document was found, but version didn't match.", filePath, projectContext?.Id);
@@ -90,17 +90,18 @@ internal sealed class DocumentContextFactory(
         return null;
     }
 
-    private bool TryResolveDocument(string filePath, VSProjectContext? projectContext, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+    private bool TryResolveDocument(string filePath, VSProjectContext? projectContext, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
     {
         if (projectContext is null)
         {
-            return _snapshotResolver.TryResolveDocumentInAnyProject(filePath, out documentSnapshot);
+            return _snapshotResolver.TryResolveDocumentInAnyProject(filePath, out documentSnapshot, out projectSnapshot);
         }
 
         var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectContext.ToProjectKey());
         if (project?.GetDocument(filePath) is { } document)
         {
             documentSnapshot = document;
+            projectSnapshot = project;
             return true;
         }
 
@@ -113,12 +114,14 @@ internal sealed class DocumentContextFactory(
         {
             _logger.LogDebug("Found document {document} in the misc files project, but was asked for project context {context}", filePath, projectContext);
             documentSnapshot = miscDocument;
+            projectSnapshot = miscellaneousProject;
             return true;
         }
 
         documentSnapshot = null;
+        projectSnapshot = null;
         return false;
     }
 
-    private record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int? Version);
+    private record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, IProjectSnapshot ProjectSnapshot, int? Version);
 }
