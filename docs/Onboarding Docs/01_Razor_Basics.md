@@ -42,7 +42,7 @@ Razor files typically come in three extensions: `.cshtml`, `.vbhtml`, and `.razo
 | **Source code** | Closed source. | Closed source. | [Open source on GitHub](https://github.com/dotnet/razor/) |
 | **File Extensions** | `.cshtml` for C#, `.vbhtml` for VB.NET. | `.cshtml` and `.razor` | `.cshtml` and `.razor` |
 | **Functionality** | Creates dynamic web pages that combine HTML and server-side code. | Provides basic features like syntax highlighting and IntelliSense for Razor syntax. | Provides improved functionality and performance, including better IntelliSense, improved syntax highlighting, support for Razor formatting, better diagnostics, and features like "Go to Definition" and "Find All References" for Razor components and their parameters. |
-| **Support** | Still supported for maintaining existing applications. New development typically done using newer versions of Razor in ASP.NET Core. | N/A | N/A |
+| **Support** | Still supported for maintaining existing applications. New development typically done using newer versions of Razor in ASP.NET Core. | - | - |
 | **Configuration** | Used by default for .NET Framework applications. | The legacy .NET Core editor is off by default. | The new .NET Core editor is used by default. |
 | **Implementation** | Monolithic design, language services implemented by the editor, no LSP or TextMate grammars, limited VS integration. | Same as Razor Legacy | Uses LSP for language services, TextMate grammars for syntax highlighting, integrated with VS editor API, includes Blazor support. |
 
@@ -55,5 +55,3 @@ Different versions of ASP.NET support different features of Razor. Here's a summ
 | **.NET Framework (<= 4.8)** | Supports Razor syntax with C# and VB.NET. Used in ASP.NET MVC and ASP.NET Web Pages applications. |
 | **.NET Core 1.x - 3.1** | Supports Razor syntax with C# only. Used in ASP.NET Core MVC, Razor Pages applications, and had preview support for Blazor. |
 | **.NET 5+** | Supports Razor syntax with C# only. Used in ASP.NET Core MVC, Razor Pages, and Blazor applications. |
-
-This table provides a clear overview of the Razor support in different versions of ASP.NET.
