@@ -128,7 +128,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             return null;
         }
 
-        var convertedDiagnostics = RazorDiagnosticConverter.Convert(diagnostics, sourceText, documentContext.Snapshot);
+        var convertedDiagnostics = RazorDiagnosticConverter.Convert(diagnostics, sourceText, documentContext.Snapshot, documentContext.Project);
 
         return
         [

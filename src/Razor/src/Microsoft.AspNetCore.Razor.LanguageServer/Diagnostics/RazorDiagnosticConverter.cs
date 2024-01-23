@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 internal static class RazorDiagnosticConverter
 {
-    public static VSDiagnostic Convert(RazorDiagnostic razorDiagnostic, SourceText sourceText, IDocumentSnapshot? documentSnapshot)
+    public static VSDiagnostic Convert(RazorDiagnostic razorDiagnostic, SourceText sourceText, IDocumentSnapshot? documentSnapshot, IProjectSnapshot? projectSnapshot)
     {
         if (razorDiagnostic is null)
         {
@@ -25,14 +25,14 @@ internal static class RazorDiagnosticConverter
             throw new ArgumentNullException(nameof(sourceText));
         }
 
-        var projects = documentSnapshot is null
+        var projects = documentSnapshot is null || projectSnapshot is null
             ? Array.Empty<VSDiagnosticProjectInformation>()
             : [
                 new VSDiagnosticProjectInformation()
                 {
                     Context = null,
                     ProjectIdentifier = documentSnapshot.ProjectKey.Id,
-                    ProjectName = documentSnapshot.Project.DisplayName
+                    ProjectName = projectSnapshot.DisplayName
                 }
             ];
 
@@ -51,14 +51,14 @@ internal static class RazorDiagnosticConverter
         return diagnostic;
     }
 
-    internal static Diagnostic[] Convert(IReadOnlyList<RazorDiagnostic> diagnostics, SourceText sourceText, IDocumentSnapshot documentSnapshot)
+    internal static Diagnostic[] Convert(IReadOnlyList<RazorDiagnostic> diagnostics, SourceText sourceText, IDocumentSnapshot documentSnapshot, IProjectSnapshot projectSnapshot)
     {
         var convertedDiagnostics = new Diagnostic[diagnostics.Count];
 
         var i = 0;
         foreach (var diagnostic in diagnostics)
         {
-            convertedDiagnostics[i++] = Convert(diagnostic, sourceText, documentSnapshot);
+            convertedDiagnostics[i++] = Convert(diagnostic, sourceText, documentSnapshot, projectSnapshot);
         }
 
         return convertedDiagnostics;

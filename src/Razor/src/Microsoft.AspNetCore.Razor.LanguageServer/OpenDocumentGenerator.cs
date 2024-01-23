@@ -97,7 +97,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
                     {
                         if (newProject.GetDocument(documentFilePath) is { } document)
                         {
-                            TryEnqueue(document);
+                            TryEnqueue(document, newProject);
                         }
                     }
 
@@ -115,7 +115,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
 
                         foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
                         {
-                            TryEnqueue(relatedDocument);
+                            TryEnqueue(relatedDocument, newProject);
                         }
                     }
 
@@ -129,11 +129,11 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
 
                     if (newProject.GetDocument(documentFilePath) is { } document)
                     {
-                        TryEnqueue(document);
+                        TryEnqueue(document, newProject);
 
                         foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
                         {
-                            TryEnqueue(relatedDocument);
+                            TryEnqueue(relatedDocument, newProject);
                         }
                     }
 
@@ -154,7 +154,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
 
                             if (newProject.GetDocument(relatedDocumentFilePath) is { } newRelatedDocument)
                             {
-                                TryEnqueue(newRelatedDocument);
+                                TryEnqueue(newRelatedDocument, newProject);
                             }
                         }
                     }
@@ -169,7 +169,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
                 }
         }
 
-        void TryEnqueue(IDocumentSnapshot document)
+        void TryEnqueue(IDocumentSnapshot document, IProjectSnapshot projectSnapshot)
         {
             if (!ProjectManager.IsDocumentOpen(document.FilePath.AssumeNotNull()) && !_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
             {
@@ -177,7 +177,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
             }
 
             var key = $"{document.ProjectKey.Id}:{document.FilePath.AssumeNotNull()}";
-            var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
+            var workItem = new ProcessWorkItem(document, projectSnapshot, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
             _workQueue.Enqueue(key, workItem);
         }
     }
@@ -185,15 +185,18 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
     private class ProcessWorkItem : BatchableWorkItem
     {
         private readonly IDocumentSnapshot _latestDocument;
+        private readonly IProjectSnapshot _projectSnapshot;
         private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
         private readonly ProjectSnapshotManagerDispatcher _dispatcher;
 
         public ProcessWorkItem(
             IDocumentSnapshot latestDocument,
+            IProjectSnapshot projectSnapshot,
             IReadOnlyList<DocumentProcessedListener> documentProcessedListeners,
             ProjectSnapshotManagerDispatcher dispatcher)
         {
             _latestDocument = latestDocument;
+            _projectSnapshot = projectSnapshot;
             _documentProcessedListeners = documentProcessedListeners;
             _dispatcher = dispatcher;
         }
@@ -206,7 +209,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
             {
                 foreach (var listener in _documentProcessedListeners)
                 {
-                    listener.DocumentProcessed(codeDocument, _latestDocument);
+                    listener.DocumentProcessed(codeDocument, _latestDocument, _projectSnapshot);
                 }
             }, cancellationToken).ConfigureAwait(false);
         }

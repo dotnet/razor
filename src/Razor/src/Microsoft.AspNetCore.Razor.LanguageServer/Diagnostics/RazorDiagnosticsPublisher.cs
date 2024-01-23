@@ -31,7 +31,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IClientConnection _clientConnection;
-    private readonly Dictionary<string, IDocumentSnapshot> _work;
+    private readonly Dictionary<string, (IDocumentSnapshot, IProjectSnapshot)> _work;
     private readonly ILogger _logger;
     private ProjectSnapshotManager? _projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -83,7 +83,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         _documentContextFactory = documentContextFactory;
         PublishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
         PublishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
-        _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
+        _work = new Dictionary<string, (IDocumentSnapshot, IProjectSnapshot)>(FilePathComparer.Instance);
         _logger = loggerFactory.CreateLogger<RazorDiagnosticsPublisher>();
     }
 
@@ -103,7 +103,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         _projectManager = projectManager;
     }
 
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
+    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document, IProjectSnapshot projectSnapshot)
     {
         if (document is null)
         {
@@ -115,7 +115,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         lock (_work)
         {
             var filePath = document.FilePath.AssumeNotNull();
-            _work[filePath] = document;
+            _work[filePath] = (document, projectSnapshot);
             StartWorkTimer();
             StartDocumentClosedCheckTimer();
         }
@@ -151,61 +151,61 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         try
         {
             lock (PublishedRazorDiagnostics)
-            lock (PublishedCSharpDiagnostics)
-            {
-                ClearClosedDocumentsPublishedDiagnostics(PublishedRazorDiagnostics);
-                ClearClosedDocumentsPublishedDiagnostics(PublishedCSharpDiagnostics);
-
-                _documentClosedTimer?.Dispose();
-                _documentClosedTimer = null;
-
-                if (PublishedRazorDiagnostics.Count > 0 || PublishedCSharpDiagnostics.Count > 0)
+                lock (PublishedCSharpDiagnostics)
                 {
-                    lock (_work)
-                    {
-                        // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
-                        // and check if the currently tracked documents are closed. In practice this work is super minimal.
-                        StartDocumentClosedCheckTimer();
-                    }
-                }
+                    ClearClosedDocumentsPublishedDiagnostics(PublishedRazorDiagnostics);
+                    ClearClosedDocumentsPublishedDiagnostics(PublishedCSharpDiagnostics);
 
-                void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
-                {
-                    var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
-                    foreach (var (key, value) in originalPublishedDiagnostics)
+                    _documentClosedTimer?.Dispose();
+                    _documentClosedTimer = null;
+
+                    if (PublishedRazorDiagnostics.Count > 0 || PublishedCSharpDiagnostics.Count > 0)
                     {
-                        Assumes.NotNull(_projectManager);
-                        if (!_projectManager.IsDocumentOpen(key))
+                        lock (_work)
                         {
-                            // Document is now closed, we shouldn't track its diagnostics anymore.
-                            publishedDiagnostics.Remove(key);
+                            // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
+                            // and check if the currently tracked documents are closed. In practice this work is super minimal.
+                            StartDocumentClosedCheckTimer();
+                        }
+                    }
 
-                            // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
-                            // doesn't have a ton of closed document errors that they can't get rid of.
-                            if (value.Count > 0)
+                    void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
+                    {
+                        var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
+                        foreach (var (key, value) in originalPublishedDiagnostics)
+                        {
+                            Assumes.NotNull(_projectManager);
+                            if (!_projectManager.IsDocumentOpen(key))
                             {
-                                PublishDiagnosticsForFilePath(key, Array.Empty<Diagnostic>());
+                                // Document is now closed, we shouldn't track its diagnostics anymore.
+                                publishedDiagnostics.Remove(key);
+
+                                // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
+                                // doesn't have a ton of closed document errors that they can't get rid of.
+                                if (value.Count > 0)
+                                {
+                                    PublishDiagnosticsForFilePath(key, Array.Empty<Diagnostic>());
+                                }
                             }
                         }
                     }
                 }
-            }
         }
         catch
         {
             lock (PublishedRazorDiagnostics)
-            lock (PublishedCSharpDiagnostics)
-            {
-                _documentClosedTimer?.Dispose();
-                _documentClosedTimer = null;
-            }
+                lock (PublishedCSharpDiagnostics)
+                {
+                    _documentClosedTimer?.Dispose();
+                    _documentClosedTimer = null;
+                }
 
             throw;
         }
     }
 
     // Internal for testing
-    internal async Task PublishDiagnosticsAsync(IDocumentSnapshot document)
+    internal async Task PublishDiagnosticsAsync(IDocumentSnapshot document, IProjectSnapshot projectSnapshot)
     {
         var result = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
@@ -241,23 +241,23 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
 
         lock (PublishedRazorDiagnostics)
-        lock (PublishedCSharpDiagnostics)
-        {
-            var filePath = document.FilePath.AssumeNotNull();
-
-            if (PublishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
-                && (csharpDiagnostics == null || (PublishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
+            lock (PublishedCSharpDiagnostics)
             {
-                // Diagnostics are the same as last publish
-                return;
-            }
+                var filePath = document.FilePath.AssumeNotNull();
 
-            PublishedRazorDiagnostics[filePath] = razorDiagnostics;
-            if (csharpDiagnostics != null)
-            {
-                PublishedCSharpDiagnostics[filePath] = csharpDiagnostics;
+                if (PublishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
+                    && (csharpDiagnostics == null || (PublishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
+                {
+                    // Diagnostics are the same as last publish
+                    return;
+                }
+
+                PublishedRazorDiagnostics[filePath] = razorDiagnostics;
+                if (csharpDiagnostics != null)
+                {
+                    PublishedCSharpDiagnostics[filePath] = csharpDiagnostics;
+                }
             }
-        }
 
         if (!document.TryGetText(out var sourceText))
         {
@@ -265,7 +265,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             return;
         }
 
-        var convertedDiagnostics = razorDiagnostics.Select(razorDiagnostic => RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, document));
+        var convertedDiagnostics = razorDiagnostics.Select(razorDiagnostic => RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, document, projectSnapshot));
         var combinedDiagnostics = csharpDiagnostics == null ? convertedDiagnostics : convertedDiagnostics.Concat(csharpDiagnostics);
         PublishDiagnosticsForFilePath(document.FilePath, combinedDiagnostics);
 
@@ -285,17 +285,17 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     {
         try
         {
-            IDocumentSnapshot[] documents;
+            (IDocumentSnapshot, IProjectSnapshot)[] documentAndProjects;
             lock (_work)
             {
-                documents = _work.Values.ToArray();
+                documentAndProjects = _work.Values.ToArray();
                 _work.Clear();
             }
 
-            for (var i = 0; i < documents.Length; i++)
+            for (var i = 0; i < documentAndProjects.Length; i++)
             {
-                var document = documents[i];
-                await PublishDiagnosticsAsync(document).ConfigureAwait(false);
+                (var document, var projectSnapshot) = documentAndProjects[i];
+                await PublishDiagnosticsAsync(document, projectSnapshot).ConfigureAwait(false);
             }
 
             OnCompletingBackgroundWork();

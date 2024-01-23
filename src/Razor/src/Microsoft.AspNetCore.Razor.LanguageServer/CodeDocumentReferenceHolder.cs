@@ -18,7 +18,7 @@ internal class CodeDocumentReferenceHolder : DocumentProcessedListener
         _codeDocumentCache = new();
     }
 
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot)
+    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot, IProjectSnapshot projectSnapshot)
     {
         // We capture a reference to the code document after a document has been processed in order to ensure that
         // latest document state information is readily available without re-computation. The DocumentState type
