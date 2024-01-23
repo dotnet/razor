@@ -25,7 +25,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = CreateSnapshotResolver(normalizedFilePath);
 
         // Act
-        var result = snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document);
+        var result = snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document, out _);
 
         // Assert
         Assert.True(result);
@@ -49,7 +49,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
             new EmptyTextLoader(normalizedFilePath));
 
         // Act
-        var result = snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document);
+        var result = snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document, out _);
 
         // Assert
         Assert.True(result);
@@ -66,7 +66,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = new SnapshotResolver(projectSnapshotManagerAccessor, LoggerFactory);
 
         // Act
-        var result = snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document);
+        var result = snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document, out _);
 
         // Assert
         Assert.False(result);

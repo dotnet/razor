@@ -402,9 +402,11 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
             document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()), MockBehavior.Strict);
 
+        var projectSnapshot = Mock.Of<IProjectSnapshot>(MockBehavior.Strict);
+
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve: true);
+        var context = new RazorCodeActionContext(request, documentSnapshot, projectSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve: true);
 
         return context;
     }

@@ -24,7 +24,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         var sourceText = SourceText.From(string.Empty);
 
         // Act
-        var diagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, documentSnapshot: null);
+        var diagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, documentSnapshot: null, projectSnapshot: null);
 
         // Assert
         Assert.Equal(razorDiagnostic.Id, diagnostic.Code);

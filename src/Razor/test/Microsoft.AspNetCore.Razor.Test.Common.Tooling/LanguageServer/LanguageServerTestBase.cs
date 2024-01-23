@@ -112,9 +112,9 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return documentContextFactory;
     }
 
-    internal static VersionedDocumentContext CreateDocumentContext(Uri uri, IDocumentSnapshot snapshot)
+    internal static VersionedDocumentContext CreateDocumentContext(Uri uri, IDocumentSnapshot snapshot, IProjectSnapshot projectSnapshot)
     {
-        return new VersionedDocumentContext(uri, snapshot, projectContext: null, version: 0);
+        return new VersionedDocumentContext(uri, snapshot, projectSnapshot, projectContext: null, version: 0);
     }
 
     internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting = true, bool autoShowCompletion = true, bool autoListParams = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false, bool commitElementsWithSpace = true)

@@ -1182,7 +1182,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
             testDocumentSnapshot.With(CodeDocument);
 
-            return CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
+            return CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot, testDocumentSnapshot.ProjectInternal);
         }
 
         private static List<TagHelperDescriptor> CreateTagHelperDescriptors()

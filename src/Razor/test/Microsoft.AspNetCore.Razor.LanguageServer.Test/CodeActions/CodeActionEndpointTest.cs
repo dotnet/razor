@@ -628,7 +628,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         };
 
         // Act
-        var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
+        var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, documentContext.Project);
 
         // Assert
         Assert.NotNull(razorCodeActionContext);
@@ -669,7 +669,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         };
 
         // Act
-        var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
+        var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, documentContext.Project);
 
         // Assert
         Assert.NotNull(razorCodeActionContext);
@@ -710,7 +710,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Context = new VSInternalCodeActionContext()
         };
 
-        var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
+        var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, documentContext.Project);
         Assert.NotNull(context);
 
         // Act
@@ -757,7 +757,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             }
         };
 
-        var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
+        var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, documentContext.Project);
         Assert.NotNull(context);
 
         // Act

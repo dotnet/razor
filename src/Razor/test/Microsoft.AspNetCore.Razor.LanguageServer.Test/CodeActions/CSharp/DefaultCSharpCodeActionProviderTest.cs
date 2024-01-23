@@ -341,12 +341,14 @@ $$Path;
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()) &&
-            document.Project.TagHelpers == tagHelpers, MockBehavior.Strict);
+            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()), MockBehavior.Strict);
+
+        var projectSnapshot = Mock.Of<IProjectSnapshot>(project =>
+            project.TagHelpers == tagHelpers, MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve);
+        var context = new RazorCodeActionContext(request, documentSnapshot, projectSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve);
 
         return context;
     }

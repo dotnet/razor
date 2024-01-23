@@ -159,9 +159,6 @@ public class Foo { }
             .Setup(d => d.TargetPath)
             .Returns(path);
         documentSnapshot
-            .Setup(d => d.Project.TagHelpers)
-            .Returns(tagHelpers);
-        documentSnapshot
             .Setup(d => d.FileKind)
             .Returns(fileKind);
 

@@ -362,8 +362,8 @@ public class DefinitionEndpointTest(ITestOutputHelper testOutput) : TagHelperSer
     {
         TestFileMarkupParser.GetPosition(content, out content, out var position);
 
-        SetupDocument(out _, out var documentSnapshot, content, isRazorFile);
-        var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot);
+        SetupDocument(out _, out var documentSnapshot, out var projectSnapshot, content, isRazorFile);
+        var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot, projectSnapshot);
 
         var (descriptor, attributeDescriptor) = await DefinitionEndpoint.GetOriginTagHelperBindingAsync(
             documentContext, position, ignoreAttributes, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
@@ -393,7 +393,7 @@ public class DefinitionEndpointTest(ITestOutputHelper testOutput) : TagHelperSer
     {
         TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
-        SetupDocument(out var codeDocument, out _, content);
+        SetupDocument(out var codeDocument, out _, out _, content);
         var expectedRange = selection.ToRange(codeDocument.GetSourceText());
 
         var mappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -403,7 +403,7 @@ public class DefinitionEndpointTest(ITestOutputHelper testOutput) : TagHelperSer
         Assert.Equal(expectedRange, range);
     }
 
-    private void SetupDocument(out RazorCodeDocument codeDocument, out IDocumentSnapshot documentSnapshot, string content, bool isRazorFile = true)
+    private void SetupDocument(out RazorCodeDocument codeDocument, out IDocumentSnapshot documentSnapshot, out IProjectSnapshot projectSnapshot, string content, bool isRazorFile = true)
     {
         var sourceText = SourceText.From(content);
         codeDocument = CreateCodeDocument(content, isRazorFile, DefaultTagHelpers);
@@ -414,6 +414,8 @@ public class DefinitionEndpointTest(ITestOutputHelper testOutput) : TagHelperSer
         Mock.Get(documentSnapshot)
             .Setup(s => s.GetGeneratedOutputAsync())
             .ReturnsAsync(outDoc);
+
+        projectSnapshot = Mock.Of<IProjectSnapshot>(MockBehavior.Strict);
     }
     #endregion
 }

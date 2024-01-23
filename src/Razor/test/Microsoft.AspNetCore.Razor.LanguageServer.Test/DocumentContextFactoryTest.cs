@@ -190,13 +190,13 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
     private class TestDocumentResolver : ISnapshotResolver
     {
-        private readonly IDocumentSnapshot? _documentSnapshot;
+        private readonly TestDocumentSnapshot? _documentSnapshot;
 
         public TestDocumentResolver()
         {
         }
 
-        public TestDocumentResolver(IDocumentSnapshot documentSnapshot)
+        public TestDocumentResolver(TestDocumentSnapshot documentSnapshot)
         {
             _documentSnapshot = documentSnapshot;
         }
@@ -211,15 +211,17 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
             throw new NotImplementedException();
         }
 
-        public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+        public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
         {
             if (documentFilePath == _documentSnapshot?.FilePath)
             {
                 documentSnapshot = _documentSnapshot;
+                projectSnapshot = _documentSnapshot.ProjectInternal;
                 return true;
             }
 
             documentSnapshot = null;
+            projectSnapshot = null;
             return false;
         }
     }

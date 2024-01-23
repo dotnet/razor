@@ -23,7 +23,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -615,10 +614,9 @@ public class RenameEndpointTest : LanguageServerTestBase
             d.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
             d.FilePath == item.FilePath &&
             d.FileKind == FileKinds.Component &&
-            d.GetTextAsync() == Task.FromResult(sourceText) &&
-            d.Project == projectSnapshot, MockBehavior.Strict);
+            d.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
         var version = 1337;
-        var documentSnapshot = new VersionedDocumentContext(new Uri(item.FilePath), snapshot, projectContext: null, version);
+        var documentSnapshot = new VersionedDocumentContext(new Uri(item.FilePath), snapshot, projectSnapshot, projectContext: null, version);
 
         return documentSnapshot;
     }

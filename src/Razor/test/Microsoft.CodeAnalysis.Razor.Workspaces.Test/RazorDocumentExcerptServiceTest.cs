@@ -27,9 +27,9 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 </html>
 ";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, project, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-        var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary, project);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -105,9 +105,9 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 </html>
 ";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, project, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-        var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary, project);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -158,9 +158,9 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 </html>
 ";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, project, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-        var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary, project);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -261,9 +261,9 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 </html>
 ";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, project, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-        var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary, project);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -370,9 +370,9 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         // Arrange
         var razorSource = @"@{ var [|foo|] = ""Hello, World!""; }";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, project, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-        var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary, project);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -457,8 +457,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
             });
     }
 
-    private RazorDocumentExcerptService CreateExcerptService(IDocumentSnapshot document)
+    private RazorDocumentExcerptService CreateExcerptService(IDocumentSnapshot document, IProjectSnapshot project)
     {
-        return new RazorDocumentExcerptService(document, new RazorSpanMappingService(document));
+        return new RazorDocumentExcerptService(document, project, new RazorSpanMappingService(document));
     }
 }

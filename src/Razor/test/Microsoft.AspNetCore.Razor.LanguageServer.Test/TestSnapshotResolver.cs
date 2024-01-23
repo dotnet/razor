@@ -41,9 +41,10 @@ internal class TestSnapshotResolver : ISnapshotResolver
         return _miscProject;
     }
 
-    public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+    public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
     {
         documentSnapshot = null;
+        projectSnapshot = null;
         return false;
     }
 }

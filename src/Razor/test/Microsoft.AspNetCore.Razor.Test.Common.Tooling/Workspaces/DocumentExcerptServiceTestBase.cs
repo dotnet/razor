@@ -38,7 +38,7 @@ public abstract class DocumentExcerptServiceTestBase(ITestOutputHelper testOutpu
     }
 
     // Adds the text to a ProjectSnapshot, generates code, and updates the workspace.
-    private (IDocumentSnapshot primary, Document secondary) InitializeDocument(SourceText sourceText)
+    private (IDocumentSnapshot primary, Document secondary, IProjectSnapshot project) InitializeDocument(SourceText sourceText)
     {
         var project = new ProjectSnapshot(
             ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, ProjectWorkspaceState.Default)
@@ -61,7 +61,7 @@ public abstract class DocumentExcerptServiceTestBase(ITestOutputHelper testOutpu
 
         var secondary = solution.Projects.Single().Documents.Single();
 
-        return (primary, secondary);
+        return (primary, secondary, project);
     }
 
     // Maps a span in the primary buffer to the secondary buffer. This is only valid for C# code
@@ -90,16 +90,16 @@ public abstract class DocumentExcerptServiceTestBase(ITestOutputHelper testOutpu
     public async Task<(Document generatedDocument, SourceText razorSourceText, TextSpan primarySpan, TextSpan generatedSpan)> InitializeAsync(string razorSource)
     {
         var (razorSourceText, primarySpan) = CreateText(razorSource);
-        var (primary, generatedDocument) = InitializeDocument(razorSourceText);
+        var (primary, generatedDocument, _) = InitializeDocument(razorSourceText);
         var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
         return (generatedDocument, razorSourceText, primarySpan, generatedSpan);
     }
 
-    internal async Task<(IDocumentSnapshot primary, Document generatedDocument, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource)
+    internal async Task<(IDocumentSnapshot primary, Document generatedDocument, IProjectSnapshot project, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource)
     {
         var (razorSourceText, primarySpan) = CreateText(razorSource);
-        var (primary, generatedDocument) = InitializeDocument(razorSourceText);
+        var (primary, generatedDocument, project) = InitializeDocument(razorSourceText);
         var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
-        return (primary, generatedDocument, generatedSpan);
+        return (primary, generatedDocument, project, generatedSpan);
     }
 }

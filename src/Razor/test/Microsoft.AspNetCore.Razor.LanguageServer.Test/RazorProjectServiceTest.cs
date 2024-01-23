@@ -1258,7 +1258,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         if (snapshotResolver is null)
         {
             snapshotResolver = new Mock<ISnapshotResolver>(MockBehavior.Strict).Object;
-            Mock.Get(snapshotResolver).Setup(r => r.TryResolveDocumentInAnyProject(It.IsAny<string>(), out It.Ref<IDocumentSnapshot>.IsAny)).Returns(false);
+            Mock.Get(snapshotResolver).Setup(r => r.TryResolveDocumentInAnyProject(It.IsAny<string>(), out It.Ref<IDocumentSnapshot>.IsAny, out It.Ref<IProjectSnapshot>.IsAny)).Returns(false);
         }
 
         var remoteTextLoaderFactory = Mock.Of<RemoteTextLoaderFactory>(factory => factory.Create(It.IsAny<string>()) == Mock.Of<TextLoader>(MockBehavior.Strict), MockBehavior.Strict);
@@ -1310,16 +1310,17 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         public IProjectSnapshot GetMiscellaneousProject() => _miscellaneousProject;
 
-        public bool TryResolveDocumentInAnyProject(string documentFilePath, out IDocumentSnapshot documentSnapshot)
+        public bool TryResolveDocumentInAnyProject(string documentFilePath, out IDocumentSnapshot documentSnapshot, out IProjectSnapshot projectSnapshot)
         {
             if (_projectMappings.TryGetValue(documentFilePath, out var projects))
             {
-                var projectSnapshot = projects.First();
+                projectSnapshot = projects.First();
                 documentSnapshot = projectSnapshot.GetDocument(documentFilePath);
                 return documentSnapshot is not null;
             }
 
             documentSnapshot = _miscellaneousProject.GetDocument(documentFilePath);
+            projectSnapshot = _miscellaneousProject;
             return documentSnapshot is not null;
         }
 

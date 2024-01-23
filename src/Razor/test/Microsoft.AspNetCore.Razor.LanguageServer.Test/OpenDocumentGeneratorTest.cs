@@ -206,7 +206,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
             return _tcs.Task;
         }
 
-        public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
+        public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document, IProjectSnapshot projectSnapshot)
         {
             _tcs.SetResult(document);
         }

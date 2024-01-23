@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -983,10 +982,9 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
             d.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
             d.FilePath == path &&
             d.FileKind == FileKinds.Component &&
-            d.GetTextAsync() == Task.FromResult(sourceText) &&
-            d.Project == projectSnapshot, MockBehavior.Strict);
+            d.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
 
-        var documentContext = new VersionedDocumentContext(new Uri(path), snapshot, projectContext: null, 1337);
+        var documentContext = new VersionedDocumentContext(new Uri(path), snapshot, projectSnapshot, projectContext: null, 1337);
 
         return documentContext;
     }

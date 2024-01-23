@@ -16,7 +16,7 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
     private readonly DocumentVersionCache _cache;
     private readonly GeneratedDocumentSynchronizer _synchronizer;
     private readonly TestGeneratedDocumentPublisher _publisher;
-    private readonly IDocumentSnapshot _document;
+    private readonly TestDocumentSnapshot _document;
     private readonly RazorCodeDocument _codeDocument;
 
     public GeneratedDocumentSynchronizerTest(ITestOutputHelper testOutput)
@@ -36,7 +36,7 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
 
         // Act
         await Dispatcher.RunOnDispatcherThreadAsync(
-            () => _synchronizer.DocumentProcessed(_codeDocument, _document), DisposalToken);
+            () => _synchronizer.DocumentProcessed(_codeDocument, _document, _document.ProjectInternal), DisposalToken);
 
         // Assert
         Assert.False(_publisher.PublishedCSharp);
@@ -52,7 +52,7 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
             _cache.TrackDocumentVersion(_document, version: 1337);
 
             // Act
-            _synchronizer.DocumentProcessed(_codeDocument, _document);
+            _synchronizer.DocumentProcessed(_codeDocument, _document, _document.ProjectInternal);
         }, DisposalToken);
 
         // Assert

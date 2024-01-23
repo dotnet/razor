@@ -52,6 +52,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     private readonly ProjectSnapshotManager _projectManager;
     private readonly IDocumentSnapshot _closedDocument;
     private readonly IDocumentSnapshot _openedDocument;
+    private readonly IProjectSnapshot _openedDocumentProject;
     private readonly RazorCodeDocument _testCodeDocument;
     private readonly Uri _openedDocumentUri;
 
@@ -69,7 +70,8 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var closedHostDocument = new HostDocument("C:/project/closed_document.cshtml", "C:/project/closed_document.cshtml");
         testProjectManager.DocumentAdded(hostProject.Key, closedHostDocument, TextLoader.From(textAndVersion));
 
-        var openedDocument = testProjectManager.GetProjects()[0].GetDocument(openedHostDocument.FilePath);
+        _openedDocumentProject = testProjectManager.GetProjects()[0];
+        var openedDocument = _openedDocumentProject.GetDocument(openedHostDocument.FilePath);
         Assert.NotNull(openedDocument);
         _openedDocument = openedDocument;
         _openedDocumentUri = new Uri("C:/project/open_document.cshtml");
@@ -118,13 +120,13 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
 
         publisher.Initialize(_projectManager);
         await RunOnDispatcherThreadAsync(() =>
-            publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument));
+            publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument, processedOpenDocument.ProjectInternal));
         Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
         publisher.NotifyBackgroundWorkCompleting.Reset();
 
         // Act
         await RunOnDispatcherThreadAsync(() =>
-            publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument));
+            publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument, processedOpenDocument.ProjectInternal));
         publisher.BlockBackgroundWorkCompleting.Set();
 
         // Assert
@@ -195,7 +197,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                     var resultRazorDiagnostic = @params.Diagnostics[0];
                     var razorDiagnostic = s_singleRazorDiagnostic[0];
                     Assert.True(processedOpenDocument.TryGetText(out var sourceText));
-                    var expectedRazorDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, _openedDocument);
+                    var expectedRazorDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, _openedDocument, _openedDocumentProject);
                     Assert.Equal(expectedRazorDiagnostic.Message, resultRazorDiagnostic.Message);
                     Assert.Equal(expectedRazorDiagnostic.Severity, resultRazorDiagnostic.Severity);
                     Assert.Equal(expectedRazorDiagnostic.Range, resultRazorDiagnostic.Range);
@@ -203,7 +205,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                     Assert.Single(expectedRazorDiagnostic.Projects);
 
                     var project = expectedRazorDiagnostic.Projects.Single();
-                    Assert.Equal(_openedDocument.Project.DisplayName, project.ProjectName);
+                    Assert.Equal(_openedDocumentProject.DisplayName, project.ProjectName);
                     Assert.Equal(_openedDocument.ProjectKey.Id, project.ProjectIdentifier);
 
                 }
@@ -219,7 +221,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         publisher.Initialize(_projectManager);
 
         // Act
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument, processedOpenDocument.ProjectInternal);
 
         // Assert
         clientConnection.VerifyAll();
@@ -256,14 +258,14 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 var diagnostic = Assert.Single(@params.Diagnostics);
                 var razorDiagnostic = s_singleRazorDiagnostic[0];
                 Assert.True(processedOpenDocument.TryGetText(out var sourceText));
-                var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, _openedDocument);
+                var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, _openedDocument, _openedDocumentProject);
                 Assert.Equal(expectedDiagnostic.Message, diagnostic.Message);
                 Assert.Equal(expectedDiagnostic.Severity, diagnostic.Severity);
                 Assert.Equal(expectedDiagnostic.Range, diagnostic.Range);
 
                 Assert.NotNull(expectedDiagnostic.Projects);
                 var project = expectedDiagnostic.Projects.Single();
-                Assert.Equal(_openedDocument.Project.DisplayName, project.ProjectName);
+                Assert.Equal(_openedDocumentProject.DisplayName, project.ProjectName);
                 Assert.Equal(_openedDocument.ProjectKey.Id, project.ProjectIdentifier);
             })
             .Returns(Task.CompletedTask);
@@ -276,7 +278,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         publisher.Initialize(_projectManager);
 
         // Act
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument, processedOpenDocument.ProjectInternal);
 
         // Assert
         clientConnection.VerifyAll();
@@ -331,11 +333,11 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
 
         using var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         publisher.Initialize(_projectManager);
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument, processedOpenDocument.ProjectInternal);
         arranging = false;
 
         // Act
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument, processedOpenDocument.ProjectInternal);
 
         // Assert
         clientConnection.VerifyAll();
@@ -371,7 +373,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         publisher.Initialize(_projectManager);
 
         // Act & Assert
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument, processedOpenDocument.ProjectInternal);
     }
 
     [Fact]
@@ -419,11 +421,11 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
 
         using var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         publisher.Initialize(_projectManager);
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument, processedOpenDocument.ProjectInternal);
         arranging = false;
 
         // Act & Assert
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument, processedOpenDocument.ProjectInternal);
     }
 
     [Fact]
