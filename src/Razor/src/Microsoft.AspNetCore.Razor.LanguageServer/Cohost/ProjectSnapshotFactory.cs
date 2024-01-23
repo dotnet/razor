@@ -5,7 +5,6 @@ using System.Composition;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
@@ -14,13 +13,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 [method: ImportingConstructor]
 internal class ProjectSnapshotFactory(DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter, JoinableTaskContext joinableTaskContext)
 {
-    private static readonly ConditionalWeakTable<Project, IProjectSnapshot> _projectSnapshots = new();
+    private static readonly ConditionalWeakTable<Project, CohostProjectSnapshot> _projectSnapshots = new();
 
     private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
 
-    public IProjectSnapshot GetOrCreate(Project project)
+    public CohostProjectSnapshot GetOrCreate(Project project)
     {
         if (!_projectSnapshots.TryGetValue(project, out var projectSnapshot))
         {

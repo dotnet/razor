@@ -13,7 +13,6 @@ internal interface IDocumentSnapshot
     string? FileKind { get; }
     string? FilePath { get; }
     string? TargetPath { get; }
-    IProjectSnapshot Project { get; }
     bool SupportsOutput { get; }
 
     Task<SourceText> GetTextAsync();

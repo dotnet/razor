@@ -422,7 +422,7 @@ internal class DocumentState
             var configurationVersion = project.State.ConfigurationVersion;
             var projectWorkspaceStateVersion = project.State.ProjectWorkspaceStateVersion;
             var documentCollectionVersion = project.State.DocumentCollectionVersion;
-            var imports = await GetImportsAsync(document).ConfigureAwait(false);
+            var imports = await GetImportsAsync(project, document).ConfigureAwait(false);
             var documentVersion = await document.GetTextVersionAsync().ConfigureAwait(false);
 
             // OK now that have the previous output and all of the versions, we can see if anything
@@ -496,9 +496,9 @@ internal class DocumentState
             return RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath));
         }
 
-        internal static async Task<ImmutableArray<ImportItem>> GetImportsAsync(IDocumentSnapshot document)
+        internal static async Task<ImmutableArray<ImportItem>> GetImportsAsync(IProjectSnapshot project, IDocumentSnapshot document)
         {
-            var imports = DocumentState.GetImportsCore(document.Project, document.FilePath.AssumeNotNull(), document.FileKind.AssumeNotNull());
+            var imports = DocumentState.GetImportsCore(project, document.FilePath.AssumeNotNull(), document.FileKind.AssumeNotNull());
             using var result = new PooledArrayBuilder<ImportItem>(imports.Length);
 
             foreach (var snapshot in imports)
