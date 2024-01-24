@@ -35,7 +35,7 @@ internal sealed class CohostDocumentColorEndpoint(
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities _)
-        => Capabilities.ApplyDocumentColorProvider(serverCapabilities);
+        => serverCapabilities.EnableDocumentColorProvider();
 
     protected override Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {

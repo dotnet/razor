@@ -20,7 +20,7 @@ internal sealed class DocumentColorEndpoint(IDocumentColorService documentColorS
     public bool MutatesSolutionState => false;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
-        => Capabilities.ApplyDocumentColorProvider(serverCapabilities);
+        => serverCapabilities.EnableDocumentColorProvider();
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentColorParams request)
         => request.TextDocument;

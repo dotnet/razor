@@ -5,14 +5,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-internal static class Capabilities
+internal static class VSInternalServerCapabilitiesExtensions
 {
-    public static void ApplyDocumentColorProvider(VSInternalServerCapabilities serverCapabilities)
+    public static void EnableDocumentColorProvider(this VSInternalServerCapabilities serverCapabilities)
     {
         serverCapabilities.DocumentColorProvider = new DocumentColorOptions();
     }
 
-    public static void ApplySemanticTokensOptions(VSInternalServerCapabilities serverCapabilities, SemanticTokensLegend legend)
+    public static void EnableSemanticTokens(this VSInternalServerCapabilities serverCapabilities, SemanticTokensLegend legend)
     {
         serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
         {
