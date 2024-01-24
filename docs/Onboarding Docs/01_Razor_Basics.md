@@ -26,13 +26,6 @@ Razor files typically come in three extensions: `.cshtml`, `.vbhtml`, and `.razo
 | `.razor` | Razor Component (Blazor) | Used in Blazor, a framework for building interactive client-side web UI with .NET. Each `.razor` file is a self-contained component that can include both the markup and the processing logic. | Used in Blazor applications for building interactive client-side web UIs. |
 | `.vbhtml` | Razor View (VB.NET) | Part of the MVC (Model-View-Controller) pattern, where the View is responsible for the presentation logic. Located within the Views folder of an MVC application and associated with a Controller. | Used in older MVC applications written in VB.NET. |
 
-| File Extension | Type | Description | Usage |
-| --- | --- | --- | --- |
-| `.cshtml` | Razor View | Part of the MVC (Model-View-Controller) pattern, where the View is responsible for the presentation logic. Located within the Views folder of an MVC application and associated with a Controller. | Used in MVC applications for complex scenarios where separation of concerns is important. |
-| `.cshtml` | Razor Page | A page-based programming model that makes building web UI easier and more productive. Located within the Pages folder of a Razor Pages application and includes a `@page` directive at the top. | Used in Razor Pages applications for simpler scenarios where a full MVC model might be overkill. |
-| `.razor` | Razor Component (Blazor) | Used in Blazor, a framework for building interactive client-side web UI with .NET. Each `.razor` file is a self-contained component that can include both the markup and the processing logic. | Used in Blazor applications for building interactive client-side web UIs. |
-| `.vbhtml` | Razor View (VB.NET) | Part of the MVC (Model-View-Controller) pattern, where the View is responsible for the presentation logic. Located within the Views folder of an MVC application and associated with a Controller. | Used in older MVC applications written in VB.NET. |
-
 ## Razor Editors: Legacy vs New
 
 | Aspect | Razor Legacy | Legacy .NET Core Razor Editor | New .NET Core Razor Editor |
@@ -42,7 +35,7 @@ Razor files typically come in three extensions: `.cshtml`, `.vbhtml`, and `.razo
 | **Source code** | Closed source. | Closed source. | [Open source on GitHub](https://github.com/dotnet/razor/) |
 | **File Extensions** | `.cshtml` for C#, `.vbhtml` for VB.NET. | `.cshtml` and `.razor` | `.cshtml` and `.razor` |
 | **Functionality** | Creates dynamic web pages that combine HTML and server-side code. | Provides basic features like syntax highlighting and IntelliSense for Razor syntax. | Provides improved functionality and performance, including better IntelliSense, improved syntax highlighting, support for Razor formatting, better diagnostics, and features like "Go to Definition" and "Find All References" for Razor components and their parameters. |
-| **Support** | Still supported for maintaining existing applications. New development typically done using newer versions of Razor in ASP.NET Core. | - | - |
+| **Support** | Supported for maintaining existing applications. | Phased out, not recommended for new projects. | Actively supported and recommended for new projects. |
 | **Configuration** | Used by default for .NET Framework applications. | The legacy .NET Core editor is off by default. | The new .NET Core editor is used by default. |
 | **Implementation** | Monolithic design, language services implemented by the editor, no LSP or TextMate grammars, limited VS integration. | Same as Razor Legacy | Uses LSP for language services, TextMate grammars for syntax highlighting, integrated with VS editor API, includes Blazor support. |
 
