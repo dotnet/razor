@@ -40,7 +40,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
         var legend = new RazorSemanticTokensLegend(clientCapabilities);
-        Capabilities.SemanticTokensOptions(serverCapabilities, legend);
+        Capabilities.ApplySemanticTokensOptions(serverCapabilities, legend.Legend);
         _semanticTokensInfoService.SetTokensLegend(legend);
     }
 

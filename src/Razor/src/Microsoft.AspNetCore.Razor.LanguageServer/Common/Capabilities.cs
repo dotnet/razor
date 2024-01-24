@@ -8,17 +8,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 internal static class Capabilities
 {
-    public static void DocumentColorProvider(VSInternalServerCapabilities serverCapabilities)
+    public static void ApplyDocumentColorProvider(VSInternalServerCapabilities serverCapabilities)
     {
         serverCapabilities.DocumentColorProvider = new DocumentColorOptions();
     }
 
-    internal static void SemanticTokensOptions(VSInternalServerCapabilities serverCapabilities, RazorSemanticTokensLegend legend)
+    public static void ApplySemanticTokensOptions(VSInternalServerCapabilities serverCapabilities, SemanticTokensLegend legend)
     {
         serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
         {
             Full = false,
-            Legend = legend.Legend,
+            Legend = legend,
             Range = true,
         };
     }
