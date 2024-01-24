@@ -57,7 +57,7 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
         private readonly bool _avoidEncodingScripts;
         private readonly Dictionary<string, string> _seenEntities = new Dictionary<string, string>(StringComparer.Ordinal);
 
-        private bool _inScript;
+        private bool _avoidEncodingContent;
 
         public Rewriter(RazorLanguageVersion version)
         {
@@ -66,21 +66,21 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
 
         public override void VisitMarkupElement(MarkupElementIntermediateNode node)
         {
-            var oldInScript = _inScript;
-            _inScript = _inScript || (
+            // We don't want to HTML-encode literal content inside <script> tags.
+            var oldAvoidEncodingContent = _avoidEncodingContent;
+            _avoidEncodingContent = _avoidEncodingContent || (
                 _avoidEncodingScripts &&
                 string.Equals("script", node.TagName, StringComparison.OrdinalIgnoreCase));
 
             base.VisitMarkupElement(node);
 
-            _inScript = oldInScript;
+            _avoidEncodingContent = oldAvoidEncodingContent;
         }
 
         public override void VisitHtml(HtmlContentIntermediateNode node)
         {
-            if (_inScript)
+            if (_avoidEncodingContent)
             {
-                // We don't want to HTML-encode literal content inside <script> tags.
                 node.SetEncoded();
                 return;
             }
