@@ -21,4 +21,12 @@ internal static class VSInternalServerCapabilitiesExtensions
             Range = true,
         };
     }
+
+    public static void EnableHoverProvider(this VSInternalServerCapabilities serverCapabilities)
+    {
+        serverCapabilities.HoverProvider = new HoverOptions()
+        {
+            WorkDoneProgress = false,
+        };
+    }
 }

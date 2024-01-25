@@ -7,10 +7,13 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -21,6 +24,7 @@ using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.Ma
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
+[Export(typeof(IRazorDocumentMappingService)), Shared]
 internal sealed class HoverInfoService : IHoverInfoService
 {
     private readonly ITagHelperFactsService _tagHelperFactsService;
@@ -308,5 +312,64 @@ internal sealed class HoverInfoService : IHoverInfoService
         var hoverContentFormat = clientCapabilities.TextDocument?.Hover?.ContentFormat;
         var hoverKind = hoverContentFormat?.Contains(VisualStudioMarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
         return hoverKind;
+    }
+
+    public async Task<VSInternalHover?> GetHoverInfoAsync(VersionedDocumentContext documentContext, DocumentPositionInfo positionInfo, Position position, IRazorDocumentMappingService documentMappingService, VSInternalClientCapabilities? _clientCapabilities, CancellationToken cancellationToken)
+    {
+        // HTML can still sometimes be handled by razor. For example hovering over
+        // a component tag like <Counter /> will still be in an html context
+        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
+        {
+            return null;
+        }
+
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+        // Sometimes what looks like a html attribute can actually map to C#, in which case its better to let Roslyn try to handle this.
+        // We can only do this if we're in single server mode though, otherwise we won't be delegating to Roslyn at all
+        if (documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out _, out _))
+        {
+            return null;
+        }
+
+        var location = new SourceLocation(positionInfo.HostDocumentIndex, position.Line, position.Character);
+        return GetHoverInfo(documentContext.FilePath, codeDocument, location, _clientCapabilities!);
+    }
+
+    public async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, VersionedDocumentContext documentContext, DocumentPositionInfo positionInfo, IRazorDocumentMappingService documentMappingService, CancellationToken cancellationToken)
+    {
+        if (response?.Range is null)
+        {
+            return response;
+        }
+
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+        // If we don't include the originally requested position in our response, the client may not show it, so we extend the range to ensure it is in there.
+        // eg for hovering at @bind-Value:af$$ter, we want to show people the hover for the Value property, so Roslyn will return to us the range for just the
+        // portion of the attribute that says "Value".
+        if (RazorSyntaxFacts.TryGetFullAttributeNameSpan(codeDocument, positionInfo.HostDocumentIndex, out var originalAttributeRange))
+        {
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            response.Range = originalAttributeRange.ToRange(sourceText);
+        }
+        else if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
+        {
+            if (documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), response.Range, out var projectedRange))
+            {
+                response.Range = projectedRange;
+            }
+            else
+            {
+                // We couldn't remap the range back from Roslyn, but we have to do something with it, because it definitely won't
+                // be correct, and if the Razor document is small, will be completely outside the valid range for the file, which
+                // would cause the client to error.
+                // Returning null here will still show the hover, just there won't be any extra visual indication, like
+                // a background color, applied by the client.
+                response.Range = null;
+            }
+        }
+
+        return response;
     }
 }
