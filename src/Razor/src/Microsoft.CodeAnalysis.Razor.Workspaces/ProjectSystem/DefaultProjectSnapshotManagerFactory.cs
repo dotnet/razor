@@ -20,9 +20,9 @@ internal class DefaultProjectSnapshotManagerFactory(
 {
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         => new DefaultProjectSnapshotManager(
-            errorReporter,
             triggers,
             languageServices.WorkspaceServices.Workspace,
             projectEngineFactoryProvider,
-            dispatcher);
+            dispatcher,
+            errorReporter);
 }

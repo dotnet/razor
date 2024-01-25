@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis;
@@ -16,11 +15,11 @@ internal class TestProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
     ProjectSnapshotManagerDispatcher dispatcher)
     : DefaultProjectSnapshotManager(
-        Mock.Of<IErrorReporter>(MockBehavior.Strict),
-        Array.Empty<IProjectSnapshotChangeTrigger>(),
+        triggers: [],
         workspace,
         projectEngineFactoryProvider,
-        dispatcher)
+        dispatcher,
+        Mock.Of<IErrorReporter>(MockBehavior.Strict))
 {
     public bool AllowNotifyListeners { get; set; }
 

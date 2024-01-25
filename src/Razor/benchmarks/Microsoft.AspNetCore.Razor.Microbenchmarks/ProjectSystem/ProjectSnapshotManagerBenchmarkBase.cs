@@ -63,12 +63,13 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         var services = TestServices.Create([], []);
 
         return new DefaultProjectSnapshotManager(
-            new TestErrorReporter(),
             triggers: [],
+            workspace:
 #pragma warning disable CA2000 // Dispose objects before losing scope
             new AdhocWorkspace(services),
-            StaticProjectEngineFactoryProvider.Instance,
-            new TestProjectSnapshotManagerDispatcher());
+projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
+            dispatcher: new TestProjectSnapshotManagerDispatcher(),
+            errorReporter: new TestErrorReporter());
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }

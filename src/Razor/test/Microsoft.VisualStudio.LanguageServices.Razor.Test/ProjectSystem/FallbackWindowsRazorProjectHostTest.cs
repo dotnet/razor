@@ -677,11 +677,11 @@ public class FallbackWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatc
         Workspace workspace,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ProjectSnapshotManagerDispatcher dispatcher) : DefaultProjectSnapshotManager(
-              Mock.Of<IErrorReporter>(MockBehavior.Strict),
-              triggers: [],
-              workspace,
-              projectEngineFactoryProvider,
-              dispatcher)
+            triggers: [],
+            workspace,
+            projectEngineFactoryProvider,
+            dispatcher,
+            Mock.Of<IErrorReporter>(MockBehavior.Strict))
     {
     }
 }

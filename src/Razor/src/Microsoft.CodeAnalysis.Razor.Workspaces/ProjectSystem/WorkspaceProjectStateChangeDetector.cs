@@ -24,8 +24,9 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
     private readonly object _disposedLock = new();
     private readonly object _workQueueAccessLock = new();
     private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly LanguageServerFeatureOptions _options;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IErrorReporter _errorReporter;
     private BatchingWorkQueue? _workQueue;
     private ProjectSnapshotManagerBase? _projectManager;
     private bool _disposed;
@@ -36,24 +37,28 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
     [ImportingConstructor]
     public WorkspaceProjectStateChangeDetector(
         IProjectWorkspaceStateGenerator workspaceStateGenerator,
+        LanguageServerFeatureOptions options,
         ProjectSnapshotManagerDispatcher dispatcher,
-        LanguageServerFeatureOptions options)
+        IErrorReporter errorReporter)
     {
-        _workspaceStateGenerator = workspaceStateGenerator ?? throw new ArgumentNullException(nameof(workspaceStateGenerator));
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _workspaceStateGenerator = workspaceStateGenerator;
+        _options = options;
+        _dispatcher = dispatcher;
+        _errorReporter = errorReporter;
     }
 
     // Internal for testing
     internal WorkspaceProjectStateChangeDetector(
         IProjectWorkspaceStateGenerator workspaceStateGenerator,
-        ProjectSnapshotManagerDispatcher dispatcher,
         LanguageServerFeatureOptions options,
+        IErrorReporter errorReporter,
+        ProjectSnapshotManagerDispatcher dispatcher,
         BatchingWorkQueue workQueue)
     {
         _workspaceStateGenerator = workspaceStateGenerator;
-        _dispatcher = dispatcher;
         _options = options;
+        _dispatcher = dispatcher;
+        _errorReporter = errorReporter;
         _workQueue = workQueue;
     }
 
@@ -87,7 +92,7 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
                 _workQueue ??= new BatchingWorkQueue(
                     s_batchingDelay,
                     FilePathComparer.Instance,
-                    projectManager.ErrorReporter);
+                    _errorReporter);
             }
         }
     }

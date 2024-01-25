@@ -35,11 +35,11 @@ internal sealed class LspProjectSnapshotManagerAccessor(
                 var workspace = _workspaceFactory.Create();
 
                 _instance = new DefaultProjectSnapshotManager(
-                    _errorReporter,
                     _changeTriggers,
                     workspace,
                     projectEngineFactoryProvider,
-                    _dispatcher);
+                    _dispatcher,
+                    _errorReporter);
             }
 
             return _instance;

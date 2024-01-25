@@ -652,7 +652,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         Workspace workspace,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ProjectSnapshotManagerDispatcher dispatcher)
-        : DefaultProjectSnapshotManager(Mock.Of<IErrorReporter>(MockBehavior.Strict), triggers, workspace, projectEngineFactoryProvider, dispatcher)
+        : DefaultProjectSnapshotManager(triggers, workspace, projectEngineFactoryProvider, dispatcher, Mock.Of<IErrorReporter>(MockBehavior.Strict))
     {
         public ProjectChangeKind? ListenersNotifiedOf { get; private set; }
 

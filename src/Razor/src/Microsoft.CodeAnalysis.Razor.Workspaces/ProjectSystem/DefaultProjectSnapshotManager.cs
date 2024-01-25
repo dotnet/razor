@@ -37,19 +37,20 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
+    private readonly IErrorReporter _errorReporter;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
 
     public DefaultProjectSnapshotManager(
-        IErrorReporter errorReporter,
         IEnumerable<IProjectSnapshotChangeTrigger> triggers,
         Workspace workspace,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        ProjectSnapshotManagerDispatcher dispatcher)
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IErrorReporter errorReporter)
     {
-        ErrorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
-        Workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
-        _projectEngineFactoryProvider = projectEngineFactoryProvider ?? throw new ArgumentNullException(nameof(projectEngineFactoryProvider));
-        _dispatcher = dispatcher ?? throw new ArgumentException(nameof(dispatcher));
+        Workspace = workspace;
+        _projectEngineFactoryProvider = projectEngineFactoryProvider;
+        _dispatcher = dispatcher;
+        _errorReporter = errorReporter;
 
         using (_rwLocker.EnterReadLock())
         {
@@ -94,8 +95,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     }
 
     internal override Workspace Workspace { get; }
-
-    internal override IErrorReporter ErrorReporter { get; }
 
     public override IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
     {
@@ -364,38 +363,23 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     internal override void ReportError(Exception exception)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
-
-        ErrorReporter.ReportError(exception);
+        _errorReporter.ReportError(exception);
     }
 
     internal override void ReportError(Exception exception, IProjectSnapshot project)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
-
-        ErrorReporter.ReportError(exception, project);
+        _errorReporter.ReportError(exception, project);
     }
 
     internal override void ReportError(Exception exception, ProjectKey projectKey)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
-
         if (TryGetLoadedProject(projectKey, out var project))
         {
-            ErrorReporter.ReportError(exception, project);
+            _errorReporter.ReportError(exception, project);
         }
         else
         {
-            ErrorReporter.ReportError(exception);
+            _errorReporter.ReportError(exception);
         }
     }
 

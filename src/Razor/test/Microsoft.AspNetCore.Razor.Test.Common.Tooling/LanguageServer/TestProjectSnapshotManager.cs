@@ -13,19 +13,19 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 {
     private TestProjectSnapshotManager(
-        IErrorReporter errorReporter,
         Workspace workspace,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        ProjectSnapshotManagerDispatcher dispatcher)
-        : base(errorReporter, triggers: [], workspace, projectEngineFactoryProvider, dispatcher)
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IErrorReporter errorReporter)
+        : base(triggers: [], workspace, projectEngineFactoryProvider, dispatcher, errorReporter)
     {
     }
 
-    public static TestProjectSnapshotManager Create(IErrorReporter errorReporter, ProjectSnapshotManagerDispatcher dispatcher)
+    public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher, IErrorReporter errorReporter)
     {
         var services = TestServices.Create(workspaceServices: [], razorLanguageServices: []);
         var workspace = TestWorkspace.Create(services);
-        var testProjectManager = new TestProjectSnapshotManager(errorReporter, workspace, ProjectEngineFactories.DefaultProvider, dispatcher);
+        var testProjectManager = new TestProjectSnapshotManager(workspace, ProjectEngineFactories.DefaultProvider, dispatcher, errorReporter);
 
         return testProjectManager;
     }

@@ -1251,11 +1251,11 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ProjectSnapshotManagerDispatcher dispatcher)
         : DefaultProjectSnapshotManager(
-            Mock.Of<IErrorReporter>(MockBehavior.Strict),
             triggers: [],
             workspace,
             projectEngineFactoryProvider,
-            dispatcher)
+            dispatcher,
+            Mock.Of<IErrorReporter>(MockBehavior.Strict))
     {
     }
 }
