@@ -210,7 +210,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
             _tcs.SetResult(document);
         }
 
-        public override void Initialize(ProjectSnapshotManager projectManager)
+        public override void Initialize(IProjectSnapshotManager projectManager)
         {
         }
     }

@@ -49,7 +49,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         }
     ];
 
-    private readonly ProjectSnapshotManager _projectManager;
+    private readonly IProjectSnapshotManager _projectManager;
     private readonly IDocumentSnapshot _closedDocument;
     private readonly IDocumentSnapshot _openedDocument;
     private readonly RazorCodeDocument _testCodeDocument;

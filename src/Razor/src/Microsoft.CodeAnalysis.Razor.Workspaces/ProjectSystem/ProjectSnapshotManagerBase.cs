@@ -8,8 +8,18 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
+internal abstract class ProjectSnapshotManagerBase : IProjectSnapshotManager
 {
+    public abstract event EventHandler<ProjectChangeEventArgs> Changed;
+
+    public abstract ImmutableArray<IProjectSnapshot> GetProjects();
+
+    public abstract bool IsDocumentOpen(string documentFilePath);
+
+    public abstract IProjectSnapshot? GetLoadedProject(ProjectKey projectKey);
+
+    public abstract ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
+
     internal abstract Workspace Workspace { get; }
 
     internal abstract IErrorReporter ErrorReporter { get; }
