@@ -11,12 +11,10 @@ using Moq;
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
 internal class TestProjectSnapshotManager(
-    Workspace workspace,
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
     ProjectSnapshotManagerDispatcher dispatcher)
     : DefaultProjectSnapshotManager(
         triggers: [],
-        workspace,
         projectEngineFactoryProvider,
         dispatcher,
         Mock.Of<IErrorReporter>(MockBehavior.Strict))

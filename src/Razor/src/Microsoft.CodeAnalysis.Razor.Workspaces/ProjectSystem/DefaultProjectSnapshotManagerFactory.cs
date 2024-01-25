@@ -21,7 +21,6 @@ internal class DefaultProjectSnapshotManagerFactory(
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         => new DefaultProjectSnapshotManager(
             triggers,
-            languageServices.WorkspaceServices.Workspace,
             projectEngineFactoryProvider,
             dispatcher,
             errorReporter);

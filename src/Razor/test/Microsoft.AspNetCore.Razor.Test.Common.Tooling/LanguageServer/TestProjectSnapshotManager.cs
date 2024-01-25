@@ -3,32 +3,25 @@
 
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 {
     private TestProjectSnapshotManager(
-        Workspace workspace,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter)
-        : base(triggers: [], workspace, projectEngineFactoryProvider, dispatcher, errorReporter)
+        : base(triggers: [], projectEngineFactoryProvider, dispatcher, errorReporter)
     {
     }
 
     public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher, IErrorReporter errorReporter)
-    {
-        var services = TestServices.Create(workspaceServices: [], razorLanguageServices: []);
-        var workspace = TestWorkspace.Create(services);
-        var testProjectManager = new TestProjectSnapshotManager(workspace, ProjectEngineFactories.DefaultProvider, dispatcher, errorReporter);
-
-        return testProjectManager;
-    }
+        => new TestProjectSnapshotManager(ProjectEngineFactories.DefaultProvider, dispatcher, errorReporter);
 
     public bool AllowNotifyListeners { get; set; }
 
@@ -54,5 +47,10 @@ internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
             base.NotifyListeners(e);
         }
+    }
+
+    private sealed class TestWorkspaceProvider(Workspace workspace) : IWorkspaceProvider
+    {
+        public Workspace GetWorkspace() => workspace;
     }
 }

@@ -22,11 +22,13 @@ internal sealed class FallbackProjectManager(
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+    IWorkspaceProvider workspaceProvider,
     ITelemetryReporter telemetryReporter)
 {
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+    private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     internal void DynamicFileAdded(ProjectId projectId, ProjectKey razorProjectKey, string projectFilePath, string filePath)
@@ -158,10 +160,7 @@ internal sealed class FallbackProjectManager(
 
     private Project? TryFindProjectForProjectId(ProjectId projectId)
     {
-        if (_projectSnapshotManagerAccessor.Instance.Workspace is not { } workspace)
-        {
-            throw new InvalidOperationException("Can not map a ProjectId to a ProjectKey before the project is initialized");
-        }
+        var workspace = _workspaceProvider.GetWorkspace();
 
         var project = workspace.CurrentSolution.GetProject(projectId);
         if (project is null ||

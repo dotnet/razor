@@ -42,12 +42,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     public DefaultProjectSnapshotManager(
         IEnumerable<IProjectSnapshotChangeTrigger> triggers,
-        Workspace workspace,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter)
     {
-        Workspace = workspace;
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
         _dispatcher = dispatcher;
         _errorReporter = errorReporter;
@@ -93,8 +91,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         using var _ = _rwLocker.EnterReadLock();
         return _openDocuments_needsLock.ToImmutableArray();
     }
-
-    internal override Workspace Workspace { get; }
 
     public override IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
     {

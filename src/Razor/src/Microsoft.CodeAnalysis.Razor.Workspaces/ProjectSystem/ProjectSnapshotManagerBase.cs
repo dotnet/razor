@@ -23,8 +23,6 @@ internal abstract class ProjectSnapshotManagerBase : IProjectSnapshotManager
 
     public abstract ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
 
-    internal abstract Workspace Workspace { get; }
-
     internal abstract ImmutableArray<string> GetOpenDocuments();
 
     internal abstract void DocumentAdded(ProjectKey projectKey, HostDocument hostDocument, TextLoader textLoader);

@@ -25,6 +25,7 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
     private readonly object _workQueueAccessLock = new();
     private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator;
     private readonly LanguageServerFeatureOptions _options;
+    private readonly IWorkspaceProvider _workspaceProvider;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IErrorReporter _errorReporter;
     private BatchingWorkQueue? _workQueue;
@@ -38,11 +39,13 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
     public WorkspaceProjectStateChangeDetector(
         IProjectWorkspaceStateGenerator workspaceStateGenerator,
         LanguageServerFeatureOptions options,
+        IWorkspaceProvider workspaceProvider,
         ProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter)
     {
         _workspaceStateGenerator = workspaceStateGenerator;
         _options = options;
+        _workspaceProvider = workspaceProvider;
         _dispatcher = dispatcher;
         _errorReporter = errorReporter;
     }
@@ -51,14 +54,12 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
     internal WorkspaceProjectStateChangeDetector(
         IProjectWorkspaceStateGenerator workspaceStateGenerator,
         LanguageServerFeatureOptions options,
+        IWorkspaceProvider workspaceProvider,
         IErrorReporter errorReporter,
         ProjectSnapshotManagerDispatcher dispatcher,
         BatchingWorkQueue workQueue)
+        : this(workspaceStateGenerator, options, workspaceProvider, dispatcher, errorReporter)
     {
-        _workspaceStateGenerator = workspaceStateGenerator;
-        _options = options;
-        _dispatcher = dispatcher;
-        _errorReporter = errorReporter;
         _workQueue = workQueue;
     }
 
@@ -71,11 +72,13 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
         EnsureWorkQueue();
 
         projectManager.Changed += ProjectManager_Changed;
-        projectManager.Workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+
+        var workspace = _workspaceProvider.GetWorkspace();
+        workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
 
         // This will usually no-op, in the case that another project snapshot change trigger
         // immediately adds projects we want to be able to handle those projects.
-        InitializeSolution(projectManager.Workspace.CurrentSolution);
+        InitializeSolution(workspace.CurrentSolution);
     }
 
     private void EnsureWorkQueue()
@@ -417,7 +420,8 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
             case ProjectChangeKind.ProjectAdded:
             case ProjectChangeKind.DocumentRemoved:
             case ProjectChangeKind.DocumentAdded:
-                var currentSolution = ProjectSnapshotManager.Workspace.CurrentSolution;
+                var workspace = _workspaceProvider.GetWorkspace();
+                var currentSolution = workspace.CurrentSolution;
                 var associatedWorkspaceProject = currentSolution.Projects
                     .FirstOrDefault(project => e.ProjectKey == ProjectKey.From(project));
 

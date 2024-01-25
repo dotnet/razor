@@ -18,9 +18,8 @@ public partial class OutOfProcTagHelperResolverTest
         return dispatcher.Object;
     });
 
-    private class TestProjectSnapshotManager(Workspace workspace, IProjectEngineFactoryProvider projectEngineFactoryProvider) : DefaultProjectSnapshotManager(
+    private class TestProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider) : DefaultProjectSnapshotManager(
         triggers: [],
-        workspace,
         projectEngineFactoryProvider,
         s_projectSnapshotManagerDispatcher.Value,
         Mock.Of<IErrorReporter>(MockBehavior.Strict))
