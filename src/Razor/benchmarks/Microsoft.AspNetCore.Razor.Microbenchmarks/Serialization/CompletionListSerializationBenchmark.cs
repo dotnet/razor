@@ -27,9 +27,8 @@ public class CompletionListSerializationBenchmark
     {
         var tagHelperFactsService = new TagHelperFactsService();
         var completionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
-        var htmlFactsService = new DefaultHtmlFactsService();
         var optionsMonitor = new BenchmarkOptionsMonitor<RazorLSPOptions>(RazorLSPOptions.Default);
-        var tagHelperCompletionProvider = new TagHelperCompletionProvider(completionService, htmlFactsService, tagHelperFactsService, optionsMonitor);
+        var tagHelperCompletionProvider = new TagHelperCompletionProvider(completionService, tagHelperFactsService, optionsMonitor);
 
         _serializer = JsonSerializer.Create();
 

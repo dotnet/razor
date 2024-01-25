@@ -27,19 +27,16 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { " ", ">" });
     private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.FromArray(new[] { ">" });
     private static readonly IReadOnlyList<RazorCommitCharacter> s_noCommitCharacters = Array.Empty<RazorCommitCharacter>();
-    private readonly HtmlFactsService _htmlFactsService;
     private readonly TagHelperCompletionService _tagHelperCompletionService;
     private readonly ITagHelperFactsService _tagHelperFactsService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public TagHelperCompletionProvider(
         TagHelperCompletionService tagHelperCompletionService,
-        HtmlFactsService htmlFactsService,
         ITagHelperFactsService tagHelperFactsService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor)
     {
         _tagHelperCompletionService = tagHelperCompletionService ?? throw new ArgumentException(nameof(tagHelperCompletionService));
-        _htmlFactsService = htmlFactsService ?? throw new ArgumentException(nameof(htmlFactsService));
         _tagHelperFactsService = tagHelperFactsService ?? throw new ArgumentException(nameof(tagHelperFactsService));
         _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
     }
@@ -67,7 +64,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             _ => owner.Parent
         };
 
-        if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
+        if (HtmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
             // Trying to complete the element type
@@ -77,7 +74,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             return elementCompletions;
         }
 
-        if (_htmlFactsService.TryGetAttributeInfo(
+        if (HtmlFactsService.TryGetAttributeInfo(
                 owner,
                 out containingTagNameToken,
                 out var prefixLocation,

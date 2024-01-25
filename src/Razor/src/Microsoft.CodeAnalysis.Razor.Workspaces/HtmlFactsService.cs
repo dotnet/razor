@@ -3,12 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-internal abstract class HtmlFactsService
+internal static class HtmlFactsService
 {
     private static readonly HashSet<string> s_htmlSchemaTagNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -137,15 +138,111 @@ internal abstract class HtmlFactsService
         "wbr",
     };
 
-    public abstract bool TryGetElementInfo(SyntaxNode element, out SyntaxToken containingTagNameToken, out SyntaxList<RazorSyntaxNode> attributeNodes, out SyntaxToken closingForwardSlashOrCloseAngleToken);
+    public static bool TryGetElementInfo(
+        SyntaxNode element,
+        [NotNullWhen(true)] out SyntaxToken? containingTagNameToken,
+        [NotNullWhen(true)] out SyntaxList<RazorSyntaxNode> attributeNodes,
+        [NotNullWhen(true)] out SyntaxToken? closingForwardSlashOrCloseAngleToken)
+    {
+        switch (element)
+        {
+            case MarkupStartTagSyntax startTag:
+                containingTagNameToken = startTag.Name;
+                attributeNodes = startTag.Attributes;
+                closingForwardSlashOrCloseAngleToken = startTag.ForwardSlash ?? startTag.CloseAngle;
+                return true;
+            case MarkupEndTagSyntax { Parent: MarkupElementSyntax parent } endTag:
+                containingTagNameToken = endTag.Name;
+                attributeNodes = parent.StartTag?.Attributes ?? new SyntaxList<RazorSyntaxNode>();
+                closingForwardSlashOrCloseAngleToken = endTag.ForwardSlash ?? endTag.CloseAngle;
+                return true;
+            case MarkupTagHelperStartTagSyntax startTagHelper:
+                containingTagNameToken = startTagHelper.Name;
+                attributeNodes = startTagHelper.Attributes;
+                closingForwardSlashOrCloseAngleToken = startTagHelper.ForwardSlash ?? startTagHelper.CloseAngle;
+                return true;
+            case MarkupTagHelperEndTagSyntax { Parent: MarkupTagHelperElementSyntax parent } endTagHelper:
+                containingTagNameToken = endTagHelper.Name;
+                attributeNodes = parent.StartTag?.Attributes ?? new SyntaxList<RazorSyntaxNode>();
+                closingForwardSlashOrCloseAngleToken = endTagHelper.ForwardSlash ?? endTagHelper.CloseAngle;
+                return true;
+            default:
+                containingTagNameToken = null;
+                attributeNodes = default;
+                closingForwardSlashOrCloseAngleToken = null;
+                return false;
+        }
+    }
 
-    public abstract bool TryGetAttributeInfo(
+    public static bool TryGetAttributeInfo(
         SyntaxNode attribute,
-        out SyntaxToken containingTagNameToken,
+        [NotNullWhen(true)] out SyntaxToken? containingTagNameToken,
         out TextSpan? prefixLocation,
-        out string selectedAttributeName,
-        out TextSpan? nameLocation,
-        out SyntaxList<RazorSyntaxNode> attributeNodes);
+        out string? selectedAttributeName,
+        out TextSpan? selectedAttributeNameLocation,
+        out SyntaxList<RazorSyntaxNode> attributeNodes)
+    {
+        if (!TryGetElementInfo(attribute.Parent, out containingTagNameToken, out attributeNodes, closingForwardSlashOrCloseAngleToken: out _))
+        {
+            containingTagNameToken = null;
+            prefixLocation = null;
+            selectedAttributeName = null;
+            selectedAttributeNameLocation = null;
+            attributeNodes = default;
+            return false;
+        }
+
+        switch (attribute)
+        {
+            case MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock:
+                prefixLocation = minimizedAttributeBlock.NamePrefix?.Span;
+                selectedAttributeName = minimizedAttributeBlock.Name.GetContent();
+                selectedAttributeNameLocation = minimizedAttributeBlock.Name.Span;
+                return true;
+            case MarkupAttributeBlockSyntax attributeBlock:
+                prefixLocation = attributeBlock.NamePrefix?.Span;
+                selectedAttributeName = attributeBlock.Name.GetContent();
+                selectedAttributeNameLocation = attributeBlock.Name.Span;
+                return true;
+            case MarkupTagHelperAttributeSyntax tagHelperAttribute:
+                prefixLocation = tagHelperAttribute.NamePrefix?.Span;
+                selectedAttributeName = tagHelperAttribute.Name.GetContent();
+                selectedAttributeNameLocation = tagHelperAttribute.Name.Span;
+                return true;
+            case MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute:
+                prefixLocation = minimizedAttribute.NamePrefix?.Span;
+                selectedAttributeName = minimizedAttribute.Name.GetContent();
+                selectedAttributeNameLocation = minimizedAttribute.Name.Span;
+                return true;
+            case MarkupTagHelperDirectiveAttributeSyntax tagHelperDirectiveAttribute:
+                {
+                    prefixLocation = tagHelperDirectiveAttribute.NamePrefix?.Span;
+                    selectedAttributeName = tagHelperDirectiveAttribute.FullName;
+                    var fullNameSpan = TextSpan.FromBounds(tagHelperDirectiveAttribute.Transition.Span.Start, tagHelperDirectiveAttribute.Name.Span.End);
+                    selectedAttributeNameLocation = fullNameSpan;
+                    return true;
+                }
+            case MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedTagHelperDirectiveAttribute:
+                {
+                    prefixLocation = minimizedTagHelperDirectiveAttribute.NamePrefix?.Span;
+                    selectedAttributeName = minimizedTagHelperDirectiveAttribute.FullName;
+                    var fullNameSpan = TextSpan.FromBounds(minimizedTagHelperDirectiveAttribute.Transition.Span.Start, minimizedTagHelperDirectiveAttribute.Name.Span.End);
+                    selectedAttributeNameLocation = fullNameSpan;
+                    return true;
+                }
+            case MarkupMiscAttributeContentSyntax:
+                prefixLocation = null;
+                selectedAttributeName = null;
+                selectedAttributeNameLocation = null;
+                return true;
+        }
+
+        // Not an attribute type that we know of
+        prefixLocation = null;
+        selectedAttributeName = null;
+        selectedAttributeNameLocation = null;
+        return false;
+    }
 
     public static bool IsHtmlTagName(string name)
     {
