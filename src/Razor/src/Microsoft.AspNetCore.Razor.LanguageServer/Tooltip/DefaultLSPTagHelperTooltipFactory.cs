@@ -50,9 +50,8 @@ internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResol
             }
 
             var tagHelperType = descriptionInfo.TagHelperTypeName;
-            var reducedTypeName = ReduceTypeName(tagHelperType);
             StartOrEndBold(descriptionBuilder, markupKind);
-            descriptionBuilder.Append(reducedTypeName);
+            descriptionBuilder.Append(tagHelperType);
             StartOrEndBold(descriptionBuilder, markupKind);
 
             var documentation = descriptionInfo.Documentation;
