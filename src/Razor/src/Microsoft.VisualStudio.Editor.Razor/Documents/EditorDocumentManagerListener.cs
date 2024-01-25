@@ -236,8 +236,8 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
             {
                 var document = (EditorDocument)sender;
 
-                var project = ProjectManager.GetLoadedProject(document.ProjectKey);
-                if (project is ProjectSnapshot { HostProject: FallbackHostProject } projectSnapshot)
+                if (ProjectManager.TryGetLoadedProject(document.ProjectKey, out var project) &&
+                    project is ProjectSnapshot { HostProject: FallbackHostProject } projectSnapshot)
                 {
                     // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
                     // so fire some telemetry. We can't log details about the project, for PII reasons, but we can use document count and tag helper count

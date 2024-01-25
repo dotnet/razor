@@ -33,14 +33,16 @@ internal sealed class FallbackProjectManager(
     {
         try
         {
-            var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(razorProjectKey);
-            if (project is ProjectSnapshot { HostProject: FallbackHostProject })
+            if (_projectSnapshotManagerAccessor.Instance.TryGetLoadedProject(razorProjectKey, out var project))
             {
-                // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
-                // are the only way to know about files in the project.
-                AddFallbackDocument(razorProjectKey, filePath, projectFilePath);
+                if (project is ProjectSnapshot { HostProject: FallbackHostProject })
+                {
+                    // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
+                    // are the only way to know about files in the project.
+                    AddFallbackDocument(razorProjectKey, filePath, projectFilePath);
+                }
             }
-            else if (project is null)
+            else
             {
                 // We have been asked to provide dynamic file info, which means there is a .razor or .cshtml file in the project
                 // but for some reason our project system doesn't know about the project. In these cases (often when people don't
@@ -58,8 +60,8 @@ internal sealed class FallbackProjectManager(
     {
         try
         {
-            var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(razorProjectKey);
-            if (project is ProjectSnapshot { HostProject: FallbackHostProject })
+            if (_projectSnapshotManagerAccessor.Instance.TryGetLoadedProject(razorProjectKey, out var project) &&
+                project is ProjectSnapshot { HostProject: FallbackHostProject })
             {
                 // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
                 // are the only way to know about files in the project.

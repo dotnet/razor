@@ -206,7 +206,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 
         var projectEngineFactoryProvider = Mock.Of<IProjectEngineFactoryProvider>(MockBehavior.Strict);
 
-        var projectSnapshot = new ProjectSnapshot(
+        IProjectSnapshot projectSnapshot = new ProjectSnapshot(
             ProjectState.Create(
                 projectEngineFactoryProvider,
                 new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path"),
@@ -224,6 +224,9 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         projectManager
             .Setup(p => p.GetLoadedProject(projectSnapshot.Key))
             .Returns(projectSnapshot);
+        projectManager
+            .Setup(p => p.TryGetLoadedProject(projectSnapshot.Key, out projectSnapshot))
+            .Returns(true);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
         var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, s_dispatcher, JoinableTaskFactory.Context);

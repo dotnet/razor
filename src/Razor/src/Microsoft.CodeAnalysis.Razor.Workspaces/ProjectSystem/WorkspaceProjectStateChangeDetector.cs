@@ -483,8 +483,7 @@ internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigg
             return false;
         }
 
-        projectSnapshot = ProjectSnapshotManager.GetLoadedProject(projectKey);
-        return projectSnapshot is not null;
+        return ProjectSnapshotManager.TryGetLoadedProject(projectKey, out projectSnapshot);
     }
 
     public void Dispose()

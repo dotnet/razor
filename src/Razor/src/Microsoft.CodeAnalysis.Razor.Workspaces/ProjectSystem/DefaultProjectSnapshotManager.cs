@@ -97,15 +97,32 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     internal override IErrorReporter ErrorReporter { get; }
 
-    public override IProjectSnapshot? GetLoadedProject(ProjectKey projectKey)
+    public override IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
     {
-        using var _ = _rwLocker.EnterReadLock();
-        if (_projects_needsLock.TryGetValue(projectKey, out var entry))
+        using (_rwLocker.EnterReadLock())
         {
-            return entry.GetSnapshot();
+            if (_projects_needsLock.TryGetValue(projectKey, out var entry))
+            {
+                return entry.GetSnapshot();
+            }
         }
 
-        return null;
+        throw new InvalidOperationException($"No project snapshot exists with the key, '{projectKey}'");
+    }
+
+    public override bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
+    {
+        using (_rwLocker.EnterReadLock())
+        {
+            if (_projects_needsLock.TryGetValue(projectKey, out var entry))
+            {
+                project = entry.GetSnapshot();
+                return true;
+            }
+        }
+
+        project = null;
+        return false;
     }
 
     public override ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
@@ -372,8 +389,14 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(exception));
         }
 
-        var snapshot = GetLoadedProject(projectKey);
-        ErrorReporter.ReportError(exception, snapshot);
+        if (TryGetLoadedProject(projectKey, out var project))
+        {
+            ErrorReporter.ReportError(exception, project);
+        }
+        else
+        {
+            ErrorReporter.ReportError(exception);
+        }
     }
 
     private void NotifyListeners(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)

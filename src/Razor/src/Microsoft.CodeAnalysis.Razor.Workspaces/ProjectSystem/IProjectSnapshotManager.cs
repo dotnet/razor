@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -15,7 +16,8 @@ internal interface IProjectSnapshotManager : ILanguageService
 
     bool IsDocumentOpen(string documentFilePath);
 
-    IProjectSnapshot? GetLoadedProject(ProjectKey projectKey);
+    IProjectSnapshot GetLoadedProject(ProjectKey projectKey);
+    bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project);
 
     ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
 }

@@ -152,10 +152,9 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotC
             var projectKeys = _projectManager.GetAllProjectKeys(projectFilePath);
             foreach (var projectKey in projectKeys)
             {
-                var projectSnapshot = _projectManager?.GetLoadedProject(projectKey);
-                if (projectSnapshot is not null)
+                if (_projectManager.TryGetLoadedProject(projectKey, out var projectSnapshot))
                 {
-                    var workspaceProject = _projectManager?.Workspace.CurrentSolution.Projects.FirstOrDefault(wp => ProjectKey.From(wp) == projectSnapshot.Key);
+                    var workspaceProject = _projectManager.Workspace.CurrentSolution.Projects.FirstOrDefault(wp => ProjectKey.From(wp) == projectSnapshot.Key);
                     if (workspaceProject is not null)
                     {
                         // Trigger a tag helper update by forcing the project manager to see the workspace Project

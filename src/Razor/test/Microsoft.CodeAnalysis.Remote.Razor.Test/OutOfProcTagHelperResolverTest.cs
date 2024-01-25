@@ -80,7 +80,7 @@ public partial class OutOfProcTagHelperResolverTest : TagHelperDescriptorTestBas
         // Arrange
         _projectManagerAccessor.Instance.ProjectAdded(_hostProject_For_2_0);
 
-        var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(_hostProject_For_2_0.Key).AssumeNotNull();
+        var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(_hostProject_For_2_0.Key);
 
         var calledOutOfProcess = false;
 
@@ -109,7 +109,7 @@ public partial class OutOfProcTagHelperResolverTest : TagHelperDescriptorTestBas
         // Arrange
         _projectManagerAccessor.Instance.ProjectAdded(_hostProject_For_NonSerializableConfiguration);
 
-        var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(_hostProject_For_2_0.Key).AssumeNotNull();
+        var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(_hostProject_For_2_0.Key);
 
         var calledInProcess = false;
 
@@ -138,7 +138,7 @@ public partial class OutOfProcTagHelperResolverTest : TagHelperDescriptorTestBas
         // Arrange
         _projectManagerAccessor.Instance.ProjectAdded(_hostProject_For_2_0);
 
-        var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(_hostProject_For_2_0.Key).AssumeNotNull();
+        var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(_hostProject_For_2_0.Key);
 
         var calledOutOfProcess = false;
         var calledInProcess = false;

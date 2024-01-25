@@ -260,13 +260,19 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var projectFilePath = "C:/path/to/project.csproj";
-        var ownerProject = TestProjectSnapshot.Create(projectFilePath);
+        IProjectSnapshot ownerProject = TestProjectSnapshot.Create(projectFilePath);
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         var expectedRootNamespace = "NewRootNamespace";
-        projectSnapshotManager.Setup(manager => manager.GetLoadedProject(ownerProject.Key))
+        projectSnapshotManager
+            .Setup(manager => manager.GetLoadedProject(ownerProject.Key))
             .Returns(ownerProject);
-        projectSnapshotManager.Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<ProjectKey>(), It.IsAny<ProjectWorkspaceState>()));
-        projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
+        projectSnapshotManager
+            .Setup(manager => manager.TryGetLoadedProject(ownerProject.Key, out ownerProject))
+            .Returns(true);
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<ProjectKey>(), It.IsAny<ProjectWorkspaceState>()));
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
             .Callback<HostProject>((hostProject) => Assert.Equal(expectedRootNamespace, hostProject.RootNamespace));
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
@@ -289,12 +295,18 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var projectFilePath = "C:/path/to/project.csproj";
-        var ownerProject = TestProjectSnapshot.Create(projectFilePath);
+        IProjectSnapshot ownerProject = TestProjectSnapshot.Create(projectFilePath);
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
-        projectSnapshotManager.Setup(manager => manager.GetLoadedProject(ownerProject.Key))
+        projectSnapshotManager
+            .Setup(manager => manager.GetLoadedProject(ownerProject.Key))
             .Returns(ownerProject);
-        projectSnapshotManager.Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<ProjectKey>(), It.IsAny<ProjectWorkspaceState>()));
-        projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
+        projectSnapshotManager
+            .Setup(manager => manager.TryGetLoadedProject(ownerProject.Key, out ownerProject))
+            .Returns(true);
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<ProjectKey>(), It.IsAny<ProjectWorkspaceState>()));
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
             .Throws(new XunitException("Should not have been called."));
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 
@@ -314,12 +326,18 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var projectFilePath = "C:/path/to/project.csproj";
-        var ownerProject = TestProjectSnapshot.Create(projectFilePath);
+        IProjectSnapshot ownerProject = TestProjectSnapshot.Create(projectFilePath);
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
-        projectSnapshotManager.Setup(manager => manager.GetLoadedProject(ownerProject.Key))
+        projectSnapshotManager
+            .Setup(manager => manager.GetLoadedProject(ownerProject.Key))
             .Returns(ownerProject);
-        projectSnapshotManager.Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<ProjectKey>(), It.IsAny<ProjectWorkspaceState>()));
-        projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
+        projectSnapshotManager
+            .Setup(manager => manager.TryGetLoadedProject(ownerProject.Key, out ownerProject))
+            .Returns(true);
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<ProjectKey>(), It.IsAny<ProjectWorkspaceState>()));
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
             .Callback<HostProject>((hostProject) =>
             {
                 Assert.Same(FallbackRazorConfiguration.Latest, hostProject.Configuration);
@@ -346,12 +364,18 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var projectFilePath = "C:/path/to/project.csproj";
-        var ownerProject = TestProjectSnapshot.Create(projectFilePath);
+        IProjectSnapshot ownerProject = TestProjectSnapshot.Create(projectFilePath);
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
-        projectSnapshotManager.Setup(manager => manager.GetLoadedProject(ownerProject.Key))
+        projectSnapshotManager
+            .Setup(manager => manager.GetLoadedProject(ownerProject.Key))
             .Returns(ownerProject);
-        projectSnapshotManager.Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<ProjectKey>(), It.IsAny<ProjectWorkspaceState>()));
-        projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
+        projectSnapshotManager
+            .Setup(manager => manager.TryGetLoadedProject(ownerProject.Key, out ownerProject))
+            .Returns(true);
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<ProjectKey>(), It.IsAny<ProjectWorkspaceState>()));
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
             .Callback<HostProject>((hostProject) =>
             {
                 Assert.Same(FallbackRazorConfiguration.MVC_1_1, hostProject.Configuration);
@@ -379,9 +403,15 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         // Arrange
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         var projectKey = TestProjectKey.Create("C:/path/to/obj");
-        projectSnapshotManager.Setup(manager => manager.GetLoadedProject(projectKey))
+        projectSnapshotManager
+            .Setup(manager => manager.GetLoadedProject(projectKey))
             .Returns<IProjectSnapshot>(null);
-        projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
+        IProjectSnapshot projectResult = null;
+        projectSnapshotManager
+            .Setup(manager => manager.TryGetLoadedProject(projectKey, out projectResult))
+            .Returns(false);
+        projectSnapshotManager
+            .Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
             .Throws(new XunitException("Should not have been called."));
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
 

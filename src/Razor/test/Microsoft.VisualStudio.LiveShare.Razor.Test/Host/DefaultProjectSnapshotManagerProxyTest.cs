@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
@@ -207,18 +208,15 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
         }
 
         public IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public bool IsDocumentOpen(string documentFilePath)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
+
+        public bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot project)
+            => throw new NotImplementedException();
     }
 }
