@@ -113,11 +113,17 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));
     }
 
-    public static void AddHoverServices(this IServiceCollection services)
+    public static void AddHoverServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
+        // Hover services aren't needed in a cohosted world
+        if (featureOptions.UseRazorCohostServer)
+        {
+            return;
+        }
+
         services.AddHandlerWithCapabilities<HoverEndpoint>();
 
-        services.AddSingleton<IHoverInfoService, HoverInfoService>();
+        services.AddSingleton<IHoverService, HoverService>();
     }
 
     public static void AddSemanticTokensServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)

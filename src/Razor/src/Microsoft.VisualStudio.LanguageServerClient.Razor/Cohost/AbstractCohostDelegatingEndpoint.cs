@@ -7,12 +7,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
@@ -126,33 +124,14 @@ internal abstract class AbstractCohostDelegatingEndpoint<TRequest, TResponse> : 
             // I guess they don't want to delegate... fine then!
             return default;
         }
-        // TODO: We can't MEF import IRazorCohostClientLanguageServerManager in the constructor. We can make this work
-        //       by having it implement a base class, RazorClientConnectionBase or something, that in turn implements
-        //       AbstractRazorLspService (defined in Roslyn) and then move everything from importing IClientConnection
-        //       to importing the new base class, so we can continue to share services.
-        //
-        //       Until then we have to get the service from the request context.
-        var clientLanguageServerManager = requestContext.GetRequiredService<IRazorCohostClientLanguageServerManager>();
-        var clientConnection = new RazorCohostClientConnection(clientLanguageServerManager);
 
-        TResponse? delegatedRequest;
-        try
+        var delegatedResponse = await requestContext.DelegateRequestAsync<IDelegatedParams, TResponse>(CustomMessageTarget, delegatedParams, Logger, cancellationToken).ConfigureAwait(false);
+        if (delegatedResponse is null)
         {
-            delegatedRequest = await clientConnection.SendRequestAsync<IDelegatedParams, TResponse>(CustomMessageTarget, delegatedParams, cancellationToken).ConfigureAwait(false);
-            if (delegatedRequest is null)
-            {
-                return default;
-            }
-        }
-        catch (RemoteInvocationException e)
-        {
-            Logger.LogError(e, "Error calling delegate server for {method}", CustomMessageTarget);
-            requestContext.GetRequiredService<ITelemetryReporter>().ReportFault(e, "Error calling delegate server for {method}", CustomMessageTarget);
-            throw;
+            return default;
         }
 
-        var remappedResponse = await HandleDelegatedResponseAsync(delegatedRequest, request, requestContext, positionInfo, cancellationToken).ConfigureAwait(false);
-
+        var remappedResponse = await HandleDelegatedResponseAsync(delegatedResponse, request, requestContext, positionInfo, cancellationToken).ConfigureAwait(false);
         return remappedResponse;
     }
 }

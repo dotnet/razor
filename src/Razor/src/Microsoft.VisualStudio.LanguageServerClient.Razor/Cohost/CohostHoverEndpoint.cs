@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 [ExportRazorStatelessLspService(typeof(CohostHoverEndpoint))]
 [Export(typeof(ICapabilitiesProvider))]
 [method: ImportingConstructor]
-internal class CohostHoverEndpoint(
-    IHoverInfoService hoverInfoService,
+internal sealed class CohostHoverEndpoint(
+    IHoverService hoverInfoService,
     IRazorDocumentMappingService documentMappingService,
     IRazorLoggerFactory loggerFactory)
     : AbstractCohostDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?>(documentMappingService, loggerFactory.CreateLogger<CohostHoverEndpoint>()),
       ICapabilitiesProvider
 {
-    private readonly IHoverInfoService _hoverInfoService = hoverInfoService;
+    private readonly IHoverService _hoverInfoService = hoverInfoService;
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
     private VSInternalClientCapabilities? _clientCapabilities;
 
@@ -55,19 +55,17 @@ internal class CohostHoverEndpoint(
     }
 
     protected override Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorCohostRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-        => _hoverInfoService.GetHoverInfoAsync(
+        => _hoverInfoService.GetRazorHoverInfoAsync(
             requestContext.GetRequiredDocumentContext(),
             positionInfo,
             request.Position,
-            _documentMappingService,
             _clientCapabilities,
             cancellationToken);
 
     protected override Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorCohostRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-        => _hoverInfoService.HandleDelegatedResponseAsync(
+        => _hoverInfoService.TranslateDelegatedResponseAsync(
             response,
             requestContext.GetRequiredDocumentContext(),
             positionInfo,
-            _documentMappingService,
             cancellationToken);
 }

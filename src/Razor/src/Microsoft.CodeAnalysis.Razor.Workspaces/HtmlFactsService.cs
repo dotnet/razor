@@ -141,7 +141,7 @@ internal static class HtmlFactsService
     public static bool TryGetElementInfo(
         SyntaxNode element,
         [NotNullWhen(true)] out SyntaxToken? containingTagNameToken,
-        [NotNullWhen(true)] out SyntaxList<RazorSyntaxNode> attributeNodes,
+        out SyntaxList<RazorSyntaxNode> attributeNodes,
         [NotNullWhen(true)] out SyntaxToken? closingForwardSlashOrCloseAngleToken)
     {
         switch (element)

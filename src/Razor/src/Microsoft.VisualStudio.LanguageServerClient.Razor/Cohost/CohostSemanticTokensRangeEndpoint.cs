@@ -50,15 +50,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
         var documentContext = context.GetRequiredDocumentContext();
 
         _logger.LogDebug("[Cohost] Received semantic range request for {requestPath} and got document {documentPath}", request.TextDocument.Uri, documentContext.FilePath);
-
-        // TODO: We can't MEF import IRazorCohostClientLanguageServerManager in the constructor. We can make this work
-        //       by having it implement a base class, RazorClientConnectionBase or something, that in turn implements
-        //       AbstractRazorLspService (defined in Roslyn) and then move everything from importing IClientConnection
-        //       to importing the new base class, so we can continue to share services.
-        //
-        //       Until then we have to get the service from the request context.
-        var clientLanguageServerManager = context.GetRequiredService<IRazorCohostClientLanguageServerManager>();
-        var clientConnection = new RazorCohostClientConnection(clientLanguageServerManager);
+        var clientConnection = context.GetClientConnection();
 
         // TODO: This is currently using the "VS" client settings manager, since that's where we are running. In future
         //       we should create a hook into Roslyn's LSP options infra so we get the option values from the LSP client

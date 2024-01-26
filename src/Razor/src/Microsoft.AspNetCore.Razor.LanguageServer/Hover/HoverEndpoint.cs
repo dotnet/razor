@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -18,20 +19,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 [LanguageServerEndpoint(Methods.TextDocumentHoverName)]
 internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?>, ICapabilitiesProvider
 {
-    private readonly IHoverInfoService _hoverInfoService;
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IHoverService _hoverService;
     private VSInternalClientCapabilities? _clientCapabilities;
 
     public HoverEndpoint(
-        IHoverInfoService hoverInfoService,
+        IHoverService hoverInfoService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IRazorLoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<HoverEndpoint>())
     {
-        _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
-        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+        _hoverService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
+        Debug.Assert(languageServerFeatureOptions.UseRazorCohostServer == false, "This endpoint should not be registered when using the Razor Cohost server.");
     }
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
@@ -56,19 +56,17 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
     }
 
     protected override Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-        => _hoverInfoService.GetHoverInfoAsync(
+        => _hoverService.GetRazorHoverInfoAsync(
             requestContext.GetRequiredDocumentContext(),
             positionInfo,
             request.Position,
-            _documentMappingService,
             _clientCapabilities,
             cancellationToken);
 
     protected override Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-        => _hoverInfoService.HandleDelegatedResponseAsync(
+        => _hoverService.TranslateDelegatedResponseAsync(
             response,
             requestContext.GetRequiredDocumentContext(),
             positionInfo,
-            _documentMappingService,
             cancellationToken);
 }
