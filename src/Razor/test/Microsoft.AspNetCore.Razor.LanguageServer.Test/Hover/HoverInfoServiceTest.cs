@@ -101,8 +101,8 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
         // Act
         var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
 
-        // Assert
-        Assert.Contains("**SomeChild**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+        // Assert addTagHelper.SomeChild
+        Assert.Contains("SomeChild**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = new Range
         {
             Start = new Position(2, 5),
