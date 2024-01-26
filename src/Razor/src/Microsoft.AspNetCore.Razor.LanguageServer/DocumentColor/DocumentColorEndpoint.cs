@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -18,7 +19,7 @@ internal sealed class DocumentColorEndpoint(IDocumentColorService documentColorS
     public bool MutatesSolutionState => false;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
-        => _documentColorService.ApplyCapabilities(serverCapabilities, clientCapabilities);
+        => serverCapabilities.EnableDocumentColorProvider();
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentColorParams request)
         => request.TextDocument;
