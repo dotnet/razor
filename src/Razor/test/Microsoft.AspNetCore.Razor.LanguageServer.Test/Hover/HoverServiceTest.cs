@@ -1023,7 +1023,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         return service.GetTestAccessor();
     }
 
-    private HoverService GetHoverService(IRazorDocumentMappingService? mappingService = null)
+    private HoverService GetHoverService(IRazorDocumentMappingService mappingService = null)
     {
         var snapshotResolver = new TestSnapshotResolver();
         var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
