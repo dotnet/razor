@@ -44,16 +44,18 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-        _serverMessageFormatter = CreateJsonMessageFormatter();
+        var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
+
+        _serverMessageFormatter = CreateJsonMessageFormatter(languageServerFactory);
         _serverMessageHandler = new HeaderDelimitedMessageHandler(serverStream, serverStream, _serverMessageFormatter);
         _serverRpc = new JsonRpc(_serverMessageHandler)
         {
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
 
-        _languageServer = CreateLanguageServer(_serverRpc, testWorkspace, exportProvider, serverCapabilities);
+        _languageServer = CreateLanguageServer(_serverRpc, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
 
-        _clientMessageFormatter = CreateJsonMessageFormatter();
+        _clientMessageFormatter = CreateJsonMessageFormatter(languageServerFactory);
         _clientMessageHandler = new HeaderDelimitedMessageHandler(clientStream, clientStream, _clientMessageFormatter);
         _clientRpc = new JsonRpc(_clientMessageHandler)
         {
@@ -62,12 +64,13 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         _clientRpc.StartListening();
 
-        static JsonMessageFormatter CreateJsonMessageFormatter()
+        static JsonMessageFormatter CreateJsonMessageFormatter(IRazorLanguageServerFactoryWrapper languageServerFactory)
         {
             var messageFormatter = new JsonMessageFormatter();
             VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
 
-            AddRoslynConverters(messageFormatter.JsonSerializer);
+            // Roslyn has its own converters since it doesn't use MS.VS.LS.Protocol
+            languageServerFactory.AddJsonConverters(messageFormatter.JsonSerializer);
 
             return messageFormatter;
         }
@@ -75,6 +78,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
         static IRazorLanguageServerTarget CreateLanguageServer(
             JsonRpc serverRpc,
             Workspace workspace,
+            IRazorLanguageServerFactoryWrapper languageServerFactory,
             ExportProvider exportProvider,
             VSInternalServerCapabilities serverCapabilities)
         {
@@ -83,22 +87,12 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             var registrationService = exportProvider.GetExportedValue<RazorTestWorkspaceRegistrationService>();
             registrationService.Register(workspace);
 
-            var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
             var hostServices = workspace.Services.HostServices;
             var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, capabilitiesProvider, hostServices);
 
             serverRpc.StartListening();
             return languageServer;
         }
-    }
-
-    private static void AddRoslynConverters(JsonSerializer jsonSerializer)
-    {
-        // HACK: We need to get Roslyn to add its converters to our serializer, because it no longer uses the VS protocol types.
-        //       Until we can expose that via EA etc., we have to do this via reflection
-        var extensionUtilitiesType = Type.GetType("Roslyn.LanguageServer.Protocol.VSInternalExtensionUtilities, Microsoft.CodeAnalysis.LanguageServer.Protocol").AssumeNotNull();
-        var addVSInternalExtensionConvertersMethod = extensionUtilitiesType.GetMethod("AddVSInternalExtensionConverters").AssumeNotNull();
-        addVSInternalExtensionConvertersMethod.Invoke(null, [jsonSerializer]);
     }
 
     internal static async Task<CSharpTestLspServer> CreateAsync(
