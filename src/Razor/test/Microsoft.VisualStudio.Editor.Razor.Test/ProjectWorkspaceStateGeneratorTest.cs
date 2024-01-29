@@ -26,7 +26,6 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
 {
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly TestTagHelperResolver _tagHelperResolver;
-    private readonly Workspace _workspace;
     private readonly Project _workspaceProject;
     private readonly ProjectSnapshot _projectSnapshot;
     private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
@@ -40,10 +39,11 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
             ImmutableArray.Create(TagHelperDescriptorBuilder.Create("ResolvableTagHelper", "TestAssembly").Build()));
 
         var testServices = TestServices.Create([], []);
-        _workspace = TestWorkspace.Create(testServices);
-        AddDisposable(_workspace);
+        var workspace = TestWorkspace.Create(testServices);
+        AddDisposable(workspace);
+
         var projectId = ProjectId.CreateNewId("Test");
-        var solution = _workspace.CurrentSolution.AddProject(ProjectInfo.Create(
+        var solution = workspace.CurrentSolution.AddProject(ProjectInfo.Create(
             projectId,
             VersionStamp.Default,
             "Test",
@@ -59,7 +59,7 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
 
     private IProjectSnapshotManagerAccessor CreateProjectManagerAccessor()
     {
-        var projectManager = new TestProjectSnapshotManager(_workspace, _projectEngineFactoryProvider, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager(_projectEngineFactoryProvider, Dispatcher);
         var mock = new Mock<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
         mock.SetupGet(x => x.Instance).Returns(projectManager);
 

@@ -51,7 +51,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _hostProject2 = new HostProject(TestProjectData.AnotherProject.FilePath, TestProjectData.AnotherProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_1, TestProjectData.AnotherProject.RootNamespace);
         _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
 
-        _projectManager = new TestProjectSnapshotManager(triggers: [], Workspace, ProjectEngineFactoryProvider, Dispatcher);
+        _projectManager = new TestProjectSnapshotManager(triggers: [], ProjectEngineFactoryProvider, Dispatcher);
 
         _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(someTagHelpers);
 
@@ -70,7 +70,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         var triggers = new[] { defaultPriorityTrigger, highPriorityTrigger };
 
         // Act
-        var projectManager = new TestProjectSnapshotManager(triggers, Workspace, ProjectEngineFactoryProvider, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager(triggers, ProjectEngineFactoryProvider, Dispatcher);
 
         // Assert
         Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);
@@ -649,10 +649,9 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
 
     private class TestProjectSnapshotManager(
         IEnumerable<IProjectSnapshotChangeTrigger> triggers,
-        Workspace workspace,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ProjectSnapshotManagerDispatcher dispatcher)
-        : DefaultProjectSnapshotManager(Mock.Of<IErrorReporter>(MockBehavior.Strict), triggers, workspace, projectEngineFactoryProvider, dispatcher)
+        : DefaultProjectSnapshotManager(triggers, projectEngineFactoryProvider, dispatcher, Mock.Of<IErrorReporter>(MockBehavior.Strict))
     {
         public ProjectChangeKind? ListenersNotifiedOf { get; private set; }
 

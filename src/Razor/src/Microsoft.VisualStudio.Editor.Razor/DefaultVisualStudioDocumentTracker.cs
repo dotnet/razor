@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -190,15 +189,16 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
     }
 
-    private IProjectSnapshot? GetOrCreateProject(string projectPath)
+    private IProjectSnapshot GetOrCreateProject(string projectPath)
     {
         _dispatcher.AssertDispatcherThread();
 
         var projectManager = _projectManagerAccessor.Instance;
 
-        var projectKey = projectManager.GetAllProjectKeys(projectPath).FirstOrDefault();
+        var projectKeys = projectManager.GetAllProjectKeys(projectPath);
 
-        if (projectManager.GetLoadedProject(projectKey) is not { } project)
+        if (projectKeys.Length == 0 ||
+            !projectManager.TryGetLoadedProject(projectKeys[0], out var project))
         {
             return new EphemeralProjectSnapshot(_projectEngineFactoryProvider, projectPath);
         }
@@ -249,7 +249,10 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
         {
             // This will be the new snapshot unless the project was removed.
-            _projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(e.ProjectKey);
+            if (!_projectManagerAccessor.Instance.TryGetLoadedProject(e.ProjectKey, out _projectSnapshot))
+            {
+                _projectSnapshot = null;
+            }
 
             switch (e.Kind)
             {
