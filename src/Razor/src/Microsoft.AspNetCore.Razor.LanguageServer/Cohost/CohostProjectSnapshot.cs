@@ -44,7 +44,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
         _lazyProjectEngine = new Lazy<RazorProjectEngine>(() =>
         {
             return ProjectEngineFactories.DefaultProvider.Create(
-                Configuration,
+                _lazyConfiguration.Value,
                 rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
                 configure: builder =>
                 {
@@ -77,7 +77,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
 
     public ProjectKey Key => _projectKey;
 
-    public RazorConfiguration Configuration => _lazyConfiguration.Value;
+    public RazorConfiguration Configuration => throw new InvalidOperationException("Should not be called for cohosted projects.");
 
     public IEnumerable<string> DocumentFilePaths
         => _project.AdditionalDocuments
