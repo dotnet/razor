@@ -232,7 +232,7 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
             // This event is called by the EditorDocumentManager, which runs on the UI thread.
             // However, due to accessing the project snapshot manager, we need to switch to
             // running on the project snapshot manager's specialized thread.
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 var document = (EditorDocument)sender;
 
@@ -242,11 +242,12 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
                     // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
                     // so fire some telemetry. We can't log details about the project, for PII reasons, but we can use document count and tag helper count
                     // as some kind of measure of complexity.
+                    var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
                     _telemetryReporter.ReportEvent(
                         "fallbackproject/documentopen",
                         Severity.Normal,
                         new Property("document.count", projectSnapshot.DocumentCount),
-                        new Property("taghelper.count", projectSnapshot.TagHelpers.Length));
+                        new Property("taghelper.count", tagHelpers.Length));
                 }
 
                 ProjectManager.DocumentOpened(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);

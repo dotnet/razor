@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -54,8 +55,9 @@ internal class CohostDocumentSnapshot(TextDocument textDocument, CohostProjectSn
         // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
 
         var projectEngine = _projectSnapshot.GetProjectEngine_CohostOnly();
+        var tagHelpers = await _projectSnapshot.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
         var imports = await DocumentState.ComputedStateTracker.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
-        _codeDocument = await DocumentState.ComputedStateTracker.GenerateCodeDocumentAsync(Project, projectEngine, this, imports).ConfigureAwait(false);
+        _codeDocument = await DocumentState.ComputedStateTracker.GenerateCodeDocumentAsync(tagHelpers, projectEngine, this, imports).ConfigureAwait(false);
 
         return _codeDocument;
     }
