@@ -92,7 +92,7 @@ World", cleanedSummary);
 
         // Assert
         Assert.True(result);
-        Assert.Equal(@"**SomeTagHelper**
+        Assert.Equal(@"Microsoft.AspNetCore.**SomeTagHelper**
 
 Uses `List<System.String>`s", markdown.Value);
         Assert.Equal(MarkupKind.Markdown, markdown.Kind);
@@ -115,7 +115,7 @@ Uses `List<System.String>`s", markdown.Value);
 
         // Assert
         Assert.True(result, "TryCreateTooltip should have succeeded");
-        Assert.Equal(@"SomeTagHelper
+        Assert.Equal(@"Microsoft.AspNetCore.SomeTagHelper
 
 Uses `List<System.String>`s", markdown.Value);
         Assert.Equal(MarkupKind.PlainText, markdown.Kind);
@@ -166,11 +166,11 @@ Uses `List<System.String>`s", markdown.Value);
 
         // Assert
         Assert.True(result);
-        Assert.Equal(@"**SomeTagHelper**
+        Assert.Equal(@"Microsoft.AspNetCore.**SomeTagHelper**
 
 Uses `List<System.String>`s
 ---
-**OtherTagHelper**
+Microsoft.AspNetCore.**OtherTagHelper**
 
 Also uses `List<System.String>`s", markdown.Value);
         Assert.Equal(MarkupKind.Markdown, markdown.Kind);
