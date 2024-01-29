@@ -9,29 +9,21 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 
 // This class is utilized entirely by the legacy Razor editor and should not be touched except when specifically working on the legacy editor to avoid breaking functionality.
 
 [Shared]
-[Export(typeof(TagHelperCompletionService))]
-internal class LegacyTagHelperCompletionService : TagHelperCompletionService
+[Export(typeof(ITagHelperCompletionService))]
+[method: ImportingConstructor]
+internal class LegacyTagHelperCompletionService(ITagHelperFactsService tagHelperFactsService) : ITagHelperCompletionService
 {
-    private readonly ITagHelperFactsService _tagHelperFactsService;
     private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
-    [ImportingConstructor]
-    public LegacyTagHelperCompletionService(ITagHelperFactsService tagHelperFactsService)
-    {
-        if (tagHelperFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(tagHelperFactsService));
-        }
-
-        _tagHelperFactsService = tagHelperFactsService;
-    }
+    private readonly ITagHelperFactsService _tagHelperFactsService = tagHelperFactsService;
 
     // This API attempts to understand a users context as they're typing in a Razor file to provide TagHelper based attribute IntelliSense.
     //
@@ -43,7 +35,7 @@ internal class LegacyTagHelperCompletionService : TagHelperCompletionService
     //
     // Within each of the above scenarios if an attribute completion has a corresponding bound attribute we associate it with the corresponding
     // BoundAttributeDescriptor. By doing this a user can see what C# type a TagHelper expects for the attribute.
-    public override AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext)
+    public AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext)
     {
         if (completionContext is null)
         {
@@ -166,7 +158,7 @@ internal class LegacyTagHelperCompletionService : TagHelperCompletionService
         }
     }
 
-    public override ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext)
+    public ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext)
     {
         if (completionContext is null)
         {
@@ -244,7 +236,7 @@ internal class LegacyTagHelperCompletionService : TagHelperCompletionService
             foreach (var completionTagName in elementCompletions.Keys)
             {
                 if (elementCompletions[completionTagName].Count > 0 ||
-                    (!string.IsNullOrEmpty(prefix) && completionTagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                    !string.IsNullOrEmpty(prefix) && completionTagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
                     // The current completion either has other TagHelper's associated with it or is prefixed with a non-empty
                     // TagHelper prefix.

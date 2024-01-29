@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
-using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.LanguageServerTagHelperCompletionService;
-using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
+using DefaultRazorTagHelperCompletionService = Microsoft.AspNetCore.Razor.LanguageServer.Completion.LspTagHelperCompletionService;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
@@ -21,7 +21,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
     protected const string RazorFile = "test.razor";
 
     protected ImmutableArray<TagHelperDescriptor> DefaultTagHelpers { get; }
-    private protected RazorTagHelperCompletionService RazorTagHelperCompletionService { get; }
+    private protected ITagHelperCompletionService RazorTagHelperCompletionService { get; }
     internal HtmlFactsService HtmlFactsService { get; }
     private protected ITagHelperFactsService TagHelperFactsService { get; }
 

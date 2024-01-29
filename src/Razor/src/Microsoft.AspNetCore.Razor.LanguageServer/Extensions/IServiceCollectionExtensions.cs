@@ -94,7 +94,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<AggregateCompletionItemResolver>();
         services.AddSingleton<CompletionItemResolver, RazorCompletionItemResolver>();
         services.AddSingleton<CompletionItemResolver, DelegatedCompletionItemResolver>();
-        services.AddSingleton<TagHelperCompletionService, LanguageServerTagHelperCompletionService>();
+        services.AddSingleton<ITagHelperCompletionService, LspTagHelperCompletionService>();
         services.AddSingleton<IRazorCompletionFactsService, RazorCompletionFactsService>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeCompletionItemProvider>();

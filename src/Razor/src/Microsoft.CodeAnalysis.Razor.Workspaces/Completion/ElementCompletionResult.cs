@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal sealed class ElementCompletionResult
 {

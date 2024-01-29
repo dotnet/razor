@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal sealed class AttributeCompletionContext
 {

@@ -28,12 +28,12 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.FromArray(new[] { ">" });
     private static readonly IReadOnlyList<RazorCommitCharacter> s_noCommitCharacters = Array.Empty<RazorCommitCharacter>();
     private readonly HtmlFactsService _htmlFactsService;
-    private readonly TagHelperCompletionService _tagHelperCompletionService;
+    private readonly ITagHelperCompletionService _tagHelperCompletionService;
     private readonly ITagHelperFactsService _tagHelperFactsService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public TagHelperCompletionProvider(
-        TagHelperCompletionService tagHelperCompletionService,
+        ITagHelperCompletionService tagHelperCompletionService,
         HtmlFactsService htmlFactsService,
         ITagHelperFactsService tagHelperFactsService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor)

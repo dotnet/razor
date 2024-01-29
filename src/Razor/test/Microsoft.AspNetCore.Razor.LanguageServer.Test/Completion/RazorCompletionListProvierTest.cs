@@ -63,7 +63,7 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
     {
         // Working around strong naming restriction.
         var tagHelperFactsService = new TagHelperFactsService();
-        var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
+        var tagHelperCompletionService = new LspTagHelperCompletionService(tagHelperFactsService);
 
         optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
 

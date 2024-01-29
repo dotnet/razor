@@ -4,22 +4,22 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-internal class LanguageServerTagHelperCompletionService : TagHelperCompletionService
+internal class LspTagHelperCompletionService : ITagHelperCompletionService
 {
     private readonly ITagHelperFactsService _tagHelperFactsService;
     private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
-    [ImportingConstructor]
-    public LanguageServerTagHelperCompletionService(ITagHelperFactsService tagHelperFactsService)
+    public LspTagHelperCompletionService(ITagHelperFactsService tagHelperFactsService)
     {
         if (tagHelperFactsService is null)
         {
@@ -39,7 +39,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
     //
     // Within each of the above scenarios if an attribute completion has a corresponding bound attribute we associate it with the corresponding
     // BoundAttributeDescriptor. By doing this a user can see what C# type a TagHelper expects for the attribute.
-    public override AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext)
+    public AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext)
     {
         if (completionContext is null)
         {
@@ -162,7 +162,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
         }
     }
 
-    public override ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext)
+    public ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext)
     {
         if (completionContext is null)
         {
@@ -253,7 +253,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
                 var tagHelperDescriptors = kvp.Value;
 
                 if (tagHelperDescriptors.Count > 0 ||
-                    (!string.IsNullOrEmpty(prefix) && completionTagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                    !string.IsNullOrEmpty(prefix) && completionTagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
                     // The current completion either has other TagHelper's associated with it or is prefixed with a non-empty
                     // TagHelper prefix.
