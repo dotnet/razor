@@ -1,9 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,28 +12,14 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
 
-internal class RazorDocumentExcerptService : DocumentExcerptServiceBase
+internal class RazorDocumentExcerptService(
+    IDocumentSnapshot document,
+    IRazorSpanMappingService mappingService) : DocumentExcerptService
 {
-    private readonly IDocumentSnapshot _document;
-    private readonly IRazorSpanMappingService _mappingService;
-
-    public RazorDocumentExcerptService(IDocumentSnapshot document, IRazorSpanMappingService mappingService)
-    {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        if (mappingService is null)
-        {
-            throw new ArgumentNullException(nameof(mappingService));
-        }
-
-        _document = document;
-        _mappingService = mappingService;
-    }
+    private readonly IDocumentSnapshot _document = document;
+    private readonly IRazorSpanMappingService _mappingService = mappingService;
 
     internal override async Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
         Document document,

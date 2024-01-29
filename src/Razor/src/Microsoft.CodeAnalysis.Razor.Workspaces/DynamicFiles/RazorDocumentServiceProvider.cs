@@ -3,11 +3,11 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
 
 internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRazorDocumentOperationService
 {
-    private readonly DynamicDocumentContainer? _documentContainer;
+    private readonly IDynamicDocumentContainer? _documentContainer;
     private readonly object _lock;
 
     private IRazorSpanMappingService? _spanMappingService;
@@ -19,7 +19,7 @@ internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRa
     {
     }
 
-    public RazorDocumentServiceProvider(DynamicDocumentContainer? documentContainer)
+    public RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer)
     {
         _documentContainer = documentContainer;
 
@@ -49,7 +49,7 @@ internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRa
                 }
             }
 
-            return (TService)_spanMappingService;
+            return (TService?)_spanMappingService;
         }
 
         if (serviceType == typeof(IRazorDocumentExcerptServiceImplementation))
@@ -62,7 +62,7 @@ internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRa
                 }
             }
 
-            return (TService)_documentExcerptService;
+            return (TService?)_documentExcerptService;
         }
 
         if (serviceType == typeof(IRazorDocumentPropertiesService))
@@ -75,7 +75,7 @@ internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRa
                 }
             }
 
-            return (TService)_documentPropertiesService;
+            return (TService?)_documentPropertiesService;
         }
 
         return this as TService;

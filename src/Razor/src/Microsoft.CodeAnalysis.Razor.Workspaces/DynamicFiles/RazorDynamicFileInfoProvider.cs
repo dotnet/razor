@@ -12,28 +12,29 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
 
 [Shared]
 [Export(typeof(IRazorDynamicFileInfoProvider))]
-[Export(typeof(RazorDynamicFileInfoProvider))]
+[Export(typeof(IRazorDynamicFileInfoProviderInternal))]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
-internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvider, IRazorDynamicFileInfoProvider
+internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInternal, IRazorDynamicFileInfoProvider, IProjectSnapshotChangeTrigger
 {
     private readonly ConcurrentDictionary<Key, Entry> _entries;
     private readonly Func<Key, Entry> _createEmptyEntry;
-    private readonly RazorDocumentServiceProviderFactory _factory;
+    private readonly IRazorDocumentServiceProviderFactory _factory;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly FilePathService _filePathService;
     private readonly IWorkspaceProvider _workspaceProvider;
     private readonly FallbackProjectManager _fallbackProjectManager;
 
     [ImportingConstructor]
-    public DefaultRazorDynamicFileInfoProvider(
-        RazorDocumentServiceProviderFactory factory,
+    public RazorDynamicFileInfoProvider(
+        IRazorDocumentServiceProviderFactory factory,
         LSPEditorFeatureDetector lspEditorFeatureDetector,
         FilePathService filePathService,
         IWorkspaceProvider workspaceProvider,
@@ -50,13 +51,13 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
 
     public event EventHandler<string>? Updated;
 
-    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    public void Initialize(ProjectSnapshotManagerBase projectManager)
     {
         projectManager.Changed += ProjectManager_Changed;
     }
 
     // Called by us to update LSP document entries
-    public override void UpdateLSPFileInfo(Uri documentUri, DynamicDocumentContainer documentContainer)
+    public void UpdateLSPFileInfo(Uri documentUri, IDynamicDocumentContainer documentContainer)
     {
         if (documentUri is null)
         {
@@ -95,7 +96,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     }
 
     // Called by us to update entries
-    public override void UpdateFileInfo(ProjectKey projectKey, DynamicDocumentContainer documentContainer)
+    public void UpdateFileInfo(ProjectKey projectKey, IDynamicDocumentContainer documentContainer)
     {
         if (documentContainer is null)
         {
@@ -190,7 +191,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     }
 
     // Called by us when a document opens in the editor
-    public override void SuppressDocument(ProjectKey projectKey, string documentFilePath)
+    public void SuppressDocument(ProjectKey projectKey, string documentFilePath)
     {
         if (documentFilePath is null)
         {
@@ -366,7 +367,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.CreateEmpty());
     }
 
-    private RazorDynamicFileInfo CreateInfo(Key key, DynamicDocumentContainer document)
+    private RazorDynamicFileInfo CreateInfo(Key key, IDynamicDocumentContainer document)
     {
         var projectKey = TryFindProjectKeyForProjectId(key.ProjectId).AssumeNotNull();
         var filename = _filePathService.GetRazorCSharpFilePath(projectKey, key.FilePath);
@@ -448,44 +449,37 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         }
     }
 
-    private class PromotedDynamicDocumentContainer : DynamicDocumentContainer
+    private sealed class PromotedDynamicDocumentContainer(
+        Uri documentUri,
+        IRazorDocumentPropertiesService documentPropertiesService,
+        IRazorDocumentExcerptServiceImplementation? documentExcerptService,
+        IRazorSpanMappingService? spanMappingService,
+        TextLoader textLoader) : IDynamicDocumentContainer
     {
-        private readonly Uri _documentUri;
-        private readonly IRazorDocumentPropertiesService _documentPropertiesService;
-        private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService;
-        private readonly IRazorSpanMappingService? _spanMappingService;
-        private readonly TextLoader _textLoader;
+        private readonly Uri _documentUri = documentUri;
+        private readonly IRazorDocumentPropertiesService _documentPropertiesService = documentPropertiesService;
+        private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService = documentExcerptService;
+        private readonly IRazorSpanMappingService? _spanMappingService = spanMappingService;
+        private readonly TextLoader _textLoader = textLoader;
 
-        public PromotedDynamicDocumentContainer(
-            Uri documentUri,
-            IRazorDocumentPropertiesService documentPropertiesService,
-            IRazorDocumentExcerptServiceImplementation? documentExcerptService,
-            IRazorSpanMappingService? spanMappingService,
-            TextLoader textLoader)
-        {
-            _documentUri = documentUri;
-            _documentPropertiesService = documentPropertiesService;
-            _documentExcerptService = documentExcerptService;
-            _spanMappingService = spanMappingService;
-            _textLoader = textLoader;
-        }
+        public string FilePath => _documentUri.LocalPath;
 
-        public override string FilePath => _documentUri.LocalPath;
+        public bool SupportsDiagnostics { get; set; }
 
-        public override IRazorDocumentPropertiesService GetDocumentPropertiesService() => _documentPropertiesService;
+        public IRazorDocumentPropertiesService GetDocumentPropertiesService() => _documentPropertiesService;
 
-        public override IRazorDocumentExcerptServiceImplementation? GetExcerptService() => _documentExcerptService;
+        public IRazorDocumentExcerptServiceImplementation? GetExcerptService() => _documentExcerptService;
 
-        public override IRazorSpanMappingService? GetMappingService() => _spanMappingService;
+        public IRazorSpanMappingService? GetMappingService() => _spanMappingService;
 
-        public override TextLoader GetTextLoader(string filePath) => _textLoader;
+        public TextLoader GetTextLoader(string filePath) => _textLoader;
     }
 
     public class TestAccessor
     {
-        private readonly DefaultRazorDynamicFileInfoProvider _provider;
+        private readonly RazorDynamicFileInfoProvider _provider;
 
-        public TestAccessor(DefaultRazorDynamicFileInfoProvider provider)
+        public TestAccessor(RazorDynamicFileInfoProvider provider)
         {
             _provider = provider;
         }

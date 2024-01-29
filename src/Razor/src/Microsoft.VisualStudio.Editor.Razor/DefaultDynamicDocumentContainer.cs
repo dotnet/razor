@@ -4,8 +4,8 @@
 using System;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.DynamicFiles;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -13,52 +13,37 @@ namespace Microsoft.CodeAnalysis.Razor;
 // Given a DocumentSnapshot this class allows the retrieval of a TextLoader for the generated C#
 // and services to help map spans and excerpts to and from the top-level Razor document to behind
 // the scenes C#.
-internal sealed class DefaultDynamicDocumentContainer : DynamicDocumentContainer
+internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot documentSnapshot) : IDynamicDocumentContainer
 {
-    private readonly IDocumentSnapshot _documentSnapshot;
+    private readonly IDocumentSnapshot _documentSnapshot = documentSnapshot ?? throw new ArgumentNullException(nameof(documentSnapshot));
     private RazorDocumentExcerptService? _excerptService;
     private RazorSpanMappingService? _mappingService;
 
-    public DefaultDynamicDocumentContainer(IDocumentSnapshot documentSnapshot)
-    {
-        if (documentSnapshot is null)
-        {
-            throw new ArgumentNullException(nameof(documentSnapshot));
-        }
+    public string FilePath => _documentSnapshot.FilePath.AssumeNotNull();
 
-        _documentSnapshot = documentSnapshot;
+    public bool SupportsDiagnostics
+    {
+        get => false;
+        set { }
     }
 
-    public override string FilePath => _documentSnapshot.FilePath.AssumeNotNull();
+    public TextLoader GetTextLoader(string filePath)
+        => new GeneratedDocumentTextLoader(_documentSnapshot, filePath);
 
-    public override bool SupportsDiagnostics => false;
+    public IRazorDocumentExcerptServiceImplementation GetExcerptService()
+        => _excerptService ?? InterlockedOperations.Initialize(ref _excerptService,
+            new RazorDocumentExcerptService(_documentSnapshot, GetMappingService()));
 
-    public override TextLoader GetTextLoader(string filePath) => new GeneratedDocumentTextLoader(_documentSnapshot, filePath);
+    public IRazorSpanMappingService GetMappingService()
+        => _mappingService ?? InterlockedOperations.Initialize(ref _mappingService,
+            new RazorSpanMappingService(_documentSnapshot));
 
-    public override IRazorDocumentExcerptServiceImplementation GetExcerptService()
-    {
-        if (_excerptService is null)
-        {
-            var mappingService = GetMappingService();
-            _excerptService = new RazorDocumentExcerptService(_documentSnapshot, mappingService);
-        }
-
-        return _excerptService;
-    }
-
-    public override IRazorSpanMappingService GetMappingService()
-    {
-        _mappingService ??= new RazorSpanMappingService(_documentSnapshot);
-
-        return _mappingService;
-    }
-
-    public override IRazorDocumentPropertiesService? GetDocumentPropertiesService()
+    public IRazorDocumentPropertiesService GetDocumentPropertiesService()
     {
         // DocumentPropertiesServices are used to tell Roslyn to provide C# diagnostics for LSP provided documents to be shown
         // in the editor given a specific Language Server Client. Given this type is a container for DocumentSnapshots, we don't
         // have a Language Server to associate errors with or an open document to display those errors on. We return `null` to
         // opt out of those features.
-        return null;
+        return null!;
     }
 }

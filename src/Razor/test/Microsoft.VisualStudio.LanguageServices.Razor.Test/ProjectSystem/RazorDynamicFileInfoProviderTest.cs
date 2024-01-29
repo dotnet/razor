@@ -12,33 +12,34 @@ using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.DynamicFiles;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
-using static Microsoft.CodeAnalysis.Razor.Workspaces.DefaultRazorDynamicFileInfoProvider;
+using static Microsoft.CodeAnalysis.Razor.DynamicFiles.RazorDynamicFileInfoProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.ProjectSystem;
 
-public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
+public class RazorDynamicFileInfoProviderTest : WorkspaceTestBase
 {
-    private readonly DefaultRazorDynamicFileInfoProvider _provider;
+    private readonly RazorDynamicFileInfoProvider _provider;
     private readonly TestAccessor _testAccessor;
-    private readonly RazorDocumentServiceProviderFactory _documentServiceFactory;
+    private readonly IRazorDocumentServiceProviderFactory _documentServiceFactory;
     private readonly LSPEditorFeatureDetector _editorFeatureDetector;
     private readonly TestProjectSnapshotManager _projectSnapshotManager;
     private readonly ProjectSnapshot _project;
     private readonly ProjectId _projectId;
     private readonly DocumentSnapshot _document1;
     private readonly DocumentSnapshot _document2;
-    private readonly DynamicDocumentContainer _lspDocumentContainer;
+    private readonly IDynamicDocumentContainer _lspDocumentContainer;
 
-    public DefaultRazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput)
+    public RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentServiceFactory = new DefaultRazorDocumentServiceProviderFactory();
+        _documentServiceFactory = new RazorDocumentServiceProviderFactory();
         _editorFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(MockBehavior.Strict);
         _projectSnapshotManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, new TestProjectSnapshotManagerDispatcher())
         {
@@ -61,11 +62,11 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
         var projectConfigurationFilePathStore = Mock.Of<ProjectConfigurationFilePathStore>(MockBehavior.Strict);
         var fallbackProjectManager = new FallbackProjectManager(projectConfigurationFilePathStore, languageServerFeatureOptions, projectSnapshotManagerAccessor, WorkspaceProvider, NoOpTelemetryReporter.Instance);
 
-        _provider = new DefaultRazorDynamicFileInfoProvider(_documentServiceFactory, _editorFeatureDetector, filePathService, WorkspaceProvider, fallbackProjectManager);
+        _provider = new RazorDynamicFileInfoProvider(_documentServiceFactory, _editorFeatureDetector, filePathService, WorkspaceProvider, fallbackProjectManager);
         _testAccessor = _provider.GetTestAccessor();
         _provider.Initialize(_projectSnapshotManager);
 
-        var lspDocumentContainer = new Mock<DynamicDocumentContainer>(MockBehavior.Strict);
+        var lspDocumentContainer = new Mock<IDynamicDocumentContainer>(MockBehavior.Strict);
         lspDocumentContainer.SetupSet(c => c.SupportsDiagnostics = true).Verifiable();
         lspDocumentContainer.Setup(container => container.GetTextLoader(It.IsAny<string>())).Returns(new EmptyTextLoader(string.Empty));
         _lspDocumentContainer = lspDocumentContainer.Object;
@@ -87,7 +88,7 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
         _provider.Updated += (sender, args) => throw new XunitException("Should not have been called.");
 
         // Act & Assert
-        var documentContainer = new Mock<DynamicDocumentContainer>(MockBehavior.Strict);
+        var documentContainer = new Mock<IDynamicDocumentContainer>(MockBehavior.Strict);
         documentContainer.SetupSet(c => c.SupportsDiagnostics = true).Verifiable();
         _provider.UpdateLSPFileInfo(new Uri("C:/this/does/not/exist.razor"), documentContainer.Object);
     }

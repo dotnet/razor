@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,27 +11,27 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
 
-internal abstract class DocumentExcerptServiceBase : IRazorDocumentExcerptServiceImplementation
+internal abstract class DocumentExcerptService : IRazorDocumentExcerptServiceImplementation
 {
-    public async Task<RazorExcerptResult?> TryExcerptAsync(
-                    Document document,
-                    TextSpan span,
-                    RazorExcerptMode mode,
-                    RazorClassificationOptionsWrapper options,
-                    CancellationToken cancellationToken)
+    async Task<RazorExcerptResult?> IRazorDocumentExcerptServiceImplementation.TryExcerptAsync(
+        Document document,
+        TextSpan span,
+        RazorExcerptMode mode,
+        RazorClassificationOptionsWrapper options,
+        CancellationToken cancellationToken)
     {
         var result = await TryGetExcerptInternalAsync(document, span, (ExcerptModeInternal)mode, options, cancellationToken).ConfigureAwait(false);
         return result?.ToExcerptResult();
     }
 
     internal abstract Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
-            Document document,
-            TextSpan span,
-            ExcerptModeInternal mode,
-            RazorClassificationOptionsWrapper options,
-            CancellationToken cancellationToken);
+        Document document,
+        TextSpan span,
+        ExcerptModeInternal mode,
+        RazorClassificationOptionsWrapper options,
+        CancellationToken cancellationToken);
 
     protected static TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, ExcerptModeInternal mode)
     {

@@ -5,13 +5,13 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
 
 [Shared]
-[Export(typeof(RazorDocumentServiceProviderFactory))]
-internal class DefaultRazorDocumentServiceProviderFactory : RazorDocumentServiceProviderFactory
+[Export(typeof(IRazorDocumentServiceProviderFactory))]
+internal sealed class RazorDocumentServiceProviderFactory : IRazorDocumentServiceProviderFactory
 {
-    public override IRazorDocumentServiceProvider Create(DynamicDocumentContainer documentContainer)
+    public IRazorDocumentServiceProvider Create(IDynamicDocumentContainer documentContainer)
     {
         if (documentContainer is null)
         {
@@ -21,7 +21,7 @@ internal class DefaultRazorDocumentServiceProviderFactory : RazorDocumentService
         return new RazorDocumentServiceProvider(documentContainer);
     }
 
-    public override IRazorDocumentServiceProvider CreateEmpty()
+    public IRazorDocumentServiceProvider CreateEmpty()
     {
         return new RazorDocumentServiceProvider();
     }

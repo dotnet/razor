@@ -9,8 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor.DynamicFiles;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Threading;
 
@@ -24,14 +24,14 @@ internal class BackgroundDocumentGenerator : IProjectSnapshotChangeTrigger
     internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work;
 
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-    private readonly RazorDynamicFileInfoProvider _infoProvider;
+    private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
     private readonly HashSet<string> _suppressedDocuments;
     private ProjectSnapshotManagerBase? _projectManager;
     private Timer? _timer;
     private bool _solutionIsClosing;
 
     [ImportingConstructor]
-    public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher dispatcher, RazorDynamicFileInfoProvider infoProvider)
+    public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher dispatcher, IRazorDynamicFileInfoProviderInternal infoProvider)
     {
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _infoProvider = infoProvider ?? throw new ArgumentNullException(nameof(infoProvider));
