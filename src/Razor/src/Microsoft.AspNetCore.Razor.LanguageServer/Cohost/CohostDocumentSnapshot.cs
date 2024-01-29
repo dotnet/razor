@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 
-internal class CohostDocumentSnapshot(TextDocument textDocument, IProjectSnapshot projectSnapshot) : IDocumentSnapshot
+internal class CohostDocumentSnapshot(TextDocument textDocument, CohostProjectSnapshot projectSnapshot) : IDocumentSnapshot
 {
     private readonly TextDocument _textDocument = textDocument;
-    private readonly IProjectSnapshot _projectSnapshot = projectSnapshot;
+    private readonly CohostProjectSnapshot _projectSnapshot = projectSnapshot;
 
     private RazorCodeDocument? _codeDocument;
 
@@ -53,8 +53,9 @@ internal class CohostDocumentSnapshot(TextDocument textDocument, IProjectSnapsho
         // and simply compiles when asked, and if a new document snapshot comes in, we compile again. This is presumably worse for perf
         // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
 
-        var imports = await DocumentState.ComputedStateTracker.GetImportsAsync(this).ConfigureAwait(false);
-        _codeDocument = await DocumentState.ComputedStateTracker.GenerateCodeDocumentAsync(Project, this, imports).ConfigureAwait(false);
+        var projectEngine = _projectSnapshot.GetProjectEngine_CohostOnly();
+        var imports = await DocumentState.ComputedStateTracker.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
+        _codeDocument = await DocumentState.ComputedStateTracker.GenerateCodeDocumentAsync(Project, projectEngine, this, imports).ConfigureAwait(false);
 
         return _codeDocument;
     }

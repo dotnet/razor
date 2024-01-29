@@ -223,9 +223,8 @@ internal class DocumentState
     }
 
     // Internal, because we are temporarily sharing code with CohostDocumentSnapshot
-    internal static ImmutableArray<IDocumentSnapshot> GetImportsCore(IProjectSnapshot project, string filePath, string fileKind)
+    internal static ImmutableArray<IDocumentSnapshot> GetImportsCore(IProjectSnapshot project, RazorProjectEngine projectEngine, string filePath, string fileKind)
     {
-        var projectEngine = project.GetProjectEngine();
         var projectItem = projectEngine.FileSystem.GetItem(filePath, fileKind);
 
         using var _1 = ListPool<RazorProjectItem>.GetPooledObject(out var importItems);
@@ -422,7 +421,7 @@ internal class DocumentState
             var configurationVersion = project.State.ConfigurationVersion;
             var projectWorkspaceStateVersion = project.State.ProjectWorkspaceStateVersion;
             var documentCollectionVersion = project.State.DocumentCollectionVersion;
-            var imports = await GetImportsAsync(document).ConfigureAwait(false);
+            var imports = await GetImportsAsync(document, project.GetProjectEngine()).ConfigureAwait(false);
             var documentVersion = await document.GetTextVersionAsync().ConfigureAwait(false);
 
             // OK now that have the previous output and all of the versions, we can see if anything
@@ -468,15 +467,14 @@ internal class DocumentState
                 }
             }
 
-            var codeDocument = await GenerateCodeDocumentAsync(project, document, imports).ConfigureAwait(false);
+            var codeDocument = await GenerateCodeDocumentAsync(project, project.GetProjectEngine(), document, imports).ConfigureAwait(false);
             return (codeDocument, inputVersion);
         }
 
-        internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(IProjectSnapshot project, IDocumentSnapshot document, ImmutableArray<ImportItem> imports)
+        internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(IProjectSnapshot project, RazorProjectEngine projectEngine, IDocumentSnapshot document, ImmutableArray<ImportItem> imports)
         {
             // OK we have to generate the code.
             using var importSources = new PooledArrayBuilder<RazorSourceDocument>(imports.Length);
-            var projectEngine = project.GetProjectEngine();
             foreach (var item in imports)
             {
                 var importProjectItem = item.FilePath is null ? null : projectEngine.FileSystem.GetItem(item.FilePath, item.FileKind);
@@ -496,9 +494,9 @@ internal class DocumentState
             return RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath));
         }
 
-        internal static async Task<ImmutableArray<ImportItem>> GetImportsAsync(IDocumentSnapshot document)
+        internal static async Task<ImmutableArray<ImportItem>> GetImportsAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine)
         {
-            var imports = DocumentState.GetImportsCore(document.Project, document.FilePath.AssumeNotNull(), document.FileKind.AssumeNotNull());
+            var imports = DocumentState.GetImportsCore(document.Project, projectEngine, document.FilePath.AssumeNotNull(), document.FileKind.AssumeNotNull());
             using var result = new PooledArrayBuilder<ImportItem>(imports.Length);
 
             foreach (var snapshot in imports)

@@ -57,7 +57,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
         _tagHelpersLazy = new AsyncLazy<ImmutableArray<TagHelperDescriptor>>(() =>
         {
             var resolver = new CompilationTagHelperResolver(_telemetryReporter);
-            return resolver.GetTagHelpersAsync(_project, GetProjectEngine(), CancellationToken.None).AsTask();
+            return resolver.GetTagHelpersAsync(_project, _lazyProjectEngine.Value, CancellationToken.None).AsTask();
         }, joinableTaskContext.Factory);
 
         _projectWorkspaceStateLazy = new Lazy<ProjectWorkspaceState>(() => ProjectWorkspaceState.Create(TagHelpers, CSharpLanguageVersion));
@@ -67,7 +67,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
             var importsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizer.Comparer);
             foreach (var document in DocumentFilePaths)
             {
-                var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(document, FileKinds.GetFileKindFromFilePath(document), GetProjectEngine());
+                var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(document, FileKinds.GetFileKindFromFilePath(document), _lazyProjectEngine.Value);
                 importsToRelatedDocuments = ProjectState.AddToImportsToRelatedDocuments(importsToRelatedDocuments, document, importTargetPaths);
             }
 
@@ -111,7 +111,13 @@ internal class CohostProjectSnapshot : IProjectSnapshot
         return _documentSnapshotFactory.GetOrCreate(textDocument);
     }
 
-    public RazorProjectEngine GetProjectEngine() => _lazyProjectEngine.Value;
+    public RazorProjectEngine GetProjectEngine() => throw new InvalidOperationException("Should not be called for cohosted projects.");
+
+    /// <summary>
+    /// NOTE: To be called only from CohostDocumentSnapshot.GetGeneratedOutputAsync(). Will be removed when that method uses the source generator directly.
+    /// </summary>
+    /// <returns></returns>
+    internal RazorProjectEngine GetProjectEngine_CohostOnly() => _lazyProjectEngine.Value;
 
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
