@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -73,25 +72,28 @@ internal class RazorDocumentExcerptService(
     private async Task<ImmutableArray<ClassifiedSpan>.Builder> ClassifyPreviewAsync(
         TextSpan excerptSpan,
         Document generatedDocument,
-        IReadOnlyList<SourceMapping> mappings,
+        ImmutableArray<SourceMapping> mappings,
         RazorClassificationOptionsWrapper options,
         CancellationToken cancellationToken)
     {
         var builder = ImmutableArray.CreateBuilder<ClassifiedSpan>();
 
-        var sorted = new List<SourceMapping>(mappings);
-        sorted.Sort((x, y) => x.OriginalSpan.AbsoluteIndex.CompareTo(y.OriginalSpan.AbsoluteIndex));
+        var sorted = mappings.Sort((x, y) => x.OriginalSpan.AbsoluteIndex.CompareTo(y.OriginalSpan.AbsoluteIndex));
 
         // The algorithm here is to iterate through the source mappings (sorted) and use the C# classifier
         // on the spans that are known to be C#. For the spans that are not known to be C# then
         // we just treat them as text since we'd don't currently have our own classifications.
 
         var remainingSpan = excerptSpan;
-        for (var i = 0; i < sorted.Count && excerptSpan.Length > 0; i++)
+        foreach (var span in sorted)
         {
-            var primarySpan = sorted[i].OriginalSpan.AsTextSpan();
-            var intersection = primarySpan.Intersection(remainingSpan);
-            if (intersection is null)
+            if (excerptSpan.Length > 0)
+            {
+                break;
+            }
+
+            var primarySpan = span.OriginalSpan.AsTextSpan();
+            if (primarySpan.Intersection(remainingSpan) is not TextSpan intersection)
             {
                 // This span is outside the area we're interested in.
                 continue;
@@ -99,9 +101,9 @@ internal class RazorDocumentExcerptService(
 
             // OK this span intersects with the excerpt span, so we will process it. Let's compute
             // the secondary span that matches the intersection.
-            var secondarySpan = sorted[i].GeneratedSpan.AsTextSpan();
-            secondarySpan = new TextSpan(secondarySpan.Start + intersection.Value.Start - primarySpan.Start, intersection.Value.Length);
-            primarySpan = intersection.Value;
+            var secondarySpan = span.GeneratedSpan.AsTextSpan();
+            secondarySpan = new TextSpan(secondarySpan.Start + intersection.Start - primarySpan.Start, intersection.Length);
+            primarySpan = intersection;
 
             if (remainingSpan.Start < primarySpan.Start)
             {

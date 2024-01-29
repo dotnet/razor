@@ -4,29 +4,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal class RazorSpanMappingService : IRazorSpanMappingService
+internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanMappingService
 {
-    private readonly IDocumentSnapshot _document;
-
-    public RazorSpanMappingService(IDocumentSnapshot document)
-    {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        _document = document;
-    }
+    private readonly IDocumentSnapshot _document = document;
 
     public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
         Document document,
@@ -46,19 +37,19 @@ internal class RazorSpanMappingService : IRazorSpanMappingService
         // Called on an uninitialized document.
         if (_document is null)
         {
-            return ImmutableArray.Create<RazorMappedSpanResult>();
+            return ImmutableArray<RazorMappedSpanResult>.Empty;
         }
 
         var source = await _document.GetTextAsync().ConfigureAwait(false);
         var output = await _document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
-        var results = ImmutableArray.CreateBuilder<RazorMappedSpanResult>();
+        using var results = new PooledArrayBuilder<RazorMappedSpanResult>();
+
         foreach (var span in spans)
         {
             if (TryGetMappedSpans(span, source, output.GetCSharpDocument(), out var linePositionSpan, out var mappedSpan))
             {
-                Debug.Assert(output.Source.FilePath != null);
-                results.Add(new RazorMappedSpanResult(output.Source.FilePath!, linePositionSpan, mappedSpan));
+                results.Add(new(output.Source.FilePath.AssumeNotNull(), linePositionSpan, mappedSpan));
             }
             else
             {
@@ -66,7 +57,7 @@ internal class RazorSpanMappingService : IRazorSpanMappingService
             }
         }
 
-        return results.ToImmutable();
+        return results.DrainToImmutable();
     }
 
     // Internal for testing.
