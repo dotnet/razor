@@ -30,7 +30,7 @@ public class ProjectSnapshotSynchronizationServiceTest : ProjectSnapshotManagerD
     {
         _sessionContext = new TestCollaborationSession(isHost: false);
 
-        var projectManager = new TestProjectSnapshotManager(Workspace, ProjectEngineFactoryProvider, new TestProjectSnapshotManagerDispatcher());
+        var projectManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, new TestProjectSnapshotManagerDispatcher());
 
         var projectManagerAccessorMock = new Mock<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
         projectManagerAccessorMock

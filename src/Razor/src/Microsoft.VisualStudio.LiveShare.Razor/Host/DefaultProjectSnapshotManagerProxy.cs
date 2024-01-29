@@ -17,7 +17,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 {
     private readonly CollaborationSession _session;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
+    private readonly IProjectSnapshotManager _projectSnapshotManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly AsyncSemaphore _latestStateSemaphore;
     private bool _disposed;
@@ -29,7 +29,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
     public DefaultProjectSnapshotManagerProxy(
         CollaborationSession session,
         ProjectSnapshotManagerDispatcher dispatcher,
-        ProjectSnapshotManager projectSnapshotManager,
+        IProjectSnapshotManager projectSnapshotManager,
         JoinableTaskFactory joinableTaskFactory)
     {
         if (session is null)
