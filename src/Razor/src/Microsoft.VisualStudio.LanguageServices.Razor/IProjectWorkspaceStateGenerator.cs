@@ -2,9 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
 internal interface IProjectWorkspaceStateGenerator
 {

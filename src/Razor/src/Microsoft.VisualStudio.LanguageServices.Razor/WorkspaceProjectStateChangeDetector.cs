@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -10,45 +10,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
-[Shared]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
-internal class WorkspaceProjectStateChangeDetector : IProjectSnapshotChangeTrigger, IDisposable
+[method: ImportingConstructor]
+internal class WorkspaceProjectStateChangeDetector(
+    IProjectWorkspaceStateGenerator workspaceStateGenerator,
+    LanguageServerFeatureOptions options,
+    IWorkspaceProvider workspaceProvider,
+    ProjectSnapshotManagerDispatcher dispatcher,
+    IErrorReporter errorReporter) : IProjectSnapshotChangeTrigger, IDisposable
 {
     private static readonly TimeSpan s_batchingDelay = TimeSpan.FromSeconds(1);
+
+    private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator = workspaceStateGenerator;
+    private readonly LanguageServerFeatureOptions _options = options;
+    private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
+    private readonly IErrorReporter _errorReporter = errorReporter;
+
     private readonly object _disposedLock = new();
     private readonly object _workQueueAccessLock = new();
-    private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator;
-    private readonly LanguageServerFeatureOptions _options;
-    private readonly IWorkspaceProvider _workspaceProvider;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-    private readonly IErrorReporter _errorReporter;
+
     private BatchingWorkQueue? _workQueue;
     private ProjectSnapshotManagerBase? _projectManager;
     private bool _disposed;
 
     private ProjectSnapshotManagerBase ProjectSnapshotManager
         => _projectManager ?? throw new InvalidOperationException($"ProjectManager was accessed before Initialize was called");
-
-    [ImportingConstructor]
-    public WorkspaceProjectStateChangeDetector(
-        IProjectWorkspaceStateGenerator workspaceStateGenerator,
-        LanguageServerFeatureOptions options,
-        IWorkspaceProvider workspaceProvider,
-        ProjectSnapshotManagerDispatcher dispatcher,
-        IErrorReporter errorReporter)
-    {
-        _workspaceStateGenerator = workspaceStateGenerator;
-        _options = options;
-        _workspaceProvider = workspaceProvider;
-        _dispatcher = dispatcher;
-        _errorReporter = errorReporter;
-    }
 
     // Internal for testing
     internal WorkspaceProjectStateChangeDetector(
