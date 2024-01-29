@@ -30,7 +30,6 @@ internal class CohostProjectSnapshot : IProjectSnapshot
     private readonly Lazy<RazorConfiguration> _lazyConfiguration;
     private readonly Lazy<RazorProjectEngine> _lazyProjectEngine;
     private readonly AsyncLazy<ImmutableArray<TagHelperDescriptor>> _tagHelpersLazy;
-    private readonly Lazy<ProjectWorkspaceState> _projectWorkspaceStateLazy;
     private readonly Lazy<ImmutableDictionary<string, ImmutableArray<string>>> _importsToRelatedDocumentsLazy;
 
     public CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter, JoinableTaskContext joinableTaskContext)
@@ -59,8 +58,6 @@ internal class CohostProjectSnapshot : IProjectSnapshot
             var resolver = new CompilationTagHelperResolver(_telemetryReporter);
             return resolver.GetTagHelpersAsync(_project, _lazyProjectEngine.Value, CancellationToken.None).AsTask();
         }, joinableTaskContext.Factory);
-
-        _projectWorkspaceStateLazy = new Lazy<ProjectWorkspaceState>(() => ProjectWorkspaceState.Create(TagHelpers, CSharpLanguageVersion));
 
         _importsToRelatedDocumentsLazy = new Lazy<ImmutableDictionary<string, ImmutableArray<string>>>(() =>
         {
@@ -98,7 +95,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => _tagHelpersLazy.GetValue();
 
-    public ProjectWorkspaceState ProjectWorkspaceState => _projectWorkspaceStateLazy.Value;
+    public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");
 
     public IDocumentSnapshot? GetDocument(string filePath)
     {
