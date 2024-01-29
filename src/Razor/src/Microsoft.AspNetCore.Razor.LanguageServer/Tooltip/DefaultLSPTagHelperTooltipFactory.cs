@@ -50,8 +50,20 @@ internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResol
             }
 
             var tagHelperType = descriptionInfo.TagHelperTypeName;
+            var reducedTypeName = ReduceTypeName(tagHelperType);
+
+            // If the reducedTypeName != tagHelperType, then the type is prefixed by a namespace
+            if (reducedTypeName != tagHelperType)
+            {
+                var removeStartIndex = tagHelperType.Length - reducedTypeName.Length;
+                var TypeNamespace = tagHelperType.Remove(removeStartIndex, reducedTypeName.Length);
+                descriptionBuilder.Append(TypeNamespace);
+
+            }
+
+            // We make the reducedTypeName bold while leaving the namespace the intact
             StartOrEndBold(descriptionBuilder, markupKind);
-            descriptionBuilder.Append(tagHelperType);
+            descriptionBuilder.Append(reducedTypeName);
             StartOrEndBold(descriptionBuilder, markupKind);
 
             var documentation = descriptionInfo.Documentation;
