@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -16,7 +16,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 
 // This class is utilized entirely by the legacy Razor editor and should not be touched except when specifically working on the legacy editor to avoid breaking functionality.
 
-[Shared]
 [Export(typeof(ITagHelperCompletionService))]
 internal class LegacyTagHelperCompletionService : ITagHelperCompletionService
 {
