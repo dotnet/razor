@@ -3,6 +3,16 @@
 Generated Location: (401:13,0 [6] )
 |TParam|
 
+Source Location: (49:1,30 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (907:26,30 [11] )
+|ParentValue|
+
+Source Location: (79:1,60 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|UpdateValue|
+Generated Location: (1300:34,60 [11] )
+|UpdateValue|
+
 Source Location: (103:2,7 [155] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public TParam ParentValue { get; set; } = default;

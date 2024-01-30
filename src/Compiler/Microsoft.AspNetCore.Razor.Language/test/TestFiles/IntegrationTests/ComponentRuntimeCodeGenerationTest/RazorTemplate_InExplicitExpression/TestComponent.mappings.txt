@@ -1,4 +1,19 @@
-﻿Source Location: (62:1,7 [138] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (2:0,2 [25] x:\dir\subdir\Test\TestComponent.cshtml)
+|RenderPerson((person) => |
+Generated Location: (678:17,24 [25] )
+|RenderPerson((person) => |
+
+Source Location: (34:0,34 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|person.Name|
+Generated Location: (871:21,25 [11] )
+|person.Name|
+
+Source Location: (51:0,51 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|)|
+Generated Location: (971:28,0 [1] )
+|)|
+
+Source Location: (62:1,7 [138] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     class Person
     {

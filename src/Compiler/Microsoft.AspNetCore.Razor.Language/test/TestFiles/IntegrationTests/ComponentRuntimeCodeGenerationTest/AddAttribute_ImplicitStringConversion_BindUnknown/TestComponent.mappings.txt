@@ -1,4 +1,9 @@
-﻿Source Location: (42:2,7 [34] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|c|
+Generated Location: (791:19,26 [1] )
+|c|
+
+Source Location: (42:2,7 [34] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private MyClass c = new();
 |

@@ -1,4 +1,21 @@
-﻿Source Location: (112:3,7 [72] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (1:0,1 [30] x:\dir\subdir\Test\TestComponent.cshtml)
+|using System.Threading.Tasks
+|
+Generated Location: (317:11,0 [30] )
+|using System.Threading.Tasks;|
+
+Source Location: (32:1,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web
+|
+Generated Location: (468:18,0 [43] )
+|using Microsoft.AspNetCore.Components.Web;|
+
+Source Location: (92:2,17 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|OnClick|
+Generated Location: (1163:32,17 [7] )
+|OnClick|
+
+Source Location: (112:3,7 [72] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     Task OnClick()
     {

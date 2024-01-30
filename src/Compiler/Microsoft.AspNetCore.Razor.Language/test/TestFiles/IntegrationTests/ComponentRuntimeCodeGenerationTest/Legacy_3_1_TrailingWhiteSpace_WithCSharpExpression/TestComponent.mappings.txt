@@ -1,0 +1,5 @@
+﻿Source Location: (20:2,2 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|"My value"|
+Generated Location: (748:18,24 [10] )
+|"My value"|
+

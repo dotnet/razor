@@ -3,8 +3,18 @@
 Generated Location: (642:17,2 [46] )
 | RenderFragment<string> header = (context) => |
 
+Source Location: (55:0,55 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+|context.ToLowerInvariant()|
+Generated Location: (932:26,25 [26] )
+|context.ToLowerInvariant()|
+
 Source Location: (87:0,87 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |; |
 Generated Location: (1228:35,87 [2] )
 |; |
+
+Source Location: (113:1,21 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|header|
+Generated Location: (1571:44,21 [6] )
+|header|
 
