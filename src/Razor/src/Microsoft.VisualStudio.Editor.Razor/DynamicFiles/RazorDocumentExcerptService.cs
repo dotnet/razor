@@ -6,12 +6,14 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
+namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 internal class RazorDocumentExcerptService(
     IDocumentSnapshot document,
@@ -87,7 +89,7 @@ internal class RazorDocumentExcerptService(
         var remainingSpan = excerptSpan;
         foreach (var span in sorted)
         {
-            if (excerptSpan.Length > 0)
+            if (excerptSpan.Length == 0)
             {
                 break;
             }

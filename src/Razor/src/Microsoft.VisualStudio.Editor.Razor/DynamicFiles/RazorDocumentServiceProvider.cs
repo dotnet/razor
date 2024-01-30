@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
+namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRazorDocumentOperationService
 {

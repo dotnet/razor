@@ -4,21 +4,22 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
+namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-[Shared]
 [Export(typeof(IRazorDynamicFileInfoProvider))]
 [Export(typeof(IRazorDynamicFileInfoProviderInternal))]
 [Export(typeof(IProjectSnapshotChangeTrigger))]

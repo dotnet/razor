@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.DynamicFiles;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.VisualStudio.Editor.Razor.DynamicFiles.Test;
 
 public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : DocumentExcerptServiceTestBase(testOutput)
 {

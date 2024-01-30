@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanMappingService
 {
@@ -80,7 +82,7 @@ internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanM
             if (leftOffset >= 0 && rightOffset <= 0)
             {
                 // This span mapping contains the span.
-                mappedSpan = new TextSpan(original.Start + leftOffset, (original.End + rightOffset) - (original.Start + leftOffset));
+                mappedSpan = new TextSpan(original.Start + leftOffset, original.End + rightOffset - (original.Start + leftOffset));
                 linePositionSpan = source.Lines.GetLinePositionSpan(mappedSpan);
                 return true;
             }

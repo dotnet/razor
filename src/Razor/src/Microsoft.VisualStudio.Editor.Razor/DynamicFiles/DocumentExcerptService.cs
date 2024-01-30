@@ -6,12 +6,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
+namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 internal abstract class DocumentExcerptService : IRazorDocumentExcerptServiceImplementation
 {

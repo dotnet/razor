@@ -12,14 +12,14 @@ using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.DynamicFiles;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
-using static Microsoft.CodeAnalysis.Razor.DynamicFiles.RazorDynamicFileInfoProvider;
+using static Microsoft.VisualStudio.Razor.DynamicFiles.RazorDynamicFileInfoProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.ProjectSystem;
 

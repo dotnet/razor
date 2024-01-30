@@ -3,11 +3,11 @@
 
 using System;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.DynamicFiles;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 // This types purpose is to serve as a non-Razor specific document delivery mechanism for Roslyn.
 // Given a DocumentSnapshot this class allows the retrieval of a TextLoader for the generated C#

@@ -4,7 +4,7 @@
 using System;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.DynamicFiles;
+namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 internal interface IRazorDynamicFileInfoProviderInternal
 {
