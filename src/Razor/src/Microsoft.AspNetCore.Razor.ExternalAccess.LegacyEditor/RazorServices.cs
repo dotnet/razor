@@ -32,7 +32,6 @@ internal sealed class RazorServices
         var tagHelperCompletionService = componentModel.GetService<ITagHelperCompletionService>();
         TagHelperCompletionService = RazorWrapperFactory.WrapTagHelperCompletionService(tagHelperCompletionService);
 
-        var tagHelperFactsService = componentModel.GetService<ITagHelperFactsService>();
-        TagHelperFactsService = RazorWrapperFactory.WrapTagHelperFactsService(tagHelperFactsService);
+        TagHelperFactsService = RazorWrapperFactory.GetWrappedTagHelperFactsService();
     }
 }

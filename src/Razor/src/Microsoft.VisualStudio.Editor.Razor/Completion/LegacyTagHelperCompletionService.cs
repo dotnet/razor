@@ -18,12 +18,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 
 [Shared]
 [Export(typeof(ITagHelperCompletionService))]
-[method: ImportingConstructor]
-internal class LegacyTagHelperCompletionService(ITagHelperFactsService tagHelperFactsService) : ITagHelperCompletionService
+internal class LegacyTagHelperCompletionService : ITagHelperCompletionService
 {
     private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
-
-    private readonly ITagHelperFactsService _tagHelperFactsService = tagHelperFactsService;
 
     // This API attempts to understand a users context as they're typing in a Razor file to provide TagHelper based attribute IntelliSense.
     //
@@ -48,7 +45,7 @@ internal class LegacyTagHelperCompletionService(ITagHelperFactsService tagHelper
             StringComparer.OrdinalIgnoreCase);
 
         var documentContext = completionContext.DocumentContext;
-        var descriptorsForTag = _tagHelperFactsService.GetTagHelpersGivenTag(documentContext, completionContext.CurrentTagName, completionContext.CurrentParentTagName);
+        var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(documentContext, completionContext.CurrentTagName, completionContext.CurrentParentTagName);
         if (descriptorsForTag.Length == 0)
         {
             // If the current tag has no possible descriptors then we can't have any additional attributes.
@@ -58,7 +55,7 @@ internal class LegacyTagHelperCompletionService(ITagHelperFactsService tagHelper
         var prefix = documentContext.Prefix ?? string.Empty;
         Debug.Assert(completionContext.CurrentTagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 
-        var applicableTagHelperBinding = _tagHelperFactsService.GetTagHelperBinding(
+        var applicableTagHelperBinding = TagHelperFacts.GetTagHelperBinding(
             documentContext,
             completionContext.CurrentTagName,
             completionContext.Attributes,
@@ -183,7 +180,7 @@ internal class LegacyTagHelperCompletionService(ITagHelperFactsService tagHelper
 
         var catchAllDescriptors = new HashSet<TagHelperDescriptor>();
         var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
-        var possibleChildDescriptors = _tagHelperFactsService.GetTagHelpersGivenParent(completionContext.DocumentContext, completionContext.ContainingTagName);
+        var possibleChildDescriptors = TagHelperFacts.GetTagHelpersGivenParent(completionContext.DocumentContext, completionContext.ContainingTagName);
         possibleChildDescriptors = FilterFullyQualifiedCompletions(possibleChildDescriptors);
         foreach (var possibleDescriptor in possibleChildDescriptors)
         {
@@ -280,7 +277,7 @@ internal class LegacyTagHelperCompletionService(ITagHelperFactsService tagHelper
 
         var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
 
-        var binding = _tagHelperFactsService.GetTagHelperBinding(
+        var binding = TagHelperFacts.GetTagHelperBinding(
             completionContext.DocumentContext,
             completionContext.ContainingTagName,
             completionContext.Attributes,
@@ -298,7 +295,7 @@ internal class LegacyTagHelperCompletionService(ITagHelperFactsService tagHelper
             foreach (var childTag in descriptor.AllowedChildTags)
             {
                 var prefixedName = string.Concat(prefix, childTag.Name);
-                var descriptors = _tagHelperFactsService.GetTagHelpersGivenTag(
+                var descriptors = TagHelperFacts.GetTagHelpersGivenTag(
                     completionContext.DocumentContext,
                     prefixedName,
                     completionContext.ContainingTagName);

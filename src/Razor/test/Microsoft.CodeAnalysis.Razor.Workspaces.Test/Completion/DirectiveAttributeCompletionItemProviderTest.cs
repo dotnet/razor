@@ -27,8 +27,8 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorToolingIntegrat
     public DirectiveAttributeCompletionItemProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _provider = new DirectiveAttributeCompletionItemProvider(new TagHelperFactsService());
-        _emptyAttributes = Enumerable.Empty<string>();
+        _provider = new DirectiveAttributeCompletionItemProvider();
+        _emptyAttributes = [];
 
         // Most of these completions rely on stuff in the web namespace.
         ImportItems.Add(CreateProjectItem(

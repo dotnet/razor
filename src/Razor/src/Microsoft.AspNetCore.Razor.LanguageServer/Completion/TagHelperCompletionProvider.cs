@@ -29,18 +29,15 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private static readonly IReadOnlyList<RazorCommitCharacter> s_noCommitCharacters = Array.Empty<RazorCommitCharacter>();
     private readonly HtmlFactsService _htmlFactsService;
     private readonly ITagHelperCompletionService _tagHelperCompletionService;
-    private readonly ITagHelperFactsService _tagHelperFactsService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public TagHelperCompletionProvider(
         ITagHelperCompletionService tagHelperCompletionService,
         HtmlFactsService htmlFactsService,
-        ITagHelperFactsService tagHelperFactsService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor)
     {
         _tagHelperCompletionService = tagHelperCompletionService ?? throw new ArgumentException(nameof(tagHelperCompletionService));
         _htmlFactsService = htmlFactsService ?? throw new ArgumentException(nameof(htmlFactsService));
-        _tagHelperFactsService = tagHelperFactsService ?? throw new ArgumentException(nameof(tagHelperFactsService));
         _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
     }
 
@@ -71,7 +68,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
             // Trying to complete the element type
-            var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
             var containingElement = owner.Parent;
             var elementCompletions = GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context);
             return elementCompletions;
@@ -107,7 +104,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
                 return ImmutableArray<RazorCompletionItem>.Empty;
             }
 
-            var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
 
             return GetAttributeCompletions(owner, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, context.TagHelperDocumentContext, context.Options);
 
@@ -139,7 +136,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         var ancestors = containingAttribute.Parent.Ancestors();
         var nonDirectiveAttributeTagHelpers = tagHelperDocumentContext.TagHelpers.Where(tagHelper => !tagHelper.BoundAttributes.Any(static attribute => attribute.IsDirectiveAttribute));
         var filteredContext = TagHelperDocumentContext.Create(tagHelperDocumentContext.Prefix, nonDirectiveAttributeTagHelpers);
-        var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
+        var (ancestorTagName, ancestorIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
         var attributeCompletionContext = new AttributeCompletionContext(
             filteredContext,
             existingCompletions: Array.Empty<string>(),
@@ -235,7 +232,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         RazorCompletionContext context)
     {
         var ancestors = containingElement.Ancestors();
-        var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
+        var (ancestorTagName, ancestorIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
         var elementCompletionContext = new ElementCompletionContext(
             context.TagHelperDocumentContext,
             context.ExistingCompletions,

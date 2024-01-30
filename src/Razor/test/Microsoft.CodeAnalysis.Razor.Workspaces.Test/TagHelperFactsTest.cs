@@ -14,7 +14,7 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
+public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
     public void GetTagHelperBinding_DoesNotAllowOptOutCharacterPrefix()
@@ -27,10 +27,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var binding = service.GetTagHelperBinding(documentContext, "!a", ImmutableArray<KeyValuePair<string, string>>.Empty, parentTag: null, parentIsTagHelper: false);
+        var binding = TagHelperFacts.GetTagHelperBinding(documentContext, "!a", ImmutableArray<KeyValuePair<string, string>>.Empty, parentTag: null, parentIsTagHelper: false);
 
         // Assert
         Assert.Null(binding);
@@ -69,12 +68,11 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build(),
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
         var attributes = ImmutableArray.Create(
             new KeyValuePair<string, string>("asp-for", "Name"));
 
         // Act
-        var binding = service.GetTagHelperBinding(documentContext, "a", attributes, parentTag: "p", parentIsTagHelper: false);
+        var binding = TagHelperFacts.GetTagHelperBinding(documentContext, "a", attributes, parentTag: "p", parentIsTagHelper: false);
 
         // Assert
         var descriptor = Assert.Single(binding.Descriptors);
@@ -109,11 +107,10 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
             documentDescriptors[0].BoundAttributes.Last()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
-        var binding = service.GetTagHelperBinding(documentContext, "a", ImmutableArray<KeyValuePair<string, string>>.Empty, parentTag: null, parentIsTagHelper: false);
+        var binding = TagHelperFacts.GetTagHelperBinding(documentContext, "a", ImmutableArray<KeyValuePair<string, string>>.Empty, parentTag: null, parentIsTagHelper: false);
 
         // Act
-        var tagHelperAttributes = service.GetBoundTagHelperAttributes(documentContext, "asp-route-something", binding);
+        var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(documentContext, "asp-route-something", binding);
 
         // Assert
         Assert.Equal(expectedAttributeDescriptors, tagHelperAttributes);
@@ -144,11 +141,10 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
             documentDescriptors[0].BoundAttributes.First()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
-        var binding = service.GetTagHelperBinding(documentContext, "input", ImmutableArray<KeyValuePair<string, string>>.Empty, parentTag: null, parentIsTagHelper: false);
+        var binding = TagHelperFacts.GetTagHelperBinding(documentContext, "input", ImmutableArray<KeyValuePair<string, string>>.Empty, parentTag: null, parentIsTagHelper: false);
 
         // Act
-        var tagHelperAttributes = service.GetBoundTagHelperAttributes(documentContext, "asp-for", binding);
+        var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(documentContext, "asp-for", binding);
 
         // Assert
         Assert.Equal(expectedAttributeDescriptors, tagHelperAttributes);
@@ -165,10 +161,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenTag(documentContext, "!strong", parentTag: null);
+        var descriptors = TagHelperFacts.GetTagHelpersGivenTag(documentContext, "!strong", parentTag: null);
 
         // Assert
         Assert.Empty(descriptors);
@@ -185,10 +180,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenTag(documentContext, "strong", "p");
+        var descriptors = TagHelperFacts.GetTagHelpersGivenTag(documentContext, "strong", "p");
 
         // Assert
         Assert.Equal(documentDescriptors, descriptors);
@@ -218,10 +212,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenTag(documentContext, "a", "div");
+        var descriptors = TagHelperFacts.GetTagHelpersGivenTag(documentContext, "a", "div");
 
         // Assert
         Assert.Equal(expectedDescriptors, descriptors);
@@ -245,10 +238,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create("th", documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenTag(documentContext, "thstrong", "div");
+        var descriptors = TagHelperFacts.GetTagHelpersGivenTag(documentContext, "thstrong", "div");
 
         // Assert
         Assert.Equal(expectedDescriptors, descriptors);
@@ -278,10 +270,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenTag(documentContext, "strong", "div");
+        var descriptors = TagHelperFacts.GetTagHelpersGivenTag(documentContext, "strong", "div");
 
         // Assert
         Assert.Equal(expectedDescriptors, descriptors);
@@ -298,10 +289,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenParent(documentContext, parentTag: null /* root */);
+        var descriptors = TagHelperFacts.GetTagHelpersGivenParent(documentContext, parentTag: null /* root */);
 
         // Assert
         Assert.Equal(documentDescriptors, descriptors);
@@ -323,10 +313,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenParent(documentContext, parentTag: null /* root */);
+        var descriptors = TagHelperFacts.GetTagHelpersGivenParent(documentContext, parentTag: null /* root */);
 
         // Assert
         var descriptor = Assert.Single(descriptors);
@@ -344,10 +333,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenParent(documentContext, "p");
+        var descriptors = TagHelperFacts.GetTagHelpersGivenParent(documentContext, "p");
 
         // Assert
         Assert.Equal(documentDescriptors, descriptors);
@@ -377,10 +365,9 @@ public class DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput) : To
                 .Build()
         };
         var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
-        var service = new TagHelperFactsService();
 
         // Act
-        var descriptors = service.GetTagHelpersGivenParent(documentContext, "div");
+        var descriptors = TagHelperFacts.GetTagHelpersGivenParent(documentContext, "div");
 
         // Assert
         Assert.Equal(expectedDescriptors, descriptors);

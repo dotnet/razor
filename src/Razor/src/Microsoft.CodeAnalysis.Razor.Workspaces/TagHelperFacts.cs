@@ -4,18 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-[Shared]
-[Export(typeof(ITagHelperFactsService))]
-internal class TagHelperFactsService : ITagHelperFactsService
+internal static class TagHelperFacts
 {
-    public TagHelperBinding? GetTagHelperBinding(
+    public static TagHelperBinding? GetTagHelperBinding(
         TagHelperDocumentContext documentContext,
         string? tagName,
         ImmutableArray<KeyValuePair<string, string>> attributes,
@@ -50,7 +47,7 @@ internal class TagHelperFactsService : ITagHelperFactsService
         return binding;
     }
 
-    public ImmutableArray<BoundAttributeDescriptor> GetBoundTagHelperAttributes(
+    public static ImmutableArray<BoundAttributeDescriptor> GetBoundTagHelperAttributes(
         TagHelperDocumentContext documentContext,
         string attributeName,
         TagHelperBinding binding)
@@ -89,7 +86,7 @@ internal class TagHelperFactsService : ITagHelperFactsService
         return matchingBoundAttributes.DrainToImmutable();
     }
 
-    public ImmutableArray<TagHelperDescriptor> GetTagHelpersGivenTag(
+    public static ImmutableArray<TagHelperDescriptor> GetTagHelpersGivenTag(
         TagHelperDocumentContext documentContext,
         string tagName,
         string? parentTag)
@@ -138,7 +135,7 @@ internal class TagHelperFactsService : ITagHelperFactsService
         return matchingDescriptors.DrainToImmutable();
     }
 
-    public ImmutableArray<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string? parentTag)
+    public static ImmutableArray<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string? parentTag)
     {
         if (documentContext is null)
         {
@@ -170,7 +167,7 @@ internal class TagHelperFactsService : ITagHelperFactsService
         return matchingDescriptors.DrainToImmutable();
     }
 
-    public ImmutableArray<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
+    public static ImmutableArray<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
     {
         using var stringifiedAttributes = new PooledArrayBuilder<KeyValuePair<string, string>>();
 
@@ -228,7 +225,7 @@ internal class TagHelperFactsService : ITagHelperFactsService
         return stringifiedAttributes.DrainToImmutable();
     }
 
-    public (string? ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
+    public static (string? ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
     {
         foreach (var ancestor in ancestors)
         {

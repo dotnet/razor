@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
@@ -1427,12 +1426,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
     }
 
     private static LspTagHelperCompletionService CreateTagHelperCompletionFactsService()
-    {
-        var tagHelperFactsService = new TagHelperFactsService();
-        var completionFactService = new LspTagHelperCompletionService(tagHelperFactsService);
-
-        return completionFactService;
-    }
+        => new LspTagHelperCompletionService();
 
     private static void AssertCompletionsAreEquivalent(ElementCompletionResult expected, ElementCompletionResult actual)
     {

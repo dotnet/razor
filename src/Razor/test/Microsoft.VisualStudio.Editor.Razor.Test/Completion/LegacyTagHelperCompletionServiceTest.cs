@@ -1341,13 +1341,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
         AssertCompletionsAreEquivalent(expectedCompletions, completions);
     }
 
-    private static LegacyTagHelperCompletionService CreateTagHelperCompletionFactsService()
-    {
-        var tagHelperFactsService = new TagHelperFactsService();
-        var completionFactService = new LegacyTagHelperCompletionService(tagHelperFactsService);
-
-        return completionFactService;
-    }
+    private static LegacyTagHelperCompletionService CreateTagHelperCompletionFactsService() => new LegacyTagHelperCompletionService();
 
     private static void AssertCompletionsAreEquivalent(ElementCompletionResult expected, ElementCompletionResult actual)
     {

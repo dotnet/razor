@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -23,45 +22,14 @@ using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.Ma
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
-internal sealed class HoverInfoService : IHoverInfoService
+internal sealed class HoverInfoService(
+    LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
+    VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
+    HtmlFactsService htmlFactsService) : IHoverInfoService
 {
-    private readonly ITagHelperFactsService _tagHelperFactsService;
-    private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
-    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
-    private readonly HtmlFactsService _htmlFactsService;
-
-    [ImportingConstructor]
-    public HoverInfoService(
-        ITagHelperFactsService tagHelperFactsService,
-        LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
-        VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
-        HtmlFactsService htmlFactsService)
-    {
-        if (tagHelperFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(tagHelperFactsService));
-        }
-
-        if (lspTagHelperTooltipFactory is null)
-        {
-            throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
-        }
-
-        if (vsLspTagHelperTooltipFactory is null)
-        {
-            throw new ArgumentNullException(nameof(vsLspTagHelperTooltipFactory));
-        }
-
-        if (htmlFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(htmlFactsService));
-        }
-
-        _tagHelperFactsService = tagHelperFactsService;
-        _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
-        _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
-        _htmlFactsService = htmlFactsService;
-    }
+    private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
+    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
+    private readonly HtmlFactsService _htmlFactsService = htmlFactsService;
 
     public async Task<VSInternalHover?> GetHoverInfoAsync(string documentFilePath, RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
     {
@@ -109,9 +77,9 @@ internal sealed class HoverInfoService : IHoverInfoService
 
             // Hovering over HTML tag name
             var ancestors = owner.Ancestors().Where(n => n.SpanStart != ownerStart);
-            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
-            var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-            var binding = _tagHelperFactsService.GetTagHelperBinding(
+            var (parentTag, parentIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
+            var binding = TagHelperFacts.GetTagHelperBinding(
                 tagHelperDocumentContext,
                 containingTagNameToken.Content,
                 stringifiedAttributes,
@@ -146,12 +114,12 @@ internal sealed class HoverInfoService : IHoverInfoService
             // would return the parent of the attribute, which is not helpful, as its just going to be the containing element
             var containingTag = containingTagNameToken.Parent;
             var ancestors = containingTag.Ancestors().Where<SyntaxNode>(n => n.SpanStart != containingTag.SpanStart);
-            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
+            var (parentTag, parentIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
 
             // Hovering over HTML attribute name
-            var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
 
-            var binding = _tagHelperFactsService.GetTagHelperBinding(
+            var binding = TagHelperFacts.GetTagHelperBinding(
                 tagHelperDocumentContext,
                 containingTagNameToken.Content,
                 stringifiedAttributes,
@@ -166,7 +134,7 @@ internal sealed class HoverInfoService : IHoverInfoService
             else
             {
                 Debug.Assert(binding.Descriptors.Any());
-                var tagHelperAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
+                var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
 
                 // Grab the first attribute that we find that intersects with this location. That way if there are multiple attributes side-by-side aka hovering over:
                 //      <input checked| minimized />

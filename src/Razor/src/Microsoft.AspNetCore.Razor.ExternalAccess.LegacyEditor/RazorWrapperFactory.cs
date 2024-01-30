@@ -181,11 +181,11 @@ internal static partial class RazorWrapperFactory
     internal static IRazorTagHelperCompletionService WrapTagHelperCompletionService(object obj)
         => Wrap<ITagHelperCompletionService, TagHelperCompletionServiceWrapper, IRazorTagHelperCompletionService>(obj, static obj => new TagHelperCompletionServiceWrapper(obj));
 
-    internal static IRazorTagHelperFactsService WrapTagHelperFactsService(object obj)
-        => Wrap<ITagHelperFactsService, TagHelperFactsServiceWrapper, IRazorTagHelperFactsService>(obj, static obj => new TagHelperFactsServiceWrapper(obj));
-
     internal static IRazorTagMatchingRuleDescriptor WrapTagMatchingRuleDescriptor(object obj)
         => Wrap<TagMatchingRuleDescriptor, TagMatchingRuleDescriptorWrapper, IRazorTagMatchingRuleDescriptor>(obj, static obj => new TagMatchingRuleDescriptorWrapper(obj));
+
+    internal static IRazorTagHelperFactsService GetWrappedTagHelperFactsService()
+        => TagHelperFactsServiceWrapper.Instance;
 
     internal static RazorSourceSpan ConvertSourceSpan(object obj)
     {
