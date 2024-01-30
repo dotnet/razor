@@ -5,29 +5,24 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Editor.Razor.Settings;
 
-[System.Composition.Shared]
 [Export(typeof(IClientSettingsManager))]
-[Export(typeof(EditorSettingsManager))]
-internal class ClientSettingsManager : EditorSettingsManager, IClientSettingsManager
+internal class ClientSettingsManager : IClientSettingsManager
 {
     public event EventHandler<ClientSettingsChangedEventArgs>? ClientSettingsChanged;
-    public override event EventHandler<EditorSettingsChangedEventArgs>? Changed;
 
     private readonly object _settingsUpdateLock = new();
     private readonly IAdvancedSettingsStorage? _advancedSettingsStorage;
     private readonly RazorGlobalOptions? _globalOptions;
     private ClientSettings _settings;
 
-    public override EditorSettings Current => new(_settings.ClientSpaceSettings.IndentWithTabs, _settings.ClientSpaceSettings.IndentSize);
-
     [ImportingConstructor]
     public ClientSettingsManager(
-        [ImportMany] IEnumerable<ClientSettingsChangedTrigger> editorSettingsChangeTriggers,
+        [ImportMany] IEnumerable<IClientSettingsChangedTrigger> changeTriggers,
         [Import(AllowDefault = true)] IAdvancedSettingsStorage? advancedSettingsStorage = null,
         RazorGlobalOptions? globalOptions = null)
     {
@@ -40,7 +35,7 @@ internal class ClientSettingsManager : EditorSettingsManager, IClientSettingsMan
             globalOptions.UseTabs = _settings.ClientSpaceSettings.IndentWithTabs;
         }
 
-        foreach (var changeTrigger in editorSettingsChangeTriggers)
+        foreach (var changeTrigger in changeTriggers)
         {
             changeTrigger.Initialize(this);
         }
@@ -54,6 +49,8 @@ internal class ClientSettingsManager : EditorSettingsManager, IClientSettingsMan
             _advancedSettingsStorage.OnChangedAsync(Update).Forget();
         }
     }
+
+    public ClientSettings GetClientSettings() => _settings;
 
     public void Update(ClientSpaceSettings updatedSettings)
     {
@@ -88,8 +85,6 @@ internal class ClientSettingsManager : EditorSettingsManager, IClientSettingsMan
         }
     }
 
-    public ClientSettings GetClientSettings() => _settings;
-
     public void Update(ClientAdvancedSettings advancedSettings)
     {
         if (advancedSettings is null)
@@ -111,13 +106,6 @@ internal class ClientSettingsManager : EditorSettingsManager, IClientSettingsMan
 
             var args = new ClientSettingsChangedEventArgs(_settings);
             ClientSettingsChanged?.Invoke(this, args);
-            Changed?.Invoke(this,
-                new(new EditorSettings(_settings.ClientSpaceSettings.IndentWithTabs, _settings.ClientSpaceSettings.IndentSize)));
         }
-    }
-
-    public override void Update(EditorSettings updateSettings)
-    {
-        Update(new ClientSpaceSettings(updateSettings.IndentWithTabs, updateSettings.IndentSize));
     }
 }

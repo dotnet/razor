@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -30,7 +30,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
     private readonly IContentType _nonRazorCoreContentType;
 
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
-    private readonly WorkspaceEditorSettings _workspaceEditorSettings;
+    private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
     private readonly ImportDocumentManager _importDocumentManager;
 
     public DefaultRazorDocumentManagerTest(ITestOutputHelper testOutput)
@@ -69,7 +69,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
 
         _projectManagerAccessor = projectManagerAccessorMock.Object;
 
-        _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(
+        _workspaceEditorSettings = new WorkspaceEditorSettings(
             Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
 
         var importDocumentManager = new Mock<ImportDocumentManager>(MockBehavior.Strict);

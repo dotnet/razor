@@ -4,7 +4,7 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.CodeAnalysis.Razor.Editor;
+namespace Microsoft.CodeAnalysis.Razor.Settings;
 
 /// <summary>
 /// Settings that are set and handled on the client, but needed by the LSP Server to function correctly. When these are
@@ -35,11 +35,4 @@ internal sealed record ClientSpaceSettings(bool IndentWithTabs, int IndentSize)
 internal sealed record ClientAdvancedSettings(bool FormatOnType, bool AutoClosingTags, bool AutoInsertAttributeQuotes, bool ColorBackground, bool CommitElementsWithSpace, SnippetSetting SnippetSetting, LogLevel LogLevel)
 {
     public static readonly ClientAdvancedSettings Default = new(FormatOnType: true, AutoClosingTags: true, AutoInsertAttributeQuotes: true, ColorBackground: false, CommitElementsWithSpace: true, SnippetSetting.All, LogLevel.Warning);
-}
-
-internal enum SnippetSetting
-{
-    All = 0,
-    Custom = 1,
-    None = 2
 }

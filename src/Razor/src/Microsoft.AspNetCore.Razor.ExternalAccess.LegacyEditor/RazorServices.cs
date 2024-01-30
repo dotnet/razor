@@ -4,6 +4,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
@@ -26,8 +27,8 @@ internal sealed class RazorServices
         var editorFactoryService = componentModel.GetService<RazorEditorFactoryService>();
         EditorFactoryService = RazorWrapperFactory.WrapEditorFactoryService(editorFactoryService);
 
-        var editorSettingsManager = componentModel.GetService<EditorSettingsManager>();
-        EditorSettingsManager = RazorWrapperFactory.WrapEditorSettingsManager(editorSettingsManager);
+        var clientSettingsManager = componentModel.GetService<IClientSettingsManager>();
+        EditorSettingsManager = RazorWrapperFactory.WrapClientSettingsManager(clientSettingsManager);
 
         var tagHelperCompletionService = componentModel.GetService<TagHelperCompletionService>();
         TagHelperCompletionService = RazorWrapperFactory.WrapTagHelperCompletionService(tagHelperCompletionService);

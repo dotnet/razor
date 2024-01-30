@@ -5,8 +5,8 @@ using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 
@@ -20,14 +20,14 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
     private readonly ProjectPathProvider _projectPathProvider;
     private readonly ImportDocumentManager _importDocumentManager;
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
-    private readonly WorkspaceEditorSettings _workspaceEditorSettings;
+    private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
 
     public DefaultVisualStudioDocumentTrackerFactory(
         ProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         IProjectSnapshotManagerAccessor projectManagerAccessor,
-        WorkspaceEditorSettings workspaceEditorSettings,
+        IWorkspaceEditorSettings workspaceEditorSettings,
         ProjectPathProvider projectPathProvider,
         ITextDocumentFactoryService textDocumentFactory,
         ImportDocumentManager importDocumentManager,

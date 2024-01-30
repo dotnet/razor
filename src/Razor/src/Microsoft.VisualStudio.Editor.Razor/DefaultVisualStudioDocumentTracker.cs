@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -26,7 +27,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     private readonly string _filePath;
     private readonly string _projectPath;
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
-    private readonly WorkspaceEditorSettings _workspaceEditorSettings;
+    private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
     private readonly ITextBuffer _textBuffer;
     private readonly ImportDocumentManager _importDocumentManager;
     private readonly List<ITextView> _textViews;
@@ -43,7 +44,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         string filePath,
         string projectPath,
         IProjectSnapshotManagerAccessor projectManagerAccessor,
-        WorkspaceEditorSettings workspaceEditorSettings,
+        IWorkspaceEditorSettings workspaceEditorSettings,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ITextBuffer textBuffer,
         ImportDocumentManager importDocumentManager)

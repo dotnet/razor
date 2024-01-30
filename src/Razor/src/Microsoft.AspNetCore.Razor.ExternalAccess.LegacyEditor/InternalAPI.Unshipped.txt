@@ -1,1 +1,3 @@
 ﻿#nullable enable
+static Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.RazorWrapperFactory.WrapClientSettingsManager(object! obj) -> Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.IRazorEditorSettingsManager!
+*REMOVED*static Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.RazorWrapperFactory.WrapEditorSettingsManager(object! obj) -> Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.IRazorEditorSettingsManager!

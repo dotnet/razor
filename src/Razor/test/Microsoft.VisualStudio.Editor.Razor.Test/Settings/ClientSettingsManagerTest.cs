@@ -1,21 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
-using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Editor.Razor.Settings;
 
 public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
-    private readonly IEnumerable<ClientSettingsChangedTrigger> _editorSettingsChangeTriggers = Array.Empty<ClientSettingsChangedTrigger>();
+    private readonly IEnumerable<IClientSettingsChangedTrigger> _clientSettingsChangeTriggers = [];
 
     [Fact]
     public void ChangeTriggersGetInitialized()
@@ -23,9 +21,10 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSn
         // Act
         var triggers = new TestChangeTrigger[]
         {
-            new TestChangeTrigger(),
-            new TestChangeTrigger(),
+            new(),
+            new(),
         };
+
         var manager = new ClientSettingsManager(triggers);
 
         // Assert
@@ -36,7 +35,7 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSn
     public void InitialSettingsAreDefault()
     {
         // Act
-        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
 
         // Assert
         Assert.Equal(ClientSettings.Default, manager.GetClientSettings());
@@ -46,9 +45,9 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSn
     public void Update_TriggersChangedIfEditorSettingsAreDifferent()
     {
         // Arrange
-        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
         var called = false;
-        manager.Changed += (caller, args) => called = true;
+        manager.ClientSettingsChanged += (caller, args) => called = true;
         var settings = new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 7);
 
         // Act
@@ -63,9 +62,9 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSn
     public void Update_DoesNotTriggerChangedIfEditorSettingsAreSame()
     {
         // Arrange
-        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
         var called = false;
-        manager.Changed += (caller, args) => called = true;
+        manager.ClientSettingsChanged += (caller, args) => called = true;
         var originalSettings = manager.GetClientSettings();
 
         // Act
@@ -80,9 +79,9 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSn
     public void Update_TriggersChangedIfAdvancedSettingsAreDifferent()
     {
         // Arrange
-        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
         var called = false;
-        manager.Changed += (caller, args) => called = true;
+        manager.ClientSettingsChanged += (caller, args) => called = true;
         var settings = new ClientAdvancedSettings(FormatOnType: false, AutoClosingTags: true, AutoInsertAttributeQuotes: true, ColorBackground: true, CommitElementsWithSpace: false, SnippetSetting: default, LogLevel: default);
 
         // Act
@@ -97,9 +96,9 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSn
     public void Update_DoesNotTriggerChangedIfAdvancedSettingsAreSame()
     {
         // Arrange
-        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
         var called = false;
-        manager.Changed += (caller, args) => called = true;
+        manager.ClientSettingsChanged += (caller, args) => called = true;
         var originalSettings = manager.GetClientSettings();
 
         // Act
@@ -119,42 +118,24 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : ProjectSn
             FormatOnType = !defaultSettings.FormatOnType
         };
 
-        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers, new AdvancedSettingsStorage(expectedSettings));
+        var manager = new ClientSettingsManager(_clientSettingsChangeTriggers, new AdvancedSettingsStorage(expectedSettings));
 
         Assert.Same(expectedSettings, manager.GetClientSettings().AdvancedSettings);
     }
 
-    private class TestChangeTrigger : ClientSettingsChangedTrigger
+    private class TestChangeTrigger : IClientSettingsChangedTrigger
     {
         public bool Initialized { get; private set; }
 
-        public override void Initialize(IClientSettingsManager clientSettingsManager)
+        public void Initialize(IClientSettingsManager clientSettingsManager)
         {
             Initialized = true;
         }
     }
 
-    private class AdvancedSettingsStorage : IAdvancedSettingsStorage
+    private sealed class AdvancedSettingsStorage(ClientAdvancedSettings settings) : IAdvancedSettingsStorage
     {
-        private readonly ClientAdvancedSettings _settings;
-
-        public AdvancedSettingsStorage(ClientAdvancedSettings settings)
-        {
-            _settings = settings;
-        }
-
-        public ClientAdvancedSettings GetAdvancedSettings()
-        {
-            return _settings;
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public Task OnChangedAsync(Action<ClientAdvancedSettings> changed)
-        {
-            return Task.CompletedTask;
-        }
+        public ClientAdvancedSettings GetAdvancedSettings() => settings;
+        public Task OnChangedAsync(Action<ClientAdvancedSettings> changed) => Task.CompletedTask;
     }
 }

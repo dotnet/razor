@@ -8,10 +8,10 @@ using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -33,7 +33,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
     private readonly HostProject _otherHostProject;
     private Project? _workspaceProject;
     private readonly ImportDocumentManager _importDocumentManager;
-    private readonly WorkspaceEditorSettings _workspaceEditorSettings;
+    private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
     private readonly ProjectSnapshotManagerBase _projectManager;
     private readonly DefaultVisualStudioDocumentTracker _documentTracker;
 
@@ -51,7 +51,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         Mock.Get(_importDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
         Mock.Get(_importDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
 
-        _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
+        _workspaceEditorSettings = new WorkspaceEditorSettings(Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
 
         _projectManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, Dispatcher) { AllowNotifyListeners = true };
 
