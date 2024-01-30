@@ -17,7 +17,7 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
-    private readonly ProjectPathProvider _projectPathProvider;
+    private readonly IProjectPathProvider _projectPathProvider;
     private readonly ImportDocumentManager _importDocumentManager;
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
     private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
@@ -28,7 +28,7 @@ internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentT
         JoinableTaskContext joinableTaskContext,
         IProjectSnapshotManagerAccessor projectManagerAccessor,
         IWorkspaceEditorSettings workspaceEditorSettings,
-        ProjectPathProvider projectPathProvider,
+        IProjectPathProvider projectPathProvider,
         ITextDocumentFactoryService textDocumentFactory,
         ImportDocumentManager importDocumentManager,
         IProjectEngineFactoryProvider projectEngineFactoryProvider)

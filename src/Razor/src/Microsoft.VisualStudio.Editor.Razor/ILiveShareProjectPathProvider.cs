@@ -3,6 +3,6 @@
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-internal abstract class LiveShareProjectPathProvider : ProjectPathProvider
+internal interface ILiveShareProjectPathProvider : IProjectPathProvider
 {
 }
