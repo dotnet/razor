@@ -32,7 +32,7 @@ internal interface IProjectSnapshot
     string DisplayName { get; }
     VersionStamp Version { get; }
     LanguageVersion CSharpLanguageVersion { get; }
-    Task<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken);
     ProjectWorkspaceState ProjectWorkspaceState { get; }
 
     RazorProjectEngine GetProjectEngine();

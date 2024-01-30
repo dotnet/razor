@@ -292,7 +292,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Returns(path);
         documentSnapshot
             .Setup(d => d.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(tagHelpers));
+            .Returns(new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers));
         documentSnapshot
             .Setup(d => d.FileKind)
             .Returns(fileKind);

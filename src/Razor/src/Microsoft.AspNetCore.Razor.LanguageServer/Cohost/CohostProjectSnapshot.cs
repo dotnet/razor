@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 
@@ -30,10 +29,11 @@ internal class CohostProjectSnapshot : IProjectSnapshot
     private readonly ProjectKey _projectKey;
     private readonly Lazy<RazorConfiguration> _lazyConfiguration;
     private readonly Lazy<RazorProjectEngine> _lazyProjectEngine;
-    private readonly AsyncLazy<ImmutableArray<TagHelperDescriptor>> _tagHelpersLazy;
     private readonly Lazy<ImmutableDictionary<string, ImmutableArray<string>>> _importsToRelatedDocumentsLazy;
 
-    public CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter, JoinableTaskContext joinableTaskContext)
+    private ImmutableArray<TagHelperDescriptor>? _tagHelpers;
+
+    public CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter)
     {
         _project = project;
         _documentSnapshotFactory = documentSnapshotFactory;
@@ -53,12 +53,6 @@ internal class CohostProjectSnapshot : IProjectSnapshot
                     builder.SetSupportLocalizedComponentNames();
                 });
         });
-
-        _tagHelpersLazy = new AsyncLazy<ImmutableArray<TagHelperDescriptor>>(() =>
-        {
-            var resolver = new CompilationTagHelperResolver(_telemetryReporter);
-            return resolver.GetTagHelpersAsync(_project, _lazyProjectEngine.Value, CancellationToken.None).AsTask();
-        }, joinableTaskContext.Factory);
 
         _importsToRelatedDocumentsLazy = new Lazy<ImmutableDictionary<string, ImmutableArray<string>>>(() =>
         {
@@ -94,8 +88,16 @@ internal class CohostProjectSnapshot : IProjectSnapshot
 
     public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions!).LanguageVersion;
 
-    public Task<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
-        => _tagHelpersLazy.GetValueAsync(cancellationToken);
+    public async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
+    {
+        if (_tagHelpers is null)
+        {
+            var resolver = new CompilationTagHelperResolver(_telemetryReporter);
+            _tagHelpers = await resolver.GetTagHelpersAsync(_project, _lazyProjectEngine.Value, cancellationToken).ConfigureAwait(false);
+        }
+
+        return _tagHelpers.GetValueOrDefault();
+    }
 
     public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");
 

@@ -51,7 +51,7 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
 
     public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
 
-    public Task<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => Task.FromResult(ProjectWorkspaceState.TagHelpers);
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => new(ProjectWorkspaceState.TagHelpers);
 
     public ProjectWorkspaceState ProjectWorkspaceState => ProjectWorkspaceState.Default;
 

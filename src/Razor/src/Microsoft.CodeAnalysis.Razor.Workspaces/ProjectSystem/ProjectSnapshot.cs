@@ -53,7 +53,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public virtual VersionStamp Version => State.Version;
 
-    public Task<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => Task.FromResult(State.TagHelpers);
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => new(State.TagHelpers);
 
     public ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
 

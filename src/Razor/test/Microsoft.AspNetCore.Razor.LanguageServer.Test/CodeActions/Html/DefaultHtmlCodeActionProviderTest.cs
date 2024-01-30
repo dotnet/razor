@@ -157,7 +157,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
             document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()) &&
-            document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == Task.FromResult(tagHelpers), MockBehavior.Strict);
+            document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);
 
