@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -64,17 +65,20 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
         var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectSnapshotManager.GetProjects()));
 
         // Assert
+        var project1TagHelpers = await _projectSnapshot1.GetTagHelpersAsync(CancellationToken.None);
+        var project2TagHelpers = await _projectSnapshot2.GetTagHelpersAsync(CancellationToken.None);
+
         Assert.Collection(
             state.ProjectHandles,
             handle =>
             {
                 Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                Assert.Equal<TagHelperDescriptor>(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                Assert.Equal<TagHelperDescriptor>(project1TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
             },
             handle =>
             {
                 Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                Assert.Equal<TagHelperDescriptor>(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                Assert.Equal<TagHelperDescriptor>(project2TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
             });
     }
 
@@ -161,17 +165,20 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
         var state = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
 
         // Assert
+        var project1TagHelpers = await _projectSnapshot1.GetTagHelpersAsync(CancellationToken.None);
+        var project2TagHelpers = await _projectSnapshot2.GetTagHelpersAsync(CancellationToken.None);
+
         Assert.Collection(
             state.ProjectHandles,
             handle =>
             {
                 Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                Assert.Equal<TagHelperDescriptor>(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                Assert.Equal<TagHelperDescriptor>(project1TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
             },
             handle =>
             {
                 Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                Assert.Equal<TagHelperDescriptor>(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                Assert.Equal<TagHelperDescriptor>(project2TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
             });
     }
 

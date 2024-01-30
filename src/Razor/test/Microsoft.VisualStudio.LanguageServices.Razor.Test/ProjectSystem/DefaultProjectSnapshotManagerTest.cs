@@ -211,20 +211,20 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     }
 
     [UIFact]
-    public void DocumentAdded_CachesTagHelpers()
+    public async Task DocumentAdded_CachesTagHelpers()
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
         _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         _projectManager.Reset();
 
-        var originalTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
+        var originalTagHelpers = await _projectManager.GetSnapshot(_hostProject).GetTagHelpersAsync(CancellationToken.None);
 
         // Act
         _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
 
         // Assert
-        var newTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
+        var newTagHelpers = await _projectManager.GetSnapshot(_hostProject).GetTagHelpersAsync(CancellationToken.None);
 
         Assert.Equal(originalTagHelpers.Length, newTagHelpers.Length);
         for (var i = 0; i < originalTagHelpers.Length; i++)
@@ -305,7 +305,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     }
 
     [UIFact]
-    public void DocumentRemoved_CachesTagHelpers()
+    public async Task DocumentRemoved_CachesTagHelpers()
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
@@ -315,13 +315,13 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null!);
         _projectManager.Reset();
 
-        var originalTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
+        var originalTagHelpers = await _projectManager.GetSnapshot(_hostProject).GetTagHelpersAsync(CancellationToken.None);
 
         // Act
         _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
 
         // Assert
-        var newTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
+        var newTagHelpers = await _projectManager.GetSnapshot(_hostProject).GetTagHelpersAsync(CancellationToken.None);
 
         Assert.Equal(originalTagHelpers.Length, newTagHelpers.Length);
         for (var i = 0; i < originalTagHelpers.Length; i++)

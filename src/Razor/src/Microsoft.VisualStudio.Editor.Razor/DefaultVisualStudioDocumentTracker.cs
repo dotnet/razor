@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -109,7 +110,18 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 
     public override ClientSpaceSettings EditorSettings => _workspaceEditorSettings.Current.ClientSpaceSettings;
 
-    public override ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectSnapshot?.TagHelpers ?? ImmutableArray<TagHelperDescriptor>.Empty;
+    public override ImmutableArray<TagHelperDescriptor> TagHelpers
+    {
+        get
+        {
+            if (ProjectSnapshot is null)
+            {
+                return ImmutableArray<TagHelperDescriptor>.Empty;
+            }
+
+            return ProjectSnapshot.GetTagHelpersSynchronously();
+        }
+    }
 
     public override bool IsSupportedProject => _isSupportedProject;
 
@@ -270,7 +282,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
                     _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
 
                     if (e.Older is null ||
-                        !e.Older.TagHelpers.SequenceEqual(e.Newer!.TagHelpers))
+                        !e.Older.GetTagHelpersSynchronously().SequenceEqual(e.Newer!.GetTagHelpersSynchronously()))
                     {
                         _ = OnContextChangedAsync(ContextChangeKind.TagHelpersChanged);
                     }
