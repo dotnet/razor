@@ -55,7 +55,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         };
 
     [Fact]
-    public void GetHoverInfo_TagHelper_Element()
+    public async Task GetHoverInfo_TagHelper_Element()
     {
         // Arrange
         var txt = """
@@ -69,7 +69,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -82,7 +82,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_Element_WithParent()
+    public async Task GetHoverInfo_TagHelper_Element_WithParent()
     {
         // Arrange
         var txt = """
@@ -98,7 +98,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**SomeChild**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -111,7 +111,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_Attribute_WithParent()
+    public async Task GetHoverInfo_TagHelper_Attribute_WithParent()
     {
         // Arrange
         var txt = """
@@ -127,7 +127,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**Attribute**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -136,7 +136,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_Element_EndTag()
+    public async Task GetHoverInfo_TagHelper_Element_EndTag()
     {
         // Arrange
         var txt = """
@@ -150,7 +150,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -163,7 +163,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_Attribute()
+    public async Task GetHoverInfo_TagHelper_Attribute()
     {
         // Arrange
         var txt = """
@@ -177,7 +177,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -191,7 +191,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_AttributeTrailingEdge()
+    public async Task GetHoverInfo_TagHelper_AttributeTrailingEdge()
     {
         // Arrange
         var txt = """
@@ -206,7 +206,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(edgeLocation, 0, edgeLocation);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -220,7 +220,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_AttributeValue_ReturnsNull()
+    public async Task GetHoverInfo_TagHelper_AttributeValue_ReturnsNull()
     {
         // Arrange
         var txt = """
@@ -234,14 +234,14 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Null(hover);
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_AfterAttributeEquals_ReturnsNull()
+    public async Task GetHoverInfo_TagHelper_AfterAttributeEquals_ReturnsNull()
     {
         // Arrange
         var txt = """
@@ -255,14 +255,14 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Null(hover);
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_AttributeEnd_ReturnsNull()
+    public async Task GetHoverInfo_TagHelper_AttributeEnd_ReturnsNull()
     {
         // Arrange
         var txt = """
@@ -276,14 +276,14 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Null(hover);
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_MinimizedAttribute()
+    public async Task GetHoverInfo_TagHelper_MinimizedAttribute()
     {
         // Arrange
         var txt = """
@@ -297,7 +297,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -311,7 +311,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_DirectiveAttribute_HasResult()
+    public async Task GetHoverInfo_DirectiveAttribute_HasResult()
     {
         // Arrange
         var txt = """
@@ -329,7 +329,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.NotNull(hover);
@@ -343,7 +343,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_MalformedElement()
+    public async Task GetHoverInfo_TagHelper_MalformedElement()
     {
         // Arrange
         var txt = """
@@ -357,7 +357,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -370,7 +370,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_MalformedAttribute()
+    public async Task GetHoverInfo_TagHelper_MalformedAttribute()
     {
         // Arrange
         var txt = """
@@ -384,7 +384,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -398,7 +398,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_HTML_MarkupElement()
+    public async Task GetHoverInfo_HTML_MarkupElement()
     {
         // Arrange
         var txt = """
@@ -412,14 +412,14 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreateMarkDownCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Null(hover);
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_PlainTextElement()
+    public async Task GetHoverInfo_TagHelper_PlainTextElement()
     {
         // Arrange
         var txt = """
@@ -434,7 +434,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -448,7 +448,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_PlainTextElement_EndTag()
+    public async Task GetHoverInfo_TagHelper_PlainTextElement_EndTag()
     {
         // Arrange
         var txt = """
@@ -463,7 +463,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -477,7 +477,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_TextComponent()
+    public async Task GetHoverInfo_TagHelper_TextComponent()
     {
         // Arrange
         var txt = """
@@ -491,7 +491,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.razor", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.razor", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("Text", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -505,7 +505,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_TextComponent_NestedInHtml()
+    public async Task GetHoverInfo_TagHelper_TextComponent_NestedInHtml()
     {
         // Arrange
         var txt = """
@@ -521,7 +521,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.razor", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.razor", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("Text", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -535,7 +535,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_TextComponent_NestedInCSharp()
+    public async Task GetHoverInfo_TagHelper_TextComponent_NestedInCSharp()
     {
         // Arrange
         var txt = """
@@ -552,14 +552,14 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.razor", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.razor", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Null(hover);
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_TextComponent_NestedInCSharpAndText()
+    public async Task GetHoverInfo_TagHelper_TextComponent_NestedInCSharpAndText()
     {
         // Arrange
         var txt = """
@@ -578,7 +578,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.razor", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.razor", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("Text", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -592,7 +592,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_PlainTextAttribute()
+    public async Task GetHoverInfo_TagHelper_PlainTextAttribute()
     {
         // Arrange
         var txt = """
@@ -607,7 +607,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Contains("BoolVal", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -622,7 +622,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_HTML_PlainTextElement()
+    public async Task GetHoverInfo_HTML_PlainTextElement()
     {
         // Arrange
         var txt = """
@@ -637,14 +637,14 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Null(hover);
     }
 
     [Fact]
-    public void GetHoverInfo_HTML_PlainTextAttribute()
+    public async Task GetHoverInfo_HTML_PlainTextAttribute()
     {
         // Arrange
         var txt = """
@@ -659,14 +659,14 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var location = new SourceLocation(cursorPosition, -1, -1);
 
         // Act
-        var hover = service.GetHoverInfo("file.cshtml", codeDocument, location, CreatePlainTextCapabilities());
+        var hover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), CancellationToken.None);
 
         // Assert
         Assert.Null(hover);
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_Element_VSClient_ReturnVSHover()
+    public async Task GetHoverInfo_TagHelper_Element_VSClient_ReturnVSHover()
     {
         // Arrange
         var txt = """
@@ -682,7 +682,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         clientCapabilities.SupportsVisualStudioExtensions = true;
 
         // Act
-        var vsHover = service.GetHoverInfo("file.cshtml", codeDocument, location, clientCapabilities);
+        var vsHover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, clientCapabilities, CancellationToken.None);
 
         // Assert
         Assert.False(vsHover.Contents.Value.TryGetFourth(out var _));
@@ -709,7 +709,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     }
 
     [Fact]
-    public void GetHoverInfo_TagHelper_Attribute_VSClient_ReturnVSHover()
+    public async Task GetHoverInfo_TagHelper_Attribute_VSClient_ReturnVSHover()
     {
         // Arrange
         var txt = """
@@ -725,7 +725,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         clientCapabilities.SupportsVisualStudioExtensions = true;
 
         // Act
-        var vsHover = service.GetHoverInfo("file.cshtml", codeDocument, location, clientCapabilities);
+        var vsHover = await service.GetHoverInfoAsync("file.cshtml", codeDocument, location, clientCapabilities, CancellationToken.None);
 
         // Assert
         Assert.False(vsHover.Contents.Value.TryGetFourth(out var _));

@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -16,8 +16,8 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
 internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy, ICollaborationService, IDisposable
 {
     private readonly CollaborationSession _session;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManager _projectSnapshotManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly AsyncSemaphore _latestStateSemaphore;
     private bool _disposed;
@@ -28,8 +28,8 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     public DefaultProjectSnapshotManagerProxy(
         CollaborationSession session,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectSnapshotManager projectSnapshotManager,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IProjectSnapshotManager projectSnapshotManager,
         JoinableTaskFactory joinableTaskFactory)
     {
         if (session is null)
@@ -37,9 +37,9 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
             throw new ArgumentNullException(nameof(session));
         }
 
-        if (projectSnapshotManagerDispatcher is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (projectSnapshotManager is null)
@@ -53,7 +53,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
         }
 
         _session = session;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _projectSnapshotManager = projectSnapshotManager;
         _joinableTaskFactory = joinableTaskFactory;
 
@@ -81,7 +81,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     public void Dispose()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         _projectSnapshotManager.Changed -= ProjectSnapshotManager_Changed;
         _latestStateSemaphore.Dispose();
@@ -107,8 +107,8 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
             var projectHandles = new List<ProjectSnapshotHandleProxy>();
             foreach (var project in projects)
             {
-                var projectHandleProxy = ConvertToProxy(project);
-                projectHandles.Add(projectHandleProxy);
+                var projectHandleProxy = await ConvertToProxyAsync(project).ConfigureAwait(false);
+                projectHandles.Add(projectHandleProxy.AssumeNotNull());
             }
 
             _latestState = new ProjectSnapshotManagerProxyState(projectHandles);
@@ -116,15 +116,15 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
         }
     }
 
-    [return: NotNullIfNotNull(nameof(project))]
-    private ProjectSnapshotHandleProxy? ConvertToProxy(IProjectSnapshot? project)
+    private async Task<ProjectSnapshotHandleProxy?> ConvertToProxyAsync(IProjectSnapshot? project)
     {
         if (project is null)
         {
             return null;
         }
 
-        var projectWorkspaceState = ProjectWorkspaceState.Create(project.TagHelpers, project.CSharpLanguageVersion);
+        var tagHelpers = await project.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
+        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, project.CSharpLanguageVersion);
         var projectFilePath = _session.ConvertLocalPathToSharedUri(project.FilePath);
         var intermediateOutputPath = _session.ConvertLocalPathToSharedUri(project.IntermediateOutputPath);
         var projectHandleProxy = new ProjectSnapshotHandleProxy(projectFilePath, intermediateOutputPath, project.Configuration, project.RootNamespace, projectWorkspaceState);
@@ -133,7 +133,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         if (_disposed)
         {
@@ -154,8 +154,8 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
             await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-            var oldProjectProxy = ConvertToProxy(args.Older);
-            var newProjectProxy = ConvertToProxy(args.Newer);
+            var oldProjectProxy = await ConvertToProxyAsync(args.Older).ConfigureAwait(false);
+            var newProjectProxy = await ConvertToProxyAsync(args.Newer).ConfigureAwait(false);
             var remoteProjectChangeArgs = new ProjectChangeEventProxyArgs(oldProjectProxy, newProjectProxy, (ProjectProxyChangeKind)args.Kind);
 
             OnChanged(remoteProjectChangeArgs);
@@ -164,7 +164,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
     private void OnChanged(ProjectChangeEventProxyArgs args)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         if (_disposed)
         {

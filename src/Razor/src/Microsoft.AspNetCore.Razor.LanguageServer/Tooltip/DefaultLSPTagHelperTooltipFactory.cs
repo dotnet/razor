@@ -6,6 +6,8 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
@@ -17,11 +19,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 [method: ImportingConstructor]
 internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResolver) : LSPTagHelperTooltipFactory(snapshotResolver)
 {
-    public override bool TryCreateTooltip(
+    public override async Task<MarkupContent?> TryCreateTooltipAsync(
         string documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         MarkupKind markupKind,
-        [NotNullWhen(true)] out MarkupContent? tooltipContent)
+        CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
         {
@@ -31,8 +33,7 @@ internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResol
         var associatedTagHelperInfos = elementDescriptionInfo.DescriptionInfos;
         if (associatedTagHelperInfos.Length == 0)
         {
-            tooltipContent = null;
-            return false;
+            return null;
         }
 
         // This generates a markdown description that looks like the following:
@@ -54,6 +55,14 @@ internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResol
 
             var tagHelperType = descriptionInfo.TagHelperTypeName;
             var reducedTypeName = ReduceTypeName(tagHelperType);
+
+            // If the reducedTypeName != tagHelperType, then the type is prefixed by a namespace
+            if (reducedTypeName != tagHelperType)
+            {
+                descriptionBuilder.Append(tagHelperType[..^reducedTypeName.Length]);
+            }
+
+            // We make the reducedTypeName bold while leaving the namespace intact
             StartOrEndBold(descriptionBuilder, markupKind);
             descriptionBuilder.Append(reducedTypeName);
             StartOrEndBold(descriptionBuilder, markupKind);
@@ -67,7 +76,7 @@ internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResol
                 descriptionBuilder.Append(finalSummaryContent);
             }
 
-            var availability = GetProjectAvailability(documentFilePath, tagHelperType);
+            var availability = await GetProjectAvailabilityAsync(documentFilePath, tagHelperType, cancellationToken).ConfigureAwait(false);
             if (availability is not null)
             {
                 descriptionBuilder.AppendLine();
@@ -75,13 +84,11 @@ internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResol
             }
         }
 
-        tooltipContent = new MarkupContent
+        return  new MarkupContent
         {
             Kind = markupKind,
             Value = descriptionBuilder.ToString(),
         };
-
-        return true;
     }
 
     public override bool TryCreateTooltip(
