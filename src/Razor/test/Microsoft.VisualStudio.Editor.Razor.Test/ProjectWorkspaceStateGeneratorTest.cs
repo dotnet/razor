@@ -134,7 +134,7 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
         // Assert
         var newProjectSnapshot = projectManagerAccessor.Instance.GetLoadedProject(_projectSnapshot.Key);
         Assert.NotNull(newProjectSnapshot);
-        Assert.Empty(newProjectSnapshot.TagHelpers);
+        Assert.Empty(await newProjectSnapshot.GetTagHelpersAsync(CancellationToken.None));
     }
 
     [UIFact]
@@ -155,6 +155,6 @@ public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatch
         // Assert
         var newProjectSnapshot = projectManagerAccessor.Instance.GetLoadedProject(_projectSnapshot.Key);
         Assert.NotNull(newProjectSnapshot);
-        Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, newProjectSnapshot.TagHelpers);
+        Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(CancellationToken.None));
     }
 }
