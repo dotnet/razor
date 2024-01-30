@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Editor.Razor;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
@@ -21,7 +20,6 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
 
     protected ImmutableArray<TagHelperDescriptor> DefaultTagHelpers { get; }
     private protected ITagHelperCompletionService RazorTagHelperCompletionService { get; }
-    internal HtmlFactsService HtmlFactsService { get; }
 
     public TagHelperServiceTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -247,7 +245,6 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             directiveAttribute3.Build(),
             htmlTagMutator.Build());
 
-        HtmlFactsService = new DefaultHtmlFactsService();
         RazorTagHelperCompletionService = new LspTagHelperCompletionService();
     }
 

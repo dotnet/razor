@@ -27,18 +27,16 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { " ", ">" });
     private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.FromArray(new[] { ">" });
     private static readonly IReadOnlyList<RazorCommitCharacter> s_noCommitCharacters = Array.Empty<RazorCommitCharacter>();
-    private readonly HtmlFactsService _htmlFactsService;
+
     private readonly ITagHelperCompletionService _tagHelperCompletionService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public TagHelperCompletionProvider(
         ITagHelperCompletionService tagHelperCompletionService,
-        HtmlFactsService htmlFactsService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor)
     {
-        _tagHelperCompletionService = tagHelperCompletionService ?? throw new ArgumentException(nameof(tagHelperCompletionService));
-        _htmlFactsService = htmlFactsService ?? throw new ArgumentException(nameof(htmlFactsService));
-        _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
+        _tagHelperCompletionService = tagHelperCompletionService;
+        _optionsMonitor = optionsMonitor;
     }
 
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
@@ -64,7 +62,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             _ => owner.Parent
         };
 
-        if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
+        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
             // Trying to complete the element type
@@ -74,7 +72,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             return elementCompletions;
         }
 
-        if (_htmlFactsService.TryGetAttributeInfo(
+        if (HtmlFacts.TryGetAttributeInfo(
                 owner,
                 out containingTagNameToken,
                 out var prefixLocation,
@@ -145,7 +143,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             attributes,
             ancestorTagName,
             ancestorIsTagHelper,
-            HtmlFactsService.IsHtmlTagName);
+            HtmlFacts.IsHtmlTagName);
 
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
         var completionResult = _tagHelperCompletionService.GetAttributeCompletions(attributeCompletionContext);
@@ -187,7 +185,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             // meaning they're probably expecting to provide all of the attributes necessary for that tag to operate. Meaning, HTML attribute completions are less important.
             // To make sure we prioritize our attribute completions above all other types of completions we set the priority to high so they're showed in the completion list
             // above all other completion items.
-            var sortText = HtmlFactsService.IsHtmlTagName(containingTagName)
+            var sortText = HtmlFacts.IsHtmlTagName(containingTagName)
                 ? CompletionSortTextHelper.DefaultSortPriority
                 : CompletionSortTextHelper.HighSortPriority;
 
@@ -240,7 +238,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             attributes,
             ancestorTagName,
             ancestorIsTagHelper,
-            HtmlFactsService.IsHtmlTagName);
+            HtmlFacts.IsHtmlTagName);
 
         var completionResult = _tagHelperCompletionService.GetElementCompletions(elementCompletionContext);
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();

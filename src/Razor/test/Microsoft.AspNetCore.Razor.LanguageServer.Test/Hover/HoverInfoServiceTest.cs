@@ -1020,7 +1020,7 @@ public class HoverInfoServiceTest(ITestOutputHelper testOutput) : TagHelperServi
         var snapshotResolver = new TestSnapshotResolver();
         var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
-        return new HoverInfoService(lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
+        return new HoverInfoService(lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory);
     }
 
     private class HoverLanguageServer : IClientConnection

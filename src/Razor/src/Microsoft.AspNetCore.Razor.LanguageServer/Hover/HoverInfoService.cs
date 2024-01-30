@@ -24,12 +24,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 internal sealed class HoverInfoService(
     LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
-    VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
-    HtmlFactsService htmlFactsService) : IHoverInfoService
+    VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory) : IHoverInfoService
 {
     private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
     private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
-    private readonly HtmlFactsService _htmlFactsService = htmlFactsService;
 
     public async Task<VSInternalHover?> GetHoverInfoAsync(string documentFilePath, RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
     {
@@ -64,7 +62,7 @@ internal sealed class HoverInfoService(
         // only check nodes that are at a different location in the file.
         var ownerStart = owner.SpanStart;
 
-        if (_htmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
+        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
             containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
         {
             if (owner is MarkupStartTagSyntax or MarkupEndTagSyntax &&
@@ -107,7 +105,7 @@ internal sealed class HoverInfoService(
             }
         }
 
-        if (_htmlFactsService.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
+        if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
             selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true)
         {
             // When finding parents for attributes, we make sure to find the parent of the containing tag, otherwise these methods
@@ -134,7 +132,10 @@ internal sealed class HoverInfoService(
             else
             {
                 Debug.Assert(binding.Descriptors.Any());
-                var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
+                var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(
+                    tagHelperDocumentContext,
+                    selectedAttributeName.AssumeNotNull(),
+                    binding);
 
                 // Grab the first attribute that we find that intersects with this location. That way if there are multiple attributes side-by-side aka hovering over:
                 //      <input checked| minimized />
