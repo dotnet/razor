@@ -44,8 +44,8 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             t.ProjectPath == _projectPath &&
             t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
-        var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
-        var fileChangeTracker1 = new Mock<FileChangeTracker>(MockBehavior.Strict);
+        var fileChangeTrackerFactory = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
+        var fileChangeTracker1 = new Mock<IFileChangeTracker>(MockBehavior.Strict);
         fileChangeTracker1
             .Setup(f => f.StartListening())
             .Verifiable();
@@ -53,7 +53,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Setup(f => f.Create(Path.Combine(_directoryPath, "Views", "Home", "_ViewImports.cshtml")))
             .Returns(fileChangeTracker1.Object)
             .Verifiable();
-        var fileChangeTracker2 = new Mock<FileChangeTracker>(MockBehavior.Strict);
+        var fileChangeTracker2 = new Mock<IFileChangeTracker>(MockBehavior.Strict);
         fileChangeTracker2
             .Setup(f => f.StartListening())
             .Verifiable();
@@ -61,7 +61,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Setup(f => f.Create(Path.Combine(_directoryPath, "Views", "_ViewImports.cshtml")))
             .Returns(fileChangeTracker2.Object)
             .Verifiable();
-        var fileChangeTracker3 = new Mock<FileChangeTracker>(MockBehavior.Strict);
+        var fileChangeTracker3 = new Mock<IFileChangeTracker>(MockBehavior.Strict);
         fileChangeTracker3.Setup(f => f.StartListening()).Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(Path.Combine(_directoryPath, "_ViewImports.cshtml")))
@@ -95,8 +95,8 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
         var callCount = 0;
-        var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
-        var fileChangeTracker = new Mock<FileChangeTracker>(MockBehavior.Strict);
+        var fileChangeTrackerFactory = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
+        var fileChangeTracker = new Mock<IFileChangeTracker>(MockBehavior.Strict);
         fileChangeTracker.Setup(t => t.StartListening()).Verifiable();
         fileChangeTrackerFactory
             .Setup(f => f.Create(It.IsAny<string>()))
@@ -122,8 +122,8 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             t.ProjectPath == _projectPath &&
             t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
-        var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
-        var fileChangeTracker = new Mock<FileChangeTracker>(MockBehavior.Strict);
+        var fileChangeTrackerFactory = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
+        var fileChangeTracker = new Mock<IFileChangeTracker>(MockBehavior.Strict);
         fileChangeTracker.Setup(f => f.StartListening()).Verifiable();
         fileChangeTracker
             .Setup(f => f.StopListening())
@@ -158,8 +158,8 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             t.ProjectPath == _projectPath &&
             t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
-        var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
-        var fileChangeTracker = new Mock<FileChangeTracker>(MockBehavior.Strict);
+        var fileChangeTrackerFactory = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
+        var fileChangeTracker = new Mock<IFileChangeTracker>(MockBehavior.Strict);
         fileChangeTracker.Setup(f => f.StartListening()).Verifiable();
         fileChangeTracker
             .Setup(f => f.StopListening())

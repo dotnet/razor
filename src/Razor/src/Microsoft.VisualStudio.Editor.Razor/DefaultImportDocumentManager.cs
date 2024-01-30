@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class DefaultImportDocumentManager : ImportDocumentManager
 {
-    private readonly FileChangeTrackerFactory _fileChangeTrackerFactory;
+    private readonly IFileChangeTrackerFactory _fileChangeTrackerFactory;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IErrorReporter _errorReporter;
     private readonly Dictionary<string, ImportTracker> _importTrackerCache;
@@ -23,7 +23,7 @@ internal class DefaultImportDocumentManager : ImportDocumentManager
     public DefaultImportDocumentManager(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IErrorReporter errorReporter,
-        FileChangeTrackerFactory fileChangeTrackerFactory)
+        IFileChangeTrackerFactory fileChangeTrackerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
         {
@@ -146,7 +146,7 @@ internal class DefaultImportDocumentManager : ImportDocumentManager
 
     private class ImportTracker
     {
-        public ImportTracker(FileChangeTracker fileChangeTracker)
+        public ImportTracker(IFileChangeTracker fileChangeTracker)
         {
             FileChangeTracker = fileChangeTracker;
             AssociatedDocuments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -154,7 +154,7 @@ internal class DefaultImportDocumentManager : ImportDocumentManager
 
         public string FilePath => FileChangeTracker.FilePath;
 
-        public FileChangeTracker FileChangeTracker { get; }
+        public IFileChangeTracker FileChangeTracker { get; }
 
         public HashSet<string> AssociatedDocuments { get; }
     }

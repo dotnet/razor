@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 // and editor open/closed state.
 internal abstract class EditorDocumentManagerBase : EditorDocumentManager
 {
-    private readonly FileChangeTrackerFactory _fileChangeTrackerFactory;
+    private readonly IFileChangeTrackerFactory _fileChangeTrackerFactory;
     private readonly Dictionary<DocumentKey, EditorDocument> _documents;
     private readonly Dictionary<string, List<DocumentKey>> _documentsByFilePath;
 
@@ -26,7 +26,7 @@ internal abstract class EditorDocumentManagerBase : EditorDocumentManager
     public EditorDocumentManagerBase(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
-        FileChangeTrackerFactory fileChangeTrackerFactory)
+        IFileChangeTrackerFactory fileChangeTrackerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
         {

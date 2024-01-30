@@ -13,13 +13,12 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [ExportLanguageServiceFactory(typeof(ImportDocumentManager), RazorLanguage.Name, ServiceLayer.Default)]
 [method: ImportingConstructor]
 internal class DefaultImportDocumentManagerFactory(
+    IFileChangeTrackerFactory fileChangeTrackerFactory,
     ProjectSnapshotManagerDispatcher dispatcher,
     IErrorReporter errorReporter) : ILanguageServiceFactory
 {
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
     {
-        var fileChangeTrackerFactory = languageServices.WorkspaceServices.GetRequiredService<FileChangeTrackerFactory>();
-
         return new DefaultImportDocumentManager(dispatcher, errorReporter, fileChangeTrackerFactory);
     }
 }

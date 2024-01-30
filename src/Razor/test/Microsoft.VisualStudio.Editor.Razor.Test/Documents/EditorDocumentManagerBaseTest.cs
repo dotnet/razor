@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -178,18 +179,26 @@ public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTes
             d => Assert.Same(document1, d));
     }
 
-    private class TestEditorDocumentManager : EditorDocumentManagerBase
+    private class TestEditorDocumentManager(
+        ProjectSnapshotManagerDispatcher dispatcher,
+        JoinableTaskContext joinableTaskContext)
+        : EditorDocumentManagerBase(dispatcher, joinableTaskContext, CreateFileChangeTrackerFactory())
     {
-        public TestEditorDocumentManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
-            : base(projectSnapshotManagerDispatcher, joinableTaskContext, new DefaultFileChangeTrackerFactory())
-        {
-        }
-
         public List<EditorDocument> Opened { get; } = new List<EditorDocument>();
 
         public List<EditorDocument> Closed { get; } = new List<EditorDocument>();
 
         public Dictionary<string, ITextBuffer> Buffers { get; } = new Dictionary<string, ITextBuffer>();
+
+        private static IFileChangeTrackerFactory CreateFileChangeTrackerFactory()
+        {
+            var mock = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
+
+            mock.Setup(x => x.Create(It.IsAny<string>()))
+                .Returns((string filePath) => Mock.Of<IFileChangeTracker>(x => x.FilePath == filePath, MockBehavior.Strict));
+
+            return mock.Object;
+        }
 
         public new void DocumentOpened(string filePath, ITextBuffer textBuffer)
         {

@@ -21,7 +21,7 @@ public class EditorDocumentTest : ProjectSnapshotManagerDispatcherTestBase
     private readonly ProjectKey _projectKey;
     private readonly string _documentFilePath;
     private readonly TextLoader _textLoader;
-    private readonly FileChangeTracker _fileChangeTracker;
+    private readonly IFileChangeTracker _fileChangeTracker;
     private readonly TestTextBuffer _textBuffer;
 
     public EditorDocumentTest(ITestOutputHelper testOutput)
@@ -33,7 +33,7 @@ public class EditorDocumentTest : ProjectSnapshotManagerDispatcherTestBase
         _projectKey = TestProjectData.SomeProject.Key;
         _documentFilePath = TestProjectData.SomeProjectFile1.FilePath;
         _textLoader = TextLoader.From(TextAndVersion.Create(SourceText.From("FILE"), VersionStamp.Default));
-        _fileChangeTracker = new DefaultFileChangeTracker(_documentFilePath);
+        _fileChangeTracker = Mock.Of<IFileChangeTracker>(x => x.FilePath == _documentFilePath, MockBehavior.Strict);
 
         _textBuffer = new TestTextBuffer(new StringTextSnapshot("Hello"));
     }

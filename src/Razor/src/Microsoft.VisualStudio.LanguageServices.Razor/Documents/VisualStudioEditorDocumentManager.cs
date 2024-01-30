@@ -29,7 +29,7 @@ internal class VisualStudioEditorDocumentManager : EditorDocumentManagerBase
     public VisualStudioEditorDocumentManager(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
-        FileChangeTrackerFactory fileChangeTrackerFactory,
+        IFileChangeTrackerFactory fileChangeTrackerFactory,
         IVsRunningDocumentTable runningDocumentTable,
         IVsEditorAdaptersFactoryService editorAdaptersFactory)
         : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)

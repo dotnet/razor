@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,47 +17,29 @@ internal class VisualStudioEditorDocumentManagerFactory : IWorkspaceServiceFacto
 {
     private readonly SVsServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IFileChangeTrackerFactory _fileChangeTrackerFactory;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     [ImportingConstructor]
     public VisualStudioEditorDocumentManagerFactory(
         SVsServiceProvider serviceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        JoinableTaskContext joinableTaskContext)
+        IFileChangeTrackerFactory fileChangeTrackerFactory,
+        JoinableTaskContext joinableTaskContext,
+        ProjectSnapshotManagerDispatcher dispatcher)
     {
-        if (serviceProvider is null)
-        {
-            throw new ArgumentNullException(nameof(serviceProvider));
-        }
-
-        if (editorAdaptersFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorAdaptersFactory));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
         _serviceProvider = serviceProvider;
         _editorAdaptersFactory = editorAdaptersFactory;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _fileChangeTrackerFactory = fileChangeTrackerFactory;
         _joinableTaskContext = joinableTaskContext;
+        _dispatcher = dispatcher;
     }
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
-        if (workspaceServices is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceServices));
-        }
-
         var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-        var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
         return new VisualStudioEditorDocumentManager(
-            _projectSnapshotManagerDispatcher, _joinableTaskContext, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
+            _dispatcher, _joinableTaskContext, _fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
     }
 }
