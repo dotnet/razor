@@ -72,7 +72,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         // This endpoint is only called in LSP cases when the file is open(ed)
         // We report diagnostics are supported to Roslyn in this case
-        documentContainer.SupportsDiagnostics = true;
+        documentContainer.SetSupportsDiagnostics(true);
 
         // TODO: This needs to use the project key somehow, rather than assuming all generated content is the same
         var filePath = FilePathService.GetProjectSystemFilePath(documentUri);
@@ -108,7 +108,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         //  1. LSP: File is closed
         //  2. Non-LSP: File is Supressed
         // We report, diagnostics are not supported, to Roslyn in these cases
-        documentContainer.SupportsDiagnostics = false;
+        documentContainer.SetSupportsDiagnostics(false);
 
         // There's a possible race condition here where we're processing an update
         // and the project is getting unloaded. So if we don't find an entry we can
@@ -465,7 +465,12 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         public string FilePath => _documentUri.LocalPath;
 
-        public bool SupportsDiagnostics { get; set; }
+        public bool SupportsDiagnostics { get; private set; }
+
+        public void SetSupportsDiagnostics(bool value)
+        {
+            SupportsDiagnostics = value;
+        }
 
         public IRazorDocumentPropertiesService GetDocumentPropertiesService() => _documentPropertiesService;
 

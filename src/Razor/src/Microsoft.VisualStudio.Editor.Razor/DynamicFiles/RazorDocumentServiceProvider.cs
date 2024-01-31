@@ -5,10 +5,10 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRazorDocumentOperationService
+internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer) : IRazorDocumentServiceProvider, IRazorDocumentOperationService
 {
-    private readonly IDynamicDocumentContainer? _documentContainer;
-    private readonly object _lock;
+    private readonly IDynamicDocumentContainer? _documentContainer = documentContainer;
+    private readonly object _lock = new object();
 
     private IRazorSpanMappingService? _spanMappingService;
     private IRazorDocumentExcerptServiceImplementation? _documentExcerptService;
@@ -17,13 +17,6 @@ internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRa
     public RazorDocumentServiceProvider()
         : this(null)
     {
-    }
-
-    public RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer)
-    {
-        _documentContainer = documentContainer;
-
-        _lock = new object();
     }
 
     public bool CanApplyChange => false;

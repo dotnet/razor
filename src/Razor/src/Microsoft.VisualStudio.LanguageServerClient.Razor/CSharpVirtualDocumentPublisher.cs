@@ -84,10 +84,11 @@ internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
 
         public string FilePath => _documentSnapshot.Uri.LocalPath;
 
-        public bool SupportsDiagnostics
+        public bool SupportsDiagnostics => true;
+
+        public void SetSupportsDiagnostics(bool value)
         {
-            get => true;
-            set { }
+            // This dynamic document container always supports diagnostics, so we don't allow disabling them.
         }
 
         public IRazorDocumentExcerptServiceImplementation GetExcerptService()

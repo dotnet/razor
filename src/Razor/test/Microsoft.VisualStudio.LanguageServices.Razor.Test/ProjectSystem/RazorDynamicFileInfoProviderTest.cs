@@ -67,7 +67,7 @@ public class RazorDynamicFileInfoProviderTest : WorkspaceTestBase
         _provider.Initialize(_projectSnapshotManager);
 
         var lspDocumentContainer = new Mock<IDynamicDocumentContainer>(MockBehavior.Strict);
-        lspDocumentContainer.SetupSet(c => c.SupportsDiagnostics = true).Verifiable();
+        lspDocumentContainer.Setup(c => c.SetSupportsDiagnostics(true)).Verifiable();
         lspDocumentContainer.Setup(container => container.GetTextLoader(It.IsAny<string>())).Returns(new EmptyTextLoader(string.Empty));
         _lspDocumentContainer = lspDocumentContainer.Object;
 
@@ -89,7 +89,7 @@ public class RazorDynamicFileInfoProviderTest : WorkspaceTestBase
 
         // Act & Assert
         var documentContainer = new Mock<IDynamicDocumentContainer>(MockBehavior.Strict);
-        documentContainer.SetupSet(c => c.SupportsDiagnostics = true).Verifiable();
+        documentContainer.Setup(c => c.SetSupportsDiagnostics(true)).Verifiable();
         _provider.UpdateLSPFileInfo(new Uri("C:/this/does/not/exist.razor"), documentContainer.Object);
     }
 

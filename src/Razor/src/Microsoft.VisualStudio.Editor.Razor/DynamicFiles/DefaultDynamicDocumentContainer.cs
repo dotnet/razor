@@ -21,10 +21,11 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
 
     public string FilePath => _documentSnapshot.FilePath.AssumeNotNull();
 
-    public bool SupportsDiagnostics
+    public bool SupportsDiagnostics => false;
+
+    public void SetSupportsDiagnostics(bool enabled)
     {
-        get => false;
-        set { }
+        // This dynamic document container never supports diagnostics, so we don't allow enabling them.
     }
 
     public TextLoader GetTextLoader(string filePath)

@@ -10,7 +10,9 @@ internal interface IDynamicDocumentContainer
 {
     string FilePath { get; }
 
-    bool SupportsDiagnostics { get; set; }
+    bool SupportsDiagnostics { get; }
+
+    void SetSupportsDiagnostics(bool enabled);
 
     TextLoader GetTextLoader(string filePath);
 
