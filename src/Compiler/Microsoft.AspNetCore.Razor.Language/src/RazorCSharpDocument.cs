@@ -17,6 +17,14 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
 
     public abstract ImmutableArray<SourceMapping> SourceMappings { get; }
 
+    /// <summary>
+    /// Maps spans from the generated source to the whole component.
+    /// </summary>
+    /// <remarks>
+    /// Used to map the component class name, so go-to-definition navigates to the .razor file.
+    /// </remarks>
+    public abstract ImmutableArray<SourceSpan> GeneratedOnlyMappings { get; }
+
     public abstract IReadOnlyList<RazorDiagnostic> Diagnostics { get; }
 
     public abstract RazorCodeGenerationOptions Options { get; }
@@ -31,7 +39,7 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
 
     [Obsolete("For backwards compatibility only. Use the overload that takes a RazorCodeDocument")]
     public static RazorCSharpDocument Create(string generatedCode, RazorCodeGenerationOptions options, IEnumerable<RazorDiagnostic> diagnostics, ImmutableArray<SourceMapping> sourceMappings, IEnumerable<LinePragma> linePragmas)
-        => Create(codeDocument: null, generatedCode, options, diagnostics, sourceMappings, linePragmas);
+        => Create(codeDocument: null, generatedCode, options, diagnostics, sourceMappings, ImmutableArray<SourceSpan>.Empty, linePragmas);
 
     public static RazorCSharpDocument Create(RazorCodeDocument codeDocument, string generatedCode, RazorCodeGenerationOptions options, IEnumerable<RazorDiagnostic> diagnostics)
     {
@@ -50,7 +58,7 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
             throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings: ImmutableArray<SourceMapping>.Empty, linePragmas: null);
+        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings: ImmutableArray<SourceMapping>.Empty, generatedOnlyMappings: ImmutableArray<SourceSpan>.Empty, linePragmas: null);
     }
 
     public static RazorCSharpDocument Create(
@@ -59,6 +67,7 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
         RazorCodeGenerationOptions options,
         IEnumerable<RazorDiagnostic> diagnostics,
         ImmutableArray<SourceMapping> sourceMappings,
+        ImmutableArray<SourceSpan> generatedOnlyMappings,
         IEnumerable<LinePragma> linePragmas)
     {
         if (generatedCode == null)
@@ -76,6 +85,6 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
             throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings, linePragmas.ToArray());
+        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings, generatedOnlyMappings, linePragmas.ToArray());
     }
 }

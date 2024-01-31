@@ -1084,6 +1084,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
             RazorCodeGenerationOptions.CreateDefault(),
             Enumerable.Empty<RazorDiagnostic>(),
             sourceMappings.ToImmutableArray(),
+            ImmutableArray<SourceSpan>.Empty,
             Enumerable.Empty<LinePragma>());
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;

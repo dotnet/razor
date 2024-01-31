@@ -22,7 +22,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
     public Task DocumentSymbols_CSharpMethods()
         => VerifyDocumentSymbolsAsync(
             """
-            @functions {
+            {|AspNetCore.test:|}@functions {
                 private void {|HandleString(string s):HandleString|}(string s)
                 {
                     s += "Hello";

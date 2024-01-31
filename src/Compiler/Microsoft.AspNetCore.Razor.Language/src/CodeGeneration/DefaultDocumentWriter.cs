@@ -53,6 +53,7 @@ internal class DefaultDocumentWriter : DocumentWriter
             _options,
             allOrderedDiagnostics.ToArray(),
             context.SourceMappings.DrainToImmutable(),
+            context.GeneratedOnlyMappings.DrainToImmutable(),
             context.LinePragmas.ToArray());
     }
 
