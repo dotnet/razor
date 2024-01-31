@@ -74,6 +74,10 @@ internal static class CSharpTestLspServerHelpers
                 },
             },
             SupportsDiagnosticRequests = true,
+            Workspace = new()
+            {
+                Configuration = true
+            }
         };
 
         return await CSharpTestLspServer.CreateAsync(
