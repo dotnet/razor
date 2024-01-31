@@ -28,6 +28,11 @@ internal record DelegatedInlayHintParams(
     Range ProjectedRange,
     RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
+internal record DelegatedInlayHintResolveParams(
+    TextDocumentIdentifier Identifier,
+    InlayHint InlayHint,
+    RazorLanguageKind ProjectedKind);
+
 internal record DelegatedValidateBreakpointRangeParams(
     TextDocumentIdentifierAndVersion Identifier,
     Range ProjectedRange,

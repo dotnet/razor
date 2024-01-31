@@ -200,6 +200,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             services.AddHandler<MapCodeEndpoint>();
 
             services.AddHandlerWithCapabilities<InlayHintEndpoint>();
+            services.AddHandler<InlayHintResolveEndpoint>();
         }
     }
 

@@ -57,6 +57,7 @@ internal static class CustomMessageNames
     public const string RazorReferencesEndpointName = "razor/references";
 
     public const string RazorInlayHintEndpoint = "razor/inlayHint";
+    public const string RazorInlayHintResolveEndpoint = "razor/inlayHintResolve";
 
     // Called to get C# diagnostics from Roslyn when publishing diagnostics for VS Code
     public const string RazorCSharpPullDiagnosticsEndpointName = "razor/csharpPullDiagnostics";

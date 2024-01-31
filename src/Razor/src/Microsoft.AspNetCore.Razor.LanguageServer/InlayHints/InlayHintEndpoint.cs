@@ -38,7 +38,7 @@ internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOpti
 
         serverCapabilities.InlayHintOptions = new InlayHintOptions
         {
-            ResolveProvider = false,
+            ResolveProvider = true,
             WorkDoneProgress = false
         };
     }
@@ -89,6 +89,12 @@ internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOpti
             if (hint.Position.TryGetAbsoluteIndex(csharpSourceText, null, out var absoluteIndex) &&
                 _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteIndex, out Position? hostDocumentPosition, out _))
             {
+                hint.Data = new RazorInlayHintWrapper
+                {
+                    TextDocument = request.TextDocument,
+                    OriginalData = hint.Data,
+                    OriginalPosition = hint.Position
+                };
                 hint.Position = hostDocumentPosition;
                 inlayHintsBuilder.Add(hint);
             }
