@@ -28,7 +28,7 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
         var editorOperationsFactory = CreateOperationsFactoryService();
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory);
+        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
 
         // Act
         textBuffer.ApplyEdit(edit);
@@ -53,7 +53,7 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
         var editorOperationsFactory = CreateOperationsFactoryService();
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory);
+        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
 
         // Act
         textBuffer.ApplyEdit(edit);
@@ -78,7 +78,7 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
         var editorOperationsFactory = CreateOperationsFactoryService();
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory);
+        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
 
         // Act
         textBuffer.ApplyEdit(edit);
@@ -102,7 +102,7 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
         var editorOperationsFactory = CreateOperationsFactoryService();
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory);
+        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
 
         // Act
         textBuffer.ApplyEdit(edit);

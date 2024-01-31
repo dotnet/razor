@@ -329,7 +329,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         var documentTracker = CreateDocumentTracker(SetupTextBufferMock, textView);
         editorOperationsFactory.Setup(factory => factory.GetEditorOperations(textView))
             .Returns(editorOperations.Object);
-        using var smartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory.Object);
+        using var smartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory.Object, JoinableTaskFactory.Context);
 
         // Act
         smartIndenter.TriggerSmartIndent(textView);
@@ -402,7 +402,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         var changeCollection = new TestTextChangeCollection();
         var textContentChangeArgs = new TestTextContentChangedEventArgs(changeCollection);
         var documentTracker = CreateDocumentTracker(SetupTextBufferMock, Mock.Of<ITextView>(MockBehavior.Strict));
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory.Object);
+        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory.Object, JoinableTaskFactory.Context);
 
         // Act & Assert
         braceSmartIndenter.TextBuffer_OnChanged(null, textContentChangeArgs);
@@ -418,7 +418,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         var edit = new TestEdit(0, 0, initialSnapshot, initialSnapshot, string.Empty);
         var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
         var documentTracker = CreateDocumentTracker(() => textBuffer, Mock.Of<ITextView>(MockBehavior.Strict));
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory.Object);
+        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory.Object, JoinableTaskFactory.Context);
 
         // Act & Assert
         textBuffer.ApplyEdits(edit, edit);

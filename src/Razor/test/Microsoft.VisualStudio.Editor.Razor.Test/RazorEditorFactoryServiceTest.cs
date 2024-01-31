@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -56,31 +55,6 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Assert
         Assert.False(result);
         Assert.Null(documentTracker);
-    }
-
-    [Fact]
-    public void TryInitializeTextBuffer_WorkspaceAccessorCanNotAccessWorkspace_ReturnsFalse()
-    {
-        // Arrange
-        var documentTrackerFactory = Mock.Of<IVisualStudioDocumentTrackerFactory>(MockBehavior.Strict);
-        var parserFactory = Mock.Of<IVisualStudioRazorParserFactory>(MockBehavior.Strict);
-
-        CodeAnalysis.Workspace? workspace = null;
-        var workspaceAccessor = new Mock<VisualStudioWorkspaceAccessor>(MockBehavior.Strict);
-        workspaceAccessor
-            .Setup(provider => provider.TryGetWorkspace(It.IsAny<ITextBuffer>(), out workspace))
-            .Returns(false);
-        var factoryService = new RazorEditorFactoryService(documentTrackerFactory, parserFactory, workspaceAccessor.Object);
-        var textBuffer = Mock.Of<ITextBuffer>(b =>
-            b.ContentType == s_razorCoreContentType &&
-            b.Properties == new PropertyCollection(),
-            MockBehavior.Strict);
-
-        // Act
-        var result = factoryService.TryInitializeTextBuffer(textBuffer);
-
-        // Assert
-        Assert.False(result);
     }
 
     [Fact]
@@ -304,22 +278,11 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         var parserFactory = Mock.Of<IVisualStudioRazorParserFactory>(f =>
             f.Create(It.IsAny<IVisualStudioDocumentTracker>()) == parser,
             MockBehavior.Strict);
-        var smartIndenterFactory = Mock.Of<BraceSmartIndenterFactory>(f =>
+        var smartIndenterFactory = Mock.Of<IBraceSmartIndenterFactory>(f =>
             f.Create(It.IsAny<IVisualStudioDocumentTracker>()) == smartIndenter,
             MockBehavior.Strict);
 
-        var services = TestServices.Create(
-        [
-            smartIndenterFactory
-        ]);
-
-        CodeAnalysis.Workspace? workspace = TestWorkspace.Create(services);
-        var workspaceAccessor = new Mock<VisualStudioWorkspaceAccessor>(MockBehavior.Strict);
-        workspaceAccessor
-            .Setup(p => p.TryGetWorkspace(It.IsAny<ITextBuffer>(), out workspace))
-            .Returns(true);
-
-        var factoryService = new RazorEditorFactoryService(documentTrackerFactory, parserFactory, workspaceAccessor.Object);
+        var factoryService = new RazorEditorFactoryService(documentTrackerFactory, parserFactory, smartIndenterFactory);
 
         return factoryService;
     }

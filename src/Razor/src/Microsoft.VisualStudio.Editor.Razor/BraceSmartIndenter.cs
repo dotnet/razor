@@ -47,25 +47,11 @@ internal class BraceSmartIndenter : IDisposable
     }
 
     public BraceSmartIndenter(
-        JoinableTaskContext joinableTaskContext,
         IVisualStudioDocumentTracker documentTracker,
-        IEditorOperationsFactoryService editorOperationsFactory)
+        IEditorOperationsFactoryService editorOperationsFactory,
+        JoinableTaskContext joinableTaskContext)
     {
         Debug.Assert(documentTracker.TextBuffer.IsLegacyCoreRazorBuffer());
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (documentTracker is null)
-        {
-            throw new ArgumentNullException(nameof(documentTracker));
-        }
-
-        if (editorOperationsFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorOperationsFactory));
-        }
 
         _joinableTaskContext = joinableTaskContext;
         _documentTracker = documentTracker;
