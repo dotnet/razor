@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -21,29 +19,28 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
+public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private const string FilePath = "C:/Some/Path/TestDocumentTracker.cshtml";
     private const string ProjectPath = "C:/Some/Path/TestProject.csproj";
 
-    private readonly IContentType _razorCoreContentType;
-    private readonly IContentType _nonRazorCoreContentType;
+    private static readonly IContentType s_razorCoreContentType =
+        Mock.Of<IContentType>(
+            c => c.IsOfType(RazorLanguage.CoreContentType) == true,
+            MockBehavior.Strict);
+
+    private static readonly IContentType s_nonRazorCoreContentType =
+        Mock.Of<IContentType>(
+            c => c.IsOfType(It.IsAny<string>()) == false,
+            MockBehavior.Strict);
 
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
     private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
     private readonly IImportDocumentManager _importDocumentManager;
 
-    public DefaultRazorDocumentManagerTest(ITestOutputHelper testOutput)
+    public RazorDocumentManagerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _razorCoreContentType = Mock.Of<IContentType>(
-            c => c.IsOfType(RazorLanguage.CoreContentType) == true,
-            MockBehavior.Strict);
-
-        _nonRazorCoreContentType = Mock.Of<IContentType>(
-            c => c.IsOfType(It.IsAny<string>()) == false,
-            MockBehavior.Strict);
-
         var projectManagerMock = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectManagerMock
             .Setup(p => p.GetAllProjectKeys(It.IsAny<string>()))
@@ -52,10 +49,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             .Setup(p => p.GetProjects())
             .Returns(ImmutableArray<IProjectSnapshot>.Empty);
 
-        IProjectSnapshot projectResult = null;
-        projectManagerMock
-            .Setup(p => p.GetLoadedProject(It.IsAny<ProjectKey>()))
-            .Returns(projectResult);
+        IProjectSnapshot? projectResult = null;
         projectManagerMock
             .Setup(p => p.TryGetLoadedProject(It.IsAny<ProjectKey>(), out projectResult))
             .Returns(false);
@@ -83,11 +77,11 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
     {
         // Arrange
         var editorFactoryService = new Mock<RazorEditorFactoryService>(MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService.Object);
+        var documentManager = new RazorDocumentManager(editorFactoryService.Object, Dispatcher, JoinableTaskContext);
         var textView = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
-            Mock.Of<ITextBuffer>(b => b.ContentType == _nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
 
         // Act & Assert
@@ -101,7 +95,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         var textView = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
-            Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
         var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings,
@@ -109,7 +103,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(
             factoryService => factoryService.TryGetDocumentTracker(
                 It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
+        var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
 
         // Act
         await documentManager.OnTextViewOpenedAsync(textView, buffers);
@@ -125,13 +119,13 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         var textView = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
-            Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
-            Mock.Of<ITextBuffer>(b => b.ContentType == _nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
         var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings, ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager) as IVisualStudioDocumentTracker;
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(f => f.TryGetDocumentTracker(It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
+        var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
 
         // Assert 1
         Assert.False(documentTracker.IsSupportedProject);
@@ -147,11 +141,11 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
     public async Task OnTextViewClosed_TextViewWithoutDocumentTracker_DoesNothing()
     {
         // Arrange
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict));
+        var documentManager = new RazorDocumentManager(Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict), Dispatcher, JoinableTaskContext);
         var textView = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
-            Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
 
         // Act
@@ -169,8 +163,8 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
-            Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
-            Mock.Of<ITextBuffer>(b => b.ContentType == _nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
 
         // Preload the buffer's properties with a tracker, so it's like we've already tracked this one.
@@ -189,7 +183,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         buffers[1].Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
 
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
+        var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
 
         // Act
         await documentManager.OnTextViewClosedAsync(textView2, buffers);
@@ -210,15 +204,15 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
-            Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
-            Mock.Of<ITextBuffer>(b => b.ContentType == _nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
+            Mock.Of<ITextBuffer>(b => b.ContentType == s_nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
         var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings,
             ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager);
         buffers[0].Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict);
-        var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
+        var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
 
         // Populate the text views
         documentTracker.Subscribe();

@@ -18,27 +18,13 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [ContentType(RazorConstants.LegacyCoreContentType)]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [Export(typeof(ITextViewConnectionListener))]
-internal class RazorTextViewConnectionListener : ITextViewConnectionListener
+[method: ImportingConstructor]
+internal class RazorTextViewConnectionListener(
+    IRazorDocumentManager documentManager,
+    JoinableTaskContext joinableTaskContext) : ITextViewConnectionListener
 {
-    private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly RazorDocumentManager _documentManager;
-
-    [ImportingConstructor]
-    public RazorTextViewConnectionListener(JoinableTaskContext joinableTaskContext, RazorDocumentManager documentManager)
-    {
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (documentManager is null)
-        {
-            throw new ArgumentNullException(nameof(documentManager));
-        }
-
-        _joinableTaskContext = joinableTaskContext;
-        _documentManager = documentManager;
-    }
+    private readonly IRazorDocumentManager _documentManager = documentManager;
+    private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
 
     public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
     {
@@ -48,18 +34,9 @@ internal class RazorTextViewConnectionListener : ITextViewConnectionListener
     private async Task SubjectBuffersConnectedAsync(ITextView textView, IReadOnlyCollection<ITextBuffer> subjectBuffers)
     {
         try
-        {
-            if (textView is null)
-            {
-                throw new ArgumentException(nameof(textView));
-            }
-
-            if (subjectBuffers is null)
-            {
-                throw new ArgumentNullException(nameof(subjectBuffers));
-            }
-
+        { 
             _joinableTaskContext.AssertUIThread();
+
             await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
         }
         catch (Exception ex)
@@ -82,16 +59,6 @@ internal class RazorTextViewConnectionListener : ITextViewConnectionListener
     {
         try
         {
-            if (textView is null)
-            {
-                throw new ArgumentException(nameof(textView));
-            }
-
-            if (subjectBuffers is null)
-            {
-                throw new ArgumentNullException(nameof(subjectBuffers));
-            }
-
             _joinableTaskContext.AssertUIThread();
 
             await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
