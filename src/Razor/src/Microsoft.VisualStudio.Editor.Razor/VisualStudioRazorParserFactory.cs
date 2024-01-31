@@ -7,5 +7,5 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal abstract class VisualStudioRazorParserFactory : ILanguageService
 {
-    public abstract VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker);
+    public abstract VisualStudioRazorParser Create(IVisualStudioDocumentTracker documentTracker);
 }

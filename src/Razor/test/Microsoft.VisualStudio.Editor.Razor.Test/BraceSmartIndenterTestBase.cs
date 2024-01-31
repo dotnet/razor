@@ -13,9 +13,9 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
-    private protected static VisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView focusedTextView)
+    private protected static IVisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView focusedTextView)
     {
-        var tracker = new Mock<VisualStudioDocumentTracker>(MockBehavior.Strict);
+        var tracker = new Mock<IVisualStudioDocumentTracker>(MockBehavior.Strict);
         tracker.Setup(t => t.TextBuffer)
             .Returns(bufferAccessor);
         tracker.Setup(t => t.GetFocusedTextView())
@@ -68,10 +68,10 @@ public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : 
         return editorOperationsFactory.Object;
     }
 
-    private protected static TestTextBuffer CreateTextBuffer(ITextSnapshot initialSnapshot, VisualStudioDocumentTracker documentTracker)
+    private protected static TestTextBuffer CreateTextBuffer(ITextSnapshot initialSnapshot, IVisualStudioDocumentTracker documentTracker)
     {
         var textBuffer = new TestTextBuffer(initialSnapshot, new LegacyCoreContentType());
-        textBuffer.Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
+        textBuffer.Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
 
         return textBuffer;
     }

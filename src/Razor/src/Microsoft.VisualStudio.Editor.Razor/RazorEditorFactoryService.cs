@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal abstract class RazorEditorFactoryService
 {
-    public abstract bool TryGetDocumentTracker(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out VisualStudioDocumentTracker? documentTracker);
+    public abstract bool TryGetDocumentTracker(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out IVisualStudioDocumentTracker? documentTracker);
 
     public abstract bool TryGetParser(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out VisualStudioRazorParser? parser);
 

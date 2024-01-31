@@ -38,7 +38,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
     private readonly object _idleLock = new();
     private readonly object _updateStateLock = new();
     private readonly ICompletionBroker _completionBroker;
-    private readonly VisualStudioDocumentTracker _documentTracker;
+    private readonly IVisualStudioDocumentTracker _documentTracker;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly IErrorReporter _errorReporter;
@@ -61,7 +61,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
 
     public DefaultVisualStudioRazorParser(
         JoinableTaskContext joinableTaskContext,
-        VisualStudioDocumentTracker documentTracker,
+        IVisualStudioDocumentTracker documentTracker,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         IErrorReporter errorReporter,
         ICompletionBroker completionBroker)

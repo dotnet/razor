@@ -10,25 +10,18 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-[System.Composition.Shared]
 [Export(typeof(RazorEditorFactoryService))]
-internal class DefaultRazorEditorFactoryService : RazorEditorFactoryService
+[method: ImportingConstructor]
+internal class DefaultRazorEditorFactoryService(
+    IVisualStudioDocumentTrackerFactory documentTrackerFactory,
+    VisualStudioWorkspaceAccessor workspaceAccessor) : RazorEditorFactoryService
 {
     private static readonly object s_razorTextBufferInitializationKey = new();
-    private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
 
-    [ImportingConstructor]
-    public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor)
-    {
-        if (workspaceAccessor is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceAccessor));
-        }
+    private readonly IVisualStudioDocumentTrackerFactory _documentTrackerFactory = documentTrackerFactory;
+    private readonly VisualStudioWorkspaceAccessor _workspaceAccessor = workspaceAccessor;
 
-        _workspaceAccessor = workspaceAccessor;
-    }
-
-    public override bool TryGetDocumentTracker(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out VisualStudioDocumentTracker? documentTracker)
+    public override bool TryGetDocumentTracker(ITextBuffer textBuffer, [NotNullWhen(true)] out IVisualStudioDocumentTracker? documentTracker)
     {
         if (textBuffer is null)
         {
@@ -48,7 +41,7 @@ internal class DefaultRazorEditorFactoryService : RazorEditorFactoryService
             return false;
         }
 
-        if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker) ||
+        if (!textBuffer.Properties.TryGetProperty(typeof(IVisualStudioDocumentTracker), out documentTracker) ||
             documentTracker is null)
         {
             Debug.Fail("Document tracker should have been stored on the text buffer during initialization.");
@@ -58,7 +51,7 @@ internal class DefaultRazorEditorFactoryService : RazorEditorFactoryService
         return true;
     }
 
-    public override bool TryGetParser(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out VisualStudioRazorParser? parser)
+    public override bool TryGetParser(ITextBuffer textBuffer, [NotNullWhen(true)] out VisualStudioRazorParser? parser)
     {
         if (textBuffer is null)
         {
@@ -133,13 +126,12 @@ internal class DefaultRazorEditorFactoryService : RazorEditorFactoryService
         }
 
         var razorLanguageServices = workspace.Services.GetLanguageServices(RazorLanguage.Name);
-        var documentTrackerFactory = razorLanguageServices.GetRequiredService<VisualStudioDocumentTrackerFactory>();
         var parserFactory = razorLanguageServices.GetRequiredService<VisualStudioRazorParserFactory>();
         var braceSmartIndenterFactory = razorLanguageServices.GetRequiredService<BraceSmartIndenterFactory>();
 
-        var tracker = documentTrackerFactory.Create(textBuffer);
+        var tracker = _documentTrackerFactory.Create(textBuffer);
         Assumes.NotNull(tracker);
-        textBuffer.Properties[typeof(VisualStudioDocumentTracker)] = tracker;
+        textBuffer.Properties[typeof(IVisualStudioDocumentTracker)] = tracker;
 
         var parser = parserFactory.Create(tracker);
         textBuffer.Properties[typeof(VisualStudioRazorParser)] = parser;

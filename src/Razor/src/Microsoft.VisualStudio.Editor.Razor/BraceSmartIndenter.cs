@@ -34,7 +34,7 @@ internal class BraceSmartIndenter : IDisposable
 
     private readonly ITextBuffer _textBuffer;
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly VisualStudioDocumentTracker _documentTracker;
+    private readonly IVisualStudioDocumentTracker _documentTracker;
     private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
     private readonly IEditorOperationsFactoryService _editorOperationsFactory;
     private readonly StringBuilder _indentBuilder = new();
@@ -49,7 +49,7 @@ internal class BraceSmartIndenter : IDisposable
 
     public BraceSmartIndenter(
         JoinableTaskContext joinableTaskContext,
-        VisualStudioDocumentTracker documentTracker,
+        IVisualStudioDocumentTracker documentTracker,
         TextBufferCodeDocumentProvider codeDocumentProvider,
         IEditorOperationsFactoryService editorOperationsFactory)
     {
@@ -212,7 +212,7 @@ internal class BraceSmartIndenter : IDisposable
         int changeLength,
         string finalText,
         RazorSyntaxTree syntaxTree,
-        VisualStudioDocumentTracker documentTracker,
+        IVisualStudioDocumentTracker documentTracker,
         [NotNullWhen(returnValue: true)] out BraceIndentationContext? context)
     {
         var focusedTextView = documentTracker.GetFocusedTextView();

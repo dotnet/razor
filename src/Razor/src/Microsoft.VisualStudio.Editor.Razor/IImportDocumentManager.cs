@@ -7,8 +7,8 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal interface IImportDocumentManager
 {
-    void OnSubscribed(VisualStudioDocumentTracker documentTracker);
-    void OnUnsubscribed(VisualStudioDocumentTracker documentTracker);
+    void OnSubscribed(IVisualStudioDocumentTracker documentTracker);
+    void OnUnsubscribed(IVisualStudioDocumentTracker documentTracker);
 
     event EventHandler<ImportChangedEventArgs> Changed;
 }

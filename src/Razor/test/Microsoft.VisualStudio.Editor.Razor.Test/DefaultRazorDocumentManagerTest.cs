@@ -73,8 +73,8 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
 
         var importDocumentManager = new Mock<IImportDocumentManager>(MockBehavior.Strict);
-        importDocumentManager.Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
-        importDocumentManager.Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
+        importDocumentManager.Setup(m => m.OnSubscribed(It.IsAny<IVisualStudioDocumentTracker>())).Verifiable();
+        importDocumentManager.Setup(m => m.OnUnsubscribed(It.IsAny<IVisualStudioDocumentTracker>())).Verifiable();
         _importDocumentManager = importDocumentManager.Object;
     }
 
@@ -103,9 +103,9 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         {
             Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
-        var documentTracker = new DefaultVisualStudioDocumentTracker(
+        var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings,
-            ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager) as VisualStudioDocumentTracker;
+            ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager) as IVisualStudioDocumentTracker;
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(
             factoryService => factoryService.TryGetDocumentTracker(
                 It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
@@ -128,8 +128,8 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
             Mock.Of<ITextBuffer>(b => b.ContentType == _nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
-        var documentTracker = new DefaultVisualStudioDocumentTracker(
-            Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings, ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager) as VisualStudioDocumentTracker;
+        var documentTracker = new VisualStudioDocumentTracker(
+            Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings, ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager) as IVisualStudioDocumentTracker;
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(f => f.TryGetDocumentTracker(It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
         var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
 
@@ -158,7 +158,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         await documentManager.OnTextViewClosedAsync(textView, buffers);
 
         // Assert
-        Assert.False(buffers[0].Properties.ContainsProperty(typeof(VisualStudioDocumentTracker)));
+        Assert.False(buffers[0].Properties.ContainsProperty(typeof(IVisualStudioDocumentTracker)));
     }
 
     [UIFact]
@@ -174,19 +174,19 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         };
 
         // Preload the buffer's properties with a tracker, so it's like we've already tracked this one.
-        var documentTracker = new DefaultVisualStudioDocumentTracker(
+        var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings,
             ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager);
         documentTracker.AddTextView(textView1);
         documentTracker.AddTextView(textView2);
-        buffers[0].Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
+        buffers[0].Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
 
-        documentTracker = new DefaultVisualStudioDocumentTracker(
+        documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings,
             ProjectEngineFactories.DefaultProvider, buffers[1], _importDocumentManager);
         documentTracker.AddTextView(textView1);
         documentTracker.AddTextView(textView2);
-        buffers[1].Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
+        buffers[1].Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
 
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict);
         var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
@@ -195,10 +195,10 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         await documentManager.OnTextViewClosedAsync(textView2, buffers);
 
         // Assert
-        documentTracker = buffers[0].Properties.GetProperty<DefaultVisualStudioDocumentTracker>(typeof(VisualStudioDocumentTracker));
+        documentTracker = buffers[0].Properties.GetProperty<VisualStudioDocumentTracker>(typeof(IVisualStudioDocumentTracker));
         Assert.Collection(documentTracker.TextViews, v => Assert.Same(v, textView1));
 
-        documentTracker = buffers[1].Properties.GetProperty<DefaultVisualStudioDocumentTracker>(typeof(VisualStudioDocumentTracker));
+        documentTracker = buffers[1].Properties.GetProperty<VisualStudioDocumentTracker>(typeof(IVisualStudioDocumentTracker));
         Assert.Collection(documentTracker.TextViews, v => Assert.Same(v, textView1));
     }
 
@@ -213,10 +213,10 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
             Mock.Of<ITextBuffer>(b => b.ContentType == _nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict),
         };
-        var documentTracker = new DefaultVisualStudioDocumentTracker(
+        var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings,
             ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager);
-        buffers[0].Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
+        buffers[0].Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
         var editorFactoryService = Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict);
         var documentManager = new DefaultRazorDocumentManager(Dispatcher, JoinableTaskContext, editorFactoryService);
 

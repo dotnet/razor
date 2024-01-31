@@ -40,12 +40,12 @@ public class ImportDocumentManagerIntegrationTest : ProjectSnapshotManagerDispat
         // Arrange
         var testImportsPath = Path.Combine(_directoryPath, "_ViewImports.cshtml");
 
-        var tracker = Mock.Of<VisualStudioDocumentTracker>(
+        var tracker = Mock.Of<IVisualStudioDocumentTracker>(
             t => t.FilePath == Path.Combine(_directoryPath, "Views", "Home", "_ViewImports.cshtml") &&
             t.ProjectPath == _projectPath &&
             t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
-        var anotherTracker = Mock.Of<VisualStudioDocumentTracker>(
+        var anotherTracker = Mock.Of<IVisualStudioDocumentTracker>(
             t => t.FilePath == Path.Combine(_directoryPath, "anotherFile.cshtml") &&
             t.ProjectPath == _projectPath &&
             t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);

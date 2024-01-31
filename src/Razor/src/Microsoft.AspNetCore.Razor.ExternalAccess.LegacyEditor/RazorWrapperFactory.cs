@@ -127,7 +127,7 @@ internal static partial class RazorWrapperFactory
     private static IRazorBoundAttributeDescriptor Wrap(BoundAttributeDescriptor obj) => WrapBoundAttributeDescriptor(obj);
     private static IRazorBoundAttributeParameterDescriptor Wrap(BoundAttributeParameterDescriptor obj) => WrapBoundAttributeParameterDescriptor(obj);
     private static IRazorDiagnostic Wrap(RazorDiagnostic obj) => WrapDiagnostic(obj);
-    private static IRazorDocumentTracker Wrap(VisualStudioDocumentTracker obj) => WrapDocumentTracker(obj);
+    private static IRazorDocumentTracker Wrap(IVisualStudioDocumentTracker obj) => WrapDocumentTracker(obj);
     private static IRazorElementCompletionContext Wrap(ElementCompletionContext obj) => WrapElementCompletionContext(obj);
     private static IRazorParser Wrap(VisualStudioRazorParser obj) => WrapParser(obj);
     private static IRazorRequiredAttributeDescriptor Wrap(RequiredAttributeDescriptor obj) => WrapRequiredAttributeDescriptor(obj);
@@ -152,7 +152,7 @@ internal static partial class RazorWrapperFactory
         => Wrap<RazorDiagnostic, DiagnosticWrapper, IRazorDiagnostic>(obj, static obj => new DiagnosticWrapper(obj));
 
     internal static IRazorDocumentTracker WrapDocumentTracker(object obj)
-        => Wrap<VisualStudioDocumentTracker, DocumentTrackerWrapper, IRazorDocumentTracker>(obj, static obj => new DocumentTrackerWrapper(obj));
+        => Wrap<IVisualStudioDocumentTracker, DocumentTrackerWrapper, IRazorDocumentTracker>(obj, static obj => new DocumentTrackerWrapper(obj));
 
     internal static IRazorEditorFactoryService WrapEditorFactoryService(object obj)
         => Wrap<RazorEditorFactoryService, EditorFactoryServiceWrapper, IRazorEditorFactoryService>(obj, static obj => new EditorFactoryServiceWrapper(obj));

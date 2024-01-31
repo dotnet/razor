@@ -25,7 +25,7 @@ internal sealed class ImportDocumentManager(
 
     public event EventHandler<ImportChangedEventArgs>? Changed;
 
-    public void OnSubscribed(VisualStudioDocumentTracker documentTracker)
+    public void OnSubscribed(IVisualStudioDocumentTracker documentTracker)
     {
         if (documentTracker is null)
         {
@@ -63,7 +63,7 @@ internal sealed class ImportDocumentManager(
         }
     }
 
-    public void OnUnsubscribed(VisualStudioDocumentTracker documentTracker)
+    public void OnUnsubscribed(IVisualStudioDocumentTracker documentTracker)
     {
         if (documentTracker is null)
         {

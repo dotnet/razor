@@ -20,7 +20,7 @@ internal class DefaultVisualStudioRazorParserFactory(
     private readonly ICompletionBroker _completionBroker = completionBroker;
     private readonly IErrorReporter _errorReporter = errorReporter;
 
-    public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker)
+    public override VisualStudioRazorParser Create(IVisualStudioDocumentTracker documentTracker)
     {
         if (documentTracker is null)
         {

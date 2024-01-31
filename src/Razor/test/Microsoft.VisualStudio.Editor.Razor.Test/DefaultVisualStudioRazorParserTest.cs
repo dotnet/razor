@@ -45,15 +45,15 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
         _projectSnapshot = new EphemeralProjectSnapshot(_projectEngineFactoryProvider, "c:\\SomeProject.csproj");
     }
 
-    private VisualStudioDocumentTracker CreateDocumentTracker(bool isSupportedProject = true, int versionNumber = 0)
-        => Mock.Of<VisualStudioDocumentTracker>(tracker =>
+    private IVisualStudioDocumentTracker CreateDocumentTracker(bool isSupportedProject = true, int versionNumber = 0)
+        => Mock.Of<IVisualStudioDocumentTracker>(tracker =>
             tracker.TextBuffer == new TestTextBuffer(new StringTextSnapshot(string.Empty, versionNumber), /* contentType */ null) &&
             tracker.ProjectPath == "c:\\SomeProject.csproj" &&
             tracker.ProjectSnapshot == _projectSnapshot &&
             tracker.FilePath == "c:\\SomeFilePath.cshtml" &&
             tracker.IsSupportedProject == isSupportedProject, MockBehavior.Strict);
 
-    private DefaultVisualStudioRazorParser CreateParser(VisualStudioDocumentTracker documentTracker)
+    private DefaultVisualStudioRazorParser CreateParser(IVisualStudioDocumentTracker documentTracker)
         => new DefaultVisualStudioRazorParser(
             JoinableTaskContext,
             documentTracker,

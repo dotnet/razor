@@ -70,7 +70,7 @@ internal class DefaultRazorDocumentManager : RazorDocumentManager
             }
 
             if (!_editorFactoryService.TryGetDocumentTracker(textBuffer, out var documentTracker) ||
-                documentTracker is not DefaultVisualStudioDocumentTracker tracker)
+                documentTracker is not VisualStudioDocumentTracker tracker)
             {
                 Debug.Fail("Tracker should always be available given our expectations of the VS workflow.");
                 return;
@@ -108,7 +108,7 @@ internal class DefaultRazorDocumentManager : RazorDocumentManager
         // one of them for a tracker because the content type could have changed.
         foreach (var textBuffer in subjectBuffers)
         {
-            if (textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out DefaultVisualStudioDocumentTracker documentTracker))
+            if (textBuffer.Properties.TryGetProperty(typeof(IVisualStudioDocumentTracker), out VisualStudioDocumentTracker documentTracker))
             {
                 documentTracker.RemoveTextView(textView);
 

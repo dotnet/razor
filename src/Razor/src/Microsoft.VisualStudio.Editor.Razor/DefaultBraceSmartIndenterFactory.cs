@@ -38,7 +38,7 @@ internal class DefaultBraceSmartIndenterFactory : BraceSmartIndenterFactory
         _editorOperationsFactory = editorOperationsFactory;
     }
 
-    public override BraceSmartIndenter Create(VisualStudioDocumentTracker documentTracker)
+    public override BraceSmartIndenter Create(IVisualStudioDocumentTracker documentTracker)
     {
         if (documentTracker is null)
         {

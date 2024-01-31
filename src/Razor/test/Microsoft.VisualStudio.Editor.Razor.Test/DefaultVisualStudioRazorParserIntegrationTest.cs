@@ -560,7 +560,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
         BaselineTest(manager.CurrentSyntaxTree);
     }
 
-    private TestParserManager CreateParserManager(VisualStudioDocumentTracker documentTracker)
+    private TestParserManager CreateParserManager(IVisualStudioDocumentTracker documentTracker)
     {
         var parser = new DefaultVisualStudioRazorParser(
             JoinableTaskFactory.Context,
@@ -650,17 +650,17 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
 #endif
     }
 
-    private VisualStudioDocumentTracker CreateDocumentTracker(Text.ITextBuffer textBuffer, string filePath = TestLinePragmaFileName)
+    private IVisualStudioDocumentTracker CreateDocumentTracker(Text.ITextBuffer textBuffer, string filePath = TestLinePragmaFileName)
     {
         var focusedTextView = Mock.Of<ITextView>(textView => textView.HasAggregateFocus == true, MockBehavior.Strict);
-        var documentTracker = Mock.Of<VisualStudioDocumentTracker>(tracker =>
+        var documentTracker = Mock.Of<IVisualStudioDocumentTracker>(tracker =>
             tracker.TextBuffer == textBuffer &&
             tracker.TextViews == new[] { focusedTextView } &&
             tracker.FilePath == filePath &&
             tracker.ProjectPath == TestProjectPath &&
             tracker.ProjectSnapshot == _projectSnapshot &&
             tracker.IsSupportedProject == true, MockBehavior.Strict);
-        textBuffer.Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
+        textBuffer.Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
 
         return documentTracker;
     }
