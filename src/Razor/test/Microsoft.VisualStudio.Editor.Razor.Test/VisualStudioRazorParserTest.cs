@@ -16,13 +16,13 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
+public class VisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private readonly IProjectSnapshot _projectSnapshot;
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly CodeAnalysis.Workspace _workspace;
 
-    public DefaultVisualStudioRazorParserTest(ITestOutputHelper testOutput)
+    public VisualStudioRazorParserTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _workspace = TestWorkspace.Create();
@@ -53,13 +53,13 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
             tracker.FilePath == "c:\\SomeFilePath.cshtml" &&
             tracker.IsSupportedProject == isSupportedProject, MockBehavior.Strict);
 
-    private DefaultVisualStudioRazorParser CreateParser(IVisualStudioDocumentTracker documentTracker)
-        => new DefaultVisualStudioRazorParser(
-            JoinableTaskContext,
+    private VisualStudioRazorParser CreateParser(IVisualStudioDocumentTracker documentTracker)
+        => new VisualStudioRazorParser(
             documentTracker,
             _projectEngineFactoryProvider,
+            Mock.Of<ICompletionBroker>(MockBehavior.Strict),
             ErrorReporter,
-            Mock.Of<ICompletionBroker>(MockBehavior.Strict));
+            JoinableTaskContext);
 
     [UIFact]
     public async Task GetLatestCodeDocumentAsync_WaitsForParse()
@@ -207,7 +207,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
         var documentTracker = CreateDocumentTracker();
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
-        DefaultVisualStudioRazorParser parser;
+        VisualStudioRazorParser parser;
         codeDocument.SetSyntaxTree(syntaxTree);
         using (parser = CreateParser(documentTracker))
         {
@@ -242,7 +242,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var codeDocument = RazorCodeDocument.Create(TestRazorSourceDocument.Create());
-        var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
+        var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act & Assert
         request.Complete(codeDocument);
@@ -255,7 +255,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var codeDocument = RazorCodeDocument.Create(TestRazorSourceDocument.Create());
-        var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
+        var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act
         request.Complete(codeDocument);
@@ -270,7 +270,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     public void CodeDocumentRequest_Cancel_CanBeCalledMultipleTimes()
     {
         // Arrange
-        var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
+        var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act & Assert
         request.Cancel();
@@ -282,7 +282,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     public void CodeDocumentRequest_Cancel_CancelsTask()
     {
         // Arrange
-        var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
+        var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act
         request.Cancel();
@@ -296,7 +296,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var cts = new CancellationTokenSource();
-        var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, cts.Token);
+        var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, cts.Token);
 
         // Act
         cts.Cancel();
@@ -310,7 +310,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var codeDocument = RazorCodeDocument.Create(TestRazorSourceDocument.Create());
-        var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
+        var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act - 1
         request.Complete(codeDocument);
@@ -330,7 +330,7 @@ public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var codeDocument = RazorCodeDocument.Create(TestRazorSourceDocument.Create());
-        var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
+        var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act - 1
         request.Cancel();

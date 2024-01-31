@@ -27,7 +27,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedDocumentTracker = Mock.Of<IVisualStudioDocumentTracker>(MockBehavior.Strict);
         var factoryService = CreateFactoryService(expectedDocumentTracker);
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryGetDocumentTracker(textBuffer, out var documentTracker);
@@ -42,7 +45,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_nonRazorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryGetDocumentTracker(textBuffer, out var documentTracker);
@@ -57,14 +63,18 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var documentTrackerFactory = Mock.Of<IVisualStudioDocumentTrackerFactory>(MockBehavior.Strict);
+        var parserFactory = Mock.Of<IVisualStudioRazorParserFactory>(MockBehavior.Strict);
 
         CodeAnalysis.Workspace? workspace = null;
         var workspaceAccessor = new Mock<VisualStudioWorkspaceAccessor>(MockBehavior.Strict);
         workspaceAccessor
             .Setup(provider => provider.TryGetWorkspace(It.IsAny<ITextBuffer>(), out workspace))
             .Returns(false);
-        var factoryService = new RazorEditorFactoryService(documentTrackerFactory, workspaceAccessor.Object);
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var factoryService = new RazorEditorFactoryService(documentTrackerFactory, parserFactory, workspaceAccessor.Object);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryInitializeTextBuffer(textBuffer);
@@ -79,7 +89,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedDocumentTracker = Mock.Of<IVisualStudioDocumentTracker>(MockBehavior.Strict);
         var factoryService = CreateFactoryService(expectedDocumentTracker);
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryInitializeTextBuffer(textBuffer);
@@ -95,7 +108,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
         factoryService.TryInitializeTextBuffer(textBuffer);
         var expectedDocumentTracker = textBuffer.Properties[typeof(IVisualStudioDocumentTracker)];
 
@@ -115,9 +131,12 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     public void TryGetParser_ForRazorTextBuffer_ReturnsTrue()
     {
         // Arrange
-        var expectedParser = Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict);
+        var expectedParser = Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict);
         var factoryService = CreateFactoryService(parser: expectedParser);
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryGetParser(textBuffer, out var parser);
@@ -132,7 +151,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_nonRazorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryGetParser(textBuffer, out var parser);
@@ -146,16 +168,19 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     public void TryInitializeTextBuffer_StoresParser_ReturnsTrue()
     {
         // Arrange
-        var expectedParser = Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict);
+        var expectedParser = Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict);
         var factoryService = CreateFactoryService(parser: expectedParser);
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryInitializeTextBuffer(textBuffer);
 
         // Assert
         Assert.True(result);
-        Assert.True(textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser parser));
+        Assert.True(textBuffer.Properties.TryGetProperty(typeof(IVisualStudioRazorParser), out IVisualStudioRazorParser parser));
         Assert.Same(expectedParser, parser);
     }
 
@@ -164,9 +189,12 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
         factoryService.TryInitializeTextBuffer(textBuffer);
-        var expectedParser = textBuffer.Properties[typeof(VisualStudioRazorParser)];
+        var expectedParser = textBuffer.Properties[typeof(IVisualStudioRazorParser)];
 
         // Create a second factory service so it generates a different parser
         factoryService = CreateFactoryService();
@@ -176,7 +204,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
 
         // Assert
         Assert.True(result);
-        Assert.True(textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser parser));
+        Assert.True(textBuffer.Properties.TryGetProperty(typeof(IVisualStudioRazorParser), out IVisualStudioRazorParser parser));
         Assert.Same(expectedParser, parser);
     }
 
@@ -186,7 +214,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedSmartIndenter = Mock.Of<BraceSmartIndenter>(MockBehavior.Strict);
         var factoryService = CreateFactoryService(smartIndenter: expectedSmartIndenter);
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryGetSmartIndenter(textBuffer, out var smartIndenter);
@@ -201,7 +232,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_nonRazorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_nonRazorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryGetSmartIndenter(textBuffer, out var smartIndenter);
@@ -217,7 +251,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedSmartIndenter = Mock.Of<BraceSmartIndenter>(MockBehavior.Strict);
         var factoryService = CreateFactoryService(smartIndenter: expectedSmartIndenter);
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
         // Act
         var result = factoryService.TryInitializeTextBuffer(textBuffer);
@@ -233,7 +270,10 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == s_razorCoreContentType && b.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            b.ContentType == s_razorCoreContentType &&
+            b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
         factoryService.TryInitializeTextBuffer(textBuffer);
         var expectedSmartIndenter = textBuffer.Properties[typeof(BraceSmartIndenter)];
 
@@ -251,29 +291,35 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
 
     private static RazorEditorFactoryService CreateFactoryService(
         IVisualStudioDocumentTracker? documentTracker = null,
-        VisualStudioRazorParser? parser = null,
+        IVisualStudioRazorParser? parser = null,
         BraceSmartIndenter? smartIndenter = null)
     {
         documentTracker ??= Mock.Of<IVisualStudioDocumentTracker>(MockBehavior.Strict);
-        parser ??= Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict);
+        parser ??= Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict);
         smartIndenter ??= Mock.Of<BraceSmartIndenter>(MockBehavior.Strict);
 
-        var documentTrackerFactory = Mock.Of<IVisualStudioDocumentTrackerFactory>(f => f.Create(It.IsAny<ITextBuffer>()) == documentTracker, MockBehavior.Strict);
-        var parserFactory = Mock.Of<VisualStudioRazorParserFactory>(f => f.Create(It.IsAny<IVisualStudioDocumentTracker>()) == parser, MockBehavior.Strict);
-        var smartIndenterFactory = Mock.Of<BraceSmartIndenterFactory>(f => f.Create(It.IsAny<IVisualStudioDocumentTracker>()) == smartIndenter, MockBehavior.Strict);
+        var documentTrackerFactory = Mock.Of<IVisualStudioDocumentTrackerFactory>(f =>
+            f.Create(It.IsAny<ITextBuffer>()) == documentTracker,
+            MockBehavior.Strict);
+        var parserFactory = Mock.Of<IVisualStudioRazorParserFactory>(f =>
+            f.Create(It.IsAny<IVisualStudioDocumentTracker>()) == parser,
+            MockBehavior.Strict);
+        var smartIndenterFactory = Mock.Of<BraceSmartIndenterFactory>(f =>
+            f.Create(It.IsAny<IVisualStudioDocumentTracker>()) == smartIndenter,
+            MockBehavior.Strict);
 
         var services = TestServices.Create(
         [
-            parserFactory,
             smartIndenterFactory
         ]);
 
         CodeAnalysis.Workspace? workspace = TestWorkspace.Create(services);
         var workspaceAccessor = new Mock<VisualStudioWorkspaceAccessor>(MockBehavior.Strict);
-        workspaceAccessor.Setup(p => p.TryGetWorkspace(It.IsAny<ITextBuffer>(), out workspace))
+        workspaceAccessor
+            .Setup(p => p.TryGetWorkspace(It.IsAny<ITextBuffer>(), out workspace))
             .Returns(true);
 
-        var factoryService = new RazorEditorFactoryService(documentTrackerFactory, workspaceAccessor.Object);
+        var factoryService = new RazorEditorFactoryService(documentTrackerFactory, parserFactory, workspaceAccessor.Object);
 
         return factoryService;
     }

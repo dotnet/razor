@@ -49,7 +49,7 @@ internal static class TextBufferExtensions
             throw new ArgumentNullException(nameof(textBuffer));
         }
 
-        if (textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser parser) &&
+        if (textBuffer.Properties.TryGetProperty(typeof(IVisualStudioRazorParser), out IVisualStudioRazorParser parser) &&
             parser.CodeDocument is not null)
         {
             codeDocument = parser.CodeDocument;

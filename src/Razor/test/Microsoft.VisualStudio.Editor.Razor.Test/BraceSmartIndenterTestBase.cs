@@ -86,12 +86,12 @@ public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : 
         var codeDocument = TestRazorCodeDocument.Create(content);
         codeDocument.SetSyntaxTree(syntaxTree);
 
-        var parser = new Mock<VisualStudioRazorParser>(MockBehavior.Strict);
+        var parser = new Mock<IVisualStudioRazorParser>(MockBehavior.Strict);
         parser
             .SetupGet(x => x.CodeDocument)
             .Returns(codeDocument);
 
-        textBuffer.Properties.AddProperty(typeof(VisualStudioRazorParser), parser.Object);
+        textBuffer.Properties.AddProperty(typeof(IVisualStudioRazorParser), parser.Object);
 
         return textBuffer;
     }

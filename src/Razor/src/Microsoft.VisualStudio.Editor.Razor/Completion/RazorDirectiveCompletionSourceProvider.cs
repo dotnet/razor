@@ -54,7 +54,7 @@ internal class RazorDirectiveCompletionSourceProvider : IAsyncCompletionSourcePr
     // Internal for testing
     internal IAsyncCompletionSource? CreateCompletionSource(ITextBuffer razorBuffer)
     {
-        if (!razorBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser parser))
+        if (!razorBuffer.Properties.TryGetProperty(typeof(IVisualStudioRazorParser), out IVisualStudioRazorParser parser))
         {
             // Parser hasn't been associated with the text buffer yet.
             return null;

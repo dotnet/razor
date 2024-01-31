@@ -18,12 +18,12 @@ public class TextBufferExtensionsTest(ITestOutputHelper testOutput) : ToolingTes
     {
         // Arrange
         var expectedCodeDocument = TestRazorCodeDocument.Create("Hello World");
-        var parser = Mock.Of<VisualStudioRazorParser>(p =>
+        var parser = Mock.Of<IVisualStudioRazorParser>(p =>
             p.CodeDocument == expectedCodeDocument,
             MockBehavior.Strict);
         var properties = new PropertyCollection()
         {
-            [typeof(VisualStudioRazorParser)] = parser
+            [typeof(IVisualStudioRazorParser)] = parser
         };
 
         var textBuffer = Mock.Of<ITextBuffer>(buffer =>
@@ -42,12 +42,12 @@ public class TextBufferExtensionsTest(ITestOutputHelper testOutput) : ToolingTes
     public void TryGetCodeDocument_FailsIfParserMissingCodeDocument()
     {
         // Arrange
-        var parser = Mock.Of<VisualStudioRazorParser>(p =>
+        var parser = Mock.Of<IVisualStudioRazorParser>(p =>
             p.CodeDocument == null,
             MockBehavior.Strict);
         var properties = new PropertyCollection()
         {
-            [typeof(VisualStudioRazorParser)] = parser
+            [typeof(IVisualStudioRazorParser)] = parser
         };
         var textBuffer = Mock.Of<ITextBuffer>(buffer =>
             buffer.Properties == properties,

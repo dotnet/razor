@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -25,7 +23,7 @@ using SystemDebugger = System.Diagnostics.Debugger;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
+public class VisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private const string TestLinePragmaFileName = @"C:\This\Path\Is\Just\For\Line\Pragmas.cshtml";
     private const string TestProjectPath = @"C:\This\Path\Is\Just\For\Project.csproj";
@@ -34,7 +32,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
     private readonly IProjectSnapshot _projectSnapshot;
     private readonly CodeAnalysis.Workspace _workspace;
 
-    public DefaultVisualStudioRazorParserIntegrationTest(ITestOutputHelper testOutput)
+    public VisualStudioRazorParserIntegrationTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _workspace = TestWorkspace.Create();
@@ -63,7 +61,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
             Assert.Equal(FileKinds.Component, codeDocument.GetFileKind());
 
             // @code is only applicable in component files so we're verifying that `@code` was treated as a directive.
-            var directiveNodes = manager.CurrentSyntaxTree.Root.DescendantNodes().Where(child => child.Kind == SyntaxKind.RazorDirective);
+            var directiveNodes = manager.CurrentSyntaxTree!.Root.DescendantNodes().Where(child => child.Kind == SyntaxKind.RazorDirective);
             Assert.Single(directiveNodes);
         }
     }
@@ -541,7 +539,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
 
     protected override bool EnableSpanEditHandlers => true;
 
-    private void VerifyPartialParseTree(TestParserManager manager, string content, string expectedCode = null)
+    private void VerifyPartialParseTree(TestParserManager manager, string content, string? expectedCode = null)
     {
         if (expectedCode != null)
         {
@@ -551,7 +549,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
         }
 
         var sourceDocument = TestRazorSourceDocument.Create(content);
-        var syntaxTree = RazorSyntaxTree.Create(manager.PartialParsingSyntaxTreeRoot, sourceDocument, manager.CurrentSyntaxTree.Diagnostics, manager.CurrentSyntaxTree.Options);
+        var syntaxTree = RazorSyntaxTree.Create(manager.PartialParsingSyntaxTreeRoot, sourceDocument, manager.CurrentSyntaxTree!.Diagnostics, manager.CurrentSyntaxTree.Options);
         BaselineTest(syntaxTree);
     }
 
@@ -562,12 +560,12 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
 
     private TestParserManager CreateParserManager(IVisualStudioDocumentTracker documentTracker)
     {
-        var parser = new DefaultVisualStudioRazorParser(
-            JoinableTaskFactory.Context,
+        var parser = new VisualStudioRazorParser(
             documentTracker,
             _projectEngineFactoryProvider,
+            new TestCompletionBroker(),
             ErrorReporter,
-            new TestCompletionBroker())
+            JoinableTaskFactory.Context)
         {
             // We block idle work with the below reset events. Therefore, make tests fast and have the idle timer fire as soon as possible.
             _idleDelay = TimeSpan.FromMilliseconds(1),
@@ -597,7 +595,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
 
             builder.AddDefaultImports("@addTagHelper *, Test");
 
-            builder.Features.Add(new DefaultVisualStudioRazorParser.VisualStudioEnableTagHelpersFeature());
+            builder.Features.Add(new VisualStudioRazorParser.VisualStudioEnableTagHelpersFeature());
         });
 
         var factoryMock = new Mock<IProjectEngineFactory>(MockBehavior.Strict);
@@ -672,9 +670,9 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
         private readonly ManualResetEventSlim _parserComplete;
         private readonly ManualResetEventSlim _reparseComplete;
         private readonly TestTextBuffer _testBuffer;
-        private readonly DefaultVisualStudioRazorParser _parser;
+        private readonly VisualStudioRazorParser _parser;
 
-        public TestParserManager(DefaultVisualStudioRazorParser parser)
+        public TestParserManager(VisualStudioRazorParser parser)
         {
             _parserComplete = new ManualResetEventSlim();
             _reparseComplete = new ManualResetEventSlim();
@@ -699,11 +697,11 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
             };
         }
 
-        public RazorSyntaxTree CurrentSyntaxTree { get; private set; }
+        public RazorSyntaxTree? CurrentSyntaxTree { get; private set; }
 
-        public SyntaxNode PartialParsingSyntaxTreeRoot => _parser._partialParser.ModifiedSyntaxTreeRoot;
+        public SyntaxNode PartialParsingSyntaxTreeRoot => _parser._partialParser!.ModifiedSyntaxTreeRoot;
 
-        public VisualStudioRazorParser InnerParser => _parser;
+        public IVisualStudioRazorParser InnerParser => _parser;
 
         public async Task InitializeWithDocumentAsync(ITextSnapshot snapshot)
         {
@@ -743,10 +741,10 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
             Assert.True(_parser._idleTimer is not null);
 
             // Allow background idle work to continue
-            _parser.BlockBackgroundIdleWork.Set();
+            _parser.BlockBackgroundIdleWork!.Set();
 
             // Get off of the UI thread so we can wait for the idle timer to fire
-            await Task.Run(() => DoWithTimeoutIfNotDebugging(_parser.NotifyUIIdleStart.Wait));
+            await Task.Run(() => DoWithTimeoutIfNotDebugging(_parser.NotifyUIIdleStart!.Wait));
 
             Assert.Null(_parser._idleTimer);
 
@@ -755,7 +753,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
 
             _reparseComplete.Reset();
             _parser.BlockBackgroundIdleWork.Reset();
-            _parser.NotifyUIIdleStart.Reset();
+            _parser.NotifyUIIdleStart!.Reset();
         }
 
         public void Dispose()

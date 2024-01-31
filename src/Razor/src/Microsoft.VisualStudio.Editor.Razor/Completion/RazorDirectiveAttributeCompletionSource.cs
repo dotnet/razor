@@ -38,7 +38,7 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
         new CompletionFilter("Razor Directive Attrsibute", "r", s_directiveAttributeImageGlyph)
     }.ToImmutableArray();
 
-    private readonly VisualStudioRazorParser _parser;
+    private readonly IVisualStudioRazorParser _parser;
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly ICompletionBroker _completionBroker;
     private readonly IVisualStudioDescriptionFactory _descriptionFactory;
@@ -47,7 +47,7 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
 
     public RazorDirectiveAttributeCompletionSource(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        VisualStudioRazorParser parser,
+        IVisualStudioRazorParser parser,
         IRazorCompletionFactsService completionFactsService,
         ICompletionBroker completionBroker,
         IVisualStudioDescriptionFactory descriptionFactory,

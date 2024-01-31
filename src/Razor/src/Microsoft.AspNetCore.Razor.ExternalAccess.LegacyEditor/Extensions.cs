@@ -11,7 +11,7 @@ internal static class Extensions
 {
     public static bool TryGetRazorParser(this PropertyCollection properties, [NotNullWhen(true)] out IRazorParser? parser)
     {
-        if (properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser obj))
+        if (properties.TryGetProperty(typeof(IVisualStudioRazorParser), out IVisualStudioRazorParser obj))
         {
             parser = RazorWrapperFactory.WrapParser(obj);
             return true;

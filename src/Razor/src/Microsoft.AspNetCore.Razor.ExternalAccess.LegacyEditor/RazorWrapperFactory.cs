@@ -129,7 +129,7 @@ internal static partial class RazorWrapperFactory
     private static IRazorDiagnostic Wrap(RazorDiagnostic obj) => WrapDiagnostic(obj);
     private static IRazorDocumentTracker Wrap(IVisualStudioDocumentTracker obj) => WrapDocumentTracker(obj);
     private static IRazorElementCompletionContext Wrap(ElementCompletionContext obj) => WrapElementCompletionContext(obj);
-    private static IRazorParser Wrap(VisualStudioRazorParser obj) => WrapParser(obj);
+    private static IRazorParser Wrap(IVisualStudioRazorParser obj) => WrapParser(obj);
     private static IRazorRequiredAttributeDescriptor Wrap(RequiredAttributeDescriptor obj) => WrapRequiredAttributeDescriptor(obj);
     private static IRazorTagHelperDescriptor Wrap(TagHelperDescriptor obj) => WrapTagHelperDescriptor(obj);
     private static IRazorTagMatchingRuleDescriptor Wrap(TagMatchingRuleDescriptor obj) => WrapTagMatchingRuleDescriptor(obj);
@@ -164,7 +164,7 @@ internal static partial class RazorWrapperFactory
         => Wrap<ElementCompletionContext, ElementCompletionContextWrapper, IRazorElementCompletionContext>(obj, static obj => new ElementCompletionContextWrapper(obj));
 
     internal static IRazorParser WrapParser(object obj)
-        => Wrap<VisualStudioRazorParser, ParserWrapper, IRazorParser>(obj, static obj => new ParserWrapper(obj));
+        => Wrap<IVisualStudioRazorParser, ParserWrapper, IRazorParser>(obj, static obj => new ParserWrapper(obj));
 
     internal static IRazorRequiredAttributeDescriptor WrapRequiredAttributeDescriptor(object obj)
         => Wrap<RequiredAttributeDescriptor, RequiredAttributeDescriptorWrapper, IRazorRequiredAttributeDescriptor>(obj, static obj => new RequiredAttributeDescriptorWrapper(obj));

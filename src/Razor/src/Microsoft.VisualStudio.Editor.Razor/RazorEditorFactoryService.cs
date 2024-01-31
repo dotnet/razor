@@ -14,11 +14,13 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [method: ImportingConstructor]
 internal class RazorEditorFactoryService(
     IVisualStudioDocumentTrackerFactory documentTrackerFactory,
+    IVisualStudioRazorParserFactory parserFactory,
     VisualStudioWorkspaceAccessor workspaceAccessor) : IRazorEditorFactoryService
 {
     private static readonly object s_razorTextBufferInitializationKey = new();
 
     private readonly IVisualStudioDocumentTrackerFactory _documentTrackerFactory = documentTrackerFactory;
+    private readonly IVisualStudioRazorParserFactory _parserFactory = parserFactory;
     private readonly VisualStudioWorkspaceAccessor _workspaceAccessor = workspaceAccessor;
 
     public bool TryGetDocumentTracker(ITextBuffer textBuffer, [NotNullWhen(true)] out IVisualStudioDocumentTracker? documentTracker)
@@ -51,7 +53,7 @@ internal class RazorEditorFactoryService(
         return true;
     }
 
-    public bool TryGetParser(ITextBuffer textBuffer, [NotNullWhen(true)] out VisualStudioRazorParser? parser)
+    public bool TryGetParser(ITextBuffer textBuffer, [NotNullWhen(true)] out IVisualStudioRazorParser? parser)
     {
         if (textBuffer is null)
         {
@@ -71,7 +73,7 @@ internal class RazorEditorFactoryService(
             return false;
         }
 
-        if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out parser) ||
+        if (!textBuffer.Properties.TryGetProperty(typeof(IVisualStudioRazorParser), out parser) ||
             parser is null)
         {
             Debug.Fail("Parser should have been stored on the text buffer during initialization.");
@@ -126,15 +128,14 @@ internal class RazorEditorFactoryService(
         }
 
         var razorLanguageServices = workspace.Services.GetLanguageServices(RazorLanguage.Name);
-        var parserFactory = razorLanguageServices.GetRequiredService<VisualStudioRazorParserFactory>();
         var braceSmartIndenterFactory = razorLanguageServices.GetRequiredService<BraceSmartIndenterFactory>();
 
         var tracker = _documentTrackerFactory.Create(textBuffer);
         Assumes.NotNull(tracker);
         textBuffer.Properties[typeof(IVisualStudioDocumentTracker)] = tracker;
 
-        var parser = parserFactory.Create(tracker);
-        textBuffer.Properties[typeof(VisualStudioRazorParser)] = parser;
+        var parser = _parserFactory.Create(tracker);
+        textBuffer.Properties[typeof(IVisualStudioRazorParser)] = parser;
 
         var braceSmartIndenter = braceSmartIndenterFactory.Create(tracker);
         textBuffer.Properties[typeof(BraceSmartIndenter)] = braceSmartIndenter;
