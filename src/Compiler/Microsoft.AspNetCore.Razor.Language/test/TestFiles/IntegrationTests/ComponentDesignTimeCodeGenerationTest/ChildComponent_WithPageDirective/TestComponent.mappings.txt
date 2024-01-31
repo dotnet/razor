@@ -8,13 +8,3 @@ Source Location: (23:1,6 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (701:24,6 [20] )
 |"/AnotherRoute/{id}"|
 
-Source Location: (6:0,6 [9] x:\dir\subdir\Test\TestComponent.cshtml)
-|"/MyPage"|
-Generated Location: (1156:38,37 [9] )
-|"/MyPage"|
-
-Source Location: (23:1,6 [20] x:\dir\subdir\Test\TestComponent.cshtml)
-|"/AnotherRoute/{id}"|
-Generated Location: (1422:49,37 [20] )
-|"/AnotherRoute/{id}"|
-

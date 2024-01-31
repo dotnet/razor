@@ -9,8 +9,6 @@
         RouteAttributeExtensionNode - (23:1,6 [20] x:\dir\subdir\Test\TestComponent.cshtml) - "/AnotherRoute/{id}"
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             DesignTimeDirective - 
-                DirectiveToken - (6:0,6 [9] x:\dir\subdir\Test\TestComponent.cshtml) - "/MyPage"
-                DirectiveToken - (23:1,6 [20] x:\dir\subdir\Test\TestComponent.cshtml) - "/AnotherRoute/{id}"
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning disable 0414
             CSharpCode - 
