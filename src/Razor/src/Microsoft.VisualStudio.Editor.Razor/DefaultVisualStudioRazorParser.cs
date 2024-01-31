@@ -50,15 +50,6 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
     private bool _disposed;
     private ITextSnapshot? _latestParsedSnapshot;
 
-    // For testing only
-    [Obsolete("Testing Only")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    internal DefaultVisualStudioRazorParser(RazorCodeDocument codeDocument)
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    {
-        _codeDocument = codeDocument;
-    }
-
     public DefaultVisualStudioRazorParser(
         JoinableTaskContext joinableTaskContext,
         IVisualStudioDocumentTracker documentTracker,

@@ -4,11 +4,7 @@
 #nullable disable
 
 using System;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
-using Microsoft.VisualStudio.Text;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -31,9 +27,8 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var focusedTextView = CreateFocusedTextView(() => textBuffer, caret);
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
-        var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
         var editorOperationsFactory = CreateOperationsFactoryService();
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
+        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory);
 
         // Act
         textBuffer.ApplyEdit(edit);
@@ -57,9 +52,8 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var focusedTextView = CreateFocusedTextView(() => textBuffer, caret);
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
-        var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
         var editorOperationsFactory = CreateOperationsFactoryService();
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
+        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory);
 
         // Act
         textBuffer.ApplyEdit(edit);
@@ -83,9 +77,8 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var focusedTextView = CreateFocusedTextView(() => textBuffer, caret);
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
-        var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
         var editorOperationsFactory = CreateOperationsFactoryService();
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
+        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory);
 
         // Act
         textBuffer.ApplyEdit(edit);
@@ -108,29 +101,13 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var focusedTextView = CreateFocusedTextView(() => textBuffer, caret);
         var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
-        var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
         var editorOperationsFactory = CreateOperationsFactoryService();
-        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
+        using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, editorOperationsFactory);
 
         // Act
         textBuffer.ApplyEdit(edit);
 
         // Assert
         Assert.Equal(afterChangeSnapshot.Content, ((StringTextSnapshot)textBuffer.CurrentSnapshot).Content);
-    }
-
-    private static TextBufferCodeDocumentProvider CreateCodeDocumentProvider(string content)
-    {
-        var sourceDocument = TestRazorSourceDocument.Create(content);
-        var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(opt =>
-        {
-            opt.Directives.Add(FunctionsDirective.Directive);
-            opt.EnableSpanEditHandlers = true;
-        }));
-        var codeDocument = TestRazorCodeDocument.Create(content);
-        codeDocument.SetSyntaxTree(syntaxTree);
-        var codeDocumentProvider = Mock.Of<TextBufferCodeDocumentProvider>(provider => provider.TryGetFromBuffer(It.IsAny<ITextBuffer>(), out codeDocument), MockBehavior.Strict);
-
-        return codeDocumentProvider;
     }
 }

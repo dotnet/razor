@@ -11,21 +11,14 @@ internal class DefaultBraceSmartIndenterFactory : BraceSmartIndenterFactory
 {
     private readonly IEditorOperationsFactoryService _editorOperationsFactory;
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
 
     public DefaultBraceSmartIndenterFactory(
         JoinableTaskContext joinableTaskContext,
-        TextBufferCodeDocumentProvider codeDocumentProvider,
         IEditorOperationsFactoryService editorOperationsFactory)
     {
         if (joinableTaskContext is null)
         {
             throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (codeDocumentProvider is null)
-        {
-            throw new ArgumentNullException(nameof(codeDocumentProvider));
         }
 
         if (editorOperationsFactory is null)
@@ -34,7 +27,6 @@ internal class DefaultBraceSmartIndenterFactory : BraceSmartIndenterFactory
         }
 
         _joinableTaskContext = joinableTaskContext;
-        _codeDocumentProvider = codeDocumentProvider;
         _editorOperationsFactory = editorOperationsFactory;
     }
 
@@ -47,7 +39,7 @@ internal class DefaultBraceSmartIndenterFactory : BraceSmartIndenterFactory
 
         _joinableTaskContext.AssertUIThread();
 
-        var braceSmartIndenter = new BraceSmartIndenter(_joinableTaskContext, documentTracker, _codeDocumentProvider, _editorOperationsFactory);
+        var braceSmartIndenter = new BraceSmartIndenter(_joinableTaskContext, documentTracker, _editorOperationsFactory);
         return braceSmartIndenter;
     }
 }
