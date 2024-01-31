@@ -45,13 +45,16 @@ internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanM
         var source = await _document.GetTextAsync().ConfigureAwait(false);
         var output = await _document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
+        var csharpDocument = output.GetCSharpDocument();
+        var filePath = output.Source.FilePath.AssumeNotNull();
+
         using var results = new PooledArrayBuilder<RazorMappedSpanResult>();
 
         foreach (var span in spans)
         {
-            if (TryGetMappedSpans(span, source, output.GetCSharpDocument(), out var linePositionSpan, out var mappedSpan))
+            if (TryGetMappedSpans(span, source, csharpDocument, out var linePositionSpan, out var mappedSpan))
             {
-                results.Add(new(output.Source.FilePath.AssumeNotNull(), linePositionSpan, mappedSpan));
+                results.Add(new(filePath, linePositionSpan, mappedSpan));
             }
             else
             {
