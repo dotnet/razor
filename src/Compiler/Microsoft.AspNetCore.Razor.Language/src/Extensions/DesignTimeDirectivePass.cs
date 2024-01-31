@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -74,6 +75,18 @@ internal class DesignTimeDirectivePass : IntermediateNodePassBase, IRazorDirecti
             VisitDefault(node);
 
             node.Children.Insert(0, _directiveNodes.Pop());
+        }
+
+        public override void VisitDirective(DirectiveIntermediateNode node)
+        {
+            if (node.Directive == ComponentPageDirective.Directive)
+            {
+                // component page directives don't use design time helpers 
+            }
+            else
+            {
+                base.VisitDirective(node);
+            }
         }
 
         public override void VisitDirectiveToken(DirectiveTokenIntermediateNode node)
