@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -17,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
-public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTestBase
+public class EditorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private readonly TestEditorDocumentManager _manager;
     private readonly ProjectKey _projectKey1;
@@ -28,7 +26,7 @@ public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTes
     private readonly string _file2;
     private readonly TestTextBuffer _textBuffer;
 
-    public EditorDocumentManagerBaseTest(ITestOutputHelper testOutput)
+    public EditorDocumentManagerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _manager = new TestEditorDocumentManager(Dispatcher, JoinableTaskFactory.Context);
@@ -182,7 +180,7 @@ public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTes
     private class TestEditorDocumentManager(
         ProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext)
-        : EditorDocumentManagerBase(dispatcher, joinableTaskContext, CreateFileChangeTrackerFactory())
+        : EditorDocumentManager(CreateFileChangeTrackerFactory(), dispatcher, joinableTaskContext)
     {
         public List<EditorDocument> Opened { get; } = new List<EditorDocument>();
 
