@@ -82,7 +82,7 @@ internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanM
             if (leftOffset >= 0 && rightOffset <= 0)
             {
                 // This span mapping contains the span.
-                mappedSpan = new TextSpan(original.Start + leftOffset, original.End + rightOffset - (original.Start + leftOffset));
+                mappedSpan = new TextSpan(original.Start + leftOffset, (original.End + rightOffset) - (original.Start + leftOffset));
                 linePositionSpan = source.Lines.GetLinePositionSpan(mappedSpan);
                 return true;
             }
