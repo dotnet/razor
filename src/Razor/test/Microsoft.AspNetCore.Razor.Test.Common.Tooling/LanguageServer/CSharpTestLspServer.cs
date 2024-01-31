@@ -224,6 +224,8 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             {
                 values.Add(item.Section switch
                 {
+                    "csharp|inlay_hints.dotnet_enable_inlay_hints_for_parameters" => "true",
+                    "csharp|inlay_hints.csharp_enable_inlay_hints_for_types" => "true",
                     _ => ""
                 });
             }
