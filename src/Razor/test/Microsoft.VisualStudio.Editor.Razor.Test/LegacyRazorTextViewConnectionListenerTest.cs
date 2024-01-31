@@ -12,7 +12,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class RazorTextViewConnectionListenerTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
+public class LegacyRazorTextViewConnectionListenerTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
     [UIFact]
     public void SubjectBuffersConnected_CallsRazorDocumentManager_OnTextViewOpened()
@@ -27,7 +27,7 @@ public class RazorTextViewConnectionListenerTest(ITestOutputHelper testOutput) :
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        var listener = new RazorTextViewConnectionListener(documentManagerMock.Object, JoinableTaskFactory.Context);
+        var listener = new LegacyTextViewConnectionListener(documentManagerMock.Object, JoinableTaskFactory.Context);
 
         // Act
         listener.SubjectBuffersConnected(textView, ConnectionReason.BufferGraphChange, buffers);
@@ -48,7 +48,7 @@ public class RazorTextViewConnectionListenerTest(ITestOutputHelper testOutput) :
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        var listener = new RazorTextViewConnectionListener(documentManagerMock.Object, JoinableTaskFactory.Context);
+        var listener = new LegacyTextViewConnectionListener(documentManagerMock.Object, JoinableTaskFactory.Context);
 
         // Act
         listener.SubjectBuffersDisconnected(textView, ConnectionReason.BufferGraphChange, buffers);

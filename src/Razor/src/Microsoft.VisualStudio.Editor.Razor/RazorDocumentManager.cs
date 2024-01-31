@@ -16,13 +16,13 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [Export(typeof(IRazorDocumentManager))]
 [method: ImportingConstructor]
 internal sealed class RazorDocumentManager(
-    RazorEditorFactoryService editorFactoryService,
+    IRazorEditorFactoryService editorFactoryService,
     ProjectSnapshotManagerDispatcher dispatcher,
     JoinableTaskContext joinableTaskContext) : IRazorDocumentManager
 {
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
-    private readonly RazorEditorFactoryService _editorFactoryService = editorFactoryService;
+    private readonly IRazorEditorFactoryService _editorFactoryService = editorFactoryService;
 
     public async Task OnTextViewOpenedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
     {

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [Export(typeof(ITextViewConnectionListener))]
 [method: ImportingConstructor]
-internal class RazorTextViewConnectionListener(
+internal class LegacyTextViewConnectionListener(
     IRazorDocumentManager documentManager,
     JoinableTaskContext joinableTaskContext) : ITextViewConnectionListener
 {

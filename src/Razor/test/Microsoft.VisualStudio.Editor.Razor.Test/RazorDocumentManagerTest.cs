@@ -76,7 +76,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
     public async Task OnTextViewOpened_ForNonRazorTextBuffer_DoesNothing()
     {
         // Arrange
-        var editorFactoryService = new Mock<RazorEditorFactoryService>(MockBehavior.Strict);
+        var editorFactoryService = new Mock<IRazorEditorFactoryService>(MockBehavior.Strict);
         var documentManager = new RazorDocumentManager(editorFactoryService.Object, Dispatcher, JoinableTaskContext);
         var textView = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
@@ -100,7 +100,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings,
             ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager) as IVisualStudioDocumentTracker;
-        var editorFactoryService = Mock.Of<RazorEditorFactoryService>(
+        var editorFactoryService = Mock.Of<IRazorEditorFactoryService>(
             factoryService => factoryService.TryGetDocumentTracker(
                 It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
         var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
@@ -124,7 +124,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         };
         var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings, ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager) as IVisualStudioDocumentTracker;
-        var editorFactoryService = Mock.Of<RazorEditorFactoryService>(f => f.TryGetDocumentTracker(It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
+        var editorFactoryService = Mock.Of<IRazorEditorFactoryService>(f => f.TryGetDocumentTracker(It.IsAny<ITextBuffer>(), out documentTracker) == true, MockBehavior.Strict);
         var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
 
         // Assert 1
@@ -141,7 +141,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
     public async Task OnTextViewClosed_TextViewWithoutDocumentTracker_DoesNothing()
     {
         // Arrange
-        var documentManager = new RazorDocumentManager(Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict), Dispatcher, JoinableTaskContext);
+        var documentManager = new RazorDocumentManager(Mock.Of<IRazorEditorFactoryService>(MockBehavior.Strict), Dispatcher, JoinableTaskContext);
         var textView = Mock.Of<ITextView>(MockBehavior.Strict);
         var buffers = new Collection<ITextBuffer>()
         {
@@ -182,7 +182,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         documentTracker.AddTextView(textView2);
         buffers[1].Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
 
-        var editorFactoryService = Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict);
+        var editorFactoryService = Mock.Of<IRazorEditorFactoryService>(MockBehavior.Strict);
         var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
 
         // Act
@@ -211,7 +211,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
             Dispatcher, JoinableTaskContext, FilePath, ProjectPath, _projectManagerAccessor, _workspaceEditorSettings,
             ProjectEngineFactories.DefaultProvider, buffers[0], _importDocumentManager);
         buffers[0].Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
-        var editorFactoryService = Mock.Of<RazorEditorFactoryService>(MockBehavior.Strict);
+        var editorFactoryService = Mock.Of<IRazorEditorFactoryService>(MockBehavior.Strict);
         var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
 
         // Populate the text views
