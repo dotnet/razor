@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 
-[Shared]
 [Export(typeof(IRazorLoggerProvider))]
 [method: ImportingConstructor]
 internal class OutputWindowLoggerProvider(

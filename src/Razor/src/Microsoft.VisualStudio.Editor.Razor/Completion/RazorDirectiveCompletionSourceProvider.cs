@@ -13,7 +13,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 
-[System.Composition.Shared]
 [Export(typeof(IAsyncCompletionSourceProvider))]
 [Name("Razor directive completion provider.")]
 [ContentType(RazorLanguage.CoreContentType)]

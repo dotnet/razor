@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,29 +16,20 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-[Shared]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
-internal class BackgroundDocumentGenerator : IProjectSnapshotChangeTrigger
+[method: ImportingConstructor]
+internal class BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher dispatcher, RazorDynamicFileInfoProvider infoProvider) : IProjectSnapshotChangeTrigger
 {
     // Internal for testing
-    internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work;
+    internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work = [];
 
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-    private readonly RazorDynamicFileInfoProvider _infoProvider;
-    private readonly HashSet<string> _suppressedDocuments;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
+    private readonly RazorDynamicFileInfoProvider _infoProvider = infoProvider;
+    private readonly HashSet<string> _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
+
     private ProjectSnapshotManagerBase? _projectManager;
     private Timer? _timer;
     private bool _solutionIsClosing;
-
-    [ImportingConstructor]
-    public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher dispatcher, RazorDynamicFileInfoProvider infoProvider)
-    {
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
-        _infoProvider = infoProvider ?? throw new ArgumentNullException(nameof(infoProvider));
-        _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
-
-        Work = new Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)>();
-    }
 
     public bool HasPendingNotifications
     {

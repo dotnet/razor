@@ -3,14 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 
-[Shared]
 [Export(typeof(IVisualStudioDescriptionFactory))]
 internal class VisualStudioDescriptionFactory : IVisualStudioDescriptionFactory
 {
