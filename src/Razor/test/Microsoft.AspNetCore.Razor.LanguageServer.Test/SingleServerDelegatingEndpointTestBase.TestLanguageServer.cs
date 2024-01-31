@@ -63,6 +63,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 CustomMessageNames.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
                 CustomMessageNames.RazorSimplifyMethodEndpointName => HandleSimplifyMethod(@params),
                 CustomMessageNames.RazorInlayHintEndpoint => await HandleInlayHintAsync(@params),
+                CustomMessageNames.RazorInlayHintResolveEndpoint => await HandleInlayHintResolveAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
@@ -108,6 +109,18 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
 
             return _csharpServer.ExecuteRequestAsync<InlayHintParams, InlayHint[]>(
                 Methods.TextDocumentInlayHintName,
+                delegatedRequest,
+                _cancellationToken);
+        }
+
+        private Task<InlayHint> HandleInlayHintResolveAsync<TParams>(TParams @params)
+        {
+            var delegatedParams = Assert.IsType<DelegatedInlayHintResolveParams>(@params);
+
+            var delegatedRequest = delegatedParams.InlayHint;
+
+            return _csharpServer.ExecuteRequestAsync<InlayHint, InlayHint>(
+                Methods.InlayHintResolveName,
                 delegatedRequest,
                 _cancellationToken);
         }

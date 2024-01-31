@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,9 +37,15 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
                 }
             }
             
-            """);
+            """,
+            new Dictionary<string, string>
+            {
+                { "int",           "struct System.Int32" },
+                {"string",         "class System.String" },
+                {"thisIsMyString", "(parameter) string thisIsMyStr" }
+            });
 
-    private async Task VerifyInlayHintsAsync(string input)
+    private async Task VerifyInlayHintsAsync(string input, Dictionary<string, string> toolTipMap)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spansDict);
         var codeDocument = CreateCodeDocument(input);
@@ -46,7 +53,10 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
 
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-        var endpoint = new InlayHintEndpoint(TestLanguageServerFeatureOptions.Instance, DocumentMappingService, languageServer);
+        var service = new InlayHintService(DocumentMappingService);
+
+        var endpoint = new InlayHintEndpoint(TestLanguageServerFeatureOptions.Instance, service, languageServer);
+        var resolveEndpoint = new InlayHintResolveEndpoint(service, languageServer);
 
         var request = new InlayHintParams()
         {
@@ -81,6 +91,24 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
             var expectedRange = span.ToRange(sourceText);
             // Inlay hints only have a position, so we ignore the end of the range that comes from the test input
             Assert.Equal(expectedRange.Start, hint.Position);
+
+            // This looks weird, but its what we have to do to satisfy the compiler :)
+            string? expectedTooltip = null;
+            Assert.True(toolTipMap?.TryGetValue(label, out expectedTooltip));
+            Assert.NotNull(expectedTooltip);
+
+            var resolvedHint = await resolveEndpoint.HandleRequestAsync(hint, requestContext, DisposalToken);
+            Assert.NotNull(resolvedHint);
+            Assert.NotNull(resolvedHint.ToolTip);
+
+            if (resolvedHint.ToolTip.Value.TryGetFirst(out var plainTextTooltip))
+            {
+                Assert.Equal(expectedTooltip, plainTextTooltip);
+            }
+            else if (resolvedHint.ToolTip.Value.TryGetSecond(out var markupTooltip))
+            {
+                Assert.Contains(expectedTooltip, markupTooltip.Value);
+            }
         }
     }
 }
