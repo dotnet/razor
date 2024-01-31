@@ -31,7 +31,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
 
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
     private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
-    private readonly ImportDocumentManager _importDocumentManager;
+    private readonly IImportDocumentManager _importDocumentManager;
 
     public DefaultRazorDocumentManagerTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -72,7 +72,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
         _workspaceEditorSettings = new WorkspaceEditorSettings(
             Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
 
-        var importDocumentManager = new Mock<ImportDocumentManager>(MockBehavior.Strict);
+        var importDocumentManager = new Mock<IImportDocumentManager>(MockBehavior.Strict);
         importDocumentManager.Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
         importDocumentManager.Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
         _importDocumentManager = importDocumentManager.Object;

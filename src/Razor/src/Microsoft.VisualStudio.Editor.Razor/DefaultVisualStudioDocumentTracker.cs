@@ -29,7 +29,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
     private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
     private readonly ITextBuffer _textBuffer;
-    private readonly ImportDocumentManager _importDocumentManager;
+    private readonly IImportDocumentManager _importDocumentManager;
     private readonly List<ITextView> _textViews;
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private bool _isSupportedProject;
@@ -47,7 +47,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         IWorkspaceEditorSettings workspaceEditorSettings,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ITextBuffer textBuffer,
-        ImportDocumentManager importDocumentManager)
+        IImportDocumentManager importDocumentManager)
     {
         if (dispatcher is null)
         {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -14,21 +12,26 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
-public class DefaultImportDocumentManagerIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
+public class ImportDocumentManagerIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private readonly string _directoryPath;
     private readonly string _projectPath;
     private readonly RazorProjectFileSystem _fileSystem;
     private readonly RazorProjectEngine _projectEngine;
 
-    public DefaultImportDocumentManagerIntegrationTest(ITestOutputHelper testOutput)
+    public ImportDocumentManagerIntegrationTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _projectPath = TestProjectData.SomeProject.FilePath;
         _directoryPath = Path.GetDirectoryName(_projectPath);
 
         _fileSystem = RazorProjectFileSystem.Create(Path.GetDirectoryName(_projectPath));
-        _projectEngine = RazorProjectEngine.Create(FallbackRazorConfiguration.MVC_2_1, _fileSystem, AspNetCore.Mvc.Razor.Extensions.RazorExtensions.Register);
+
+        // These tests rely on MVC's import behavior.
+        _projectEngine = RazorProjectEngine.Create(
+            FallbackRazorConfiguration.MVC_2_1,
+            _fileSystem,
+            AspNetCore.Mvc.Razor.Extensions.RazorExtensions.Register);
     }
 
     [UIFact]
@@ -67,7 +70,7 @@ public class DefaultImportDocumentManagerIntegrationTest : ProjectSnapshotManage
             .Returns(Mock.Of<IFileChangeTracker>(MockBehavior.Strict));
 
         var called = false;
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
         manager.OnSubscribed(tracker);
         manager.OnSubscribed(anotherTracker);
         manager.Changed += (sender, args) =>

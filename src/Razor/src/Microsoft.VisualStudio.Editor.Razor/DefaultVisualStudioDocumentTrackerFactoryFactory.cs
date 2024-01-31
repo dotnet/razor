@@ -20,6 +20,7 @@ internal class DefaultVisualStudioDocumentTrackerFactoryFactory(
     ProjectSnapshotManagerDispatcher dispatcher,
     JoinableTaskContext joinableTaskContext,
     IProjectSnapshotManagerAccessor projectManagerAccessor,
+    IImportDocumentManager importDocumentManager,
     IWorkspaceEditorSettings workspaceEditorSettings,
     IProjectPathProvider projectPathProvider,
     ITextDocumentFactoryService textDocumentFactory,
@@ -27,8 +28,6 @@ internal class DefaultVisualStudioDocumentTrackerFactoryFactory(
 {
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
     {
-        var importDocumentManager = languageServices.GetRequiredService<ImportDocumentManager>();
-
         return new DefaultVisualStudioDocumentTrackerFactory(
             dispatcher,
             joinableTaskContext,

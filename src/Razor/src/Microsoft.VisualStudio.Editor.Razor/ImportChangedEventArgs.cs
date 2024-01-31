@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class ImportChangedEventArgs(string filePath, FileChangeKind kind, IEnumerable<string> associatedDocuments) : EventArgs
 {
-    public string FilePath { get; } = filePath ?? throw new ArgumentNullException(nameof(filePath));
-    public FileChangeKind Kind { get; } = kind;
-    public IEnumerable<string> AssociatedDocuments { get; } = associatedDocuments ?? throw new ArgumentNullException(nameof(associatedDocuments));
+    public string FilePath => filePath;
+    public FileChangeKind Kind => kind;
+    public IEnumerable<string> AssociatedDocuments => associatedDocuments;
 }

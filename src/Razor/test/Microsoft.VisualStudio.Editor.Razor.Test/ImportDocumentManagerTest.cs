@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
@@ -16,23 +14,26 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
+public class ImportDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private readonly string _projectPath;
     private readonly string _directoryPath;
     private readonly RazorProjectFileSystem _fileSystem;
     private readonly RazorProjectEngine _projectEngine;
 
-    public DefaultImportDocumentManagerTest(ITestOutputHelper testOutput)
+    public ImportDocumentManagerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _projectPath = TestProjectData.SomeProject.FilePath;
         _directoryPath = Path.GetDirectoryName(_projectPath);
 
         _fileSystem = RazorProjectFileSystem.Create(Path.GetDirectoryName(_projectPath));
-        _projectEngine = RazorProjectEngine.Create(FallbackRazorConfiguration.MVC_2_1, _fileSystem, b =>
-            // These tests rely on MVC's import behavior.
-            Microsoft.AspNetCore.Mvc.Razor.Extensions.RazorExtensions.Register(b));
+
+        // These tests rely on MVC's import behavior.
+        _projectEngine = RazorProjectEngine.Create(
+            FallbackRazorConfiguration.MVC_2_1,
+            _fileSystem,
+            AspNetCore.Mvc.Razor.Extensions.RazorExtensions.Register);
     }
 
     [UIFact]
@@ -68,7 +69,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Returns(fileChangeTracker3.Object)
             .Verifiable();
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
 
         // Act
         manager.OnSubscribed(tracker);
@@ -103,7 +104,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Returns(fileChangeTracker.Object)
             .Callback(() => callCount++);
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
         manager.OnSubscribed(tracker); // Start tracking the import.
 
         // Act
@@ -133,7 +134,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Returns(fileChangeTracker.Object)
             .Verifiable();
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
         manager.OnSubscribed(tracker); // Start tracking the import.
 
         // Act
@@ -168,7 +169,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Setup(f => f.Create(It.IsAny<string>()))
             .Returns(fileChangeTracker.Object);
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
         manager.OnSubscribed(tracker); // Starts tracking import for the first document.
 
         manager.OnSubscribed(anotherTracker); // Starts tracking import for the second document.

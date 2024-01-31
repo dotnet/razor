@@ -32,7 +32,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
     private readonly HostProject _updatedHostProject;
     private readonly HostProject _otherHostProject;
     private Project? _workspaceProject;
-    private readonly ImportDocumentManager _importDocumentManager;
+    private readonly IImportDocumentManager _importDocumentManager;
     private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
     private readonly ProjectSnapshotManagerBase _projectManager;
     private readonly DefaultVisualStudioDocumentTracker _documentTracker;
@@ -47,7 +47,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         _projectPath = TestProjectData.SomeProject.FilePath;
         _rootNamespace = TestProjectData.SomeProject.RootNamespace;
 
-        _importDocumentManager = new Mock<ImportDocumentManager>(MockBehavior.Strict).Object;
+        _importDocumentManager = new Mock<IImportDocumentManager>(MockBehavior.Strict).Object;
         Mock.Get(_importDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
         Mock.Get(_importDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
 
