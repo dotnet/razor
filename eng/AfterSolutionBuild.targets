@@ -12,7 +12,8 @@
     <MSBuild Projects="$(RazorSolutionPath)"
              Targets="Restore" />
     <MSBuild Projects="$(LanguageServerProject)"
-             Targets="Publish" />
+         Properties="TargetFramework=net8.0"
+         Targets="Publish" />
   </Target>
 
   <Target Name="_PublishDevKitTelemetryRids" AfterTargets="Pack" Condition="'$(DotNetBuildFromSource)' != 'true'">
@@ -24,7 +25,8 @@
     <MSBuild Projects="$(RazorSolutionPath)"
              Targets="Restore" />
     <MSBuild Projects="$(DevKitTelemetryProject)"
-             Targets="Publish" />
+         Properties="TargetFramework=net8.0"
+         Targets="Publish" />
   </Target>
 
 </Project>
