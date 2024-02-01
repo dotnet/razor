@@ -40,7 +40,6 @@ internal sealed class CohostInlayHintEndpoint(
 
     protected override Task<InlayHint[]?> HandleRequestAsync(InlayHintParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
-        // TODO: Create document context from request.TextDocument, by looking at request.Solution instead of our project snapshots
         var documentContext = context.GetRequiredDocumentContext();
 
         _logger.LogDebug("[Cohost] Received inlay hint request for {requestPath} and got document {documentPath}", request.TextDocument.Uri, documentContext.FilePath);
