@@ -1,16 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Text;
 
 public class LegacyRazorTextViewConnectionListenerTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
@@ -18,10 +17,9 @@ public class LegacyRazorTextViewConnectionListenerTest(ITestOutputHelper testOut
     public void SubjectBuffersConnected_CallsRazorDocumentManager_OnTextViewOpened()
     {
         // Arrange
-
-        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
-        var buffers = new Collection<ITextBuffer>();
-        var documentManagerMock = new Mock<IRazorDocumentManager>(MockBehavior.Strict);
+        var textView = StrictMock.Of<ITextView>();
+        ITextBuffer[] buffers = [];
+        var documentManagerMock = new StrictMock<IRazorDocumentManager>();
         documentManagerMock
             .Setup(d => d.OnTextViewOpenedAsync(textView, buffers))
             .Returns(Task.CompletedTask)
@@ -37,12 +35,12 @@ public class LegacyRazorTextViewConnectionListenerTest(ITestOutputHelper testOut
     }
 
     [UIFact]
-    public void SubjectBuffersDisonnected_CallsRazorDocumentManager_OnTextViewClosed()
+    public void SubjectBuffersDisconnected_CallsRazorDocumentManager_OnTextViewClosed()
     {
         // Arrange
-        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
-        var buffers = new Collection<ITextBuffer>();
-        var documentManagerMock = new Mock<IRazorDocumentManager>(MockBehavior.Strict);
+        var textView = StrictMock.Of<ITextView>();
+        ITextBuffer[] buffers = [];
+        var documentManagerMock = new StrictMock<IRazorDocumentManager>();
         documentManagerMock
             .Setup(d => d.OnTextViewClosedAsync(textView, buffers))
             .Returns(Task.CompletedTask)
