@@ -13,12 +13,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor;
 /// <summary>
 /// Infrastructure methods to find project information from an <see cref="ITextBuffer"/>.
 /// </summary>
-[Export(typeof(TextBufferProjectService))]
+[Export(typeof(ITextBufferProjectService))]
 [method: ImportingConstructor]
-internal class DefaultTextBufferProjectService(
+internal class TextBufferProjectService(
     [Import(typeof(SVsServiceProvider))] IServiceProvider services,
     ITextDocumentFactoryService documentFactory,
-    AggregateProjectCapabilityResolver projectCapabilityResolver) : TextBufferProjectService
+    AggregateProjectCapabilityResolver projectCapabilityResolver) : ITextBufferProjectService
 {
     private const string DotNetCoreCapability = "(CSharp|VB)&CPS";
 
@@ -26,7 +26,7 @@ internal class DefaultTextBufferProjectService(
     private readonly ITextDocumentFactoryService _documentFactory = documentFactory;
     private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver = projectCapabilityResolver;
 
-    public override object? GetHostProject(ITextBuffer textBuffer)
+    public object? GetHostProject(ITextBuffer textBuffer)
     {
         if (textBuffer is null)
         {
@@ -43,7 +43,7 @@ internal class DefaultTextBufferProjectService(
         return hostProject;
     }
 
-    public override object? GetHostProject(string documentFilePath)
+    public object? GetHostProject(string documentFilePath)
     {
         _documentTable.FindDocument(documentFilePath, out var hierarchy, out _, out _);
 
@@ -54,7 +54,7 @@ internal class DefaultTextBufferProjectService(
         return hierarchy;
     }
 
-    public override string GetProjectPath(object project)
+    public string GetProjectPath(object project)
     {
         if (project is null)
         {
@@ -68,7 +68,7 @@ internal class DefaultTextBufferProjectService(
         return path;
     }
 
-    public override bool IsSupportedProject(object project)
+    public bool IsSupportedProject(object project)
     {
         if (project is null)
         {
@@ -79,7 +79,7 @@ internal class DefaultTextBufferProjectService(
         return capabilitySupported;
     }
 
-    public override string? GetProjectName(object project)
+    public string? GetProjectName(object project)
     {
         if (project is null)
         {

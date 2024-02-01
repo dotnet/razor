@@ -3,12 +3,13 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
@@ -17,7 +18,7 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
     {
         // Arrange
         var expectedProjectPath = "/my/project/path.csproj";
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
+        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
         projectService
             .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
             .Returns(new object());
@@ -44,7 +45,7 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
         liveShareProjectPathProvider
             .Setup(provider => provider.TryGetProjectPath(It.IsAny<ITextBuffer>(), out liveShareProjectPath))
             .Returns(true);
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
+        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
         projectService
             .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
             .Throws<Exception>();
@@ -63,7 +64,7 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
     public void TryGetProjectPath_ReturnsFalseIfNoProject()
     {
         // Arrange
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
+        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
         projectService
             .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
             .Returns(value: null);
@@ -87,7 +88,7 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
     {
         // Arrange
         var expectedProjectPath = "/my/project/path.csproj";
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
+        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
         projectService
             .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
             .Returns(new object());

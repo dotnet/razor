@@ -4,17 +4,18 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 [Export(typeof(IProjectPathProvider))]
 [method: ImportingConstructor]
 internal sealed class ProjectPathProvider(
-    TextBufferProjectService projectService,
+    ITextBufferProjectService projectService,
     [Import(AllowDefault = true)] ILiveShareProjectPathProvider? liveShareProjectPathProvider) : IProjectPathProvider
 {
-    private readonly TextBufferProjectService _projectService = projectService;
+    private readonly ITextBufferProjectService _projectService = projectService;
     private readonly ILiveShareProjectPathProvider? _liveShareProjectPathProvider = liveShareProjectPathProvider;
 
     public bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath)
