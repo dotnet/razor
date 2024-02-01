@@ -36,11 +36,7 @@ internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOpti
             return;
         }
 
-        serverCapabilities.InlayHintOptions = new InlayHintOptions
-        {
-            ResolveProvider = true,
-            WorkDoneProgress = false
-        };
+        serverCapabilities.EnableInlayHints();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(InlayHintParams request)
@@ -49,14 +45,19 @@ internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOpti
     public async Task<InlayHint[]?> HandleRequestAsync(InlayHintParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
         var documentContext = context.GetRequiredDocumentContext();
+        return await GetInlayHintsAsync(documentContext, request.Range, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<InlayHint[]?> GetInlayHintsAsync(VersionedDocumentContext documentContext, Range range, CancellationToken cancellationToken)
+    {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocument();
 
         // We are given a range by the client, but our mapping only succeeds if the start and end of the range can both be mapped
         // to C#. Since that doesn't logically match what we want from inlay hints, we instead get the minimum range of mappable
         // C# to get hints for. We'll filter that later, to remove the sections that can't be mapped back.
-        if (!_documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, request.Range, out var projectedRange) &&
-            !RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, request.Range, out projectedRange))
+        if (!_documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, range, out var projectedRange) &&
+            !RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, range, out projectedRange))
         {
             // There's no C# in the range.
             return null;
@@ -81,9 +82,7 @@ internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOpti
         }
 
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-
         using var _1 = ArrayBuilderPool<InlayHint>.GetPooledObject(out var inlayHintsBuilder);
-
         foreach (var hint in inlayHints)
         {
             if (hint.Position.TryGetAbsoluteIndex(csharpSourceText, null, out var absoluteIndex) &&
@@ -91,7 +90,7 @@ internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOpti
             {
                 hint.Data = new RazorInlayHintWrapper
                 {
-                    TextDocument = request.TextDocument,
+                    TextDocument = documentContext.Identifier,
                     OriginalData = hint.Data,
                     OriginalPosition = hint.Position
                 };

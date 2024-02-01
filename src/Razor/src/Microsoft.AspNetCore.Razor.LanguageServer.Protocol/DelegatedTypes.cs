@@ -29,9 +29,9 @@ internal record DelegatedInlayHintParams(
     RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
 internal record DelegatedInlayHintResolveParams(
-    TextDocumentIdentifier Identifier,
+    TextDocumentIdentifierAndVersion Identifier,
     InlayHint InlayHint,
-    RazorLanguageKind ProjectedKind);
+    RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
 internal record DelegatedValidateBreakpointRangeParams(
     TextDocumentIdentifierAndVersion Identifier,
