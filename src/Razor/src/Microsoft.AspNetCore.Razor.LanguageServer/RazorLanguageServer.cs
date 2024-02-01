@@ -199,8 +199,13 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
             services.AddHandler<MapCodeEndpoint>();
 
-            services.AddHandlerWithCapabilities<InlayHintEndpoint>();
-            services.AddHandler<InlayHintResolveEndpoint>();
+            if (!featureOptions.UseRazorCohostServer)
+            {
+                services.AddSingleton<IInlayHintService, InlayHintService>();
+
+                services.AddHandlerWithCapabilities<InlayHintEndpoint>();
+                services.AddHandler<InlayHintResolveEndpoint>();
+            }
         }
     }
 
