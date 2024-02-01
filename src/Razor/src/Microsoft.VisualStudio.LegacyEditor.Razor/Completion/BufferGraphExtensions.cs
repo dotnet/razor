@@ -2,14 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
 
-namespace Microsoft.VisualStudio.Text;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
 internal static class BufferGraphExtensions
 {
-    public static Collection<ITextBuffer> GetRazorBuffers(this IBufferGraph bufferGraph)
+    public static IEnumerable<ITextBuffer> GetRazorBuffers(this IBufferGraph bufferGraph)
     {
         if (bufferGraph is null)
         {
