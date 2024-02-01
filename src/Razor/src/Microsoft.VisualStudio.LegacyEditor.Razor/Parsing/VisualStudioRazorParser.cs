@@ -15,14 +15,15 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.Extensions.Internal;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
-using static Microsoft.VisualStudio.Editor.Razor.BackgroundParser;
+using static Microsoft.VisualStudio.LegacyEditor.Razor.Parsing.BackgroundParser;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 using Timer = System.Threading.Timer;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 
 internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
 {
@@ -96,7 +97,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         lock (_updateStateLock)
         {
             if (_disposed ||
-                (_latestParsedSnapshot is not null && atOrNewerSnapshot.Version.VersionNumber <= _latestParsedSnapshot.Version.VersionNumber))
+                _latestParsedSnapshot is not null && atOrNewerSnapshot.Version.VersionNumber <= _latestParsedSnapshot.Version.VersionNumber)
             {
                 return Task.FromResult(CodeDocument);
             }

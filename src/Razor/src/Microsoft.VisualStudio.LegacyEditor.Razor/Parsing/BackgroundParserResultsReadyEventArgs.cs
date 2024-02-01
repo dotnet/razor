@@ -3,9 +3,9 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using static Microsoft.VisualStudio.Editor.Razor.BackgroundParser;
+using static Microsoft.VisualStudio.LegacyEditor.Razor.Parsing.BackgroundParser;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 
 internal class BackgroundParserResultsReadyEventArgs : EventArgs
 {

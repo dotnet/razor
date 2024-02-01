@@ -12,7 +12,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Parsing.Test;
 
 public class RazorSyntaxTreePartialParserTest(ITestOutputHelper testOutput) : ToolingParserTestBase(testOutput)
 {

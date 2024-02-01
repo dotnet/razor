@@ -4,10 +4,11 @@
 using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 
 [Export(typeof(IVisualStudioRazorParserFactory))]
 [method: ImportingConstructor]

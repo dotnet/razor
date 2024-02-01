@@ -3,13 +3,16 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.VisualStudio.LegacyEditor.Razor.Test.VsMocks;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
 
 public class TextBufferExtensionsTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
@@ -26,9 +29,7 @@ public class TextBufferExtensionsTest(ITestOutputHelper testOutput) : ToolingTes
             [typeof(IVisualStudioRazorParser)] = parser
         };
 
-        var textBuffer = Mock.Of<ITextBuffer>(buffer =>
-            buffer.Properties == properties,
-            MockBehavior.Strict);
+        var textBuffer = CreateTextBuffer(ContentTypes.RazorCore, properties);
 
         // Act
         var result = textBuffer.TryGetCodeDocument(out var codeDocument);
@@ -42,16 +43,13 @@ public class TextBufferExtensionsTest(ITestOutputHelper testOutput) : ToolingTes
     public void TryGetCodeDocument_FailsIfParserMissingCodeDocument()
     {
         // Arrange
-        var parser = Mock.Of<IVisualStudioRazorParser>(p =>
-            p.CodeDocument == null,
-            MockBehavior.Strict);
+        var parser = StrictMock.Of<IVisualStudioRazorParser>(p =>
+            p.CodeDocument == null);
         var properties = new PropertyCollection()
         {
             [typeof(IVisualStudioRazorParser)] = parser
         };
-        var textBuffer = Mock.Of<ITextBuffer>(buffer =>
-            buffer.Properties == properties,
-            MockBehavior.Strict);
+        var textBuffer = CreateTextBuffer(ContentTypes.RazorCore, properties);
 
         // Act
         var result = textBuffer.TryGetCodeDocument(out var codeDocument);
@@ -65,9 +63,7 @@ public class TextBufferExtensionsTest(ITestOutputHelper testOutput) : ToolingTes
     public void TryGetCodeDocument_FailsIfNoParserIsAvailable()
     {
         // Arrange
-        var textBuffer = Mock.Of<ITextBuffer>(buffer =>
-            buffer.Properties == new PropertyCollection(),
-            MockBehavior.Strict);
+        var textBuffer = CreateTextBuffer(ContentTypes.RazorCore);
 
         // Act
         var result = textBuffer.TryGetCodeDocument(out var codeDocument);

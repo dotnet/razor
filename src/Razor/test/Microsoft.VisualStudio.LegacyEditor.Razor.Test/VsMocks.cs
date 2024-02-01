@@ -13,9 +13,16 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
 internal static class VsMocks
 {
     public static ITextBuffer CreateTextBuffer(bool core)
-        => StrictMock.Of<ITextBuffer>(b =>
-            b.ContentType == (core ? ContentTypes.RazorCore : ContentTypes.NonRazorCore) &&
-            b.Properties == new PropertyCollection());
+        => CreateTextBuffer(core ? ContentTypes.RazorCore : ContentTypes.NonRazorCore);
+
+    public static ITextBuffer CreateTextBuffer(IContentType contentType, PropertyCollection? propertyCollection = null)
+    {
+        propertyCollection ??= new PropertyCollection();
+
+        return StrictMock.Of<ITextBuffer>(b =>
+            b.ContentType == contentType &&
+            b.Properties == propertyCollection);
+    }
 
     internal static class ContentTypes
     {
