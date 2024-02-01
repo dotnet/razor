@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
@@ -9,7 +10,6 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 [Export]
-[System.Composition.Shared]
 internal sealed class RazorServices
 {
     public IRazorEditorFactoryService EditorFactoryService { get; }
@@ -29,10 +29,9 @@ internal sealed class RazorServices
         var editorSettingsManager = componentModel.GetService<EditorSettingsManager>();
         EditorSettingsManager = RazorWrapperFactory.WrapEditorSettingsManager(editorSettingsManager);
 
-        var tagHelperCompletionService = componentModel.GetService<TagHelperCompletionService>();
+        var tagHelperCompletionService = componentModel.GetService<ITagHelperCompletionService>();
         TagHelperCompletionService = RazorWrapperFactory.WrapTagHelperCompletionService(tagHelperCompletionService);
 
-        var tagHelperFactsService = componentModel.GetService<ITagHelperFactsService>();
-        TagHelperFactsService = RazorWrapperFactory.WrapTagHelperFactsService(tagHelperFactsService);
+        TagHelperFactsService = RazorWrapperFactory.GetWrappedTagHelperFactsService();
     }
 }
