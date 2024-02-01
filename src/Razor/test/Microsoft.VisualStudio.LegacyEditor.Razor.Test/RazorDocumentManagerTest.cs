@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -66,11 +65,6 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         _importDocumentManager = importDocumentManager.Object;
     }
 
-    private static ITextBuffer CreateTextBuffer(bool core)
-        => StrictMock.Of<ITextBuffer>(b =>
-            b.ContentType == (core ? ContentTypes.RazorCore : ContentTypes.NonRazorCore) &&
-            b.Properties == new PropertyCollection());
-
     [UIFact]
     public async Task OnTextViewOpened_ForNonRazorTextBuffer_DoesNothing()
     {
@@ -78,7 +72,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         var editorFactoryService = StrictMock.Of<IRazorEditorFactoryService>();
         var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
         var textView = StrictMock.Of<ITextView>();
-        var nonCoreTextBuffer = CreateTextBuffer(core: false);
+        var nonCoreTextBuffer = VsMocks.CreateTextBuffer(core: false);
 
         // Act & Assert
         await documentManager.OnTextViewOpenedAsync(textView, [nonCoreTextBuffer]);
@@ -89,7 +83,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         // Arrange
         var textView = StrictMock.Of<ITextView>();
-        var coreTextBuffer = CreateTextBuffer(core: true);
+        var coreTextBuffer = VsMocks.CreateTextBuffer(core: true);
 
         IVisualStudioDocumentTracker? documentTracker = new VisualStudioDocumentTracker(
             Dispatcher,
@@ -117,8 +111,8 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         // Arrange
         var textView = StrictMock.Of<ITextView>();
-        var coreTextBuffer = CreateTextBuffer(core: true);
-        var nonCoreTextBuffer = CreateTextBuffer(core: false);
+        var coreTextBuffer = VsMocks.CreateTextBuffer(core: true);
+        var nonCoreTextBuffer = VsMocks.CreateTextBuffer(core: false);
 
         IVisualStudioDocumentTracker? documentTracker = new VisualStudioDocumentTracker(
             Dispatcher,
@@ -150,7 +144,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         // Arrange
         var documentManager = new RazorDocumentManager(StrictMock.Of<IRazorEditorFactoryService>(), Dispatcher, JoinableTaskContext);
         var textView = StrictMock.Of<ITextView>();
-        var coreTextBuffer = CreateTextBuffer(core: true);
+        var coreTextBuffer = VsMocks.CreateTextBuffer(core: true);
 
         // Act
         await documentManager.OnTextViewClosedAsync(textView, [coreTextBuffer]);
@@ -165,8 +159,8 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         // Arrange
         var textView1 = StrictMock.Of<ITextView>();
         var textView2 = StrictMock.Of<ITextView>();
-        var coreTextBuffer = CreateTextBuffer(core: true);
-        var nonCoreTextBuffer = CreateTextBuffer(core: false);
+        var coreTextBuffer = VsMocks.CreateTextBuffer(core: true);
+        var nonCoreTextBuffer = VsMocks.CreateTextBuffer(core: false);
 
         // Preload the buffer's properties with a tracker, so it's like we've already tracked this one.
         var documentTracker = new VisualStudioDocumentTracker(
@@ -210,8 +204,8 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         // Arrange
         var textView1 = StrictMock.Of<ITextView>();
         var textView2 = StrictMock.Of<ITextView>();
-        var coreTextBuffer = CreateTextBuffer(core: true);
-        var nonCoreTextBuffer = CreateTextBuffer(core: false);
+        var coreTextBuffer = VsMocks.CreateTextBuffer(core: true);
+        var nonCoreTextBuffer = VsMocks.CreateTextBuffer(core: false);
 
         var documentTracker = new VisualStudioDocumentTracker(
             Dispatcher,

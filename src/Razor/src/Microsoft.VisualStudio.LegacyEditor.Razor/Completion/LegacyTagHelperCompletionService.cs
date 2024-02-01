@@ -11,8 +11,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
 // This class is utilized entirely by the legacy Razor editor and should not be touched except when specifically working on the legacy editor to avoid breaking functionality.
 

@@ -4,7 +4,6 @@
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -13,18 +12,13 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
 
 public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private static ITextBuffer CreateTextBuffer(bool core)
-        => StrictMock.Of<ITextBuffer>(b =>
-            b.ContentType == (core ? ContentTypes.RazorCore : ContentTypes.NonRazorCore) &&
-            b.Properties == new PropertyCollection());
-
     [Fact]
     public void TryGetDocumentTracker_ForRazorTextBuffer_ReturnsTrue()
     {
         // Arrange
         var expectedDocumentTracker = StrictMock.Of<IVisualStudioDocumentTracker>();
         var factoryService = CreateFactoryService(expectedDocumentTracker);
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
 
         // Act
         var result = factoryService.TryGetDocumentTracker(textBuffer, out var documentTracker);
@@ -39,7 +33,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = CreateTextBuffer(core: false);
+        var textBuffer = VsMocks.CreateTextBuffer(core: false);
 
         // Act
         var result = factoryService.TryGetDocumentTracker(textBuffer, out var documentTracker);
@@ -55,7 +49,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedDocumentTracker = StrictMock.Of<IVisualStudioDocumentTracker>();
         var factoryService = CreateFactoryService(expectedDocumentTracker);
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
 
         // Act
         var result = factoryService.TryInitializeTextBuffer(textBuffer);
@@ -71,7 +65,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
         factoryService.TryInitializeTextBuffer(textBuffer);
         var expectedDocumentTracker = textBuffer.Properties[typeof(IVisualStudioDocumentTracker)];
 
@@ -93,7 +87,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedParser = StrictMock.Of<IVisualStudioRazorParser>();
         var factoryService = CreateFactoryService(parser: expectedParser);
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
 
         // Act
         var result = factoryService.TryGetParser(textBuffer, out var parser);
@@ -108,7 +102,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = CreateTextBuffer(core: false);
+        var textBuffer = VsMocks.CreateTextBuffer(core: false);
 
         // Act
         var result = factoryService.TryGetParser(textBuffer, out var parser);
@@ -124,7 +118,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedParser = StrictMock.Of<IVisualStudioRazorParser>();
         var factoryService = CreateFactoryService(parser: expectedParser);
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
 
         // Act
         var result = factoryService.TryInitializeTextBuffer(textBuffer);
@@ -140,7 +134,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
         factoryService.TryInitializeTextBuffer(textBuffer);
         var expectedParser = textBuffer.Properties[typeof(IVisualStudioRazorParser)];
 
@@ -162,7 +156,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedSmartIndenter = StrictMock.Of<BraceSmartIndenter>();
         var factoryService = CreateFactoryService(smartIndenter: expectedSmartIndenter);
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
 
         // Act
         var result = factoryService.TryGetSmartIndenter(textBuffer, out var smartIndenter);
@@ -177,7 +171,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = CreateTextBuffer(core: false);
+        var textBuffer = VsMocks.CreateTextBuffer(core: false);
 
         // Act
         var result = factoryService.TryGetSmartIndenter(textBuffer, out var smartIndenter);
@@ -193,7 +187,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
         // Arrange
         var expectedSmartIndenter = StrictMock.Of<BraceSmartIndenter>();
         var factoryService = CreateFactoryService(smartIndenter: expectedSmartIndenter);
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
 
         // Act
         var result = factoryService.TryInitializeTextBuffer(textBuffer);
@@ -209,7 +203,7 @@ public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : Tooli
     {
         // Arrange
         var factoryService = CreateFactoryService();
-        var textBuffer = CreateTextBuffer(core: true);
+        var textBuffer = VsMocks.CreateTextBuffer(core: true);
         factoryService.TryInitializeTextBuffer(textBuffer);
         var expectedSmartIndenter = textBuffer.Properties[typeof(BraceSmartIndenter)];
 

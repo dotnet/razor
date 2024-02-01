@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
 /// <summary>
 ///  Compares <see cref="CompletionItem"/>s by display text using the current culture.

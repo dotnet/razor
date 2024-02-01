@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -16,7 +15,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion.Test;
 
 public class RazorDirectiveAttributeCompletionSourceTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
@@ -29,7 +28,7 @@ public class RazorDirectiveAttributeCompletionSourceTest(ITestOutputHelper testO
         var completionItem = new CompletionItem("@random", completionSessionSource);
 
         // Act
-        var result = await source.GetDescriptionAsync(session: null, completionItem, DisposalToken);
+        var result = await source.GetDescriptionAsync(session: null!, completionItem, DisposalToken);
 
         // Assert
         Assert.Equal(string.Empty, result);
@@ -54,7 +53,7 @@ public class RazorDirectiveAttributeCompletionSourceTest(ITestOutputHelper testO
         completionItem.Properties.AddProperty(RazorDirectiveAttributeCompletionSource.DescriptionKey, description);
 
         // Act
-        var result = await source.GetDescriptionAsync(session: null, completionItem, DisposalToken);
+        var result = await source.GetDescriptionAsync(session: null!, completionItem, DisposalToken);
 
         // Assert
         Assert.Equal(expectedResult, result);

@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
 internal static class PropertyCollectionExtensions
 {

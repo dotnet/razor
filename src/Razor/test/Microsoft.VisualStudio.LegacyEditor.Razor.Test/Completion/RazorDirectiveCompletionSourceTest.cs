@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +12,10 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -23,24 +23,18 @@ using Xunit.Abstractions;
 using Span = Microsoft.VisualStudio.Text.Span;
 using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion.Test;
 
-public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatcherTestBase
+public class RazorDirectiveCompletionSourceTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
-    private static readonly IReadOnlyList<DirectiveDescriptor> s_defaultDirectives = new[]
-    {
+    private static readonly ImmutableArray<DirectiveDescriptor> s_defaultDirectives = ImmutableArray.Create(
+    [
         CSharpCodeParser.AddTagHelperDirectiveDescriptor,
         CSharpCodeParser.RemoveTagHelperDirectiveDescriptor,
-        CSharpCodeParser.TagHelperPrefixDirectiveDescriptor,
-    };
+        CSharpCodeParser.TagHelperPrefixDirectiveDescriptor
+    ]);
 
-    private readonly IRazorCompletionFactsService _completionFactsService;
-
-    public RazorDirectiveCompletionSourceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _completionFactsService = new RazorCompletionFactsService(new[] { new DirectiveCompletionItemProvider() });
-    }
+    private readonly IRazorCompletionFactsService _completionFactsService = new RazorCompletionFactsService([new DirectiveCompletionItemProvider()]);
 
     [UIFact]
     public async Task GetCompletionContextAsync_DoesNotProvideCompletionsPriorToParseResults()
@@ -53,18 +47,17 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
             .ReturnsAsync(value: null); // CodeDocument will be null faking a parser without a parse.
         var completionSource = new RazorDirectiveCompletionSource(parser.Object, _completionFactsService);
         var documentSnapshot = new StringTextSnapshot(text);
-        var textBuffer = new TestTextBuffer(documentSnapshot, new LegacyCoreContentType());
+        var textBuffer = new TestTextBuffer(documentSnapshot, VsMocks.ContentTypes.LegacyRazorCore);
         var triggerLocation = new SnapshotPoint(documentSnapshot, 4);
         var applicableSpan = new SnapshotSpan(documentSnapshot, new Span(1, text.Length - 1 /* validCompletion */));
 
         // Act
-        var completionContext = await Task.Run(
-            () => completionSource.GetCompletionContextAsync(
-                session: null,
-                new CompletionTrigger(CompletionTriggerReason.Invoke, triggerLocation.Snapshot),
-                triggerLocation,
-                applicableSpan,
-                DisposalToken));
+        var completionContext = await completionSource.GetCompletionContextAsync(
+            session: null!,
+            new CompletionTrigger(CompletionTriggerReason.Invoke, triggerLocation.Snapshot),
+            triggerLocation,
+            applicableSpan,
+            DisposalToken);
 
         // Assert
         Assert.Empty(completionContext.ItemList);
@@ -78,14 +71,14 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
         var parser = CreateParser(text);
         var completionSource = new RazorDirectiveCompletionSource(parser, _completionFactsService);
         var documentSnapshot = new StringTextSnapshot(text);
-        var textBuffer = new TestTextBuffer(documentSnapshot, new LegacyCoreContentType());
+        var textBuffer = new TestTextBuffer(documentSnapshot, VsMocks.ContentTypes.LegacyRazorCore);
         var triggerLocation = new SnapshotPoint(documentSnapshot, 4);
         var applicableSpan = new SnapshotSpan(documentSnapshot, new Span(2, text.Length - 3 /* @() */));
 
         // Act
         var completionContext = await Task.Run(
             () => completionSource.GetCompletionContextAsync(
-                session: null,
+                session: null!,
                 new CompletionTrigger(CompletionTriggerReason.Invoke, triggerLocation.Snapshot),
                 triggerLocation,
                 applicableSpan,
@@ -106,14 +99,14 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
         var parser = CreateParser(text, SectionDirective.Directive);
         var completionSource = new RazorDirectiveCompletionSource(parser, _completionFactsService);
         var documentSnapshot = new StringTextSnapshot(text);
-        var textBuffer = new TestTextBuffer(documentSnapshot, new LegacyCoreContentType());
+        var textBuffer = new TestTextBuffer(documentSnapshot, VsMocks.ContentTypes.LegacyRazorCore);
         var triggerLocation = new SnapshotPoint(documentSnapshot, 1);
         var applicableSpan = new SnapshotSpan(documentSnapshot, new Span(1, 0));
 
         // Act
         var completionContext = await Task.Run(
             () => completionSource.GetCompletionContextAsync(
-                null,
+                null!,
                 new CompletionTrigger(CompletionTriggerReason.Invoke, triggerLocation.Snapshot),
                 triggerLocation,
                 applicableSpan,
@@ -141,7 +134,7 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
         var completionSource = new RazorDirectiveCompletionSource(Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict), _completionFactsService);
 
         // Act
-        var descriptionObject = await completionSource.GetDescriptionAsync(null, completionItem, DisposalToken);
+        var descriptionObject = await completionSource.GetDescriptionAsync(null!, completionItem, DisposalToken);
 
         // Assert
         var description = Assert.IsType<string>(descriptionObject);
@@ -156,7 +149,7 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
         var completionSource = new RazorDirectiveCompletionSource(Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict), _completionFactsService);
 
         // Act
-        var descriptionObject = await completionSource.GetDescriptionAsync(null, completionItem, DisposalToken);
+        var descriptionObject = await completionSource.GetDescriptionAsync(null!, completionItem, DisposalToken);
 
         // Assert
         var description = Assert.IsType<string>(descriptionObject);

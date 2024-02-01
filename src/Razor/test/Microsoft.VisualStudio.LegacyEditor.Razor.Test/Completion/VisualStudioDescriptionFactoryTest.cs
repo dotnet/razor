@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -11,15 +9,10 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion.Test;
 
-public class DefaultVisualStudioDescriptionFactoryTest : ToolingTestBase
+public class VisualStudioDescriptionFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public DefaultVisualStudioDescriptionFactoryTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void CreateClassifiedDescription_SingleDescription_NoSeparator()
     {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +13,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion.Test;
 
 public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
@@ -1370,10 +1368,10 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
     private static ElementCompletionContext BuildElementCompletionContext(
         IEnumerable<TagHelperDescriptor> descriptors,
         IEnumerable<string> existingCompletions,
-        string containingTagName,
-        string containingParentTagName = "body",
+        string? containingTagName,
+        string? containingParentTagName = "body",
         bool containingParentIsTagHelper = false,
-        string tagHelperPrefix = "")
+        string? tagHelperPrefix = "")
     {
         var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
         var completionContext = new ElementCompletionContext(
@@ -1392,7 +1390,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
         IEnumerable<TagHelperDescriptor> descriptors,
         IEnumerable<string> existingCompletions,
         string currentTagName,
-        string currentAttributeName = null,
+        string? currentAttributeName = null,
         ImmutableArray<KeyValuePair<string, string>> attributes = default,
         string tagHelperPrefix = "")
     {
