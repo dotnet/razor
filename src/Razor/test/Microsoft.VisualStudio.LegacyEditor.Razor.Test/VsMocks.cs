@@ -28,6 +28,7 @@ internal static class VsMocks
     {
         public static readonly IContentType LegacyRazorCore;
         public static readonly IContentType RazorCore;
+        public static readonly IContentType RazorCoreAndLegacyRazorCore;
         public static readonly IContentType NonRazorCore;
 
         static ContentTypes()
@@ -45,6 +46,13 @@ internal static class VsMocks
                 .Returns((string type) => type == RazorLanguage.CoreContentType);
 
             RazorCore = razorCoreMock.Object;
+
+            var razorCoreAndLegacyRazorCoreMock = new StrictMock<IContentType>();
+            razorCoreAndLegacyRazorCoreMock
+                .Setup(x => x.IsOfType(It.IsAny<string>()))
+                .Returns((string type) => type is RazorConstants.LegacyCoreContentType or RazorLanguage.CoreContentType);
+
+            RazorCoreAndLegacyRazorCore = razorCoreAndLegacyRazorCoreMock.Object;
 
             var nonRazorCoreMock = new StrictMock<IContentType>();
             nonRazorCoreMock

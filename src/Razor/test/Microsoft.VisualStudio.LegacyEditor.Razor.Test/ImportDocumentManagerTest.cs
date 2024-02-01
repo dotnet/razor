@@ -12,7 +12,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class ImportDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {

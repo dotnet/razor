@@ -1,15 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.VisualStudio.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Text;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class TextContentChangedEventArgsExtensionsTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
@@ -89,11 +88,8 @@ public class TextContentChangedEventArgsExtensionsTest(ITestOutputHelper testOut
         Assert.Equal("by by", changeInformation.oldText);
     }
 
-    private class TestTextContentChangedEventArgs : TextContentChangedEventArgs
+    private class TestTextContentChangedEventArgs(ITextSnapshot before, ITextSnapshot after)
+        : TextContentChangedEventArgs(before, after, EditOptions.DefaultMinimalChange, null)
     {
-        public TestTextContentChangedEventArgs(ITextSnapshot before, ITextSnapshot after)
-            : base(before, after, EditOptions.DefaultMinimalChange, null)
-        {
-        }
     }
 }

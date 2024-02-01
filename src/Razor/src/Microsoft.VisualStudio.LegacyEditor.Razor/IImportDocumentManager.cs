@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 internal interface IImportDocumentManager
 {

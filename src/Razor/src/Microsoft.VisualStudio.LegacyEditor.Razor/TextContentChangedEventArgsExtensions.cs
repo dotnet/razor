@@ -2,8 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Text;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 internal static class TextContentChangedEventArgsExtensions
 {

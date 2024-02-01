@@ -7,19 +7,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
 {
@@ -34,13 +32,7 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
     public VisualStudioDocumentTrackerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        var razorCoreContentType = Mock.Of<IContentType>(c =>
-            c.IsOfType(RazorLanguage.ContentType) &&
-            c.IsOfType(RazorConstants.LegacyContentType),
-            MockBehavior.Strict);
-        _textBuffer = Mock.Of<ITextBuffer>(b =>
-            b.ContentType == razorCoreContentType,
-            MockBehavior.Strict);
+        _textBuffer = VsMocks.CreateTextBuffer(VsMocks.ContentTypes.RazorCoreAndLegacyRazorCore);
 
         _filePath = TestProjectData.SomeProjectFile1.FilePath;
         var projectPath = TestProjectData.SomeProject.FilePath;

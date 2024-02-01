@@ -8,8 +8,8 @@ using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
+using Microsoft.VisualStudio.LegacyEditor.Razor;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
