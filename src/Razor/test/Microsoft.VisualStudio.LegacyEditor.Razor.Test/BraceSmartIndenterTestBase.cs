@@ -5,17 +5,18 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Moq;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
 
-public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
+public class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
-    private protected static IVisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView focusedTextView)
+    private protected static IVisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView? focusedTextView)
     {
         var tracker = new Mock<IVisualStudioDocumentTracker>(MockBehavior.Strict);
         tracker.Setup(t => t.TextBuffer)
@@ -72,7 +73,7 @@ public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : 
 
     private protected static TestTextBuffer CreateTextBuffer(StringTextSnapshot initialSnapshot, IVisualStudioDocumentTracker documentTracker)
     {
-        var textBuffer = new TestTextBuffer(initialSnapshot, new LegacyCoreContentType());
+        var textBuffer = new TestTextBuffer(initialSnapshot, VsMocks.ContentTypes.LegacyRazorCore);
         textBuffer.Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
 
         var content = initialSnapshot.Content;
@@ -99,7 +100,7 @@ public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : 
     protected static ITextBuffer SetupTextBufferMock()
     {
         var mock = new Mock<ITextBuffer>(MockBehavior.Strict);
-        mock.SetupGet(a => a.ContentType).Returns(new LegacyCoreContentType());
+        mock.SetupGet(a => a.ContentType).Returns(VsMocks.ContentTypes.LegacyRazorCore);
         return mock.Object;
     }
 }

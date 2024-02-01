@@ -8,13 +8,14 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 /// <summary>
 /// This class is responsible for handling situations where Roslyn and the HTML editor cannot auto-indent Razor code.
@@ -79,7 +80,7 @@ internal class BraceSmartIndenter : IDisposable
     }
 
     // Internal for testing
-    internal void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
+    internal void TextBuffer_OnChanged(object? sender, TextContentChangedEventArgs args)
     {
         _joinableTaskContext.AssertUIThread();
 

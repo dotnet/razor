@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
 
 public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : BraceSmartIndenterTestBase(testOutput)
 {
     [UIFact]
-    public void TextBuffer_OnPostChanged_IndentsInbetweenBraces_BaseIndentation()
+    public void TextBuffer_OnPostChanged_IndentIsInBetweenBraces_BaseIndentation()
     {
         // Arrange
         var change = Environment.NewLine;
@@ -23,9 +22,9 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var expectedIndentResult = "@{ " + change + change + "}";
 
         var caret = CreateCaretFrom(3 + change.Length, afterChangeSnapshot);
-        TestTextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer, caret);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        TestTextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull(), caret);
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
         var editorOperationsFactory = CreateOperationsFactoryService();
         using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
@@ -38,7 +37,7 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
     }
 
     [UIFact]
-    public void TextBuffer_OnPostChanged_IndentsInbetweenBraces_OneLevelOfIndentation()
+    public void TextBuffer_OnPostChanged_IndentIsInBetweenBraces_OneLevelOfIndentation()
     {
         // Arrange
         var change = "\r";
@@ -48,9 +47,9 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var expectedIndentResult = "    @{ " + change + change + "    }";
 
         var caret = CreateCaretFrom(7 + change.Length, afterChangeSnapshot);
-        TestTextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer, caret);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        TestTextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull(), caret);
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
         var editorOperationsFactory = CreateOperationsFactoryService();
         using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
@@ -63,7 +62,7 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
     }
 
     [UIFact]
-    public void TextBuffer_OnPostChanged_IndentsInbetweenDirectiveBlockBraces()
+    public void TextBuffer_OnPostChanged_IndentIsInBetweenDirectiveBlockBraces()
     {
         // Arrange
         var change = Environment.NewLine;
@@ -73,9 +72,9 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var expectedIndentResult = "    @functions {" + change + change + "    }";
 
         var caret = CreateCaretFrom(16 + change.Length, afterChangeSnapshot);
-        TestTextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer, caret);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        TestTextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull(), caret);
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
         var editorOperationsFactory = CreateOperationsFactoryService();
         using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
@@ -97,9 +96,9 @@ public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : B
         var edit = new TestEdit(28, 0, initialSnapshot, afterChangeSnapshot, change);
 
         var caret = CreateCaretFrom(28 + change.Length, afterChangeSnapshot);
-        TestTextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer, caret);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        TestTextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull(), caret);
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
         var editorOperationsFactory = CreateOperationsFactoryService();
         using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);

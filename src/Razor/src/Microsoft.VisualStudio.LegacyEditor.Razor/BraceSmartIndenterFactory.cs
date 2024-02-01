@@ -2,10 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 [Export(typeof(IBraceSmartIndenterFactory))]
 [method: ImportingConstructor]

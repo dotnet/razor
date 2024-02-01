@@ -1,14 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,16 +19,11 @@ using Xunit;
 using Xunit.Abstractions;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
 
-public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
+public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIndenterTestBase(testOutput)
 {
-    private static readonly RazorParserOptions DefaultOptions = RazorParserOptions.Create(builder => builder.EnableSpanEditHandlers = true);
-
-    public BraceSmartIndenterTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
+    private static readonly RazorParserOptions s_defaultOptions = RazorParserOptions.Create(builder => builder.EnableSpanEditHandlers = true);
 
     [Fact]
     public void AtApplicableRazorBlock_NestedIfBlock_ReturnsFalse()
@@ -89,6 +85,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
             @{
             }
             """);
+        Assert.NotNull(span);
 
         // Act
         var result = BraceSmartIndenter.ContainsInvalidContent(span);
@@ -102,6 +99,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     {
         // Arrange
         var span = ExtractSpan(2, "@{ }");
+        Assert.NotNull(span);
 
         // Act
         var result = BraceSmartIndenter.ContainsInvalidContent(span);
@@ -115,6 +113,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     {
         // Arrange
         var span = ExtractSpan(3, "@{}");
+        Assert.NotNull(span);
 
         // Act
         var result = BraceSmartIndenter.ContainsInvalidContent(span);
@@ -128,6 +127,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     {
         // Arrange
         var span = ExtractSpan(2, "@{ if}");
+        Assert.NotNull(span);
 
         // Act
         var result = BraceSmartIndenter.ContainsInvalidContent(span);
@@ -166,7 +166,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void IsUnlinkedSpan_NullOwner_ReturnsTrue()
     {
         // Arrange
-        SyntaxNode owner = null;
+        SyntaxNode? owner = null;
 
         // Act
         var result = BraceSmartIndenter.IsUnlinkedSpan(owner);
@@ -180,6 +180,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     {
         // Arrange
         var span = ExtractSpan(2, "@{}");
+        Assert.NotNull(span);
 
         // Act
         var result = BraceSmartIndenter.SurroundedByInvalidContent(span);
@@ -193,6 +194,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     {
         // Arrange
         var span = ExtractSpan(9, "@{<p></p>}");
+        Assert.NotNull(span);
 
         // Act
         var result = BraceSmartIndenter.SurroundedByInvalidContent(span);
@@ -206,6 +208,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     {
         // Arrange
         var span = ExtractSpan(2, "@{<p>");
+        Assert.NotNull(span);
 
         // Act
         var result = BraceSmartIndenter.SurroundedByInvalidContent(span);
@@ -218,7 +221,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void AtApplicableRazorBlock_AtMarkup_ReturnsFalse()
     {
         // Arrange
-        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("<p></p>"), DefaultOptions);
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("<p></p>"), s_defaultOptions);
         var changePosition = 2;
 
         // Act
@@ -232,7 +235,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void AtApplicableRazorBlock_AtExplicitCodeBlocksCode_ReturnsTrue()
     {
         // Arrange
-        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@{}"), DefaultOptions);
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@{}"), s_defaultOptions);
         var changePosition = 2;
 
         // Act
@@ -265,7 +268,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     public void AtApplicableRazorBlock_WhenNoOwner_ReturnsFalse()
     {
         // Arrange
-        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@DateTime.Now"), DefaultOptions);
+        var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@DateTime.Now"), s_defaultOptions);
         var changePosition = 14; // 1 after the end of the content
 
         // Act
@@ -281,9 +284,9 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         // Arrange
         var initialSnapshot = new StringTextSnapshot("@{ \n}");
         var expectedIndentResult = "@{ anything\n}";
-        ITextBuffer textBuffer = null;
-        var textView = CreateFocusedTextView(() => textBuffer);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, textView);
+        ITextBuffer? textBuffer = null;
+        var textView = CreateFocusedTextView(() => textBuffer.AssumeNotNull());
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), textView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
 
         // Act
@@ -299,16 +302,17 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         // Arrange
         var initialSnapshot = new StringTextSnapshot("@{ \n\n}");
         var bufferPosition = new VirtualSnapshotPoint(initialSnapshot, 4);
-        var caret = new Mock<ITextCaret>(MockBehavior.Strict);
-        caret.Setup(c => c.MoveTo(It.IsAny<SnapshotPoint>()))
+        var caret = new StrictMock<ITextCaret>();
+        caret
+            .Setup(c => c.MoveTo(It.IsAny<SnapshotPoint>()))
             .Callback<SnapshotPoint>(point =>
             {
                 Assert.Equal(3, point.Position);
                 Assert.Same(initialSnapshot, point.Snapshot);
-            }).Returns(new CaretPosition(bufferPosition, new Mock<IMappingPoint>(MockBehavior.Strict).Object, PositionAffinity.Predecessor));
-        ITextBuffer textBuffer = null;
-        var textView = CreateFocusedTextView(() => textBuffer, caret.Object);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, textView);
+            }).Returns(new CaretPosition(bufferPosition, StrictMock.Of<IMappingPoint>(), PositionAffinity.Predecessor));
+        ITextBuffer? textBuffer = null;
+        var textView = CreateFocusedTextView(() => textBuffer.AssumeNotNull(), caret.Object);
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), textView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
 
         // Act
@@ -414,7 +418,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         // Arrange
         var initialSnapshot = new StringTextSnapshot("Hello World");
         var textBuffer = new TestTextBuffer(initialSnapshot);
-        textBuffer.ChangeContentType(new LegacyCoreContentType(), editTag: null);
+        textBuffer.ChangeContentType(VsMocks.ContentTypes.LegacyRazorCore, editTag: null);
         var edit = new TestEdit(0, 0, initialSnapshot, initialSnapshot, string.Empty);
         var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
         var documentTracker = CreateDocumentTracker(() => textBuffer, Mock.Of<ITextView>(MockBehavior.Strict));
@@ -433,8 +437,8 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
             Hello World
             """);
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(snapshot.Content));
-        ITextBuffer textBuffer = null;
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView: null);
+        ITextBuffer? textBuffer = null;
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView: null);
         textBuffer = CreateTextBuffer(snapshot, documentTracker);
 
         // Act
@@ -451,9 +455,9 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         // Arrange
         var snapshot = new StringTextSnapshot("This Hello World");
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(snapshot.Content));
-        ITextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        ITextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull());
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(snapshot, documentTracker);
 
         // Act
@@ -473,9 +477,9 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
             Hello World
             """);
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(initialSnapshot.Content));
-        ITextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        ITextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull());
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
 
         // Act
@@ -492,9 +496,9 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         // Arrange
         var initialSnapshot = new StringTextSnapshot("Hello\u0085World");
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(initialSnapshot.Content));
-        ITextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        ITextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull());
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
 
         // Act
@@ -514,9 +518,9 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
             World
             """);
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(initialSnapshot.Content));
-        ITextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        ITextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull());
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
 
         // Act
@@ -533,9 +537,9 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         // Arrange
         var initialSnapshot = new StringTextSnapshot("@{ \n}");
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(initialSnapshot.Content));
-        ITextBuffer textBuffer = null;
-        var focusedTextView = CreateFocusedTextView(() => textBuffer);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, focusedTextView);
+        ITextBuffer? textBuffer = null;
+        var focusedTextView = CreateFocusedTextView(() => textBuffer.AssumeNotNull());
+        var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), focusedTextView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
 
         // Act
@@ -562,7 +566,7 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         return syntaxTree;
     }
 
-    private static SyntaxNode ExtractSpan(int spanLocation, string content)
+    private static SyntaxNode? ExtractSpan(int spanLocation, string content)
     {
         var syntaxTree = GetSyntaxTree(content);
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -571,13 +575,13 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         return span;
     }
 
-    protected class TestTextContentChangedEventArgs : TextContentChangedEventArgs
+    protected class TestTextContentChangedEventArgs(INormalizedTextChangeCollection changeCollection)
+        : TextContentChangedEventArgs(
+            CreateBeforeSnapshot(changeCollection),
+            StrictMock.Of<ITextSnapshot>(),
+            EditOptions.DefaultMinimalChange,
+            null)
     {
-        public TestTextContentChangedEventArgs(INormalizedTextChangeCollection changeCollection)
-            : base(CreateBeforeSnapshot(changeCollection), new Mock<ITextSnapshot>(MockBehavior.Strict).Object, EditOptions.DefaultMinimalChange, null)
-        {
-        }
-
         protected static ITextSnapshot CreateBeforeSnapshot(INormalizedTextChangeCollection collection)
         {
             var version = new Mock<ITextVersion>(MockBehavior.Strict);
@@ -591,8 +595,29 @@ public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
         }
     }
 
-    protected class TestTextChangeCollection : List<ITextChange>, INormalizedTextChangeCollection
+    protected class TestTextChangeCollection : INormalizedTextChangeCollection
     {
+        private readonly List<ITextChange> _changes = [];
+
+        public ITextChange this[int index]
+        {
+            get => _changes[index];
+            set => _changes[index] = value;
+        }
+
         public bool IncludesLineChanges => throw new NotImplementedException();
+        public int Count => _changes.Count;
+        public bool IsReadOnly => throw new NotImplementedException();
+
+        public void Add(ITextChange item) => throw new NotImplementedException();
+        public void Clear() => throw new NotImplementedException();
+        public bool Contains(ITextChange item) => throw new NotImplementedException();
+        public void CopyTo(ITextChange[] array, int arrayIndex) => throw new NotImplementedException();
+        public IEnumerator<ITextChange> GetEnumerator() => throw new NotImplementedException();
+        public int IndexOf(ITextChange item) => throw new NotImplementedException();
+        public void Insert(int index, ITextChange item) => throw new NotImplementedException();
+        public bool Remove(ITextChange item) => throw new NotImplementedException();
+        public void RemoveAt(int index) => throw new NotImplementedException();
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
     }
 }
