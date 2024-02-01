@@ -156,7 +156,7 @@ internal static partial class RazorWrapperFactory
         => Wrap<IVisualStudioDocumentTracker, DocumentTrackerWrapper, IRazorDocumentTracker>(obj, static obj => new DocumentTrackerWrapper(obj));
 
     internal static IRazorEditorFactoryService WrapEditorFactoryService(object obj)
-        => Wrap<VisualStudio.Editor.Razor.IRazorEditorFactoryService, EditorFactoryServiceWrapper, IRazorEditorFactoryService>(obj, obj => new EditorFactoryServiceWrapper(obj));
+        => Wrap<VisualStudio.LegacyEditor.Razor.IRazorEditorFactoryService, EditorFactoryServiceWrapper, IRazorEditorFactoryService>(obj, obj => new EditorFactoryServiceWrapper(obj));
 
     internal static IRazorEditorSettingsManager WrapClientSettingsManager(object obj)
         => Wrap<IClientSettingsManager, ClientSettingsManagerWrapper, IRazorEditorSettingsManager>(obj, static obj => new ClientSettingsManagerWrapper(obj));

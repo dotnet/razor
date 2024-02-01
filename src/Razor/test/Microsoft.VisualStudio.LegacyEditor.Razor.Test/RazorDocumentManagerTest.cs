@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -24,14 +23,6 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private const string FilePath = "C:/Some/Path/TestDocumentTracker.cshtml";
     private const string ProjectPath = "C:/Some/Path/TestProject.csproj";
-
-    private static readonly IContentType s_razorCoreContentType =
-        StrictMock.Of<IContentType>(c =>
-            c.IsOfType(RazorLanguage.CoreContentType) == true);
-
-    private static readonly IContentType s_nonRazorCoreContentType =
-        StrictMock.Of<IContentType>(c =>
-            c.IsOfType(It.IsAny<string>()) == false);
 
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
     private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
@@ -77,7 +68,7 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
 
     private static ITextBuffer CreateTextBuffer(bool core)
         => StrictMock.Of<ITextBuffer>(b =>
-            b.ContentType == (core ? s_razorCoreContentType : s_nonRazorCoreContentType) &&
+            b.ContentType == (core ? ContentTypes.RazorCore : ContentTypes.NonRazorCore) &&
             b.Properties == new PropertyCollection());
 
     [UIFact]
