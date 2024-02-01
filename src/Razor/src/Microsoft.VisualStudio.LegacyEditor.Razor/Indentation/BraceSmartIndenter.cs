@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 
 /// <summary>
 /// This class is responsible for handling situations where Roslyn and the HTML editor cannot auto-indent Razor code.

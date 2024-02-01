@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 
-public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
+public class RazorIndentationFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
     public void GetPreviousLineEndIndex_ReturnsPreviousLine()
@@ -174,7 +175,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
     </div>
 </div>
 ");
-        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
+        _ = new TestTextBuffer(source, VsMocks.ContentTypes.LegacyRazorCore);
         var syntaxTree = GetSyntaxTree(new StringTextSnapshot("something else"));
 
         // Act
@@ -198,7 +199,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
             @{
 
             """);
-        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
+        _ = new TestTextBuffer(source, VsMocks.ContentTypes.LegacyRazorCore);
         var syntaxTree = GetSyntaxTree(source);
 
         // Act
@@ -221,8 +222,8 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
         var source = new StringTextSnapshot($@"
 @custom
 ");
-        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
-        var syntaxTree = GetSyntaxTree(source, new[] { customDirective });
+        _ = new TestTextBuffer(source, VsMocks.ContentTypes.LegacyRazorCore);
+        var syntaxTree = GetSyntaxTree(source, [customDirective]);
 
         // Act
         var indentation = RazorIndentationFacts.GetDesiredIndentation(
@@ -245,7 +246,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
                 <div>
 
             """);
-        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
+        _ = new TestTextBuffer(source, VsMocks.ContentTypes.LegacyRazorCore);
         var syntaxTree = GetSyntaxTree(source);
 
         // Act
@@ -271,8 +272,8 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
                 <div>
             }
             """);
-        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
-        var syntaxTree = GetSyntaxTree(source, new[] { customDirective });
+        _ = new TestTextBuffer(source, VsMocks.ContentTypes.LegacyRazorCore);
+        var syntaxTree = GetSyntaxTree(source, [customDirective]);
 
         // Act
         var indentation = RazorIndentationFacts.GetDesiredIndentation(
@@ -297,7 +298,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
                 }
             </div>
             """);
-        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
+        _ = new TestTextBuffer(source, VsMocks.ContentTypes.LegacyRazorCore);
         var syntaxTree = GetSyntaxTree(source);
 
         // Act
@@ -325,9 +326,8 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
                 }
             }
             """);
-
-        var textBuffer = new TestTextBuffer(source, new LegacyCoreContentType());
-        var syntaxTree = GetSyntaxTree(source, new[] { customDirective });
+        _ = new TestTextBuffer(source, VsMocks.ContentTypes.LegacyRazorCore);
+        var syntaxTree = GetSyntaxTree(source, [customDirective]);
 
         // Act
         var indentation = RazorIndentationFacts.GetDesiredIndentation(
@@ -343,7 +343,7 @@ public class DefaultRazorIndentationFactsServiceTest(ITestOutputHelper testOutpu
 
     private static RazorSyntaxTree GetSyntaxTree(StringTextSnapshot source, IEnumerable<DirectiveDescriptor>? directives = null)
     {
-        directives ??= Array.Empty<DirectiveDescriptor>();
+        directives ??= [];
         var engine = RazorProjectEngine.Create(builder =>
         {
             foreach (var directive in directives)

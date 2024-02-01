@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 using Microsoft.VisualStudio.Text;
 

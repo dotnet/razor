@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 internal static class VsMocks
 {

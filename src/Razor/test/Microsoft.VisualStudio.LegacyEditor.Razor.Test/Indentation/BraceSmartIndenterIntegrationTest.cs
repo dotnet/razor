@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 
 public class BraceSmartIndenterIntegrationTest(ITestOutputHelper testOutput) : BraceSmartIndenterTestBase(testOutput)
 {

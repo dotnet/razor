@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class LegacyRazorTextViewConnectionListenerTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {

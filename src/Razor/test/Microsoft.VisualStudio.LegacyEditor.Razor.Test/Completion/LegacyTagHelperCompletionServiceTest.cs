@@ -13,7 +13,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
 public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {

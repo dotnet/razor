@@ -12,11 +12,9 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
-using Microsoft.VisualStudio.LegacyEditor.Razor.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -24,7 +22,7 @@ using Xunit.Abstractions;
 using Span = Microsoft.VisualStudio.Text.Span;
 using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
 public class RazorDirectiveCompletionSourceTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {

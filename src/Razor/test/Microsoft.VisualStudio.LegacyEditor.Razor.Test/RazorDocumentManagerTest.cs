@@ -16,7 +16,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {

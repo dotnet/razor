@@ -3,13 +3,14 @@
 
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class RazorEditorFactoryServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {

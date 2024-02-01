@@ -22,7 +22,7 @@ using Xunit;
 using Xunit.Abstractions;
 using SystemDebugger = System.Diagnostics.Debugger;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Parsing.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 
 public class VisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
 {

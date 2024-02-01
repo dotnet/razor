@@ -3,7 +3,7 @@
 
 using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 
 internal interface IBraceSmartIndenterFactory
 {

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 
 [Export(typeof(IBraceSmartIndenterFactory))]
 [method: ImportingConstructor]

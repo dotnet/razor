@@ -3,16 +3,14 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.VisualStudio.LegacyEditor.Razor.Test.VsMocks;
+using static Microsoft.VisualStudio.LegacyEditor.Razor.VsMocks;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class TextBufferExtensionsTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {

@@ -10,7 +10,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
 public class RazorDirectiveAttributeCommitManagerTest : ToolingTestBase
 {

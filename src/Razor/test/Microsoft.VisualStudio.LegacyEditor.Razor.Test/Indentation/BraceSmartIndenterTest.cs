@@ -19,7 +19,7 @@ using Xunit;
 using Xunit.Abstractions;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 
-namespace Microsoft.VisualStudio.LegacyEditor.Razor.Test;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 
 public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIndenterTestBase(testOutput)
 {
