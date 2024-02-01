@@ -12,7 +12,7 @@
     <MSBuild Projects="$(RazorSolutionPath)"
              Targets="Restore" />
     <MSBuild Projects="$(LanguageServerProject)"
-             Targets="PublishAllRids" />
+             Targets="Publish" />
   </Target>
 
   <Target Name="_PublishDevKitTelemetryRids" AfterTargets="Pack" Condition="'$(DotNetBuildFromSource)' != 'true'">
@@ -24,7 +24,7 @@
     <MSBuild Projects="$(RazorSolutionPath)"
              Targets="Restore" />
     <MSBuild Projects="$(DevKitTelemetryProject)"
-             Targets="PublishAllRids" />
+             Targets="Publish" />
   </Target>
 
 </Project>
