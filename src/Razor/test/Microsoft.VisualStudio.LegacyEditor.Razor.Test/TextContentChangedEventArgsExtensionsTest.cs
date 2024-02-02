@@ -89,7 +89,7 @@ public class TextContentChangedEventArgsExtensionsTest(ITestOutputHelper testOut
     }
 
     private class TestTextContentChangedEventArgs(ITextSnapshot before, ITextSnapshot after)
-        : TextContentChangedEventArgs(before, after, EditOptions.DefaultMinimalChange, null)
+        : TextContentChangedEventArgs(before, after, EditOptions.DefaultMinimalChange, editTag: null)
     {
     }
 }

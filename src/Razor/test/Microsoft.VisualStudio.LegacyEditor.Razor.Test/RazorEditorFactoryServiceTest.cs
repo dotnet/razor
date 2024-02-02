@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 using Microsoft.VisualStudio.Text;

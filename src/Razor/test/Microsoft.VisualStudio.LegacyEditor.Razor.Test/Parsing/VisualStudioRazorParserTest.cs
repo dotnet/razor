@@ -6,10 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Moq;
 using Xunit;
@@ -31,12 +31,12 @@ public class VisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestB
 
         var engine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Empty);
 
-        var factoryMock = new Mock<IProjectEngineFactory>(MockBehavior.Strict);
+        var factoryMock = new StrictMock<IProjectEngineFactory>();
         factoryMock
             .Setup(x => x.Create(It.IsAny<RazorConfiguration>(), It.IsAny<RazorProjectFileSystem>(), It.IsAny<Action<RazorProjectEngineBuilder>>()))
             .Returns(engine);
 
-        var factoryProviderMock = new Mock<IProjectEngineFactoryProvider>(MockBehavior.Strict);
+        var factoryProviderMock = new StrictMock<IProjectEngineFactoryProvider>();
         factoryProviderMock
             .Setup(x => x.GetFactory(It.IsAny<RazorConfiguration>()))
             .Returns(factoryMock.Object);
@@ -47,18 +47,18 @@ public class VisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestB
     }
 
     private IVisualStudioDocumentTracker CreateDocumentTracker(bool isSupportedProject = true, int versionNumber = 0)
-        => Mock.Of<IVisualStudioDocumentTracker>(tracker =>
+        => StrictMock.Of<IVisualStudioDocumentTracker>(tracker =>
             tracker.TextBuffer == new TestTextBuffer(new StringTextSnapshot(string.Empty, versionNumber), /* contentType */ null) &&
             tracker.ProjectPath == "c:\\SomeProject.csproj" &&
             tracker.ProjectSnapshot == _projectSnapshot &&
             tracker.FilePath == "c:\\SomeFilePath.cshtml" &&
-            tracker.IsSupportedProject == isSupportedProject, MockBehavior.Strict);
+            tracker.IsSupportedProject == isSupportedProject);
 
     private VisualStudioRazorParser CreateParser(IVisualStudioDocumentTracker documentTracker)
-        => new VisualStudioRazorParser(
+        => new(
             documentTracker,
             _projectEngineFactoryProvider,
-            Mock.Of<ICompletionBroker>(MockBehavior.Strict),
+            StrictMock.Of<ICompletionBroker>(),
             ErrorReporter,
             JoinableTaskContext);
 

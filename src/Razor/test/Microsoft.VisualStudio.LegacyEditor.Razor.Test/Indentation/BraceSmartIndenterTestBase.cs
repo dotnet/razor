@@ -4,8 +4,8 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -19,57 +19,61 @@ public class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectS
 {
     private protected static IVisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView? focusedTextView)
     {
-        var tracker = new Mock<IVisualStudioDocumentTracker>(MockBehavior.Strict);
-        tracker.Setup(t => t.TextBuffer)
+        var trackerMock = new StrictMock<IVisualStudioDocumentTracker>();
+        trackerMock
+            .Setup(t => t.TextBuffer)
             .Returns(bufferAccessor);
-        tracker.Setup(t => t.GetFocusedTextView())
+        trackerMock
+            .Setup(t => t.GetFocusedTextView())
             .Returns(focusedTextView);
 
-        return tracker.Object;
+        return trackerMock.Object;
     }
 
     protected static ITextView CreateFocusedTextView(Func<ITextBuffer>? textBufferAccessor = null, ITextCaret? caret = null)
     {
-        var focusedTextView = new Mock<ITextView>(MockBehavior.Strict);
-        focusedTextView.Setup(textView => textView.HasAggregateFocus)
+        var focusedTextViewMock = new StrictMock<ITextView>();
+        focusedTextViewMock
+            .Setup(textView => textView.HasAggregateFocus)
             .Returns(true);
 
         if (textBufferAccessor != null)
         {
-            focusedTextView.Setup(textView => textView.TextBuffer)
+            focusedTextViewMock.Setup(textView => textView.TextBuffer)
                 .Returns(textBufferAccessor);
         }
 
         if (caret != null)
         {
-            focusedTextView.Setup(textView => textView.Caret)
+            focusedTextViewMock.Setup(textView => textView.Caret)
                 .Returns(caret);
         }
 
-        return focusedTextView.Object;
+        return focusedTextViewMock.Object;
     }
 
     protected static ITextCaret CreateCaretFrom(int position, ITextSnapshot snapshot)
     {
         var bufferPosition = new VirtualSnapshotPoint(snapshot, position);
-        var caret = new Mock<ITextCaret>(MockBehavior.Strict);
-        caret.Setup(c => c.Position)
-            .Returns(new CaretPosition(bufferPosition, new Mock<IMappingPoint>(MockBehavior.Strict).Object, PositionAffinity.Predecessor));
-        caret.Setup(c => c.MoveTo(It.IsAny<SnapshotPoint>()))
-            .Returns<SnapshotPoint>(point => new CaretPosition(bufferPosition, new Mock<IMappingPoint>(MockBehavior.Strict).Object, PositionAffinity.Predecessor));
+        var mock = new StrictMock<ITextCaret>();
+        mock.Setup(c => c.Position)
+            .Returns(new CaretPosition(bufferPosition, StrictMock.Of<IMappingPoint>(), PositionAffinity.Predecessor));
+        mock.Setup(c => c.MoveTo(It.IsAny<SnapshotPoint>()))
+            .Returns<SnapshotPoint>(point => new CaretPosition(bufferPosition, StrictMock.Of<IMappingPoint>(), PositionAffinity.Predecessor));
 
-        return caret.Object;
+        return mock.Object;
     }
 
     protected static IEditorOperationsFactoryService CreateOperationsFactoryService()
     {
-        var editorOperations = new Mock<IEditorOperations>(MockBehavior.Strict);
-        editorOperations.Setup(operations => operations.MoveToEndOfLine(false));
-        var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
-        editorOperationsFactory.Setup(factory => factory.GetEditorOperations(It.IsAny<ITextView>()))
-            .Returns(editorOperations.Object);
+        var editorOperationsMock = new StrictMock<IEditorOperations>();
+        editorOperationsMock.Setup(operations => operations.MoveToEndOfLine(false)).Verifiable();
+        var editorOperationsFactoryMock = new StrictMock<IEditorOperationsFactoryService>();
+        editorOperationsFactoryMock
+            .Setup(factory => factory.GetEditorOperations(It.IsAny<ITextView>()))
+            .Returns(editorOperationsMock.Object);
 
-        return editorOperationsFactory.Object;
+        return editorOperationsFactoryMock.Object;
     }
 
     private protected static TestTextBuffer CreateTextBuffer(StringTextSnapshot initialSnapshot, IVisualStudioDocumentTracker documentTracker)
@@ -88,20 +92,13 @@ public class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectS
         var codeDocument = TestRazorCodeDocument.Create(content);
         codeDocument.SetSyntaxTree(syntaxTree);
 
-        var parser = new Mock<IVisualStudioRazorParser>(MockBehavior.Strict);
-        parser
+        var parserMock = new StrictMock<IVisualStudioRazorParser>();
+        parserMock
             .SetupGet(x => x.CodeDocument)
             .Returns(codeDocument);
 
-        textBuffer.Properties.AddProperty(typeof(IVisualStudioRazorParser), parser.Object);
+        textBuffer.Properties.AddProperty(typeof(IVisualStudioRazorParser), parserMock.Object);
 
         return textBuffer;
-    }
-
-    protected static ITextBuffer SetupTextBufferMock()
-    {
-        var mock = new Mock<ITextBuffer>(MockBehavior.Strict);
-        mock.SetupGet(a => a.ContentType).Returns(VsMocks.ContentTypes.LegacyRazorCore);
-        return mock.Object;
     }
 }

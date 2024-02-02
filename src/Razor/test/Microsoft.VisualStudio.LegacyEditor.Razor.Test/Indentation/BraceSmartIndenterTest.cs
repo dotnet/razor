@@ -302,8 +302,8 @@ public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIn
         // Arrange
         var initialSnapshot = new StringTextSnapshot("@{ \n\n}");
         var bufferPosition = new VirtualSnapshotPoint(initialSnapshot, 4);
-        var caret = new StrictMock<ITextCaret>();
-        caret
+        var caretMock = new StrictMock<ITextCaret>();
+        caretMock
             .Setup(c => c.MoveTo(It.IsAny<SnapshotPoint>()))
             .Callback<SnapshotPoint>(point =>
             {
@@ -311,7 +311,7 @@ public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIn
                 Assert.Same(initialSnapshot, point.Snapshot);
             }).Returns(new CaretPosition(bufferPosition, StrictMock.Of<IMappingPoint>(), PositionAffinity.Predecessor));
         ITextBuffer? textBuffer = null;
-        var textView = CreateFocusedTextView(() => textBuffer.AssumeNotNull(), caret.Object);
+        var textView = CreateFocusedTextView(() => textBuffer.AssumeNotNull(), caretMock.Object);
         var documentTracker = CreateDocumentTracker(() => textBuffer.AssumeNotNull(), textView);
         textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
 
@@ -319,7 +319,7 @@ public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIn
         BraceSmartIndenter.RestoreCaretTo(3, textView);
 
         // Assert
-        caret.VerifyAll();
+        caretMock.VerifyAll();
     }
 
     [Fact]
@@ -327,19 +327,22 @@ public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIn
     {
         // Arrange
         var textView = CreateFocusedTextView();
-        var editorOperations = new Mock<IEditorOperations>(MockBehavior.Strict);
-        editorOperations.Setup(operations => operations.MoveToEndOfLine(false));
-        var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
-        var documentTracker = CreateDocumentTracker(SetupTextBufferMock, textView);
-        editorOperationsFactory.Setup(factory => factory.GetEditorOperations(textView))
-            .Returns(editorOperations.Object);
-        using var smartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory.Object, JoinableTaskFactory.Context);
+        var editorOperationsMock = new StrictMock<IEditorOperations>();
+        editorOperationsMock.Setup(operations => operations.MoveToEndOfLine(false)).Verifiable();
+        var editorOperationsFactoryMock = new StrictMock<IEditorOperationsFactoryService>();
+        var documentTracker = CreateDocumentTracker(
+            () => VsMocks.CreateTextBuffer(VsMocks.ContentTypes.LegacyRazorCore),
+            textView);
+        editorOperationsFactoryMock
+            .Setup(factory => factory.GetEditorOperations(textView))
+            .Returns(editorOperationsMock.Object);
+        using var smartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactoryMock.Object, JoinableTaskFactory.Context);
 
         // Act
         smartIndenter.TriggerSmartIndent(textView);
 
         // Assert
-        editorOperations.VerifyAll();
+        editorOperationsMock.VerifyAll();
     }
 
     [Fact]
@@ -402,11 +405,13 @@ public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIn
     public void TextBuffer_OnChanged_NoopsIfNoChanges()
     {
         // Arrange
-        var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
+        var editorOperationsFactory = StrictMock.Of<IEditorOperationsFactoryService>();
         var changeCollection = new TestTextChangeCollection();
         var textContentChangeArgs = new TestTextContentChangedEventArgs(changeCollection);
-        var documentTracker = CreateDocumentTracker(SetupTextBufferMock, Mock.Of<ITextView>(MockBehavior.Strict));
-        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory.Object, JoinableTaskFactory.Context);
+        var documentTracker = CreateDocumentTracker(
+            () => VsMocks.CreateTextBuffer(VsMocks.ContentTypes.LegacyRazorCore),
+            StrictMock.Of<ITextView>());
+        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
 
         // Act & Assert
         braceSmartIndenter.TextBuffer_OnChanged(null, textContentChangeArgs);
@@ -420,9 +425,9 @@ public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIn
         var textBuffer = new TestTextBuffer(initialSnapshot);
         textBuffer.ChangeContentType(VsMocks.ContentTypes.LegacyRazorCore, editTag: null);
         var edit = new TestEdit(0, 0, initialSnapshot, initialSnapshot, string.Empty);
-        var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
-        var documentTracker = CreateDocumentTracker(() => textBuffer, Mock.Of<ITextView>(MockBehavior.Strict));
-        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory.Object, JoinableTaskFactory.Context);
+        var editorOperationsFactory = StrictMock.Of<IEditorOperationsFactoryService>();
+        var documentTracker = CreateDocumentTracker(() => textBuffer, StrictMock.Of<ITextView>());
+        using var braceSmartIndenter = new BraceSmartIndenter(documentTracker, editorOperationsFactory, JoinableTaskFactory.Context);
 
         // Act & Assert
         textBuffer.ApplyEdits(edit, edit);
@@ -584,14 +589,12 @@ public class BraceSmartIndenterTest(ITestOutputHelper testOutput) : BraceSmartIn
     {
         protected static ITextSnapshot CreateBeforeSnapshot(INormalizedTextChangeCollection collection)
         {
-            var version = new Mock<ITextVersion>(MockBehavior.Strict);
-            version.Setup(v => v.Changes)
-                .Returns(collection);
-            var snapshot = new Mock<ITextSnapshot>(MockBehavior.Strict);
-            snapshot.Setup(obj => obj.Version)
-                .Returns(version.Object);
+            var version = StrictMock.Of<ITextVersion>(x =>
+                x.Changes == collection);
+            var snapshot = StrictMock.Of<ITextSnapshot>(x =>
+                x.Version == version);
 
-            return snapshot.Object;
+            return snapshot;
         }
     }
 

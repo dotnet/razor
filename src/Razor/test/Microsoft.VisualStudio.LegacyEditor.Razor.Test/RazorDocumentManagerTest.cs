@@ -54,14 +54,14 @@ public class RazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
         _workspaceEditorSettings = new WorkspaceEditorSettings(
             StrictMock.Of<IClientSettingsManager>());
 
-        var importDocumentManager = new StrictMock<IImportDocumentManager>();
-        importDocumentManager
+        var importDocumentManagerMock = new StrictMock<IImportDocumentManager>();
+        importDocumentManagerMock
             .Setup(m => m.OnSubscribed(It.IsAny<IVisualStudioDocumentTracker>()))
             .Verifiable();
-        importDocumentManager
+        importDocumentManagerMock
             .Setup(m => m.OnUnsubscribed(It.IsAny<IVisualStudioDocumentTracker>()))
             .Verifiable();
-        _importDocumentManager = importDocumentManager.Object;
+        _importDocumentManager = importDocumentManagerMock.Object;
     }
 
     [UIFact]

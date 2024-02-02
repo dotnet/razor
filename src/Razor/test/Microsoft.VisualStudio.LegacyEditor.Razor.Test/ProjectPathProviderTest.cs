@@ -18,15 +18,15 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
     {
         // Arrange
         var expectedProjectPath = "/my/project/path.csproj";
-        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
-        projectService
+        var projectServiceMock = new StrictMock<ITextBufferProjectService>();
+        projectServiceMock
             .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
             .Returns(new object());
-        projectService
+        projectServiceMock
             .Setup(service => service.GetProjectPath(It.IsAny<object>()))
             .Returns(expectedProjectPath);
-        var projectPathProvider = new ProjectPathProvider(projectService.Object, liveShareProjectPathProvider: null);
-        var textBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
+        var projectPathProvider = new ProjectPathProvider(projectServiceMock.Object, liveShareProjectPathProvider: null);
+        var textBuffer = StrictMock.Of<ITextBuffer>();
 
         // Act
         var result = projectPathProvider.TryGetProjectPath(textBuffer, out var filePath);
@@ -40,17 +40,17 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
     public void TryGetProjectPath_PrioritizesLiveShareProjectPathProvider()
     {
         // Arrange
-        var liveShareProjectPathProvider = new Mock<ILiveShareProjectPathProvider>(MockBehavior.Strict);
+        var liveShareProjectPathProviderMock = new StrictMock<ILiveShareProjectPathProvider>();
         var liveShareProjectPath = "/path/from/liveshare.csproj";
-        liveShareProjectPathProvider
+        liveShareProjectPathProviderMock
             .Setup(provider => provider.TryGetProjectPath(It.IsAny<ITextBuffer>(), out liveShareProjectPath))
             .Returns(true);
-        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
-        projectService
+        var projectServiceMock = new StrictMock<ITextBufferProjectService>();
+        projectServiceMock
             .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
             .Throws<Exception>();
-        var projectPathProvider = new ProjectPathProvider(projectService.Object, liveShareProjectPathProvider.Object);
-        var textBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
+        var projectPathProvider = new ProjectPathProvider(projectServiceMock.Object, liveShareProjectPathProviderMock.Object);
+        var textBuffer = StrictMock.Of<ITextBuffer>();
 
         // Act
         var result = projectPathProvider.TryGetProjectPath(textBuffer, out var filePath);
@@ -64,16 +64,16 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
     public void TryGetProjectPath_ReturnsFalseIfNoProject()
     {
         // Arrange
-        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
-        projectService
+        var projectServiceMock = new StrictMock<ITextBufferProjectService>();
+        projectServiceMock
             .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
             .Returns(value: null);
-        var liveShareProjectPathProvider = new Mock<ILiveShareProjectPathProvider>(MockBehavior.Strict);
-        liveShareProjectPathProvider
+        var liveShareProjectPathProviderMock = new StrictMock<ILiveShareProjectPathProvider>();
+        liveShareProjectPathProviderMock
             .Setup(p => p.TryGetProjectPath(It.IsAny<ITextBuffer>(), out It.Ref<string?>.IsAny))
             .Returns(false);
-        var projectPathProvider = new ProjectPathProvider(projectService.Object, liveShareProjectPathProvider.Object);
-        var textBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
+        var projectPathProvider = new ProjectPathProvider(projectServiceMock.Object, liveShareProjectPathProviderMock.Object);
+        var textBuffer = StrictMock.Of<ITextBuffer>();
 
         // Act
         var result = projectPathProvider.TryGetProjectPath(textBuffer, out var filePath);
@@ -88,19 +88,19 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
     {
         // Arrange
         var expectedProjectPath = "/my/project/path.csproj";
-        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
-        projectService
+        var projectServiceMock = new StrictMock<ITextBufferProjectService>();
+        projectServiceMock
             .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
             .Returns(new object());
-        projectService
+        projectServiceMock
             .Setup(service => service.GetProjectPath(It.IsAny<object>()))
             .Returns(expectedProjectPath);
-        var liveShareProjectPathProvider = new Mock<ILiveShareProjectPathProvider>(MockBehavior.Strict);
-        liveShareProjectPathProvider
+        var liveShareProjectPathProviderMock = new StrictMock<ILiveShareProjectPathProvider>();
+        liveShareProjectPathProviderMock
             .Setup(p => p.TryGetProjectPath(It.IsAny<ITextBuffer>(), out It.Ref<string?>.IsAny))
             .Returns(false);
-        var projectPathProvider = new ProjectPathProvider(projectService.Object, liveShareProjectPathProvider.Object);
-        var textBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
+        var projectPathProvider = new ProjectPathProvider(projectServiceMock.Object, liveShareProjectPathProviderMock.Object);
+        var textBuffer = StrictMock.Of<ITextBuffer>();
 
         // Act
         var result = projectPathProvider.TryGetProjectPath(textBuffer, out var filePath);

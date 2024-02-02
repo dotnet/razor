@@ -6,26 +6,21 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Utilities;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
-public class RazorDirectiveAttributeCommitManagerTest : ToolingTestBase
+public class RazorDirectiveAttributeCommitManagerTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public RazorDirectiveAttributeCommitManagerTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void ShouldCommitCompletion_NoCompletionItemKinds_ReturnsFalse()
     {
         // Arrange
         var manager = new RazorDirectiveAttributeCommitManager();
         var properties = new PropertyCollection();
-        var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties, MockBehavior.Strict);
+        var session = StrictMock.Of<IAsyncCompletionSession>(s =>
+            s.Properties == properties);
 
         // Act
         var result = manager.ShouldCommitCompletion(session, location: default, typedChar: '=', token: default);
@@ -41,7 +36,8 @@ public class RazorDirectiveAttributeCommitManagerTest : ToolingTestBase
         var manager = new RazorDirectiveAttributeCommitManager();
         var properties = new PropertyCollection();
         properties.SetCompletionItemKinds(new HashSet<RazorCompletionItemKind>() { RazorCompletionItemKind.DirectiveAttribute });
-        var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties, MockBehavior.Strict);
+        var session = StrictMock.Of<IAsyncCompletionSession>(s =>
+            s.Properties == properties);
 
         // Act
         var result = manager.ShouldCommitCompletion(session, location: default, typedChar: '=', token: default);
@@ -57,7 +53,8 @@ public class RazorDirectiveAttributeCommitManagerTest : ToolingTestBase
         var manager = new RazorDirectiveAttributeCommitManager();
         var properties = new PropertyCollection();
         properties.SetCompletionItemKinds(new HashSet<RazorCompletionItemKind>() { RazorCompletionItemKind.DirectiveAttributeParameter });
-        var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties, MockBehavior.Strict);
+        var session = StrictMock.Of<IAsyncCompletionSession>(
+            s => s.Properties == properties);
 
         // Act
         var result = manager.ShouldCommitCompletion(session, location: default, typedChar: ':', token: default);

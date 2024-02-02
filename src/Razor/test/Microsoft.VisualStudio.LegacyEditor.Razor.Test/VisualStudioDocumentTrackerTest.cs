@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Text;
@@ -32,13 +34,14 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
     public VisualStudioDocumentTrackerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _textBuffer = VsMocks.CreateTextBuffer(VsMocks.ContentTypes.RazorCoreAndLegacyRazorCore);
+        _textBuffer = VsMocks.CreateTextBuffer(
+            VsMocks.ContentTypes.Create(RazorConstants.LegacyCoreContentType, RazorLanguage.CoreContentType));
 
         _filePath = TestProjectData.SomeProjectFile1.FilePath;
         var projectPath = TestProjectData.SomeProject.FilePath;
         var rootNamespace = TestProjectData.SomeProject.RootNamespace;
 
-        var importDocumentManagerMock = new Mock<IImportDocumentManager>(MockBehavior.Strict).Object;
+        var importDocumentManagerMock = StrictMock.Of<IImportDocumentManager>();
         Mock.Get(importDocumentManagerMock)
             .Setup(m => m.OnSubscribed(It.IsAny<IVisualStudioDocumentTracker>()))
             .Verifiable();
@@ -46,11 +49,11 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
             .Setup(m => m.OnUnsubscribed(It.IsAny<IVisualStudioDocumentTracker>()))
             .Verifiable();
 
-        var workspaceEditorSettings = new WorkspaceEditorSettings(Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
+        var workspaceEditorSettings = new WorkspaceEditorSettings(StrictMock.Of<IClientSettingsManager>());
 
         _projectManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, Dispatcher) { AllowNotifyListeners = true };
 
-        var projectManagerAccessorMock = new Mock<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
+        var projectManagerAccessorMock = new StrictMock<IProjectSnapshotManagerAccessor>();
         projectManagerAccessorMock
             .SetupGet(x => x.Instance)
             .Returns(_projectManager);
@@ -319,7 +322,7 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
     public void AddTextView_AddsToTextViewCollection()
     {
         // Arrange
-        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView = StrictMock.Of<ITextView>();
 
         // Act
         _documentTracker.AddTextView(textView);
@@ -333,7 +336,7 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
     public void AddTextView_DoesNotAddDuplicateTextViews()
     {
         // Arrange
-        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView = StrictMock.Of<ITextView>();
 
         // Act
         _documentTracker.AddTextView(textView);
@@ -348,8 +351,8 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
     public void AddTextView_AddsMultipleTextViewsToCollection()
     {
         // Arrange
-        var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
-        var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView1 = StrictMock.Of<ITextView>();
+        var textView2 = StrictMock.Of<ITextView>();
 
         // Act
         _documentTracker.AddTextView(textView1);
@@ -366,7 +369,7 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
     public void RemoveTextView_RemovesTextViewFromCollection_SingleItem()
     {
         // Arrange
-        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView = StrictMock.Of<ITextView>();
         _documentTracker.AddTextView(textView);
 
         // Act
@@ -380,9 +383,9 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
     public void RemoveTextView_RemovesTextViewFromCollection_MultipleItems()
     {
         // Arrange
-        var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
-        var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
-        var textView3 = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView1 = StrictMock.Of<ITextView>();
+        var textView2 = StrictMock.Of<ITextView>();
+        var textView3 = StrictMock.Of<ITextView>();
         _documentTracker.AddTextView(textView1);
         _documentTracker.AddTextView(textView2);
         _documentTracker.AddTextView(textView3);
@@ -401,9 +404,9 @@ public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherW
     public void RemoveTextView_NoopsWhenRemovingTextViewNotInCollection()
     {
         // Arrange
-        var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView1 = StrictMock.Of<ITextView>();
         _documentTracker.AddTextView(textView1);
-        var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView2 = StrictMock.Of<ITextView>();
 
         // Act
         _documentTracker.RemoveTextView(textView2);

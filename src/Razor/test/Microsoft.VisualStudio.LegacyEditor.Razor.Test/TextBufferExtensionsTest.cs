@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 using Microsoft.VisualStudio.Utilities;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.VisualStudio.LegacyEditor.Razor.VsMocks;
@@ -19,9 +18,8 @@ public class TextBufferExtensionsTest(ITestOutputHelper testOutput) : ToolingTes
     {
         // Arrange
         var expectedCodeDocument = TestRazorCodeDocument.Create("Hello World");
-        var parser = Mock.Of<IVisualStudioRazorParser>(p =>
-            p.CodeDocument == expectedCodeDocument,
-            MockBehavior.Strict);
+        var parser = StrictMock.Of<IVisualStudioRazorParser>(p =>
+            p.CodeDocument == expectedCodeDocument);
         var properties = new PropertyCollection()
         {
             [typeof(IVisualStudioRazorParser)] = parser

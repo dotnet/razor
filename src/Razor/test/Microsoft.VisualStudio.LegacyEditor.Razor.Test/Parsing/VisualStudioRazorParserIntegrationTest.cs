@@ -10,10 +10,10 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -599,12 +599,12 @@ public class VisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDisp
             builder.Features.Add(new VisualStudioRazorParser.VisualStudioEnableTagHelpersFeature());
         });
 
-        var factoryMock = new Mock<IProjectEngineFactory>(MockBehavior.Strict);
+        var factoryMock = new StrictMock<IProjectEngineFactory>();
         factoryMock
             .Setup(x => x.Create(It.IsAny<RazorConfiguration>(), It.IsAny<RazorProjectFileSystem>(), It.IsAny<Action<RazorProjectEngineBuilder>>()))
             .Returns(projectEngine);
 
-        var providerMock = new Mock<IProjectEngineFactoryProvider>(MockBehavior.Strict);
+        var providerMock = new StrictMock<IProjectEngineFactoryProvider>();
         providerMock
             .Setup(x => x.GetFactory(It.IsAny<RazorConfiguration>()))
             .Returns(factoryMock.Object);
@@ -651,14 +651,15 @@ public class VisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDisp
 
     private IVisualStudioDocumentTracker CreateDocumentTracker(Text.ITextBuffer textBuffer, string filePath = TestLinePragmaFileName)
     {
-        var focusedTextView = Mock.Of<ITextView>(textView => textView.HasAggregateFocus == true, MockBehavior.Strict);
-        var documentTracker = Mock.Of<IVisualStudioDocumentTracker>(tracker =>
-            tracker.TextBuffer == textBuffer &&
-            tracker.TextViews == new[] { focusedTextView } &&
-            tracker.FilePath == filePath &&
-            tracker.ProjectPath == TestProjectPath &&
-            tracker.ProjectSnapshot == _projectSnapshot &&
-            tracker.IsSupportedProject == true, MockBehavior.Strict);
+        var focusedTextView = StrictMock.Of<ITextView>(v =>
+            v.HasAggregateFocus == true);
+        var documentTracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
+            t.TextBuffer == textBuffer &&
+            t.TextViews == new[] { focusedTextView } &&
+            t.FilePath == filePath &&
+            t.ProjectPath == TestProjectPath &&
+            t.ProjectSnapshot == _projectSnapshot &&
+            t.IsSupportedProject == true);
         textBuffer.Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
 
         return documentTracker;

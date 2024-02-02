@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.ObjectModel;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -18,35 +18,20 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
-public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManagerDispatcherTestBase
+public class RazorDirectiveCompletionSourceProviderTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
-    private readonly IContentType _razorContentType;
-    private readonly IContentType _nonRazorContentType;
-    private readonly IRazorCompletionFactsService _completionFactsService;
-
-    public RazorDirectiveCompletionSourceProviderTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _razorContentType = Mock.Of<IContentType>(
-            c => c.IsOfType(RazorLanguage.ContentType) && c.IsOfType(RazorConstants.LegacyContentType),
-            MockBehavior.Strict);
-
-        _nonRazorContentType = Mock.Of<IContentType>(
-            c => c.IsOfType(It.IsAny<string>()) == false,
-            MockBehavior.Strict);
-
-        _completionFactsService = Mock.Of<IRazorCompletionFactsService>(MockBehavior.Strict);
-    }
+    private static readonly IContentType s_razorContentType = VsMocks.ContentTypes.Create(RazorLanguage.ContentType, RazorConstants.LegacyContentType);
 
     [Fact]
     public void CreateCompletionSource_ReturnsNullIfParserHasNotBeenAssociatedWithRazorBuffer()
     {
         // Arrange
-        var expectedParser = Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict);
+        var expectedParser = StrictMock.Of<IVisualStudioRazorParser>();
         var properties = new PropertyCollection();
         properties.AddProperty(typeof(IVisualStudioRazorParser), expectedParser);
-        var razorBuffer = Mock.Of<ITextBuffer>(buffer => buffer.ContentType == _razorContentType && buffer.Properties == properties, MockBehavior.Strict);
-        var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
+        var razorBuffer = VsMocks.CreateTextBuffer(s_razorContentType, properties);
+        var completionFactsService = StrictMock.Of<IRazorCompletionFactsService>();
+        var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(completionFactsService);
 
         // Act
         var completionSource = completionSourceProvider.CreateCompletionSource(razorBuffer);
@@ -60,8 +45,9 @@ public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManager
     public void CreateCompletionSource_CreatesACompletionSourceWithTextBuffersParser()
     {
         // Arrange
-        var razorBuffer = Mock.Of<ITextBuffer>(buffer => buffer.ContentType == _razorContentType && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
-        var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
+        var razorBuffer = VsMocks.CreateTextBuffer(s_razorContentType);
+        var completionFactsService = StrictMock.Of<IRazorCompletionFactsService>();
+        var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(completionFactsService);
 
         // Act
         var completionSource = completionSourceProvider.CreateCompletionSource(razorBuffer);
@@ -74,8 +60,9 @@ public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManager
     public void GetOrCreate_ReturnsNullIfRazorBufferHasNotBeenAssociatedWithTextView()
     {
         // Arrange
-        var textView = CreateTextView(_nonRazorContentType, new PropertyCollection());
-        var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
+        var textView = CreateTextView(VsMocks.ContentTypes.NonRazor, new PropertyCollection());
+        var completionFactsService = StrictMock.Of<IRazorCompletionFactsService>();
+        var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(completionFactsService);
 
         // Act
         var completionSource = completionSourceProvider.GetOrCreate(textView);
@@ -88,11 +75,12 @@ public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManager
     public void GetOrCreate_CachesCompletionSource()
     {
         // Arrange
-        var expectedParser = Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict);
+        var expectedParser = StrictMock.Of<IVisualStudioRazorParser>();
         var properties = new PropertyCollection();
         properties.AddProperty(typeof(IVisualStudioRazorParser), expectedParser);
-        var textView = CreateTextView(_razorContentType, properties);
-        var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
+        var textView = CreateTextView(s_razorContentType, properties);
+        var completionFactsService = StrictMock.Of<IRazorCompletionFactsService>();
+        var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(completionFactsService);
 
         // Act
         var completionSource1 = completionSourceProvider.GetOrCreate(textView);
@@ -104,13 +92,15 @@ public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManager
 
     private static ITextView CreateTextView(IContentType contentType, PropertyCollection properties)
     {
-        var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
-        bufferGraph.Setup(graph => graph.GetTextBuffers(It.IsAny<Predicate<ITextBuffer>>()))
-            .Returns(new Collection<ITextBuffer>()
-            {
-                Mock.Of<ITextBuffer>(buffer => buffer.ContentType == contentType && buffer.Properties == properties, MockBehavior.Strict)
-            });
-        var textView = Mock.Of<ITextView>(view => view.BufferGraph == bufferGraph.Object, MockBehavior.Strict);
+        var bufferGraphMock = new StrictMock<IBufferGraph>();
+        bufferGraphMock
+            .Setup(graph => graph.GetTextBuffers(It.IsAny<Predicate<ITextBuffer>>()))
+            .Returns(
+            [
+                VsMocks.CreateTextBuffer(contentType, properties)
+            ]);
+        var textView = StrictMock.Of<ITextView>(b =>
+            b.BufferGraph == bufferGraphMock.Object);
 
         return textView;
     }

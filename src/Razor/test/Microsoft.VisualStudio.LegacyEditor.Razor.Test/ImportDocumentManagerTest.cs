@@ -18,7 +18,6 @@ public class ImportDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBas
 {
     private readonly string _projectPath;
     private readonly string _directoryPath;
-    private readonly RazorProjectFileSystem _fileSystem;
     private readonly RazorProjectEngine _projectEngine;
 
     public ImportDocumentManagerTest(ITestOutputHelper testOutput)
@@ -27,12 +26,12 @@ public class ImportDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBas
         _projectPath = TestProjectData.SomeProject.FilePath;
         _directoryPath = Path.GetDirectoryName(_projectPath);
 
-        _fileSystem = RazorProjectFileSystem.Create(Path.GetDirectoryName(_projectPath));
+        var fileSystem = RazorProjectFileSystem.Create(Path.GetDirectoryName(_projectPath));
 
         // These tests rely on MVC's import behavior.
         _projectEngine = RazorProjectEngine.Create(
             FallbackRazorConfiguration.MVC_2_1,
-            _fileSystem,
+            fileSystem,
             AspNetCore.Mvc.Razor.Extensions.RazorExtensions.Register);
     }
 
@@ -40,71 +39,77 @@ public class ImportDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBas
     public void OnSubscribed_StartsFileChangeTrackers()
     {
         // Arrange
-        var tracker = Mock.Of<IVisualStudioDocumentTracker>(
-            t => t.FilePath == Path.Combine(_directoryPath, "Views", "Home", "file.cshtml") &&
+        var tracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
+            t.FilePath == Path.Combine(_directoryPath, "Views", "Home", "file.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == StrictMock.Of<IProjectSnapshot>(p =>
+                p.GetProjectEngine() == _projectEngine &&
+                p.GetDocument(It.IsAny<string>()) == null));
 
-        var fileChangeTrackerFactory = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
-        var fileChangeTracker1 = new Mock<IFileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker1
+        var fileChangeTrackerFactoryMock = new StrictMock<IFileChangeTrackerFactory>();
+        var fileChangeTracker1Mock = new StrictMock<IFileChangeTracker>();
+        fileChangeTracker1Mock
             .Setup(f => f.StartListening())
             .Verifiable();
-        fileChangeTrackerFactory
+        fileChangeTrackerFactoryMock
             .Setup(f => f.Create(Path.Combine(_directoryPath, "Views", "Home", "_ViewImports.cshtml")))
-            .Returns(fileChangeTracker1.Object)
+            .Returns(fileChangeTracker1Mock.Object)
             .Verifiable();
-        var fileChangeTracker2 = new Mock<IFileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker2
+        var fileChangeTracker2Mock = new StrictMock<IFileChangeTracker>();
+        fileChangeTracker2Mock
             .Setup(f => f.StartListening())
             .Verifiable();
-        fileChangeTrackerFactory
+        fileChangeTrackerFactoryMock
             .Setup(f => f.Create(Path.Combine(_directoryPath, "Views", "_ViewImports.cshtml")))
-            .Returns(fileChangeTracker2.Object)
+            .Returns(fileChangeTracker2Mock.Object)
             .Verifiable();
-        var fileChangeTracker3 = new Mock<IFileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker3.Setup(f => f.StartListening()).Verifiable();
-        fileChangeTrackerFactory
+        var fileChangeTracker3Mock = new StrictMock<IFileChangeTracker>();
+        fileChangeTracker3Mock.Setup(f => f.StartListening()).Verifiable();
+        fileChangeTrackerFactoryMock
             .Setup(f => f.Create(Path.Combine(_directoryPath, "_ViewImports.cshtml")))
-            .Returns(fileChangeTracker3.Object)
+            .Returns(fileChangeTracker3Mock.Object)
             .Verifiable();
 
-        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
 
         // Act
         manager.OnSubscribed(tracker);
 
         // Assert
-        fileChangeTrackerFactory.Verify();
-        fileChangeTracker1.Verify();
-        fileChangeTracker2.Verify();
-        fileChangeTracker3.Verify();
+        fileChangeTrackerFactoryMock.Verify();
+        fileChangeTracker1Mock.Verify();
+        fileChangeTracker2Mock.Verify();
+        fileChangeTracker3Mock.Verify();
     }
 
     [UIFact]
     public void OnSubscribed_AlreadySubscribed_DoesNothing()
     {
         // Arrange
-        var tracker = Mock.Of<IVisualStudioDocumentTracker>(
-            t => t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
+        var tracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
+            t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == StrictMock.Of<IProjectSnapshot>(p =>
+                p.GetProjectEngine() == _projectEngine &&
+                p.GetDocument(It.IsAny<string>()) == null));
 
-        var anotherTracker = Mock.Of<IVisualStudioDocumentTracker>(
-            t => t.FilePath == Path.Combine(_directoryPath, "anotherFile.cshtml") &&
+        var anotherTracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
+            t.FilePath == Path.Combine(_directoryPath, "anotherFile.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == StrictMock.Of<IProjectSnapshot>(p =>
+                p.GetProjectEngine() == _projectEngine &&
+                p.GetDocument(It.IsAny<string>()) == null));
 
         var callCount = 0;
-        var fileChangeTrackerFactory = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
-        var fileChangeTracker = new Mock<IFileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker.Setup(t => t.StartListening()).Verifiable();
-        fileChangeTrackerFactory
+        var fileChangeTrackerFactoryMock = new StrictMock<IFileChangeTrackerFactory>();
+        var fileChangeTrackerMock = new StrictMock<IFileChangeTracker>();
+        fileChangeTrackerMock.Setup(t => t.StartListening()).Verifiable();
+        fileChangeTrackerFactoryMock
             .Setup(f => f.Create(It.IsAny<string>()))
-            .Returns(fileChangeTracker.Object)
+            .Returns(fileChangeTrackerMock.Object)
             .Callback(() => callCount++);
 
-        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
         manager.OnSubscribed(tracker); // Start tracking the import.
 
         // Act
@@ -118,58 +123,64 @@ public class ImportDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBas
     public void OnUnsubscribed_StopsFileChangeTracker()
     {
         // Arrange
-        var tracker = Mock.Of<IVisualStudioDocumentTracker>(
-            t => t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
+        var tracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
+            t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == StrictMock.Of<IProjectSnapshot>(p =>
+                p.GetProjectEngine() == _projectEngine &&
+                p.GetDocument(It.IsAny<string>()) == null));
 
-        var fileChangeTrackerFactory = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
-        var fileChangeTracker = new Mock<IFileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker.Setup(f => f.StartListening()).Verifiable();
-        fileChangeTracker
+        var fileChangeTrackerFactoryMock = new StrictMock<IFileChangeTrackerFactory>();
+        var fileChangeTrackerMock = new StrictMock<IFileChangeTracker>();
+        fileChangeTrackerMock.Setup(f => f.StartListening()).Verifiable();
+        fileChangeTrackerMock
             .Setup(f => f.StopListening())
             .Verifiable();
-        fileChangeTrackerFactory
+        fileChangeTrackerFactoryMock
             .Setup(f => f.Create(Path.Combine(_directoryPath, "_ViewImports.cshtml")))
-            .Returns(fileChangeTracker.Object)
+            .Returns(fileChangeTrackerMock.Object)
             .Verifiable();
 
-        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
         manager.OnSubscribed(tracker); // Start tracking the import.
 
         // Act
         manager.OnUnsubscribed(tracker);
 
         // Assert
-        fileChangeTrackerFactory.Verify();
-        fileChangeTracker.Verify();
+        fileChangeTrackerFactoryMock.Verify();
+        fileChangeTrackerMock.Verify();
     }
 
     [UIFact]
     public void OnUnsubscribed_AnotherDocumentTrackingImport_DoesNotStopFileChangeTracker()
     {
         // Arrange
-        var tracker = Mock.Of<IVisualStudioDocumentTracker>(
-            t => t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
+        var tracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
+            t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == StrictMock.Of<IProjectSnapshot>(p =>
+                p.GetProjectEngine() == _projectEngine &&
+                p.GetDocument(It.IsAny<string>()) == null));
 
-        var anotherTracker = Mock.Of<IVisualStudioDocumentTracker>(
-            t => t.FilePath == Path.Combine(_directoryPath, "anotherFile.cshtml") &&
+        var anotherTracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
+            t.FilePath == Path.Combine(_directoryPath, "anotherFile.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == StrictMock.Of<IProjectSnapshot>(p =>
+                p.GetProjectEngine() == _projectEngine &&
+                p.GetDocument(It.IsAny<string>()) == null));
 
-        var fileChangeTrackerFactory = new Mock<IFileChangeTrackerFactory>(MockBehavior.Strict);
-        var fileChangeTracker = new Mock<IFileChangeTracker>(MockBehavior.Strict);
-        fileChangeTracker.Setup(f => f.StartListening()).Verifiable();
-        fileChangeTracker
+        var fileChangeTrackerFactoryMock = new StrictMock<IFileChangeTrackerFactory>();
+        var fileChangeTrackerMock = new StrictMock<IFileChangeTracker>();
+        fileChangeTrackerMock.Setup(f => f.StartListening()).Verifiable();
+        fileChangeTrackerMock
             .Setup(f => f.StopListening())
             .Throws(new InvalidOperationException());
-        fileChangeTrackerFactory
+        fileChangeTrackerFactoryMock
             .Setup(f => f.Create(It.IsAny<string>()))
-            .Returns(fileChangeTracker.Object);
+            .Returns(fileChangeTrackerMock.Object);
 
-        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactory.Object);
+        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
         manager.OnSubscribed(tracker); // Starts tracking import for the first document.
 
         manager.OnSubscribed(anotherTracker); // Starts tracking import for the second document.
