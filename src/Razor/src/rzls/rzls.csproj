@@ -8,7 +8,6 @@
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
     <RemoveDevicePlatformSupport>true</RemoveDevicePlatformSupport>
-    <SelfContained>false</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>
