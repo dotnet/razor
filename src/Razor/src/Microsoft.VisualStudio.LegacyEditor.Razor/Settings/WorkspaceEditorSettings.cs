@@ -4,8 +4,9 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Settings;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Settings;
 
 [Export(typeof(IWorkspaceEditorSettings))]
 internal sealed class WorkspaceEditorSettings : IWorkspaceEditorSettings

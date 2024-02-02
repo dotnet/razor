@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;

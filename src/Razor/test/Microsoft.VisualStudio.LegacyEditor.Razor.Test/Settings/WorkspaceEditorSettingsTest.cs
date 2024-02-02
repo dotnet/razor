@@ -2,14 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Accessors;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Settings;
+namespace Microsoft.VisualStudio.LegacyEditor.Razor.Settings;
 
 public class WorkspaceEditorSettingsTest(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
@@ -22,7 +24,7 @@ public class WorkspaceEditorSettingsTest(ITestOutputHelper testOutput) : Project
             ClientCompletionSettings.Default,
             ClientAdvancedSettings.Default);
 
-        var settingsManagerMock = new Mock<IClientSettingsManager>(MockBehavior.Strict);
+        var settingsManagerMock = new StrictMock<IClientSettingsManager>();
         settingsManagerMock
             .Setup(x => x.GetClientSettings())
             .Returns(expectedSettings);
@@ -38,7 +40,7 @@ public class WorkspaceEditorSettingsTest(ITestOutputHelper testOutput) : Project
     public void ClientSettingsChangedTriggersChangedEvent()
     {
         // Arrange
-        var settingsManagerMock = new Mock<IClientSettingsManager>(MockBehavior.Strict);
+        var settingsManagerMock = new StrictMock<IClientSettingsManager>();
         settingsManagerMock
             .Setup(x => x.GetClientSettings())
             .Returns(ClientSettings.Default);
@@ -62,7 +64,7 @@ public class WorkspaceEditorSettingsTest(ITestOutputHelper testOutput) : Project
     public void ClientSettingsChangedIsOnlyHookedOnceForMultipleListeners()
     {
         // Arrange
-        var settingsManagerMock = new Mock<IClientSettingsManager>(MockBehavior.Strict);
+        var settingsManagerMock = new StrictMock<IClientSettingsManager>();
         settingsManagerMock
             .SetupAdd(x => x.ClientSettingsChanged += delegate { });
         settingsManagerMock
