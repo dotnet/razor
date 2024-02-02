@@ -1,1 +1,3 @@
 ﻿#nullable enable
+static Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.RazorWrapperFactory.GetWrappedTagHelperFactsService() -> Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.IRazorTagHelperFactsService!
+*REMOVED*static Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.RazorWrapperFactory.WrapTagHelperFactsService(object! obj) -> Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.IRazorTagHelperFactsService!

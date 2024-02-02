@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
@@ -178,13 +179,13 @@ internal static partial class RazorWrapperFactory
         => Wrap<TagHelperDocumentContext, TagHelperDocumentContextWrapper, IRazorTagHelperDocumentContext>(obj, static obj => new TagHelperDocumentContextWrapper(obj));
 
     internal static IRazorTagHelperCompletionService WrapTagHelperCompletionService(object obj)
-        => Wrap<TagHelperCompletionService, TagHelperCompletionServiceWrapper, IRazorTagHelperCompletionService>(obj, static obj => new TagHelperCompletionServiceWrapper(obj));
-
-    internal static IRazorTagHelperFactsService WrapTagHelperFactsService(object obj)
-        => Wrap<ITagHelperFactsService, TagHelperFactsServiceWrapper, IRazorTagHelperFactsService>(obj, static obj => new TagHelperFactsServiceWrapper(obj));
+        => Wrap<ITagHelperCompletionService, TagHelperCompletionServiceWrapper, IRazorTagHelperCompletionService>(obj, static obj => new TagHelperCompletionServiceWrapper(obj));
 
     internal static IRazorTagMatchingRuleDescriptor WrapTagMatchingRuleDescriptor(object obj)
         => Wrap<TagMatchingRuleDescriptor, TagMatchingRuleDescriptorWrapper, IRazorTagMatchingRuleDescriptor>(obj, static obj => new TagMatchingRuleDescriptorWrapper(obj));
+
+    internal static IRazorTagHelperFactsService GetWrappedTagHelperFactsService()
+        => TagHelperFactsServiceWrapper.Instance;
 
     internal static RazorSourceSpan ConvertSourceSpan(object obj)
     {
