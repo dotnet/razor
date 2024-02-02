@@ -236,7 +236,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                     UninitializeProjectUnsafe(projectKey);
 
                     var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
-                    UpdateProjectUnsafe(hostProject, beforeProjectKey:default);
+                    UpdateProjectUnsafe(hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.
                     foreach (var documentFilePath in current.DocumentFilePaths)
@@ -274,7 +274,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         }
     }
 
-    protected void UpdateProjectUnsafe(HostProject project, ProjectKey beforeProjectKey)
+    protected void UpdateProjectUnsafe(HostProject project)
     {
         var projectManager = GetProjectManager();
 
@@ -285,16 +285,6 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             // If VS did tell us, then this is a no-op.
             projectManager.SolutionOpened();
 
-            // We had a before project, but that is no longer the current project, means the customer did something that changes
-            // the project key.  Remove the old project object.
-            if (!project.Key.Equals(beforeProjectKey))
-            {
-                var before = projectManager.GetLoadedProject(beforeProjectKey);
-                if (before is not null)
-                { 
-                    projectManager.ProjectRemoved(beforeProjectKey);
-                }
-            }
             projectManager.ProjectAdded(project);
         }
         else

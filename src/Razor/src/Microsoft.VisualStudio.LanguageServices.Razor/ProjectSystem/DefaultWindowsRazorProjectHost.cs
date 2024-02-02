@@ -57,10 +57,15 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
 
-            ProjectKey beforeProjectKey = default;
             if (TryGetBeforeIntermeidateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath))
             {
-                beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                // If the intermediate output path is in the ProjectChanges, then we know that it has changed, so we want to ensure we remove the old one,
+                // otherwise this would be seen as an Add, and we'd end up with two active projects
+                await UpdateAsync(() =>
+                {
+                    var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                    UninitializeProjectUnsafe(beforeProjectKey);
+                }, CancellationToken.None).ConfigureAwait(false);
             }
 
             // We need to deal with the case where the project was uninitialized, but now
@@ -88,7 +93,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
                     ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
                 }
 
-                UpdateProjectUnsafe(hostProject, beforeProjectKey);
+                UpdateProjectUnsafe(hostProject);
 
                 for (var i = 0; i < changedDocuments.Length; i++)
                 {
