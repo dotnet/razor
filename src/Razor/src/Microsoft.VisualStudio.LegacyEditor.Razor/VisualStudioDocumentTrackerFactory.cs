@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 [Export(typeof(IVisualStudioDocumentTrackerFactory))]
 [method: ImportingConstructor]
-internal class VisualStudioDocumentTrackerFactory(
+internal sealed class VisualStudioDocumentTrackerFactory(
     ProjectSnapshotManagerDispatcher dispatcher,
     JoinableTaskContext joinableTaskContext,
     IProjectSnapshotManagerAccessor projectManagerAccessor,

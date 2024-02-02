@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 [Name("Razor directive attribute completion commit provider.")]
 [ContentType(RazorLanguage.CoreContentType)]
 [ContentType(RazorConstants.LegacyCoreContentType)]
-internal class RazorDirectiveAttributeCommitManagerProvider : IAsyncCompletionCommitManagerProvider
+internal sealed class RazorDirectiveAttributeCommitManagerProvider : IAsyncCompletionCommitManagerProvider
 {
     public IAsyncCompletionCommitManager GetOrCreate(ITextView textView)
     {

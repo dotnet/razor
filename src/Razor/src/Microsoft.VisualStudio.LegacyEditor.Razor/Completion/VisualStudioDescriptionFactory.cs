@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 
 [Export(typeof(IVisualStudioDescriptionFactory))]
-internal class VisualStudioDescriptionFactory : IVisualStudioDescriptionFactory
+internal sealed class VisualStudioDescriptionFactory : IVisualStudioDescriptionFactory
 {
     // Internal for testing
     internal static readonly ContainerElement SeparatorElement = new(

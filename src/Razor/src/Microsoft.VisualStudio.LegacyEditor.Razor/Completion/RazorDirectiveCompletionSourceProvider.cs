@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 [Name("Razor directive completion provider.")]
 [ContentType(RazorLanguage.CoreContentType)]
 [ContentType(RazorConstants.LegacyCoreContentType)]
-internal class RazorDirectiveCompletionSourceProvider : IAsyncCompletionSourceProvider
+internal sealed class RazorDirectiveCompletionSourceProvider : IAsyncCompletionSourceProvider
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
 

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 // This class is utilized entirely by the legacy Razor editor and should not be touched except when specifically working on the legacy editor to avoid breaking functionality.
 
 [Export(typeof(ITagHelperCompletionService))]
-internal class LegacyTagHelperCompletionService : ITagHelperCompletionService
+internal sealed class LegacyTagHelperCompletionService : ITagHelperCompletionService
 {
     private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 

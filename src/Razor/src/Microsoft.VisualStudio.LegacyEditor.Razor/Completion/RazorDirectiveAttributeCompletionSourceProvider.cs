@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 [ContentType(RazorLanguage.CoreContentType)]
 [ContentType(RazorConstants.LegacyCoreContentType)]
 [method: ImportingConstructor]
-internal class RazorDirectiveAttributeCompletionSourceProvider(
+internal sealed class RazorDirectiveAttributeCompletionSourceProvider(
     ProjectSnapshotManagerDispatcher dispatcher,
     IRazorCompletionFactsService completionFactsService,
     ICompletionBroker completionBroker,

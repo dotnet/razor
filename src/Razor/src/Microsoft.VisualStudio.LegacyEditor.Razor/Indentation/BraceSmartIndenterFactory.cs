@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 
 [Export(typeof(IBraceSmartIndenterFactory))]
 [method: ImportingConstructor]
-internal class BraceSmartIndenterFactory(
+internal sealed class BraceSmartIndenterFactory(
     IEditorOperationsFactoryService editorOperationsFactory,
     JoinableTaskContext joinableTaskContext) : IBraceSmartIndenterFactory
 {

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [Export(typeof(ITextViewConnectionListener))]
 [method: ImportingConstructor]
-internal class LegacyTextViewConnectionListener(
+internal sealed class LegacyTextViewConnectionListener(
     IRazorDocumentManager documentManager,
     JoinableTaskContext joinableTaskContext) : ITextViewConnectionListener
 {

@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 [Export(typeof(IRazorEditorFactoryService))]
 [method: ImportingConstructor]
-internal class RazorEditorFactoryService(
+internal sealed class RazorEditorFactoryService(
     IVisualStudioDocumentTrackerFactory documentTrackerFactory,
     IVisualStudioRazorParserFactory parserFactory,
     IBraceSmartIndenterFactory braceSmartIndenterFactory) : IRazorEditorFactoryService
