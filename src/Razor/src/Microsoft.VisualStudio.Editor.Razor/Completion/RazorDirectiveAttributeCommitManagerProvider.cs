@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 
-[System.Composition.Shared]
 [Export(typeof(IAsyncCompletionCommitManagerProvider))]
 [Name("Razor directive attribute completion commit provider.")]
 [ContentType(RazorLanguage.CoreContentType)]

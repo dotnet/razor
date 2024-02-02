@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -13,9 +15,9 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : ProjectSnapshotManagerDispatcherTestBase(testOutput)
 {
-    private protected static VisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView focusedTextView)
+    private protected static IVisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView focusedTextView)
     {
-        var tracker = new Mock<VisualStudioDocumentTracker>(MockBehavior.Strict);
+        var tracker = new Mock<IVisualStudioDocumentTracker>(MockBehavior.Strict);
         tracker.Setup(t => t.TextBuffer)
             .Returns(bufferAccessor);
         tracker.Setup(t => t.GetFocusedTextView())
@@ -68,10 +70,28 @@ public partial class BraceSmartIndenterTestBase(ITestOutputHelper testOutput) : 
         return editorOperationsFactory.Object;
     }
 
-    private protected static TestTextBuffer CreateTextBuffer(ITextSnapshot initialSnapshot, VisualStudioDocumentTracker documentTracker)
+    private protected static TestTextBuffer CreateTextBuffer(StringTextSnapshot initialSnapshot, IVisualStudioDocumentTracker documentTracker)
     {
         var textBuffer = new TestTextBuffer(initialSnapshot, new LegacyCoreContentType());
-        textBuffer.Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
+        textBuffer.Properties.AddProperty(typeof(IVisualStudioDocumentTracker), documentTracker);
+
+        var content = initialSnapshot.Content;
+        var sourceDocument = TestRazorSourceDocument.Create(content);
+        var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(opt =>
+        {
+            opt.Directives.Add(FunctionsDirective.Directive);
+            opt.EnableSpanEditHandlers = true;
+        }));
+
+        var codeDocument = TestRazorCodeDocument.Create(content);
+        codeDocument.SetSyntaxTree(syntaxTree);
+
+        var parser = new Mock<IVisualStudioRazorParser>(MockBehavior.Strict);
+        parser
+            .SetupGet(x => x.CodeDocument)
+            .Returns(codeDocument);
+
+        textBuffer.Properties.AddProperty(typeof(IVisualStudioRazorParser), parser.Object);
 
         return textBuffer;
     }

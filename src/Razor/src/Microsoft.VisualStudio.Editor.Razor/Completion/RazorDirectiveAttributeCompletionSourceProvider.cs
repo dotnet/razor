@@ -15,33 +15,23 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 
-[System.Composition.Shared]
 [Export(typeof(IAsyncCompletionSourceProvider))]
 [Name("Razor directive attribute completion provider.")]
 [ContentType(RazorLanguage.CoreContentType)]
 [ContentType(RazorConstants.LegacyCoreContentType)]
-internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletionSourceProvider
+[method: ImportingConstructor]
+internal class RazorDirectiveAttributeCompletionSourceProvider(
+    ProjectSnapshotManagerDispatcher dispatcher,
+    IRazorCompletionFactsService completionFactsService,
+    ICompletionBroker completionBroker,
+    IVisualStudioDescriptionFactory descriptionFactory,
+    JoinableTaskContext joinableTaskContext) : IAsyncCompletionSourceProvider
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly IRazorCompletionFactsService _completionFactsService;
-    private readonly ICompletionBroker _completionBroker;
-    private readonly IVisualStudioDescriptionFactory _descriptionFactory;
-    private readonly JoinableTaskContext _joinableTaskContext;
-
-    [ImportingConstructor]
-    public RazorDirectiveAttributeCompletionSourceProvider(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        IRazorCompletionFactsService completionFactsService,
-        ICompletionBroker completionBroker,
-        IVisualStudioDescriptionFactory descriptionFactory,
-        JoinableTaskContext joinableTaskContext)
-    {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
-        _completionBroker = completionBroker ?? throw new ArgumentNullException(nameof(completionBroker));
-        _descriptionFactory = descriptionFactory ?? throw new ArgumentNullException(nameof(descriptionFactory));
-        _joinableTaskContext = joinableTaskContext ?? throw new ArgumentNullException(nameof(joinableTaskContext));
-    }
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
+    private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
+    private readonly ICompletionBroker _completionBroker = completionBroker;
+    private readonly IVisualStudioDescriptionFactory _descriptionFactory = descriptionFactory;
+    private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
 
     public IAsyncCompletionSource? GetOrCreate(ITextView textView)
     {
@@ -64,14 +54,14 @@ internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletio
     // Internal for testing
     internal IAsyncCompletionSource? CreateCompletionSource(ITextBuffer razorBuffer)
     {
-        if (!razorBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser parser))
+        if (!razorBuffer.Properties.TryGetProperty(typeof(IVisualStudioRazorParser), out IVisualStudioRazorParser parser))
         {
             // Parser hasn't been associated with the text buffer yet.
             return null;
         }
 
         return new RazorDirectiveAttributeCompletionSource(
-            _projectSnapshotManagerDispatcher,
+            _dispatcher,
             parser,
             _completionFactsService,
             _completionBroker,

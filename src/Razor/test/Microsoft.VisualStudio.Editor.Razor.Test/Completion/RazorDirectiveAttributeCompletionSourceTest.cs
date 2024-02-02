@@ -44,7 +44,7 @@ public class RazorDirectiveAttributeCompletionSourceTest(ITestOutputHelper testO
         var descriptionFactory = Mock.Of<IVisualStudioDescriptionFactory>(factory => factory.CreateClassifiedDescription(description) == expectedResult, MockBehavior.Strict);
         var source = new RazorDirectiveAttributeCompletionSource(
             Dispatcher,
-            Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict),
+            Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict),
             Mock.Of<IRazorCompletionFactsService>(MockBehavior.Strict),
             Mock.Of<ICompletionBroker>(MockBehavior.Strict),
             descriptionFactory,
@@ -234,7 +234,7 @@ public class RazorDirectiveAttributeCompletionSourceTest(ITestOutputHelper testO
     {
         var source = new RazorDirectiveAttributeCompletionSource(
             Dispatcher,
-            Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict),
+            Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict),
             Mock.Of<IRazorCompletionFactsService>(MockBehavior.Strict),
             Mock.Of<ICompletionBroker>(MockBehavior.Strict),
             Mock.Of<IVisualStudioDescriptionFactory>(MockBehavior.Strict),

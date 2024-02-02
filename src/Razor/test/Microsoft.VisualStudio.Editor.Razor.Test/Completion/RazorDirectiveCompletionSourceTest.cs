@@ -47,7 +47,7 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var text = "@validCompletion";
-        var parser = new Mock<VisualStudioRazorParser>(MockBehavior.Strict);
+        var parser = new Mock<IVisualStudioRazorParser>(MockBehavior.Strict);
         parser
             .Setup(p => p.GetLatestCodeDocumentAsync(It.IsAny<ITextSnapshot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(value: null); // CodeDocument will be null faking a parser without a parse.
@@ -138,7 +138,7 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
         var completionItem = new CompletionItem("TestDirective", Mock.Of<IAsyncCompletionSource>(MockBehavior.Strict));
         var expectedDescription = new DirectiveCompletionDescription("The expected description");
         completionItem.Properties.AddProperty(RazorDirectiveCompletionSource.DescriptionKey, expectedDescription);
-        var completionSource = new RazorDirectiveCompletionSource(Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict), _completionFactsService);
+        var completionSource = new RazorDirectiveCompletionSource(Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict), _completionFactsService);
 
         // Act
         var descriptionObject = await completionSource.GetDescriptionAsync(null, completionItem, DisposalToken);
@@ -153,7 +153,7 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
     {
         // Arrange
         var completionItem = new CompletionItem("TestDirective", Mock.Of<IAsyncCompletionSource>(MockBehavior.Strict));
-        var completionSource = new RazorDirectiveCompletionSource(Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict), _completionFactsService);
+        var completionSource = new RazorDirectiveCompletionSource(Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict), _completionFactsService);
 
         // Act
         var descriptionObject = await completionSource.GetDescriptionAsync(null, completionItem, DisposalToken);
@@ -206,13 +206,13 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
         Assert.Empty(item.AttributeIcons);
     }
 
-    private static VisualStudioRazorParser CreateParser(string text, params DirectiveDescriptor[] directives)
+    private static IVisualStudioRazorParser CreateParser(string text, params DirectiveDescriptor[] directives)
     {
         var syntaxTree = CreateSyntaxTree(text, directives);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Default));
         codeDocument.SetSyntaxTree(syntaxTree);
         codeDocument.SetTagHelperContext(TagHelperDocumentContext.Create(prefix: null, Enumerable.Empty<TagHelperDescriptor>()));
-        var parser = new Mock<VisualStudioRazorParser>(MockBehavior.Strict);
+        var parser = new Mock<IVisualStudioRazorParser>(MockBehavior.Strict);
         parser
             .Setup(p => p.GetLatestCodeDocumentAsync(It.IsAny<ITextSnapshot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);

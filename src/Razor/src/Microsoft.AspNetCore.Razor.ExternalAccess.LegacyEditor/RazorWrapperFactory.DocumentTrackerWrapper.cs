@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 internal static partial class RazorWrapperFactory
 {
-    private class DocumentTrackerWrapper(VisualStudioDocumentTracker obj) : Wrapper<VisualStudioDocumentTracker>(obj), IRazorDocumentTracker
+    private class DocumentTrackerWrapper(IVisualStudioDocumentTracker obj) : Wrapper<IVisualStudioDocumentTracker>(obj), IRazorDocumentTracker
     {
         private EventHandler<ContextChangeEventArgs>? _contextChanged;
 

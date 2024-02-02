@@ -34,8 +34,7 @@ internal class BraceSmartIndenter : IDisposable
 
     private readonly ITextBuffer _textBuffer;
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly VisualStudioDocumentTracker _documentTracker;
-    private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
+    private readonly IVisualStudioDocumentTracker _documentTracker;
     private readonly IEditorOperationsFactoryService _editorOperationsFactory;
     private readonly StringBuilder _indentBuilder = new();
     private BraceIndentationContext? _context;
@@ -48,35 +47,14 @@ internal class BraceSmartIndenter : IDisposable
     }
 
     public BraceSmartIndenter(
-        JoinableTaskContext joinableTaskContext,
-        VisualStudioDocumentTracker documentTracker,
-        TextBufferCodeDocumentProvider codeDocumentProvider,
-        IEditorOperationsFactoryService editorOperationsFactory)
+        IVisualStudioDocumentTracker documentTracker,
+        IEditorOperationsFactoryService editorOperationsFactory,
+        JoinableTaskContext joinableTaskContext)
     {
         Debug.Assert(documentTracker.TextBuffer.IsLegacyCoreRazorBuffer());
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        if (documentTracker is null)
-        {
-            throw new ArgumentNullException(nameof(documentTracker));
-        }
-
-        if (codeDocumentProvider is null)
-        {
-            throw new ArgumentNullException(nameof(codeDocumentProvider));
-        }
-
-        if (editorOperationsFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorOperationsFactory));
-        }
 
         _joinableTaskContext = joinableTaskContext;
         _documentTracker = documentTracker;
-        _codeDocumentProvider = codeDocumentProvider;
         _editorOperationsFactory = editorOperationsFactory;
         _textBuffer = _documentTracker.TextBuffer;
         _textBuffer.Changed += TextBuffer_OnChanged;
@@ -111,7 +89,7 @@ internal class BraceSmartIndenter : IDisposable
         }
 
         var newText = changeInformation.newText;
-        if (!_codeDocumentProvider.TryGetFromBuffer(_documentTracker.TextBuffer, out var codeDocument))
+        if (!_documentTracker.TextBuffer.TryGetCodeDocument(out var codeDocument))
         {
             // Parse not available.
             return;
@@ -212,7 +190,7 @@ internal class BraceSmartIndenter : IDisposable
         int changeLength,
         string finalText,
         RazorSyntaxTree syntaxTree,
-        VisualStudioDocumentTracker documentTracker,
+        IVisualStudioDocumentTracker documentTracker,
         [NotNullWhen(returnValue: true)] out BraceIndentationContext? context)
     {
         var focusedTextView = documentTracker.GetFocusedTextView();

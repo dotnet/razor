@@ -33,11 +33,11 @@ internal class RazorDirectiveCompletionSource : IAsyncCompletionSource
     }.ToImmutableArray();
 
     // Internal for testing
-    internal readonly VisualStudioRazorParser Parser;
+    internal readonly IVisualStudioRazorParser Parser;
     private readonly IRazorCompletionFactsService _completionFactsService;
 
     public RazorDirectiveCompletionSource(
-        VisualStudioRazorParser parser,
+        IVisualStudioRazorParser parser,
         IRazorCompletionFactsService completionFactsService)
     {
         if (parser is null)

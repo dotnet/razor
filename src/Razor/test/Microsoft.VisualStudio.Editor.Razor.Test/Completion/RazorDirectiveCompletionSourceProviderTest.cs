@@ -42,9 +42,9 @@ public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManager
     public void CreateCompletionSource_ReturnsNullIfParserHasNotBeenAssocitedWithRazorBuffer()
     {
         // Arrange
-        var expectedParser = Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict);
+        var expectedParser = Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict);
         var properties = new PropertyCollection();
-        properties.AddProperty(typeof(VisualStudioRazorParser), expectedParser);
+        properties.AddProperty(typeof(IVisualStudioRazorParser), expectedParser);
         var razorBuffer = Mock.Of<ITextBuffer>(buffer => buffer.ContentType == _razorContentType && buffer.Properties == properties, MockBehavior.Strict);
         var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
 
@@ -88,9 +88,9 @@ public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManager
     public void GetOrCreate_CachesCompletionSource()
     {
         // Arrange
-        var expectedParser = Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict);
+        var expectedParser = Mock.Of<IVisualStudioRazorParser>(MockBehavior.Strict);
         var properties = new PropertyCollection();
-        properties.AddProperty(typeof(VisualStudioRazorParser), expectedParser);
+        properties.AddProperty(typeof(IVisualStudioRazorParser), expectedParser);
         var textView = CreateTextView(_razorContentType, properties);
         var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
 

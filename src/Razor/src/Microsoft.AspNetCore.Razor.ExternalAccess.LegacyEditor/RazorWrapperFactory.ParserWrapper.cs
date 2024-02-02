@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 internal static partial class RazorWrapperFactory
 {
-    private class ParserWrapper(VisualStudioRazorParser obj) : Wrapper<VisualStudioRazorParser>(obj), IRazorParser
+    private class ParserWrapper(IVisualStudioRazorParser obj) : Wrapper<IVisualStudioRazorParser>(obj), IRazorParser
     {
         private EventHandler<DocumentStructureChangedEventArgs>? _documentStructureChanged;
 

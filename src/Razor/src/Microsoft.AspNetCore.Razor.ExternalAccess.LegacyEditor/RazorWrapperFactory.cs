@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
@@ -127,9 +128,9 @@ internal static partial class RazorWrapperFactory
     private static IRazorBoundAttributeDescriptor Wrap(BoundAttributeDescriptor obj) => WrapBoundAttributeDescriptor(obj);
     private static IRazorBoundAttributeParameterDescriptor Wrap(BoundAttributeParameterDescriptor obj) => WrapBoundAttributeParameterDescriptor(obj);
     private static IRazorDiagnostic Wrap(RazorDiagnostic obj) => WrapDiagnostic(obj);
-    private static IRazorDocumentTracker Wrap(VisualStudioDocumentTracker obj) => WrapDocumentTracker(obj);
+    private static IRazorDocumentTracker Wrap(IVisualStudioDocumentTracker obj) => WrapDocumentTracker(obj);
     private static IRazorElementCompletionContext Wrap(ElementCompletionContext obj) => WrapElementCompletionContext(obj);
-    private static IRazorParser Wrap(VisualStudioRazorParser obj) => WrapParser(obj);
+    private static IRazorParser Wrap(IVisualStudioRazorParser obj) => WrapParser(obj);
     private static IRazorRequiredAttributeDescriptor Wrap(RequiredAttributeDescriptor obj) => WrapRequiredAttributeDescriptor(obj);
     private static IRazorTagHelperDescriptor Wrap(TagHelperDescriptor obj) => WrapTagHelperDescriptor(obj);
     private static IRazorTagMatchingRuleDescriptor Wrap(TagMatchingRuleDescriptor obj) => WrapTagMatchingRuleDescriptor(obj);
@@ -152,19 +153,19 @@ internal static partial class RazorWrapperFactory
         => Wrap<RazorDiagnostic, DiagnosticWrapper, IRazorDiagnostic>(obj, static obj => new DiagnosticWrapper(obj));
 
     internal static IRazorDocumentTracker WrapDocumentTracker(object obj)
-        => Wrap<VisualStudioDocumentTracker, DocumentTrackerWrapper, IRazorDocumentTracker>(obj, static obj => new DocumentTrackerWrapper(obj));
+        => Wrap<IVisualStudioDocumentTracker, DocumentTrackerWrapper, IRazorDocumentTracker>(obj, static obj => new DocumentTrackerWrapper(obj));
 
     internal static IRazorEditorFactoryService WrapEditorFactoryService(object obj)
-        => Wrap<RazorEditorFactoryService, EditorFactoryServiceWrapper, IRazorEditorFactoryService>(obj, static obj => new EditorFactoryServiceWrapper(obj));
+        => Wrap<VisualStudio.Editor.Razor.IRazorEditorFactoryService, EditorFactoryServiceWrapper, IRazorEditorFactoryService>(obj, obj => new EditorFactoryServiceWrapper(obj));
 
-    internal static IRazorEditorSettingsManager WrapEditorSettingsManager(object obj)
-        => Wrap<EditorSettingsManager, EditorSettingsManagerWrapper, IRazorEditorSettingsManager>(obj, static obj => new EditorSettingsManagerWrapper(obj));
+    internal static IRazorEditorSettingsManager WrapClientSettingsManager(object obj)
+        => Wrap<IClientSettingsManager, ClientSettingsManagerWrapper, IRazorEditorSettingsManager>(obj, static obj => new ClientSettingsManagerWrapper(obj));
 
     internal static IRazorElementCompletionContext WrapElementCompletionContext(object obj)
         => Wrap<ElementCompletionContext, ElementCompletionContextWrapper, IRazorElementCompletionContext>(obj, static obj => new ElementCompletionContextWrapper(obj));
 
     internal static IRazorParser WrapParser(object obj)
-        => Wrap<VisualStudioRazorParser, ParserWrapper, IRazorParser>(obj, static obj => new ParserWrapper(obj));
+        => Wrap<IVisualStudioRazorParser, ParserWrapper, IRazorParser>(obj, static obj => new ParserWrapper(obj));
 
     internal static IRazorRequiredAttributeDescriptor WrapRequiredAttributeDescriptor(object obj)
         => Wrap<RequiredAttributeDescriptor, RequiredAttributeDescriptorWrapper, IRazorRequiredAttributeDescriptor>(obj, static obj => new RequiredAttributeDescriptorWrapper(obj));

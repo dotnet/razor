@@ -13,41 +13,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor;
 /// <summary>
 /// Infrastructure methods to find project information from an <see cref="ITextBuffer"/>.
 /// </summary>
-[System.Composition.Shared]
 [Export(typeof(TextBufferProjectService))]
-internal class DefaultTextBufferProjectService : TextBufferProjectService
+[method: ImportingConstructor]
+internal class DefaultTextBufferProjectService(
+    [Import(typeof(SVsServiceProvider))] IServiceProvider services,
+    ITextDocumentFactoryService documentFactory,
+    AggregateProjectCapabilityResolver projectCapabilityResolver) : TextBufferProjectService
 {
     private const string DotNetCoreCapability = "(CSharp|VB)&CPS";
 
-    private readonly RunningDocumentTable _documentTable;
-    private readonly ITextDocumentFactoryService _documentFactory;
-    private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
-
-    [ImportingConstructor]
-    public DefaultTextBufferProjectService(
-        [Import(typeof(SVsServiceProvider))] IServiceProvider services,
-        ITextDocumentFactoryService documentFactory,
-        AggregateProjectCapabilityResolver projectCapabilityResolver)
-    {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (documentFactory is null)
-        {
-            throw new ArgumentNullException(nameof(documentFactory));
-        }
-
-        if (projectCapabilityResolver is null)
-        {
-            throw new ArgumentNullException(nameof(projectCapabilityResolver));
-        }
-
-        _documentFactory = documentFactory;
-        _projectCapabilityResolver = projectCapabilityResolver;
-        _documentTable = new RunningDocumentTable(services);
-    }
+    private readonly RunningDocumentTable _documentTable = new RunningDocumentTable(services);
+    private readonly ITextDocumentFactoryService _documentFactory = documentFactory;
+    private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver = projectCapabilityResolver;
 
     public override object? GetHostProject(ITextBuffer textBuffer)
     {

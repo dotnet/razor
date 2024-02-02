@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Razor.Language;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
 
@@ -38,5 +40,23 @@ internal static class TextBufferExtensions
 
         var matchesContentType = textBuffer.ContentType.IsOfType(RazorConstants.RazorLSPContentTypeName);
         return matchesContentType;
+    }
+
+    public static bool TryGetCodeDocument(this ITextBuffer textBuffer, [NotNullWhen(true)] out RazorCodeDocument? codeDocument)
+    {
+        if (textBuffer is null)
+        {
+            throw new ArgumentNullException(nameof(textBuffer));
+        }
+
+        if (textBuffer.Properties.TryGetProperty(typeof(IVisualStudioRazorParser), out IVisualStudioRazorParser parser) &&
+            parser.CodeDocument is not null)
+        {
+            codeDocument = parser.CodeDocument;
+            return true;
+        }
+
+        codeDocument = null;
+        return false;
     }
 }
