@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,30 +23,46 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
     [Fact]
     public Task InlayHints()
         => VerifyInlayHintsAsync(
-            """
+            input: """
 
-            <div></div>
+                <div></div>
 
-            @functions {
-                private void M(string thisIsMyString)
-                {
-                    var {|int:x|} = 5;
+                @functions {
+                    private void M(string thisIsMyString)
+                    {
+                        var {|int:x|} = 5;
 
-                    var {|string:y|} = "Hello";
+                        var {|string:y|} = "Hello";
 
-                    M({|thisIsMyString:"Hello"|});
+                        M({|thisIsMyString:"Hello"|});
+                    }
                 }
-            }
-            
-            """,
-            new Dictionary<string, string>
-            {
-                { "int",           "struct System.Int32" },
-                {"string",         "class System.String" },
-                {"thisIsMyString", "(parameter) string thisIsMyStr" }
-            });
 
-    private async Task VerifyInlayHintsAsync(string input, Dictionary<string, string> toolTipMap)
+                """,
+            toolTipMap: new Dictionary<string, string>
+                {
+                    { "int",           "struct System.Int32" },
+                    {"string",         "class System.String" },
+                    {"thisIsMyString", "(parameter) string thisIsMyStr" }
+                },
+            output: """
+
+                <div></div>
+
+                @functions {
+                    private void M(string thisIsMyString)
+                    {
+                        int x = 5;
+
+                        string y = "Hello";
+
+                        M(thisIsMyString: "Hello");
+                    }
+                }
+
+                """);
+
+    private async Task VerifyInlayHintsAsync(string input, Dictionary<string, string> toolTipMap, string output)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spansDict);
         var codeDocument = CreateCodeDocument(input);
@@ -110,5 +127,19 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
                 Assert.Contains(expectedTooltip, markupTooltip.Value);
             }
         }
+
+        // To validate edits, we have to collect them all together, and apply them backwards
+        var edits = hints
+            .SelectMany(h => h.TextEdits ?? [])
+            .OrderByDescending(e => e.Range.Start.Line)
+            .ThenByDescending(e => e.Range.Start.Character)
+            .ToArray();
+        foreach (var edit in edits)
+        {
+            var change = edit.ToTextChange(sourceText);
+            sourceText = sourceText.WithChanges(change);
+        }
+
+        AssertEx.EqualOrDiff(output, sourceText.ToString());
     }
 }

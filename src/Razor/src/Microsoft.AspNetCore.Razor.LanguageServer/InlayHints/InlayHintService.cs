@@ -80,12 +80,13 @@ internal sealed class InlayHintService(IRazorDocumentMappingService documentMapp
 
     public async Task<InlayHint?> ResolveInlayHintAsync(IClientConnection clientConnection, InlayHint inlayHint, CancellationToken cancellationToken)
     {
-        if (inlayHint.Data is not JObject dataObj)
+        var inlayHintWrapper = inlayHint.Data as RazorInlayHintWrapper;
+        if (inlayHintWrapper is null &&
+            inlayHint.Data is JObject dataObj)
         {
-            return null;
+            inlayHintWrapper = dataObj.ToObject<RazorInlayHintWrapper>();
         }
 
-        var inlayHintWrapper = dataObj.ToObject<RazorInlayHintWrapper>();
         if (inlayHintWrapper is null)
         {
             return null;
