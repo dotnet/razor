@@ -23,12 +23,6 @@ internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOpti
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        // Not supported in VS Code
-        if (!_featureOptions.SingleServerSupport)
-        {
-            return;
-        }
-
         serverCapabilities.EnableInlayHints();
     }
 
