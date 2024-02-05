@@ -1,11 +1,4 @@
-﻿Source Location: (1:0,1 [51] x:\dir\subdir\Test\TestComponent.cshtml)
-|using Microsoft.AspNetCore.Components.RenderTree;
-|
-Generated Location: (360:12,0 [51] )
-|using Microsoft.AspNetCore.Components.RenderTree;
-|
-
-Source Location: (56:2,2 [134] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (56:2,2 [134] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     var output = string.Empty;
     if (__builder == null) output = "Builder is null!";

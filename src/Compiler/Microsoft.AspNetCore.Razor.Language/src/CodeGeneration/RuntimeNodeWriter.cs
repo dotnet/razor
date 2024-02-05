@@ -36,7 +36,6 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         {
             using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
             {
-                context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content);
             }
         }

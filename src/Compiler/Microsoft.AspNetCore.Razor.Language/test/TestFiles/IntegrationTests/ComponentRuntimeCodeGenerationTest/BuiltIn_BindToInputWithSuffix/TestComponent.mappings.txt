@@ -1,10 +1,4 @@
-﻿Source Location: (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
-|using Microsoft.AspNetCore.Components.Web
-|
-Generated Location: (360:12,0 [43] )
-|using Microsoft.AspNetCore.Components.Web;|
-
-Source Location: (65:1,21 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (65:1,21 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |CurrentDate|
 Generated Location: (988:26,21 [11] )
 |CurrentDate|

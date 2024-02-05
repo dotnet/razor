@@ -1,11 +1,4 @@
-﻿Source Location: (1:0,1 [40] x:\dir\subdir\Test\TestComponent.cshtml)
-|using Microsoft.AspNetCore.Components;
-|
-Generated Location: (308:11,0 [40] )
-|using Microsoft.AspNetCore.Components;
-|
-
-Source Location: (52:1,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (52:1,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |TItem|
 Generated Location: (509:19,0 [5] )
 |TItem|

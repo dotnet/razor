@@ -353,7 +353,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
             {
-                context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content);
             }
         }

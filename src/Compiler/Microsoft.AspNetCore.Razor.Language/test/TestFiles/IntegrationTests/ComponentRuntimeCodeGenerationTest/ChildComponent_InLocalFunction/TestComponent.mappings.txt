@@ -1,11 +1,4 @@
-﻿Source Location: (1:0,1 [51] x:\dir\subdir\Test\TestComponent.cshtml)
-|using Microsoft.AspNetCore.Components.RenderTree;
-|
-Generated Location: (360:12,0 [51] )
-|using Microsoft.AspNetCore.Components.RenderTree;
-|
-
-Source Location: (54:1,2 [42] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (54:1,2 [42] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     void RenderChildComponent()
     {
