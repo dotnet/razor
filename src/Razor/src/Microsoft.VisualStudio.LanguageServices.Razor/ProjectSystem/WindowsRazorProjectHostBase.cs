@@ -401,7 +401,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             }
         }
 
-        path = joinedPath;
+        path = Path.GetFullPath(joinedPath);
         return true;
     }
 
