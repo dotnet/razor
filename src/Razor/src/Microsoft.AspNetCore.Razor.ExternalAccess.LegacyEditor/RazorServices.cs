@@ -23,7 +23,7 @@ internal sealed class RazorServices
         var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
         Assumes.Present(componentModel);
 
-        var editorFactoryService = componentModel.GetService<VisualStudio.Editor.Razor.IRazorEditorFactoryService>();
+        var editorFactoryService = componentModel.GetService<VisualStudio.LegacyEditor.Razor.IRazorEditorFactoryService>();
         EditorFactoryService = RazorWrapperFactory.WrapEditorFactoryService(editorFactoryService);
 
         var clientSettingsManager = componentModel.GetService<IClientSettingsManager>();
