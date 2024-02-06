@@ -7,6 +7,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 internal static class VSInternalServerCapabilitiesExtensions
 {
+    public static void EnableInlayHints(this VSInternalServerCapabilities serverCapabilities)
+    {
+        serverCapabilities.InlayHintOptions = new InlayHintOptions
+        {
+            ResolveProvider = true,
+            WorkDoneProgress = false
+        };
+    }
+
     public static void EnableDocumentColorProvider(this VSInternalServerCapabilities serverCapabilities)
     {
         serverCapabilities.DocumentColorProvider = new DocumentColorOptions();

@@ -6,9 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -16,32 +17,32 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
 [Shared]
-[RazorLanguageServerEndpoint(Methods.TextDocumentDocumentColorName)]
-[ExportRazorStatelessLspService(typeof(CohostDocumentColorEndpoint))]
+[LanguageServerEndpoint(Methods.TextDocumentInlayHintName)]
+[ExportRazorStatelessLspService(typeof(CohostInlayHintEndpoint))]
 [Export(typeof(ICapabilitiesProvider))]
 [method: ImportingConstructor]
-internal sealed class CohostDocumentColorEndpoint(
-    IDocumentColorService documentColorService,
+internal sealed class CohostInlayHintEndpoint(
+    IInlayHintService inlayHintService,
     IRazorLoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<DocumentColorParams, ColorInformation[]>, ICapabilitiesProvider
+    : AbstractRazorCohostDocumentRequestHandler<InlayHintParams, InlayHint[]?>, ICapabilitiesProvider
 {
-    private readonly IDocumentColorService _documentColorService = documentColorService;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<CohostDocumentColorEndpoint>();
+    private readonly IInlayHintService _inlayHintService = inlayHintService;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<CohostInlayHintEndpoint>();
 
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentColorParams request)
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(InlayHintParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities _)
-        => serverCapabilities.EnableDocumentColorProvider();
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
+        => serverCapabilities.EnableInlayHints();
 
-    protected override Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<InlayHint[]?> HandleRequestAsync(InlayHintParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
         var documentContext = context.GetRequiredDocumentContext();
 
-        _logger.LogDebug("[Cohost] Received document color request for {requestPath} and got document {documentPath}", request.TextDocument.Uri, documentContext?.FilePath);
+        _logger.LogDebug("[Cohost] Received inlay hint request for {requestPath} and got document {documentPath}", request.TextDocument.Uri, documentContext.FilePath);
 
         // TODO: We can't MEF import IRazorCohostClientLanguageServerManager in the constructor. We can make this work
         //       by having it implement a base class, RazorClientConnectionBase or something, that in turn implements
@@ -52,6 +53,6 @@ internal sealed class CohostDocumentColorEndpoint(
         var clientLanguageServerManager = context.GetRequiredService<IRazorCohostClientLanguageServerManager>();
         var clientConnection = new RazorCohostClientConnection(clientLanguageServerManager);
 
-        return _documentColorService.GetColorInformationAsync(clientConnection, request, documentContext, cancellationToken);
+        return _inlayHintService.GetInlayHintsAsync(clientConnection, documentContext, request.Range, cancellationToken);
     }
 }
