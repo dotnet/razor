@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,7 +31,7 @@ internal sealed class InlayHintService(IRazorDocumentMappingService documentMapp
         // to C#. Since that doesn't logically match what we want from inlay hints, we instead get the minimum range of mappable
         // C# to get hints for. We'll filter that later, to remove the sections that can't be mapped back.
         if (!_documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, range, out var projectedRange) &&
-            !RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, range, out projectedRange))
+            !codeDocument.TryGetMinimalCSharpRange(range, out projectedRange))
         {
             // There's no C# in the range.
             return null;
