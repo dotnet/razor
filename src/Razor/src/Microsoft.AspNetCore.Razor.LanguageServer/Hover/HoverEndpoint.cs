@@ -22,14 +22,14 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
     private VSInternalClientCapabilities? _clientCapabilities;
 
     public HoverEndpoint(
-        IHoverService hoverInfoService,
+        IHoverService hoverService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IRazorLoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<HoverEndpoint>())
     {
-        _hoverService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
+        _hoverService = hoverService ?? throw new ArgumentNullException(nameof(hoverService));
         Debug.Assert(languageServerFeatureOptions.UseRazorCohostServer == false, "This endpoint should not be registered when using the Razor Cohost server.");
     }
 

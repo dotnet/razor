@@ -12,13 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 
 internal static class RazorCohostRequestContextExtensions
 {
-    public static async Task<TResponse?> DelegateRequestAsync<IDelegatedParams, TResponse>(this RazorCohostRequestContext requestContext, string target, IDelegatedParams @params, ILogger logger, CancellationToken cancellationToken)
+    public static async Task<TResponse?> DelegateRequestAsync<TDelegatedParams, TResponse>(this RazorCohostRequestContext requestContext, string target, TDelegatedParams @params, ILogger logger, CancellationToken cancellationToken)
     {
         var clientConnection = requestContext.GetClientConnection();
 
         try
         {
-            return await clientConnection.SendRequestAsync<IDelegatedParams, TResponse>(target, @params, cancellationToken).ConfigureAwait(false);
+            return await clientConnection.SendRequestAsync<TDelegatedParams, TResponse>(target, @params, cancellationToken).ConfigureAwait(false);
         }
         catch (RemoteInvocationException e)
         {
