@@ -57,7 +57,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
 
-            if (TryGetBeforeIntermeidateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath))
+            if (TryGetBeforeIntermediateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath))
             {
                 // If the intermediate output path is in the ProjectChanges, then we know that it has changed, so we want to ensure we remove the old one,
                 // otherwise this would be seen as an Add, and we'd end up with two active projects

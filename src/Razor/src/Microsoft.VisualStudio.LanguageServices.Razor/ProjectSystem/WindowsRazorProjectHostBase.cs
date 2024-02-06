@@ -330,7 +330,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     private Task UnconfiguredProject_ProjectRenamingAsync(object? sender, ProjectRenamedEventArgs args)
         => OnProjectRenamingAsync(args.OldFullPath, args.NewFullPath);
 
-    protected bool TryGetBeforeIntermeidateOutputPath(IImmutableDictionary<string, IProjectChangeDescription> state,
+    protected bool TryGetBeforeIntermediateOutputPath(IImmutableDictionary<string, IProjectChangeDescription> state,
         [NotNullWhen(returnValue: true)] out string? path)
     {
         if (!state.TryGetValue(ConfigurationGeneralSchemaName, out var rule))
