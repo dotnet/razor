@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -59,6 +60,8 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
             if (TryGetBeforeIntermediateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath))
             {
+                Debug.Assert(beforeIntermediateOutputPath != intermediatePath, "IntermediateOutputPath seems to have changed, but hasn't?");
+
                 // If the intermediate output path is in the ProjectChanges, then we know that it has changed, so we want to ensure we remove the old one,
                 // otherwise this would be seen as an Add, and we'd end up with two active projects
                 await UpdateAsync(() =>
