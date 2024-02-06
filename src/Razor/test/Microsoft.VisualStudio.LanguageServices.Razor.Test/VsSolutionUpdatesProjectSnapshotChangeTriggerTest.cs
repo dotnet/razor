@@ -86,7 +86,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 
         var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             services.Object,
-            Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
+            Mock.Of<ITextBufferProjectService>(MockBehavior.Strict),
             Mock.Of<IProjectWorkspaceStateGenerator>(MockBehavior.Strict),
             _workspaceProvider,
             s_dispatcher,
@@ -117,7 +117,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 
         var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             services.Object,
-            Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
+            Mock.Of<ITextBufferProjectService>(MockBehavior.Strict),
             Mock.Of<IProjectWorkspaceStateGenerator>(MockBehavior.Strict),
             _workspaceProvider,
             s_dispatcher,
@@ -148,7 +148,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
             return projectManager.GetLoadedProject(_someProject.Key);
         }, DisposalToken);
 
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
+        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
         projectService.Setup(p => p.GetProjectPath(It.IsAny<IVsHierarchy>())).Returns(expectedProjectPath);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
@@ -191,7 +191,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
             return projectManager.GetLoadedProject(_someProject.Key);
         }, DisposalToken);
 
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
+        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
         projectService.Setup(p => p.GetProjectPath(It.IsAny<IVsHierarchy>())).Returns(expectedProjectPath);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
@@ -237,7 +237,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
                 ProjectWorkspaceState.Default));
         var expectedProjectPath = projectSnapshot.FilePath;
 
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
+        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
         projectService.Setup(p => p.GetProjectPath(It.IsAny<IVsHierarchy>())).Returns(expectedProjectPath);
 
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
@@ -283,7 +283,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
         var services = new Mock<IServiceProvider>(MockBehavior.Strict);
         services.Setup(s => s.GetService(It.Is<Type>(f => f == typeof(SVsSolutionBuildManager)))).Returns(buildManager.Object);
 
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
+        var projectService = new Mock<ITextBufferProjectService>(MockBehavior.Strict);
         projectService.Setup(p => p.GetProjectPath(It.IsAny<IVsHierarchy>())).Returns(expectedProjectPath);
 
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);

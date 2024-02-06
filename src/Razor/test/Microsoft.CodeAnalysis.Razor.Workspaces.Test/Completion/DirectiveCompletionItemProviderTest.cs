@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
 

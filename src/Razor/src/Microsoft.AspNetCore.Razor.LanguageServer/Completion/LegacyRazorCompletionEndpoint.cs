@@ -29,8 +29,8 @@ internal class LegacyRazorCompletionEndpoint(
     IRazorLoggerFactory loggerFactory)
     : IVSCompletionEndpoint
 {
-    private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
-    private readonly CompletionListCache _completionListCache = completionListCache ?? throw new ArgumentNullException(nameof(completionListCache));
+    private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
+    private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly ILogger _logger = loggerFactory.CreateLogger<LegacyRazorCompletionEndpoint>();
 
     private static readonly Command s_retriggerCompletionCommand = new()

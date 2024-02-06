@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.Extensions.Options;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Xunit;
@@ -60,17 +59,16 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
     private static IEnumerable<IRazorCompletionItemProvider> GetCompletionProviders(IOptionsMonitor<RazorLSPOptions> optionsMonitor = null)
     {
         // Working around strong naming restriction.
-        var tagHelperFactsService = new TagHelperFactsService();
-        var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
+        var tagHelperCompletionService = new LspTagHelperCompletionService();
 
         optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
 
         var completionProviders = new IRazorCompletionItemProvider[]
         {
             new DirectiveCompletionItemProvider(),
-            new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),
-            new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
-            new TagHelperCompletionProvider(tagHelperCompletionService, tagHelperFactsService, optionsMonitor)
+            new DirectiveAttributeCompletionItemProvider(),
+            new DirectiveAttributeParameterCompletionItemProvider(),
+            new TagHelperCompletionProvider(tagHelperCompletionService, optionsMonitor)
         };
 
         return completionProviders;

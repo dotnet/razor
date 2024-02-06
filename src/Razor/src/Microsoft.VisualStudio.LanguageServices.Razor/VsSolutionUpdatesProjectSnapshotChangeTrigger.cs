@@ -22,14 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 [method: ImportingConstructor]
 internal class VsSolutionUpdatesProjectSnapshotChangeTrigger(
     [Import(typeof(SVsServiceProvider))] IServiceProvider services,
-    TextBufferProjectService projectService,
+    ITextBufferProjectService projectService,
     IProjectWorkspaceStateGenerator workspaceStateGenerator,
     IWorkspaceProvider workspaceProvider,
     ProjectSnapshotManagerDispatcher dispatcher,
     JoinableTaskContext joinableTaskContext) : IProjectSnapshotChangeTrigger, IVsUpdateSolutionEvents2, IDisposable
 {
     private readonly IServiceProvider _services = services;
-    private readonly TextBufferProjectService _projectService = projectService;
+    private readonly ITextBufferProjectService _projectService = projectService;
     private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator = workspaceStateGenerator;
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;

@@ -1019,7 +1019,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
     private HoverService.TestAccessor GetHoverTestAccessor()
     {
-        var service = GetHoverService();   
+        var service = GetHoverService();
         return service.GetTestAccessor();
     }
 
@@ -1028,8 +1028,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var snapshotResolver = new TestSnapshotResolver();
         var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
-        mappingService ??= new TestDocumentMappingService();
-        return new HoverService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, mappingService);
+        return new HoverService(lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, mappingService);
     }
 
     private class HoverLanguageServer : IClientConnection

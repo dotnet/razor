@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -24,26 +23,14 @@ using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.Ma
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
-[Export(typeof(IHoverService)), Shared]
-internal sealed class HoverService : IHoverService
+internal sealed class HoverService(
+    LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
+    VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
+    IRazorDocumentMappingService mappingService) : IHoverService
 {
-    private readonly ITagHelperFactsService _tagHelperFactsService;
-    private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
-    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
-    private readonly IRazorDocumentMappingService _mappingService;
-
-    [ImportingConstructor]
-    public HoverService(
-        ITagHelperFactsService tagHelperFactsService,
-        LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
-        VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
-        IRazorDocumentMappingService mappingService)
-    {
-        _tagHelperFactsService = tagHelperFactsService;
-        _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
-        _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
-        _mappingService = mappingService;
-    }
+    private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
+    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
+    private readonly IRazorDocumentMappingService _mappingService = mappingService;
 
     public async Task<VSInternalHover?> GetRazorHoverInfoAsync(VersionedDocumentContext documentContext, DocumentPositionInfo positionInfo, Position position, VSInternalClientCapabilities? clientCapabilities, CancellationToken cancellationToken)
     {
@@ -139,7 +126,7 @@ internal sealed class HoverService : IHoverService
         // only check nodes that are at a different location in the file.
         var ownerStart = owner.SpanStart;
 
-        if (HtmlFactsService.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
+        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
             containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
         {
             if (owner is MarkupStartTagSyntax or MarkupEndTagSyntax &&
@@ -152,9 +139,9 @@ internal sealed class HoverService : IHoverService
 
             // Hovering over HTML tag name
             var ancestors = owner.Ancestors().Where(n => n.SpanStart != ownerStart);
-            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
-            var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-            var binding = _tagHelperFactsService.GetTagHelperBinding(
+            var (parentTag, parentIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
+            var binding = TagHelperFacts.GetTagHelperBinding(
                 tagHelperDocumentContext,
                 containingTagNameToken.Content,
                 stringifiedAttributes,
@@ -182,19 +169,19 @@ internal sealed class HoverService : IHoverService
             }
         }
 
-        if (HtmlFactsService.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
+        if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
             selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true)
         {
             // When finding parents for attributes, we make sure to find the parent of the containing tag, otherwise these methods
             // would return the parent of the attribute, which is not helpful, as its just going to be the containing element
             var containingTag = containingTagNameToken.Parent;
             var ancestors = containingTag.Ancestors().Where<SyntaxNode>(n => n.SpanStart != containingTag.SpanStart);
-            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
+            var (parentTag, parentIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
 
             // Hovering over HTML attribute name
-            var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
 
-            var binding = _tagHelperFactsService.GetTagHelperBinding(
+            var binding = TagHelperFacts.GetTagHelperBinding(
                 tagHelperDocumentContext,
                 containingTagNameToken.Content,
                 stringifiedAttributes,
@@ -209,7 +196,10 @@ internal sealed class HoverService : IHoverService
             else
             {
                 Debug.Assert(binding.Descriptors.Any());
-                var tagHelperAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName!, binding);
+                var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(
+                    tagHelperDocumentContext,
+                    selectedAttributeName.AssumeNotNull(),
+                    binding);
 
                 // Grab the first attribute that we find that intersects with this location. That way if there are multiple attributes side-by-side aka hovering over:
                 //      <input checked| minimized />

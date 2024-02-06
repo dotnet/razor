@@ -39,7 +39,6 @@ internal sealed class CohostDocumentColorEndpoint(
 
     protected override Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
-        // TODO: Create document context from request.TextDocument, by looking at request.Solution instead of our project snapshots
         var documentContext = context.GetRequiredDocumentContext();
 
         _logger.LogDebug("[Cohost] Received document color request for {requestPath} and got document {documentPath}", request.TextDocument.Uri, documentContext?.FilePath);

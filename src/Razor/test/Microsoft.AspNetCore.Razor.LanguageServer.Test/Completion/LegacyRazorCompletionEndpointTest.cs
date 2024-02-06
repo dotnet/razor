@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Xunit;
@@ -32,15 +31,14 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         : base(testOutput)
     {
         // Working around strong naming restriction.
-        var tagHelperFactsService = new TagHelperFactsService();
-        var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
+        var tagHelperCompletionService = new LspTagHelperCompletionService();
 
         var completionProviders = new IRazorCompletionItemProvider[]
         {
             new DirectiveCompletionItemProvider(),
-            new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),
-            new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
-            new TagHelperCompletionProvider(tagHelperCompletionService, tagHelperFactsService, TestRazorLSPOptionsMonitor.Create())
+            new DirectiveAttributeCompletionItemProvider(),
+            new DirectiveAttributeParameterCompletionItemProvider(),
+            new TagHelperCompletionProvider(tagHelperCompletionService, TestRazorLSPOptionsMonitor.Create())
         };
 
         _completionFactsService = new RazorCompletionFactsService(completionProviders);

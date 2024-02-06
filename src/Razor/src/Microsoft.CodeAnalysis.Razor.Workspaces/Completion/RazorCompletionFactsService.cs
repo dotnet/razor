@@ -82,7 +82,7 @@ internal class RazorCompletionFactsService : IRazorCompletionFactsService
 
         // We also want to walk back for cases like <a hr|/>, which do not involve whitespace at all. For this case, we want
         // to see if we're on the closing slash or angle bracket of a start or end tag
-        if (HtmlFactsService.TryGetElementInfo(originalNode, containingTagNameToken: out _, attributeNodes: out _, closingForwardSlashOrCloseAngleToken: out var closingForwardSlashOrCloseAngleToken)
+        if (HtmlFacts.TryGetElementInfo(originalNode, containingTagNameToken: out _, attributeNodes: out _, closingForwardSlashOrCloseAngleToken: out var closingForwardSlashOrCloseAngleToken)
             && closingForwardSlashOrCloseAngleToken.SpanStart == requestIndex
             && closingForwardSlashOrCloseAngleToken.GetPreviousToken() is { } previousToken2)
         {
