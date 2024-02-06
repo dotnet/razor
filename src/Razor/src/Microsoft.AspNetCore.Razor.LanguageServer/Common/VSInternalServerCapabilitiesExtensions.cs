@@ -30,4 +30,9 @@ internal static class VSInternalServerCapabilitiesExtensions
             Range = true,
         };
     }
+
+    public static void EnableValidateBreakpointRange(this VSInternalServerCapabilities serverCapabilities)
+    {
+        serverCapabilities.BreakableRangeProvider = true;
+    }
 }
