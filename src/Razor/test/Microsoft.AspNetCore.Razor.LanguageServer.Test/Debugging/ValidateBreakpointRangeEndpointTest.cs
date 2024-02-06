@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -139,7 +137,7 @@ public class ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput) :
         Assert.Equal(expectedRange, result);
     }
 
-    private async Task<Range> GetBreakpointRangeAsync(RazorCodeDocument codeDocument, string razorFilePath, TextSpan breakpointSpan)
+    private async Task<Range?> GetBreakpointRangeAsync(RazorCodeDocument codeDocument, string razorFilePath, TextSpan breakpointSpan)
     {
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
@@ -154,7 +152,7 @@ public class ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput) :
             Range = breakpointSpan.ToRange(codeDocument.GetSourceText())
         };
 
-        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
+        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument).AssumeNotNull();
         var requestContext = CreateValidateBreakpointRangeRequestContext(documentContext);
 
         return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
