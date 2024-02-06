@@ -23,6 +23,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 public class ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
     [Fact]
+    public async Task Handle_CSharpInHtml_ValidBreakpoint()
+    {
+        var input = """
+                <div></div>
+
+                @{
+                    var currentCount = 1;
+                }
+
+                <p>@{|breakpoint:{|expected:currentCount|}|}</p>
+                """;
+
+        await VerifyBreakpointRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Handle_CSharpInAttribute_ValidBreakpoint()
+    {
+        var input = """
+                <div></div>
+
+                @{
+                    var currentCount = 1;
+                }
+
+                <button class="btn btn-primary" disabled="@({|breakpoint:{|expected:currentCount > 3|}|})">Click me</button>
+                """;
+
+        await VerifyBreakpointRangeAsync(input);
+    }
+
+    [Fact]
     public async Task Handle_CSharp_ValidBreakpoint()
     {
         var input = """
