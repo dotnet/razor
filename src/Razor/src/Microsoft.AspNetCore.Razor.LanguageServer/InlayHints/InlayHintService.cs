@@ -63,7 +63,11 @@ internal sealed class InlayHintService(IRazorDocumentMappingService documentMapp
             if (hint.Position.TryGetAbsoluteIndex(csharpSourceText, null, out var absoluteIndex) &&
                 _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteIndex, out Position? hostDocumentPosition, out _))
             {
-                hint.TextEdits = _documentMappingService.GetHostDocumentEdits(csharpDocument, hint.TextEdits);
+                if (hint.TextEdits is not null)
+                {
+                    hint.TextEdits = _documentMappingService.GetHostDocumentEdits(csharpDocument, hint.TextEdits);
+                }
+
                 hint.Data = new RazorInlayHintWrapper
                 {
                     TextDocument = documentContext.Identifier,
