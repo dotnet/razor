@@ -134,7 +134,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         services.AddFormattingServices();
         services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
-        services.AddHoverServices();
+        services.AddHoverServices(featureOptions);
         services.AddTextDocumentServices();
 
         // Auto insert

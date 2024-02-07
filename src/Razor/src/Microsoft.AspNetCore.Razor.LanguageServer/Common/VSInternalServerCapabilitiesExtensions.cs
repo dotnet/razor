@@ -31,6 +31,14 @@ internal static class VSInternalServerCapabilitiesExtensions
         };
     }
 
+    public static void EnableHoverProvider(this VSInternalServerCapabilities serverCapabilities)
+    {
+        serverCapabilities.HoverProvider = new HoverOptions()
+        {
+            WorkDoneProgress = false,
+        };
+    }
+
     public static void EnableValidateBreakpointRange(this VSInternalServerCapabilities serverCapabilities)
     {
         serverCapabilities.BreakableRangeProvider = true;
