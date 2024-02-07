@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -22,12 +21,12 @@ internal sealed class RazorDocumentManager(
     JoinableTaskContext joinableTaskContext) : IRazorDocumentManager
 {
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
-    private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
+    private readonly JoinableTaskFactory _jtf = joinableTaskContext.Factory;
     private readonly IRazorEditorFactoryService _editorFactoryService = editorFactoryService;
 
     public async Task OnTextViewOpenedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
     {
-        _joinableTaskContext.AssertUIThread();
+        await _jtf.SwitchToMainThreadAsync();
 
         foreach (var textBuffer in subjectBuffers)
         {
@@ -56,7 +55,7 @@ internal sealed class RazorDocumentManager(
 
     public async Task OnTextViewClosedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
     {
-        _joinableTaskContext.AssertUIThread();
+        await _jtf.SwitchToMainThreadAsync();
 
         // This means a Razor buffer has be detached from this ITextView or the ITextView is closing. Since we keep a
         // list of all of the open text views for each text buffer, we need to update the tracker.
