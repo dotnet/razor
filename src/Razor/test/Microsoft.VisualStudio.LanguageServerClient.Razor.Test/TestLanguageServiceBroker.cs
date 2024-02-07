@@ -66,8 +66,6 @@ internal class TestLanguageServiceBroker : ILanguageServiceBroker2
 
     public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> LanguageClients => throw new NotImplementedException();
 
-    IRequestBroker<VSInternalKindAndModifier, VSInternalIconMapping> ILanguageServiceBroker.KindDescriptionResolveBroker => throw new NotImplementedException();
-
     public TestLanguageServiceBroker(Action<string> callback)
     {
         _callback = callback;
