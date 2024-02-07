@@ -15,8 +15,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="$(MicrosoftVisualStudioProjectSystemSDKPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150PackageVersion)" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" Version="$(MicrosoftInternalVisualStudioInteropPackageVersion)" />
 
     <!--

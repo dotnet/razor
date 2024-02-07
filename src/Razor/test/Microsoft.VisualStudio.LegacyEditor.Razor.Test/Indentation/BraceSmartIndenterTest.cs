@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;

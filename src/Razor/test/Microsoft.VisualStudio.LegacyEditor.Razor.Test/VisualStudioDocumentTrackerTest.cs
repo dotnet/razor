@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;

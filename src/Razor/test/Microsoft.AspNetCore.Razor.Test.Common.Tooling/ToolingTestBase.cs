@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 ///  Base class for all test classes that provides the following support:
 ///
 ///  <list type="bullet">
-///   <item>A <see cref="VisualStudio.Threading.JoinableTaskFactory"/> that uses the xUnit
+///   <item>A <see cref="Microsoft.VisualStudio.Threading.JoinableTaskFactory"/> that uses the xUnit
 ///   test thread as the main thread.</item>
 ///   <item>A <see cref="CancellationToken"/> that signals when the test has finished running
 ///   and xUnit disposes the test class.</item>

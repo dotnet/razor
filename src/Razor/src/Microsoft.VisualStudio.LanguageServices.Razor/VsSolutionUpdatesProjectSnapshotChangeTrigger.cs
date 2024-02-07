@@ -31,7 +31,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger(
     private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator = workspaceStateGenerator;
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
-    private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
+    private readonly JoinableTaskFactory _jtf = joinableTaskContext.Factory;
 
     private ProjectSnapshotManagerBase? _projectManager;
     private CancellationTokenSource? _activeSolutionCancellationTokenSource = new();
@@ -46,9 +46,9 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger(
         _projectManager = projectManager;
         _projectManager.Changed += ProjectManager_Changed;
 
-        _initializeTask = _joinableTaskContext.Factory.RunAsync(async () =>
+        _initializeTask = _jtf.RunAsync(async () =>
         {
-            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+            await _jtf.SwitchToMainThreadAsync();
 
             // Attach the event sink to solution update events.
             _solutionBuildManager = _serviceProvider.GetService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager;
@@ -90,7 +90,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger(
 
     public void Dispose()
     {
-        _joinableTaskContext.AssertUIThread();
+        _jtf.AssertUIThread();
 
         _solutionBuildManager?.UnadviseUpdateSolutionEvents(_updateCookie);
         _activeSolutionCancellationTokenSource?.Cancel();
@@ -114,16 +114,8 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger(
 
     private async Task OnProjectBuiltAsync(IVsHierarchy projectHierarchy, CancellationToken cancellationToken)
     {
-        // Switch to the UI thread to work with COM objects.
-        await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
-
-        if (projectHierarchy is not IVsProject vsProject)
-        {
-            return;
-        }
-
-        var hresult = vsProject.GetMkDocument((uint)VSConstants.VSITEMID.Root, out var projectFilePath);
-        if (ErrorHandler.Failed(hresult))
+        var projectFilePath = await projectHierarchy.GetProjectFilePathAsync(_jtf, cancellationToken);
+        if (projectFilePath is null)
         {
             return;
         }

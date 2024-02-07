@@ -135,10 +135,10 @@
     <MicrosoftVisualStudioTextDataPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextDataPackageVersion>
     <MicrosoftVisualStudioTextImplementationPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextImplementationPackageVersion>
     <MicrosoftVisualStudioTextLogicPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextLogicPackageVersion>
-    <MicrosoftVisualStudioThreadingPackageVersion>17.9.1-alpha</MicrosoftVisualStudioThreadingPackageVersion>
+    <MicrosoftVisualStudioThreadingPackageVersion>17.9.26-alpha</MicrosoftVisualStudioThreadingPackageVersion>
     <MicrosoftVisualStudioWebPackageVersion>16.10.0-preview-1-31008-014</MicrosoftVisualStudioWebPackageVersion>
     <MicrosoftVisualStudioValidationPackageVersion>17.8.8</MicrosoftVisualStudioValidationPackageVersion>
-    <MicrosoftVisualStudioComponentModelHostPackageVersion>17.7.124-preview</MicrosoftVisualStudioComponentModelHostPackageVersion>
+    <MicrosoftVisualStudioComponentModelHostPackageVersion>17.9.128-preview</MicrosoftVisualStudioComponentModelHostPackageVersion>
     <MicrosoftWebToolsLanguagesHtmlPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesHtmlPackageVersion>
     <MicrosoftWebToolsLanguagesLanguageServerServerPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesLanguageServerServerPackageVersion>
     <MicrosoftWebToolsLanguagesSharedPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesSharedPackageVersion>
