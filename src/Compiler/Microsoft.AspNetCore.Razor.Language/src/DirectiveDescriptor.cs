@@ -51,6 +51,12 @@ public abstract class DirectiveDescriptor
     public abstract IReadOnlyList<DirectiveTokenDescriptor> Tokens { get; }
 
     /// <summary>
+    /// Gets or sets if this directive requires extra code emit at design time
+    /// </summary>
+    public abstract bool RequiresDesignTimeSupport { get; }
+
+
+    /// <summary>
     /// Creates a new <see cref="DirectiveDescriptor"/>.
     /// </summary>
     /// <param name="directive">The directive keyword.</param>
@@ -200,6 +206,8 @@ public abstract class DirectiveDescriptor
 
         public IList<DirectiveTokenDescriptor> Tokens { get; }
 
+        public bool RequiresDesignTimeSupport { get; set; } = true;
+
         public DirectiveDescriptor Build()
         {
             if (Directive.Length == 0)
@@ -227,7 +235,7 @@ public abstract class DirectiveDescriptor
                 }
             }
 
-            return new DefaultDirectiveDescriptor(Directive, Kind, Usage, Tokens.ToArray(), DisplayName, Description);
+            return new DefaultDirectiveDescriptor(Directive, Kind, Usage, Tokens.ToArray(), DisplayName, Description, RequiresDesignTimeSupport);
         }
     }
 
@@ -239,7 +247,8 @@ public abstract class DirectiveDescriptor
             DirectiveUsage usage,
             DirectiveTokenDescriptor[] tokens,
             string displayName,
-            string description)
+            string description,
+            bool requiresDesignTimeSupport)
         {
             Directive = directive;
             Kind = kind;
@@ -247,10 +256,10 @@ public abstract class DirectiveDescriptor
             Tokens = tokens;
             DisplayName = displayName;
             Description = description;
+            RequiresDesignTimeSupport = requiresDesignTimeSupport;
         }
 
         public override string Description { get; }
-
         public override string Directive { get; }
 
         public override string DisplayName { get; }
@@ -260,5 +269,7 @@ public abstract class DirectiveDescriptor
         public override DirectiveUsage Usage { get; }
 
         public override IReadOnlyList<DirectiveTokenDescriptor> Tokens { get; }
+
+        public override bool RequiresDesignTimeSupport { get; }
     }
 }

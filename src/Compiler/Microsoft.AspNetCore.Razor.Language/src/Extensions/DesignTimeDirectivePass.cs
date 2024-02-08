@@ -79,11 +79,7 @@ internal class DesignTimeDirectivePass : IntermediateNodePassBase, IRazorDirecti
 
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
-            if (node.Directive == ComponentPageDirective.Directive)
-            {
-                // component page directives don't use design time helpers 
-            }
-            else
+            if (node.Directive.RequiresDesignTimeSupport)
             {
                 base.VisitDirective(node);
             }
