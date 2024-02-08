@@ -18,7 +18,16 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 #line default
 #line hidden
 #nullable disable
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("RouteTemplate", "/About")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("RouteTemplate", 
+    // language=Route
+#nullable restore
+#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
+      "/About"
+
+#line default
+#line hidden
+#nullable disable
+    )]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -27,17 +36,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((global::System.Action)(() => {
-// language=Route
-#nullable restore
-#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
-global::System.Object __typeHelper = "/About";
-
-#line default
-#line hidden
-#nullable disable
-        }
-        ))();
         ((global::System.Action)(() => {
 #nullable restore
 #line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
