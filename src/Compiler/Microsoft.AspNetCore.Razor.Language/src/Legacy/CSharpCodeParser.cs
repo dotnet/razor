@@ -2377,22 +2377,36 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 .Where(s => s.Kind != SyntaxKind.CSharpComment && s.Kind != SyntaxKind.Whitespace && s.Kind != SyntaxKind.NewLine);
 
             SetAcceptedCharacters(AcceptedCharactersInternal.AnyExceptNewline);
+
+            // Optional ";"
+            bool hasExplicitSemicolon = false;
+            if (EnsureCurrent())
+            {
+                hasExplicitSemicolon = TryAccept(SyntaxKind.Semicolon);
+            }
+
             chunkGenerator = new AddImportChunkGenerator(
                 string.Concat(usingContentTokens.Select(s => s.Content)),
                 string.Concat(parsedNamespaceTokens.Select(s => s.Content)),
-                isStatic);
+                isStatic,
+                hasExplicitSemicolon);
 
-            // Optional ";"
-            if (EnsureCurrent())
+            // In design time mode, the whitespace and newlines are part of the directive
+            if (Context.DesignTimeMode)
             {
-                TryAccept(SyntaxKind.Semicolon);
+                CompleteBlock();
             }
 
-            CompleteBlock();
             Debug.Assert(directiveBuilder.Count == 0, "We should not have built any blocks so far.");
             var keywordTokens = OutputTokensAsStatementLiteral();
             var directiveBody = SyntaxFactory.RazorDirectiveBody(keywordTokens, null);
             builder.Add(SyntaxFactory.RazorDirective(transition, directiveBody));
+
+            // In run time mode, the whitespace and newlines are _not_ part of the directive
+            if (!Context.DesignTimeMode)
+            {
+                CompleteBlock();
+            }
         }
     }
 
