@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 using Microsoft.VisualStudio.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.VisualStudio.LegacyEditor.Razor.VsMocks;
+using static Microsoft.AspNetCore.Razor.Test.Common.VisualStudio.VsMocks;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
