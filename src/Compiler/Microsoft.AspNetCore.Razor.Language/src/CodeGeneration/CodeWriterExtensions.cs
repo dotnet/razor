@@ -543,7 +543,7 @@ internal static class CodeWriterExtensions
         return new LinePragmaWriter(writer, sourceSpan, context, 0, false);
     }
 
-    public static IDisposable BuildEnhancedLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, int characterOffset = 0)
+    public static IDisposable BuildEnhancedLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, int characterOffset = 1)
     {
         if (string.IsNullOrEmpty(span?.FilePath))
         {
