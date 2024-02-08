@@ -120,7 +120,9 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
 
             // Null suppression is required here to convert from Task<RazorCodeDocument> to Task<RazorCodeDocument?>
             // The task itself can never be null, so this is safe
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
             return request.Task!;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
         }
     }
 
@@ -406,7 +408,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
             StopIdleTimer();
 
             // We need to get back to the UI thread to properly check if a completion is active.
-            _ = Task.Factory.StartNew(() => OnIdle_QueueOnUIThread(), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+            _ = Task.Factory.StartNew(() => OnIdle_QueueOnUIThreadAsync(), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         }
         catch (Exception ex)
         {
@@ -414,7 +416,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
             _errorReporter.ReportError(ex);
         }
 
-        async Task OnIdle_QueueOnUIThread()
+        async Task OnIdle_QueueOnUIThreadAsync()
         {
             await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
             OnIdle();
