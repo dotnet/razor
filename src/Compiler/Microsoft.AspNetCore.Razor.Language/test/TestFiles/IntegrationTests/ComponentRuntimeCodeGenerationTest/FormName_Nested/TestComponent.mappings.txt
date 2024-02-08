@@ -1,4 +1,24 @@
-﻿Source Location: (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1093:27,31 [9] )
+|() => { }|
+
+Source Location: (161:3,35 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (2030:44,35 [9] )
+|() => { }|
+
+Source Location: (255:5,39 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (3031:61,39 [9] )
+|() => { }|
+
+Source Location: (346:7,35 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (3908:79,35 [9] )
+|() => { }|
+
+Source Location: (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     [Parameter] public RenderFragment ChildContent { get; set; }
 |

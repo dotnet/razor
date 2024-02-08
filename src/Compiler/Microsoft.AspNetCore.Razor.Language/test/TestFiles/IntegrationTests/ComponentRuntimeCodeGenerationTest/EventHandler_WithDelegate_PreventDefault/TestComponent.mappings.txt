@@ -1,4 +1,14 @@
-﻿Source Location: (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (61:1,17 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|OnFocus|
+Generated Location: (1055:26,17 [7] )
+|OnFocus|
+
+Source Location: (95:1,51 [22] x:\dir\subdir\Test\TestComponent.cshtml)
+|ShouldPreventDefault()|
+Generated Location: (1322:35,51 [22] )
+|ShouldPreventDefault()|
+
+Source Location: (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     void OnFocus(FocusEventArgs e) { }
 

@@ -1,4 +1,9 @@
-﻿Source Location: (92:3,7 [60] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (70:1,26 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|OnClick|
+Generated Location: (1095:26,26 [7] )
+|OnClick|
+
+Source Location: (92:3,7 [60] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private Action<MouseEventArgs> OnClick { get; set; }
 |

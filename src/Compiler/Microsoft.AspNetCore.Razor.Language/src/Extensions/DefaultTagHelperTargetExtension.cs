@@ -567,7 +567,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         }
         else if (node is IntermediateToken token)
         {
-            if (context.Options.DesignTime && node.Source != null)
+            if (node.Source != null)
             {
                 context.AddSourceMappingFor(node);
             }

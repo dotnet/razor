@@ -7,3 +7,8 @@ Generated Location: (642:17,2 [39] )
   var myValue = "Expression value";
 |
 
+Source Location: (86:3,42 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|myValue|
+Generated Location: (1011:28,42 [7] )
+|myValue|
+

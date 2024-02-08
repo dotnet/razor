@@ -3,3 +3,8 @@
 Generated Location: (534:20,0 [6] )
 |TChild|
 
+Source Location: (69:2,37 [16] x:\dir\subdir\Test\TestComponent.cshtml)
+|(TChild x) => {}|
+Generated Location: (1309:34,37 [16] )
+|(TChild x) => {}|
+

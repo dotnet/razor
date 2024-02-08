@@ -3,6 +3,16 @@
 Generated Location: (642:17,2 [60] )
 | var parentKey = new object(); var childKey = new object(); |
 
+Source Location: (98:1,33 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+|Array.Empty<DateTime>()|
+Generated Location: (971:26,33 [23] )
+|Array.Empty<DateTime>()|
+
+Source Location: (179:2,53 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|DateTime.MinValue|
+Generated Location: (1519:36,53 [17] )
+|DateTime.MinValue|
+
 Source Location: (145:2,19 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |childKey|
 Generated Location: (1704:44,19 [8] )

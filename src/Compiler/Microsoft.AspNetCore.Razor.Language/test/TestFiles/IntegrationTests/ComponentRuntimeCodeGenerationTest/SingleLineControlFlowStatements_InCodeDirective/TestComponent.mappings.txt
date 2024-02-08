@@ -15,6 +15,11 @@ Generated Location: (866:26,7 [213] )
         else output = "Builder is not null!";
 |
 
+Source Location: (293:8,20 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|output|
+Generated Location: (1324:40,24 [6] )
+|output|
+
 Source Location: (305:9,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |    }
 |

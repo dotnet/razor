@@ -3,6 +3,16 @@
 Generated Location: (534:20,0 [6] )
 |TChild|
 
+Source Location: (51:2,19 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildItem|
+Generated Location: (1029:33,19 [9] )
+|ChildItem|
+
+Source Location: (71:2,39 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyChildEvent|
+Generated Location: (1293:41,39 [12] )
+|MyChildEvent|
+
 Source Location: (97:4,1 [138] x:\dir\subdir\Test\TestComponent.cshtml)
 |
         [Parameter] public TChild ChildItem { get; set; }

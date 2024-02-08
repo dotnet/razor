@@ -17,6 +17,11 @@ Generated Location: (1082:40,1 [34] )
 {
 |
 
+Source Location: (146:8,5 [19] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildContent(item2)|
+Generated Location: (1318:49,24 [19] )
+|ChildContent(item2)|
+
 Source Location: (178:10,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |}
 |

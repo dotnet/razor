@@ -119,6 +119,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             {
                 if (node.Children[i] is IntermediateToken token && token.IsCSharp)
                 {
+                    context.AddSourceMappingFor(token);
                     WriteCSharpToken(context, token, includeLinePragma: false);
                 }
                 else
@@ -1215,6 +1216,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             using (context.CodeWriter.BuildLinePragma(token.Source, context))
             {
                 context.CodeWriter.WritePadding(0, token.Source.Value, context);
+
+                context.AddSourceMappingFor(token);
                 context.CodeWriter.Write(token.Content);
             }
             return;

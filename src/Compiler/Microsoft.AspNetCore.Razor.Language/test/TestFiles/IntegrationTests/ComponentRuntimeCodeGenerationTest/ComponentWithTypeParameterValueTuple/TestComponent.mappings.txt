@@ -8,6 +8,11 @@ Source Location: (71:2,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (644:27,0 [6] )
 |TItem2|
 
+Source Location: (102:6,4 [19] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildContent(Item1)|
+Generated Location: (1170:41,24 [19] )
+|ChildContent(Item1)|
+
 Source Location: (130:8,1 [33] x:\dir\subdir\Test\TestComponent.cshtml)
 |foreach (var item in Items2)
 {
@@ -16,6 +21,11 @@ Generated Location: (1353:49,1 [33] )
 |foreach (var item in Items2)
 {
 |
+
+Source Location: (171:10,8 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildContent(item)|
+Generated Location: (1590:58,24 [18] )
+|ChildContent(item)|
 
 Source Location: (195:11,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |}

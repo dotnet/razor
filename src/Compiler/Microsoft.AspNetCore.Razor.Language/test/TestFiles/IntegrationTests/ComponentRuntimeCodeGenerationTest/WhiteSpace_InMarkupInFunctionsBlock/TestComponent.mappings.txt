@@ -18,6 +18,11 @@ Generated Location: (1097:36,13 [46] )
             {
 |
 
+Source Location: (230:8,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|i|
+Generated Location: (1343:45,24 [1] )
+|i|
+
 Source Location: (256:10,0 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |            }
 |

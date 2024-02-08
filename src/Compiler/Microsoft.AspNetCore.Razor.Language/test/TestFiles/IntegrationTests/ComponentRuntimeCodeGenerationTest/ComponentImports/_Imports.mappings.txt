@@ -1,0 +1,5 @@
+﻿Source Location: (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor)
+|Foo|
+Generated Location: (889:32,24 [3] )
+|Foo|
+

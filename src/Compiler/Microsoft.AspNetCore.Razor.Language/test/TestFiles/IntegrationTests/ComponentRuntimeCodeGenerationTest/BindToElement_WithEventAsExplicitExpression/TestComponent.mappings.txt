@@ -3,6 +3,16 @@
 Generated Location: (642:17,2 [25] )
 | var x = "anotherevent"; |
 
+Source Location: (49:1,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (971:26,19 [11] )
+|ParentValue|
+
+Source Location: (83:1,53 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|x.ToString()|
+Generated Location: (1214:35,53 [12] )
+|x.ToString()|
+
 Source Location: (109:2,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public string ParentValue { get; set; } = "hi";

@@ -1,0 +1,15 @@
+﻿Source Location: (74:1,30 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1091:27,30 [9] )
+|() => { }|
+
+Source Location: (154:2,30 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1692:41,30 [9] )
+|() => { }|
+
+Source Location: (178:2,54 [20] x:\dir\subdir\Test\TestComponent.cshtml)
+|"named-form-handler"|
+Generated Location: (1947:50,54 [20] )
+|"named-form-handler"|
+
