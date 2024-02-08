@@ -322,4 +322,104 @@ public class TelemetryReporterTests
                 Assert.Equal(correlationId, correlationProperty.Value);
             });
     }
+
+    [Theory]
+    [InlineData(typeof(OperationCanceledException), 10)]
+    [InlineData(typeof(AggregateException), 10)]
+    [InlineData(typeof(Exception), 10)]
+    // Prevent stack overflow exception crash when depth beyond the limit
+    [InlineData(typeof(OperationCanceledException), 40000)]
+    [InlineData(typeof(AggregateException), 40000)]
+    [InlineData(typeof(Exception), 40000)]
+    public void ReportFault_WithNestedExceptions_MethodCompletesWithoutException(Type exceptionType, int depth)
+    {
+        // Arrange
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
+        var nestedException = CreateNestedException(exceptionType, depth);
+
+        // Act
+        reporter.ReportFault(nestedException, "Test message");
+
+        // Assert
+        if (exceptionType == typeof(OperationCanceledException) && depth > 10)
+        {
+            Assert.Empty(reporter.Events);
+        }
+        else
+        {
+            Assert.Collection(reporter.Events,
+                e1 =>
+                {
+                    Assert.Equal("dotnet/razor/fault", e1.Name);
+                });
+        }
+    }
+
+    [Theory]
+    [InlineData(typeof(OperationCanceledException), 10)]
+    [InlineData(typeof(AggregateException), 10)]
+    [InlineData(typeof(Exception), 10)]
+    // Prevent stack overflow exception crash when depth beyond the limit
+    [InlineData(typeof(OperationCanceledException), 40000)]
+    [InlineData(typeof(AggregateException), 40000)]
+    [InlineData(typeof(Exception), 40000)]
+    public void ReportFault_WithRemoteInvocationException_ContainsNestedException_MethodCompletesWithoutException(Type exceptionType, int depth)
+    {
+        // Arrange
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
+        var nestedException = new RemoteInvocationException("Test", 0, CreateNestedException(exceptionType, depth));
+
+        // Act
+        reporter.ReportFault(nestedException, nestedException.Message);
+
+        // Assert
+        if (exceptionType == typeof(OperationCanceledException) && depth > 10)
+        {
+            Assert.Empty(reporter.Events);
+        }
+        else
+        {
+            Assert.Collection(reporter.Events,
+                e1 =>
+                {
+                    Assert.Equal("dotnet/razor/fault", e1.Name);
+                });
+        }
+    }
+
+    private Exception CreateNestedException(Type exceptionType, int depth)
+    {
+        var exception = CreateException(exceptionType, "Test", null);
+        for (var i = 0; i < depth; i++)
+        {
+            exception = CreateException(exceptionType, "Test", exception);
+        }
+
+        return exception;
+    }
+
+    private Exception CreateException(Type exceptionType, string message, Exception? innerException)
+    {
+        if (exceptionType == typeof(OperationCanceledException))
+        {
+            return new OperationCanceledException(message, innerException);
+        }
+        else if (exceptionType == typeof(AggregateException))
+        {
+            if (innerException == null)
+            {
+                return new AggregateException(message, new Exception());
+            }
+
+            return new AggregateException(message, innerException);
+        }
+        else if (exceptionType == typeof(InvalidOperationException))
+        {
+            return new InvalidOperationException(message, innerException);
+        }
+        else
+        {
+            return new Exception(message, innerException);
+        }
+    }
 }
