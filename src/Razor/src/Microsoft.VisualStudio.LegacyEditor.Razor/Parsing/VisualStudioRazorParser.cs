@@ -144,7 +144,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         catch (Exception ex)
         {
             Debug.Fail($"""
-                DefaultVisualStudioRazorParser.QueueReparse threw exception:
+                VisualStudioRazorParser.QueueReparse threw exception:
                 {ex.Message}
                 Stack trace:
                 {ex.StackTrace}
@@ -440,7 +440,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         catch (Exception ex)
         {
             Debug.Fail($"""
-                DefaultVisualStudioRazorParser.OnResultsReady threw exception:
+                VisualStudioRazorParser.OnResultsReady threw exception:
                 {ex.Message}
                 Stack trace:
                 {ex.StackTrace}
