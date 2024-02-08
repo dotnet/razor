@@ -137,8 +137,8 @@ internal static class IServiceCollectionExtensions
 
         services.AddHandler<RazorSemanticTokensRefreshEndpoint>();
 
-        services.AddSingleton<WorkspaceSemanticTokensRefreshPublisher, DefaultWorkspaceSemanticTokensRefreshPublisher>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger, DefaultWorkspaceSemanticTokensRefreshTrigger>();
+        services.AddSingleton<IWorkspaceSemanticTokensRefreshPublisher, WorkspaceSemanticTokensRefreshPublisher>();
+        services.AddSingleton<IProjectSnapshotChangeTrigger, WorkspaceSemanticTokensRefreshTrigger>();
     }
 
     public static void AddCodeActionsServices(this IServiceCollection services)
