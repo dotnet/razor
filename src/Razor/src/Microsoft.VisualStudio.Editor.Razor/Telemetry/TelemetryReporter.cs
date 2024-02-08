@@ -102,11 +102,22 @@ internal abstract class TelemetryReporter : ITelemetryReporter
 
     public void ReportFault(Exception exception, string? message, params object?[] @params)
     {
+        ReportFault(exception, message, 0, @params);
+    }
+
+    private void ReportFault(Exception exception, string? message, int depth, params object?[] @params)
+    {
+        if (depth > 10)
+        {
+            // exceeded recursion depth limit
+            return;
+        }
+
         try
         {
             if (exception is OperationCanceledException { InnerException: { } oceInnerException })
             {
-                ReportFault(oceInnerException, message, @params);
+                ReportFault(oceInnerException, message, depth + 1, @params);
                 return;
             }
 
@@ -115,13 +126,13 @@ internal abstract class TelemetryReporter : ITelemetryReporter
                 // We (potentially) have multiple exceptions; let's just report each of them
                 foreach (var innerException in aggregateException.Flatten().InnerExceptions)
                 {
-                    ReportFault(innerException, message, @params);
+                    ReportFault(innerException, message, depth + 1, @params);
                 }
 
                 return;
             }
 
-            if (HandleException(exception, message, @params))
+            if (HandleException(exception, message, depth, @params))
             {
                 return;
             }
@@ -248,7 +259,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         }
     }
 
-    protected virtual bool HandleException(Exception exception, string? message, params object?[] @params)
+    protected virtual bool HandleException(Exception exception, string? message, int depth = 0, params object?[] @params)
         => false;
 
     protected virtual void LogTrace(string? message, params object?[] args)

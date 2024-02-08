@@ -26,11 +26,11 @@ internal class VSTelemetryReporter : TelemetryReporter
         _logger = loggerFactory.CreateLogger<VSTelemetryReporter>();
     }
 
-    protected override bool HandleException(Exception exception, string? message, params object?[] @params)
+    protected override bool HandleException(Exception exception, string? message, int depth, params object?[] @params)
     {
         if (exception is RemoteInvocationException remoteInvocationException)
         {
-            if (ReportRemoteInvocationException(remoteInvocationException, @params))
+            if (ReportRemoteInvocationException(remoteInvocationException, depth, @params))
             {
                 return true;
             }
@@ -39,12 +39,12 @@ internal class VSTelemetryReporter : TelemetryReporter
         return false;
     }
 
-    private bool ReportRemoteInvocationException(RemoteInvocationException remoteInvocationException, object?[] @params)
+    private bool ReportRemoteInvocationException(RemoteInvocationException remoteInvocationException, int depth, object?[] @params)
     {
         if (remoteInvocationException.InnerException is Exception innerException)
         {
             // innerException might be an OperationCancelled or Aggregate, use the full ReportFault to unwrap it consistently.
-            ReportFault(innerException, "RIE: " + remoteInvocationException.Message);
+            ReportFault(innerException, "RIE: " + remoteInvocationException.Message, depth + 1);
             return true;
         }
         else if (@params.Length < 2)
@@ -54,6 +54,7 @@ internal class VSTelemetryReporter : TelemetryReporter
             ReportFault(
                 remoteInvocationException,
                 remoteInvocationException.Message,
+                depth + 1,
                 remoteInvocationException.ErrorCode,
                 remoteInvocationException.DeserializedErrorData);
             return true;
