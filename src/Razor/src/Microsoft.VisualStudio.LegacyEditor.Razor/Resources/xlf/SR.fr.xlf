@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="new">Value cannot be null or an empty string.</target>
+        <target state="translated">La valeur ne peut pas être Null ni être une chaîne vide.</target>
         <note />
       </trans-unit>
     </body>
