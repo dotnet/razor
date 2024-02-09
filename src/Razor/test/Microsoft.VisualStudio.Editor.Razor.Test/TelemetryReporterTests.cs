@@ -323,13 +323,63 @@ public class TelemetryReporterTests
             });
     }
 
-    [Fact]
-    public void ReportFault_InnerMostExceptionIsOperationCanceledException_SkipsFaultReport()
+    [Theory]
+    [InlineData(typeof(RemoteInvocationException), 3)]
+    [InlineData(typeof(OperationCanceledException), 3)]
+    [InlineData(typeof(AggregateException), 15000)]
+    public void ReportFault_MixedTypeNestedExceptions_NoStackOverflowException(Type exceptionType, int depth)
+    {
+        // Arrange
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
+        var exception = new RemoteInvocationException("Test", 0,
+                innerException: CreateNestedException(typeof(AggregateException), 3,
+                    innerMostException: CreateNestedException(exceptionType, depth,
+                        innerMostException: new ApplicationException("expectedText")
+                    )
+                )
+            );
+
+        // Act
+        reporter.ReportFault(exception, exception.Message);
+
+        // Assert
+        Assert.Collection(reporter.Events,
+            e1 =>
+            {
+                Assert.Equal("dotnet/razor/fault", e1.Name);
+            });
+    }
+
+    [Theory]
+    [InlineData(typeof(RemoteInvocationException), 3)]
+    [InlineData(typeof(OperationCanceledException), 3)]
+    [InlineData(typeof(AggregateException), 15000)]
+    public void ReportFault_NestedOperationCanceledException_NoStackOverflowException(Type exceptionType, int depth)
+    {
+        // Arrange
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
+        var innerMostException = new ApplicationException("expectedText");
+        var exception = CreateNestedException(exceptionType, depth, innerMostException);
+
+        // Act
+        reporter.ReportFault(exception, "Test message");
+
+        // Assert
+        Assert.Collection(reporter.Events,
+            e1 =>
+            {
+                Assert.Equal("dotnet/razor/fault", e1.Name);
+            });
+    }
+
+    [Theory]
+    [InlineData(3)]
+    public void ReportFault_InnerMostExceptionIsOperationCanceledException_SkipsFaultReport(int depth)
     {
         // Arrange
         var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         var innerMostException = new OperationCanceledException();
-        var exception = CreateNestedException(typeof(OperationCanceledException), 3, innerMostException);
+        var exception = CreateNestedException(typeof(OperationCanceledException), depth, innerMostException);
 
         // Act
         reporter.ReportFault(exception, "Test message");
@@ -355,7 +405,25 @@ public class TelemetryReporterTests
         {
             return new OperationCanceledException(message, innerException);
         }
+        else if (exceptionType == typeof(AggregateException))
+        {
+            if (innerException == null)
+            {
+                throw new ArgumentNullException("AggregateException requires non-null inner exception");
+            }
 
-        throw new NotImplementedException();
+            return new AggregateException(message, innerException);
+        }
+        else if (exceptionType == typeof(RemoteInvocationException))
+        {
+            if (innerException is null)
+            {
+                return new RemoteInvocationException(message, 0, errorData: null);
+            }
+
+            return new RemoteInvocationException(message, 0, innerException);
+        }
+
+        throw new ArgumentException($"{exceptionType} was not expected.");
     }
 }
