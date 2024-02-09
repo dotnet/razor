@@ -107,7 +107,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         ReportFault(exception, message, 0, @params);
     }
 
-    private void ReportFault(Exception exception, string? message, int depth, params object?[] @params)
+    protected void ReportFault(Exception exception, string? message, int depth, params object?[] @params)
     {
         if (depth > RecursionDepthLimit)
         {

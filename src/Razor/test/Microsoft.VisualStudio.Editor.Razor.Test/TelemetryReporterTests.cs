@@ -13,8 +13,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Test;
 
 public class TelemetryReporterTests
 {
-    private const int RecursionDepthLimit = 10;
-
     [Fact]
     public void NoArgument()
     {
@@ -270,7 +268,7 @@ public class TelemetryReporterTests
     {
         var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
 
-        var rie = new RemoteInvocationException("a", 0, errorData:null);
+        var rie = new RemoteInvocationException("a", 0, errorData: null);
 
         reporter.ReportFault(rie, rie.Message);
 
@@ -326,50 +324,28 @@ public class TelemetryReporterTests
     }
 
     [Theory]
-    [InlineData(typeof(OperationCanceledException), RecursionDepthLimit)]
-    [InlineData(typeof(AggregateException), RecursionDepthLimit)]
-    [InlineData(typeof(Exception), RecursionDepthLimit)]
-    // Prevent stack overflow exception crash when depth beyond the limit
-    [InlineData(typeof(OperationCanceledException), 40000)]
-    [InlineData(typeof(AggregateException), 40000)]
-    [InlineData(typeof(Exception), 40000)]
-    public void ReportFault_WithNestedExceptions_MethodCompletesWithoutException(Type exceptionType, int depth)
+    [InlineData(typeof(RemoteInvocationException), 3, false)]
+    [InlineData(typeof(OperationCanceledException), 3, false)]
+    [InlineData(typeof(AggregateException), 15000, false)]
+    [InlineData(typeof(RemoteInvocationException), 10000, true)]
+    [InlineData(typeof(OperationCanceledException), 40000, true)]
+    public void ReportFault_MixedTypeNestedExceptions_NoStackOverflowException(Type exceptionType, int depth, bool skipReport)
     {
         // Arrange
         var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
-        var nestedException = CreateNestedException(exceptionType, depth);
+        var exception = new RemoteInvocationException("Test", 0,
+                innerException: CreateNestedException(typeof(AggregateException), 3,
+                    innerMostException: CreateNestedException(exceptionType, depth,
+                        innerMostException: new ApplicationException("expectedText")
+                    )
+                )
+            );
 
         // Act
-        reporter.ReportFault(nestedException, "Test message");
+        reporter.ReportFault(exception, exception.Message);
 
         // Assert
-        AssertNestedFaultReport(exceptionType, depth, reporter);
-    }
-
-    [Theory]
-    [InlineData(typeof(OperationCanceledException), RecursionDepthLimit)]
-    [InlineData(typeof(AggregateException), RecursionDepthLimit)]
-    [InlineData(typeof(Exception), RecursionDepthLimit)]
-    // Prevent stack overflow exception crash when depth beyond the limit
-    [InlineData(typeof(OperationCanceledException), 40000)]
-    [InlineData(typeof(AggregateException), 40000)]
-    [InlineData(typeof(Exception), 40000)]
-    public void ReportFault_WithRemoteInvocationException_ContainsNestedException_MethodCompletesWithoutException(Type exceptionType, int depth)
-    {
-        // Arrange
-        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
-        var nestedException = new RemoteInvocationException("Test", 0, CreateNestedException(exceptionType, depth));
-
-        // Act
-        reporter.ReportFault(nestedException, nestedException.Message);
-
-        // Assert
-        AssertNestedFaultReport(exceptionType, depth, reporter);
-    }
-
-    private static void AssertNestedFaultReport(Type exceptionType, int depth, TestTelemetryReporter reporter)
-    {
-        if (exceptionType == typeof(OperationCanceledException) && depth > RecursionDepthLimit)
+        if (skipReport)
         {
             Assert.Empty(reporter.Events);
         }
@@ -383,9 +359,40 @@ public class TelemetryReporterTests
         }
     }
 
-    private Exception CreateNestedException(Type exceptionType, int depth)
+    [Theory]
+    [InlineData(typeof(RemoteInvocationException), 3, false)]
+    [InlineData(typeof(OperationCanceledException), 3, false)]
+    [InlineData(typeof(AggregateException), 15000, false)]
+    [InlineData(typeof(RemoteInvocationException), 10000, true)]
+    [InlineData(typeof(OperationCanceledException), 40000, true)]
+    public void ReportFault_NestedException_NoStackOverflowException(Type exceptionType, int depth, bool skipReport)
     {
-        var exception = CreateException(exceptionType, "Test", null);
+        // Arrange
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
+        var innerMostException = new ApplicationException("expectedText");
+        var exception = CreateNestedException(exceptionType, depth, innerMostException);
+
+        // Act
+        reporter.ReportFault(exception, "Test message");
+
+        // Assert
+        if (skipReport)
+        {
+            Assert.Empty(reporter.Events);
+        }
+        else
+        {
+            Assert.Collection(reporter.Events,
+                e1 =>
+                {
+                    Assert.Equal("dotnet/razor/fault", e1.Name);
+                });
+        }
+    }
+
+    private Exception CreateNestedException(Type exceptionType, int depth, Exception? innerMostException)
+    {
+        var exception = CreateException(exceptionType, "Test", innerMostException);
         for (var i = 0; i < depth; i++)
         {
             exception = CreateException(exceptionType, "Test", exception);
@@ -404,18 +411,21 @@ public class TelemetryReporterTests
         {
             if (innerException == null)
             {
-                return new AggregateException(message, new Exception());
+                throw new ArgumentNullException("AggregateException requires non-null inner exception");
             }
 
             return new AggregateException(message, innerException);
         }
-        else if (exceptionType == typeof(InvalidOperationException))
+        else if (exceptionType == typeof(RemoteInvocationException))
         {
-            return new InvalidOperationException(message, innerException);
+            if (innerException is null)
+            {
+                return new RemoteInvocationException(message, 0, errorData: null);
+            }
+
+            return new RemoteInvocationException(message, 0, innerException);
         }
-        else
-        {
-            return new Exception(message, innerException);
-        }
+
+        throw new ArgumentException($"{exceptionType} was not expected.");
     }
 }
