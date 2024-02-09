@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,14 +14,14 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal sealed class TagHelperBinder
 {
     private readonly Dictionary<string, HashSet<TagHelperDescriptor>> _registrations;
-    private readonly string _tagHelperPrefix;
+    private readonly string? _tagHelperPrefix;
 
     /// <summary>
     /// Instantiates a new instance of the <see cref="TagHelperBinder"/>.
     /// </summary>
     /// <param name="tagHelperPrefix">The tag helper prefix being used by the document.</param>
     /// <param name="descriptors">The descriptors that the <see cref="TagHelperBinder"/> will pull from.</param>
-    public TagHelperBinder(string tagHelperPrefix, IReadOnlyList<TagHelperDescriptor> descriptors)
+    public TagHelperBinder(string? tagHelperPrefix, IReadOnlyList<TagHelperDescriptor> descriptors)
     {
         _tagHelperPrefix = tagHelperPrefix;
         // To reduce the frequency of dictionary resizes we use the incoming number of descriptors as a heuristic
@@ -46,13 +44,13 @@ internal sealed class TagHelperBinder
     /// <param name="parentIsTagHelper">Is the parent tag of the given <paramref name="tagName"/> tag a tag helper.</param>
     /// <returns><see cref="TagHelperDescriptor"/>s that apply to the given HTML tag criteria.
     /// Will return <c>null</c> if no <see cref="TagHelperDescriptor"/>s are a match.</returns>
-    public TagHelperBinding GetBinding(
+    public TagHelperBinding? GetBinding(
         string tagName,
         ImmutableArray<KeyValuePair<string, string>> attributes,
-        string parentTagName,
+        string? parentTagName,
         bool parentIsTagHelper)
     {
-        if (!string.IsNullOrEmpty(_tagHelperPrefix) &&
+        if (!_tagHelperPrefix.IsNullOrEmpty() &&
             (tagName.Length <= _tagHelperPrefix.Length ||
             !tagName.StartsWith(_tagHelperPrefix, StringComparison.OrdinalIgnoreCase)))
         {
@@ -92,12 +90,12 @@ internal sealed class TagHelperBinder
             }
         }
 
-        Dictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>> applicableDescriptorMappings = null;
+        Dictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>>? applicableDescriptorMappings = null;
         foreach (var descriptor in descriptors)
         {
             // We're avoiding descriptor.TagMatchingRules.Where and applicableRules.Any() to avoid
             // Enumerator allocations on this hot path
-            List<TagMatchingRuleDescriptor> applicableRules = null;
+            List<TagMatchingRuleDescriptor>? applicableRules = null;
             foreach (var rule in descriptor.TagMatchingRules)
             {
                 if (TagHelperMatchingConventions.SatisfiesRule(tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, rule))
