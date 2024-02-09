@@ -109,6 +109,10 @@ internal abstract class TelemetryReporter : ITelemetryReporter
                 ReportFault(oceInnerException, message, @params);
                 return;
             }
+            else if (exception is OperationCanceledException)
+            {
+                return;
+            }
 
             if (exception is AggregateException aggregateException)
             {

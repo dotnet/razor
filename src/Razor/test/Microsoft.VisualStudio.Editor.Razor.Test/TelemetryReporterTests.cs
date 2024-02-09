@@ -268,7 +268,7 @@ public class TelemetryReporterTests
     {
         var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
 
-        var rie = new RemoteInvocationException("a", 0, errorData:null);
+        var rie = new RemoteInvocationException("a", 0, errorData: null);
 
         reporter.ReportFault(rie, rie.Message);
 
@@ -321,5 +321,41 @@ public class TelemetryReporterTests
                 Assert.NotNull(correlationProperty);
                 Assert.Equal(correlationId, correlationProperty.Value);
             });
+    }
+
+    [Fact]
+    public void ReportFault_InnerMostExceptionIsOperationCanceledException_SkipsFaultReport()
+    {
+        // Arrange
+        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
+        var innerMostException = new OperationCanceledException();
+        var exception = CreateNestedException(typeof(OperationCanceledException), 3, innerMostException);
+
+        // Act
+        reporter.ReportFault(exception, "Test message");
+
+        // Assert
+        Assert.Empty(reporter.Events);
+    }
+
+    private Exception CreateNestedException(Type exceptionType, int depth, Exception? innerMostException)
+    {
+        var exception = CreateException(exceptionType, "Test", innerMostException);
+        for (var i = 0; i < depth; i++)
+        {
+            exception = CreateException(exceptionType, "Test", exception);
+        }
+
+        return exception;
+    }
+
+    private Exception CreateException(Type exceptionType, string message, Exception? innerException)
+    {
+        if (exceptionType == typeof(OperationCanceledException))
+        {
+            return new OperationCanceledException(message, innerException);
+        }
+
+        throw new NotImplementedException();
     }
 }
