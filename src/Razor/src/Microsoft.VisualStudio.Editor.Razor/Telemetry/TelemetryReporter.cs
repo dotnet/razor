@@ -15,6 +15,8 @@ namespace Microsoft.AspNetCore.Razor.Telemetry;
 
 internal abstract class TelemetryReporter : ITelemetryReporter
 {
+    private const int RecursionDepthLimit = 10;
+
     protected ImmutableArray<TelemetrySession> TelemetrySessions { get; set; }
 
     protected TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions = default)
@@ -107,7 +109,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
 
     private void ReportFault(Exception exception, string? message, int depth, params object?[] @params)
     {
-        if (depth > 10)
+        if (depth > RecursionDepthLimit)
         {
             // exceeded recursion depth limit
             return;

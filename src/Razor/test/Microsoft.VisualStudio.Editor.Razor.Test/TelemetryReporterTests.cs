@@ -13,6 +13,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Test;
 
 public class TelemetryReporterTests
 {
+    private const int RecursionDepthLimit = 10;
+
     [Fact]
     public void NoArgument()
     {
@@ -324,9 +326,9 @@ public class TelemetryReporterTests
     }
 
     [Theory]
-    [InlineData(typeof(OperationCanceledException), 10)]
-    [InlineData(typeof(AggregateException), 10)]
-    [InlineData(typeof(Exception), 10)]
+    [InlineData(typeof(OperationCanceledException), RecursionDepthLimit)]
+    [InlineData(typeof(AggregateException), RecursionDepthLimit)]
+    [InlineData(typeof(Exception), RecursionDepthLimit)]
     // Prevent stack overflow exception crash when depth beyond the limit
     [InlineData(typeof(OperationCanceledException), 40000)]
     [InlineData(typeof(AggregateException), 40000)]
@@ -341,24 +343,13 @@ public class TelemetryReporterTests
         reporter.ReportFault(nestedException, "Test message");
 
         // Assert
-        if (exceptionType == typeof(OperationCanceledException) && depth > 10)
-        {
-            Assert.Empty(reporter.Events);
-        }
-        else
-        {
-            Assert.Collection(reporter.Events,
-                e1 =>
-                {
-                    Assert.Equal("dotnet/razor/fault", e1.Name);
-                });
-        }
+        AssertNestedFaultReport(exceptionType, depth, reporter);
     }
 
     [Theory]
-    [InlineData(typeof(OperationCanceledException), 10)]
-    [InlineData(typeof(AggregateException), 10)]
-    [InlineData(typeof(Exception), 10)]
+    [InlineData(typeof(OperationCanceledException), RecursionDepthLimit)]
+    [InlineData(typeof(AggregateException), RecursionDepthLimit)]
+    [InlineData(typeof(Exception), RecursionDepthLimit)]
     // Prevent stack overflow exception crash when depth beyond the limit
     [InlineData(typeof(OperationCanceledException), 40000)]
     [InlineData(typeof(AggregateException), 40000)]
@@ -373,7 +364,12 @@ public class TelemetryReporterTests
         reporter.ReportFault(nestedException, nestedException.Message);
 
         // Assert
-        if (exceptionType == typeof(OperationCanceledException) && depth > 10)
+        AssertNestedFaultReport(exceptionType, depth, reporter);
+    }
+
+    private static void AssertNestedFaultReport(Type exceptionType, int depth, TestTelemetryReporter reporter)
+    {
+        if (exceptionType == typeof(OperationCanceledException) && depth > RecursionDepthLimit)
         {
             Assert.Empty(reporter.Events);
         }
