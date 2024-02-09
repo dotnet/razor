@@ -354,7 +354,7 @@ public class TelemetryReporterTests
     [InlineData(typeof(RemoteInvocationException), 3)]
     [InlineData(typeof(OperationCanceledException), 3)]
     [InlineData(typeof(AggregateException), 15000)]
-    public void ReportFault_NestedOperationCanceledException_NoStackOverflowException(Type exceptionType, int depth)
+    public void ReportFault_NestedException_NoStackOverflowException(Type exceptionType, int depth)
     {
         // Arrange
         var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
