@@ -5,17 +5,17 @@ Generated Location: (567:15,0 [41] )
 
 Source Location: (6:0,6 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml)
 |"/About"|
-Generated Location: (914:24,6 [8] )
+Generated Location: (927:24,6 [8] )
 |"/About"|
 
 Source Location: (25:2,7 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml)
 |NewModel|
-Generated Location: (1724:41,0 [8] )
+Generated Location: (1737:41,0 [8] )
 |NewModel|
 
 Source Location: (213:12,18 [10] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml)
 |Model.Name|
-Generated Location: (2274:58,18 [10] )
+Generated Location: (2287:58,18 [10] )
 |Model.Name|
 
 Source Location: (93:5,12 [97] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml)
@@ -25,7 +25,7 @@ Source Location: (93:5,12 [97] TestFiles/IntegrationTests/CodeGenerationIntegrat
         public string Name { get; set; }
     }
 |
-Generated Location: (2520:67,12 [97] )
+Generated Location: (2533:67,12 [97] )
 |
     public class NewModel : PageModel
     {
