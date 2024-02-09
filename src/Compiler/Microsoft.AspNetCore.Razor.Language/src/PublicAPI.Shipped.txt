@@ -406,13 +406,6 @@
 ~Microsoft.AspNetCore.Razor.Language.SourceSpan.FilePath.get -> string
 ~Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(string filePath, int absoluteIndex, int lineIndex, int characterIndex, int length) -> void
 ~Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(string filePath, int absoluteIndex, int lineIndex, int characterIndex, int length, int lineCount, int endCharacterIndex) -> void
-~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.Attributes.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.KeyValuePair<string, string>>
-~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.Descriptors.get -> System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor>
-~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.GetBoundRules(Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor descriptor) -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor>
-~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.Mappings.get -> System.Collections.Generic.IReadOnlyDictionary<Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor, System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor>>
-~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.ParentTagName.get -> string
-~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.TagHelperPrefix.get -> string
-~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.TagName.get -> string
 ~override Microsoft.AspNetCore.Razor.Language.AssemblyExtension.ExtensionName.get -> string
 ~override Microsoft.AspNetCore.Razor.Language.CodeGeneration.DesignTimeNodeWriter.BeginWriterScope(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context, string writer) -> void
 ~override Microsoft.AspNetCore.Razor.Language.CodeGeneration.DesignTimeNodeWriter.EndWriterScope(Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext context) -> void
@@ -1187,8 +1180,6 @@ Microsoft.AspNetCore.Razor.Language.SourceSpan.LineIndex.get -> int
 Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(int absoluteIndex, int length) -> void
 Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(int absoluteIndex, int lineIndex, int characterIndex, int length) -> void
 Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(Microsoft.AspNetCore.Razor.Language.SourceLocation location, int contentLength) -> void
-Microsoft.AspNetCore.Razor.Language.TagHelperBinding
-Microsoft.AspNetCore.Razor.Language.TagHelperBinding.IsAttributeMatch.get -> bool
 Microsoft.AspNetCore.Razor.Language.TagHelperConventions
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilderExtensions
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorExtensions
