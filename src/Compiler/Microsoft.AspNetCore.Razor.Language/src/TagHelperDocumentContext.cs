@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// The binding information for Tag Helpers resulted to a <see cref="RazorCodeDocument"/>. Represents the
 /// Tag Helper information after processing by directives.
 /// </summary>
-public abstract class TagHelperDocumentContext
+internal abstract class TagHelperDocumentContext
 {
     public static TagHelperDocumentContext Create(string prefix, IEnumerable<TagHelperDescriptor> tagHelpers)
     {
