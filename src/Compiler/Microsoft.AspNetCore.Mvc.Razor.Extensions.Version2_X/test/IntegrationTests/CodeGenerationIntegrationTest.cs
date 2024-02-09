@@ -30,7 +30,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     protected override RazorConfiguration Configuration { get; }
 
-    protected override CSharpParseOptions CSharpParseOptions => base.CSharpParseOptions.WithLanguageVersion(LanguageVersion.CSharp8);
+    protected override CSharpParseOptions CSharpParseOptions => base.CSharpParseOptions.WithLanguageVersion(LanguageVersion.Latest);
 
     #region Runtime
 

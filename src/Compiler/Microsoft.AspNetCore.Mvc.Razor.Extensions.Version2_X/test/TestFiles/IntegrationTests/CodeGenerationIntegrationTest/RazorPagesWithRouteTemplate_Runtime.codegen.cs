@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 #line hidden
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("RouteTemplate", 
     // language=Route
-#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
+#line (1,7)-(1,15) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
       "/About"
 
 #line default
@@ -42,8 +42,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
             WriteLiteral("\r\n<h1>New Customer ");
             EndContext();
             BeginContext(213, 10, false);
-#line 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
-            Write(Model.Name);
+#line (13,19)-(13,29) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
+Write(Model.Name);
 
 #line default
 #line hidden
