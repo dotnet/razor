@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 
@@ -13,16 +11,15 @@ internal sealed class TagHelperBinding
     internal TagHelperBinding(
         string tagName,
         IReadOnlyList<KeyValuePair<string, string>> attributes,
-        string parentTagName,
+        string? parentTagName,
         IReadOnlyDictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>> mappings,
-        string tagHelperPrefix)
+        string? tagHelperPrefix)
     {
         TagName = tagName;
         Attributes = attributes;
         ParentTagName = parentTagName;
         Mappings = mappings;
         TagHelperPrefix = tagHelperPrefix;
-
     }
 
     public IEnumerable<TagHelperDescriptor> Descriptors => Mappings.Keys;
@@ -59,13 +56,13 @@ internal sealed class TagHelperBinding
 
     public string TagName { get; }
 
-    public string ParentTagName { get; }
+    public string? ParentTagName { get; }
 
     public IReadOnlyList<KeyValuePair<string, string>> Attributes { get; }
 
     public IReadOnlyDictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>> Mappings { get; }
 
-    public string TagHelperPrefix { get; }
+    public string? TagHelperPrefix { get; }
 
     public IReadOnlyList<TagMatchingRuleDescriptor> GetBoundRules(TagHelperDescriptor descriptor)
     {
