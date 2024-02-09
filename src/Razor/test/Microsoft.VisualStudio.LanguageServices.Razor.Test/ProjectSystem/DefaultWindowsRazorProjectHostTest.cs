@@ -762,7 +762,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
     {
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new TestWindowsRazorProjectHost(services, _projectManagerAccessor, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManagerAccessor, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
 
         var state = TestProjectRuleSnapshot.CreateProperties(
              WindowsRazorProjectHostBase.ConfigurationGeneralSchemaName,
@@ -775,30 +775,11 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var dict = ImmutableDictionary<string, IProjectRuleSnapshot>.Empty;
         dict = dict.Add(WindowsRazorProjectHostBase.ConfigurationGeneralSchemaName, state);
 
-        var result = host.GetIntermediateOutputPathFromProjectChange(dict,
+        var result = host.GetTestAccessor().GetIntermediateOutputPathFromProjectChange(dict,
             out var combinedIntermediateOutputPath);
 
         Assert.True(result);
         Assert.Equal(expectedCombinedIOP, combinedIntermediateOutputPath);
-    }
-
-    internal class TestWindowsRazorProjectHost : DefaultWindowsRazorProjectHost
-    {
-        public TestWindowsRazorProjectHost(IUnconfiguredProjectCommonServices commonServices,
-            IProjectSnapshotManagerAccessor projectManagerAccessor,
-            ProjectSnapshotManagerDispatcher dispatcher,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            LanguageServerFeatureOptions languageServerFeatureOptions)
-            : base(commonServices, projectManagerAccessor, dispatcher, projectConfigurationFilePathStore, languageServerFeatureOptions)
-        {
-            SkipIntermediateOutputPathExistCheck_TestOnly = true;
-        }
-
-        // Enable access to protected method for testing
-        internal bool GetIntermediateOutputPathFromProjectChange(IImmutableDictionary<string,IProjectRuleSnapshot> state, out string result)
-        {
-            return base.TryGetIntermediateOutputPath(state, out result);
-        }
     }
 
     [UIFact]
@@ -1050,7 +1031,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
     }
 
     [UIFact]
-    public async Task OnProjectChanged_VersionRemoved_DeinitializesProject()
+    public async Task OnProjectChanged_VersionRemoved_DeInitializesProject()
     {
         // Arrange
         _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
