@@ -134,7 +134,7 @@ internal static class IServiceCollectionExtensions
             // Ensure that we don't add the default service if something else has added one.
             services.TryAddSingleton<IRazorSemanticTokensInfoService, RazorSemanticTokensInfoService>();
 
-            services.TryAddSingleton<RazorSemanticTokensLegendService>();
+            services.AddSingleton<RazorSemanticTokensLegendService>();
         }
 
         services.AddHandler<RazorSemanticTokensRefreshEndpoint>();

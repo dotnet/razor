@@ -9,6 +9,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
 internal class BenchmarkClientCapabilitiesService(VSInternalClientCapabilities capabilities) : IClientCapabilitiesService
-    {
-        public VSInternalClientCapabilities ClientCapabilities => capabilities;
-    }
+{
+    public VSInternalClientCapabilities ClientCapabilities => capabilities;
+}
