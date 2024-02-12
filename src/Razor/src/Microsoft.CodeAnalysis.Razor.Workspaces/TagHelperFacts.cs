@@ -34,17 +34,14 @@ internal static class TagHelperFacts
             return null;
         }
 
-        var descriptors = documentContext.TagHelpers;
-        if (descriptors is { Length: 0 })
+        if (documentContext.TagHelpers.Length == 0)
         {
             return null;
         }
 
-        var prefix = documentContext.Prefix;
-        var tagHelperBinder = new TagHelperBinder(prefix, descriptors);
-        var binding = tagHelperBinder.GetBinding(tagName, attributes, parentTag, parentIsTagHelper);
+        var binder = documentContext.GetBinder();
 
-        return binding;
+        return binder.GetBinding(tagName, attributes, parentTag, parentIsTagHelper);
     }
 
     public static ImmutableArray<BoundAttributeDescriptor> GetBoundTagHelperAttributes(

@@ -5,6 +5,7 @@
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Language;
+
 internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
 {
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
@@ -17,7 +18,8 @@ internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
             return;
         }
 
-        var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, context.Prefix, context.TagHelpers, out var usedHelpers);
+        var binder = context.GetBinder();
+        var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, binder, out var usedHelpers);
 
         codeDocument.SetReferencedTagHelpers(usedHelpers);
         codeDocument.SetSyntaxTree(rewrittenSyntaxTree);

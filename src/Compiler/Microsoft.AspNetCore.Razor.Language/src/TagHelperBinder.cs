@@ -15,21 +15,26 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal sealed class TagHelperBinder
 {
     private readonly Dictionary<string, HashSet<TagHelperDescriptor>> _registrations;
-    private readonly string? _tagHelperPrefix;
+
+    public string? TagHelperPrefix { get; }
+    public ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
 
     /// <summary>
     /// Instantiates a new instance of the <see cref="TagHelperBinder"/>.
     /// </summary>
     /// <param name="tagHelperPrefix">The tag helper prefix being used by the document.</param>
-    /// <param name="descriptors">The descriptors that the <see cref="TagHelperBinder"/> will pull from.</param>
-    public TagHelperBinder(string? tagHelperPrefix, ImmutableArray<TagHelperDescriptor> descriptors)
+    /// <param name="tagHelpers">The <see cref="TagHelperDescriptor"/>s that the <see cref="TagHelperBinder"/>
+    /// will pull from.</param>
+    public TagHelperBinder(string? tagHelperPrefix, ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
-        _tagHelperPrefix = tagHelperPrefix;
+        TagHelperPrefix = tagHelperPrefix;
+        TagHelpers = tagHelpers;
+
         // To reduce the frequency of dictionary resizes we use the incoming number of descriptors as a heuristic
-        _registrations = new Dictionary<string, HashSet<TagHelperDescriptor>>(descriptors.Length, StringComparer.OrdinalIgnoreCase);
+        _registrations = new Dictionary<string, HashSet<TagHelperDescriptor>>(tagHelpers.Length, StringComparer.OrdinalIgnoreCase);
 
         // Populate our registrations
-        foreach (var descriptor in descriptors)
+        foreach (var descriptor in tagHelpers)
         {
             Register(descriptor);
         }
@@ -51,9 +56,9 @@ internal sealed class TagHelperBinder
         string? parentTagName,
         bool parentIsTagHelper)
     {
-        if (!_tagHelperPrefix.IsNullOrEmpty() &&
-            (tagName.Length <= _tagHelperPrefix.Length ||
-            !tagName.StartsWith(_tagHelperPrefix, StringComparison.OrdinalIgnoreCase)))
+        if (!TagHelperPrefix.IsNullOrEmpty() &&
+            (tagName.Length <= TagHelperPrefix.Length ||
+            !tagName.StartsWith(TagHelperPrefix, StringComparison.OrdinalIgnoreCase)))
         {
             // The tagName doesn't have the tag helper prefix, we can short circuit.
             return null;
@@ -62,7 +67,7 @@ internal sealed class TagHelperBinder
         var tagNameWithoutPrefix = tagName.AsSpanOrDefault();
         var parentTagNameWithoutPrefix = parentTagName.AsSpanOrDefault();
 
-        if (_tagHelperPrefix is { Length: var length and > 0 })
+        if (TagHelperPrefix is { Length: var length and > 0 })
         {
             tagNameWithoutPrefix = tagNameWithoutPrefix[length..];
 
@@ -96,7 +101,7 @@ internal sealed class TagHelperBinder
             attributes,
             parentTagName,
             applicableDescriptors.ToFrozenDictionary(),
-            _tagHelperPrefix);
+            TagHelperPrefix);
 
         static void FindApplicableDescriptors(
             IEnumerable<TagHelperDescriptor> descriptors,
@@ -132,7 +137,7 @@ internal sealed class TagHelperBinder
             var registrationKey =
                 string.Equals(rule.TagName, TagHelperMatchingConventions.ElementCatchAllName, StringComparison.Ordinal) ?
                 TagHelperMatchingConventions.ElementCatchAllName :
-                _tagHelperPrefix + rule.TagName;
+                TagHelperPrefix + rule.TagName;
 
             // Ensure there's a HashSet to add the descriptor to.
             if (!_registrations.TryGetValue(registrationKey, out HashSet<TagHelperDescriptor> descriptorSet))

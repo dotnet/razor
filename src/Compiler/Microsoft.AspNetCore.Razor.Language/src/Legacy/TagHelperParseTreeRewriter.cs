@@ -15,14 +15,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal static class TagHelperParseTreeRewriter
 {
-    public static RazorSyntaxTree Rewrite(RazorSyntaxTree syntaxTree, string tagHelperPrefix, ImmutableArray<TagHelperDescriptor> descriptors, out ISet<TagHelperDescriptor> usedDescriptors)
+    public static RazorSyntaxTree Rewrite(RazorSyntaxTree syntaxTree, TagHelperBinder binder, out ISet<TagHelperDescriptor> usedDescriptors)
     {
         var errorSink = new ErrorSink();
 
         var rewriter = new Rewriter(
             syntaxTree.Source,
-            tagHelperPrefix,
-            descriptors,
+            binder,
             syntaxTree.Options,
             errorSink);
 
@@ -30,7 +29,7 @@ internal static class TagHelperParseTreeRewriter
 
         var errorList = new List<RazorDiagnostic>();
         errorList.AddRange(errorSink.Errors);
-        errorList.AddRange(descriptors.SelectMany(d => d.GetAllDiagnostics()));
+        errorList.AddRange(binder.TagHelpers.SelectMany(d => d.GetAllDiagnostics()));
 
         var diagnostics = CombineErrors(syntaxTree.Diagnostics, errorList).OrderBy(error => error.Span.AbsoluteIndex);
 
@@ -57,10 +56,9 @@ internal static class TagHelperParseTreeRewriter
         internal const char InvalidAttributeValueMarker = '\0';
 
         private readonly RazorSourceDocument _source;
-        private readonly string _tagHelperPrefix;
+        private readonly TagHelperBinder _binder;
         private readonly ImmutableArray<KeyValuePair<string, string>>.Builder _htmlAttributeTracker;
         private readonly StringBuilder _attributeValueBuilder;
-        private readonly TagHelperBinder _tagHelperBinder;
         private readonly Stack<TagTracker> _trackerStack;
         private readonly ErrorSink _errorSink;
         private readonly RazorParserOptions _options;
@@ -68,14 +66,12 @@ internal static class TagHelperParseTreeRewriter
 
         public Rewriter(
             RazorSourceDocument source,
-            string tagHelperPrefix,
-            ImmutableArray<TagHelperDescriptor> descriptors,
+            TagHelperBinder binder,
             RazorParserOptions options,
             ErrorSink errorSink)
         {
             _source = source;
-            _tagHelperPrefix = tagHelperPrefix;
-            _tagHelperBinder = new TagHelperBinder(tagHelperPrefix, descriptors);
+            _binder = binder;
             _trackerStack = new Stack<TagTracker>();
             _attributeValueBuilder = new StringBuilder();
             _htmlAttributeTracker = ImmutableArray.CreateBuilder<KeyValuePair<string, string>>();
@@ -83,6 +79,7 @@ internal static class TagHelperParseTreeRewriter
             _usedDescriptors = new HashSet<TagHelperDescriptor>();
             _errorSink = errorSink;
         }
+
         public HashSet<TagHelperDescriptor> UsedDescriptors => _usedDescriptors;
 
         private TagTracker CurrentTracker => _trackerStack.Count > 0 ? _trackerStack.Peek() : null;
@@ -143,7 +140,7 @@ internal static class TagHelperParseTreeRewriter
                     else
                     {
                         // Tag helper start tag. Keep track.
-                        var tracker = new TagHelperTracker(_tagHelperPrefix, tagHelperInfo);
+                        var tracker = new TagHelperTracker(_binder.TagHelperPrefix, tagHelperInfo);
                         _trackerStack.Push(tracker);
                     }
                 }
@@ -254,7 +251,7 @@ internal static class TagHelperParseTreeRewriter
             // We're now in a start tag block, we first need to see if the tag block is a tag helper.
             var elementAttributes = GetAttributeNameValuePairs(startTag);
 
-            tagHelperBinding = _tagHelperBinder.GetBinding(
+            tagHelperBinding = _binder.GetBinding(
                 tagName,
                 elementAttributes,
                 CurrentParentTagName,
@@ -337,9 +334,9 @@ internal static class TagHelperParseTreeRewriter
             }
             else
             {
-                var tagHelperBinding = _tagHelperBinder.GetBinding(
+                var tagHelperBinding = _binder.GetBinding(
                     tagName,
-                    attributes: ImmutableArray<KeyValuePair<string, string>>.Empty,
+                    attributes: [],
                     parentTagName: CurrentParentTagName,
                     parentIsTagHelper: CurrentParentIsTagHelper);
 
@@ -600,9 +597,9 @@ internal static class TagHelperParseTreeRewriter
                 return;
             }
 
-            var tagHelperBinding = _tagHelperBinder.GetBinding(
+            var tagHelperBinding = _binder.GetBinding(
                 tagName,
-                attributes: ImmutableArray<KeyValuePair<string, string>>.Empty,
+                attributes: [],
                 parentTagName: CurrentParentTagName,
                 parentIsTagHelper: CurrentParentIsTagHelper);
 
@@ -633,9 +630,9 @@ internal static class TagHelperParseTreeRewriter
                 return;
             }
 
-            var tagHelperBinding = _tagHelperBinder.GetBinding(
+            var tagHelperBinding = _binder.GetBinding(
                 tagName,
-                attributes: ImmutableArray<KeyValuePair<string, string>>.Empty,
+                attributes: [],
                 parentTagName: CurrentParentTagName,
                 parentIsTagHelper: CurrentParentIsTagHelper);
 

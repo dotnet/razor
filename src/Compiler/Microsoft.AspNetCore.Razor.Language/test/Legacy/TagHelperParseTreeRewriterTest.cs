@@ -55,10 +55,10 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         var errorSink = new ErrorSink();
         var parseResult = ParseDocument(documentContent);
         var document = parseResult.Root;
+        var binder = new TagHelperBinder(tagHelperPrefix: null, tagHelpers: []);
         var parseTreeRewriter = new TagHelperParseTreeRewriter.Rewriter(
             parseResult.Source,
-            tagHelperPrefix: null,
-            descriptors: [],
+            binder,
             parseResult.Options,
             errorSink);
 

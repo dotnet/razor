@@ -15,6 +15,8 @@ internal sealed class TagHelperDocumentContext
     public string? Prefix { get; }
     public ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
 
+    private TagHelperBinder? _binder;
+
     private TagHelperDocumentContext(string? prefix, ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
         Prefix = prefix;
@@ -29,5 +31,10 @@ internal sealed class TagHelperDocumentContext
         }
 
         return new(prefix, tagHelpers);
+    }
+
+    public TagHelperBinder GetBinder()
+    {
+        return _binder ?? InterlockedOperations.Initialize(ref _binder, new TagHelperBinder(Prefix, TagHelpers));
     }
 }
