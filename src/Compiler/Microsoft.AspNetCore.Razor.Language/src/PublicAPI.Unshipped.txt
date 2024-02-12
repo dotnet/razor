@@ -10,7 +10,6 @@
 *REMOVED*~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.BoundAttributeParameters.get -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptor>
 abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.AddSourceMappingFor(Microsoft.AspNetCore.Razor.Language.SourceSpan node) -> void
 abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.Dispose() -> void
-abstract Microsoft.AspNetCore.Razor.Language.DirectiveDescriptor.RequiresDesignTimeSupport.get -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.ContainsKey(string! key) -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Count.get -> int
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetEntry(int index) -> System.Collections.Generic.KeyValuePair<string!, string?>
@@ -119,8 +118,6 @@ Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.WriteLine(System.R
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.LinePragma() -> void
 Microsoft.AspNetCore.Razor.Language.CommonMetadata
 Microsoft.AspNetCore.Razor.Language.DirectiveTokenKind.IdentifierOrExpression = 7 -> Microsoft.AspNetCore.Razor.Language.DirectiveTokenKind
-Microsoft.AspNetCore.Razor.Language.IDirectiveDescriptorBuilder.RequiresDesignTimeSupport.get -> bool
-Microsoft.AspNetCore.Razor.Language.IDirectiveDescriptorBuilder.RequiresDesignTimeSupport.set -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode
 Microsoft.AspNetCore.Razor.Language.Intermediate.FormNameIntermediateNode.FormNameIntermediateNode() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection.Enumerator.Enumerator() -> void
