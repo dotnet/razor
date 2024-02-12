@@ -8,16 +8,7 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-    [global::Microsoft.AspNetCore.Components.RouteAttribute(
-    // language=Route,Component
-#nullable restore
-#line (1,7)-(1,10) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-      "/"
-
-#line default
-#line hidden
-#nullable disable
-    )]
+    [global::Microsoft.AspNetCore.Components.RouteAttribute("/")]
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219

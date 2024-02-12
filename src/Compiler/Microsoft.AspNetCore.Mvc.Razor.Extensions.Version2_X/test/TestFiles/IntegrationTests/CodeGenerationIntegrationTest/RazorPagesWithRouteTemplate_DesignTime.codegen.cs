@@ -16,14 +16,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 #line default
 #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("RouteTemplate", 
-    // language=Route
-#line (1,7)-(1,15) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
-      "/About"
-
-#line default
-#line hidden
-    )]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("RouteTemplate", "/About")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPagesWithRouteTemplate : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     {
         #pragma warning disable 219
