@@ -191,10 +191,8 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         foreach (var descriptor in bindingResult.Descriptors)
         {
             var tagMatchingRules = bindingResult.GetBoundRules(descriptor);
-            for (var i = 0; i < tagMatchingRules.Count; i++)
+            foreach (var tagMatchingRule in tagMatchingRules)
             {
-                var tagMatchingRule = tagMatchingRules[i];
-
                 if (tagMatchingRule.TagStructure == TagStructure.Unspecified)
                 {
                     // The current tag matching rule isn't specified so it should never be used as the resolved tag structure since it

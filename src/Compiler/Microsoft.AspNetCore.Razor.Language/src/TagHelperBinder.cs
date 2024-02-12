@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -90,29 +92,27 @@ internal sealed class TagHelperBinder
             }
         }
 
-        Dictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>>? applicableDescriptorMappings = null;
+        using var _ = DictionaryPool<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>>.GetPooledObject(out var applicableDescriptorMappings);
+
         foreach (var descriptor in descriptors)
         {
-            // We're avoiding descriptor.TagMatchingRules.Where and applicableRules.Any() to avoid
-            // Enumerator allocations on this hot path
-            List<TagMatchingRuleDescriptor>? applicableRules = null;
+            using var applicableRules = new PooledArrayBuilder<TagMatchingRuleDescriptor>();
+
             foreach (var rule in descriptor.TagMatchingRules)
             {
                 if (TagHelperMatchingConventions.SatisfiesRule(tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, rule))
                 {
-                    applicableRules ??= new List<TagMatchingRuleDescriptor>();
                     applicableRules.Add(rule);
                 }
             }
 
-            if (applicableRules != null && applicableRules.Count > 0)
+            if (applicableRules.Count > 0)
             {
-                applicableDescriptorMappings ??= new Dictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>>();
-                applicableDescriptorMappings[descriptor] = applicableRules;
+                applicableDescriptorMappings[descriptor] = applicableRules.DrainToImmutable();
             }
         }
 
-        if (applicableDescriptorMappings == null)
+        if (applicableDescriptorMappings.Count == 0)
         {
             return null;
         }
@@ -121,7 +121,7 @@ internal sealed class TagHelperBinder
             tagName,
             attributes,
             parentTagName,
-            applicableDescriptorMappings,
+            applicableDescriptorMappings.ToFrozenDictionary(),
             _tagHelperPrefix);
 
         return tagHelperBinding;

@@ -34,10 +34,10 @@ public class TagHelperBinderTest
             parentIsTagHelper: false);
 
         // Assert
-        Assert.Equal(expectedDescriptors, bindingResult.Descriptors);
+        Assert.Equal<TagHelperDescriptor>(expectedDescriptors, bindingResult.Descriptors);
         Assert.Equal("th:div", bindingResult.TagName);
         Assert.Equal("body", bindingResult.ParentTagName);
-        Assert.Equal(expectedAttributes, bindingResult.Attributes);
+        Assert.Equal<KeyValuePair<string, string>>(expectedAttributes, bindingResult.Attributes);
         Assert.Equal("th:", bindingResult.TagHelperPrefix);
         Assert.Equal<TagMatchingRuleDescriptor>(divTagHelper.TagMatchingRules, bindingResult.Mappings[divTagHelper]);
     }
@@ -78,7 +78,7 @@ public class TagHelperBinderTest
             else
             {
                 Assert.NotNull(bindingResult);
-                Assert.Equal(expectedDescriptors, bindingResult.Descriptors);
+                Assert.Equal<TagHelperDescriptor>(expectedDescriptors, bindingResult.Descriptors);
 
                 Assert.Equal(tagName, bindingResult.TagName);
                 var mapping = Assert.Single(bindingResult.Mappings[multiTagHelper]);
@@ -217,7 +217,7 @@ public class TagHelperBinderTest
             parentIsTagHelper: false);
 
         // Assert
-        Assert.Equal((IEnumerable<TagHelperDescriptor>)expectedDescriptors, bindingResult.Descriptors);
+        Assert.Equal<TagHelperDescriptor>(expectedDescriptors, bindingResult.Descriptors);
     }
 
     public static TheoryData RequiredAttributeData
@@ -270,7 +270,7 @@ public class TagHelperBinderTest
                 .Build();
             ImmutableArray<TagHelperDescriptor> defaultAvailableDescriptors =
                 [divDescriptor, inputDescriptor, catchAllDescriptor, catchAllDescriptor2];
-            ImmutableArray<TagHelperDescriptor>  defaultWildcardDescriptors =
+            ImmutableArray<TagHelperDescriptor> defaultWildcardDescriptors =
                 [inputWildcardPrefixDescriptor, catchAllWildcardPrefixDescriptor];
             Func<string, KeyValuePair<string, string>> kvp =
                 (name) => new KeyValuePair<string, string>(name, "test value");
@@ -378,7 +378,7 @@ public class TagHelperBinderTest
 
         // Act
         var bindingResult = tagHelperBinder.GetBinding(tagName, providedAttributes, parentTagName: "p", parentIsTagHelper: false);
-        var descriptors = bindingResult?.Descriptors.ToImmutableArray() ?? default;
+        var descriptors = bindingResult?.Descriptors ?? default;
 
         // Assert
         if (expectedDescriptors.IsDefault)

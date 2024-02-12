@@ -2,17 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal sealed class TagHelperBinding
 {
+    public string TagName { get; }
+    public string? ParentTagName { get; }
+    public ImmutableArray<KeyValuePair<string, string>> Attributes { get; }
+    public FrozenDictionary<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>> Mappings { get; }
+    public string? TagHelperPrefix { get; }
+
+    public ImmutableArray<TagHelperDescriptor> Descriptors => Mappings.Keys;
+
     internal TagHelperBinding(
         string tagName,
-        IReadOnlyList<KeyValuePair<string, string>> attributes,
+        ImmutableArray<KeyValuePair<string, string>> attributes,
         string? parentTagName,
-        IReadOnlyDictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>> mappings,
+        FrozenDictionary<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>> mappings,
         string? tagHelperPrefix)
     {
         TagName = tagName;
@@ -21,8 +31,6 @@ internal sealed class TagHelperBinding
         Mappings = mappings;
         TagHelperPrefix = tagHelperPrefix;
     }
-
-    public IEnumerable<TagHelperDescriptor> Descriptors => Mappings.Keys;
 
     /// <summary>
     /// Gets a value that indicates whether the the binding matched on attributes only.
@@ -54,17 +62,7 @@ internal sealed class TagHelperBinding
         }
     }
 
-    public string TagName { get; }
-
-    public string? ParentTagName { get; }
-
-    public IReadOnlyList<KeyValuePair<string, string>> Attributes { get; }
-
-    public IReadOnlyDictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>> Mappings { get; }
-
-    public string? TagHelperPrefix { get; }
-
-    public IReadOnlyList<TagMatchingRuleDescriptor> GetBoundRules(TagHelperDescriptor descriptor)
+    public ImmutableArray<TagMatchingRuleDescriptor> GetBoundRules(TagHelperDescriptor descriptor)
     {
         if (descriptor == null)
         {

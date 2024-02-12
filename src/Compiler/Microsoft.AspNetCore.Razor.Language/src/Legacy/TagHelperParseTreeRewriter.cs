@@ -353,7 +353,7 @@ internal static class TagHelperParseTreeRewriter
                 foreach (var descriptor in tagHelperBinding.Descriptors)
                 {
                     var boundRules = tagHelperBinding.Mappings[descriptor];
-                    var invalidRule = boundRules.FirstOrDefault(rule => rule.TagStructure == TagStructure.WithoutEndTag);
+                    var invalidRule = boundRules.FirstOrDefault(static rule => rule.TagStructure == TagStructure.WithoutEndTag);
 
                     if (invalidRule != null)
                     {
