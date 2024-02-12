@@ -22,6 +22,17 @@ namespace Test
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
+        ((global::System.Action)(() => {
+// language=Route,Component
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+global::System.Object __typeHelper = "/my/url";
+
+#line default
+#line hidden
+#nullable disable
+        }
+        ))();
         }
         #pragma warning restore 219
         #pragma warning disable 0414

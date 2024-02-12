@@ -3,3 +3,8 @@
 Generated Location: (474:14,6 [9] )
 |"/my/url"|
 
+Source Location: (24:2,6 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|"/my/url"|
+Generated Location: (918:28,37 [9] )
+|"/my/url"|
+

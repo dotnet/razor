@@ -8,6 +8,7 @@
         RouteAttributeExtensionNode - (24:2,6 [9] x:\dir\subdir\Test\TestComponent.cshtml) - "/my/url"
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             DesignTimeDirective - 
+                DirectiveToken - (24:2,6 [9] x:\dir\subdir\Test\TestComponent.cshtml) - "/my/url"
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning disable 0414
             CSharpCode - 
