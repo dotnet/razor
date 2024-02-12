@@ -250,6 +250,7 @@ public abstract class DirectiveDescriptor
         }
 
         public override string Description { get; }
+
         public override string Directive { get; }
 
         public override string DisplayName { get; }
