@@ -59,7 +59,7 @@ internal class MetadataAttributeTargetExtension : IMetadataAttributeTargetExtens
         context.CodeWriter.Write("(");
         context.CodeWriter.WriteStringLiteral(node.Key);
         context.CodeWriter.Write(", ");
-        if (node.Source.HasValue)
+        if (node.Source.HasValue && !context.Options.DesignTime)
         {
             context.CodeWriter.WriteLine();
             if (node.ValueStringSyntax is not null)
