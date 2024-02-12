@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 internal static partial class RazorWrapperFactory
 {
-    private class EditorFactoryServiceWrapper(VisualStudio.Editor.Razor.IRazorEditorFactoryService obj) : Wrapper<VisualStudio.Editor.Razor.IRazorEditorFactoryService>(obj), IRazorEditorFactoryService
+    private class EditorFactoryServiceWrapper(VisualStudio.LegacyEditor.Razor.IRazorEditorFactoryService obj) : Wrapper<VisualStudio.LegacyEditor.Razor.IRazorEditorFactoryService>(obj), IRazorEditorFactoryService
     {
         public bool TryGetDocumentTracker(ITextBuffer textBuffer, [NotNullWhen(true)] out IRazorDocumentTracker? documentTracker)
         {

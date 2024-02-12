@@ -8,8 +8,9 @@ using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
+using Microsoft.VisualStudio.LegacyEditor.Razor;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
@@ -156,7 +157,7 @@ internal static partial class RazorWrapperFactory
         => Wrap<IVisualStudioDocumentTracker, DocumentTrackerWrapper, IRazorDocumentTracker>(obj, static obj => new DocumentTrackerWrapper(obj));
 
     internal static IRazorEditorFactoryService WrapEditorFactoryService(object obj)
-        => Wrap<VisualStudio.Editor.Razor.IRazorEditorFactoryService, EditorFactoryServiceWrapper, IRazorEditorFactoryService>(obj, obj => new EditorFactoryServiceWrapper(obj));
+        => Wrap<VisualStudio.LegacyEditor.Razor.IRazorEditorFactoryService, EditorFactoryServiceWrapper, IRazorEditorFactoryService>(obj, obj => new EditorFactoryServiceWrapper(obj));
 
     internal static IRazorEditorSettingsManager WrapClientSettingsManager(object obj)
         => Wrap<IClientSettingsManager, ClientSettingsManagerWrapper, IRazorEditorSettingsManager>(obj, static obj => new ClientSettingsManagerWrapper(obj));

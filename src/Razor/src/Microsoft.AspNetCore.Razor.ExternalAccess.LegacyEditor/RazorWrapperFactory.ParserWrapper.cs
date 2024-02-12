@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.Editor.Razor;
-using DocumentStructureChangedEventArgsInternal = Microsoft.VisualStudio.Editor.Razor.DocumentStructureChangedEventArgs;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
+using DocumentStructureChangedEventArgsInternal = Microsoft.VisualStudio.LegacyEditor.Razor.Parsing.DocumentStructureChangedEventArgs;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 

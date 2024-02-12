@@ -72,8 +72,16 @@ internal static class CSharpTestLspServerHelpers
                         SnippetSupport = true
                     }
                 },
+                InlayHint = new()
+                {
+                    ResolveSupport = new InlayHintResolveSupportSetting { Properties = ["tooltip"] }
+                }
             },
             SupportsDiagnosticRequests = true,
+            Workspace = new()
+            {
+                Configuration = true
+            }
         };
 
         return await CSharpTestLspServer.CreateAsync(
