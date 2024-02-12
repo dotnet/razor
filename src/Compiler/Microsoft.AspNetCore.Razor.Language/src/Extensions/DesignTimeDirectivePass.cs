@@ -79,10 +79,7 @@ internal class DesignTimeDirectivePass : IntermediateNodePassBase, IRazorDirecti
 
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
-            if (node.Directive.RequiresDesignTimeSupport)
-            {
-                base.VisitDirective(node);
-            }
+            base.VisitDirective(node);
         }
 
         public override void VisitDirectiveToken(DirectiveTokenIntermediateNode node)

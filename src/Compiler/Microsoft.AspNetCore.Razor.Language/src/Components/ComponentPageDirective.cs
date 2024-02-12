@@ -18,7 +18,6 @@ internal class ComponentPageDirective
             builder.AddStringToken(ComponentResources.PageDirective_RouteToken_Name, ComponentResources.PageDirective_RouteToken_Description);
             builder.Usage = DirectiveUsage.FileScopedMultipleOccurring;
             builder.Description = ComponentResources.PageDirective_Description;
-            builder.RequiresDesignTimeSupport = false;
         });
 
     public string RouteTemplate { get; }

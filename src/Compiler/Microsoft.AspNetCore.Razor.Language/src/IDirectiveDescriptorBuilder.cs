@@ -43,11 +43,6 @@ public interface IDirectiveDescriptorBuilder
     IList<DirectiveTokenDescriptor> Tokens { get; }
 
     /// <summary>
-    /// Gets or sets if this directive requires extra code emit at design time
-    /// </summary>
-    bool RequiresDesignTimeSupport { get; set; }
-
-    /// <summary>
     /// Creates a <see cref="DirectiveDescriptor"/> based on the current property values of the builder.
     /// </summary>
     /// <returns>The created <see cref="DirectiveDescriptor" />.</returns>

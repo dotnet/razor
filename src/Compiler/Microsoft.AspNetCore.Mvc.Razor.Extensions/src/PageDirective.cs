@@ -22,7 +22,6 @@ public class PageDirective
             builder.AddOptionalStringToken(RazorExtensionsResources.PageDirective_RouteToken_Name, RazorExtensionsResources.PageDirective_RouteToken_Description);
             builder.Usage = DirectiveUsage.FileScopedSinglyOccurring;
             builder.Description = RazorExtensionsResources.PageDirective_Description;
-            builder.RequiresDesignTimeSupport = false;
         });
 
     private PageDirective(string routeTemplate, IntermediateNode directiveNode, SourceSpan? source)
