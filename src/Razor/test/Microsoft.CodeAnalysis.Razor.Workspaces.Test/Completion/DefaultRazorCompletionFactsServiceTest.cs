@@ -20,7 +20,7 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
     {
         // Arrange
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: null, Enumerable.Empty<TagHelperDescriptor>());
+        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: null, tagHelpers: []);
         var completionItem1 = new RazorCompletionItem("displayText1", "insertText1", RazorCompletionItemKind.Directive);
         var context = new RazorCompletionContext(0, null, syntaxTree, tagHelperDocumentContext);
         var provider1 = Mock.Of<IRazorCompletionItemProvider>(p => p.GetCompletionItems(context) == ImmutableArray.Create(completionItem1), MockBehavior.Strict);

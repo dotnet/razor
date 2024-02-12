@@ -21,11 +21,11 @@ internal sealed class TagHelperBinder
     /// </summary>
     /// <param name="tagHelperPrefix">The tag helper prefix being used by the document.</param>
     /// <param name="descriptors">The descriptors that the <see cref="TagHelperBinder"/> will pull from.</param>
-    public TagHelperBinder(string? tagHelperPrefix, IReadOnlyList<TagHelperDescriptor> descriptors)
+    public TagHelperBinder(string? tagHelperPrefix, ImmutableArray<TagHelperDescriptor> descriptors)
     {
         _tagHelperPrefix = tagHelperPrefix;
         // To reduce the frequency of dictionary resizes we use the incoming number of descriptors as a heuristic
-        _registrations = new Dictionary<string, HashSet<TagHelperDescriptor>>(descriptors.Count, StringComparer.OrdinalIgnoreCase);
+        _registrations = new Dictionary<string, HashSet<TagHelperDescriptor>>(descriptors.Length, StringComparer.OrdinalIgnoreCase);
 
         // Populate our registrations
         foreach (var descriptor in descriptors)

@@ -101,6 +101,21 @@ internal static class ImmutableArrayExtensions
         return builder.DrainToImmutable();
     }
 
+    public static ImmutableArray<T> WhereAsArray<T>(this ImmutableArray<T> source, Func<T, bool> predicate)
+    {
+        using var builder = new PooledArrayBuilder<T>();
+
+        foreach (var item in source)
+        {
+            if (predicate(item))
+            {
+                builder.Add(item);
+            }
+        }
+
+        return builder.DrainToImmutable();
+    }
+
     /// <summary>
     /// Executes a binary search over an array, but allows the caller to decide what constitutes a match
     /// </summary>

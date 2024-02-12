@@ -94,7 +94,7 @@ internal static partial class RazorWrapperFactory
 
     private static ImmutableArray<TResult> InitializeArrayWithWrappedItems<TInner, TResult>(
         ref ImmutableArray<TResult> location,
-        IReadOnlyList<TInner> list,
+        ImmutableArray<TInner> list,
         Func<TInner, TResult> createWrapper)
         where TInner : class
         where TResult : class

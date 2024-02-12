@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -14,27 +13,17 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal sealed class TagHelperDocumentContext
 {
     public string? Prefix { get; }
-    public IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
+    public ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
 
-    private TagHelperDocumentContext(string? prefix, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+    private TagHelperDocumentContext(string? prefix, ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
         Prefix = prefix;
         TagHelpers = tagHelpers;
     }
 
-    public static TagHelperDocumentContext Create(string? prefix, IEnumerable<TagHelperDescriptor> tagHelpers)
+    public static TagHelperDocumentContext Create(string? prefix, ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
-        if (tagHelpers == null)
-        {
-            throw new ArgumentNullException(nameof(tagHelpers));
-        }
-
-        return new(prefix, tagHelpers.ToArray());
-    }
-
-    internal static TagHelperDocumentContext Create(string? prefix, IReadOnlyList<TagHelperDescriptor> tagHelpers)
-    {
-        if (tagHelpers == null)
+        if (tagHelpers.IsDefault)
         {
             throw new ArgumentNullException(nameof(tagHelpers));
         }

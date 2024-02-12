@@ -35,7 +35,7 @@ internal static class TagHelperFacts
         }
 
         var descriptors = documentContext.TagHelpers;
-        if (descriptors is null or { Count: 0 })
+        if (descriptors is { Length: 0 })
         {
             return null;
         }
@@ -101,8 +101,7 @@ internal static class TagHelperFacts
             throw new ArgumentNullException(nameof(tagName));
         }
 
-        var tagHelpers = documentContext?.TagHelpers;
-        if (tagHelpers is not { Count: > 0 })
+        if (documentContext?.TagHelpers is not { Length: > 0 } tagHelpers)
         {
             return ImmutableArray<TagHelperDescriptor>.Empty;
         }
@@ -117,10 +116,9 @@ internal static class TagHelperFacts
         using var matchingDescriptors = new PooledArrayBuilder<TagHelperDescriptor>();
 
         var tagNameWithoutPrefix = tagName.AsSpan()[prefix.Length..];
-        for (var i = 0; i < tagHelpers.Count; i++)
-        {
-            var tagHelper = tagHelpers[i];
 
+        foreach (var tagHelper in tagHelpers)
+        {
             foreach (var rule in tagHelper.TagMatchingRules)
             {
                 if (TagHelperMatchingConventions.SatisfiesTagName(tagNameWithoutPrefix, rule) &&
@@ -142,18 +140,15 @@ internal static class TagHelperFacts
             throw new ArgumentNullException(nameof(documentContext));
         }
 
-        var tagHelpers = documentContext?.TagHelpers;
-        if (tagHelpers is not { Count: > 0 })
+        if (documentContext?.TagHelpers is not { Length: > 0 } tagHelpers)
         {
             return ImmutableArray<TagHelperDescriptor>.Empty;
         }
 
         using var matchingDescriptors = new PooledArrayBuilder<TagHelperDescriptor>();
 
-        for (var i = 0; i < tagHelpers.Count; i++)
+        foreach (var descriptor in tagHelpers)
         {
-            var descriptor = tagHelpers[i];
-
             foreach (var rule in descriptor.TagMatchingRules)
             {
                 if (TagHelperMatchingConventions.SatisfiesParentTag(parentTag.AsSpanOrDefault(), rule))
