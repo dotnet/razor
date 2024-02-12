@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -57,8 +57,6 @@ internal static class TagHelperParseTreeRewriter
 
         private readonly RazorSourceDocument _source;
         private readonly TagHelperBinder _binder;
-        private readonly ImmutableArray<KeyValuePair<string, string>>.Builder _htmlAttributeTracker;
-        private readonly StringBuilder _attributeValueBuilder;
         private readonly Stack<TagTracker> _trackerStack;
         private readonly ErrorSink _errorSink;
         private readonly RazorParserOptions _options;
@@ -73,8 +71,6 @@ internal static class TagHelperParseTreeRewriter
             _source = source;
             _binder = binder;
             _trackerStack = new Stack<TagTracker>();
-            _attributeValueBuilder = new StringBuilder();
-            _htmlAttributeTracker = ImmutableArray.CreateBuilder<KeyValuePair<string, string>>();
             _options = options;
             _usedDescriptors = new HashSet<TagHelperDescriptor>();
             _errorSink = errorSink;
@@ -378,27 +374,26 @@ internal static class TagHelperParseTreeRewriter
         {
             if (tagBlock.Attributes.Count == 0)
             {
-                return ImmutableArray<KeyValuePair<string, string>>.Empty;
+                return [];
             }
 
-            _htmlAttributeTracker.Clear();
+            using var _ = StringBuilderPool.GetPooledObject(out var attributeValueBuilder);
+            using var attributes = new PooledArrayBuilder<KeyValuePair<string, string>>();
 
-            var attributes = _htmlAttributeTracker;
-
-            for (var i = 0; i < tagBlock.Attributes.Count; i++)
+            foreach (var attribute in tagBlock.Attributes)
             {
-                if (tagBlock.Attributes[i] is CSharpCodeBlockSyntax)
+                if (attribute is CSharpCodeBlockSyntax)
                 {
                     // Code blocks in the attribute area of tags mangles following attributes.
                     // It's also not supported by TagHelpers, bail early to avoid creating bad attribute value pairs.
                     break;
                 }
 
-                if (tagBlock.Attributes[i] is MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock)
+                if (attribute is MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock)
                 {
                     if (minimizedAttributeBlock.Name == null)
                     {
-                        _attributeValueBuilder.Append(InvalidAttributeValueMarker);
+                        attributeValueBuilder.Append(InvalidAttributeValueMarker);
                         continue;
                     }
 
@@ -407,7 +402,7 @@ internal static class TagHelperParseTreeRewriter
                     continue;
                 }
 
-                if (!(tagBlock.Attributes[i] is MarkupAttributeBlockSyntax attributeBlock))
+                if (attribute is not MarkupAttributeBlockSyntax attributeBlock)
                 {
                     // If the parser thought these aren't attributes, we don't care about them. Move on.
                     continue;
@@ -415,32 +410,30 @@ internal static class TagHelperParseTreeRewriter
 
                 if (attributeBlock.Name == null)
                 {
-                    _attributeValueBuilder.Append(InvalidAttributeValueMarker);
+                    attributeValueBuilder.Append(InvalidAttributeValueMarker);
                     continue;
                 }
 
                 if (attributeBlock.Value != null)
                 {
-                    for (var j = 0; j < attributeBlock.Value.Children.Count; j++)
+                    foreach (var child in attributeBlock.Value.Children)
                     {
-                        var child = attributeBlock.Value.Children[j];
                         if (child is MarkupLiteralAttributeValueSyntax literalValue)
                         {
-                            _attributeValueBuilder.Append(literalValue.GetContent());
+                            attributeValueBuilder.Append(literalValue.GetContent());
                         }
                         else
                         {
-                            _attributeValueBuilder.Append(InvalidAttributeValueMarker);
+                            attributeValueBuilder.Append(InvalidAttributeValueMarker);
                         }
                     }
                 }
 
                 var attributeName = attributeBlock.Name.GetContent();
-                var attributeValue = _attributeValueBuilder.ToString();
-                var attribute = new KeyValuePair<string, string>(attributeName, attributeValue);
-                attributes.Add(attribute);
+                var attributeValue = attributeValueBuilder.ToString();
+                attributes.Add(new(attributeName, attributeValue));
 
-                _attributeValueBuilder.Clear();
+                attributeValueBuilder.Clear();
             }
 
             return attributes.DrainToImmutable();
