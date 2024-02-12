@@ -121,8 +121,8 @@ internal static class TagHelperFacts
         {
             foreach (var rule in tagHelper.TagMatchingRules)
             {
-                if (TagHelperMatchingConventions.SatisfiesTagName(tagNameWithoutPrefix, rule) &&
-                    TagHelperMatchingConventions.SatisfiesParentTag(parentTag.AsSpanOrDefault(), rule))
+                if (TagHelperMatchingConventions.SatisfiesTagName(rule, tagNameWithoutPrefix) &&
+                    TagHelperMatchingConventions.SatisfiesParentTag(rule, parentTag.AsSpanOrDefault()))
                 {
                     matchingDescriptors.Add(tagHelper);
                     break;
@@ -151,7 +151,7 @@ internal static class TagHelperFacts
         {
             foreach (var rule in descriptor.TagMatchingRules)
             {
-                if (TagHelperMatchingConventions.SatisfiesParentTag(parentTag.AsSpanOrDefault(), rule))
+                if (TagHelperMatchingConventions.SatisfiesParentTag(rule, parentTag.AsSpanOrDefault()))
                 {
                     matchingDescriptors.Add(descriptor);
                     break;
