@@ -424,6 +424,6 @@ public class TelemetryReporterTests
             throw new ArgumentException($"{exceptionType} does not have a constructor that accepts a string message and an Exception.");
         }
 
-        return (Exception)constructor.Invoke(new object[] { message, innerException });
+        return (Exception)constructor.Invoke(new object[] { message, innerException! });
     }
 }
