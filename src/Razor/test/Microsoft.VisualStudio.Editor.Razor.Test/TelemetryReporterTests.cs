@@ -352,30 +352,18 @@ public class TelemetryReporterTests
         Assert.Empty(reporter.Events);
     }
 
-    [Theory]
-    [InlineData(3)]
-    public void ReportFault_InnerExceptionOfOCEIsAnotherOCE_SkipsFaultReport(int depth)
+    [Fact]
+    public void ReportFault_InnerExceptionOfOCEIsNotAnOCE_ReportsFault()
     {
         // Arrange
-        var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
-        var innerMostException = new OperationCanceledException();
-        var exception = CreateNestedException(typeof(OperationCanceledException), depth, innerMostException);
-
-        // Act
-        reporter.ReportFault(exception, "Test message");
-
-        // Assert
-        Assert.Empty(reporter.Events);
-    }
-
-    [Theory]
-    [InlineData(3)]
-    public void ReportFault_InnerExceptionOfOCEIsNotAnOCE_ReportsFault(int depth)
-    {
-        // Arrange
+        var depth = 3;
         var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         var innerMostException = new Exception();
-        var exception = CreateNestedException(typeof(OperationCanceledException), depth, innerMostException);
+        var exception = new OperationCanceledException("Test", innerMostException);
+        for (var i = 0; i < depth; i++)
+        {
+            exception = new OperationCanceledException("Test", exception);
+        }
 
         // Act
         reporter.ReportFault(exception, "Test message");
@@ -384,46 +372,23 @@ public class TelemetryReporterTests
         Assert.NotEmpty(reporter.Events);
     }
 
-    [Theory]
-    [InlineData(3)]
-    public void ReportFault_InnerMostExceptionIsOperationCanceledException_SkipsFaultReport(int depth)
+    [Fact]
+    public void ReportFault_InnerMostExceptionIsOperationCanceledException_SkipsFaultReport()
     {
         // Arrange
+        var depth = 3;
         var reporter = new TestTelemetryReporter(new RazorLoggerFactory([]));
         var innerMostException = new OperationCanceledException();
-        var exception = CreateNestedException(typeof(OperationCanceledException), depth, innerMostException);
+        var exception = new OperationCanceledException("Test", innerMostException);
+        for (var i = 0; i < depth; i++)
+        {
+            exception = new OperationCanceledException("Test", exception);
+        }
 
         // Act
         reporter.ReportFault(exception, "Test message");
 
         // Assert
         Assert.Empty(reporter.Events);
-    }
-
-    private Exception CreateNestedException(Type exceptionType, int depth, Exception? innerMostException)
-    {
-        var exception = CreateException(exceptionType, "Test", innerMostException);
-        for (var i = 0; i < depth; i++)
-        {
-            exception = CreateException(exceptionType, "Test", exception);
-        }
-
-        return exception;
-    }
-
-    private Exception CreateException(Type exceptionType, string message, Exception? innerException)
-    {
-        if (!typeof(Exception).IsAssignableFrom(exceptionType))
-        {
-            throw new ArgumentException($"{exceptionType} is not a type of Exception.");
-        }
-
-        var constructor = exceptionType.GetConstructor(new[] { typeof(string), typeof(Exception) });
-        if (constructor == null)
-        {
-            throw new ArgumentException($"{exceptionType} does not have a constructor that accepts a string message and an Exception.");
-        }
-
-        return (Exception)constructor.Invoke(new object[] { message, innerException! });
     }
 }
