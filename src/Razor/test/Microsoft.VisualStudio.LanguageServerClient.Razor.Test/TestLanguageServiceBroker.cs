@@ -26,42 +26,6 @@ internal class TestLanguageServiceBroker : ILanguageServiceBroker2
 
     public IEnumerable<ILanguageClientInstance> ActiveLanguageClients => throw new NotImplementedException();
 
-    public IStreamingRequestBroker<CompletionParams, CompletionList> CompletionBroker => throw new NotImplementedException();
-
-    public IRequestBroker<CompletionItem, CompletionItem> CompletionResolveBroker => throw new NotImplementedException();
-
-    public IStreamingRequestBroker<ReferenceParams, object[]> ReferencesBroker => throw new NotImplementedException();
-
-    public IRequestBroker<TextDocumentPositionParams, object[]> ImplementationBroker => throw new NotImplementedException();
-
-    public IRequestBroker<TextDocumentPositionParams, object[]> TypeDefinitionBroker => throw new NotImplementedException();
-
-    public IRequestBroker<TextDocumentPositionParams, object[]> DefinitionBroker => throw new NotImplementedException();
-
-    public IRequestBroker<TextDocumentPositionParams, Hover> HoverBroker => throw new NotImplementedException();
-
-    public IRequestBroker<RenameParams, WorkspaceEdit> RenameBroker => throw new NotImplementedException();
-
-    public IRequestBroker<DocumentFormattingParams, TextEdit[]> DocumentFormattingBroker => throw new NotImplementedException();
-
-    public IRequestBroker<DocumentRangeFormattingParams, TextEdit[]> RangeFormattingBroker => throw new NotImplementedException();
-
-    public IRequestBroker<DocumentOnTypeFormattingParams, TextEdit[]> OnTypeFormattingBroker => throw new NotImplementedException();
-
-    public IRequestBroker<ExecuteCommandParams, object> ExecuteCommandBroker => throw new NotImplementedException();
-
-    public IRequestBroker<CodeActionParams, SumType<Command, CodeAction>[]> CodeActionsBroker => throw new NotImplementedException();
-
-    public IStreamingRequestBroker<DocumentHighlightParams, DocumentHighlight[]> DocumentHighlightBroker => throw new NotImplementedException();
-
-    public IRequestBroker<SignatureHelpParams, SignatureHelp> SignatureHelpBroker => throw new NotImplementedException();
-
-    public IRequestBroker<DocumentSymbolParams, SymbolInformation[]> DocumentSymbolBroker => throw new NotImplementedException();
-
-    public IStreamingRequestBroker<WorkspaceSymbolParams, SymbolInformation[]> WorkspaceSymbolBroker => throw new NotImplementedException();
-
-    public IRequestBroker<FoldingRangeParams, FoldingRange[]> FoldingRangeBroker => throw new NotImplementedException();
-
     public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> FactoryLanguageClients => throw new NotImplementedException();
 
     public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> LanguageClients => throw new NotImplementedException();
@@ -186,6 +150,23 @@ internal class TestLanguageServiceBroker : ILanguageServiceBroker2
     }
 
     public Task NotifyAsync(ILanguageClient languageClient, string method, JToken parameters, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Notify<T>(Notification<T> notification, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<TResponse> RequestAsync<TRequest, TResponse>(Request<TRequest, TResponse> request, CancellationToken cancellationToken)
+    {
+        _callback?.Invoke(request.Method);
+
+        return Task.FromResult((TResponse)(object)null);
+    }
+
+    public IAsyncEnumerable<(string client, TResponse response)> RequestMultipleAsync<TRequest, TResponse>(Request<TRequest, TResponse> request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

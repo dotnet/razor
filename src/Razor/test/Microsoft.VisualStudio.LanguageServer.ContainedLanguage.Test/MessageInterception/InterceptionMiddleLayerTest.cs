@@ -23,7 +23,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     [Fact]
     public void Ctor_NullInterceptorManager_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => new InterceptionMiddleLayer(null!, "test"));
+        Assert.Throws<ArgumentNullException>(() => new InterceptionMiddleLayer2(null!, "test"));
     }
 
     [Theory]
@@ -32,7 +32,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     public void Ctor_EmptyLanguageName_Throws(string? languageName)
     {
         var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
-        Assert.Throws<ArgumentException>(() => new InterceptionMiddleLayer(fakeInterceptorManager, languageName!));
+        Assert.Throws<ArgumentException>(() => new InterceptionMiddleLayer2(fakeInterceptorManager, languageName!));
     }
 
     [Theory]
@@ -43,7 +43,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
         var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
         Mock.Get(fakeInterceptorManager).Setup(x => x.HasInterceptor("testMessage", "testLanguage"))
                                         .Returns(value);
-        var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
+        var sut = new InterceptionMiddleLayer2(fakeInterceptorManager, "testLanguage");
 
         var result = sut.CanHandle("testMessage");
 
@@ -58,14 +58,14 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
             .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
             .Returns(true);
         Mock.Get(fakeInterceptorManager)
-            .Setup(x => x.ProcessInterceptorsAsync(
+            .Setup(x => x.ProcessInterceptorsAsync<JToken>(
                 "testMethod",
                 It.IsAny<JToken>(),
                 "testLanguage",
                 CancellationToken.None))
             .ReturnsAsync(value: null);
         var token = JToken.Parse("{}");
-        var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
+        var sut = new InterceptionMiddleLayer2(fakeInterceptorManager, "testLanguage");
         var sentNotification = false;
 
         await sut.HandleNotificationAsync("testMethod", token, (_) =>
@@ -88,13 +88,13 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
             .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
             .Returns(true);
         Mock.Get(fakeInterceptorManager)
-            .Setup(x => x.ProcessInterceptorsAsync(
+            .Setup(x => x.ProcessInterceptorsAsync<JToken>(
                 "testMethod",
                 It.IsAny<JToken>(),
                 "testLanguage",
                 CancellationToken.None))
             .ReturnsAsync(expected);
-        var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
+        var sut = new InterceptionMiddleLayer2(fakeInterceptorManager, "testLanguage");
 
         await sut.HandleNotificationAsync("testMethod", token, (t) =>
         {

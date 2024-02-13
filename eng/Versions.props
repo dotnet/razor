@@ -95,7 +95,7 @@
     <Tooling_HtmlEditorPackageVersion>17.9.67-preview-0001</Tooling_HtmlEditorPackageVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.9.36524</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.10.29-preview</MicrosoftVisualStudioPackagesVersion>
-    <VisualStudioLanguageServerProtocolVersion>17.10.13-preview</VisualStudioLanguageServerProtocolVersion>
+    <VisualStudioLanguageServerProtocolVersion>17.10.13-preview-gd7eba19013</VisualStudioLanguageServerProtocolVersion>
     <MicrosoftVisualStudioCopilotVersion>0.2.28-beta</MicrosoftVisualStudioCopilotVersion>
     <!-- dotnet/runtime packages -->
     <MicrosoftExtensionsPackageVersion>6.0.0</MicrosoftExtensionsPackageVersion>
@@ -122,7 +122,7 @@
     <MicrosoftVisualStudioLanguageIntellisensePackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
     <!-- MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion should use VisualStudioLanguageServerProtocolVersion, but as of updating there was  -->
     <!-- a mismatch in published versions (17.10.13-preview was not published). Next time this is updated please switch back to VisualStudioLanguageServerProtocolVersion -->
-    <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>17.10.16-preview</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
+    <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>17.10.62-preview-gd7eba19013</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackageVersion>$(VisualStudioLanguageServerProtocolVersion)</MicrosoftVisualStudioLanguageServerProtocolPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion>$(VisualStudioLanguageServerProtocolVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion>$(VisualStudioLanguageServerProtocolVersion)</MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion>

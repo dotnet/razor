@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
@@ -10,14 +11,23 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
 /// </summary>
 public struct InterceptionResult
 {
-    public static readonly InterceptionResult NoChange = new(null, false);
+    public static readonly InterceptionResult NoChange = new((object?)null, false);
 
+    [Obsolete("Will be removed in a future version.")]
     public InterceptionResult(JToken? newToken, bool changedDocumentUri)
+        : this((object?)newToken, changedDocumentUri)
     {
-        UpdatedToken = newToken;
+    }
+
+    public InterceptionResult(object? newToken, bool changedDocumentUri)
+    {
+        ChangedToken = newToken;
         ChangedDocumentUri = changedDocumentUri;
     }
 
-    public JToken? UpdatedToken { get; }
+    [Obsolete("Will be removed in a future version.")]
+    public JToken? UpdatedToken => ChangedToken as JToken;
+
+    public object? ChangedToken { get; }
     public bool ChangedDocumentUri { get; }
 }
