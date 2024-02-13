@@ -146,12 +146,12 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         if (closeAngle.Parent is MarkupTagHelperStartTagSyntax
             {
                 ForwardSlash: null,
-                Parent: MarkupTagHelperElementSyntax tagHelperElement
+                Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding } tagHelperElement
             } startTagHelper)
         {
             name = startTagHelper.Name.Content;
 
-            if (!TryGetTagHelperAutoClosingBehavior(tagHelperElement.TagHelperInfo.BindingResult, out autoClosingBehavior))
+            if (!TryGetTagHelperAutoClosingBehavior(binding, out autoClosingBehavior))
             {
                 autoClosingBehavior = InferAutoClosingBehavior(name, caseSensitive: true);
             }

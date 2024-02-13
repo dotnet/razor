@@ -1,33 +1,29 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Collections.Generic;
-
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal sealed partial class MarkupTagHelperElementSyntax
 {
     private static readonly string TagHelperInfoKey = typeof(TagHelperInfo).Name;
 
-    public TagHelperInfo TagHelperInfo
+    public TagHelperInfo? TagHelperInfo
     {
         get
         {
-            var tagHelperInfo = this.GetAnnotationValue(TagHelperInfoKey) as TagHelperInfo;
-            return tagHelperInfo;
+            return this.GetAnnotationValue(TagHelperInfoKey) as TagHelperInfo;
         }
     }
 
     public MarkupTagHelperElementSyntax WithTagHelperInfo(TagHelperInfo info)
     {
-        var annotations = new List<SyntaxAnnotation>(GetAnnotations())
-            {
-                new SyntaxAnnotation(TagHelperInfoKey, info)
-            };
+        var existingAnnotations = GetAnnotations();
 
-        var newGreen = Green.WithAnnotationsGreen(annotations.ToArray());
+        var newAnnotations = new SyntaxAnnotation[existingAnnotations.Length + 1];
+        existingAnnotations.CopyTo(newAnnotations, 0);
+        newAnnotations[^1] = new(TagHelperInfoKey, info);
+
+        var newGreen = Green.WithAnnotationsGreen(newAnnotations);
 
         return (MarkupTagHelperElementSyntax)newGreen.CreateRed(Parent, Position);
     }
