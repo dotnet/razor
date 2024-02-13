@@ -110,7 +110,7 @@ internal static class TagHelperParseTreeRewriter
                     // This is a tag helper.
                     if (tagHelperInfo.TagMode == TagMode.SelfClosing || tagHelperInfo.TagMode == TagMode.StartTagOnly)
                     {
-                        var tagHelperElement = SyntaxFactory.MarkupTagHelperElement(tagHelperStart, body: new SyntaxList<RazorSyntaxNode>(), endTag: null);
+                        var tagHelperElement = SyntaxFactory.MarkupTagHelperElement(tagHelperStart, body: default, endTag: null);
                         var rewrittenTagHelper = tagHelperElement.WithTagHelperInfo(tagHelperInfo);
                         if (node.Body.Count == 0 && node.EndTag == null)
                         {
@@ -150,7 +150,7 @@ internal static class TagHelperParseTreeRewriter
                         // Ideally we don't want to keep track of self-closing or void tags.
                         // But if a matching end tag exists, keep track of the start tag no matter what.
                         // We will just assume the parser had a good reason to do this.
-                        var tracker = new TagTracker(tagName, isTagHelper: false);
+                        var tracker = new TagTracker(tagName, IsTagHelper: false);
                         _trackerStack.Push(tracker);
                     }
                 }
@@ -370,7 +370,7 @@ internal static class TagHelperParseTreeRewriter
         }
 
         // Internal for testing
-        internal ImmutableArray<KeyValuePair<string, string>> GetAttributeNameValuePairs(MarkupStartTagSyntax tagBlock)
+        internal static ImmutableArray<KeyValuePair<string, string>> GetAttributeNameValuePairs(MarkupStartTagSyntax tagBlock)
         {
             if (tagBlock.Attributes.Count == 0)
             {
@@ -442,7 +442,7 @@ internal static class TagHelperParseTreeRewriter
         private void ValidateParentAllowsTagHelper(string tagName, MarkupStartTagSyntax tagBlock)
         {
             if (HasAllowedChildren() &&
-                !CurrentTagHelperTracker.PrefixedAllowedChildren.Contains(tagName, StringComparer.OrdinalIgnoreCase))
+                !CurrentTagHelperTracker.AllowsChild(tagName, nameIncludesPrefix: true))
             {
                 OnAllowedChildrenStartTagError(CurrentTagHelperTracker, tagName, tagBlock, _errorSink, _source);
             }
@@ -516,13 +516,13 @@ internal static class TagHelperParseTreeRewriter
             return true;
         }
 
-        private bool IsPotentialTagHelperStart(string tagName, MarkupStartTagSyntax startTag)
+        private static bool IsPotentialTagHelperStart(string tagName, MarkupStartTagSyntax startTag)
         {
             return !string.Equals(tagName, SyntaxConstants.TextTagName, StringComparison.OrdinalIgnoreCase) ||
                    !startTag.IsMarkupTransition;
         }
 
-        private bool IsPotentialTagHelperEnd(string tagName, MarkupEndTagSyntax endTag)
+        private static bool IsPotentialTagHelperEnd(string tagName, MarkupEndTagSyntax endTag)
         {
             return !string.Equals(tagName, SyntaxConstants.TextTagName, StringComparison.OrdinalIgnoreCase) ||
                    !endTag.IsMarkupTransition;
@@ -590,15 +590,14 @@ internal static class TagHelperParseTreeRewriter
                 return;
             }
 
-            var tagHelperBinding = _binder.GetBinding(
+            var binding = _binder.GetBinding(
                 tagName,
                 attributes: [],
                 parentTagName: CurrentParentTagName,
                 parentIsTagHelper: CurrentParentIsTagHelper);
 
             // If we found a binding for the current tag, then it is a tag helper. Use the prefixed allowed children to compare.
-            var allowedChildren = tagHelperBinding != null ? CurrentTagHelperTracker.PrefixedAllowedChildren : CurrentTagHelperTracker.AllowedChildren;
-            if (!allowedChildren.Contains(tagName, StringComparer.OrdinalIgnoreCase))
+            if (!CurrentTagHelperTracker.AllowsChild(tagName, nameIncludesPrefix: binding is not null))
             {
                 OnAllowedChildrenStartTagError(CurrentTagHelperTracker, tagName, tagBlock, _errorSink, _source);
             }
@@ -623,15 +622,14 @@ internal static class TagHelperParseTreeRewriter
                 return;
             }
 
-            var tagHelperBinding = _binder.GetBinding(
+            var binding = _binder.GetBinding(
                 tagName,
                 attributes: [],
                 parentTagName: CurrentParentTagName,
                 parentIsTagHelper: CurrentParentIsTagHelper);
 
             // If we found a binding for the current tag, then it is a tag helper. Use the prefixed allowed children to compare.
-            var allowedChildren = tagHelperBinding != null ? CurrentTagHelperTracker.PrefixedAllowedChildren : CurrentTagHelperTracker.AllowedChildren;
-            if (!allowedChildren.Contains(tagName, StringComparer.OrdinalIgnoreCase))
+            if (!CurrentTagHelperTracker.AllowsChild(tagName, nameIncludesPrefix: binding is not null))
             {
                 OnAllowedChildrenEndTagError(CurrentTagHelperTracker, tagName, tagBlock, _errorSink, _source);
             }
@@ -648,13 +646,13 @@ internal static class TagHelperParseTreeRewriter
                 return false;
             }
 
-            return CurrentTagHelperTracker.AllowedChildren != null && CurrentTagHelperTracker.AllowedChildren.Count > 0;
+            return CurrentTagHelperTracker.AllowedChildren.Length > 0;
         }
 
-        private bool IsPartOfStartTag(SyntaxNode node)
+        private static bool IsPartOfStartTag(SyntaxNode node)
         {
             // Check if an ancestor is a start tag of a MarkupElement.
-            var parent = node.FirstAncestorOrSelf<SyntaxNode>(n =>
+            var parent = node.FirstAncestorOrSelf<SyntaxNode>(static n =>
             {
                 return n.Parent is MarkupElementSyntax element && element.StartTag == n;
             });
@@ -662,7 +660,7 @@ internal static class TagHelperParseTreeRewriter
             return parent != null;
         }
 
-        internal static bool IsComment(SyntaxNode node)
+        private static bool IsComment(SyntaxNode node)
         {
             var commentParent = node.FirstAncestorOrSelf<SyntaxNode>(
                 n => n is RazorCommentBlockSyntax || n is MarkupCommentBlockSyntax);
@@ -716,59 +714,72 @@ internal static class TagHelperParseTreeRewriter
             return SourceLocationTracker.Advance(tagBlock.GetSourceLocation(source), "</");
         }
 
-        private class TagTracker
+        private record TagTracker(string TagName, bool IsTagHelper);
+
+        private record TagHelperTracker : TagTracker
         {
-            public TagTracker(string tagName, bool isTagHelper)
-            {
-                TagName = tagName;
-                IsTagHelper = isTagHelper;
-            }
+            public uint OpenMatchingTags;
 
-            public string TagName { get; }
-
-            public bool IsTagHelper { get; }
-        }
-
-        private class TagHelperTracker : TagTracker
-        {
-            private IReadOnlyList<string> _prefixedAllowedChildren;
             private readonly string _tagHelperPrefix;
+            private readonly TagHelperBinding _binding;
+
+            private readonly Lazy<(ImmutableArray<string> Names, HashSet<string> NameSet)> _lazyAllowedChildren;
+            private readonly Lazy<HashSet<string>> _lazyPrefixedAllowedChildrenNameSet;
+
+            public ImmutableArray<string> AllowedChildren => _lazyAllowedChildren.Value.Names;
 
             public TagHelperTracker(string tagHelperPrefix, TagHelperInfo info)
-                : base(info.TagName, isTagHelper: true)
+                : base(info.TagName, IsTagHelper: true)
             {
                 _tagHelperPrefix = tagHelperPrefix;
-                Info = info;
+                _binding = info.BindingResult;
 
-                if (Info.BindingResult.Descriptors.Any(descriptor => descriptor.AllowedChildTags != null))
-                {
-                    AllowedChildren = Info.BindingResult.Descriptors
-                        .Where(descriptor => descriptor.AllowedChildTags != null)
-                        .SelectMany(descriptor => descriptor.AllowedChildTags.Select(childTag => childTag.Name))
-                        .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .ToList();
-                }
+                _lazyAllowedChildren = new(CreateAllowedChildren);
+                _lazyPrefixedAllowedChildrenNameSet = new(CreatePrefixedAllowedChildren);
             }
 
-            public TagHelperInfo Info { get; }
+            public bool AllowsChild(string tagName, bool nameIncludesPrefix)
+                => nameIncludesPrefix
+                    ? _lazyPrefixedAllowedChildrenNameSet.Value.Contains(tagName)
+                    : _lazyAllowedChildren.Value.NameSet.Contains(tagName);
 
-            public uint OpenMatchingTags { get; set; }
-
-            public IReadOnlyList<string> AllowedChildren { get; }
-
-            public IReadOnlyList<string> PrefixedAllowedChildren
+            private (ImmutableArray<string>, HashSet<string>) CreateAllowedChildren()
             {
-                get
+                var distinctSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                using var result = new PooledArrayBuilder<string>();
+
+                foreach (var tagHelper in _binding.Descriptors)
                 {
-                    if (AllowedChildren != null && _prefixedAllowedChildren == null)
+                    foreach (var allowedChildTag in tagHelper.AllowedChildTags)
                     {
-                        Debug.Assert(Info.BindingResult.Descriptors.Any());
+                        var name = allowedChildTag.Name;
 
-                        _prefixedAllowedChildren = AllowedChildren.Select(allowedChild => _tagHelperPrefix + allowedChild).ToList();
+                        if (distinctSet.Add(name))
+                        {
+                            result.Add(name);
+                        }
                     }
-
-                    return _prefixedAllowedChildren;
                 }
+
+                return (result.DrainToImmutable(), distinctSet);
+            }
+
+            private HashSet<string> CreatePrefixedAllowedChildren()
+            {
+                if (_tagHelperPrefix is not string tagHelperPrefix)
+                {
+                    return _lazyAllowedChildren.Value.NameSet;
+                }
+
+                var distinctSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var childName in AllowedChildren)
+                {
+                    distinctSet.Add(tagHelperPrefix + childName);
+                }
+
+                return distinctSet;
             }
         }
     }
