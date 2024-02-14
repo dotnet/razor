@@ -8,22 +8,11 @@ internal sealed partial class MarkupTagHelperElementSyntax
     private static readonly string TagHelperInfoKey = typeof(TagHelperInfo).Name;
 
     public TagHelperInfo? TagHelperInfo
-    {
-        get
-        {
-            return this.GetAnnotationValue(TagHelperInfoKey) as TagHelperInfo;
-        }
-    }
+        => this.GetAnnotationValue(TagHelperInfoKey) as TagHelperInfo;
 
     public MarkupTagHelperElementSyntax WithTagHelperInfo(TagHelperInfo info)
     {
-        var existingAnnotations = GetAnnotations();
-
-        var newAnnotations = new SyntaxAnnotation[existingAnnotations.Length + 1];
-        existingAnnotations.CopyTo(newAnnotations, 0);
-        newAnnotations[^1] = new(TagHelperInfoKey, info);
-
-        var newGreen = Green.WithAnnotationsGreen(newAnnotations);
+        var newGreen = Green.WithAnnotationsGreen([.. GetAnnotations(), new(TagHelperInfoKey, info)]);
 
         return (MarkupTagHelperElementSyntax)newGreen.CreateRed(Parent, Position);
     }
