@@ -103,6 +103,11 @@ internal static class ImmutableArrayExtensions
 
     public static ImmutableArray<T> WhereAsArray<T>(this ImmutableArray<T> source, Func<T, bool> predicate)
     {
+        if (source is [])
+        {
+            return ImmutableArray<T>.Empty;
+        }
+
         using var builder = new PooledArrayBuilder<T>();
 
         foreach (var item in source)
