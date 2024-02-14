@@ -58,7 +58,7 @@ internal sealed class TagHelperBinder
     {
         if (!TagHelperPrefix.IsNullOrEmpty() &&
             (tagName.Length <= TagHelperPrefix.Length ||
-            !tagName.StartsWith(TagHelperPrefix, StringComparison.OrdinalIgnoreCase)))
+             !tagName.StartsWith(TagHelperPrefix, StringComparison.OrdinalIgnoreCase)))
         {
             // The tagName doesn't have the tag helper prefix, we can short circuit.
             return null;
@@ -104,7 +104,7 @@ internal sealed class TagHelperBinder
             TagHelperPrefix);
 
         static void FindApplicableDescriptors(
-            IEnumerable<TagHelperDescriptor> descriptors,
+            HashSet<TagHelperDescriptor> descriptors,
             ReadOnlySpan<char> tagNameWithoutPrefix,
             ReadOnlySpan<char> parentTagNameWithoutPrefix,
             ImmutableArray<KeyValuePair<string, string>> attributes,
@@ -136,19 +136,18 @@ internal sealed class TagHelperBinder
     {
         foreach (var rule in descriptor.TagMatchingRules)
         {
-            var registrationKey =
-                string.Equals(rule.TagName, TagHelperMatchingConventions.ElementCatchAllName, StringComparison.Ordinal) ?
-                TagHelperMatchingConventions.ElementCatchAllName :
-                TagHelperPrefix + rule.TagName;
+            var registrationKey = rule.TagName == TagHelperMatchingConventions.ElementCatchAllName
+                ? TagHelperMatchingConventions.ElementCatchAllName
+                : TagHelperPrefix + rule.TagName;
 
             // Ensure there's a HashSet to add the descriptor to.
-            if (!_registrations.TryGetValue(registrationKey, out HashSet<TagHelperDescriptor> descriptorSet))
+            if (!_registrations.TryGetValue(registrationKey, out var descriptorSet))
             {
                 descriptorSet = [];
                 _registrations[registrationKey] = descriptorSet;
             }
 
-            _ = descriptorSet.Add(descriptor);
+            descriptorSet.Add(descriptor);
         }
     }
 }
