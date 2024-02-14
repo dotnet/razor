@@ -3,4 +3,4 @@
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal record TagHelperInfo(string TagName, TagMode TagMode, TagHelperBinding BindingResult);
+internal sealed record TagHelperInfo(string TagName, TagMode TagMode, TagHelperBinding BindingResult);
