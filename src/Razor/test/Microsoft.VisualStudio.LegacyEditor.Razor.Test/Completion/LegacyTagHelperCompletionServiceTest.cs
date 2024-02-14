@@ -32,12 +32,10 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .AsDictionary("asp-route-", typeof(string).FullName))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["asp-route-..."] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ]
+            ["asp-route-..."] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var completionContext = BuildAttributeCompletionContext(
@@ -70,16 +68,11 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .AsDictionary("asp-route-", typeof(string).FullName))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["asp-all-route-data"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ],
-            ["asp-route-..."] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ]
+            ["asp-all-route-data"] = [documentDescriptors[0].BoundAttributes.Last()],
+            ["asp-route-..."] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var completionContext = BuildAttributeCompletionContext(
@@ -120,16 +113,11 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .AsDictionary("asp-route-", typeof(string).FullName))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["asp-all-route-data"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ],
-            ["asp-route-..."] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ]
+            ["asp-all-route-data"] = [documentDescriptors[0].BoundAttributes.Last()],
+            ["asp-route-..."] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var completionContext = BuildAttributeCompletionContext(
@@ -169,13 +157,11 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .Metadata(PropertyName("Class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["onclick"] = [],
-            ["visible"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last()
-            ]
+            ["visible"] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var existingCompletions = new[] { "onclick" };
@@ -218,13 +204,11 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .Metadata(PropertyName("Class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["onclick"] = [],
-            ["visible"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last()
-            ]
+            ["visible"] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var existingCompletions = new[] { "onclick" };
@@ -269,6 +253,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .Metadata(PropertyName("Class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["onclick"] = []
@@ -310,6 +295,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .RequireAttributeDescriptor(attribute => attribute.Name("class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
@@ -360,14 +346,12 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .Metadata(PropertyName("Class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["class"] = [..documentDescriptors[1].BoundAttributes],
+            ["class"] = [.. documentDescriptors[1].BoundAttributes],
             ["onclick"] = [],
-            ["repeat"] =
-            [
-                documentDescriptors[0].BoundAttributes.First()
-            ]
+            ["repeat"] = [documentDescriptors[0].BoundAttributes.First()]
         });
 
         var existingCompletions = new[] { "onclick" };
@@ -421,16 +405,9 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["onclick"] = [],
-            ["class"] = [..documentDescriptors[1].BoundAttributes],
-            ["repeat"] =
-            [
-                documentDescriptors[0].BoundAttributes.First()
-            ],
-            ["visible"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-                documentDescriptors[2].BoundAttributes.First(),
-            ]
+            ["class"] = [.. documentDescriptors[1].BoundAttributes],
+            ["repeat"] = [documentDescriptors[0].BoundAttributes.First()],
+            ["visible"] = [documentDescriptors[0].BoundAttributes.Last(), documentDescriptors[2].BoundAttributes.First()]
         });
 
         var existingCompletions = new[] { "class", "onclick" };
@@ -462,10 +439,11 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagOutputHint("div")
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
-            ["repeat"] = [..documentDescriptors[0].BoundAttributes]
+            ["repeat"] = [.. documentDescriptors[0].BoundAttributes]
         });
 
         var existingCompletions = new[] { "class" };
@@ -496,9 +474,10 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .Metadata(PropertyName("Repeat")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["repeat"] = [..documentDescriptors[0].BoundAttributes]
+            ["repeat"] = [.. documentDescriptors[0].BoundAttributes]
         });
 
         var existingCompletions = new[] { "class" };
@@ -529,6 +508,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .Metadata(PropertyName("Repeat")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
@@ -584,6 +564,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .RequireAttributeDescriptor(attribute => attribute.Name("special")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
@@ -616,6 +597,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .RequireAttributeDescriptor(attribute => attribute.Name("special")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
@@ -651,6 +633,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagOutputHint("table")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["table"] = [],
@@ -689,6 +672,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .Metadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch)
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["Test"] = [documentDescriptors[0]],
@@ -724,6 +708,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagOutputHint("tr")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["my-table"] = [documentDescriptors[0]],
@@ -758,6 +743,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("li"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["th:li"] = [documentDescriptors[1], documentDescriptors[0]],
@@ -792,6 +778,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("li"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["th:superli"] = [documentDescriptors[0]],
@@ -829,6 +816,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .SetCaseSensitive()
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["myli"] = [documentDescriptors[0]],
@@ -866,6 +854,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .SetCaseSensitive()
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["LI"] = [documentDescriptors[0]],
@@ -900,6 +889,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["superli"] = [documentDescriptors[0], documentDescriptors[1]],
@@ -933,6 +923,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["th:superli"] = [documentDescriptors[0], documentDescriptors[1]],
@@ -969,6 +960,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["strong"] = [documentDescriptors[0], documentDescriptors[1]],
@@ -1003,6 +995,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("li"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["li"] = [documentDescriptors[0], documentDescriptors[1]],
@@ -1036,6 +1029,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["li"] = [documentDescriptors[1]],
@@ -1068,6 +1062,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagOutputHint("strong")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["div"] = [documentDescriptors[0]],
@@ -1098,6 +1093,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("li").RequireParentTag("ol"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["li"] = [documentDescriptors[0]],
@@ -1129,6 +1125,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .AllowChildTag("child-tag")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["outer-child-tag"] = [documentDescriptors[0]],
@@ -1164,6 +1161,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .AllowChildTag("child-tag")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["child-tag"] = [documentDescriptors[0]],
@@ -1196,6 +1194,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .AllowChildTag("div")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create([]);
 
         var completionContext = BuildElementCompletionContext(
@@ -1225,6 +1224,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .AllowChildTag("div")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["b"] = [],
@@ -1255,6 +1255,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .AllowChildTag("bold")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["b"] = [],
@@ -1288,6 +1289,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .AllowChildTag("div")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["b"] = [],
@@ -1327,6 +1329,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .AllowChildTag("bold")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["strong"] = [documentDescriptors[0]],

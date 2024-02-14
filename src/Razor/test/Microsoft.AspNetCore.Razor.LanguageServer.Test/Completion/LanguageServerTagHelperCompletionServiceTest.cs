@@ -34,12 +34,10 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .AsDictionary("asp-route-", typeof(string).FullName))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["asp-route-..."] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ]
+            ["asp-route-..."] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var completionContext = BuildAttributeCompletionContext(
@@ -72,16 +70,11 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .AsDictionary("asp-route-", typeof(string).FullName))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["asp-all-route-data"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ],
-            ["asp-route-..."] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ]
+            ["asp-all-route-data"] = [documentDescriptors[0].BoundAttributes.Last()],
+            ["asp-route-..."] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var completionContext = BuildAttributeCompletionContext(
@@ -122,16 +115,11 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .AsDictionary("asp-route-", typeof(string).FullName))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["asp-all-route-data"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ],
-            ["asp-route-..."] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-            ]
+            ["asp-all-route-data"] = [documentDescriptors[0].BoundAttributes.Last()],
+            ["asp-route-..."] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var completionContext = BuildAttributeCompletionContext(
@@ -171,13 +159,11 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .Metadata(PropertyName("Class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["onclick"] = [],
-            ["visible"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last()
-            ]
+            ["visible"] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var existingCompletions = new[] { "onclick" };
@@ -220,13 +206,11 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .Metadata(PropertyName("Class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["onclick"] = [],
-            ["visible"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last()
-            ]
+            ["visible"] = [documentDescriptors[0].BoundAttributes.Last()]
         });
 
         var existingCompletions = new[] { "onclick" };
@@ -271,6 +255,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .Metadata(PropertyName("Class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["onclick"] = []
@@ -312,6 +297,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .RequireAttributeDescriptor(attribute => attribute.Name("class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
@@ -362,14 +348,12 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .Metadata(PropertyName("Class")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["class"] = [..documentDescriptors[1].BoundAttributes],
+            ["class"] = [.. documentDescriptors[1].BoundAttributes],
             ["onclick"] = [],
-            ["repeat"] =
-            [
-                documentDescriptors[0].BoundAttributes.First()
-            ]
+            ["repeat"] = [documentDescriptors[0].BoundAttributes.First()]
         });
 
         var existingCompletions = new[] { "onclick" };
@@ -420,19 +404,13 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .Metadata(PropertyName("Visible")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["onclick"] = [],
-            ["class"] = [..documentDescriptors[1].BoundAttributes],
-            ["repeat"] =
-            [
-                documentDescriptors[0].BoundAttributes.First()
-            ],
-            ["visible"] =
-            [
-                documentDescriptors[0].BoundAttributes.Last(),
-                documentDescriptors[2].BoundAttributes.First(),
-            ]
+            ["class"] = [.. documentDescriptors[1].BoundAttributes],
+            ["repeat"] = [documentDescriptors[0].BoundAttributes.First()],
+            ["visible"] = [documentDescriptors[0].BoundAttributes.Last(), documentDescriptors[2].BoundAttributes.First()]
         });
 
         var existingCompletions = new[] { "class", "onclick" };
@@ -464,10 +442,11 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagOutputHint("div")
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
-            ["repeat"] = [..documentDescriptors[0].BoundAttributes]
+            ["repeat"] = [.. documentDescriptors[0].BoundAttributes]
         });
 
         var existingCompletions = new[] { "class" };
@@ -498,9 +477,10 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .Metadata(PropertyName("Repeat")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
-            ["repeat"] = new HashSet<BoundAttributeDescriptor>(documentDescriptors[0].BoundAttributes)
+            ["repeat"] = [.. documentDescriptors[0].BoundAttributes]
         });
 
         var existingCompletions = new[] { "class" };
@@ -531,6 +511,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .Metadata(PropertyName("Repeat")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
@@ -586,6 +567,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .RequireAttributeDescriptor(attribute => attribute.Name("special")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
@@ -618,6 +600,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     .RequireAttributeDescriptor(attribute => attribute.Name("special")))
                 .Build(),
         ];
+
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
@@ -653,6 +636,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagOutputHint("table")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create([]);
 
         var existingCompletions = new[] { "table" };
@@ -688,6 +672,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .Metadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch)
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["Test"] = [documentDescriptors[0]],
@@ -723,6 +708,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagOutputHint("tr")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["my-table"] = [documentDescriptors[0]]
@@ -756,6 +742,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("li"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["th:li"] = [documentDescriptors[1], documentDescriptors[0]],
@@ -789,6 +776,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("li"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["th:superli"] = [documentDescriptors[0]],
@@ -825,6 +813,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .SetCaseSensitive()
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["myli"] = [documentDescriptors[0]],
@@ -861,6 +850,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .SetCaseSensitive()
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["LI"] = [documentDescriptors[0]],
@@ -895,6 +885,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["superli"] = [documentDescriptors[0], documentDescriptors[1]],
@@ -927,6 +918,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["th:superli"] = [documentDescriptors[0], documentDescriptors[1]],
@@ -962,6 +954,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["strong"] = [documentDescriptors[0], documentDescriptors[1]],
@@ -996,6 +989,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("li"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["li"] = [documentDescriptors[0], documentDescriptors[1]],
@@ -1029,6 +1023,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["li"] = [documentDescriptors[1]],
@@ -1061,6 +1056,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagOutputHint("strong")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["div"] = [documentDescriptors[0]],
@@ -1091,6 +1087,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("li").RequireParentTag("ol"))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["li"] = [documentDescriptors[0]],
@@ -1122,6 +1119,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .AllowChildTag("child-tag")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["outer-child-tag"] = [documentDescriptors[0]],
@@ -1157,6 +1155,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .AllowChildTag("child-tag")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["child-tag"] = [documentDescriptors[0]],
@@ -1189,6 +1188,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .AllowChildTag("div")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create([]);
 
         var completionContext = BuildElementCompletionContext(
@@ -1218,6 +1218,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .AllowChildTag("div")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["b"] = [],
@@ -1252,6 +1253,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .AllowChildTag("bold")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["b"] = [],
@@ -1285,6 +1287,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .AllowChildTag("div")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["b"] = [],
@@ -1324,6 +1327,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                 .AllowChildTag("bold")
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["strong"] = [documentDescriptors[0]],
@@ -1362,6 +1366,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     }))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["form"] = [documentDescriptors[0]]
@@ -1401,6 +1406,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     }))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create([]);
 
         var completionContext = BuildElementCompletionContext(
@@ -1433,6 +1439,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
                     }))
                 .Build(),
         ];
+
         var expectedCompletions = ElementCompletionResult.Create(new()
         {
             ["component"] = [documentDescriptors[0]],
