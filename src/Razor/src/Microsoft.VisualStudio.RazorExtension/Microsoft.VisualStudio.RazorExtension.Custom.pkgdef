@@ -74,3 +74,10 @@
 "Value"=dword:00000000
 "Title"="Disable Razor Language Server (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Razor\LSP\EnableFuse]
+"Description"="Enable combined design time/runtime code generation for Razor files"
+"Value"=dword:00000000
+"Title"="Enable 'fuse' for Razor files (requires restart)"
+"PreviewPaneChannels"="*"
+"VisibleToInternalUsersOnlyChannels"="*"

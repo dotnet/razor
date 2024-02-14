@@ -47,4 +47,10 @@ internal abstract class LanguageServerFeatureOptions
     public abstract bool UseRazorCohostServer { get; }
 
     public abstract bool DisableRazorLanguageServer { get; }
+
+    /// <summary>
+    /// Whether the "fuse" feature of razor is enabled, which uses the runtime output of razor in the IDE
+    /// instead of the design time output.
+    /// </summary>
+    public abstract bool EnableFuse { get; }
 }
