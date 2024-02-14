@@ -110,10 +110,10 @@ internal sealed class TagHelperBinder
             ImmutableArray<KeyValuePair<string, string>> attributes,
             Dictionary<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>> applicableDescriptors)
         {
+            using var applicableRules = new PooledArrayBuilder<TagMatchingRuleDescriptor>();
+
             foreach (var descriptor in descriptors)
             {
-                using var applicableRules = new PooledArrayBuilder<TagMatchingRuleDescriptor>();
-
                 foreach (var rule in descriptor.TagMatchingRules)
                 {
                     if (TagHelperMatchingConventions.SatisfiesRule(rule, tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes))
@@ -126,6 +126,8 @@ internal sealed class TagHelperBinder
                 {
                     applicableDescriptors[descriptor] = applicableRules.DrainToImmutable();
                 }
+
+                applicableRules.Clear();
             }
         }
     }
