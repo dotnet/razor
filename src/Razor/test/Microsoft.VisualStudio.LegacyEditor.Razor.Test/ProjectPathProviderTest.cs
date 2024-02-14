@@ -3,7 +3,9 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -13,43 +15,55 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    [Fact]
+    [UIFact]
     public void TryGetProjectPath_NullLiveShareProjectPathProvider_UsesProjectService()
     {
         // Arrange
-        var expectedProjectPath = "/my/project/path.csproj";
-        var projectServiceMock = new StrictMock<ITextBufferProjectService>();
-        projectServiceMock
-            .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
-            .Returns(new object());
-        projectServiceMock
-            .Setup(service => service.GetProjectPath(It.IsAny<object>()))
-            .Returns(expectedProjectPath);
-        var projectPathProvider = new ProjectPathProvider(projectServiceMock.Object, liveShareProjectPathProvider: null);
+        var projectFilePath = "/my/project/path.csproj";
+        var documentFilePath = "/my/document/path.razor";
+
+        var vsHierarchy = CreateVsHierarchy(projectFilePath);
+        var vsRunningDocumentTable = CreateVsRunningDocumentTable(documentFilePath, vsHierarchy);
+
+        var serviceProvider = VsMocks.CreateServiceProvider(b =>
+        {
+            b.AddService<SVsRunningDocumentTable>(vsRunningDocumentTable);
+        });
+
         var textBuffer = StrictMock.Of<ITextBuffer>();
+        var textDocumentFactoryService = CreateTextDocumentFactoryService(textBuffer, documentFilePath);
+
+        var projectPathProvider = new ProjectPathProvider(
+            serviceProvider,
+            textDocumentFactoryService,
+            liveShareProjectPathProvider: null,
+            JoinableTaskContext);
 
         // Act
         var result = projectPathProvider.TryGetProjectPath(textBuffer, out var filePath);
 
         // Assert
         Assert.True(result);
-        Assert.Equal(expectedProjectPath, filePath);
+        Assert.Equal(projectFilePath, filePath);
     }
 
-    [Fact]
+    [UIFact]
     public void TryGetProjectPath_PrioritizesLiveShareProjectPathProvider()
     {
         // Arrange
+        var liveShareProjectFilePath = "/path/from/liveshare.csproj";
+
         var liveShareProjectPathProviderMock = new StrictMock<ILiveShareProjectPathProvider>();
-        var liveShareProjectPath = "/path/from/liveshare.csproj";
         liveShareProjectPathProviderMock
-            .Setup(provider => provider.TryGetProjectPath(It.IsAny<ITextBuffer>(), out liveShareProjectPath))
+            .Setup(x => x.TryGetProjectPath(It.IsAny<ITextBuffer>(), out liveShareProjectFilePath))
             .Returns(true);
-        var projectServiceMock = new StrictMock<ITextBufferProjectService>();
-        projectServiceMock
-            .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
-            .Throws<Exception>();
-        var projectPathProvider = new ProjectPathProvider(projectServiceMock.Object, liveShareProjectPathProviderMock.Object);
+
+        var projectPathProvider = new ProjectPathProvider(
+            StrictMock.Of<IServiceProvider>(),
+            StrictMock.Of<ITextDocumentFactoryService>(),
+            liveShareProjectPathProviderMock.Object,
+            JoinableTaskContext);
+
         var textBuffer = StrictMock.Of<ITextBuffer>();
 
         // Act
@@ -57,23 +71,34 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
 
         // Assert
         Assert.True(result);
-        Assert.Equal(liveShareProjectPath, filePath);
+        Assert.Equal(liveShareProjectFilePath, filePath);
     }
 
-    [Fact]
+    [UIFact]
     public void TryGetProjectPath_ReturnsFalseIfNoProject()
     {
         // Arrange
-        var projectServiceMock = new StrictMock<ITextBufferProjectService>();
-        projectServiceMock
-            .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
-            .Returns(value: null);
+        var documentFilePath = "/my/document/path.razor";
+        var vsRunningDocumentTable = CreateVsRunningDocumentTable(documentFilePath, vsHierarchy: null);
+
+        var serviceProvider = VsMocks.CreateServiceProvider(b =>
+        {
+            b.AddService<SVsRunningDocumentTable>(vsRunningDocumentTable);
+        });
+
+        var textBuffer = StrictMock.Of<ITextBuffer>();
+        var textDocumentFactoryService = CreateTextDocumentFactoryService(textBuffer, documentFilePath);
+
         var liveShareProjectPathProviderMock = new StrictMock<ILiveShareProjectPathProvider>();
         liveShareProjectPathProviderMock
             .Setup(p => p.TryGetProjectPath(It.IsAny<ITextBuffer>(), out It.Ref<string?>.IsAny))
             .Returns(false);
-        var projectPathProvider = new ProjectPathProvider(projectServiceMock.Object, liveShareProjectPathProviderMock.Object);
-        var textBuffer = StrictMock.Of<ITextBuffer>();
+
+        var projectPathProvider = new ProjectPathProvider(
+            serviceProvider,
+            textDocumentFactoryService,
+            liveShareProjectPathProviderMock.Object,
+            JoinableTaskContext);
 
         // Act
         var result = projectPathProvider.TryGetProjectPath(textBuffer, out var filePath);
@@ -83,30 +108,82 @@ public class ProjectPathProviderTest(ITestOutputHelper testOutput) : ToolingTest
         Assert.Null(filePath);
     }
 
-    [Fact]
+    [UIFact]
     public void TryGetProjectPath_ReturnsTrueIfProject()
     {
         // Arrange
-        var expectedProjectPath = "/my/project/path.csproj";
-        var projectServiceMock = new StrictMock<ITextBufferProjectService>();
-        projectServiceMock
-            .Setup(service => service.GetHostProject(It.IsAny<ITextBuffer>()))
-            .Returns(new object());
-        projectServiceMock
-            .Setup(service => service.GetProjectPath(It.IsAny<object>()))
-            .Returns(expectedProjectPath);
+        var projectFilePath = "/my/project/path.csproj";
+        var documentFilePath = "/my/document/path.razor";
+
+        var vsHierarchy = CreateVsHierarchy(projectFilePath);
+        var vsRunningDocumentTable = CreateVsRunningDocumentTable(documentFilePath, vsHierarchy);
+
+        var serviceProvider = VsMocks.CreateServiceProvider(b =>
+        {
+            b.AddService<SVsRunningDocumentTable>(vsRunningDocumentTable);
+        });
+
+        var textBuffer = StrictMock.Of<ITextBuffer>();
+        var textDocumentFactoryService = CreateTextDocumentFactoryService(textBuffer, documentFilePath);
+
         var liveShareProjectPathProviderMock = new StrictMock<ILiveShareProjectPathProvider>();
         liveShareProjectPathProviderMock
             .Setup(p => p.TryGetProjectPath(It.IsAny<ITextBuffer>(), out It.Ref<string?>.IsAny))
             .Returns(false);
-        var projectPathProvider = new ProjectPathProvider(projectServiceMock.Object, liveShareProjectPathProviderMock.Object);
-        var textBuffer = StrictMock.Of<ITextBuffer>();
+
+        var projectPathProvider = new ProjectPathProvider(
+            serviceProvider,
+            textDocumentFactoryService,
+            liveShareProjectPathProviderMock.Object,
+            JoinableTaskContext);
 
         // Act
         var result = projectPathProvider.TryGetProjectPath(textBuffer, out var filePath);
 
         // Assert
         Assert.True(result);
-        Assert.Equal(expectedProjectPath, filePath);
+        Assert.Equal(projectFilePath, filePath);
+    }
+
+    private static IVsHierarchy CreateVsHierarchy(string projectFilePath)
+    {
+        var vsHierarchyMock = new StrictMock<IVsHierarchy>();
+        var vsProjectMock = vsHierarchyMock.As<IVsProject>();
+        vsProjectMock
+            .Setup(x => x.GetMkDocument((uint)VSConstants.VSITEMID.Root, out projectFilePath))
+            .Returns(VSConstants.S_OK);
+
+        return vsHierarchyMock.Object;
+    }
+
+    private static IVsRunningDocumentTable CreateVsRunningDocumentTable(string documentFilePath, IVsHierarchy? vsHierarchy)
+    {
+        var itemid = 19u;
+        var punkDocData = IntPtr.Zero;
+        var dwCookie = 23u;
+
+        var vsRunningDocumentTableMock = new StrictMock<IVsRunningDocumentTable>();
+        vsRunningDocumentTableMock
+            .Setup(x => x.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, documentFilePath, out vsHierarchy, out itemid, out punkDocData, out dwCookie))
+            .Returns(VSConstants.S_OK);
+
+        return vsRunningDocumentTableMock.Object;
+    }
+
+    private static ITextDocumentFactoryService CreateTextDocumentFactoryService(ITextBuffer textBuffer, string filePath)
+    {
+        var textDocumentMock = new StrictMock<ITextDocument>();
+        textDocumentMock
+            .SetupGet(x => x.FilePath)
+            .Returns(filePath);
+
+        var textDocument = textDocumentMock.Object;
+
+        var textDocumentFactoryServiceMock = new StrictMock<ITextDocumentFactoryService>();
+        textDocumentFactoryServiceMock
+            .Setup(x => x.TryGetTextDocument(textBuffer, out textDocument))
+            .Returns(true);
+
+        return textDocumentFactoryServiceMock.Object;
     }
 }

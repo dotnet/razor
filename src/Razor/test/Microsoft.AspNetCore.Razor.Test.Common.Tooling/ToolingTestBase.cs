@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 ///  Base class for all test classes that provides the following support:
 ///
 ///  <list type="bullet">
-///   <item>A <see cref="VisualStudio.Threading.JoinableTaskFactory"/> that uses the xUnit
+///   <item>A <see cref="Microsoft.VisualStudio.Threading.JoinableTaskFactory"/> that uses the xUnit
 ///   test thread as the main thread.</item>
 ///   <item>A <see cref="CancellationToken"/> that signals when the test has finished running
 ///   and xUnit disposes the test class.</item>
@@ -163,6 +163,12 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
 
     private protected virtual ProjectSnapshotManagerDispatcher CreateDispatcher()
         => throw new NotSupportedException($"Override {nameof(CreateDispatcher)} in order to use the {nameof(Dispatcher)} property in this test.");
+
+    protected Task RunOnDispatcherAsync(Action action)
+        => Dispatcher.RunOnDispatcherThreadAsync(action, DisposalToken);
+
+    protected Task<T> RunOnDispatcherAsync<T>(Func<T> func)
+        => Dispatcher.RunOnDispatcherThreadAsync(func, DisposalToken);
 
     /// <summary>
     ///  Register an <see cref="IDisposable"/> instance to be disposed when the test completes.

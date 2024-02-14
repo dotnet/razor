@@ -5,20 +5,26 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
 [Export(typeof(IProjectPathProvider))]
 [method: ImportingConstructor]
 internal sealed class ProjectPathProvider(
-    ITextBufferProjectService projectService,
-    [Import(AllowDefault = true)] ILiveShareProjectPathProvider? liveShareProjectPathProvider) : IProjectPathProvider
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+    ITextDocumentFactoryService textDocumentFactoryService,
+    [Import(AllowDefault = true)] ILiveShareProjectPathProvider? liveShareProjectPathProvider,
+    JoinableTaskContext joinableTaskContext) : IProjectPathProvider
 {
-    private readonly ITextBufferProjectService _projectService = projectService;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly ITextDocumentFactoryService _textDocumentFactoryService = textDocumentFactoryService;
     private readonly ILiveShareProjectPathProvider? _liveShareProjectPathProvider = liveShareProjectPathProvider;
+    private readonly JoinableTaskFactory _jtf = joinableTaskContext.Factory;
 
-    public bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath)
+    public bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(true)] out string? filePath)
     {
         if (textBuffer is null)
         {
@@ -31,14 +37,14 @@ internal sealed class ProjectPathProvider(
             return true;
         }
 
-        var project = _projectService.GetHostProject(textBuffer);
-        if (project is null)
+        var vsHierarchy = textBuffer.GetVsHierarchy(_textDocumentFactoryService, _serviceProvider, _jtf);
+        if (vsHierarchy is null)
         {
             filePath = null;
             return false;
         }
 
-        filePath = _projectService.GetProjectPath(project);
-        return true;
+        filePath = vsHierarchy.GetProjectFilePath(_jtf);
+        return filePath is not null;
     }
 }
