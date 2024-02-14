@@ -78,8 +78,8 @@
       Exception - Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages are not updated by automation,
       but are present in Version.Details.xml for source-build PVP flow. See the comment in Version.Details.xml for more information.
     -->
-    <MicrosoftExtensionsObjectPoolPackageVersion>6.0.0</MicrosoftExtensionsObjectPoolPackageVersion>
-    <SystemCollectionsImmutablePackageVersion>6.0.0</SystemCollectionsImmutablePackageVersion>
+    <MicrosoftExtensionsObjectPoolPackageVersion>8.0.0</MicrosoftExtensionsObjectPoolPackageVersion>
+    <SystemCollectionsImmutablePackageVersion>8.0.0</SystemCollectionsImmutablePackageVersion>
   </PropertyGroup>
   <!--
 
