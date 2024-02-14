@@ -190,7 +190,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         foreach (var descriptor in bindingResult.Descriptors)
         {
-            var tagMatchingRules = bindingResult.GetBoundRules(descriptor);
+            var tagMatchingRules = bindingResult.Mappings[descriptor];
             foreach (var tagMatchingRule in tagMatchingRules)
             {
                 if (tagMatchingRule.TagStructure == TagStructure.Unspecified)

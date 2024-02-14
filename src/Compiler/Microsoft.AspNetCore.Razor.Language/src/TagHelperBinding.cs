@@ -61,14 +61,4 @@ internal sealed class TagHelperBinding
             return true;
         }
     }
-
-    public ImmutableArray<TagMatchingRuleDescriptor> GetBoundRules(TagHelperDescriptor descriptor)
-    {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        return Mappings[descriptor];
-    }
 }
