@@ -9,12 +9,13 @@ namespace Test
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-using Test2;
+#line (3,2)-(3,13) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+using Test2
 
 #line default
 #line hidden
 #nullable disable
+    ;
     [global::Microsoft.AspNetCore.Components.RouteAttribute(
     // language=Route,Component
 #nullable restore

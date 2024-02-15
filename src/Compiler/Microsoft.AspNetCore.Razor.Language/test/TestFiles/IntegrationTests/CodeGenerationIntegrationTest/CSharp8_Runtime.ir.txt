@@ -1,10 +1,12 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
-        UsingDirective - (1:0,1 [34] CSharp8.cshtml) - System.Collections.Generic
+        UsingDirective - (1:0,1 [32] CSharp8.cshtml) - System.Collections.Generic
         RazorSourceChecksumAttribute - 
         ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_CSharp8_Runtime -  - 
             MethodDeclaration -  - public async - System.Threading.Tasks.Task - ExecuteAsync
+                CSharpCode - (33:0,33 [2] CSharp8.cshtml)
+                    LazyIntermediateToken - (33:0,33 [2] CSharp8.cshtml) - CSharp - \n
                 HtmlContent - (35:1,0 [2] CSharp8.cshtml)
                     LazyIntermediateToken - (35:1,0 [2] CSharp8.cshtml) - Html - \n
                 CSharpCode - (39:2,2 [396] CSharp8.cshtml)
