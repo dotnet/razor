@@ -59,7 +59,25 @@ internal class MetadataAttributeTargetExtension : IMetadataAttributeTargetExtens
         context.CodeWriter.Write("(");
         context.CodeWriter.WriteStringLiteral(node.Key);
         context.CodeWriter.Write(", ");
-        context.CodeWriter.WriteStringLiteral(node.Value);
+        if (node.Source.HasValue && !context.Options.DesignTime)
+        {
+            context.CodeWriter.WriteLine();
+            if (node.ValueStringSyntax is not null)
+            {
+                context.CodeWriter.Write("// language=");
+                context.CodeWriter.WriteLine(node.ValueStringSyntax);
+            }
+            using (context.CodeWriter.BuildEnhancedLinePragma(node.Source, context, characterOffset: 1))
+            {
+                context.CodeWriter.WritePadding(0, node.Source, context);
+                context.AddSourceMappingFor(node);
+                context.CodeWriter.WriteStringLiteral(node.Value);
+            }
+        }
+        else
+        {
+            context.CodeWriter.WriteStringLiteral(node.Value);
+        }
         context.CodeWriter.WriteLine(")]");
     }
 

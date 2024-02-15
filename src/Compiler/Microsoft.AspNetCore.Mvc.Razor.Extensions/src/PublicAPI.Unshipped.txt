@@ -1,1 +1,2 @@
 ﻿#nullable enable
+Microsoft.AspNetCore.Mvc.Razor.Extensions.PageDirective.Source.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?

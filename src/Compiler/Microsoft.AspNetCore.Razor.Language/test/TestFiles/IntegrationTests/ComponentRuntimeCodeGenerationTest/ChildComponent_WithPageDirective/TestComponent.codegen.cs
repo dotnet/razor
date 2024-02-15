@@ -8,8 +8,26 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-    [global::Microsoft.AspNetCore.Components.RouteAttribute("/MyPage")]
-    [global::Microsoft.AspNetCore.Components.RouteAttribute("/AnotherRoute/{id}")]
+    [global::Microsoft.AspNetCore.Components.RouteAttribute(
+    // language=Route,Component
+#nullable restore
+#line (1,7)-(1,16) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+      "/MyPage"
+
+#line default
+#line hidden
+#nullable disable
+    )]
+    [global::Microsoft.AspNetCore.Components.RouteAttribute(
+    // language=Route,Component
+#nullable restore
+#line (2,7)-(2,27) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+      "/AnotherRoute/{id}"
+
+#line default
+#line hidden
+#nullable disable
+    )]
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
