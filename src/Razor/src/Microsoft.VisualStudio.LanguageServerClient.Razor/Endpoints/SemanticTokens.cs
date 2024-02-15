@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -29,7 +28,6 @@ internal partial class RazorCustomMessageTarget
         return ProvideSemanticTokensAsync(
             semanticTokensParams: inputParams,
             lspMethodName: Methods.TextDocumentSemanticTokensRangeName,
-            capabilitiesFilter: _ => true,
             requestParams: new SemanticTokensRangeParams
             {
                 TextDocument = inputParams.TextDocument,
@@ -46,7 +44,6 @@ internal partial class RazorCustomMessageTarget
         return ProvideSemanticTokensAsync(
             semanticTokensParams: inputParams,
             lspMethodName: RazorLSPConstants.RoslynSemanticTokenRangesEndpointName,
-            capabilitiesFilter: SupportsPreciseRanges,
             requestParams: new SemanticTokensRangesParams()
             {
                 TextDocument = inputParams.TextDocument,
@@ -58,7 +55,6 @@ internal partial class RazorCustomMessageTarget
     private async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensAsync(
         ProvideSemanticTokensRangesParams semanticTokensParams,
         string lspMethodName,
-        Func<JToken, bool> capabilitiesFilter,
         SemanticTokensParams requestParams,
         CancellationToken cancellationToken)
     {
@@ -124,7 +120,6 @@ internal partial class RazorCustomMessageTarget
                 textBuffer,
                 lspMethodName,
                 languageServerName,
-                capabilitiesFilter,
                 requestParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -140,14 +135,5 @@ internal partial class RazorCustomMessageTarget
 
         _logger?.LogDebug("Made one semantic token requests to Roslyn for {count} ranges", semanticTokensParams.Ranges.Length);
         return new ProvideSemanticTokensResponse(response.Data, semanticTokensParams.RequiredHostDocumentVersion);
-    }
-
-    private static bool SupportsPreciseRanges(JToken token)
-    {
-        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
-
-        return serverCapabilities?.Experimental is JObject experimental
-            && experimental.TryGetValue(RazorLSPConstants.RoslynSemanticTokenRangesEndpointName, out var supportsPreciseRanges)
-            && supportsPreciseRanges.ToObject<bool>();
     }
 }

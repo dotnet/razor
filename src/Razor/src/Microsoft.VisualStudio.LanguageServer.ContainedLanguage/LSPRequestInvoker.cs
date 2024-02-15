@@ -42,6 +42,7 @@ internal abstract class LSPRequestInvoker
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
+    [Obsolete("Will be removed in a future version.")]
     public abstract Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
         string method,
         string languageServerName,
@@ -58,6 +59,7 @@ internal abstract class LSPRequestInvoker
         CancellationToken cancellationToken)
         where TIn : notnull;
 
+    [Obsolete("Will be removed in a future version.")]
     public abstract Task<ReinvocationResponse<TOut>?> ReinvokeRequestOnServerAsync<TIn, TOut>(
         ITextBuffer textBuffer,
         string method,
@@ -78,6 +80,7 @@ internal abstract class LSPRequestInvoker
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
+    [Obsolete("Will be removed in a future version.")]
     public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
         string method,
         string contentType,
@@ -97,6 +100,7 @@ internal abstract class LSPRequestInvoker
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
+    [Obsolete("Will be removed in a future version.")]
     public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
         string method,
         string contentType,
@@ -112,6 +116,7 @@ internal abstract class LSPRequestInvoker
         CancellationToken cancellationToken)
         where TIn : notnull;
 
+    [Obsolete("Will be removed in a future version.")]
     public abstract IAsyncEnumerable<ReinvocationResponse<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
         ITextBuffer textBuffer,
         string method,

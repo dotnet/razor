@@ -12,8 +12,6 @@ abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.LSPDocumentSnap
 abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.LSPDocumentSnapshot.Version.get -> int
 abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.LSPDocumentSnapshot.VirtualDocuments.get -> System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.LanguageServer.ContainedLanguage.VirtualDocumentSnapshot!>!
 abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception.InterceptorManager.HasInterceptor(string! messageName, string! contentType) -> bool
-abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception.InterceptorManager.ProcessInterceptorsAsync(string! methodName, Newtonsoft.Json.Linq.JToken! message, string! contentType, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!
-abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception.MessageInterceptor.ApplyChangesAsync(Newtonsoft.Json.Linq.JToken! message, string! containedLanguageName, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception.InterceptionResult>!
 abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.VirtualDocument.CurrentSnapshot.get -> Microsoft.VisualStudio.LanguageServer.ContainedLanguage.VirtualDocumentSnapshot!
 abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.VirtualDocument.Dispose() -> void
 abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.VirtualDocument.HostDocumentVersion.get -> int

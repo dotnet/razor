@@ -30,6 +30,7 @@ internal class TestLSPRequestInvoker : LSPRequestInvoker
         _csharpServer = csharpServer;
     }
 
+    [Obsolete("Will be removed in a future version.")]
     public override Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
         string method,
         string contentType,
@@ -39,6 +40,7 @@ internal class TestLSPRequestInvoker : LSPRequestInvoker
         throw new NotImplementedException();
     }
 
+    [Obsolete("Will be removed in a future version.")]
     public override Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
         string method,
         string contentType,
@@ -58,6 +60,7 @@ internal class TestLSPRequestInvoker : LSPRequestInvoker
         throw new NotImplementedException();
     }
 
+    [Obsolete("Will be removed in a future version.")]
     public override IAsyncEnumerable<ReinvocationResponse<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
         ITextBuffer textBuffer,
         string method,
@@ -77,6 +80,7 @@ internal class TestLSPRequestInvoker : LSPRequestInvoker
         throw new NotImplementedException();
     }
 
+    [Obsolete("Will be removed in a future version.")]
     public override Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
         string method,
         string languageServerName,
@@ -97,12 +101,13 @@ internal class TestLSPRequestInvoker : LSPRequestInvoker
         if (languageServerName is RazorLSPConstants.RazorCSharpLanguageServerName)
         {
             var result = await _csharpServer.ExecuteRequestAsync<TIn, TOut>(method, parameters, cancellationToken).ConfigureAwait(false);
-            return new ReinvocationResponse<TOut>(languageClientName: RazorLSPConstants.RazorCSharpLanguageServerName, result);
+            return new ReinvocationResponse<TOut>(result);
         }
 
         return default;
     }
 
+    [Obsolete("Will be removed in a future version.")]
     public override Task<ReinvocationResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
         ITextBuffer textBuffer,
         string method,

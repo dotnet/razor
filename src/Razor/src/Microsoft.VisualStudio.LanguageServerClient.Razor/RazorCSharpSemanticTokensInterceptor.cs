@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
@@ -33,8 +32,8 @@ internal class RazorCSharpSemanticTokensInterceptor : MessageInterceptor
         _requestInvoker = requestInvoker;
     }
 
-    public async override Task<InterceptionResult> ApplyChangesAsync(
-        JToken message, string containedLanguageName, CancellationToken cancellationToken)
+    public async override Task<InterceptionResult> ApplyChangesAsync<T>(
+        T message, string containedLanguageName, CancellationToken cancellationToken)
     {
         var refreshParams = new SemanticTokensRefreshParams();
         await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRefreshParams, Unit>(

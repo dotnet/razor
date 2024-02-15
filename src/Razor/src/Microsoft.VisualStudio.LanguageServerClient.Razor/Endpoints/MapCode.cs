@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -44,7 +43,6 @@ internal partial class RazorCustomMessageTarget
             textBuffer,
             VSInternalMethods.WorkspaceMapCodeName,
             delegationDetails.Value.LanguageServerName,
-            SupportsMapCode,
             mapCodeParams,
             cancellationToken).ConfigureAwait(false);
 
@@ -76,12 +74,5 @@ internal partial class RazorCustomMessageTarget
                 location.Uri = virtualDocument.Uri;
             }
         }
-    }
-
-    private static bool SupportsMapCode(JToken token)
-    {
-        return token is JObject obj
-            && obj.TryGetValue(VSInternalMethods.WorkspaceMapCodeName, out var supportsMapCode)
-            && supportsMapCode.ToObject<bool>();
     }
 }

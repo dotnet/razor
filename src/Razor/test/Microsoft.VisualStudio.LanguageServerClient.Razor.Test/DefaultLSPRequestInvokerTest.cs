@@ -3,14 +3,13 @@
 
 #nullable disable
 
-using System.Threading;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -155,11 +154,9 @@ public class DefaultLSPRequestInvokerTest : ToolingTestBase
     private static ILanguageServiceBroker2 CreateLanguageServiceBroker(Action<string> callback)
     {
         var broker = new StrictMock<ILanguageServiceBroker2>();
-#pragma warning disable CS0618 // Type or member is obsolete
-        broker.Setup(b => b.RequestAsync(It.IsAny<string[]>(), It.IsAny<Func<JToken, bool>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<JToken>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((null, null))
-            .Callback((string[] _, Func<JToken, bool> _, string _, string method, JToken _, CancellationToken _) => callback(method));
-#pragma warning restore CS0618 // Type or member is obsolete
+        broker.Setup(b => b.RequestAsync(It.IsAny<Request<object, object>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(null)
+            .Callback((Request<object, object> request, CancellationToken _) => callback(request.Method));
 
         return broker.Object;
     }

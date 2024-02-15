@@ -27,7 +27,6 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -243,8 +242,8 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
 
         async IAsyncEnumerable<ReinvocationResponse<IReadOnlyList<VSInternalCodeAction>>> GetExpectedResultsAsync()
         {
-            yield return new ReinvocationResponse<IReadOnlyList<VSInternalCodeAction>>("languageClient", languageServer1Response);
-            yield return new ReinvocationResponse<IReadOnlyList<VSInternalCodeAction>>("languageClient", languageServer2Response);
+            yield return new ReinvocationResponse<IReadOnlyList<VSInternalCodeAction>>(languageServer1Response);
+            yield return new ReinvocationResponse<IReadOnlyList<VSInternalCodeAction>>(languageServer2Response);
 
             await Task.CompletedTask;
         }
@@ -255,7 +254,6 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
                 _textBuffer,
                 Methods.TextDocumentCodeActionName,
-                It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<VSCodeActionParams>(),
                 It.IsAny<CancellationToken>()))
             .Returns(expectedResults);
@@ -315,8 +313,8 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
 
         async IAsyncEnumerable<ReinvocationResponse<VSInternalCodeAction>> GetExpectedResultsAsync()
         {
-            yield return new ReinvocationResponse<VSInternalCodeAction>("languageClient", expectedCodeAction);
-            yield return new ReinvocationResponse<VSInternalCodeAction>("languageClient", unexpectedCodeAction);
+            yield return new ReinvocationResponse<VSInternalCodeAction>(expectedCodeAction);
+            yield return new ReinvocationResponse<VSInternalCodeAction>(unexpectedCodeAction);
 
             await Task.CompletedTask;
         }
@@ -326,7 +324,6 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeAction, VSInternalCodeAction>(
                 It.IsAny<ITextBuffer>(),
                 Methods.CodeActionResolveName,
-                It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<VSInternalCodeAction>(),
                 It.IsAny<CancellationToken>()))
             .Returns(expectedResponses);
@@ -475,10 +472,9 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 _textBuffer,
                 It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ReinvocationResponse<SemanticTokens>("languageClient", expectedCSharpResults));
+            .ReturnsAsync(new ReinvocationResponse<SemanticTokens>(expectedCSharpResults));
 
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
         documentSynchronizer
@@ -541,10 +537,9 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 _textBuffer,
                 It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ReinvocationResponse<SemanticTokens>("languageClient", expectedCSharpResults));
+            .ReturnsAsync(new ReinvocationResponse<SemanticTokens>(expectedCSharpResults));
 
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
         documentSynchronizer

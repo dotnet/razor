@@ -6,13 +6,11 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 
@@ -65,7 +63,6 @@ internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsP
             documentSnapshot.Snapshot.TextBuffer,
             LanguageServerConstants.RazorProximityExpressionsEndpoint,
             RazorLSPConstants.RazorLanguageServerName,
-            CheckRazorProximityExpressionsCapability,
             proximityExpressionsParams,
             cancellationToken).ConfigureAwait(false);
 
@@ -77,15 +74,5 @@ internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsP
         }
 
         return languageResponse.Expressions;
-    }
-
-    private static bool CheckRazorProximityExpressionsCapability(JToken token)
-    {
-        if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
-        {
-            return false;
-        }
-
-        return razorCapability.ProximityExpressions;
     }
 }
