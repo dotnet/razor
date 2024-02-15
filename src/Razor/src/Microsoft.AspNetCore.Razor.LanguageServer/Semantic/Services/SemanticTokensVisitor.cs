@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
+internal sealed class SemanticTokensVisitor : SyntaxWalker
 {
     private readonly ImmutableArray<SemanticRange>.Builder _semanticRanges;
     private readonly RazorCodeDocument _razorCodeDocument;
@@ -22,7 +22,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
     private bool _addRazorCodeModifier;
 
-    private TagHelperSemanticRangeVisitor(ImmutableArray<SemanticRange>.Builder semanticRanges, RazorCodeDocument razorCodeDocument, TextSpan? range, RazorSemanticTokensLegendService razorSemanticTokensLegendService, bool colorCodeBackground)
+    private SemanticTokensVisitor(ImmutableArray<SemanticRange>.Builder semanticRanges, RazorCodeDocument razorCodeDocument, TextSpan? range, RazorSemanticTokensLegendService razorSemanticTokensLegendService, bool colorCodeBackground)
         : base(range)
     {
         _semanticRanges = semanticRanges;
@@ -31,14 +31,14 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         _colorCodeBackground = colorCodeBackground;
     }
 
-    public static ImmutableArray<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range range, RazorSemanticTokensLegendService razorSemanticTokensLegendService, bool colorCodeBackground)
+    public static ImmutableArray<SemanticRange> GetSemanticRanges(RazorCodeDocument razorCodeDocument, Range range, RazorSemanticTokensLegendService razorSemanticTokensLegendService, bool colorCodeBackground)
     {
         var sourceText = razorCodeDocument.GetSourceText();
         var rangeAsTextSpan = range.ToTextSpan(sourceText);
 
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var builder);
 
-        var visitor = new TagHelperSemanticRangeVisitor(builder, razorCodeDocument, rangeAsTextSpan, razorSemanticTokensLegendService, colorCodeBackground);
+        var visitor = new SemanticTokensVisitor(builder, razorCodeDocument, rangeAsTextSpan, razorSemanticTokensLegendService, colorCodeBackground);
 
         visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
@@ -645,9 +645,9 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
     private readonly struct BackgroundColorDisposable : IDisposable
     {
-        private readonly TagHelperSemanticRangeVisitor _visitor;
+        private readonly SemanticTokensVisitor _visitor;
 
-        public BackgroundColorDisposable(TagHelperSemanticRangeVisitor tagHelperSemanticRangeVisitor)
+        public BackgroundColorDisposable(SemanticTokensVisitor tagHelperSemanticRangeVisitor)
         {
             _visitor = tagHelperSemanticRangeVisitor;
 

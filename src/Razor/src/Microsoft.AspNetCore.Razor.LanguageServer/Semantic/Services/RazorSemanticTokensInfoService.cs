@@ -83,7 +83,7 @@ internal class RazorSemanticTokensInfoService(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, _razorSemanticTokensLegendService, colorBackground);
+        var razorSemanticRanges = SemanticTokensVisitor.GetSemanticRanges(codeDocument, range, _razorSemanticTokensLegendService, colorBackground);
         ImmutableArray<SemanticRange>? csharpSemanticRangesResult = null;
 
         try
