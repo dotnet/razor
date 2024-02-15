@@ -27,7 +27,7 @@ internal sealed partial class RazorSemanticTokensLegendService
             builder.AddRange(RazorSemanticTokensAccessor.GetTokenModifiers());
 
             var modifierMap = new Dictionary<string, int>();
-            foreach (var razorModifier in GetStaticPropertyValues(typeof(Modifiers)))
+            foreach (var razorModifier in GetStaticFieldValues(typeof(Modifiers)))
             {
                 // Modifiers is a flags enum, so numeric values are powers of 2
                 modifierMap.Add(razorModifier, (int)Math.Pow(builder.Count, 2));

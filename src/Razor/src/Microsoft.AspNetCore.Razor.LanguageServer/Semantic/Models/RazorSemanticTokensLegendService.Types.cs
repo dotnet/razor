@@ -68,7 +68,7 @@ internal sealed partial class RazorSemanticTokensLegendService
             builder.AddRange(RazorSemanticTokensAccessor.GetTokenTypes(supportsVsExtensions));
 
             var tokenTypeMap = new Dictionary<string, int>();
-            foreach (var razorTokenType in GetStaticPropertyValues(typeof(Types)))
+            foreach (var razorTokenType in GetStaticFieldValues(typeof(Types)))
             {
                 tokenTypeMap.Add(razorTokenType, builder.Count);
                 builder.Add(razorTokenType);

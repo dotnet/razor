@@ -26,7 +26,7 @@ internal sealed partial class RazorSemanticTokensLegendService(IClientCapabiliti
         TokenTypes = _typesLazy.Value.TokenTypes
     };
 
-    private static ImmutableArray<string> GetStaticPropertyValues(Type type)
+    private static ImmutableArray<string> GetStaticFieldValues(Type type)
     {
         using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
