@@ -10719,7 +10719,7 @@ Time: @DateTime.Now
             ? Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(39, 85)
             // (34,105): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
             //             string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
-            : Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(34, 105));
+            : Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(35, 105));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]
