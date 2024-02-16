@@ -17,6 +17,6 @@
                         Identifier;[Encoding];
                         Dot;[.];
                         Identifier;[ASCIIEncoding];
-        MarkupTextLiteral - [41..41)::0 - [] - Gen<Markup>
-            Marker;[];
+            CSharpStatementLiteral - [41..41)::0 - [] - Gen<Stmt>
+                Marker;[];
     EndOfFile;[];

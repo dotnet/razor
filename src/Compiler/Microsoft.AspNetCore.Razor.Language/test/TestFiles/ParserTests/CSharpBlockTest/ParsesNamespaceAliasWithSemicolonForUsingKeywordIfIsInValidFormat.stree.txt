@@ -16,6 +16,6 @@
                         Whitespace;[ ];
                         Identifier;[FooBarBaz];
                         Semicolon;[;];
-        MarkupTextLiteral - [29..29)::0 - [] - Gen<Markup>
-            Marker;[];
+            CSharpStatementLiteral - [29..29)::0 - [] - Gen<Stmt>
+                Marker;[];
     EndOfFile;[];

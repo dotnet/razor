@@ -11,6 +11,8 @@
                         Keyword;[using];
                         Whitespace;[ ];
                         Identifier;[Foo];
+            CSharpStatementLiteral - [10..10)::0 - [] - Gen<Stmt>
+                Marker;[];
         MarkupTextLiteral - [10..13)::3 - [   ] - Gen<Markup>
             Whitespace;[   ];
     EndOfFile;[];

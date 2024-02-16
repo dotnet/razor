@@ -19,6 +19,6 @@
                         Assign;[=];
                         Whitespace;[ ];
                         Identifier;[FooBarBaz];
-        MarkupTextLiteral - [30..30)::0 - [] - Gen<Markup>
-            Marker;[];
+            CSharpStatementLiteral - [30..30)::0 - [] - Gen<Stmt>
+                Marker;[];
     EndOfFile;[];

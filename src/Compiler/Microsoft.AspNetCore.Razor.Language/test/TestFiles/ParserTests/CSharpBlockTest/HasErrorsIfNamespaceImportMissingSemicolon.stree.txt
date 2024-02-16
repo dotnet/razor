@@ -15,6 +15,6 @@
                         Identifier;[Bar];
                         Dot;[.];
                         Identifier;[Baz];
-        MarkupTextLiteral - [18..18)::0 - [] - Gen<Markup>
-            Marker;[];
+            CSharpStatementLiteral - [18..18)::0 - [] - Gen<Stmt>
+                Marker;[];
     EndOfFile;[];

@@ -17,6 +17,8 @@
                         Identifier;[System];
                         Dot;[.];
                         Identifier;[Console];
+            CSharpStatementLiteral - [40..40)::0 - [] - Gen<Stmt>
+                Marker;[];
         MarkupTextLiteral - [40..42)::2 - [  ] - Gen<Markup>
             Whitespace;[  ];
     EndOfFile;[];

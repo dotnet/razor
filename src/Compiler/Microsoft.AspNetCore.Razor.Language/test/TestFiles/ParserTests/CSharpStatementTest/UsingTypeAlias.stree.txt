@@ -27,6 +27,6 @@
                         Whitespace;[ ];
                         Keyword;[string];
                         GreaterThan;[>];
-        MarkupTextLiteral - [79..79)::0 - [] - Gen<Markup>
-            Marker;[];
+            CSharpStatementLiteral - [79..79)::0 - [] - Gen<Stmt>
+                Marker;[];
     EndOfFile;[];

@@ -13,6 +13,6 @@
                         Keyword;[static];
                         Whitespace;[ ];
                         Identifier;[System];
-        MarkupTextLiteral - [20..20)::0 - [] - Gen<Markup>
-            Marker;[];
+            CSharpStatementLiteral - [20..20)::0 - [] - Gen<Stmt>
+                Marker;[];
     EndOfFile;[];
