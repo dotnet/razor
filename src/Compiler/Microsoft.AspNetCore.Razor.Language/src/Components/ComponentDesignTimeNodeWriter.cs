@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -17,7 +16,7 @@ using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 // Based on the DesignTimeNodeWriter from Razor repo.
-internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
+internal sealed class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 {
     private readonly ScopeStack _scopeStack = new ScopeStack();
 
@@ -758,12 +757,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
     {
-        if (node.Children.Count > 1)
-        {
-            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-            // We render the children anyway, so tooling works.
-        }
-
         // We limit component attributes to simple cases. However there is still a lot of complexity
         // to handle here, since there are a few different cases for how an attribute might be structured.
         //
@@ -788,9 +781,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             //
             // Or a CSharpExpressionIntermediateNode when the attribute has an explicit transition like:
             //      <MyComponent Value="@value" />
-            //
-            // Of a list of tokens directly in the attribute.
-            var tokens = GetCSharpTokens(node);
 
             if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
                 (node.BoundAttribute?.IsChildContentProperty() ?? false))
@@ -805,9 +795,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 }
                 context.CodeWriter.WriteLine();
 
-                for (var i = 0; i < tokens.Count; i++)
+                foreach (var token in GetCSharpTokens(node))
                 {
-                    WriteCSharpToken(context, tokens[i]);
+                    WriteCSharpToken(context, token);
                 }
 
                 if (canTypeCheck)
@@ -861,9 +851,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
                 context.CodeWriter.WriteLine();
 
-                for (var i = 0; i < tokens.Count; i++)
+                foreach (var token in GetCSharpTokens(node))
                 {
-                    WriteCSharpToken(context, tokens[i]);
+                    WriteCSharpToken(context, token);
                 }
 
                 context.CodeWriter.Write(")");
@@ -895,10 +885,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     context.CodeWriter.Write("(");
                 }
 
-                for (var i = 0; i < tokens.Count; i++)
-                {
-                    WriteCSharpToken(context, tokens[i]);
-                }
+                WriteAttributeValue(context, node.FindDescendantNodes<IntermediateToken>());
 
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
@@ -1131,11 +1118,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
     {
-        if (node.Children.Count > 1)
-        {
-            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-        }
-
         foreach (var token in node.FindDescendantNodes<IntermediateToken>())
         {
             if (token.IsCSharp)
@@ -1247,7 +1229,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         });
     }
 
-    private void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)
+    protected override void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)
     {
         if (string.IsNullOrWhiteSpace(token.Content))
         {

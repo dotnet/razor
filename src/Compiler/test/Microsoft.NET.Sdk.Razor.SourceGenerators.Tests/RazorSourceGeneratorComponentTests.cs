@@ -802,4 +802,36 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Diagnostic("RZ10023").WithLocation(7, 18)); // Attribute '@rendermode' is only valid when used on a component.
         Assert.Single(result.GeneratedSources);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7684")]
+    public async Task MixedContent_StringParameter()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = """
+                @{ var x = 42; }
+                <Component2 Param="start @("literal") @x end" />
+                """,
+            ["Shared/Component2.razor"] = """
+                Got: |@Param|
+                @code {
+                    [Parameter] public string? Param { get; set; }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        result.Diagnostics.Verify();
+        Assert.Equal(3, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
 }

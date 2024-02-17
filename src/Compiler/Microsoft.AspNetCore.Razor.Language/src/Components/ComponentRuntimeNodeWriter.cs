@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 /// <summary>
 /// Generates the C# code corresponding to Razor source document contents.
 /// </summary>
-internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
+internal sealed class ComponentRuntimeNodeWriter : ComponentNodeWriter
 {
     private readonly List<IntermediateToken> _currentAttributeValues = new List<IntermediateToken>();
     private readonly ScopeStack _scopeStack = new ScopeStack();
@@ -630,12 +630,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
     {
-        if (node.Children.Count > 1)
-        {
-            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-            // We render the children anyway, so tooling works.
-        }
-
         if (node.AttributeStructure == AttributeStructure.Minimized)
         {
             // Minimized attributes always map to 'true'
@@ -650,7 +644,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         else
         {
             // See comments in ComponentDesignTimeNodeWriter for a description of the cases that are possible.
-            var tokens = GetCSharpTokens(node);
             if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
                 (node.BoundAttribute?.IsChildContentProperty() ?? false))
             {
@@ -662,9 +655,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     context.CodeWriter.Write("(");
                 }
 
-                for (var i = 0; i < tokens.Count; i++)
+                foreach (var token in GetCSharpTokens(node))
                 {
-                    WriteCSharpToken(context, tokens[i]);
+                    WriteCSharpToken(context, token);
                 }
 
                 if (canTypeCheck)
@@ -711,9 +704,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write("this");
                 context.CodeWriter.Write(", ");
 
-                for (var i = 0; i < tokens.Count; i++)
+                foreach (var token in GetCSharpTokens(node))
                 {
-                    WriteCSharpToken(context, tokens[i]);
+                    WriteCSharpToken(context, token);
                 }
 
                 context.CodeWriter.Write(")");
@@ -742,10 +735,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     context.CodeWriter.Write("(");
                 }
 
-                for (var i = 0; i < tokens.Count; i++)
-                {
-                    WriteCSharpToken(context, tokens[i]);
-                }
+                WriteAttributeValue(context, node.FindDescendantNodes<IntermediateToken>());
 
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
@@ -945,11 +935,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
     {
-        if (node.Children.Count > 1)
-        {
-            Debug.Assert(node.HasDiagnostics, "We should have reported an error for mixed content.");
-        }
-
         // string __formName = expression;
         context.CodeWriter.Write("string ");
         context.CodeWriter.Write(_scopeStack.FormNameVarName);
@@ -1103,98 +1088,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         return builder.ToString();
     }
 
-    // There are a few cases here, we need to handle:
-    // - Pure HTML
-    // - Pure CSharp
-    // - Mixed HTML and CSharp
-    //
-    // Only the mixed case is complicated, we want to turn it into code that will concatenate
-    // the values into a string at runtime.
-
-    private static void WriteAttributeValue(CodeRenderingContext context, IReadOnlyList<IntermediateToken> tokens)
+    protected override void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)
     {
-        if (tokens == null)
-        {
-            throw new ArgumentNullException(nameof(tokens));
-        }
-
-        var writer = context.CodeWriter;
-        var hasHtml = false;
-        var hasCSharp = false;
-        for (var i = 0; i < tokens.Count; i++)
-        {
-            if (tokens[i].IsCSharp)
-            {
-                hasCSharp |= true;
-            }
-            else
-            {
-                hasHtml |= true;
-            }
-        }
-
-        if (hasHtml && hasCSharp)
-        {
-            // If it's a C# expression, we have to wrap it in parens, otherwise things like ternary
-            // expressions don't compose with concatenation. However, this is a little complicated
-            // because C# tokens themselves aren't guaranteed to be distinct expressions. We want
-            // to treat all contiguous C# tokens as a single expression.
-            var insideCSharp = false;
-            for (var i = 0; i < tokens.Count; i++)
-            {
-                var token = tokens[i];
-                if (token.IsCSharp)
-                {
-                    if (!insideCSharp)
-                    {
-                        if (i != 0)
-                        {
-                            writer.Write(" + ");
-                        }
-
-                        writer.Write("(");
-                        insideCSharp = true;
-                    }
-
-                    WriteCSharpToken(context, token);
-                }
-                else
-                {
-                    if (insideCSharp)
-                    {
-                        writer.Write(")");
-                        insideCSharp = false;
-                    }
-
-                    if (i != 0)
-                    {
-                        writer.Write(" + ");
-                    }
-
-                    writer.WriteStringLiteral(token.Content);
-                }
-            }
-
-            if (insideCSharp)
-            {
-                writer.Write(")");
-            }
-        }
-        else if (hasCSharp)
-        {
-            foreach (var token in tokens)
-            {
-                WriteCSharpToken(context, token);
-            }
-        }
-        else if (hasHtml)
-        {
-            writer.WriteStringLiteral(string.Join("", tokens.Select(t => t.Content)));
-        }
-        else
-        {
-            throw new InvalidOperationException("Found attribute whose value is neither HTML nor CSharp");
-        }
+        WriteCSharpToken(context, token, includeLinePragma: true);
     }
 
     private static void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token, bool includeLinePragma = true)

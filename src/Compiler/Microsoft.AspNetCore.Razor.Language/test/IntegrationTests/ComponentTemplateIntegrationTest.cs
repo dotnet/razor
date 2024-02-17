@@ -64,8 +64,7 @@ namespace Test
         // Assert
         Assert.Collection(
             generated.Diagnostics,
-            d => Assert.Equal("RZ9986", d.Id),
-            d => Assert.Equal("RZ1005", d.Id));
+            d => Assert.Equal("RZ1005", d.Id)); // "<" is not valid at the start of a code block. Only identifiers, keywords, comments, "(" and "{" are valid.
     }
 
     [Fact]

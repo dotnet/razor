@@ -455,6 +455,101 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         context.CodeWriter.WriteLine();
     }
 
+    protected abstract void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token);
+
+    // There are a few cases here, we need to handle:
+    // - Pure HTML
+    // - Pure CSharp
+    // - Mixed HTML and CSharp
+    //
+    // Only the mixed case is complicated, we want to turn it into code that will concatenate
+    // the values into a string at runtime.
+    protected void WriteAttributeValue(CodeRenderingContext context, IReadOnlyList<IntermediateToken> tokens)
+    {
+        if (tokens == null)
+        {
+            throw new ArgumentNullException(nameof(tokens));
+        }
+
+        var writer = context.CodeWriter;
+        var hasHtml = false;
+        var hasCSharp = false;
+        for (var i = 0; i < tokens.Count; i++)
+        {
+            if (tokens[i].IsCSharp)
+            {
+                hasCSharp |= true;
+            }
+            else
+            {
+                hasHtml |= true;
+            }
+        }
+
+        if (hasHtml && hasCSharp)
+        {
+            // If it's a C# expression, we have to wrap it in parens, otherwise things like ternary
+            // expressions don't compose with concatenation. However, this is a little complicated
+            // because C# tokens themselves aren't guaranteed to be distinct expressions. We want
+            // to treat all contiguous C# tokens as a single expression.
+            var insideCSharp = false;
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                if (token.IsCSharp)
+                {
+                    if (!insideCSharp)
+                    {
+                        if (i != 0)
+                        {
+                            writer.Write(" + ");
+                        }
+
+                        writer.Write("(");
+                        insideCSharp = true;
+                    }
+
+                    WriteCSharpToken(context, token);
+                }
+                else
+                {
+                    if (insideCSharp)
+                    {
+                        writer.Write(")");
+                        insideCSharp = false;
+                    }
+
+                    if (i != 0)
+                    {
+                        writer.Write(" + ");
+                    }
+
+                    writer.WriteStringLiteral(token.Content);
+                }
+            }
+
+            if (insideCSharp)
+            {
+                writer.Write(")");
+            }
+        }
+        else if (hasCSharp)
+        {
+            foreach (var token in tokens)
+            {
+                WriteCSharpToken(context, token);
+            }
+        }
+        else if (hasHtml)
+        {
+            writer.WriteStringLiteral(string.Join("", tokens.Select(t => t.Content)));
+        }
+        else
+        {
+            throw new InvalidOperationException("Found attribute whose value is neither HTML nor CSharp");
+        }
+    }
+
     protected class TypeInferenceMethodParameter
     {
         public string SeqName { get; private set; }

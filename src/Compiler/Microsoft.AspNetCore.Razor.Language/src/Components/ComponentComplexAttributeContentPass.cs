@@ -85,11 +85,6 @@ internal class ComponentComplexAttributeContentPass : ComponentIntermediateNodeP
             // We don't support this.
             issueDiagnostic = true;
         }
-        else if (node.Children.Count > 1)
-        {
-            // This is the common case for 'mixed' content
-            issueDiagnostic = true;
-        }
 
         if (issueDiagnostic)
         {
