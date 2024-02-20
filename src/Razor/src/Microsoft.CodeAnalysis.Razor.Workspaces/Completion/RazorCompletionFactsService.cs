@@ -74,7 +74,7 @@ internal class RazorCompletionFactsService : IRazorCompletionFactsService
         // Note - this also addresses directives, including with cursor at EOF, e.g. @fun|
         if (originalNode.SpanStart == requestIndex
             // allow zero-length tokens for cases when cursor is at EOF,
-            // e.g. see https://developercommunity.visualstudio.com/t/Razor-directive-completions-missing-at-t/10585436
+            // e.g. see https://github.com/dotnet/razor/issues/9955
             && originalNode.GetFirstToken(includeZeroWidth: true) is { } startToken
             && startToken.GetPreviousToken() is { } previousToken)
         {

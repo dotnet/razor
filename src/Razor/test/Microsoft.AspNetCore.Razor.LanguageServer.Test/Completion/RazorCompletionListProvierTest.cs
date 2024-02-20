@@ -358,6 +358,7 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
     [InlineData("@page\r\n<div></div>\r\n@f$$")]
     [InlineData("@page\r\n<div></div>\r\n@f$$\r\n")]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
+    [WorkItem("https://github.com/dotnet/razor/issues/9955")]    
     public async Task GetCompletionListAsync_ProvidesDirectiveCompletionItems(string documentText)
     {
         // Arrange
