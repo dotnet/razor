@@ -10,18 +10,20 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Export(typeof(RemoteTagHelperResolver)), Shared]
-internal class RemoteTagHelperResolver()
+[method: ImportingConstructor]
+internal class RemoteTagHelperResolver(ITelemetryReporter telemetryReporter)
 {
     /// <summary>
     /// A map of configuration names to <see cref="IProjectEngineFactory"/> instances.
     /// </summary>
     private static readonly Dictionary<string, IProjectEngineFactory> s_configurationNameToFactoryMap = CreateConfigurationNameToFactoryMap();
 
-    private readonly CompilationTagHelperResolver _compilationTagHelperResolver = new(telemetryReporter: null);
+    private readonly CompilationTagHelperResolver _compilationTagHelperResolver = new(telemetryReporter);
 
     private static Dictionary<string, IProjectEngineFactory> CreateConfigurationNameToFactoryMap()
     {
