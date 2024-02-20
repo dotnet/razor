@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
@@ -45,15 +44,17 @@ internal abstract partial class RazorServiceFactoryBase<TService> : IServiceHubS
         // Dispose the AuthorizationServiceClient since we won't be using it
         authorizationServiceClient?.Dispose();
 
-        return Task.FromResult((object)Create(stream.UsePipe(), serviceBroker));
+        return CreateAsync(stream.UsePipe(), serviceBroker);
     }
 
-    internal TService Create(IDuplexPipe pipe, IServiceBroker serviceBroker)
+    private async Task<object> CreateAsync(IDuplexPipe pipe, IServiceBroker serviceBroker)
     {
         var descriptor = _razorServiceDescriptors.GetDescriptorForServiceFactory(typeof(TService));
         var serverConnection = descriptor.ConstructRpcConnection(pipe);
 
-        var service = CreateService(serviceBroker, _exportProvider);
+        var exportProvider = await s_exportProviderLazy.GetValueAsync().ConfigureAwait(false);
+
+        var service = CreateService(serviceBroker, exportProvider);
 
         serverConnection.AddLocalRpcTarget(service);
         serverConnection.StartListening();
