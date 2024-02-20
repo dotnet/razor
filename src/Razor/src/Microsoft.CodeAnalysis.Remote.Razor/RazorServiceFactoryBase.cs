@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal abstract partial class RazorServiceFactoryBase<TService> : IServiceHubServiceFactory where TService : class
 {
     private readonly RazorServiceDescriptorsWrapper _razorServiceDescriptors;
-    private ITelemetryReporter? _telemetryReporter;
 
     /// <summary>
     /// </summary>
@@ -46,8 +45,6 @@ internal abstract partial class RazorServiceFactoryBase<TService> : IServiceHubS
         // Dispose the AuthorizationServiceClient since we won't be using it
         authorizationServiceClient?.Dispose();
 
-        _telemetryReporter = (ITelemetryReporter)hostProvidedServices.GetService(typeof(ITelemetryReporter));
-
         return Task.FromResult((object)Create(stream.UsePipe(), serviceBroker));
     }
 
@@ -56,10 +53,7 @@ internal abstract partial class RazorServiceFactoryBase<TService> : IServiceHubS
         var descriptor = _razorServiceDescriptors.GetDescriptorForServiceFactory(typeof(TService));
         var serverConnection = descriptor.ConstructRpcConnection(pipe);
 
-        var service = CreateService(serviceBroker,
-            // TODO: This seems to always be null. Suspect this was intended to be something different.
-            _telemetryReporter ?? NoOpTelemetryReporter.Instance,
-            _exportProvider);
+        var service = CreateService(serviceBroker, _exportProvider);
 
         serverConnection.AddLocalRpcTarget(service);
         serverConnection.StartListening();
@@ -67,5 +61,5 @@ internal abstract partial class RazorServiceFactoryBase<TService> : IServiceHubS
         return service;
     }
 
-    protected abstract TService CreateService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter, ExportProvider exportProvider);
+    protected abstract TService CreateService(IServiceBroker serviceBroker, ExportProvider exportProvider);
 }

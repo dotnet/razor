@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 
@@ -15,6 +14,6 @@ internal sealed class RemoteTagHelperProviderServiceFactory : RazorServiceFactor
     {
     }
 
-    protected override IRemoteTagHelperProviderService CreateService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter, ExportProvider exportProvider)
-        => new RemoteTagHelperProviderService(serviceBroker, telemetryReporter, exportProvider);
+    protected override IRemoteTagHelperProviderService CreateService(IServiceBroker serviceBroker, ExportProvider exportProvider)
+        => new RemoteTagHelperProviderService(serviceBroker, exportProvider);
 }

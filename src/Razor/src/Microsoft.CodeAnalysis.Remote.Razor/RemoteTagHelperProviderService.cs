@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Serialization;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
@@ -22,10 +21,10 @@ internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemote
     private readonly RemoteTagHelperResolver _tagHelperResolver;
     private readonly RemoteTagHelperDeltaProvider _tagHelperDeltaProvider;
 
-    internal RemoteTagHelperProviderService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter, ExportProvider exportProvider)
+    internal RemoteTagHelperProviderService(IServiceBroker serviceBroker, ExportProvider exportProvider)
         : base(serviceBroker)
     {
-        _tagHelperResolver = new RemoteTagHelperResolver(telemetryReporter);
+        _tagHelperResolver = exportProvider.GetExportedValue<RemoteTagHelperResolver>().AssumeNotNull();
         _tagHelperDeltaProvider = exportProvider.GetExportedValue<RemoteTagHelperDeltaProvider>().AssumeNotNull();
     }
 
