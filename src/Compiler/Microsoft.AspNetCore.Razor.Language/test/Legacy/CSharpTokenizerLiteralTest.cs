@@ -285,4 +285,6 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     {
         TestSingleToken("@\"foo", SyntaxKind.StringLiteral);
     }
+
+    // Add more tests for roslyn trivia trailing after tokens
 }
