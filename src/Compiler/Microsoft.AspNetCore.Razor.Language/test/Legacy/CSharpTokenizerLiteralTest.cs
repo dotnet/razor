@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -179,27 +179,27 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     }
 
     [Fact]
-    public void Character_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash()
+    public void Character_Literal_Eats_EOL_When_Escaped()
     {
-        TestTokenizer("'foo\\\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer("'foo\\\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\n"), IgnoreRemaining);
     }
 
     [Fact]
-    public void Character_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
+    public void Character_Literal_Eats_EOL_When_Escaped_And_Followed_By_Stuff()
     {
-        TestTokenizer("'foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer("'foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\nflarg"), IgnoreRemaining);
     }
 
     [Fact]
-    public void Character_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash()
+    public void Character_Literal_Eats_CR_When_Escaped()
     {
-        TestTokenizer("'foo\\\r\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer("'foo\\\r\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
-    public void Character_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
+    public void Character_Literal_Eats_CR_When_Escaped_And_Followed_By_Stuff()
     {
-        TestTokenizer($"'foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer($"'foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\r"), IgnoreRemaining);
     }
 
     [Fact]

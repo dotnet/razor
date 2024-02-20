@@ -389,7 +389,6 @@ internal class CSharpTokenizer : Tokenizer
             case '@':
                 return AtToken();
             case '\'':
-                TakeCurrent();
                 return Transition(CSharpTokenizerState.QuotedCharacterLiteral);
             case '"':
                 return Transition(CSharpTokenizerState.QuotedStringLiteral);
@@ -561,7 +560,27 @@ internal class CSharpTokenizer : Tokenizer
         return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.StringLiteral));
     }
 
-    private StateResult QuotedCharacterLiteral() => QuotedLiteral('\'', IsEndQuotedCharacterLiteral, SyntaxKind.CharacterLiteral);
+    private StateResult QuotedCharacterLiteral()
+    {
+        var curPosition = Source.Position;
+        var characterToken = _lexer.LexSyntax(curPosition);
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + characterToken.Span.Length;
+
+        for (; curPosition < finalPosition; curPosition++)
+        {
+            TakeCurrent();
+        }
+
+        if (CodeAnalysis.CSharpExtensions.IsKind(characterToken, CodeAnalysis.CSharp.SyntaxKind.CharacterLiteralToken) && characterToken.Text is ['\''] or not [.., '\''])
+        {
+            CurrentErrors.Add(
+                RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
+                    new SourceSpan(CurrentStart, contentLength: 1 /* " */)));
+        }
+
+        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.CharacterLiteral));
+    }
 
     private StateResult QuotedStringLiteral()
     {
@@ -583,36 +602,6 @@ internal class CSharpTokenizer : Tokenizer
         }
 
         return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.StringLiteral));
-    }
-
-    private static readonly Func<char, bool> IsEndQuotedCharacterLiteral = static (c) => c == '\\' || c == '\'' || SyntaxFacts.IsNewLine(c);
-    private static readonly Func<char, bool> IsEndQuotedStringLiteral = static (c) => c == '\\' || c == '\"' || SyntaxFacts.IsNewLine(c);
-
-    private StateResult QuotedLiteral(char quote, Func<char, bool> isEndQuotedLiteral, SyntaxKind literalType)
-    {
-        TakeUntil(isEndQuotedLiteral);
-        if (CurrentCharacter == '\\')
-        {
-            TakeCurrent(); // Take the '\'
-
-            // If the next char is the same quote that started this
-            if (CurrentCharacter == quote || CurrentCharacter == '\\')
-            {
-                TakeCurrent(); // Take it so that we don't prematurely end the literal.
-            }
-            return Stay();
-        }
-        else if (EndOfFile || SyntaxFacts.IsNewLine(CurrentCharacter))
-        {
-            CurrentErrors.Add(
-                RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
-                    new SourceSpan(CurrentStart, contentLength: 1 /* " */)));
-        }
-        else
-        {
-            TakeCurrent(); // No-op if at EOF
-        }
-        return Transition(CSharpTokenizerState.Data, EndToken(literalType));
     }
 
     // CSharp Spec §2.3.2
