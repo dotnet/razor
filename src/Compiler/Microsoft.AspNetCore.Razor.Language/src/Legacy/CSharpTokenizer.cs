@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -101,7 +101,7 @@ internal class CSharpTokenizer : Tokenizer
             { "where", CSharpKeyword.Where }
         };
 
-    public CSharpTokenizer(ITextDocument source)
+    public CSharpTokenizer(SeekableTextReader source)
         : base(source)
     {
         base.CurrentState = StartState;
