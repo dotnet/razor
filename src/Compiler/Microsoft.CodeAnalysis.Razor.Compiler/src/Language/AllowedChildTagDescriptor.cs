@@ -24,6 +24,6 @@ public sealed class AllowedChildTagDescriptor : TagHelperObject<AllowedChildTagD
         builder.AppendData(DisplayName);
     }
 
-    public override string ToString()
+    public override string? ToString()
         => DisplayName ?? base.ToString();
 }

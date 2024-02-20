@@ -133,7 +133,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     return results;
                 })
-                .WithLambdaComparer(static (a, b) => a.SequenceEqual(b));
+                .WithLambdaComparer(static (a, b) => a!.SequenceEqual(b!));
 
             var tagHelpersFromReferences = compilation
                 .Combine(razorSourceGeneratorOptions)

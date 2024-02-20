@@ -19,7 +19,7 @@ internal abstract partial class DocumentationDescriptor
         public override string GetText()
             => GetDocumentationText();
 
-        public override bool Equals(DocumentationDescriptor other)
+        public override bool Equals(DocumentationDescriptor? other)
             => other is SimpleDescriptor { Id: var id } && Id == id;
 
         protected override int ComputeHashCode()

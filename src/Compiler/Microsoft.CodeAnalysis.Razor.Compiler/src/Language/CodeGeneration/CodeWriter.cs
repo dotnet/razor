@@ -67,7 +67,7 @@ public sealed partial class CodeWriter
         // If we're at the start of a page, we need to add the page first.
         var lastPage = _pageOffset == 0
             ? _pages.AddLast(new ReadOnlyMemory<char>[PageSize]).Value
-            : _pages.Last.Value;
+            : _pages.Last!.Value;
 
         // Add our chunk of text (the ReadOnlyMemory<char>) and increment the offset.
         lastPage[_pageOffset] = value;

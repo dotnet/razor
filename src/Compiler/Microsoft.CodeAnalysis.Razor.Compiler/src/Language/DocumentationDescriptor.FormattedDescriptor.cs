@@ -33,7 +33,7 @@ internal abstract partial class DocumentationDescriptor
         public override string GetText()
             => _formattedString ??= string.Format(CultureInfo.CurrentCulture, GetDocumentationText(), Args);
 
-        public override bool Equals(DocumentationDescriptor other)
+        public override bool Equals(DocumentationDescriptor? other)
         {
             if (other is not FormattedDescriptor { Id: var id, Args: var args })
             {

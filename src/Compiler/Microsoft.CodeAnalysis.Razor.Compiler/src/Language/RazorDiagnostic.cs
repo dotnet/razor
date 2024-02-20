@@ -106,7 +106,7 @@ public sealed class RazorDiagnostic : IEquatable<RazorDiagnostic>, IFormattable
         return Format(this, formatProvider: null);
     }
 
-    string IFormattable.ToString(string format, IFormatProvider formatProvider)
+    string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         => Format(this, formatProvider);
 
     private static string Format(RazorDiagnostic diagnostic, IFormatProvider? formatProvider)

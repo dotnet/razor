@@ -47,10 +47,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             => throw new NotSupportedException("This API should not be invoked. We should instead be relying on " +
                 "the RazorSourceDocument associated with this item instead.");
 
-        public bool Equals(SourceGeneratorProjectItem other) => AdditionalText == other.AdditionalText;
+        public bool Equals(SourceGeneratorProjectItem? other) => other is not null && AdditionalText == other.AdditionalText;
 
         public override int GetHashCode() => AdditionalText.GetHashCode();
 
-        public override bool Equals(object obj) => obj is SourceGeneratorProjectItem projectItem && Equals(projectItem);
+        public override bool Equals(object? obj) => obj is SourceGeneratorProjectItem projectItem && Equals(projectItem);
     }
 }

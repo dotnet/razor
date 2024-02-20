@@ -35,8 +35,7 @@
     <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.ComponentShim\Microsoft.AspNetCore.Razor.Test.ComponentShim.csproj" />
     <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Razor.Language\src\Microsoft.CodeAnalysis.Razor.Compiler.Language.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.Compiler.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
   </ItemGroup>
 
   <ItemGroup>

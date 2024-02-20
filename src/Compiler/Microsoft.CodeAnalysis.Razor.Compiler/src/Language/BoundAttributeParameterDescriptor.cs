@@ -97,6 +97,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
 
     internal DocumentationObject DocumentationObject => _documentationObject;
 
-    public override string ToString()
+    public override string? ToString()
         => DisplayName ?? base.ToString();
 }

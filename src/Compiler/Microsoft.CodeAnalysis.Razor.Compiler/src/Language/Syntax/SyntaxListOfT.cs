@@ -379,7 +379,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     public bool Equals(SyntaxList<TNode> other)
         => Node == other.Node;
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
         => obj is SyntaxList<TNode> list &&
            Equals(list);
 
@@ -511,7 +511,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
             _index = -1;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             throw new NotSupportedException();
         }

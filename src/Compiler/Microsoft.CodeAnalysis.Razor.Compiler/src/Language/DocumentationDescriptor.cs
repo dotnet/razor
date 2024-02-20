@@ -88,10 +88,10 @@ internal abstract partial class DocumentationDescriptor : IEquatable<Documentati
         Id = id;
     }
 
-    public sealed override bool Equals(object obj)
+    public sealed override bool Equals(object? obj)
         => obj is DocumentationDescriptor other && Equals(other);
 
-    public abstract bool Equals(DocumentationDescriptor other);
+    public abstract bool Equals(DocumentationDescriptor? other);
 
     public sealed override int GetHashCode()
         => _hashCode ??= ComputeHashCode();

@@ -48,7 +48,7 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
         builder.AppendData(Metadata.Checksum);
     }
 
-    public override string ToString()
+    public override string? ToString()
     {
         return DisplayName ?? base.ToString();
     }

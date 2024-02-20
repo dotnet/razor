@@ -13,13 +13,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     internal static class IncrementalValuesProviderExtensions
     {
-        internal static IncrementalValueProvider<T> WithLambdaComparer<T>(this IncrementalValueProvider<T> source, Func<T, T, bool> equal)
+        internal static IncrementalValueProvider<T> WithLambdaComparer<T>(this IncrementalValueProvider<T> source, Func<T?, T?, bool> equal)
         {
             var comparer = new LambdaComparer<T>(equal);
             return source.WithComparer(comparer);
         }
 
-        internal static IncrementalValuesProvider<T> WithLambdaComparer<T>(this IncrementalValuesProvider<T> source, Func<T, T, bool> equal)
+        internal static IncrementalValuesProvider<T> WithLambdaComparer<T>(this IncrementalValuesProvider<T> source, Func<T?, T?, bool> equal)
         {
             var comparer = new LambdaComparer<T>(equal);
             return source.WithComparer(comparer);
@@ -109,14 +109,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
     internal sealed class LambdaComparer<T> : IEqualityComparer<T>
     {
-        private readonly Func<T, T, bool> _equal;
+        private readonly Func<T?, T?, bool> _equal;
 
-        public LambdaComparer(Func<T, T, bool> equal)
+        public LambdaComparer(Func<T?, T?, bool> equal)
         {
             _equal = equal;
         }
 
-        public bool Equals(T x, T y) => _equal(x, y);
+        public bool Equals(T? x, T? y) => _equal(x, y);
 
         public int GetHashCode(T obj) => Assumed.Unreachable<int>();
     }

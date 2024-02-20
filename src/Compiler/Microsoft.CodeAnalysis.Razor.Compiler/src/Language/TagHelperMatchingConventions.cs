@@ -260,9 +260,9 @@ internal static class TagHelperMatchingConventions
             case RequiredAttributeDescriptor.ValueComparisonMode.None:
                 return true;
             case RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch: // Value starts with
-                return attributeValue.StartsWith(descriptor.Value, StringComparison.Ordinal);
+                return attributeValue.StartsWith(descriptor.Value.AssumeNotNull(), StringComparison.Ordinal);
             case RequiredAttributeDescriptor.ValueComparisonMode.SuffixMatch: // Value ends with
-                return attributeValue.EndsWith(descriptor.Value, StringComparison.Ordinal);
+                return attributeValue.EndsWith(descriptor.Value.AssumeNotNull(), StringComparison.Ordinal);
             case RequiredAttributeDescriptor.ValueComparisonMode.FullMatch: // Value equals
                 return string.Equals(attributeValue, descriptor.Value, StringComparison.Ordinal);
             default:

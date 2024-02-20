@@ -52,7 +52,7 @@ public sealed partial class CodeWriter
                     break;
 
                 default:
-                    _writer.Write(value.ToString());
+                    _writer.Write(value.ToString() ?? string.Empty);
                     break;
             }
         }
