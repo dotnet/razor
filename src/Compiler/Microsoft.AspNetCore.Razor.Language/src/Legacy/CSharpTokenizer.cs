@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -16,6 +16,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 internal class CSharpTokenizer : Tokenizer
 {
     private readonly Dictionary<char, Func<SyntaxKind>> _operatorHandlers;
+    private readonly SourceTextLexer _lexer;
 
     private static readonly Dictionary<string, CSharpKeyword> _keywords = new Dictionary<string, CSharpKeyword>(StringComparer.Ordinal)
         {
@@ -132,6 +133,8 @@ internal class CSharpTokenizer : Tokenizer
                 { '~', () => SyntaxKind.Tilde },
                 { '#', () => SyntaxKind.Hash }
             };
+
+        _lexer = CodeAnalysis.CSharp.SyntaxFactory.CreateLexer(source.SourceText);
     }
 
     protected override int StartState => (int)CSharpTokenizerState.Data;
@@ -389,7 +392,6 @@ internal class CSharpTokenizer : Tokenizer
                 TakeCurrent();
                 return Transition(CSharpTokenizerState.QuotedCharacterLiteral);
             case '"':
-                TakeCurrent();
                 return Transition(CSharpTokenizerState.QuotedStringLiteral);
             case '.':
                 if (char.IsDigit(Peek()))
@@ -561,7 +563,27 @@ internal class CSharpTokenizer : Tokenizer
 
     private StateResult QuotedCharacterLiteral() => QuotedLiteral('\'', IsEndQuotedCharacterLiteral, SyntaxKind.CharacterLiteral);
 
-    private StateResult QuotedStringLiteral() => QuotedLiteral('\"', IsEndQuotedStringLiteral, SyntaxKind.StringLiteral);
+    private StateResult QuotedStringLiteral()
+    {
+        var curPosition = Source.Position;
+        var stringToken = _lexer.LexSyntax(curPosition);
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + stringToken.Span.Length;
+
+        for (; curPosition < finalPosition; curPosition++)
+        {
+            TakeCurrent();
+        }
+
+        if (CodeAnalysis.CSharpExtensions.IsKind(stringToken, CodeAnalysis.CSharp.SyntaxKind.StringLiteralToken) && stringToken.Text is ['\"'] or not [.., '\"'])
+        {
+            CurrentErrors.Add(
+                RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
+                    new SourceSpan(CurrentStart, contentLength: 1 /* " */)));
+        }
+
+        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.StringLiteral));
+    }
 
     private static readonly Func<char, bool> IsEndQuotedCharacterLiteral = static (c) => c == '\\' || c == '\'' || SyntaxFacts.IsNewLine(c);
     private static readonly Func<char, bool> IsEndQuotedStringLiteral = static (c) => c == '\\' || c == '\"' || SyntaxFacts.IsNewLine(c);

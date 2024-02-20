@@ -1,9 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
-using System;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 using Xunit;
 
@@ -236,25 +235,25 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void String_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash()
     {
-        TestTokenizer("\"foo\\\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer("\"foo\\\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\n"), IgnoreRemaining);
     }
 
     [Fact]
     public void String_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
     {
-        TestTokenizer("\"foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer("\"foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\nflarg"), IgnoreRemaining);
     }
 
     [Fact]
-    public void String_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash()
+    public void String_Literal_Eats_Escaped_CR()
     {
-        TestTokenizer("\"foo\\\r\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer("\"foo\\\r\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
-    public void String_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
+    public void String_Literal_Eats_Escaped_CR_And_Followed_By_Stuff()
     {
-        TestTokenizer($"\"foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer($"\"foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
