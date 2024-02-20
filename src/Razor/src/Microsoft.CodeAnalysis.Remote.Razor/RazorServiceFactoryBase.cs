@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
+using Microsoft.VisualStudio.Composition;
 using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 /// <remarks>
 /// Implementors of <see cref="IServiceHubServiceFactory" /> (and thus this class) MUST provide a parameterless constructor or ServiceHub will fail to construct them.
 /// </remarks>
-internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFactory where TService : class
+internal abstract partial class RazorServiceFactoryBase<TService> : IServiceHubServiceFactory where TService : class
 {
     private readonly RazorServiceDescriptorsWrapper _razorServiceDescriptors;
     private ITelemetryReporter? _telemetryReporter;
@@ -55,7 +56,10 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
         var descriptor = _razorServiceDescriptors.GetDescriptorForServiceFactory(typeof(TService));
         var serverConnection = descriptor.ConstructRpcConnection(pipe);
 
-        var service = CreateService(serviceBroker, _telemetryReporter ?? NoOpTelemetryReporter.Instance);
+        var service = CreateService(serviceBroker,
+            // TODO: This seems to always be null. Suspect this was intended to be something different.
+            _telemetryReporter ?? NoOpTelemetryReporter.Instance,
+            _exportProvider);
 
         serverConnection.AddLocalRpcTarget(service);
         serverConnection.StartListening();
@@ -63,5 +67,5 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
         return service;
     }
 
-    protected abstract TService CreateService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter);
+    protected abstract TService CreateService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter, ExportProvider exportProvider);
 }

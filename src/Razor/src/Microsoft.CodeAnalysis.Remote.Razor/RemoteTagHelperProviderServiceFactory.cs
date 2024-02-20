@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -14,6 +15,6 @@ internal sealed class RemoteTagHelperProviderServiceFactory : RazorServiceFactor
     {
     }
 
-    protected override IRemoteTagHelperProviderService CreateService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
-        => new RemoteTagHelperProviderService(serviceBroker, telemetryReporter);
+    protected override IRemoteTagHelperProviderService CreateService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter, ExportProvider exportProvider)
+        => new RemoteTagHelperProviderService(serviceBroker, telemetryReporter, exportProvider);
 }
