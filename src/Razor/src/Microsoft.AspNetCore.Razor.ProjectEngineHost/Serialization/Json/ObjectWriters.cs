@@ -34,6 +34,7 @@ internal static class ObjectWriters
             : value.LanguageVersion.ToString();
 
         writer.Write(nameof(value.LanguageVersion), languageVersionText);
+        writer.Write(nameof(value.SuppressDesignTime), value.SuppressDesignTime);
 
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }
