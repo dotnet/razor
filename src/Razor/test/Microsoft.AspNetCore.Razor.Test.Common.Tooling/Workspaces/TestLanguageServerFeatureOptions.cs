@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 internal class TestLanguageServerFeatureOptions(
     bool includeProjectKeyInGeneratedFilePath = false,
     bool monitorWorkspaceFolderForConfigurationFiles = true,
-    bool enableFuse = false) : LanguageServerFeatureOptions
+    bool forceRuntimeCodeGeneration = false) : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
 
@@ -42,5 +42,5 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool DisableRazorLanguageServer => false;
 
-    public override bool ForceRuntimeCodeGeneration => enableFuse;
+    public override bool ForceRuntimeCodeGeneration => forceRuntimeCodeGeneration;
 }
