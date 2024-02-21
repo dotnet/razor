@@ -52,7 +52,7 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
 
     public abstract bool UseConsolidatedMvcViews { get; }
 
-    public abstract bool SuppressDesignTime { get; }
+    public abstract bool ForceRuntimeCodeGeneration { get; }
 
     internal RazorConfiguration WithVersion(RazorLanguageVersion version)
     {
@@ -91,7 +91,7 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
             return false;
         }
 
-        if (SuppressDesignTime != other.SuppressDesignTime)
+        if (ForceRuntimeCodeGeneration != other.ForceRuntimeCodeGeneration)
         {
             return false;
         }
@@ -112,7 +112,7 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
         var hash = HashCodeCombiner.Start();
         hash.Add(LanguageVersion);
         hash.Add(ConfigurationName);
-        hash.Add(SuppressDesignTime);
+        hash.Add(ForceRuntimeCodeGeneration);
 
         for (var i = 0; i < Extensions.Count; i++)
         {
@@ -135,7 +135,7 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
             ConfigurationName = configurationName;
             Extensions = extensions;
             UseConsolidatedMvcViews = useConsolidatedMvcViews;
-            SuppressDesignTime = suppressDesignTime;
+            ForceRuntimeCodeGeneration = suppressDesignTime;
         }
 
         public override string ConfigurationName { get; }
@@ -146,6 +146,6 @@ public abstract class RazorConfiguration : IEquatable<RazorConfiguration>
 
         public override bool UseConsolidatedMvcViews { get; }
 
-        public override bool SuppressDesignTime { get; }
+        public override bool ForceRuntimeCodeGeneration { get; }
     }
 }

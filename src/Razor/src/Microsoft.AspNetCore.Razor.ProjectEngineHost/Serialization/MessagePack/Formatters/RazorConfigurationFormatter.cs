@@ -61,7 +61,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             CachedStringFormatter.Instance.Serialize(ref writer, value.LanguageVersion.ToString(), options);
         }
 
-        writer.Write(value.SuppressDesignTime);
+        writer.Write(value.ForceRuntimeCodeGeneration);
 
         count -= 3;
 

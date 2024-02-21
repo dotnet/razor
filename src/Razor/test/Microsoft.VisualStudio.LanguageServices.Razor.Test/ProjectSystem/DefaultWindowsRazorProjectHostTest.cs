@@ -610,7 +610,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         Assert.True(result);
         Assert.Equal(expectedLanguageVersion, configuration.LanguageVersion);
         Assert.Equal(expectedConfigurationName, configuration.ConfigurationName);
-        Assert.True(configuration.SuppressDesignTime);
+        Assert.True(configuration.ForceRuntimeCodeGeneration);
         Assert.Collection(
             configuration.Extensions.OrderBy(e => e.ExtensionName),
             extension => Assert.Equal(expectedExtension1Name, extension.ExtensionName),

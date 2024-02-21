@@ -109,7 +109,7 @@ public class RazorProjectEngine
             throw new ArgumentNullException(nameof(projectItem));
         }
 
-        var codeDocument = Configuration.SuppressDesignTime
+        var codeDocument = Configuration.ForceRuntimeCodeGeneration
             ? CreateCodeDocumentCore(projectItem)
             : CreateCodeDocumentDesignTimeCore(projectItem);
         ProcessCore(codeDocument);
@@ -127,7 +127,7 @@ public class RazorProjectEngine
             throw new ArgumentNullException(nameof(source));
         }
 
-        var codeDocument = Configuration.SuppressDesignTime
+        var codeDocument = Configuration.ForceRuntimeCodeGeneration
             ? CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null)
             : CreateCodeDocumentDesignTimeCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
         ProcessCore(codeDocument);

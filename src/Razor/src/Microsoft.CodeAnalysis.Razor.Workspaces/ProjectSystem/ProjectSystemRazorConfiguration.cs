@@ -13,7 +13,7 @@ internal class ProjectSystemRazorConfiguration : RazorConfiguration
     public override IReadOnlyList<RazorExtension> Extensions { get; }
     public override RazorLanguageVersion LanguageVersion { get; }
     public override bool UseConsolidatedMvcViews { get; }
-    public override bool SuppressDesignTime { get; }
+    public override bool ForceRuntimeCodeGeneration { get; }
 
     public ProjectSystemRazorConfiguration(
         RazorLanguageVersion languageVersion,
@@ -26,6 +26,6 @@ internal class ProjectSystemRazorConfiguration : RazorConfiguration
         ConfigurationName = configurationName ?? throw new ArgumentNullException(nameof(configurationName));
         Extensions = extensions ?? throw new ArgumentNullException(nameof(extensions));
         UseConsolidatedMvcViews = useConsolidatedMvcViews;
-        SuppressDesignTime = suppressDesignTime;
+        ForceRuntimeCodeGeneration = suppressDesignTime;
     }
 }

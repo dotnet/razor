@@ -40,7 +40,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             e => Assert.Equal("Test-Extension1", e.ExtensionName),
             e => Assert.Equal("Test-Extension2", e.ExtensionName));
         Assert.Equal(configuration.LanguageVersion, obj.LanguageVersion);
-        Assert.Equal(configuration.SuppressDesignTime, obj.SuppressDesignTime);
+        Assert.Equal(configuration.ForceRuntimeCodeGeneration, obj.ForceRuntimeCodeGeneration);
     }
 
     [Fact]
