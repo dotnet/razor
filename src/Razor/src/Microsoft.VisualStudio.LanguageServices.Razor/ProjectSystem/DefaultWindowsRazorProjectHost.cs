@@ -50,16 +50,16 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     }
 
     // Internal for testing
-#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
     internal DefaultWindowsRazorProjectHost(
-#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
         IUnconfiguredProjectCommonServices commonServices,
         Workspace workspace,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        ProjectSnapshotManagerBase projectManager)
+        ProjectSnapshotManagerBase projectManager,
+        LanguageServerFeatureOptions languageServerFeatureOptions)
         : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
     {
+        _languageServerFeatureOptions = languageServerFeatureOptions;
     }
 
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
@@ -90,11 +90,8 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
                 var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
 
-                if (_languageServerFeatureOptions is not null)
-                {
-                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                    ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
-                }
+                var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
 
                 UpdateProjectUnsafe(hostProject);
 
