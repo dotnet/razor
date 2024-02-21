@@ -177,8 +177,8 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         }
     }
 
-    public override string? ToString()
+    public override string ToString()
     {
-        return DisplayName ?? base.ToString();
+        return DisplayName ?? base.ToString()!;
     }
 }

@@ -204,9 +204,9 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
         }
     }
 
-    public override string? ToString()
+    public override string ToString()
     {
-        return DisplayName ?? base.ToString();
+        return DisplayName ?? base.ToString()!;
     }
 
     private string GetDebuggerDisplay()
