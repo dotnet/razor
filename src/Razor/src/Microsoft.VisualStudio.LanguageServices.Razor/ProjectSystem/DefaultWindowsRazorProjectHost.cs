@@ -66,7 +66,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
     protected override async Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
-        if (TryGetConfiguration(update.Value.CurrentState, out var configuration) &&
+        if (TryGetConfiguration(update.Value.CurrentState, _languageServerFeatureOptions.EnableFuse, out var configuration) &&
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
@@ -128,6 +128,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     // Internal for testing
     internal static bool TryGetConfiguration(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
+        bool? suppressDesignTime,
         [NotNullWhen(returnValue: true)] out RazorConfiguration? configuration)
     {
         if (!TryGetDefaultConfiguration(state, out var defaultConfiguration))
@@ -155,7 +156,8 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             return false;
         }
 
-        configuration = new ProjectSystemRazorConfiguration(languageVersion, configurationItem.Key, extensions);
+        suppressDesignTime ??= false;
+        configuration = new ProjectSystemRazorConfiguration(languageVersion, configurationItem.Key, extensions, suppressDesignTime: suppressDesignTime.Value);
         return true;
     }
 

@@ -37,7 +37,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         _hostProject_For_2_0 = new HostProject("Test.csproj", "/obj", FallbackRazorConfiguration.MVC_2_0, rootNamespace: null);
         _hostProject_For_NonSerializableConfiguration = new HostProject(
             "Test.csproj", "/obj",
-            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", []), rootNamespace: null);
+            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", [], suppressDesignTime: false), rootNamespace: null);
 
         _customFactories =
         [

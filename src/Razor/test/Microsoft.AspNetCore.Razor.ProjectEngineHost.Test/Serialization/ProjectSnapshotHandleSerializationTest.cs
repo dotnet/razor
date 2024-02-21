@@ -36,7 +36,8 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
                 {
                     new ProjectSystemRazorExtension("Test-Extension1"),
                     new ProjectSystemRazorExtension("Test-Extension2"),
-                }),
+                },
+                suppressDesignTime: false),
             "Test");
 
         // Act

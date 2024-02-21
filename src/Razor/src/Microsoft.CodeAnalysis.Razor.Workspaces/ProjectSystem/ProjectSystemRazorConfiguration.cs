@@ -19,9 +19,8 @@ internal class ProjectSystemRazorConfiguration : RazorConfiguration
         RazorLanguageVersion languageVersion,
         string configurationName,
         RazorExtension[] extensions,
-        bool useConsolidatedMvcViews = false,
-        // TODO: right now we hardcode the suppress design time flag, we need to thread it through a feature flag at a later date
-        bool suppressDesignTime = true)  
+        bool suppressDesignTime,  
+        bool useConsolidatedMvcViews = false)
     {
         LanguageVersion = languageVersion ?? throw new ArgumentNullException(nameof(languageVersion));
         ConfigurationName = configurationName ?? throw new ArgumentNullException(nameof(configurationName));
