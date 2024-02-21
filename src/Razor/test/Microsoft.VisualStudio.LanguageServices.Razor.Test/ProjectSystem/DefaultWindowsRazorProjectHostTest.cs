@@ -448,7 +448,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         var projectState = new Dictionary<string, IProjectRuleSnapshot>().ToImmutableDictionary();
 
         // Act
-        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: null, out var configuration);
+        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: false, out var configuration);
 
         // Assert
         Assert.False(result);
@@ -470,7 +470,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         }.ToImmutableDictionary();
 
         // Act
-        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: null, out var configuration);
+        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: false, out var configuration);
 
         // Assert
         Assert.False(result);
@@ -493,7 +493,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         }.ToImmutableDictionary();
 
         // Act
-        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: null, out var configuration);
+        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: false, out var configuration);
 
         // Assert
         Assert.False(result);
@@ -522,7 +522,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         }.ToImmutableDictionary();
 
         // Act
-        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: null, out var configuration);
+        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: false, out var configuration);
 
         // Assert
         Assert.True(result);
@@ -556,7 +556,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         }.ToImmutableDictionary();
 
         // Act
-        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: null, out var configuration);
+        var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, suppressDesignTime: false, out var configuration);
 
         // Assert
         Assert.True(result);

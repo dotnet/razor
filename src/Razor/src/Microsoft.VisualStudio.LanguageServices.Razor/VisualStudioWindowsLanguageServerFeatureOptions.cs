@@ -17,7 +17,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private const string UsePreciseSemanticTokenRangesFeatureFlag = "Razor.LSP.UsePreciseSemanticTokenRanges";
     private const string UseRazorCohostServerFeatureFlag = "Razor.LSP.UseRazorCohostServer";
     private const string DisableRazorLanguageServerFeatureFlag = "Razor.LSP.DisableRazorLanguageServer";
-    private const string EnableFuseFeatureFlag = "Razor.LSP.EnableFuse";
+    private const string ForceRuntimeCodeGenerationFeatureFlag = "Razor.LSP.ForceRuntimeCodeGeneration";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
@@ -25,7 +25,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
     private readonly Lazy<bool> _useRazorCohostServer;
     private readonly Lazy<bool> _disableRazorLanguageServer;
-    private readonly Lazy<bool> _enableFuse;
+    private readonly Lazy<bool> _forceRuntimeCodeGeneration;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -72,10 +72,10 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
             return disableRazorLanguageServer;
         });
 
-        _enableFuse = new Lazy<bool>(() =>
+        _forceRuntimeCodeGeneration = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var disableRazorLanguageServer = featureFlags.IsFeatureEnabled(EnableFuseFeatureFlag, defaultValue: false);
+            var disableRazorLanguageServer = featureFlags.IsFeatureEnabled(ForceRuntimeCodeGenerationFeatureFlag, defaultValue: false);
             return disableRazorLanguageServer;
         });
     }
@@ -115,5 +115,5 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     public override bool DisableRazorLanguageServer => _disableRazorLanguageServer.Value;
 
     /// <inheritdoc />
-    public override bool EnableFuse => _enableFuse.Value;
+    public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration.Value;
 }

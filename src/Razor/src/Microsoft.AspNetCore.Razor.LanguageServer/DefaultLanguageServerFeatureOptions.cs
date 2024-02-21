@@ -45,5 +45,5 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool DisableRazorLanguageServer => false;
 
-    public override bool EnableFuse => false;
+    public override bool ForceRuntimeCodeGeneration => false;
 }

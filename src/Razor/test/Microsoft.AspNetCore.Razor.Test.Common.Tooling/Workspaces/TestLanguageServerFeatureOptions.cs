@@ -42,5 +42,5 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool DisableRazorLanguageServer => false;
 
-    public override bool EnableFuse => enableFuse;
+    public override bool ForceRuntimeCodeGeneration => enableFuse;
 }
