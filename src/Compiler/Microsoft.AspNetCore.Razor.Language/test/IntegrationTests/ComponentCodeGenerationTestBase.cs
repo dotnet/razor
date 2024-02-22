@@ -4718,6 +4718,19 @@ namespace Test3
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: false);
     }
+    
+    [IntegrationTestFact]
+    public void Component_WithMultipleUsingDirectives()
+    {
+        var generated = CompileToCSharp(@"
+@using System.IO ;@using Microsoft.AspNetCore.Components
+; @using System.Reflection;");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
 
     [IntegrationTestFact]
     public void ChildContent_FromAnotherNamespace()
