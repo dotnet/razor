@@ -1218,13 +1218,15 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         List<RazorDiagnostic> errors)
     {
         var offset = 0;
-        directiveText = directiveText.Trim();
-        if (directiveText.Length >= 2 &&
-            directiveText.StartsWith("\"", StringComparison.Ordinal) &&
-            directiveText.EndsWith("\"", StringComparison.Ordinal))
+        var directiveTextSpan = directiveText.AsSpanOrDefault();
+
+        directiveTextSpan = directiveTextSpan.Trim();
+
+        if (directiveTextSpan is ['"', .. var innerTextSpan, '"'])
         {
-            directiveText = directiveText.Substring(1, directiveText.Length - 2);
-            if (string.IsNullOrEmpty(directiveText))
+            directiveTextSpan = innerTextSpan;
+
+            if (directiveTextSpan.IsEmpty)
             {
                 offset = 1;
             }
@@ -1237,10 +1239,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         //                    ^                                 ^
         //                  Start                              End
         if (TokenBuilder.Count == 1 &&
-            TokenBuilder[0] is SyntaxToken token &&
-            token.Kind == SyntaxKind.StringLiteral)
+            TokenBuilder[0] is SyntaxToken { Kind: SyntaxKind.StringLiteral } token)
         {
-            offset += token.Content.IndexOf(directiveText, StringComparison.Ordinal);
+            var contentSpan = token.Content.AsSpan();
+            offset += contentSpan.IndexOf(directiveTextSpan, StringComparison.Ordinal);
 
             // This is safe because inside one of these directives all of the text needs to be on the
             // same line.
@@ -1254,7 +1256,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
         var parsedDirective = new ParsedDirective()
         {
-            DirectiveText = directiveText
+            DirectiveText = directiveTextSpan.ToString()
         };
 
         if (directiveType == TagHelperDirectiveType.TagHelperPrefix)
