@@ -1271,7 +1271,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     }
 
     // Internal for testing.
-    internal ParsedDirective ParseAddOrRemoveDirective(ParsedDirective directive, SourceLocation directiveLocation, List<RazorDiagnostic> errors)
+    internal static ParsedDirective ParseAddOrRemoveDirective(ParsedDirective directive, SourceLocation directiveLocation, List<RazorDiagnostic> errors)
     {
         // Ensure that we have valid lookupStrings to work with. The valid format is "typeName, assemblyName"
         var text = directive.DirectiveText;
@@ -1323,7 +1323,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     }
 
     // Internal for testing.
-    internal void ValidateTagHelperPrefix(
+    internal static void ValidateTagHelperPrefix(
         string prefix,
         SourceLocation directiveLocation,
         List<RazorDiagnostic> diagnostics)
