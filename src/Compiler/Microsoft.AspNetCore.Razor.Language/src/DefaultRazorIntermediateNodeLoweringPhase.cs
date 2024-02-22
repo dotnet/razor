@@ -237,7 +237,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
     private struct UsingReference : IEquatable<UsingReference>
     {
-        public UsingReference(string @namespace, SourceSpan? source, bool hasExplicitSemicolon = true)
+        public UsingReference(string @namespace, SourceSpan? source, bool hasExplicitSemicolon)
         {
             Namespace = @namespace;
             Source = source;
