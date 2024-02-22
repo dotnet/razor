@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,10 +13,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 {
-    private static readonly HashSet<char> InvalidNonWhitespaceNameCharacters = new HashSet<char>(new[]
-    {
-            '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'', '*'
-        });
+    private static readonly FrozenSet<char> InvalidNonWhitespaceNameCharacters = new HashSet<char>(
+    [
+        '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'', '*'
+    ]).ToFrozenSet();
 
     private static readonly Func<SyntaxToken, bool> IsValidStatementSpacingToken =
         IsSpacingTokenIncludingNewLinesAndComments;
