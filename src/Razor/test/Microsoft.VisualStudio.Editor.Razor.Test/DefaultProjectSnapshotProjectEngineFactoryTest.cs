@@ -42,15 +42,15 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
 
         var hostProject_For_2_1 = new HostProject(
             projectFilePath, intermediateOutputPath,
-            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "MVC-2.1", Array.Empty<RazorExtension>()), "Test");
+            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "MVC-2.1", Array.Empty<RazorExtension>(), suppressDesignTime: false), "Test");
 
         var hostProject_For_3_0 = new HostProject(
             projectFilePath, intermediateOutputPath,
-            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_3_0, "MVC-3.0", Array.Empty<RazorExtension>()), "Test");
+            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_3_0, "MVC-3.0", Array.Empty<RazorExtension>(), suppressDesignTime: false), "Test");
 
         var hostProject_For_UnknownConfiguration = new HostProject(
             projectFilePath, intermediateOutputPath,
-            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", Array.Empty<RazorExtension>()), rootNamespace: null);
+            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", Array.Empty<RazorExtension>(), suppressDesignTime: false), rootNamespace: null);
 
         var projectEngineFactory = Mock.Of<ProjectSnapshotProjectEngineFactory>(MockBehavior.Strict);
 

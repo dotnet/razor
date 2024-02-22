@@ -50,23 +50,23 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     }
 
     // Internal for testing
-#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
     internal DefaultWindowsRazorProjectHost(
-#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
         IUnconfiguredProjectCommonServices commonServices,
         Workspace workspace,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        ProjectSnapshotManagerBase projectManager)
+        ProjectSnapshotManagerBase projectManager,
+        LanguageServerFeatureOptions languageServerFeatureOptions)
         : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
     {
+        _languageServerFeatureOptions = languageServerFeatureOptions;
     }
 
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
 
     protected override async Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
-        if (TryGetConfiguration(update.Value.CurrentState, out var configuration) &&
+        if (TryGetConfiguration(update.Value.CurrentState, _languageServerFeatureOptions.ForceRuntimeCodeGeneration, out var configuration) &&
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
@@ -90,11 +90,8 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
                 var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
 
-                if (_languageServerFeatureOptions is not null)
-                {
-                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                    ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
-                }
+                var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
 
                 UpdateProjectUnsafe(hostProject);
 
@@ -128,6 +125,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     // Internal for testing
     internal static bool TryGetConfiguration(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
+        bool suppressDesignTime,
         [NotNullWhen(returnValue: true)] out RazorConfiguration? configuration)
     {
         if (!TryGetDefaultConfiguration(state, out var defaultConfiguration))
@@ -155,7 +153,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             return false;
         }
 
-        configuration = new ProjectSystemRazorConfiguration(languageVersion, configurationItem.Key, extensions);
+        configuration = new ProjectSystemRazorConfiguration(languageVersion, configurationItem.Key, extensions, suppressDesignTime);
         return true;
     }
 

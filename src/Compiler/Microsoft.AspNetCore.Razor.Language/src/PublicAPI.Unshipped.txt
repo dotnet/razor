@@ -17,7 +17,7 @@ abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Keys.get -> Syst
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.this[string! key].get -> string?
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.TryGetValue(string! key, out string? value) -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Values.get -> System.Collections.Generic.IEnumerable<string?>!
-abstract Microsoft.AspNetCore.Razor.Language.RazorConfiguration.SuppressDesignTime.get -> bool
+abstract Microsoft.AspNetCore.Razor.Language.RazorConfiguration.ForceRuntimeCodeGeneration.get -> bool
 abstract Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties.FilePath.get -> string?
 abstract Microsoft.AspNetCore.Razor.Language.RazorSourceDocumentProperties.RelativePath.get -> string?
 abstract Microsoft.AspNetCore.Razor.Language.TagHelperCollector<T>.Collect(Microsoft.CodeAnalysis.ISymbol! symbol, System.Collections.Generic.ICollection<Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor!>! results) -> void

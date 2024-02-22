@@ -21,8 +21,9 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
         var configurationName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var suppressDesignTime = reader.ReadBoolean();
 
-        count -= 2;
+        count -= 3;
 
         using var builder = new PooledArrayBuilder<RazorExtension>();
 
@@ -38,15 +39,14 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        // TODO: right now we hardcode the suppress design time flag, we need to thread it through a feature flag at a later date
-        return RazorConfiguration.Create(languageVersion, configurationName, extensions, suppressDesignTime: true);
+        return RazorConfiguration.Create(languageVersion, configurationName, extensions, suppressDesignTime: suppressDesignTime);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
     {
         // Write two values + one value per extension.
         var extensions = value.Extensions;
-        var count = extensions.Count + 2;
+        var count = extensions.Count + 3;
 
         writer.WriteArrayHeader(count);
 
@@ -61,7 +61,9 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             CachedStringFormatter.Instance.Serialize(ref writer, value.LanguageVersion.ToString(), options);
         }
 
-        count -= 2;
+        writer.Write(value.ForceRuntimeCodeGeneration);
+
+        count -= 3;
 
         for (var i = 0; i < count; i++)
         {

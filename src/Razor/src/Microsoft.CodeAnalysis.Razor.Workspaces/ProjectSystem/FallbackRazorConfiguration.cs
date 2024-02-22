@@ -104,7 +104,7 @@ internal class FallbackRazorConfiguration : RazorConfiguration
         ConfigurationName = configurationName;
         Extensions = extensions;
         UseConsolidatedMvcViews = useConsolidatedMvcViews;
-        SuppressDesignTime = suppressDesignTime;
+        ForceRuntimeCodeGeneration = suppressDesignTime;
     }
 
     public override string ConfigurationName { get; }
@@ -115,5 +115,5 @@ internal class FallbackRazorConfiguration : RazorConfiguration
 
     public override bool UseConsolidatedMvcViews { get; }
 
-    public override bool SuppressDesignTime { get; }
+    public override bool ForceRuntimeCodeGeneration { get; }
 }
