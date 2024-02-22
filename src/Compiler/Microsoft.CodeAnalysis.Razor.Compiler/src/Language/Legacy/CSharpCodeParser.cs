@@ -1272,10 +1272,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         // Ensure that we have valid lookupStrings to work with. The valid format is "typeName, assemblyName"
         var text = directive.DirectiveText;
-        if (text is null or ['\'', ..] or [.., '\''] ||
-            text.Split([',']) is not [{ } typeName, { } assemblyName] ||
-            typeName.IsNullOrWhiteSpace() ||
-            assemblyName.IsNullOrWhiteSpace())
+        if (!TrySplitDirectiveText(text.AsSpanOrDefault(), out var typeName, out var assemblyName))
         {
             errors.Add(
                 RazorDiagnosticFactory.CreateParsing_InvalidTagHelperLookupText(
@@ -1284,17 +1281,42 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             return directive;
         }
 
-        var trimmedAssemblyName = assemblyName.Trim();
-
-        // + 1 is for the comma separator in the lookup text.
-        var assemblyNameIndex =
-            typeName.Length + 1 + assemblyName.IndexOf(trimmedAssemblyName, StringComparison.Ordinal);
-        var assemblyNamePrefix = directive.DirectiveText.Substring(0, assemblyNameIndex);
-
-        directive.TypePattern = typeName.Trim();
-        directive.AssemblyName = trimmedAssemblyName;
+        directive.TypePattern = typeName.ToString();
+        directive.AssemblyName = assemblyName.ToString();
 
         return directive;
+
+        static bool TrySplitDirectiveText(
+            ReadOnlySpan<char> directiveText,
+            out ReadOnlySpan<char> typeName,
+            out ReadOnlySpan<char> assemblyName)
+        {
+            // We expect the form "typeName, assemblyName".
+
+            typeName = default;
+            assemblyName = default;
+
+            if (directiveText.IsEmpty || directiveText[0] == '\'' || directiveText[^1] == '\'')
+            {
+                return false;
+            }
+
+            var commaIndex = directiveText.IndexOf(',');
+            if (commaIndex < 0)
+            {
+                return false;
+            }
+
+            typeName = directiveText[..commaIndex].Trim();
+            assemblyName = directiveText[(commaIndex + 1)..].Trim();
+
+            if (typeName.IsEmpty || assemblyName.IsEmpty || assemblyName.IndexOf(',') >= 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 
     // Internal for testing.
