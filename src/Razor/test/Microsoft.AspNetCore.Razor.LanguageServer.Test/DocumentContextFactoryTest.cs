@@ -108,7 +108,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void TryCreateAsync_WithProjectContext_Resolves()
+    public async Task TryCreateAsync_WithProjectContext_Resolves()
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
@@ -123,9 +123,13 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectSnapshotManagerAccessor, documentResolver, _documentVersionCache, LoggerFactory);
 
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
-        _projectSnapshotManagerBase.ProjectAdded(hostProject);
         var hostDocument = new HostDocument(filePath, "file.cshtml");
-        _projectSnapshotManagerBase.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(filePath));
+
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectSnapshotManagerBase.ProjectAdded(hostProject);
+            _projectSnapshotManagerBase.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(filePath));
+        });
 
         // Act
         var documentContext = factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id });
@@ -136,7 +140,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void TryCreateAsync_WithProjectContext_DoesntUseSnapshotResolver()
+    public async Task TryCreateAsync_WithProjectContext_DoesntUseSnapshotResolver()
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
@@ -151,9 +155,13 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectSnapshotManagerAccessor, documentResolverMock.Object, _documentVersionCache, LoggerFactory);
 
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
-        _projectSnapshotManagerBase.ProjectAdded(hostProject);
         var hostDocument = new HostDocument(filePath, "file.cshtml");
-        _projectSnapshotManagerBase.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(filePath));
+
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectSnapshotManagerBase.ProjectAdded(hostProject);
+            _projectSnapshotManagerBase.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(filePath));
+        });
 
         // Act
         var documentContext = factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id });
