@@ -112,7 +112,11 @@ internal sealed class FallbackProjectManager(
         // the project will be updated, and it will no longer be a fallback project.
         var hostProject = new FallbackHostProject(project.FilePath, intermediateOutputPath, FallbackRazorConfiguration.Latest, rootNamespace, project.Name);
 
-        _projectManagerAccessor.Instance.ProjectAdded(hostProject);
+        await _dispatcher
+            .RunOnDispatcherThreadAsync(
+                () => _projectManagerAccessor.Instance.ProjectAdded(hostProject),
+                cancellationToken)
+            .ConfigureAwait(false);
 
         await AddFallbackDocumentAsync(hostProject.Key, filePath, project.FilePath, cancellationToken).ConfigureAwait(false);
 
