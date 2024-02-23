@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
@@ -36,7 +37,7 @@ public class ImportDocumentManagerTest : VisualStudioTestBase
     }
 
     [UIFact]
-    public void OnSubscribed_StartsFileChangeTrackers()
+    public async Task OnSubscribed_StartsFileChangeTrackers()
     {
         // Arrange
         var tracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
@@ -73,7 +74,10 @@ public class ImportDocumentManagerTest : VisualStudioTestBase
         var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
 
         // Act
-        manager.OnSubscribed(tracker);
+        await RunOnDispatcherAsync(() =>
+        {
+            manager.OnSubscribed(tracker);
+        });
 
         // Assert
         fileChangeTrackerFactoryMock.Verify();
@@ -83,7 +87,7 @@ public class ImportDocumentManagerTest : VisualStudioTestBase
     }
 
     [UIFact]
-    public void OnSubscribed_AlreadySubscribed_DoesNothing()
+    public async Task OnSubscribed_AlreadySubscribed_DoesNothing()
     {
         // Arrange
         var tracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
@@ -110,17 +114,24 @@ public class ImportDocumentManagerTest : VisualStudioTestBase
             .Callback(() => callCount++);
 
         var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
-        manager.OnSubscribed(tracker); // Start tracking the import.
+
+        await RunOnDispatcherAsync(() =>
+        {
+            manager.OnSubscribed(tracker); // Start tracking the import.
+        });
 
         // Act
-        manager.OnSubscribed(anotherTracker);
+        await RunOnDispatcherAsync(() =>
+        {
+            manager.OnSubscribed(anotherTracker);
+        });
 
         // Assert
         Assert.Equal(1, callCount);
     }
 
     [UIFact]
-    public void OnUnsubscribed_StopsFileChangeTracker()
+    public async Task OnUnsubscribed_StopsFileChangeTracker()
     {
         // Arrange
         var tracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
@@ -142,10 +153,17 @@ public class ImportDocumentManagerTest : VisualStudioTestBase
             .Verifiable();
 
         var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
-        manager.OnSubscribed(tracker); // Start tracking the import.
+
+        await RunOnDispatcherAsync(() =>
+        {
+            manager.OnSubscribed(tracker); // Start tracking the import.
+        });
 
         // Act
-        manager.OnUnsubscribed(tracker);
+        await RunOnDispatcherAsync(() =>
+        {
+            manager.OnUnsubscribed(tracker);
+        });
 
         // Assert
         fileChangeTrackerFactoryMock.Verify();
@@ -153,7 +171,7 @@ public class ImportDocumentManagerTest : VisualStudioTestBase
     }
 
     [UIFact]
-    public void OnUnsubscribed_AnotherDocumentTrackingImport_DoesNotStopFileChangeTracker()
+    public async Task OnUnsubscribed_AnotherDocumentTrackingImport_DoesNotStopFileChangeTracker()
     {
         // Arrange
         var tracker = StrictMock.Of<IVisualStudioDocumentTracker>(t =>
@@ -181,12 +199,19 @@ public class ImportDocumentManagerTest : VisualStudioTestBase
             .Returns(fileChangeTrackerMock.Object);
 
         var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
-        manager.OnSubscribed(tracker); // Starts tracking import for the first document.
 
-        manager.OnSubscribed(anotherTracker); // Starts tracking import for the second document.
+        await RunOnDispatcherAsync(() =>
+        {
+            manager.OnSubscribed(tracker); // Starts tracking import for the first document.
+
+            manager.OnSubscribed(anotherTracker); // Starts tracking import for the second document.
+        });
 
         // Act & Assert (Does not throw)
-        manager.OnUnsubscribed(tracker);
-        manager.OnUnsubscribed(tracker);
+        await RunOnDispatcherAsync(() =>
+        {
+            manager.OnUnsubscribed(tracker);
+            manager.OnUnsubscribed(tracker);
+        });
     }
 }
