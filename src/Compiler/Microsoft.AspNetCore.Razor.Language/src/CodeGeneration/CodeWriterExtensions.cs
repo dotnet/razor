@@ -152,15 +152,14 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    public static CodeWriter WriteEnhancedLineNumberDirective(this CodeWriter writer, SourceSpan span, int characterOffset)
+    public static CodeWriter WriteEnhancedLineNumberDirective(this CodeWriter writer, SourceSpan span, int characterOffset = 0)
     {
         // All values here need to be offset by 1 since #line uses a 1-indexed numbering system.
         var lineNumberAsString = (span.LineIndex + 1).ToString(CultureInfo.InvariantCulture);
         var characterStartAsString = (span.CharacterIndex + 1).ToString(CultureInfo.InvariantCulture);
         var lineEndAsString = (span.LineIndex + 1 + span.LineCount).ToString(CultureInfo.InvariantCulture);
         var characterEndAsString = (span.EndCharacterIndex + 1).ToString(CultureInfo.InvariantCulture);
-        var characterOffsetAsString = characterOffset.ToString(CultureInfo.InvariantCulture);
-        return writer.Write("#line (")
+        writer.Write("#line (")
             .Write(lineNumberAsString)
             .Write(",")
             .Write(characterStartAsString)
@@ -168,9 +167,16 @@ internal static class CodeWriterExtensions
             .Write(lineEndAsString)
             .Write(",")
             .Write(characterEndAsString)
-            .Write(") ")
-            .Write(characterOffsetAsString)
-            .Write(" \"").Write(span.FilePath).WriteLine("\"");
+            .Write(") ");
+
+        // an offset of zero is indicated by its absence. 
+        if (characterOffset != 0)
+        {
+            var characterOffsetAsString = characterOffset.ToString(CultureInfo.InvariantCulture);
+            writer.Write(characterOffsetAsString).Write(" ");
+        }
+
+        return writer.Write("\"").Write(span.FilePath).WriteLine("\"");
     }
 
     public static CodeWriter WriteLineNumberDirective(this CodeWriter writer, SourceSpan span)

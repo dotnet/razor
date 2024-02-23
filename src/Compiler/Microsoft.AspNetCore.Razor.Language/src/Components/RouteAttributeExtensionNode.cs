@@ -27,7 +27,7 @@ internal sealed class RouteAttributeExtensionNode(string template) : ExtensionIn
         {
             context.CodeWriter.WriteLine("(");
             context.CodeWriter.WriteLine("// language=Route,Component");
-            using (context.CodeWriter.BuildEnhancedLinePragma(Source, context, characterOffset: 1))
+            using (context.CodeWriter.BuildEnhancedLinePragma(Source, context))
             {
                 context.CodeWriter.WritePadding(0, Source, context);
                 context.AddSourceMappingFor(this);

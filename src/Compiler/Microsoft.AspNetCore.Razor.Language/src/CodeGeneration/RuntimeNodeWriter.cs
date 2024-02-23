@@ -33,7 +33,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
     {
         if (node.Source.HasValue)
         {
-            using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context, characterOffset: 1))
+            using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context))
             {
                 context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
