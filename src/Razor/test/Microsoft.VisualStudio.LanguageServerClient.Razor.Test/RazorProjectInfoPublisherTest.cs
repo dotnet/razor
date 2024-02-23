@@ -67,26 +67,35 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     }
 
     [Fact]
-    public void ProjectManager_Changed_NotActive_Noops()
+    public async Task ProjectManager_Changed_NotActive_Noops()
     {
         // Arrange
-        var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
+        var projectManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var attemptedToSerialize = false;
         var hostProject = new HostProject(@"C:\path\to\project.csproj", @"C:\path\to\obj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
         var hostDocument = new HostDocument(@"C:\path\to\file.razor", "file.razor");
-        projectSnapshotManager.ProjectAdded(hostProject);
+
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectManager.ProjectAdded(hostProject);
+        });
+
         var publisher = new TestRazorProjectInfoPublisher(
             projectConfigurationFilePathStore,
             onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
         {
             EnqueueDelay = 10,
         };
-        publisher.Initialize(projectSnapshotManager);
+
+        publisher.Initialize(projectManager);
 
         // Act
-        projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+        });
 
         // Assert
         Assert.Empty(publisher.DeferredPublishTasks);
@@ -97,26 +106,32 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     public async Task ProjectManager_Changed_DocumentOpened_UninitializedProject_NotActive_Noops()
     {
         // Arrange
-        var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
+        var projectManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var attemptedToSerialize = false;
         var hostProject = new HostProject(@"C:\path\to\project.csproj", @"C:\path\to\obj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
         var hostDocument = new HostDocument(@"C:\path\to\file.razor", "file.razor");
-        projectSnapshotManager.ProjectAdded(hostProject);
-        projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectManager.ProjectAdded(hostProject);
+            projectManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+        });
+
         var publisher = new TestRazorProjectInfoPublisher(
             projectConfigurationFilePathStore,
             onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
         {
             EnqueueDelay = 10,
         };
-        publisher.Initialize(projectSnapshotManager);
+
+        publisher.Initialize(projectManager);
 
         // Act
         await RunOnDispatcherThreadAsync(() =>
         {
-            projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
+            projectManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
         });
 
         // Assert
@@ -128,16 +143,21 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     public async Task ProjectManager_Changed_DocumentOpened_InitializedProject_NotActive_Publishes()
     {
         // Arrange
-        var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
+        var projectManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
         var hostProject = new HostProject(@"C:\path\to\project.csproj", @"C:\path\to\obj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
         var hostDocument = new HostDocument(@"C:\path\to\file.razor", "file.razor");
-        projectSnapshotManager.ProjectAdded(hostProject);
-        projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, ProjectWorkspaceState.Default);
-        projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
-        var projectSnapshot = projectSnapshotManager.GetProjects()[0];
+
+        await RunOnDispatcherThreadAsync(() =>
+        {
+            projectManager.ProjectAdded(hostProject);
+            projectManager.ProjectWorkspaceStateChanged(hostProject.Key, ProjectWorkspaceState.Default);
+            projectManager.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
+        });
+
+        var projectSnapshot = projectManager.GetProjects()[0];
         var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.bin";
         projectConfigurationFilePathStore.Set(projectSnapshot.Key, expectedConfigurationFilePath);
         var publisher = new TestRazorProjectInfoPublisher(
@@ -150,12 +170,13 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         {
             EnqueueDelay = 10,
         };
-        publisher.Initialize(projectSnapshotManager);
+
+        publisher.Initialize(projectManager);
 
         // Act
         await RunOnDispatcherThreadAsync(() =>
         {
-            projectSnapshotManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
+            projectManager.DocumentOpened(hostProject.Key, hostDocument.FilePath, SourceText.From(string.Empty));
         });
 
         // Assert
