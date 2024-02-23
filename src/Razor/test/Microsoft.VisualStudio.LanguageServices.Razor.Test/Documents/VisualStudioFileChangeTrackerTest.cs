@@ -31,7 +31,8 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
         var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
 
         // Act
-        tracker.StartListening();
+        await RunOnDispatcherAsync(tracker.StartListening);
+
         await tracker._fileChangeAdviseTask;
 
         // Assert
@@ -49,10 +50,12 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
             .ReturnsAsync(123u)
             .Callback(() => callCount++);
         var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
-        tracker.StartListening();
+
+        await RunOnDispatcherAsync(tracker.StartListening);
 
         // Act
-        tracker.StartListening();
+        await RunOnDispatcherAsync(tracker.StartListening);
+
         await tracker._fileChangeAdviseTask;
 
         // Assert
@@ -72,11 +75,14 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
             .Setup(f => f.UnadviseFileChangeAsync(123, It.IsAny<CancellationToken>()))
             .Verifiable();
         var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
-        tracker.StartListening(); // Start listening for changes.
+
+        await RunOnDispatcherAsync(tracker.StartListening);
+
         await tracker._fileChangeAdviseTask;
 
         // Act
-        tracker.StopListening();
+        await RunOnDispatcherAsync(tracker.StopListening);
+
         await tracker._fileChangeUnadviseTask;
 
         // Assert
@@ -84,7 +90,7 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public void StopListening_NotListening_DoesNothing()
+    public async Task StopListening_NotListening_DoesNothing()
     {
         // Arrange
         var fileChangeService = new Mock<IVsAsyncFileChangeEx>(MockBehavior.Strict);
@@ -94,7 +100,7 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
         var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
 
         // Act
-        tracker.StopListening();
+        await RunOnDispatcherAsync(tracker.StopListening);
 
         // Assert
         Assert.Null(tracker._fileChangeUnadviseTask);
