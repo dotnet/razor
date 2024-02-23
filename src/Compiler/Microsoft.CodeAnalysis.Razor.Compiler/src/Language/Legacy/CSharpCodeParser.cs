@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,10 +13,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 {
-    private static readonly HashSet<char> InvalidNonWhitespaceNameCharacters = new HashSet<char>(new[]
-    {
-            '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'', '*'
-        });
+    private static readonly FrozenSet<char> InvalidNonWhitespaceNameCharacters = new HashSet<char>(
+    [
+        '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'', '*'
+    ]).ToFrozenSet();
 
     private static readonly Func<SyntaxToken, bool> IsValidStatementSpacingToken =
         IsSpacingTokenIncludingNewLinesAndComments;
@@ -1218,13 +1219,15 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         List<RazorDiagnostic> errors)
     {
         var offset = 0;
-        directiveText = directiveText.Trim();
-        if (directiveText.Length >= 2 &&
-            directiveText.StartsWith("\"", StringComparison.Ordinal) &&
-            directiveText.EndsWith("\"", StringComparison.Ordinal))
+        var directiveTextSpan = directiveText.AsSpanOrDefault();
+
+        directiveTextSpan = directiveTextSpan.Trim();
+
+        if (directiveTextSpan is ['"', .. var innerTextSpan, '"'])
         {
-            directiveText = directiveText.Substring(1, directiveText.Length - 2);
-            if (string.IsNullOrEmpty(directiveText))
+            directiveTextSpan = innerTextSpan;
+
+            if (directiveTextSpan.IsEmpty)
             {
                 offset = 1;
             }
@@ -1237,10 +1240,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         //                    ^                                 ^
         //                  Start                              End
         if (TokenBuilder.Count == 1 &&
-            TokenBuilder[0] is SyntaxToken token &&
-            token.Kind == SyntaxKind.StringLiteral)
+            TokenBuilder[0] is SyntaxToken { Kind: SyntaxKind.StringLiteral } token)
         {
-            offset += token.Content.IndexOf(directiveText, StringComparison.Ordinal);
+            var contentSpan = token.Content.AsSpan();
+            offset += contentSpan.IndexOf(directiveTextSpan, StringComparison.Ordinal);
 
             // This is safe because inside one of these directives all of the text needs to be on the
             // same line.
@@ -1254,7 +1257,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
         var parsedDirective = new ParsedDirective()
         {
-            DirectiveText = directiveText
+            DirectiveText = directiveTextSpan.ToString()
         };
 
         if (directiveType == TagHelperDirectiveType.TagHelperPrefix)
@@ -1268,14 +1271,11 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     }
 
     // Internal for testing.
-    internal ParsedDirective ParseAddOrRemoveDirective(ParsedDirective directive, SourceLocation directiveLocation, List<RazorDiagnostic> errors)
+    internal static ParsedDirective ParseAddOrRemoveDirective(ParsedDirective directive, SourceLocation directiveLocation, List<RazorDiagnostic> errors)
     {
         // Ensure that we have valid lookupStrings to work with. The valid format is "typeName, assemblyName"
         var text = directive.DirectiveText;
-        if (text is null or ['\'', ..] or [.., '\''] ||
-            text.Split([',']) is not [{ } typeName, { } assemblyName] ||
-            typeName.IsNullOrWhiteSpace() ||
-            assemblyName.IsNullOrWhiteSpace())
+        if (!TrySplitDirectiveText(text.AsSpanOrDefault(), out var typeName, out var assemblyName))
         {
             errors.Add(
                 RazorDiagnosticFactory.CreateParsing_InvalidTagHelperLookupText(
@@ -1284,21 +1284,46 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             return directive;
         }
 
-        var trimmedAssemblyName = assemblyName.Trim();
-
-        // + 1 is for the comma separator in the lookup text.
-        var assemblyNameIndex =
-            typeName.Length + 1 + assemblyName.IndexOf(trimmedAssemblyName, StringComparison.Ordinal);
-        var assemblyNamePrefix = directive.DirectiveText.Substring(0, assemblyNameIndex);
-
-        directive.TypePattern = typeName.Trim();
-        directive.AssemblyName = trimmedAssemblyName;
+        directive.TypePattern = typeName.ToString();
+        directive.AssemblyName = assemblyName.ToString();
 
         return directive;
+
+        static bool TrySplitDirectiveText(
+            ReadOnlySpan<char> directiveText,
+            out ReadOnlySpan<char> typeName,
+            out ReadOnlySpan<char> assemblyName)
+        {
+            // We expect the form "typeName, assemblyName".
+
+            typeName = default;
+            assemblyName = default;
+
+            if (directiveText.IsEmpty || directiveText[0] == '\'' || directiveText[^1] == '\'')
+            {
+                return false;
+            }
+
+            var commaIndex = directiveText.IndexOf(',');
+            if (commaIndex < 0)
+            {
+                return false;
+            }
+
+            typeName = directiveText[..commaIndex].Trim();
+            assemblyName = directiveText[(commaIndex + 1)..].Trim();
+
+            if (typeName.IsEmpty || assemblyName.IsEmpty || assemblyName.IndexOf(',') >= 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 
     // Internal for testing.
-    internal void ValidateTagHelperPrefix(
+    internal static void ValidateTagHelperPrefix(
         string prefix,
         SourceLocation directiveLocation,
         List<RazorDiagnostic> diagnostics)
