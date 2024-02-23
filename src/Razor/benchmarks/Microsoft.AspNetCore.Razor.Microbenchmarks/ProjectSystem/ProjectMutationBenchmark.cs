@@ -20,7 +20,6 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
     public ProjectMutationBenchmark()
         : base(100000)
     {
-        _dispatcher = new SnapshotDispatcher(nameof(ProjectMutationBenchmark));
     }
 
     private Thread _addRemoveThread;
@@ -29,17 +28,17 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
     [IterationSetup]
     public void Setup()
     {
-        SnapshotManager = CreateProjectSnapshotManager();
+        ProjectManager = CreateProjectSnapshotManager();
     }
 
-    private DefaultProjectSnapshotManager SnapshotManager { get; set; }
+    private DefaultProjectSnapshotManager ProjectManager { get; set; }
 
     [Benchmark(Description = "Does thread contention add/remove of documents", OperationsPerInvoke = 100)]
     public async Task ProjectMutation_Mutates100kFilesAsync()
     {
-        await _dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
-            SnapshotManager.ProjectAdded(HostProject);
+            ProjectManager.ProjectAdded(HostProject);
         }, CancellationToken.None);
 
         var cancellationSource = new CancellationTokenSource();
@@ -51,9 +50,9 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
             for (var i = 0; i < Documents.Length; i++)
             {
                 var document = Documents[i];
-                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.DocumentAdded(HostProject.Key, document, TextLoaders[i % 4]), CancellationToken.None).ConfigureAwait(false);
+                await Dispatcher.RunOnDispatcherThreadAsync(() => ProjectManager.DocumentAdded(HostProject.Key, document, TextLoaders[i % 4]), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
-                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.DocumentRemoved(HostProject.Key, document), CancellationToken.None).ConfigureAwait(false);
+                await Dispatcher.RunOnDispatcherThreadAsync(() => ProjectManager.DocumentRemoved(HostProject.Key, document), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
             }
 
@@ -70,9 +69,9 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
                     return;
                 }
 
-                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.GetProjects(), CancellationToken.None).ConfigureAwait(false);
+                await Dispatcher.RunOnDispatcherThreadAsync(() => ProjectManager.GetProjects(), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
-                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.GetOpenDocuments(), CancellationToken.None).ConfigureAwait(false);
+                await Dispatcher.RunOnDispatcherThreadAsync(() => ProjectManager.GetOpenDocuments(), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
             }
         });
@@ -84,18 +83,6 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
         while (!done)
         {
             Thread.Sleep(0);
-        }
-    }
-
-    private class SnapshotDispatcher : ProjectSnapshotManagerDispatcherBase
-    {
-        public SnapshotDispatcher(string threadName) : base(threadName)
-        {
-        }
-
-        public override void LogException(Exception ex)
-        {
-            Console.Error.WriteLine(ex.ToString());
         }
     }
 }
