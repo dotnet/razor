@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -33,10 +32,10 @@ public class RazorDocumentManagerTest : VisualStudioTestBase
         var projectManagerMock = new StrictMock<ProjectSnapshotManagerBase>();
         projectManagerMock
             .Setup(p => p.GetAllProjectKeys(It.IsAny<string>()))
-            .Returns(ImmutableArray<ProjectKey>.Empty);
+            .Returns([]);
         projectManagerMock
             .Setup(p => p.GetProjects())
-            .Returns(ImmutableArray<IProjectSnapshot>.Empty);
+            .Returns([]);
 
         IProjectSnapshot? projectResult = null;
         projectManagerMock
