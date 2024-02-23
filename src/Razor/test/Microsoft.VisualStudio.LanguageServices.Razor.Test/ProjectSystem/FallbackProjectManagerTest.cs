@@ -50,7 +50,11 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
     public async Task DynamicFileAdded_KnownProject_DoesNothing()
     {
         var hostProject = new HostProject(SomeProject.FilePath, SomeProject.IntermediateOutputPath, RazorConfiguration.Default, "RootNamespace", "DisplayName");
-        _projectManager.ProjectAdded(hostProject);
+
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(hostProject);
+        });
 
         var projectId = ProjectId.CreateNewId();
         var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "DisplayName", "AssemblyName", LanguageNames.CSharp, filePath: SomeProject.FilePath)
@@ -117,7 +121,11 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
 
         var hostProject = new HostProject(SomeProject.FilePath, SomeProject.IntermediateOutputPath, RazorConfiguration.Default, "RootNamespace", "DisplayName");
-        _projectManager.ProjectConfigurationChanged(hostProject);
+
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectConfigurationChanged(hostProject);
+        });
 
         project = Assert.Single(_projectManager.GetProjects());
         Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
