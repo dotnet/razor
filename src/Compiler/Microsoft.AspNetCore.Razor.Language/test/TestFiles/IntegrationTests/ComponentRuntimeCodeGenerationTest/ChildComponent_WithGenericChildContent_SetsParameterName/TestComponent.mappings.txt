@@ -1,5 +1,5 @@
 ﻿Source Location: (93:2,32 [23] x:\dir\subdir\Test\TestComponent.cshtml)
 |item.ToLowerInvariant()|
-Generated Location: (1151:23,25 [23] )
+Generated Location: (1166:24,0 [23] )
 |item.ToLowerInvariant()|
 

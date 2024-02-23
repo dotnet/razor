@@ -7,24 +7,24 @@ Generated Location: (370:12,0 [43] )
 
 Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1109:28,31 [9] )
+Generated Location: (1090:28,0 [9] )
 |() => { }|
 
 Source Location: (105:1,61 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |"literal"|
-Generated Location: (1459:37,61 [9] )
+Generated Location: (1391:37,0 [9] )
 |"literal"|
 
 Source Location: (117:1,73 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |x|
-Generated Location: (1688:45,73 [1] )
+Generated Location: (1559:45,0 [1] )
 |x|
 
 Source Location: (140:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     int x = 1;
 |
-Generated Location: (1994:57,7 [18] )
+Generated Location: (1868:57,0 [18] )
 |
     int x = 1;
 |

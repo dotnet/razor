@@ -31,8 +31,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.OpenElement(0, "input");
             __builder.AddAttribute(1, "onclick", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                   async () => await Task.Delay(10)
+#line (3,20)-(3,52) "x:\dir\subdir\Test\TestComponent.cshtml"
+async () => await Task.Delay(10)
 
 #line default
 #line hidden

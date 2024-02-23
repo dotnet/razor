@@ -44,8 +44,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
         {
             WriteLiteral("\r\n");
 #nullable restore
-#line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
- if (true)
+#line (3,2)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+if (true)
 {
     var checkbox = "checkbox";
 
@@ -53,6 +53,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("    <div class=\"randomNonTagHelperAttribute\">\r\n        ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
             }
@@ -83,13 +84,14 @@ __TestNamespace_PTagHelper.Age = @@(1+2);
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 WriteLiteral("\r\n            <h1>Set Time:</h1>\r\n");
 #nullable restore
-#line 11 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-             if (false)
+#line (11,14)-(13,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+if (false)
             {
 
 #line default
 #line hidden
 #nullable disable
+
                 WriteLiteral("                ");
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                     WriteLiteral("New Time: ");
@@ -126,7 +128,7 @@ __TestNamespace_PTagHelper.Age = @@(1+2);
                 __tagHelperExecutionContext = __tagHelperScopeManager.End();
                 WriteLiteral("\r\n");
 #nullable restore
-#line 14 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (14,1)-(17,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
             }
             else
             {
@@ -134,6 +136,7 @@ __TestNamespace_PTagHelper.Age = @@(1+2);
 #line default
 #line hidden
 #nullable disable
+
                 WriteLiteral("                ");
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                     WriteLiteral("Current Time: ");
@@ -145,13 +148,15 @@ __TestNamespace_PTagHelper.Age = @@(1+2);
                     __TestNamespace_InputTagHelper2 = CreateTagHelper<global::TestNamespace.InputTagHelper2>();
                     __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                     BeginWriteTagHelperAttribute();
+                    WriteLiteral(
 #nullable restore
-#line (17,47)-(17,55) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-WriteLiteral(checkbox);
+#line (17,47)-(17,55) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+checkbox
 
 #line default
 #line hidden
 #nullable disable
+                    );
                     __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
                     __TestNamespace_InputTagHelper.Type = __tagHelperStringValueBuffer;
                     __tagHelperExecutionContext.AddTagHelperAttribute("type", __TestNamespace_InputTagHelper.Type, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -191,13 +196,15 @@ __TestNamespace_InputTagHelper2.Checked = true;
                 __TestNamespace_InputTagHelper2 = CreateTagHelper<global::TestNamespace.InputTagHelper2>();
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                 BeginWriteTagHelperAttribute();
+                WriteLiteral(
 #nullable restore
-#line (18,32)-(18,62) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-WriteLiteral(true ? "checkbox" : "anything");
+#line (18,32)-(18,62) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+true ? "checkbox" : "anything"
 
 #line default
 #line hidden
 #nullable disable
+                );
                 __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
                 __TestNamespace_InputTagHelper.Type = __tagHelperStringValueBuffer;
                 __tagHelperExecutionContext.AddTagHelperAttribute("tYPe", __TestNamespace_InputTagHelper.Type, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.SingleQuotes);
@@ -219,28 +226,31 @@ WriteLiteral(true ? "checkbox" : "anything");
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                 BeginWriteTagHelperAttribute();
 #nullable restore
-#line 19 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-                              if(true) { 
+#line (19,31)-(19,42) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+if(true) { 
 
 #line default
 #line hidden
 #nullable disable
+
                 WriteLiteral("checkbox");
 #nullable restore
-#line 19 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-                                                               } else { 
+#line (19,63)-(19,73) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ } else { 
 
 #line default
 #line hidden
 #nullable disable
+
                 WriteLiteral("anything");
 #nullable restore
-#line 19 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-                                                                                              }
+#line (19,94)-(19,96) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ }
 
 #line default
 #line hidden
 #nullable disable
+
                 __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
                 __TestNamespace_InputTagHelper.Type = __tagHelperStringValueBuffer;
                 __tagHelperExecutionContext.AddTagHelperAttribute("type", __TestNamespace_InputTagHelper.Type, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.SingleQuotes);
@@ -254,12 +264,13 @@ WriteLiteral(true ? "checkbox" : "anything");
                 __tagHelperExecutionContext = __tagHelperScopeManager.End();
                 WriteLiteral("\r\n");
 #nullable restore
-#line 20 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (20,1)-(21,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
             }
 
 #line default
 #line hidden
 #nullable disable
+
                 WriteLiteral("        ");
             }
             );
@@ -287,12 +298,13 @@ AddHtmlAttributeValue(" ", 210, DateTime.Now, 211, 13, false);
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 WriteLiteral("\r\n");
 #nullable restore
-#line 23 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-               var @object = false;
+#line (23,15)-(23,36) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ var @object = false;
 
 #line default
 #line hidden
 #nullable disable
+
                 WriteLiteral("            ");
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagOnly, "test", async() => {
                 }
@@ -476,18 +488,24 @@ __TestNamespace_PTagHelper.Age = ("My age is this long.".Length);
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n        ");
+            Write(
 #nullable restore
-#line (35,10)-(35,21) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-Write(someMethod(item => new Template(async(__razor_template_writer) => {
-    PushWriter(__razor_template_writer);
-    __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-        __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
-        }
-        );
-        __TestNamespace_InputTagHelper = CreateTagHelper<global::TestNamespace.InputTagHelper>();
-        __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper);
-        __TestNamespace_InputTagHelper2 = CreateTagHelper<global::TestNamespace.InputTagHelper2>();
-        __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
+#line (35,10)-(35,21) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+someMethod(
+
+#line default
+#line hidden
+#nullable disable
+            item => new Template(async(__razor_template_writer) => {
+                PushWriter(__razor_template_writer);
+                __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+                    __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
+                    }
+                    );
+                    __TestNamespace_InputTagHelper = CreateTagHelper<global::TestNamespace.InputTagHelper>();
+                    __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper);
+                    __TestNamespace_InputTagHelper2 = CreateTagHelper<global::TestNamespace.InputTagHelper2>();
+                    __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
 #nullable restore
 #line 35 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 __TestNamespace_InputTagHelper2.Checked = checked;
@@ -495,18 +513,18 @@ __TestNamespace_InputTagHelper2.Checked = checked;
 #line default
 #line hidden
 #nullable disable
-        __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
-        await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
-        if (!__tagHelperExecutionContext.Output.IsContentModified)
-        {
-            await __tagHelperExecutionContext.SetOutputContentAsync();
-        }
-        Write(__tagHelperExecutionContext.Output);
-        __tagHelperExecutionContext = __tagHelperScopeManager.End();
-    }
-    );
-    __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
-    __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
+                    __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+                    await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+                    if (!__tagHelperExecutionContext.Output.IsContentModified)
+                    {
+                        await __tagHelperExecutionContext.SetOutputContentAsync();
+                    }
+                    Write(__tagHelperExecutionContext.Output);
+                    __tagHelperExecutionContext = __tagHelperScopeManager.End();
+                }
+                );
+                __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
+                __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
 #nullable restore
 #line 35 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 __TestNamespace_PTagHelper.Age = 123;
@@ -514,22 +532,26 @@ __TestNamespace_PTagHelper.Age = 123;
 #line default
 #line hidden
 #nullable disable
-    __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
-    __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_7);
-    await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
-    if (!__tagHelperExecutionContext.Output.IsContentModified)
-    {
-        await __tagHelperExecutionContext.SetOutputContentAsync();
-    }
-    Write(__tagHelperExecutionContext.Output);
-    __tagHelperExecutionContext = __tagHelperScopeManager.End();
-    PopWriter();
-}
-)));
+                __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+                __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_7);
+                await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+                if (!__tagHelperExecutionContext.Output.IsContentModified)
+                {
+                    await __tagHelperExecutionContext.SetOutputContentAsync();
+                }
+                Write(__tagHelperExecutionContext.Output);
+                __tagHelperExecutionContext = __tagHelperScopeManager.End();
+                PopWriter();
+            }
+            )
+#nullable restore
+#line (35,79)-(35,80) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+)
 
 #line default
 #line hidden
 #nullable disable
+            );
             WriteLiteral("\r\n        ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
             }
@@ -553,12 +575,13 @@ __TestNamespace_PTagHelper.Age = ;
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n    </div>\r\n");
 #nullable restore
-#line 38 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (38,1)-(38,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 }
 
 #line default
 #line hidden
 #nullable disable
+
         }
         #pragma warning restore 1998
     }

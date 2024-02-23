@@ -7,11 +7,11 @@ Generated Location: (370:12,0 [43] )
 
 Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1109:28,31 [9] )
+Generated Location: (1090:28,0 [9] )
 |() => { }|
 
 Source Location: (99:1,55 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |"named-form-handler"|
-Generated Location: (1436:37,55 [20] )
+Generated Location: (1374:37,0 [20] )
 |"named-form-handler"|
 

@@ -26,8 +26,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.AddAttribute(2, "type", "text");
             __builder.AddAttribute(3, "oninput", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.ChangeEventArgs>(this, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                               () => {}
+#line (3,80)-(3,88) "x:\dir\subdir\Test\TestComponent.cshtml"
+() => {}
 
 #line default
 #line hidden
@@ -35,8 +35,8 @@ using Microsoft.AspNetCore.Components.Web
             ));
             __builder.AddAttribute(4, "value", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                   text
+#line (3,36)-(3,40) "x:\dir\subdir\Test\TestComponent.cshtml"
+text
 
 #line default
 #line hidden
@@ -49,13 +49,14 @@ using Microsoft.AspNetCore.Components.Web
         }
         #pragma warning restore 1998
 #nullable restore
-#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
-            
+#line (5,13)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     private string text = "hi";
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

@@ -23,16 +23,16 @@ TParam
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                              ParentValue
+#line (2,31)-(2,42) "x:\dir\subdir\Test\TestComponent.cshtml"
+ParentValue
 
 #line default
 #line hidden
 #nullable disable
             , 2, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                            UpdateValue
+#line (2,61)-(2,72) "x:\dir\subdir\Test\TestComponent.cshtml"
+UpdateValue
 
 #line default
 #line hidden
@@ -41,8 +41,8 @@ TParam
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     public TParam ParentValue { get; set; } = default;
 
     public Task UpdateValue(TParam value) { ParentValue = value; return Task.CompletedTask; }
@@ -50,6 +50,7 @@ TParam
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 namespace __Blazor.Test.TestComponent

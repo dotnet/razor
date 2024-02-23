@@ -12,12 +12,12 @@ Generated Location: (550:21,0 [6] )
 
 Source Location: (51:2,19 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |ChildItem|
-Generated Location: (1045:34,19 [9] )
+Generated Location: (1038:34,0 [9] )
 |ChildItem|
 
 Source Location: (71:2,39 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyChildEvent|
-Generated Location: (1309:42,39 [12] )
+Generated Location: (1275:42,0 [12] )
 |MyChildEvent|
 
 Source Location: (97:4,1 [138] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -25,7 +25,7 @@ Source Location: (97:4,1 [138] x:\dir\subdir\Test\TestComponent.cshtml)
         [Parameter] public TChild ChildItem { get; set; }
         [Parameter] public EventCallback<TChild> MyChildEvent { get; set; }
 |
-Generated Location: (1510:52,1 [138] )
+Generated Location: (1485:52,0 [138] )
 |
         [Parameter] public TChild ChildItem { get; set; }
         [Parameter] public EventCallback<TChild> MyChildEvent { get; set; }

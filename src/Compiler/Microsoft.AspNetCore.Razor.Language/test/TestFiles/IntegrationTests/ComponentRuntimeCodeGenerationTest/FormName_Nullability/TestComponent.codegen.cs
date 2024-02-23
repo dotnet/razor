@@ -25,8 +25,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.AddAttribute(1, "method", "post");
             __builder.AddAttribute(2, "onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                               () => { }
+#line (2,32)-(2,41) "x:\dir\subdir\Test\TestComponent.cshtml"
+() => { }
 
 #line default
 #line hidden
@@ -34,8 +34,8 @@ using Microsoft.AspNetCore.Components.Web
             ));
             string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>(
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                      null
+#line (2,55)-(2,59) "x:\dir\subdir\Test\TestComponent.cshtml"
+null
 
 #line default
 #line hidden

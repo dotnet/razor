@@ -65,13 +65,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                 BeginWriteTagHelperAttribute();
                 WriteLiteral("2000 + ");
+                Write(
 #nullable restore
-#line (6,39)-(6,62) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers.cshtml"
-Write(ViewBag.DefaultInterval);
+#line (6,39)-(6,62) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers.cshtml"
+ViewBag.DefaultInterval
 
 #line default
 #line hidden
 #nullable disable
+                );
                 WriteLiteral(" + 1");
                 __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
                 __tagHelperExecutionContext.AddHtmlAttribute("data-interval", Html.Raw(__tagHelperStringValueBuffer), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);

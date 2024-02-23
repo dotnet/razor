@@ -74,13 +74,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             WriteLiteral("\r\n    ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 WriteLiteral("\r\n        <label class=\"col-md-2 control-label\">");
+                Write(
 #nullable restore
-#line (29,48)-(29,58) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
-Write(Model.Name);
+#line (29,48)-(29,58) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
+Model.Name
 
 #line default
 #line hidden
 #nullable disable
+                );
                 WriteLiteral("</label>\r\n        ");
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                     WriteLiteral("\r\n            <input class=\"form-control\" />\r\n            <span class=\"text-danger\"></span>\r\n        ");
@@ -143,8 +145,8 @@ Write(Model.Name);
         }
         #pragma warning restore 1998
 #nullable restore
-#line 7 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
-            
+#line (7,13)-(23,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
+
     public class NewModel : PageModel
     {
         public IActionResult OnPost(Customer customer)
@@ -164,6 +166,7 @@ Write(Model.Name);
 #line default
 #line hidden
 #nullable disable
+
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

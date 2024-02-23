@@ -24,8 +24,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.OpenElement(0, "input");
             __builder.AddAttribute(1, "onclick", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                 x => { }
+#line (2,18)-(2,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+x => { }
 
 #line default
 #line hidden

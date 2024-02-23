@@ -7,6 +7,6 @@ Generated Location: (370:12,0 [43] )
 
 Source Location: (137:2,33 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |"named-form-handler"|
-Generated Location: (1489:34,33 [20] )
+Generated Location: (1468:34,0 [20] )
 |"named-form-handler"|
 

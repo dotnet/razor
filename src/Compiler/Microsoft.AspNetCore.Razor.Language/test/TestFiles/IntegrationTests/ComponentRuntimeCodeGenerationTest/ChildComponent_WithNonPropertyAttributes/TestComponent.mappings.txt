@@ -1,5 +1,5 @@
 ﻿Source Location: (55:0,55 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |43.ToString()|
-Generated Location: (906:20,55 [13] )
+Generated Location: (863:20,0 [13] )
 |43.ToString()|
 

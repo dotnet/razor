@@ -16,15 +16,15 @@ namespace Test
             __builder.OpenComponent<global::Test.MyComponent>(0);
             __builder.AddComponentParameter(1, "StringProperty", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                              x
+#line (1,31)-(1,32) "x:\dir\subdir\Test\TestComponent.cshtml"
+x
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                       "string"
+#line (1,40)-(1,48) "x:\dir\subdir\Test\TestComponent.cshtml"
+"string"
 
 #line default
 #line hidden
@@ -34,13 +34,14 @@ namespace Test
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     int x = 1;
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

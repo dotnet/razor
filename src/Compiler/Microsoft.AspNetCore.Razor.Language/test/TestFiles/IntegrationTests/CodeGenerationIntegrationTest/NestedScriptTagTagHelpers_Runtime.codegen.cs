@@ -41,12 +41,13 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 WriteLiteral("\r\n");
 #nullable restore
-#line 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
-             for(var i = 0; i < 5; i++) {
+#line (6,14)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
+for(var i = 0; i < 5; i++) {
 
 #line default
 #line hidden
 #nullable disable
+
                 WriteLiteral("                <script id=\"nestedScriptTag\" type=\"text/html\">\r\n                    ");
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagOnly, "test", async() => {
                 }
@@ -57,13 +58,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                 BeginWriteTagHelperAttribute();
                 WriteLiteral("2000 + ");
+                Write(
 #nullable restore
-#line (8,51)-(8,74) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
-Write(ViewBag.DefaultInterval);
+#line (8,51)-(8,74) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
+ViewBag.DefaultInterval
 
 #line default
 #line hidden
 #nullable disable
+                );
                 WriteLiteral(" + 1");
                 __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
                 __tagHelperExecutionContext.AddHtmlAttribute("data-interval", Html.Raw(__tagHelperStringValueBuffer), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -88,12 +91,13 @@ __TestNamespace_InputTagHelper2.Checked = true;
                 __tagHelperExecutionContext = __tagHelperScopeManager.End();
                 WriteLiteral("\r\n                </script>\r\n");
 #nullable restore
-#line 10 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
+#line (10,1)-(11,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
             }
 
 #line default
 #line hidden
 #nullable disable
+
                 WriteLiteral("            <script type=\"text/javascript\">\r\n                var tag = \'<input checked=\"true\">\';\r\n            </script>\r\n        ");
             }
             );
