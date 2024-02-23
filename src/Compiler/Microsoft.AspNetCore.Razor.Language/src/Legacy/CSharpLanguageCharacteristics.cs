@@ -194,7 +194,7 @@ internal class CSharpLanguageCharacteristics : LanguageCharacteristics<CSharpTok
                     return Resources.CSharpToken_Identifier;
                 case SyntaxKind.Keyword:
                     return Resources.CSharpToken_Keyword;
-                case SyntaxKind.IntegerLiteral:
+                case SyntaxKind.NumericLiteral:
                     return Resources.CSharpToken_IntegerLiteral;
                 case SyntaxKind.NewLine:
                     return Resources.CSharpToken_Newline;
@@ -202,8 +202,6 @@ internal class CSharpLanguageCharacteristics : LanguageCharacteristics<CSharpTok
                     return Resources.CSharpToken_Whitespace;
                 case SyntaxKind.CSharpComment:
                     return Resources.CSharpToken_Comment;
-                case SyntaxKind.RealLiteral:
-                    return Resources.CSharpToken_RealLiteral;
                 case SyntaxKind.CharacterLiteral:
                     return Resources.CSharpToken_CharacterLiteral;
                 case SyntaxKind.StringLiteral:

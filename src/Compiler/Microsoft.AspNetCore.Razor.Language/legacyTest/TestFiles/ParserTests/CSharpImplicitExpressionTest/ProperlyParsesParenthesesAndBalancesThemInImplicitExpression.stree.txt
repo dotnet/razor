@@ -18,7 +18,7 @@
                             StringLiteral;["bi\"z"];
                             Comma;[,];
                             Whitespace;[ ];
-                            IntegerLiteral;[4];
+                            NumericLiteral;[4];
                             RightParenthesis;[)];
                             LeftParenthesis;[(];
                             StringLiteral;["chained method; call"];
@@ -41,16 +41,16 @@
                             Whitespace;[ ];
                             Keyword;[return];
                             Whitespace;[ ];
-                            IntegerLiteral;[4];
+                            NumericLiteral;[4];
                             Semicolon;[;];
                             Whitespace;[ ];
                             RightBrace;[}];
                             Comma;[,];
                             Whitespace;[ ];
                             LeftParenthesis;[(];
-                            IntegerLiteral;[4];
+                            NumericLiteral;[4];
                             Plus;[+];
-                            IntegerLiteral;[5];
+                            NumericLiteral;[5];
                             Plus;[+];
                             Keyword;[new];
                             Whitespace;[ ];
@@ -62,7 +62,7 @@
                             Whitespace;[ ];
                             Identifier;[bar];
                             LeftBracket;[[];
-                            IntegerLiteral;[4];
+                            NumericLiteral;[4];
                             RightBracket;[]];
                             Whitespace;[ ];
                             RightBrace;[}];

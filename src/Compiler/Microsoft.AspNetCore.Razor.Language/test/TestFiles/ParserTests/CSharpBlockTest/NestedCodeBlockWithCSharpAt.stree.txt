@@ -37,7 +37,7 @@
                             Whitespace;[ ];
                             NotEqual;[!=];
                             Whitespace;[ ];
-                            IntegerLiteral;[3];
+                            NumericLiteral;[3];
                             RightParenthesis;[)];
                             Whitespace;[ ];
                             LeftBrace;[{];

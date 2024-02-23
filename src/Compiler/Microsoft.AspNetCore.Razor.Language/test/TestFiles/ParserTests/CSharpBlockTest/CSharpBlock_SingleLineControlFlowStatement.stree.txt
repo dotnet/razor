@@ -36,11 +36,11 @@
                             Whitespace;[ ];
                             Modulo;[%];
                             Whitespace;[ ];
-                            IntegerLiteral;[2];
+                            NumericLiteral;[2];
                             Whitespace;[ ];
                             Equals;[==];
                             Whitespace;[ ];
-                            IntegerLiteral;[0];
+                            NumericLiteral;[0];
                             RightParenthesis;[)];
                             Whitespace;[ ];
                         CSharpCodeBlock - [68..73)::5

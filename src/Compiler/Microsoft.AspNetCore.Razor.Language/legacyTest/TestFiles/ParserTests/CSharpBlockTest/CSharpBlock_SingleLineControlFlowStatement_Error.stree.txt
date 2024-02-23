@@ -36,11 +36,11 @@
                             Whitespace;[ ];
                             Modulo;[%];
                             Whitespace;[ ];
-                            IntegerLiteral;[2];
+                            NumericLiteral;[2];
                             Whitespace;[ ];
                             Equals;[==];
                             Whitespace;[ ];
-                            IntegerLiteral;[0];
+                            NumericLiteral;[0];
                             RightParenthesis;[)];
                             Whitespace;[ ];
                         MarkupBlock - [68..92)::24
@@ -82,11 +82,11 @@
                             RightParenthesis;[)];
                             Whitespace;[ ];
                             Modulo;[%];
-                            IntegerLiteral;[3];
+                            NumericLiteral;[3];
                             Whitespace;[ ];
                             Equals;[==];
                             Whitespace;[ ];
-                            IntegerLiteral;[0];
+                            NumericLiteral;[0];
                             RightParenthesis;[)];
                             NewLine;[LF];
                             Whitespace;[        ];
@@ -135,11 +135,11 @@
                             Whitespace;[ ];
                             Modulo;[%];
                             Whitespace;[ ];
-                            IntegerLiteral;[4];
+                            NumericLiteral;[4];
                             Whitespace;[ ];
                             Equals;[==];
                             Whitespace;[ ];
-                            IntegerLiteral;[0];
+                            NumericLiteral;[0];
                             RightParenthesis;[)];
                             NewLine;[LF];
                             Whitespace;[        ];
@@ -185,11 +185,11 @@
                             Whitespace;[ ];
                             Modulo;[%];
                             Whitespace;[ ];
-                            IntegerLiteral;[5];
+                            NumericLiteral;[5];
                             Whitespace;[ ];
                             Equals;[==];
                             Whitespace;[ ];
-                            IntegerLiteral;[0];
+                            NumericLiteral;[0];
                             RightParenthesis;[)];
                             Whitespace;[ ];
                         CSharpEphemeralTextLiteral - [338..339)::1 - [@] - Gen<None> - SpanEditHandler;Accepts:Any

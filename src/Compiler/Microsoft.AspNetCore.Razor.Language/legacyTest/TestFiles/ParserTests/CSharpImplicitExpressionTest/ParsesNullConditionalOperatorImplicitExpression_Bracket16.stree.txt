@@ -19,7 +19,7 @@
                             QuestionMark;[?];
                             LeftBracket;[[];
                             Minus;[-];
-                            IntegerLiteral;[1];
+                            NumericLiteral;[1];
                             RightBracket;[]];
                             RightBracket;[]];
         MarkupTextLiteral - [20..20)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any

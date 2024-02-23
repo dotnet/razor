@@ -37,7 +37,7 @@ internal sealed class SyntaxTokenCache
                 case SyntaxKind.CharacterLiteral:
                 case SyntaxKind.Dot:
                 case SyntaxKind.Identifier:
-                case SyntaxKind.IntegerLiteral:
+                case SyntaxKind.NumericLiteral:
                 case SyntaxKind.Keyword:
                 case SyntaxKind.NewLine:
                 case SyntaxKind.RazorCommentStar:

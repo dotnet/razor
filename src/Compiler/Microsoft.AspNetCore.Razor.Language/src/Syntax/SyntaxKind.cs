@@ -83,9 +83,8 @@ internal enum SyntaxKind : byte
     // CSharp literals
     Identifier,
     Keyword,
-    IntegerLiteral,
+    NumericLiteral,
     CSharpComment,
-    RealLiteral,
     CharacterLiteral,
     StringLiteral,
 

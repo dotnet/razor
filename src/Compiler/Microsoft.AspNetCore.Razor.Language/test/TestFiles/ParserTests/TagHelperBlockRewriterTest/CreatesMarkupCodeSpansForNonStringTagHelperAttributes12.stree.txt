@@ -27,15 +27,15 @@
                                                 Whitespace;[ ];
                                                 Equals;[==];
                                                 Whitespace;[ ];
-                                                IntegerLiteral;[0];
+                                                NumericLiteral;[0];
                                                 Whitespace;[ ];
                                                 QuestionMark;[?];
                                                 Whitespace;[ ];
-                                                IntegerLiteral;[11];
+                                                NumericLiteral;[11];
                                                 Whitespace;[ ];
                                                 Colon;[:];
                                                 Whitespace;[ ];
-                                                IntegerLiteral;[12];
+                                                NumericLiteral;[12];
                                         RazorMetaCode - [34..35)::1 - Gen<None>
                                             RightBrace;[}];
                     MarkupTextLiteral - [35..36)::1 - ["] - Gen<Markup>

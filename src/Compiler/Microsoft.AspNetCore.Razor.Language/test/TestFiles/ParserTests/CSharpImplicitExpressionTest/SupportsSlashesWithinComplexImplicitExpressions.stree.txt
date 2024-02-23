@@ -41,7 +41,7 @@
                             Whitespace;[ ];
                             Slash;[/];
                             Whitespace;[ ];
-                            IntegerLiteral;[365];
+                            NumericLiteral;[365];
                             RightParenthesis;[)];
                             RightParenthesis;[)];
         MarkupTextLiteral - [103..103)::0 - [] - Gen<Markup>

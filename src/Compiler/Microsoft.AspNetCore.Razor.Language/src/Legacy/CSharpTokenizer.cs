@@ -186,7 +186,7 @@ internal class CSharpTokenizer : Tokenizer
         {
             switch (type)
             {
-                case SyntaxKind.IntegerLiteral:
+                case SyntaxKind.NumericLiteral:
                     switch (Buffer[0])
                     {
                         case '0':
@@ -395,7 +395,7 @@ internal class CSharpTokenizer : Tokenizer
             case '.':
                 if (char.IsDigit(Peek()))
                 {
-                    return RealLiteral();
+                    return NumericLiteral();
                 }
                 return Stay(Single(SyntaxKind.Dot));
             case '/':
@@ -598,88 +598,17 @@ internal class CSharpTokenizer : Tokenizer
     // CSharp Spec §2.4.4
     private StateResult NumericLiteral()
     {
-        if (TakeAll("0x", caseSensitive: true))
-        {
-            return HexLiteral();
-        }
-        else
-        {
-            return DecimalLiteral();
-        }
-    }
+        var curPosition = Source.Position;
+        var csharpToken = _lexer.LexSyntax(curPosition);
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + csharpToken.Span.Length;
 
-    private StateResult HexLiteral()
-    {
-        TakeUntil(c => !IsHexDigit(c));
-        TakeIntegerSuffix();
-        return Stay(EndToken(SyntaxKind.IntegerLiteral));
-    }
-
-    private StateResult DecimalLiteral()
-    {
-        TakeUntil(c => !Char.IsDigit(c));
-        if (CurrentCharacter == '.' && Char.IsDigit(Peek()))
-        {
-            return RealLiteral();
-        }
-        else if (IsRealLiteralSuffix(CurrentCharacter) ||
-                 CurrentCharacter == 'E' || CurrentCharacter == 'e')
-        {
-            return RealLiteralExponentPart();
-        }
-        else
-        {
-            TakeIntegerSuffix();
-            return Stay(EndToken(SyntaxKind.IntegerLiteral));
-        }
-    }
-
-    private StateResult RealLiteralExponentPart()
-    {
-        if (CurrentCharacter == 'E' || CurrentCharacter == 'e')
-        {
-            TakeCurrent();
-            if (CurrentCharacter == '+' || CurrentCharacter == '-')
-            {
-                TakeCurrent();
-            }
-            TakeUntil(c => !Char.IsDigit(c));
-        }
-        if (IsRealLiteralSuffix(CurrentCharacter))
+        for (; curPosition < finalPosition; curPosition++)
         {
             TakeCurrent();
         }
-        return Stay(EndToken(SyntaxKind.RealLiteral));
-    }
 
-    // CSharp Spec §2.4.4.3
-    private StateResult RealLiteral()
-    {
-        AssertCurrent('.');
-        TakeCurrent();
-        Debug.Assert(Char.IsDigit(CurrentCharacter));
-        TakeUntil(c => !Char.IsDigit(c));
-        return RealLiteralExponentPart();
-    }
-
-    private void TakeIntegerSuffix()
-    {
-        if (Char.ToLowerInvariant(CurrentCharacter) == 'u')
-        {
-            TakeCurrent();
-            if (Char.ToLowerInvariant(CurrentCharacter) == 'l')
-            {
-                TakeCurrent();
-            }
-        }
-        else if (Char.ToLowerInvariant(CurrentCharacter) == 'l')
-        {
-            TakeCurrent();
-            if (Char.ToLowerInvariant(CurrentCharacter) == 'u')
-            {
-                TakeCurrent();
-            }
-        }
+        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.NumericLiteral));
     }
 
     // CSharp Spec §2.4.2
@@ -726,11 +655,6 @@ internal class CSharpTokenizer : Tokenizer
                character == 'd' ||
                character == 'M' ||
                character == 'm';
-    }
-
-    private static bool IsHexDigit(char value)
-    {
-        return (value >= '0' && value <= '9') || (value >= 'A' && value <= 'F') || (value >= 'a' && value <= 'f');
     }
 
     internal static CSharpKeyword? GetTokenKeyword(SyntaxToken token)
