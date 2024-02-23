@@ -720,9 +720,8 @@ internal static class CodeWriterExtensions
         private readonly CodeWriter _writer;
         private readonly CodeRenderingContext _context;
         private readonly int _startIndent;
-        private readonly int _sourceLineIndex;
         private readonly int _startLineIndex;
-        private readonly string _sourceFilePath;
+        private readonly SourceSpan _span;
 
         public LinePragmaWriter(
             CodeWriter writer,
@@ -739,9 +738,8 @@ internal static class CodeWriterExtensions
             _writer = writer;
             _context = context;
             _startIndent = _writer.CurrentIndent;
-            _sourceFilePath = span.FilePath;
-            _sourceLineIndex = span.LineIndex;
             _writer.CurrentIndent = 0;
+            _span = span;
 
             if (!_context.Options.SuppressNullabilityEnforcement)
             {
@@ -783,7 +781,7 @@ internal static class CodeWriterExtensions
             }
 
             var lineCount = _writer.Location.LineIndex - _startLineIndex;
-            var linePragma = new LinePragma(_sourceLineIndex, lineCount, _sourceFilePath);
+            var linePragma = new LinePragma(_span.LineIndex, lineCount, _span.FilePath, _span.EndCharacterIndex, _span.EndCharacterIndex, _span.CharacterIndex);
             _context.AddLinePragma(linePragma);
 
             _writer
