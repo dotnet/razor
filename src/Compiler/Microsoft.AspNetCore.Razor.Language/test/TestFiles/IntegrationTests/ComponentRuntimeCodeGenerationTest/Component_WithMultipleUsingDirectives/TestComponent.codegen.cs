@@ -8,7 +8,7 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
 #nullable restore
-#line (1,2)-(1,17) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,2)-(1,17) "x:\dir\subdir\Test\TestComponent.cshtml"
 using System.IO
 
 #line default
@@ -16,7 +16,7 @@ using System.IO
 #nullable disable
     ;
 #nullable restore
-#line (1,20)-(2,1) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,20)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components
 
 #line default
@@ -24,7 +24,7 @@ using Microsoft.AspNetCore.Components
 #nullable disable
     ;
 #nullable restore
-#line (2,4)-(2,28) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,4)-(2,28) "x:\dir\subdir\Test\TestComponent.cshtml"
 using System.Reflection;
 
 #line default

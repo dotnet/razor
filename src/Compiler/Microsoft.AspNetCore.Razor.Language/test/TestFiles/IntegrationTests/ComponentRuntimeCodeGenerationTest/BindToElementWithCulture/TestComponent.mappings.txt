@@ -1,25 +1,25 @@
 ﻿Source Location: (1:0,1 [28] x:\dir\subdir\Test\TestComponent.cshtml)
 |using System.Globalization
 |
-Generated Location: (372:12,0 [28] )
+Generated Location: (370:12,0 [28] )
 |using System.Globalization
 |
 
 Source Location: (48:1,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (989:27,19 [11] )
+Generated Location: (987:27,19 [11] )
 |ParentValue|
 
 Source Location: (115:1,86 [28] x:\dir\subdir\Test\TestComponent.cshtml)
 |CultureInfo.InvariantCulture|
-Generated Location: (1233:35,86 [28] )
+Generated Location: (1231:35,86 [28] )
 |CultureInfo.InvariantCulture|
 
 Source Location: (156:2,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public string ParentValue { get; set; } = "hi";
 |
-Generated Location: (1778:48,7 [55] )
+Generated Location: (1776:48,7 [55] )
 |
     public string ParentValue { get; set; } = "hi";
 |

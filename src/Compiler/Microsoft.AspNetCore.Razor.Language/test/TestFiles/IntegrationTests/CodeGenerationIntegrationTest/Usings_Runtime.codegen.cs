@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
 #nullable restore
-#line (1,2)-(2,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
+#line (1,2)-(2,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using System.IO
 
 #line default
@@ -14,7 +14,7 @@ using System.IO
 #nullable disable
     ;
 #nullable restore
-#line (2,2)-(3,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
+#line (2,2)-(3,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using Foo = System.Text.Encoding
 
 #line default
@@ -22,7 +22,7 @@ using Foo = System.Text.Encoding
 #nullable disable
     ;
 #nullable restore
-#line (3,2)-(4,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
+#line (3,2)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using System
 
 #line default
@@ -30,7 +30,7 @@ using System
 #nullable disable
     ;
 #nullable restore
-#line (5,2)-(6,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
+#line (5,2)-(6,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using static System
 
 #line default
@@ -38,7 +38,7 @@ using static System
 #nullable disable
     ;
 #nullable restore
-#line (6,2)-(7,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
+#line (6,2)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using static System.Console
 
 #line default
@@ -46,7 +46,7 @@ using static System.Console
 #nullable disable
     ;
 #nullable restore
-#line (7,2)-(8,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
+#line (7,2)-(8,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using static global::System.Text.Encoding
 
 #line default

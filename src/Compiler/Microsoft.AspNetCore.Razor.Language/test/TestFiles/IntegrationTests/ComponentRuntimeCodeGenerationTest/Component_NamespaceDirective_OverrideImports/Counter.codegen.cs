@@ -9,7 +9,7 @@ namespace New.Test
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (1,2)-(2,1) 1 "x:\dir\subdir\Test\_Imports.razor"
+#line (1,2)-(2,1) "x:\dir\subdir\Test\_Imports.razor"
 using System.Text
 
 #line default
@@ -17,7 +17,7 @@ using System.Text
 #nullable disable
     ;
 #nullable restore
-#line (2,2)-(3,1) 1 "x:\dir\subdir\Test\_Imports.razor"
+#line (2,2)-(3,1) "x:\dir\subdir\Test\_Imports.razor"
 using System.Reflection
 
 #line default

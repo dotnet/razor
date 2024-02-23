@@ -1,12 +1,12 @@
 ﻿Source Location: (1:0,1 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |using Models;
 |
-Generated Location: (372:12,0 [15] )
+Generated Location: (370:12,0 [15] )
 |using Models;
 |
 
 Source Location: (57:2,39 [30] x:\dir\subdir\Test\TestComponent.cshtml)
 |Array.Empty<WeatherForecast>()|
-Generated Location: (961:26,39 [30] )
+Generated Location: (959:26,39 [30] )
 |Array.Empty<WeatherForecast>()|
 

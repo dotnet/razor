@@ -11,7 +11,7 @@ namespace Test
     [global::Microsoft.AspNetCore.Components.RouteAttribute(
     // language=Route,Component
 #nullable restore
-#line (3,7)-(3,16) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (3,7)-(3,16) "x:\dir\subdir\Test\TestComponent.cshtml"
       "/my/url"
 
 #line default

@@ -12,7 +12,7 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
 #nullable restore
-#line (1,2)-(2,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
+#line (1,2)-(2,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
 using System.ComponentModel
 
 #line default
@@ -20,7 +20,7 @@ using System.ComponentModel
 #nullable disable
     ;
 #nullable restore
-#line (2,2)-(3,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
+#line (2,2)-(3,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
 using System.Collections
 
 #line default
@@ -28,7 +28,7 @@ using System.Collections
 #nullable disable
     ;
 #nullable restore
-#line (3,2)-(4,1) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
+#line (3,2)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
 using System
 
 #line default
@@ -36,7 +36,7 @@ using System
 #nullable disable
     ;
 #nullable restore
-#line (4,2)-(4,14) 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
+#line (4,2)-(4,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
 using System
 
 #line default

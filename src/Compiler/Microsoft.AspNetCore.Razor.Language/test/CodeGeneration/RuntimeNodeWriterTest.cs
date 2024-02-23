@@ -62,7 +62,7 @@ public class RuntimeNodeWriterTest : RazorProjectEngineTestBase
         Assert.Equal(
 @"
 #nullable restore
-#line (1,1)-(1,1) 1 ""test.cshtml""
+#line (1,1)-(1,1) ""test.cshtml""
 using System
 
 #line default

@@ -1,35 +1,35 @@
 ﻿Source Location: (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
 |using Microsoft.AspNetCore.Components.Web
 |
-Generated Location: (372:12,0 [43] )
+Generated Location: (370:12,0 [43] )
 |using Microsoft.AspNetCore.Components.Web
 |
 
 Source Location: (62:1,18 [17] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => Foo = false|
-Generated Location: (1075:27,18 [17] )
+Generated Location: (1073:27,18 [17] )
 |() => Foo = false|
 
 Source Location: (106:1,62 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |true|
-Generated Location: (1363:36,62 [4] )
+Generated Location: (1361:36,62 [4] )
 |true|
 
 Source Location: (138:1,94 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |Foo|
-Generated Location: (1670:45,94 [3] )
+Generated Location: (1668:45,94 [3] )
 |Foo|
 
 Source Location: (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |false|
-Generated Location: (2007:54,125 [5] )
+Generated Location: (2005:54,125 [5] )
 |false|
 
 Source Location: (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     bool Foo { get; set; }
 |
-Generated Location: (2295:66,7 [30] )
+Generated Location: (2293:66,7 [30] )
 |
     bool Foo { get; set; }
 |

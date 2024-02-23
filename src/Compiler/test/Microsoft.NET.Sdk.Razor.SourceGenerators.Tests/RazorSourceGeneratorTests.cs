@@ -971,9 +971,9 @@ __builder.AddContent(3, count);
             var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
 
             var result = RunGenerator(compilation!, ref driver,
-                // Pages/Index.razor(2,7): error CS0246: The type or namespace name 'SurveyPromptRootNamspace' could not be found (are you missing a using directive or an assembly reference?)
+                // Pages/Index.razor(2,8): error CS0246: The type or namespace name 'SurveyPromptRootNamspace' could not be found (are you missing a using directive or an assembly reference?)
                 // using SurveyPromptRootNamspace;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SurveyPromptRootNamspace").WithArguments("SurveyPromptRootNamspace").WithLocation(2, 7)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SurveyPromptRootNamspace").WithArguments("SurveyPromptRootNamspace").WithLocation(2, 8)
             );
 
             result.VerifyPageOutput(
@@ -989,7 +989,7 @@ namespace MyApp.Pages
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (2,2)-(3,1) 1 ""Pages/Index.razor""
+#line (2,2)-(3,1) ""Pages/Index.razor""
 using SurveyPromptRootNamspace;
 
 #line default
@@ -1056,7 +1056,7 @@ namespace MyApp.Pages
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (2,2)-(3,1) 1 ""Pages/Index.razor""
+#line (2,2)-(3,1) ""Pages/Index.razor""
 using SurveyPromptRootNamspace;
 
 #line default

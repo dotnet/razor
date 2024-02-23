@@ -1,14 +1,14 @@
 ﻿Source Location: (1:0,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |using Test2
 |
-Generated Location: (372:12,0 [13] )
+Generated Location: (370:12,0 [13] )
 |using Test2
 |
 
 Source Location: (15:1,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |using Test3
 |
-Generated Location: (524:20,0 [13] )
+Generated Location: (520:20,0 [13] )
 |using Test3
 |
 

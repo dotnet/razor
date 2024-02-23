@@ -9,7 +9,7 @@ namespace Test
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (3,2)-(4,1) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (3,2)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Test2
 
 #line default
@@ -19,7 +19,7 @@ using Test2
     [global::Microsoft.AspNetCore.Components.RouteAttribute(
     // language=Route,Component
 #nullable restore
-#line (1,7)-(1,16) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,7)-(1,16) "x:\dir\subdir\Test\TestComponent.cshtml"
       "/MyPage"
 
 #line default
@@ -29,7 +29,7 @@ using Test2
     [global::Microsoft.AspNetCore.Components.RouteAttribute(
     // language=Route,Component
 #nullable restore
-#line (2,7)-(2,27) 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,7)-(2,27) "x:\dir\subdir\Test\TestComponent.cshtml"
       "/AnotherRoute/{id}"
 
 #line default
