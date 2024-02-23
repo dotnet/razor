@@ -11,12 +11,12 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Test.Common.TagHelperTestData;
@@ -46,7 +46,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
         var workspace = new AdhocWorkspace();
         AddDisposable(workspace);
 
-        var workspaceProviderMock = new Mock<IWorkspaceProvider>(MockBehavior.Strict);
+        var workspaceProviderMock = new StrictMock<IWorkspaceProvider>();
         workspaceProviderMock
             .Setup(x => x.GetWorkspace())
             .Returns(workspace);
@@ -65,7 +65,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
         var projectEngineFactoryProvider = new ProjectEngineFactoryProvider(customFactories);
         var projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider, Dispatcher);
 
-        var projectManagerAccessorMock = new Mock<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
+        var projectManagerAccessorMock = new StrictMock<IProjectSnapshotManagerAccessor>();
         projectManagerAccessorMock
             .SetupGet(x => x.Instance)
             .Returns(projectManager);
@@ -73,7 +73,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
 
         static IProjectEngineFactory CreateFactory(string configurationName)
         {
-            var mock = new Mock<IProjectEngineFactory>(MockBehavior.Strict);
+            var mock = new StrictMock<IProjectEngineFactory>();
 
             mock.SetupGet(x => x.ConfigurationName)
                 .Returns(configurationName);
@@ -103,7 +103,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
 
                 Assert.Same(projectSnapshot, p);
 
-                return new(ImmutableArray<TagHelperDescriptor>.Empty);
+                return new([]);
             },
         };
 
@@ -135,7 +135,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
 
                 Assert.Same(projectSnapshot, p);
 
-                return new(ImmutableArray<TagHelperDescriptor>.Empty);
+                return new([]);
             },
         };
 
@@ -168,7 +168,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
                 calledInProcess = true;
                 Assert.Same(projectSnapshot, p);
 
-                return new(ImmutableArray<TagHelperDescriptor>.Empty);
+                return new([]);
             },
             OnResolveOutOfProcess = (p) =>
             {
@@ -190,7 +190,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
     {
         // Arrange
         var resolver = new TestResolver(_workspaceProvider, ErrorReporter, NoOpTelemetryReporter.Instance);
-        var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
+        var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Added: Project1TagHelperChecksums, Removed: []);
 
         // Act
         var tagHelpers = resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
@@ -204,10 +204,10 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
     {
         // Arrange
         var resolver = new TestResolver(_workspaceProvider, ErrorReporter, NoOpTelemetryReporter.Instance);
-        var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
+        var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Added: Project1TagHelperChecksums, Removed: []);
         resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
         var newTagHelperSet = ImmutableArray.Create(TagHelper1_Project1.Checksum);
-        var failedDeltaApplication = new TagHelperDeltaResult(IsDelta: false, initialDelta.ResultId + 1, newTagHelperSet, ImmutableArray<Checksum>.Empty);
+        var failedDeltaApplication = new TagHelperDeltaResult(IsDelta: false, initialDelta.ResultId + 1, Added: newTagHelperSet, Removed: []);
 
         // Act
         var tagHelpers = resolver.PublicProduceChecksumsFromDelta(Project1Id, initialDelta.ResultId, failedDeltaApplication);
@@ -221,9 +221,9 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
     {
         // Arrange
         var resolver = new TestResolver(_workspaceProvider, ErrorReporter, NoOpTelemetryReporter.Instance);
-        var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
+        var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Added: Project1TagHelperChecksums, Removed: []);
         resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
-        var noopDelta = new TagHelperDeltaResult(IsDelta: true, initialDelta.ResultId, ImmutableArray<Checksum>.Empty, ImmutableArray<Checksum>.Empty);
+        var noopDelta = new TagHelperDeltaResult(IsDelta: true, initialDelta.ResultId, Added: [], Removed: []);
 
         // Act
         var tagHelpers = resolver.PublicProduceChecksumsFromDelta(Project1Id, initialDelta.ResultId, noopDelta);
@@ -237,9 +237,9 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
     {
         // Arrange
         var resolver = new TestResolver(_workspaceProvider, ErrorReporter, NoOpTelemetryReporter.Instance);
-        var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
+        var initialDelta = new TagHelperDeltaResult(IsDelta: false, ResultId: 1, Added: Project1TagHelperChecksums, Removed: []);
         resolver.PublicProduceChecksumsFromDelta(Project1Id, lastResultId: -1, initialDelta);
-        var changedDelta = new TagHelperDeltaResult(IsDelta: true, initialDelta.ResultId + 1, ImmutableArray.Create(TagHelper2_Project2.Checksum), ImmutableArray.Create(TagHelper2_Project1.Checksum));
+        var changedDelta = new TagHelperDeltaResult(IsDelta: true, initialDelta.ResultId + 1, Added: [TagHelper2_Project2.Checksum], Removed: [TagHelper2_Project1.Checksum]);
 
         // Act
         var tagHelperChecksums = resolver.PublicProduceChecksumsFromDelta(Project1Id, initialDelta.ResultId, changedDelta);
