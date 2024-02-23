@@ -209,6 +209,24 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     }
 
     [Fact]
+    public void Character_Literal_Allows_Trailing_Comments()
+    {
+        TestTokenizer("'f' // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'f'"),
+            SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
+            SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
+    }
+
+    [Fact]
+    public void Multi_Character_Literal_Allows_Trailing_Comments()
+    {
+        TestTokenizer("'foo' // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo'"),
+            SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
+            SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
+    }
+
+    [Fact]
     public void String_Literal_Is_Recognized()
     {
         TestSingleToken("\"foo\"", SyntaxKind.StringLiteral);
@@ -286,5 +304,21 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
         TestSingleToken("@\"foo", SyntaxKind.StringLiteral);
     }
 
-    // Add more tests for roslyn trivia trailing after tokens
+    [Fact]
+    public void String_Literal_Allows_Trailing_Comments()
+    {
+        TestTokenizer("\"foo\" // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\""),
+            SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
+            SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
+    }
+
+    [Fact]
+    public void Verbatim_String_Literal_Allows_Trailing_Comments()
+    {
+        TestTokenizer("@\"foo\" // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, "@\"foo\""),
+            SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
+            SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
+    }
 }
