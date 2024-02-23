@@ -309,7 +309,7 @@ public class BackgroundDocumentGeneratorTest : VisualStudioWorkspaceTestBase
         Assert.False(queue.HasPendingNotifications, "Queue should have processed all notifications");
     }
 
-    [UIFact(Skip = "https://github.com/dotnet/aspnetcore/issues/14805")]
+    [UIFact]
     public async Task DocumentChanged_ReparsesRelatedFiles()
     {
         // Arrange
