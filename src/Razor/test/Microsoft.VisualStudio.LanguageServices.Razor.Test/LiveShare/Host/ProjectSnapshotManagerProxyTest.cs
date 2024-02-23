@@ -30,8 +30,8 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
     {
         var projectEngineFactoryProvider = StrictMock.Of<IProjectEngineFactoryProvider>();
 
-        var projectWorkspaceState1 = ProjectWorkspaceState.Create(ImmutableArray.Create(
-            TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build()));
+        var projectWorkspaceState1 = ProjectWorkspaceState.Create(
+            [TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build()]);
 
         _projectSnapshot1 = new ProjectSnapshot(
             ProjectState.Create(
@@ -39,8 +39,8 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
                 new HostProject("/host/path/to/project1.csproj", "/host/path/to/obj", RazorConfiguration.Default, "project1"),
                 projectWorkspaceState1));
 
-        var projectWorkspaceState2 = ProjectWorkspaceState.Create(ImmutableArray.Create(
-            TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build()));
+        var projectWorkspaceState2 = ProjectWorkspaceState.Create(
+            [TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build()]);
 
         _projectSnapshot2 = new ProjectSnapshot(
             ProjectState.Create(
@@ -49,19 +49,19 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
                 projectWorkspaceState2));
     }
 
-    [Fact]
+    [UIFact]
     public async Task CalculateUpdatedStateAsync_ReturnsStateForAllProjects()
     {
         // Arrange
-        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
+        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
-            projectSnapshotManager,
+            projectManager,
             Dispatcher,
             JoinableTaskFactory);
 
         // Act
-        var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectSnapshotManager.GetProjects()));
+        var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectManager.GetProjects()));
 
         // Assert
         var project1TagHelpers = await _projectSnapshot1.GetTagHelpersAsync(CancellationToken.None);
@@ -85,10 +85,10 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
     public async Task Changed_TriggersOnSnapshotManagerChanged()
     {
         // Arrange
-        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1);
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
-            projectSnapshotManager,
+            projectManager,
             Dispatcher,
             JoinableTaskFactory);
         var proxyAccessor = proxy.GetTestAccessor();
@@ -106,7 +106,7 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
         // Act
         await RunOnDispatcherAsync(() =>
         {
-            projectSnapshotManager.TriggerChanged(changedArgs);
+            projectManager.TriggerChanged(changedArgs);
         });
 
         await proxyAccessor.ProcessingChangedEventTestTask.AssumeNotNull().JoinAsync();
@@ -119,10 +119,10 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
     public void Changed_NoopsIfProxyDisposed()
     {
         // Arrange
-        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1);
         var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
-            projectSnapshotManager,
+            projectManager,
             Dispatcher,
             JoinableTaskFactory);
         var proxyAccessor = proxy.GetTestAccessor();
@@ -131,20 +131,20 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
         proxy.Dispose();
 
         // Act
-        projectSnapshotManager.TriggerChanged(changedArgs);
+        projectManager.TriggerChanged(changedArgs);
 
         // Assert
         Assert.Null(proxyAccessor.ProcessingChangedEventTestTask);
     }
 
-    [Fact]
+    [UIFact]
     public async Task GetLatestProjectsAsync_ReturnsSnapshotManagerProjects()
     {
         // Arrange
-        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1);
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
-            projectSnapshotManager,
+            projectManager,
             Dispatcher,
             JoinableTaskFactory);
 
@@ -156,14 +156,14 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
         Assert.Same(_projectSnapshot1, project);
     }
 
-    [Fact]
+    [UIFact]
     public async Task GetStateAsync_ReturnsProjectState()
     {
         // Arrange
-        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
+        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
-            projectSnapshotManager,
+            projectManager,
             Dispatcher,
             JoinableTaskFactory);
 
@@ -171,8 +171,8 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
         var state = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
 
         // Assert
-        var project1TagHelpers = await _projectSnapshot1.GetTagHelpersAsync(CancellationToken.None);
-        var project2TagHelpers = await _projectSnapshot2.GetTagHelpersAsync(CancellationToken.None);
+        var project1TagHelpers = await _projectSnapshot1.GetTagHelpersAsync(DisposalToken);
+        var project2TagHelpers = await _projectSnapshot2.GetTagHelpersAsync(DisposalToken);
 
         Assert.Collection(
             state.ProjectHandles,
@@ -188,14 +188,14 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
             });
     }
 
-    [Fact]
+    [UIFact]
     public async Task GetStateAsync_CachesState()
     {
         // Arrange
-        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1);
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
-            projectSnapshotManager,
+            projectManager,
             Dispatcher,
             JoinableTaskFactory);
 
@@ -209,7 +209,7 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
 
     private sealed class TestProjectSnapshotManager(params IProjectSnapshot[] projects) : IProjectSnapshotManager
     {
-        private readonly ImmutableArray<IProjectSnapshot> _projects = projects.ToImmutableArray();
+        private readonly ImmutableArray<IProjectSnapshot> _projects = [.. projects];
 
         public ImmutableArray<IProjectSnapshot> GetProjects() => _projects;
 
