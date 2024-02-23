@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,17 +13,15 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test;
 
-public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
+public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
 {
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly TestTagHelperResolver _tagHelperResolver;
@@ -35,17 +32,13 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
     public ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectEngineFactoryProvider = Mock.Of<IProjectEngineFactoryProvider>(MockBehavior.Strict);
+        _projectEngineFactoryProvider = StrictMock.Of<IProjectEngineFactoryProvider>();
 
         _tagHelperResolver = new TestTagHelperResolver(
-            ImmutableArray.Create(TagHelperDescriptorBuilder.Create("ResolvableTagHelper", "TestAssembly").Build()));
-
-        var testServices = TestServices.Create([], []);
-        var workspace = TestWorkspace.Create(testServices);
-        AddDisposable(workspace);
+            [TagHelperDescriptorBuilder.Create("ResolvableTagHelper", "TestAssembly").Build()]);
 
         var projectId = ProjectId.CreateNewId("Test");
-        var solution = workspace.CurrentSolution.AddProject(ProjectInfo.Create(
+        var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
             projectId,
             VersionStamp.Default,
             "Test",
@@ -55,17 +48,16 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
         _workspaceProject = solution.GetProject(projectId).AssumeNotNull();
         _projectSnapshot = new ProjectSnapshot(
             ProjectState.Create(_projectEngineFactoryProvider, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
-        _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(ImmutableArray.Create(
-            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()));
+        _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(
+            [TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()]);
     }
 
     private IProjectSnapshotManagerAccessor CreateProjectManagerAccessor()
     {
         var projectManager = new TestProjectSnapshotManager(_projectEngineFactoryProvider, Dispatcher);
-        var mock = new Mock<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
-        mock.SetupGet(x => x.Instance).Returns(projectManager);
 
-        return mock.Object;
+        return StrictMock.Of<IProjectSnapshotManagerAccessor>(x =>
+            x.Instance == projectManager);
     }
 
     [UIFact]
@@ -73,7 +65,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
     {
         // Arrange
         var projectManagerAccessor = CreateProjectManagerAccessor();
-        using var stateGenerator = new ProjectWorkspaceStateGenerator(projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+        using var stateGenerator = new ProjectWorkspaceStateGenerator(
+            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
@@ -93,7 +86,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
     {
         // Arrange
         var projectManagerAccessor = CreateProjectManagerAccessor();
-        using var stateGenerator = new ProjectWorkspaceStateGenerator(projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+        using var stateGenerator = new ProjectWorkspaceStateGenerator(
+            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
@@ -112,7 +106,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
     {
         // Arrange
         var projectManagerAccessor = CreateProjectManagerAccessor();
-        using var stateGenerator = new ProjectWorkspaceStateGenerator(projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+        using var stateGenerator = new ProjectWorkspaceStateGenerator(
+            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         await RunOnDispatcherAsync(() =>
@@ -137,7 +132,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
     {
         // Arrange
         var projectManagerAccessor = CreateProjectManagerAccessor();
-        using var stateGenerator = new ProjectWorkspaceStateGenerator(projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+        using var stateGenerator = new ProjectWorkspaceStateGenerator(
+            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await RunOnDispatcherAsync(() =>
@@ -166,7 +162,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
     {
         // Arrange
         var projectManagerAccessor = CreateProjectManagerAccessor();
-        using var stateGenerator = new ProjectWorkspaceStateGenerator(projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+        using var stateGenerator = new ProjectWorkspaceStateGenerator(
+            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await RunOnDispatcherAsync(() =>
