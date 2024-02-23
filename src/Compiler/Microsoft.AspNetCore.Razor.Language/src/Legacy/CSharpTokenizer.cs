@@ -156,11 +156,11 @@ internal class CSharpTokenizer : Tokenizer
             case CSharpTokenizerState.BlockComment:
                 return BlockComment();
             case CSharpTokenizerState.QuotedCharacterLiteral:
-                return QuotedCharacterLiteral();
+                return TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteral, "\'", "\'");
             case CSharpTokenizerState.QuotedStringLiteral:
-                return QuotedStringLiteral();
+                return TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, "\"", "\"");
             case CSharpTokenizerState.VerbatimStringLiteral:
-                return VerbatimStringLiteral();
+                return TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, "@\"", "\"");
             case CSharpTokenizerState.AfterRazorCommentTransition:
                 return AfterRazorCommentTransition();
             case CSharpTokenizerState.EscapedRazorCommentTransition:
@@ -426,13 +426,13 @@ internal class CSharpTokenizer : Tokenizer
 
     private StateResult AtToken()
     {
-        TakeCurrent();
-        if (CurrentCharacter == '"')
+        if (Peek() == '"')
         {
-            TakeCurrent();
             return Transition(CSharpTokenizerState.VerbatimStringLiteral);
         }
-        else if (CurrentCharacter == '*')
+
+        TakeCurrent();
+        if (CurrentCharacter == '*')
         {
             return Transition(
                 CSharpTokenizerState.AfterRazorCommentTransition,
@@ -538,70 +538,30 @@ internal class CSharpTokenizer : Tokenizer
         };
     }
 
-    private StateResult VerbatimStringLiteral()
-    {
-        TakeUntil(c => c == '"');
-        if (CurrentCharacter == '"')
-        {
-            TakeCurrent();
-            if (CurrentCharacter == '"')
-            {
-                TakeCurrent();
-                // Stay in the literal, this is an escaped "
-                return Stay();
-            }
-        }
-        else if (EndOfFile)
-        {
-            CurrentErrors.Add(
-                RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
-                    new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
-        }
-        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.StringLiteral));
-    }
-
-    private StateResult QuotedCharacterLiteral()
+    private StateResult TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind expectedCSharpTokenKind, SyntaxKind razorTokenKind, string expectedPrefix, string expectedPostFix)
     {
         var curPosition = Source.Position;
-        var characterToken = _lexer.LexSyntax(curPosition);
+        var csharpToken = _lexer.LexSyntax(curPosition);
         // Don't include trailing trivia; we handle that differently than Roslyn
-        var finalPosition = curPosition + characterToken.Span.Length;
+        var finalPosition = curPosition + csharpToken.Span.Length;
 
         for (; curPosition < finalPosition; curPosition++)
         {
             TakeCurrent();
         }
 
-        if (CodeAnalysis.CSharpExtensions.IsKind(characterToken, CodeAnalysis.CSharp.SyntaxKind.CharacterLiteralToken) && characterToken.Text is ['\''] or not [.., '\''])
+        // If the token is the expected kind and has the expected prefix or doesn't have the expected postfix, then it's unterminated.
+        // This is a case like `"test` (which doesn't end in the expected postfix), or `"` (which ends in the expected postfix, but
+        // exactly matches the expected prefix).
+        if (CodeAnalysis.CSharpExtensions.IsKind(csharpToken, expectedCSharpTokenKind)
+            && (csharpToken.Text == expectedPrefix || !csharpToken.Text.EndsWith(expectedPostFix, StringComparison.Ordinal)))
         {
             CurrentErrors.Add(
                 RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
-                    new SourceSpan(CurrentStart, contentLength: 1 /* " */)));
+                    new SourceSpan(CurrentStart, contentLength: expectedPrefix.Length /* " */)));
         }
 
-        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.CharacterLiteral));
-    }
-
-    private StateResult QuotedStringLiteral()
-    {
-        var curPosition = Source.Position;
-        var stringToken = _lexer.LexSyntax(curPosition);
-        // Don't include trailing trivia; we handle that differently than Roslyn
-        var finalPosition = curPosition + stringToken.Span.Length;
-
-        for (; curPosition < finalPosition; curPosition++)
-        {
-            TakeCurrent();
-        }
-
-        if (CodeAnalysis.CSharpExtensions.IsKind(stringToken, CodeAnalysis.CSharp.SyntaxKind.StringLiteralToken) && stringToken.Text is ['\"'] or not [.., '\"'])
-        {
-            CurrentErrors.Add(
-                RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
-                    new SourceSpan(CurrentStart, contentLength: 1 /* " */)));
-        }
-
-        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.StringLiteral));
+        return Transition(CSharpTokenizerState.Data, EndToken(razorTokenKind));
     }
 
     // CSharp Spec §2.3.2
