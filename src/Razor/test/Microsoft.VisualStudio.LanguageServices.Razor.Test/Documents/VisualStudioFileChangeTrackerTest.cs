@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -13,7 +12,6 @@ using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
@@ -23,17 +21,22 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
     public async Task StartListening_AdvisesForFileChange()
     {
         // Arrange
-        var fileChangeService = new Mock<IVsAsyncFileChangeEx>(MockBehavior.Strict);
+        var fileChangeService = new StrictMock<IVsAsyncFileChangeEx>();
         fileChangeService
             .Setup(f => f.AdviseFileChangeAsync(It.IsAny<string>(), It.IsAny<_VSFILECHANGEFLAGS>(), It.IsAny<IVsFreeThreadedFileChangeEvents2>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(123u)
             .Verifiable();
-        var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
+        var tracker = new VisualStudioFileChangeTracker(
+            TestProjectData.SomeProjectImportFile.FilePath,
+            ErrorReporter,
+            fileChangeService.Object,
+            Dispatcher,
+            JoinableTaskFactory.Context);
 
         // Act
         await RunOnDispatcherAsync(tracker.StartListening);
 
-        await tracker._fileChangeAdviseTask;
+        await tracker._fileChangeAdviseTask!;
 
         // Assert
         fileChangeService.Verify();
@@ -44,19 +47,24 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
     {
         // Arrange
         var callCount = 0;
-        var fileChangeService = new Mock<IVsAsyncFileChangeEx>(MockBehavior.Strict);
+        var fileChangeService = new StrictMock<IVsAsyncFileChangeEx>();
         fileChangeService
             .Setup(f => f.AdviseFileChangeAsync(It.IsAny<string>(), It.IsAny<_VSFILECHANGEFLAGS>(), It.IsAny<IVsFreeThreadedFileChangeEvents2>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(123u)
             .Callback(() => callCount++);
-        var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
+        var tracker = new VisualStudioFileChangeTracker(
+            TestProjectData.SomeProjectImportFile.FilePath,
+            ErrorReporter,
+            fileChangeService.Object,
+            Dispatcher,
+            JoinableTaskFactory.Context);
 
         await RunOnDispatcherAsync(tracker.StartListening);
 
         // Act
         await RunOnDispatcherAsync(tracker.StartListening);
 
-        await tracker._fileChangeAdviseTask;
+        await tracker._fileChangeAdviseTask!;
 
         // Assert
         Assert.Equal(1, callCount);
@@ -66,7 +74,7 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
     public async Task StopListening_UnadvisesForFileChange()
     {
         // Arrange
-        var fileChangeService = new Mock<IVsAsyncFileChangeEx>(MockBehavior.Strict);
+        var fileChangeService = new StrictMock<IVsAsyncFileChangeEx>();
         fileChangeService
             .Setup(f => f.AdviseFileChangeAsync(It.IsAny<string>(), It.IsAny<_VSFILECHANGEFLAGS>(), It.IsAny<IVsFreeThreadedFileChangeEvents2>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(123u)
@@ -74,16 +82,21 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
         fileChangeService
             .Setup(f => f.UnadviseFileChangeAsync(123, It.IsAny<CancellationToken>()))
             .Verifiable();
-        var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
+        var tracker = new VisualStudioFileChangeTracker(
+            TestProjectData.SomeProjectImportFile.FilePath,
+            ErrorReporter,
+            fileChangeService.Object,
+            Dispatcher,
+            JoinableTaskFactory.Context);
 
         await RunOnDispatcherAsync(tracker.StartListening);
 
-        await tracker._fileChangeAdviseTask;
+        await tracker._fileChangeAdviseTask!;
 
         // Act
         await RunOnDispatcherAsync(tracker.StopListening);
 
-        await tracker._fileChangeUnadviseTask;
+        await tracker._fileChangeUnadviseTask!;
 
         // Assert
         fileChangeService.Verify();
@@ -93,11 +106,16 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
     public async Task StopListening_NotListening_DoesNothing()
     {
         // Arrange
-        var fileChangeService = new Mock<IVsAsyncFileChangeEx>(MockBehavior.Strict);
+        var fileChangeService = new StrictMock<IVsAsyncFileChangeEx>();
         fileChangeService
             .Setup(f => f.UnadviseFileChangeAsync(123, It.IsAny<CancellationToken>()))
             .Throws(new InvalidOperationException());
-        var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
+        var tracker = new VisualStudioFileChangeTracker(
+            TestProjectData.SomeProjectImportFile.FilePath,
+            ErrorReporter,
+            fileChangeService.Object,
+            Dispatcher,
+            JoinableTaskFactory.Context);
 
         // Act
         await RunOnDispatcherAsync(tracker.StopListening);
@@ -128,8 +146,8 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
         };
 
         // Act
-        tracker.FilesChanged(fileCount: 1, filePaths: new[] { filePath }, fileChangeFlags: new[] { fileChangeFlag });
-        await tracker._fileChangedTask;
+        tracker.FilesChanged(fileCount: 1, filePaths: [filePath], fileChangeFlags: [fileChangeFlag]);
+        await tracker._fileChangedTask!;
 
         // Assert
         Assert.True(called);
