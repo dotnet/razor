@@ -11,7 +11,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -22,7 +23,7 @@ using static Microsoft.AspNetCore.Razor.Test.Common.TagHelperTestData;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-public partial class OutOfProcTagHelperResolverTest : ToolingTestBase
+public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
 {
     private static readonly HostProject s_hostProject_For_2_0 = new(
         projectFilePath: "Test.csproj",
@@ -62,7 +63,7 @@ public partial class OutOfProcTagHelperResolverTest : ToolingTestBase
             CreateFactory("Test-2"));
 
         var projectEngineFactoryProvider = new ProjectEngineFactoryProvider(customFactories);
-        var projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider);
+        var projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider, Dispatcher);
 
         var projectManagerAccessorMock = new Mock<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
         projectManagerAccessorMock
@@ -85,7 +86,10 @@ public partial class OutOfProcTagHelperResolverTest : ToolingTestBase
     public async Task GetTagHelpersAsync_WithSerializableCustomFactory_GoesOutOfProcess()
     {
         // Arrange
-        _projectManagerAccessor.Instance.ProjectAdded(s_hostProject_For_2_0);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManagerAccessor.Instance.ProjectAdded(s_hostProject_For_2_0);
+        });
 
         var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(s_hostProject_For_2_0.Key);
 
@@ -114,7 +118,10 @@ public partial class OutOfProcTagHelperResolverTest : ToolingTestBase
     public async Task GetTagHelpersAsync_WithNonSerializableCustomFactory_StaysInProcess()
     {
         // Arrange
-        _projectManagerAccessor.Instance.ProjectAdded(s_hostProject_For_NonSerializableConfiguration);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManagerAccessor.Instance.ProjectAdded(s_hostProject_For_NonSerializableConfiguration);
+        });
 
         var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(s_hostProject_For_2_0.Key);
 
@@ -143,7 +150,10 @@ public partial class OutOfProcTagHelperResolverTest : ToolingTestBase
     public async Task GetTagHelpersAsync_OperationCanceledException_DoesNotGetWrapped()
     {
         // Arrange
-        _projectManagerAccessor.Instance.ProjectAdded(s_hostProject_For_2_0);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManagerAccessor.Instance.ProjectAdded(s_hostProject_For_2_0);
+        });
 
         var projectSnapshot = _projectManagerAccessor.Instance.GetLoadedProject(s_hostProject_For_2_0.Key);
 
