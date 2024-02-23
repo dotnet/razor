@@ -23,16 +23,23 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
     public WorkspaceSemanticTokensRefreshTriggerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter);
+        _projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         _projectManager.AllowNotifyListeners = true;
         _hostProject = new HostProject("/path/to/project.csproj", "/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
-        _projectManager.ProjectAdded(_hostProject);
         _hostDocument = new HostDocument("/path/to/file.razor", "file.razor");
-        _projectManager.DocumentAdded(_hostProject.Key, _hostDocument, new EmptyTextLoader(_hostDocument.FilePath));
+    }
+
+    protected override async Task InitializeAsync()
+    {
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _hostDocument, new EmptyTextLoader(_hostDocument.FilePath));
+        });
     }
 
     [Fact]
-    public void PublishesOnWorkspaceUpdate()
+    public async Task PublishesOnWorkspaceUpdate()
     {
         // Arrange
         var workspaceChangedPublisher = new Mock<IWorkspaceSemanticTokensRefreshPublisher>(MockBehavior.Strict);
@@ -42,7 +49,9 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
 
         // Act
         var newDocument = new HostDocument("/path/to/newFile.razor", "newFile.razor");
-        _projectManager.DocumentAdded(_hostProject.Key, newDocument, new EmptyTextLoader(newDocument.FilePath));
+
+        await RunOnDispatcherAsync(() =>
+            _projectManager.DocumentAdded(_hostProject.Key, newDocument, new EmptyTextLoader(newDocument.FilePath)));
 
         // Assert
         workspaceChangedPublisher.VerifyAll();
@@ -61,14 +70,5 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
         public void ReportError(Exception exception) => throw new NotImplementedException();
         public void ReportError(Exception exception, IProjectSnapshot? project) => throw new NotImplementedException();
         public void ReportError(Exception exception, Project workspaceProject) => throw new NotImplementedException();
-    }
-
-    private class TestDispatcher : ProjectSnapshotManagerDispatcher
-    {
-        // The tests run synchronously without the dispatcher, so just assert that
-        // we're always on the right thread
-        public override bool IsDispatcherThread => true;
-
-        public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
     }
 }
