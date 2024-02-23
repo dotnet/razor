@@ -4,7 +4,7 @@
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Moq;
@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
-public class ImportDocumentManagerIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
+public class ImportDocumentManagerIntegrationTest : VisualStudioTestBase
 {
     private readonly string _directoryPath;
     private readonly string _projectPath;

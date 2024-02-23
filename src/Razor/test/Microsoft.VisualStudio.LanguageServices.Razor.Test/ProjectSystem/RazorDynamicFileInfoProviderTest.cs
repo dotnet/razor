@@ -43,7 +43,7 @@ public class RazorDynamicFileInfoProviderTest : VisualStudioWorkspaceTestBase
     {
         _documentServiceFactory = new RazorDocumentServiceProviderFactory();
         _editorFeatureDetector = StrictMock.Of<LSPEditorFeatureDetector>();
-        _projectSnapshotManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, new TestProjectSnapshotManagerDispatcher())
+        _projectSnapshotManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, Dispatcher)
         {
             AllowNotifyListeners = true
         };

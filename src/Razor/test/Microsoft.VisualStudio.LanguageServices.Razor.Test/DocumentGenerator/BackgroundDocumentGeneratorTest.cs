@@ -10,8 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Moq;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 // These tests are really integration tests. There isn't a good way to unit test this functionality since
 // the only thing in here is threading.
-public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
+public class BackgroundDocumentGeneratorTest : VisualStudioWorkspaceTestBase
 {
     private readonly HostDocument[] _documents;
     private readonly HostProject _hostProject1;

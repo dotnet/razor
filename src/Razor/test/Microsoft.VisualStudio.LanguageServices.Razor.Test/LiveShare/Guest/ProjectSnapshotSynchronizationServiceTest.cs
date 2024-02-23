@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest;
 
-public class ProjectSnapshotSynchronizationServiceTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
+public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTestBase
 {
     private readonly CollaborationSession _sessionContext;
     private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;

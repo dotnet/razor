@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
@@ -23,7 +22,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 
-public class VisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
+public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
 {
     private readonly ITextBuffer _textBuffer;
     private readonly string _filePath;

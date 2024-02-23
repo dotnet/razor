@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -24,7 +24,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test;
 
-public class ProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatcherTestBase
+public class ProjectWorkspaceStateGeneratorTest : VisualStudioTestBase
 {
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly TestTagHelperResolver _tagHelperResolver;
