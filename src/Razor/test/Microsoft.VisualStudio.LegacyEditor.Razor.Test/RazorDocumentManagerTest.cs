@@ -223,7 +223,8 @@ public class RazorDocumentManagerTest : VisualStudioTestBase
         var documentManager = new RazorDocumentManager(editorFactoryService, Dispatcher, JoinableTaskContext);
 
         // Populate the text views
-        documentTracker.Subscribe();
+        await RunOnDispatcherAsync(documentTracker.Subscribe);
+
         documentTracker.AddTextView(textView1);
         documentTracker.AddTextView(textView2);
 
