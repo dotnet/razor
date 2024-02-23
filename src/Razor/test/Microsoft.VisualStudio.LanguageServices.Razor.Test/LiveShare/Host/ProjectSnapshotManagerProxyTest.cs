@@ -81,7 +81,7 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
             });
     }
 
-    [Fact]
+    [UIFact]
     public async Task Changed_TriggersOnSnapshotManagerChanged()
     {
         // Arrange
@@ -104,7 +104,11 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
         };
 
         // Act
-        projectSnapshotManager.TriggerChanged(changedArgs);
+        await RunOnDispatcherAsync(() =>
+        {
+            projectSnapshotManager.TriggerChanged(changedArgs);
+        });
+
         await proxyAccessor.ProcessingChangedEventTestTask.AssumeNotNull().JoinAsync();
 
         // Assert
