@@ -77,14 +77,21 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentAdded_AddsDocument()
+    public async Task DocumentAdded_AddsDocument()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -94,14 +101,21 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentAdded_AddsDocument_Legacy()
+    public async Task DocumentAdded_AddsDocument_Legacy()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -117,14 +131,21 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentAdded_AddsDocument_Component()
+    public async Task DocumentAdded_AddsDocument_Component()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[3], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[3], null!);
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -140,15 +161,22 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentAdded_IgnoresDuplicate()
+    public async Task DocumentAdded_IgnoresDuplicate()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -174,11 +202,18 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentAdded_NullLoader_HasEmptyText()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -193,13 +228,20 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentAdded_WithLoader_LoadesText()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         var expected = SourceText.From("Hello");
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -214,14 +256,21 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentAdded_CachesTagHelpers()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        });
+
         _projectManager.Reset();
 
         var originalTagHelpers = await _projectManager.GetSnapshot(_hostProject).GetTagHelpersAsync(CancellationToken.None);
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
 
         // Assert
         var newTagHelpers = await _projectManager.GetSnapshot(_hostProject).GetTagHelpersAsync(CancellationToken.None);
@@ -234,17 +283,24 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentAdded_CachesProjectEngine()
+    public async Task DocumentAdded_CachesProjectEngine()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         var snapshot = _projectManager.GetSnapshot(_hostProject);
         var projectEngine = snapshot.GetProjectEngine();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
 
         // Assert
         snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -252,17 +308,24 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentRemoved_RemovesDocument()
+    public async Task DocumentRemoved_RemovesDocument()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null!);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null!);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null!);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -275,14 +338,21 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentRemoved_IgnoresNotFoundDocument()
+    public async Task DocumentRemoved_IgnoresNotFoundDocument()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject.Key, _documents[0]);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentRemoved(_hostProject.Key, _documents[0]);
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -292,12 +362,15 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentRemoved_IgnoresUnknownProject()
+    public async Task DocumentRemoved_IgnoresUnknownProject()
     {
         // Arrange
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject.Key, _documents[0]);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentRemoved(_hostProject.Key, _documents[0]);
+        });
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -308,17 +381,24 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentRemoved_CachesTagHelpers()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null!);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null!);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null!);
+        });
+
         _projectManager.Reset();
 
         var originalTagHelpers = await _projectManager.GetSnapshot(_hostProject).GetTagHelpersAsync(CancellationToken.None);
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
+        });
 
         // Assert
         var newTagHelpers = await _projectManager.GetSnapshot(_hostProject).GetTagHelpersAsync(CancellationToken.None);
@@ -331,20 +411,27 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DocumentRemoved_CachesProjectEngine()
+    public async Task DocumentRemoved_CachesProjectEngine()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null!);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null!);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null!);
+        });
+
         _projectManager.Reset();
 
         var snapshot = _projectManager.GetSnapshot(_hostProject);
         var projectEngine = snapshot.GetProjectEngine();
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
+        });
 
         // Assert
         snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -354,12 +441,19 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentOpened_UpdatesDocument()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -375,9 +469,13 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentClosed_UpdatesDocument()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
-        _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+            _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
+        });
+
         _projectManager.Reset();
 
         var expected = SourceText.From("Hi");
@@ -386,7 +484,10 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         Assert.True(_projectManager.IsDocumentOpen(_documents[0].FilePath));
 
         // Act
-        _projectManager.DocumentClosed(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentClosed(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -401,15 +502,22 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentClosed_AcceptsChange()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
+
         _projectManager.Reset();
 
         var expected = SourceText.From("Hi");
         var textAndVersion = TextAndVersion.Create(expected, VersionStamp.Create());
 
         // Act
-        _projectManager.DocumentClosed(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentClosed(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -423,15 +531,22 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentChanged_Snapshot_UpdatesDocument()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
-        _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+            _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
+        });
+
         _projectManager.Reset();
 
         var expected = SourceText.From("Hi");
 
         // Act
-        _projectManager.DocumentChanged(_hostProject.Key, _documents[0].FilePath, expected);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentChanged(_hostProject.Key, _documents[0].FilePath, expected);
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -445,16 +560,23 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     public async Task DocumentChanged_Loader_UpdatesDocument()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
-        _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+            _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
+        });
+
         _projectManager.Reset();
 
         var expected = SourceText.From("Hi");
         var textAndVersion = TextAndVersion.Create(expected, VersionStamp.Create());
 
         // Act
-        _projectManager.DocumentChanged(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentChanged(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -465,58 +587,82 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void ProjectAdded_WithoutWorkspaceProject_NotifiesListeners()
+    public async Task ProjectAdded_WithoutWorkspaceProject_NotifiesListeners()
     {
         // Arrange
 
         // Act
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.ProjectAdded, _projectManager.ListenersNotifiedOf);
     }
 
     [UIFact]
-    public void ProjectConfigurationChanged_ConfigurationChange_ProjectWorkspaceState_NotifiesListeners()
+    public async Task ProjectConfigurationChanged_ConfigurationChange_ProjectWorkspaceState_NotifiesListeners()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
     }
 
     [UIFact]
-    public void ProjectConfigurationChanged_ConfigurationChange_WithProjectWorkspaceState_NotifiesListeners()
+    public async Task ProjectConfigurationChanged_ConfigurationChange_WithProjectWorkspaceState_NotifiesListeners()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
     }
 
     [UIFact]
-    public void ProjectConfigurationChanged_ConfigurationChange_DoesNotCacheProjectEngine()
+    public async Task ProjectConfigurationChanged_ConfigurationChange_DoesNotCacheProjectEngine()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         var snapshot = _projectManager.GetSnapshot(_hostProject);
         var projectEngine = snapshot.GetProjectEngine();
 
         // Act
-        _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
+        });
 
         // Assert
         snapshot = _projectManager.GetSnapshot(_hostProjectWithConfigurationChange);
@@ -524,12 +670,15 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void ProjectConfigurationChanged_IgnoresUnknownProject()
+    public async Task ProjectConfigurationChanged_IgnoresUnknownProject()
     {
         // Arrange
 
         // Act
-        _projectManager.ProjectConfigurationChanged(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectConfigurationChanged(_hostProject);
+        });
 
         // Assert
         Assert.Empty(_projectManager.GetProjects());
@@ -538,14 +687,21 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void ProjectRemoved_RemovesProject_NotifiesListeners()
+    public async Task ProjectRemoved_RemovesProject_NotifiesListeners()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.ProjectRemoved(_hostProject.Key);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectRemoved(_hostProject.Key);
+        });
 
         // Assert
         Assert.Empty(_projectManager.GetProjects());
@@ -568,40 +724,59 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void ProjectWorkspaceStateChanged_WithHostProject_FirstTime_NotifiesListenters()
+    public async Task ProjectWorkspaceStateChanged_WithHostProject_FirstTime_NotifiesListenters()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
     }
 
     [UIFact]
-    public void WorkspaceProjectChanged_WithHostProject_NotifiesListenters()
+    public async Task WorkspaceProjectChanged_WithHostProject_NotifiesListenters()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, ProjectWorkspaceState.Default);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, ProjectWorkspaceState.Default);
+        });
+
         _projectManager.Reset();
 
         // Act
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
     }
 
     [UIFact]
-    public void NestedNotifications_NotifiesListenersInCorrectOrder()
+    public async Task NestedNotifications_NotifiesListenersInCorrectOrder()
     {
         // Arrange
         var listenerNotifications = new List<ProjectChangeKind>();
-        _projectManager.ProjectAdded(_hostProject);
+
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
         _projectManager.Changed += (sender, args) =>
         {
@@ -616,21 +791,29 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
                 _projectManager.DocumentRemoved(_hostProject.Key, _documents[0]);
             }
         };
+
         _projectManager.Changed += (sender, args) => listenerNotifications.Add(args.Kind);
         _projectManager.NotifyChangedEvents = true;
 
         // Act
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null!);
+        });
 
         // Assert
         Assert.Equal(new[] { ProjectChangeKind.DocumentAdded, ProjectChangeKind.DocumentChanged, ProjectChangeKind.DocumentRemoved }, listenerNotifications);
     }
 
     [UIFact]
-    public void SolutionClosing_ProjectChangedEventsCorrect()
+    public async Task SolutionClosing_ProjectChangedEventsCorrect()
     {
         // Arrange
-        _projectManager.ProjectAdded(_hostProject);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.ProjectAdded(_hostProject);
+        });
+
         _projectManager.Reset();
 
         _projectManager.Changed += (sender, args) => Assert.True(args.SolutionIsClosing);
@@ -639,8 +822,11 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
 
         // Act
-        _projectManager.SolutionClosed();
-        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], textLoader.Object);
+        await RunOnDispatcherAsync(() =>
+        {
+            _projectManager.SolutionClosed();
+            _projectManager.DocumentAdded(_hostProject.Key, _documents[0], textLoader.Object);
+        });
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentAdded, _projectManager.ListenersNotifiedOf);
