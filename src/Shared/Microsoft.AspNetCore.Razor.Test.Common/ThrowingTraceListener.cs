@@ -9,6 +9,10 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 public sealed class ThrowingTraceListener : TraceListener
 {
+    private static readonly List<string> _fails = new();
+
+    public static string[] Fails => _fails.ToArray();
+
 #pragma warning disable CA2255
     [ModuleInitializer]
 #pragma warning restore CA2255
@@ -20,9 +24,13 @@ public sealed class ThrowingTraceListener : TraceListener
 
     public override void Fail(string? message, string? detailMessage)
     {
-        throw new InvalidOperationException(
-            (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
-            (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage));
+        var stackTrace = new StackTrace(fNeedFileInfo: true);
+        var logMessage = (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
+            (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage);
+
+        _fails.Add($"{logMessage}{Environment.NewLine}{stackTrace}");
+
+        throw new InvalidOperationException(logMessage);
     }
 
     public override void Write(object? o)
