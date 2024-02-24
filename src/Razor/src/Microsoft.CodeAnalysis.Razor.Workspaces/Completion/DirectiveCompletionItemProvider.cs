@@ -27,7 +27,11 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
         CSharpCodeParser.AddTagHelperDirectiveDescriptor,
         CSharpCodeParser.RemoveTagHelperDirectiveDescriptor,
         CSharpCodeParser.TagHelperPrefixDirectiveDescriptor,
+        CSharpCodeParser.UsingDirectiveDescriptor
     };
+
+    // Test accessor
+    internal static IEnumerable<DirectiveDescriptor> DefaultDirectives => s_defaultDirectives;
 
     // internal for testing
     // Do not forget to update both insert and display text !important
@@ -45,7 +49,8 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
         ["preservewhitespace"] = ("preservewhitespace ${1:true}$0", "preservewhitespace true"),
         ["removeTagHelper"] = ("removeTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}", "removeTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers"),
         ["tagHelperPrefix"] = ("tagHelperPrefix ${1:prefix}$0", "tagHelperPrefix prefix"),
-        ["typeparam"] = ("typeparam ${1:T}$0", "typeparam T")
+        ["typeparam"] = ("typeparam ${1:T}$0", "typeparam T"),
+        ["using"] = ("using ${1:MyNamespace}$0", "using MyNamespace")
     };
 
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
@@ -145,6 +150,10 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
                 completionDisplayText,
                 directive.Directive,
                 RazorCompletionItemKind.Directive,
+                // Make sort text one less than display text so if there are any delegated completion items
+                // with the same display text in the combined completion list, they will be sorted below
+                // our items.
+                sortText: completionDisplayText[..Math.Max(1, completionDisplayText.Length - 1)],
                 commitCharacters: commitCharacters,
                 isSnippet: false);
             var completionDescription = new DirectiveCompletionDescription(directive.Description);
@@ -154,9 +163,11 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
             if (s_singleLineDirectiveSnippets.TryGetValue(directive.Directive, out var snippetTexts))
             {
                 var snippetCompletionItem = new RazorCompletionItem(
-                    $"{completionDisplayText} ...",
+                    $"{completionDisplayText} {SR.Directive}",
                     snippetTexts.InsertText,
                     RazorCompletionItemKind.Directive,
+                    // Use the same sort text here as the directive completion item so both items are grouped together
+                    sortText: completionItem.SortText,
                     commitCharacters: commitCharacters,
                     isSnippet: true);
 
