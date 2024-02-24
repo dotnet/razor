@@ -3,20 +3,15 @@
 
 #nullable disable
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
 public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-
     public ProjectMutationBenchmark()
         : base(100000)
     {
