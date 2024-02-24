@@ -3,14 +3,13 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
 [Export(typeof(ProjectSnapshotManagerDispatcher))]
 [method: ImportingConstructor]
 internal class VisualStudioProjectSnapshotManagerDispatcher(IErrorReporter errorReporter)
-    : ProjectSnapshotManagerDispatcherBase(ThreadName, errorReporter)
+    : ProjectSnapshotManagerDispatcher(ThreadName, errorReporter)
 {
     private const string ThreadName = "Razor." + nameof(VisualStudioProjectSnapshotManagerDispatcher);
 }
