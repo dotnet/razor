@@ -47,7 +47,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
     private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
     {
-        var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
         AddDisposable(dispatcher);
 
         return dispatcher;

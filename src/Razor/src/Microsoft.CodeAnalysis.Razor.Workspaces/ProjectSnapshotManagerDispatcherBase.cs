@@ -13,17 +13,15 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotMa
 {
     private readonly ProjectSnapshotManagerTaskScheduler _dispatcherScheduler;
 
-    public ProjectSnapshotManagerDispatcherBase(string threadName)
+    public ProjectSnapshotManagerDispatcherBase(string threadName, IErrorReporter errorReporter)
     {
         if (threadName is null)
         {
             throw new ArgumentNullException(nameof(threadName));
         }
 
-        _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName, LogException);
+        _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName, errorReporter);
     }
-
-    public abstract void LogException(Exception ex);
 
     public void Dispose()
     {
@@ -38,11 +36,11 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotMa
     {
         private readonly Thread _thread;
         private readonly BlockingCollection<Task> _tasks = new();
-        private readonly Action<Exception> _logException;
+        private readonly IErrorReporter _errorReporter;
         private bool _disposed;
         private readonly object _disposalLock = new();
 
-        public ProjectSnapshotManagerTaskScheduler(string threadName, Action<Exception> logException)
+        public ProjectSnapshotManagerTaskScheduler(string threadName, IErrorReporter errorReporter)
         {
             _thread = new Thread(ThreadStart)
             {
@@ -51,7 +49,7 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotMa
             };
 
             _thread.Start();
-            _logException = logException;
+            _errorReporter = errorReporter;
         }
 
         public int ThreadId => _thread.ManagedThreadId;
@@ -97,7 +95,7 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotMa
                 catch (ThreadAbortException ex)
                 {
                     // Fires when things shut down or in tests. Log exception and bail out.
-                    _logException(ex);
+                    _errorReporter.ReportError(ex);
                     return;
                 }
                 catch (Exception ex)
@@ -112,7 +110,7 @@ internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotMa
                     }
 
                     // Unexpected exception. Log and throw.
-                    _logException(ex);
+                    _errorReporter.ReportError(ex);
                     throw;
                 }
             }

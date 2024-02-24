@@ -24,6 +24,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     internal ImmutableArray<TextLoader> TextLoaders { get; }
     protected string RepoRoot { get; }
     private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
+    private protected IErrorReporter ErrorReporter { get; }
 
     protected ProjectSnapshotManagerBenchmarkBase(int documentCount = 100)
     {
@@ -67,7 +68,8 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             .Setup(x => x.CreateLogger(It.IsAny<string>()))
             .Returns(Mock.Of<ILogger>(MockBehavior.Strict));
 
-        Dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactoryMock.Object);
+        ErrorReporter = new TestErrorReporter();
+        Dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
     }
 
     internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()
@@ -76,6 +78,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             triggers: [],
             projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
             dispatcher: Dispatcher,
-            errorReporter: new TestErrorReporter());
+            errorReporter: ErrorReporter);
     }
 }
