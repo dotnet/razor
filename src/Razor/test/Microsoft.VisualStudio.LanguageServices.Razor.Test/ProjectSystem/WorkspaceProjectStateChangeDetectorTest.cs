@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
@@ -18,7 +19,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -68,7 +68,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
                 "One",
                 LanguageNames.CSharp,
                 filePath: "One.csproj",
-                documents: new[] { cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo }).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
+                documents: [cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
             .AddProject(ProjectInfo.Create(
                 projectId2,
                 VersionStamp.Default,
@@ -96,8 +96,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
                 "One",
                 LanguageNames.CSharp,
                 filePath: "One.csproj",
-                documents: new[] { cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo },
-                projectReferences: new[] { project2Reference }).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
+                documents: [cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo],
+                projectReferences: [project2Reference]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
             .AddProject(ProjectInfo.Create(
                 projectId2,
                 VersionStamp.Default,
@@ -105,7 +105,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
                 "Two",
                 LanguageNames.CSharp,
                 filePath: "Two.csproj",
-                projectReferences: new[] { project3Reference }).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj2\\Two.dll")))
+                projectReferences: [project3Reference]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj2\\Two.dll")))
             .AddProject(ProjectInfo.Create(
                 projectId3,
                 VersionStamp.Default,
@@ -113,7 +113,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
                 "Three",
                 LanguageNames.CSharp,
                 filePath: "Three.csproj",
-                documents: new[] { razorDocumentInfo }).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj3\\Three.dll")));
+                documents: [razorDocumentInfo]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj3\\Three.dll")));
 
         _projectNumberOne = _solutionWithTwoProjects.GetProject(projectId1);
         _projectNumberTwo = _solutionWithTwoProjects.GetProject(projectId2);
@@ -141,7 +141,10 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         _workQueueTestAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -183,9 +186,13 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         {
             NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
         };
+
         _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -233,9 +240,13 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         {
             NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
         };
+
         _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -285,7 +296,11 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         {
             NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
         };
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -322,7 +337,10 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
             NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
         };
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -365,7 +383,11 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, Dispatcher, _workQueue);
         _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
+
         await RunOnDispatcherAsync(() =>
         {
             projectManager.ProjectAdded(_hostProjectOne);
@@ -399,7 +421,11 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -436,7 +462,11 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -473,7 +503,11 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -510,7 +544,11 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -564,7 +602,11 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         {
             NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
         };
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -580,9 +622,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
 
         // Assert
-        Assert.Collection(
+        Assert.Single(
             workspaceStateGenerator.UpdateQueue,
-            p => Assert.Null(p.WorkspaceProject));
+            p => p.WorkspaceProject is null);
     }
 
     [UIFact]
@@ -595,7 +637,10 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
             NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
         };
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider, Dispatcher);
+        var projectManager = new TestProjectSnapshotManager([detector], ProjectEngineFactoryProvider, Dispatcher)
+        {
+            AllowNotifyListeners = true
+        };
 
         await RunOnDispatcherAsync(() =>
         {
@@ -611,9 +656,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
 
         // Assert
-        Assert.Collection(
+        Assert.Single(
             workspaceStateGenerator.UpdateQueue,
-            p => Assert.Equal(_projectNumberThree.Id, p.WorkspaceProject.Id));
+            p => p.WorkspaceProject.Id == _projectNumberThree.Id);
     }
 
     [Fact]
