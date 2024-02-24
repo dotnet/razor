@@ -9,7 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 [Export(typeof(ProjectSnapshotManagerDispatcher))]
 [method: ImportingConstructor]
 internal class VisualStudioProjectSnapshotManagerDispatcher(IErrorReporter errorReporter)
-    : ProjectSnapshotManagerDispatcher(ThreadName, errorReporter)
+    : ProjectSnapshotManagerDispatcher(errorReporter)
 {
-    private const string ThreadName = "Razor." + nameof(VisualStudioProjectSnapshotManagerDispatcher);
 }

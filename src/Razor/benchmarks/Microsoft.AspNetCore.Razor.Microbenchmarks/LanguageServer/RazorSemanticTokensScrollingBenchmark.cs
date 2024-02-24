@@ -112,7 +112,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot)
     {
-        await ProjectSnapshotManagerDispatcher!.RunOnDispatcherThreadAsync(
+        await ProjectSnapshotManagerDispatcher!.RunOnDispatcherAsync(
             () => VersionCache!.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None).ConfigureAwait(false);
     }
 

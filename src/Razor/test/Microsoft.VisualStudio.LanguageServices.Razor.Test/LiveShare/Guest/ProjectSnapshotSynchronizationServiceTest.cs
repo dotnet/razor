@@ -73,7 +73,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         await synchronizationService.InitializeAsync(DisposalToken);
 
         // Assert
-        var projects = await Dispatcher.RunOnDispatcherThreadAsync(
+        var projects = await Dispatcher.RunOnDispatcherAsync(
             _projectManagerAccessor.Instance.GetProjects, DisposalToken);
         var project = Assert.Single(projects);
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
@@ -110,7 +110,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         await synchronizationService.UpdateGuestProjectManagerAsync(args);
 
         // Assert
-        var projects = await Dispatcher.RunOnDispatcherThreadAsync(
+        var projects = await Dispatcher.RunOnDispatcherAsync(
             _projectManagerAccessor.Instance.GetProjects, DisposalToken);
         var project = Assert.Single(projects);
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
@@ -143,7 +143,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
 
-        await Dispatcher.RunOnDispatcherThreadAsync(
+        await Dispatcher.RunOnDispatcherAsync(
             () => _projectManagerAccessor.Instance.ProjectAdded(hostProject),
             DisposalToken);
         var args = new ProjectChangeEventProxyArgs(olderHandle, newer: null, ProjectProxyChangeKind.ProjectRemoved);
@@ -152,7 +152,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         await synchronizationService.UpdateGuestProjectManagerAsync(args);
 
         // Assert
-        var projects = await Dispatcher.RunOnDispatcherThreadAsync(
+        var projects = await Dispatcher.RunOnDispatcherAsync(
             _projectManagerAccessor.Instance.GetProjects, DisposalToken);
         Assert.Empty(projects);
     }
@@ -182,7 +182,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             ErrorReporter,
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunOnDispatcherAsync(() =>
         {
             var projectManager = _projectManagerAccessor.Instance;
             projectManager.ProjectAdded(hostProject);
@@ -194,7 +194,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         await synchronizationService.UpdateGuestProjectManagerAsync(args);
 
         // Assert
-        var projects = await Dispatcher.RunOnDispatcherThreadAsync(
+        var projects = await Dispatcher.RunOnDispatcherAsync(
             _projectManagerAccessor.Instance.GetProjects, DisposalToken);
         var project = Assert.Single(projects);
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
@@ -227,7 +227,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             ErrorReporter,
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunOnDispatcherAsync(() =>
         {
             var projectManager = _projectManagerAccessor.Instance;
             projectManager.ProjectAdded(hostProject);
@@ -239,7 +239,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         await synchronizationService.UpdateGuestProjectManagerAsync(args);
 
         // Assert
-        var projects = await Dispatcher.RunOnDispatcherThreadAsync(
+        var projects = await Dispatcher.RunOnDispatcherAsync(
             _projectManagerAccessor.Instance.GetProjects, DisposalToken);
         var project = Assert.Single(projects);
         Assert.Equal("/guest/path/project.csproj", project.FilePath);

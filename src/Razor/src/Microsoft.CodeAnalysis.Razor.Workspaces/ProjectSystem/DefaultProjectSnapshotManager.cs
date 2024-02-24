@@ -382,7 +382,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     private void NotifyListeners(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
     {
         // Change notifications should always be sent on the dispatcher.
-        _dispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnDispatcher();
 
         NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, IsSolutionClosing));
     }
@@ -440,7 +440,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             }
 
             // We're about to mutate, so assert that we're on the dispatcher thread.
-            _dispatcher.AssertDispatcherThread();
+            _dispatcher.AssertRunningOnDispatcher();
 
             var state = ProjectState.Create(
                 _projectEngineFactoryProvider,
@@ -480,7 +480,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                     newSnapshot = newEntry?.GetSnapshot() ?? oldSnapshot;
 
                     // We're about to mutate, so assert that we're on the dispatcher thread.
-                    _dispatcher.AssertDispatcherThread();
+                    _dispatcher.AssertRunningOnDispatcher();
 
                     using (upgradeableLock.EnterWriteLock())
                     {

@@ -176,7 +176,7 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
             // This event is called by the EditorDocumentManager, which runs on the UI thread.
             // However, due to accessing the project snapshot manager, we need to switch to
             // running on the project snapshot manager's specialized thread.
-            await _dispatcher.RunOnDispatcherThreadAsync(() =>
+            await _dispatcher.RunOnDispatcherAsync(() =>
             {
                 ProjectManager.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.TextLoader);
             }, cancellationToken).ConfigureAwait(false);
@@ -204,7 +204,7 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
             // This event is called by the EditorDocumentManager, which runs on the UI thread.
             // However, due to accessing the project snapshot manager, we need to switch to
             // running on the project snapshot manager's specialized thread.
-            await _dispatcher.RunOnDispatcherThreadAsync(() =>
+            await _dispatcher.RunOnDispatcherAsync(() =>
             {
                 var document = (EditorDocument)sender;
                 ProjectManager.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
@@ -234,7 +234,7 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
             // This event is called by the EditorDocumentManager, which runs on the UI thread.
             // However, due to accessing the project snapshot manager, we need to switch to
             // running on the project snapshot manager's specialized thread.
-            await _dispatcher.RunOnDispatcherThreadAsync(async () =>
+            await _dispatcher.RunOnDispatcherAsync(async () =>
             {
                 var document = (EditorDocument)sender;
 
@@ -278,7 +278,7 @@ internal class EditorDocumentManagerListener : IPriorityProjectSnapshotChangeTri
             // This event is called by the EditorDocumentManager, which runs on the UI thread.
             // However, due to accessing the project snapshot manager, we need to switch to
             // running on the project snapshot manager's specialized thread.
-            await _dispatcher.RunOnDispatcherThreadAsync(() =>
+            await _dispatcher.RunOnDispatcherAsync(() =>
             {
                 var document = (EditorDocument)sender;
                 ProjectManager.DocumentClosed(document.ProjectKey, document.DocumentFilePath, document.TextLoader);

@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Razor;
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class LSPProjectSnapshotManagerDispatcher(IErrorReporter errorReporter)
-    : ProjectSnapshotManagerDispatcher(ThreadName, errorReporter)
+    : ProjectSnapshotManagerDispatcher(errorReporter)
 {
-    private const string ThreadName = "Razor." + nameof(LSPProjectSnapshotManagerDispatcher);
 }

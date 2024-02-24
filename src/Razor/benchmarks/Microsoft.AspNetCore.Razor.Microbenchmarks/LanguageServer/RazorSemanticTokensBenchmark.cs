@@ -100,7 +100,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await ProjectSnapshotManagerDispatcher.RunOnDispatcherAsync(
             () => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), cancellationToken).ConfigureAwait(false);
     }
 
