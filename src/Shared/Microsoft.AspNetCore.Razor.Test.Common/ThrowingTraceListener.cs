@@ -9,7 +9,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 public sealed class ThrowingTraceListener : TraceListener
 {
+#pragma warning disable CA2255
     [ModuleInitializer]
+#pragma warning enable CA2255
     internal static void Initialize()
     {
         Trace.Listeners.Clear();
