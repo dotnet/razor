@@ -11,6 +11,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion.Delegation;
+
 public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
     : ResponseRewriterTestBase(new SnippetResponseRewriter(), testOutput)
 {

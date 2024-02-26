@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -35,7 +36,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
 
     // internal for testing
     // Do not forget to update both insert and display text !important
-    internal static readonly IReadOnlyDictionary<string, (string InsertText, string DisplayText)> s_singleLineDirectiveSnippets = new Dictionary<string, (string InsertText, string DisplayText)>(StringComparer.Ordinal)
+    internal static readonly FrozenDictionary<string, (string InsertText, string DisplayText)> s_singleLineDirectiveSnippets = new Dictionary<string, (string InsertText, string DisplayText)>(StringComparer.Ordinal)
     {
         ["addTagHelper"] = ("addTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}", "addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers"),
         ["attribute"] = ("attribute [${1:Authorize}]$0", "attribute [Authorize]"),
@@ -51,7 +52,8 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
         ["tagHelperPrefix"] = ("tagHelperPrefix ${1:prefix}$0", "tagHelperPrefix prefix"),
         ["typeparam"] = ("typeparam ${1:T}$0", "typeparam T"),
         ["using"] = ("using ${1:MyNamespace}$0", "using MyNamespace")
-    };
+    }
+    .ToFrozenDictionary();
 
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {

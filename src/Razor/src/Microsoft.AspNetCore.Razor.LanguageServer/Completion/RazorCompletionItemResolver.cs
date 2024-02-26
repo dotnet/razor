@@ -41,7 +41,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
 
         var associatedRazorCompletion = razorCompletionResolveContext.CompletionItems.FirstOrDefault(completion =>
         {
-            if (!string.Equals(completion.DisplayText, completionItem.Label, StringComparison.Ordinal))
+            if (completion.DisplayText != completionItem.Label)
             {
                 return false;
             }
