@@ -380,6 +380,35 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     }
 
     [Fact]
+    public async Task Handle_AddDebuggerDisplay()
+    {
+        var input = """
+            @functions {
+                class Goo[||]
+                {
+                    
+                }
+            }
+            """;
+
+        var expected = """
+            @using System.Diagnostics
+            @functions {
+                [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
+                class Goo
+                {
+                    private string GetDebuggerDisplay()
+                    {
+                        return ToString();
+                    }
+                }
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
+    }
+
+    [Fact]
     public async Task Handle_AddUsing_WithExisting()
     {
         var input = """
