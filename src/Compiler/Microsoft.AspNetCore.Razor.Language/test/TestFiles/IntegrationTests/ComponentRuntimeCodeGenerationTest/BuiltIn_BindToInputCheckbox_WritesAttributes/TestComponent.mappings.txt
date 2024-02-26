@@ -2,7 +2,7 @@
 |
     public bool Enabled { get; set; }
 |
-Generated Location: (1068:31,7 [41] )
+Generated Location: (1087:32,7 [41] )
 |
     public bool Enabled { get; set; }
 |

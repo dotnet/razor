@@ -2,7 +2,7 @@
 #pragma warning disable 1591
 namespace AspNetCore
 {
-    #line hidden
+    #line default
     using TModel = global::System.Object;
     using System;
     using System.Collections.Generic;
@@ -11,6 +11,7 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line hidden
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     {
         #pragma warning disable 219
