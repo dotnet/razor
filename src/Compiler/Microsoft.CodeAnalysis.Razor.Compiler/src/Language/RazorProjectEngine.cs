@@ -346,12 +346,12 @@ public class RazorProjectEngine
         AddDefaultPhases(builder.Phases);
         AddDefaultFeatures(builder.Features);
 
-        if (configuration.LanguageVersion.CompareTo(RazorLanguageVersion.Version_5_0) >= 0)
+        if (configuration.LanguageVersion >= RazorLanguageVersion.Version_5_0)
         {
             builder.Features.Add(new ViewCssScopePass());
         }
 
-        if (configuration.LanguageVersion.CompareTo(RazorLanguageVersion.Version_3_0) >= 0)
+        if (configuration.LanguageVersion >= RazorLanguageVersion.Version_3_0)
         {
             FunctionsDirective.Register(builder);
             ImplementsDirective.Register(builder);
@@ -457,7 +457,7 @@ public class RazorProjectEngine
         ComponentLayoutDirective.Register(builder);
         ComponentPageDirective.Register(builder);
 
-        if (razorLanguageVersion.CompareTo(RazorLanguageVersion.Version_6_0) >= 0)
+        if (razorLanguageVersion >= RazorLanguageVersion.Version_6_0)
         {
             ComponentConstrainedTypeParamDirective.Register(builder);
         }
@@ -466,12 +466,12 @@ public class RazorProjectEngine
             ComponentTypeParamDirective.Register(builder);
         }
 
-        if (razorLanguageVersion.CompareTo(RazorLanguageVersion.Version_5_0) >= 0)
+        if (razorLanguageVersion >= RazorLanguageVersion.Version_5_0)
         {
             ComponentPreserveWhitespaceDirective.Register(builder);
         }
 
-        if (razorLanguageVersion.CompareTo(RazorLanguageVersion.Version_8_0) >= 0)
+        if (razorLanguageVersion >= RazorLanguageVersion.Version_8_0)
         {
             ComponentRenderModeDirective.Register(builder);
         }
@@ -490,7 +490,7 @@ public class RazorProjectEngine
         builder.Features.Add(new ComponentReferenceCaptureLoweringPass());
         builder.Features.Add(new ComponentSplatLoweringPass());
         builder.Features.Add(new ComponentFormNameLoweringPass());
-        builder.Features.Add(new ComponentBindLoweringPass(razorLanguageVersion.CompareTo(RazorLanguageVersion.Version_7_0) >= 0));
+        builder.Features.Add(new ComponentBindLoweringPass(razorLanguageVersion >= RazorLanguageVersion.Version_7_0));
         builder.Features.Add(new ComponentRenderModeLoweringPass());
         builder.Features.Add(new ComponentCssScopePass());
         builder.Features.Add(new ComponentTemplateDiagnosticPass());

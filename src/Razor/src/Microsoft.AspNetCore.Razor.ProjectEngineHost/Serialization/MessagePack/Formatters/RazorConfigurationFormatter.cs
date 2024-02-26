@@ -20,7 +20,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         var count = reader.ReadArrayHeader();
 
         var configurationName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
 
         count -= 2;
 
