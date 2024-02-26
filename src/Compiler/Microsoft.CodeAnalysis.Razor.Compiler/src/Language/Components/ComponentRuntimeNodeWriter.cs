@@ -348,9 +348,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        if (node.Source.HasValue)
+        if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
+            using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
                 context.CodeWriter.WriteUsing(node.Content);
             }
@@ -358,6 +358,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         else
         {
             context.CodeWriter.WriteUsing(node.Content, endLine: true);
+
+            if (node.AppendLineDefaultAndHidden)
+            {
+                context.CodeWriter.WriteLine("#line hidden");
+            }
         }
     }
 
