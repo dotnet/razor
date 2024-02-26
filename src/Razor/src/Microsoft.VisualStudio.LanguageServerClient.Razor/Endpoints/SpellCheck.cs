@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -37,17 +36,9 @@ internal partial class RazorCustomMessageTarget
             virtualDocument.Snapshot.TextBuffer,
             VSInternalMethods.TextDocumentSpellCheckableRangesName,
             RazorLSPConstants.RazorCSharpLanguageServerName,
-            SupportsSpellCheck,
             spellCheckParams,
             cancellationToken).ConfigureAwait(false);
 
         return response?.Response ?? Array.Empty<VSInternalSpellCheckableRangeReport>();
-    }
-
-    private static bool SupportsSpellCheck(JToken token)
-    {
-        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
-
-        return serverCapabilities?.SpellCheckingProvider ?? false;
     }
 }

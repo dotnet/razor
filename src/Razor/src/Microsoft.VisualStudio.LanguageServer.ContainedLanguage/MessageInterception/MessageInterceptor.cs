@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -19,5 +20,14 @@ public abstract class MessageInterceptor
     /// <param name="containedLanguageName">The name of the content type for the contained language.</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns></returns>
-    public abstract Task<InterceptionResult> ApplyChangesAsync(JToken message, string containedLanguageName, CancellationToken cancellationToken);
+    [Obsolete("Will be removed in a future version.")]
+    public virtual Task<InterceptionResult> ApplyChangesAsync(JToken message, string containedLanguageName, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException("This method is obsolete and will be removed in a future version.");
+    }
+
+    public virtual Task<InterceptionResult> ApplyChangesAsync<T>(T message, string containedLanguageName, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(InterceptionResult.NoChange);
+    }
 }

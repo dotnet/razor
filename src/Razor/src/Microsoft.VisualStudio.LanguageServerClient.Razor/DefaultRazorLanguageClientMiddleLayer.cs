@@ -4,7 +4,6 @@
 using System;
 using System.Composition;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -15,12 +14,12 @@ internal class DefaultRazorLanguageClientMiddleLayer : RazorLanguageClientMiddle
 {
     public override bool CanHandle(string methodName) => false;
 
-    public override Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
+    public override Task HandleNotificationAsync<TMessage>(string methodName, TMessage message, Func<TMessage, Task> sendNotification)
     {
         return Task.CompletedTask;
     }
 
-    public override Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
+    public override Task<TResponse?> HandleRequestAsync<TRequest, TResponse>(string methodName, TRequest methodParam, Func<TRequest, Task<TResponse?>> sendRequest) where TResponse : default
     {
         throw new NotImplementedException();
     }

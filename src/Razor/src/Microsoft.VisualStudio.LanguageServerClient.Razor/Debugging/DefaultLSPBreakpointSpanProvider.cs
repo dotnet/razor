@@ -5,13 +5,11 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 
@@ -63,7 +61,6 @@ internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
             documentSnapshot.Snapshot.TextBuffer,
             LanguageServerConstants.RazorBreakpointSpanEndpoint,
             RazorLSPConstants.RazorLanguageServerName,
-            CheckRazorBreakpointSpanCapability,
             languageQueryParams,
             cancellationToken).ConfigureAwait(false);
 
@@ -75,15 +72,5 @@ internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
         }
 
         return languageResponse.Range;
-    }
-
-    private static bool CheckRazorBreakpointSpanCapability(JToken token)
-    {
-        if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
-        {
-            return false;
-        }
-
-        return razorCapability.BreakpointSpan;
     }
 }

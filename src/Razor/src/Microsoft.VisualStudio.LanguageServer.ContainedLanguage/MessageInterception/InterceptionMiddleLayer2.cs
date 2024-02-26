@@ -5,15 +5,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 
-/// <summary>
-/// Receives notification messages from the server and invokes any applicable message interception layers.
-/// </summary>
-[Obsolete("Will be removed in a future version. Use InterceptionMiddleLayer2")]
-public class InterceptionMiddleLayer : ILanguageClientMiddleLayer
+public class InterceptionMiddleLayer2 : ILanguageClientMiddleLayer2
 {
     private readonly InterceptorManager _interceptorManager;
     private readonly string _contentType;
@@ -23,7 +18,7 @@ public class InterceptionMiddleLayer : ILanguageClientMiddleLayer
     /// </summary>
     /// <param name="interceptorManager">Interception manager</param>
     /// <param name="contentType">The content type name of the language for the ILanguageClient using this middle layer</param>
-    public InterceptionMiddleLayer(InterceptorManager interceptorManager, string contentType)
+    public InterceptionMiddleLayer2(InterceptorManager interceptorManager, string contentType)
     {
         _interceptorManager = interceptorManager ?? throw new ArgumentNullException(nameof(interceptorManager));
         _contentType = !string.IsNullOrEmpty(contentType) ? contentType : throw new ArgumentException("Cannot be empty", nameof(contentType));
@@ -34,12 +29,12 @@ public class InterceptionMiddleLayer : ILanguageClientMiddleLayer
         return _interceptorManager.HasInterceptor(methodName, _contentType);
     }
 
-    public async Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
+    public async Task HandleNotificationAsync<TMessage>(string methodName, TMessage message, Func<TMessage, Task> sendNotification)
     {
-        var payload = methodParam;
+        var payload = message;
         if (CanHandle(methodName))
         {
-            payload = await _interceptorManager.ProcessInterceptorsAsync(methodName, methodParam, _contentType, CancellationToken.None);
+            payload = await _interceptorManager.ProcessInterceptorsAsync(methodName, payload, _contentType, CancellationToken.None);
         }
 
         if (payload is not null)
@@ -49,7 +44,7 @@ public class InterceptionMiddleLayer : ILanguageClientMiddleLayer
         }
     }
 
-    public async Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
+    public async Task<TResponse?> HandleRequestAsync<TRequest, TResponse>(string methodName, TRequest methodParam, Func<TRequest, Task<TResponse?>> sendRequest)
     {
         // First send the request through.
         // We don't yet have a scenario where the request needs to be intercepted, but if one does come up, we may need to redesign the interception handshake

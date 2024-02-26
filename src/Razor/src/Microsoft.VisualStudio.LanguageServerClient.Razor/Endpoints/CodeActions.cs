@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -68,7 +67,6 @@ internal partial class RazorCustomMessageTarget
         var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
             textBuffer,
             lspMethodName,
-            SupportsCodeActionResolve,
             codeActionParams.CodeActionParams,
             cancellationToken).ConfigureAwait(false);
 
@@ -131,7 +129,6 @@ internal partial class RazorCustomMessageTarget
         var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeAction, VSInternalCodeAction?>(
             textBuffer,
             Methods.CodeActionResolveName,
-            SupportsCodeActionResolve,
             codeAction,
             cancellationToken).ConfigureAwait(false);
 
@@ -145,16 +142,5 @@ internal partial class RazorCustomMessageTarget
         }
 
         return null;
-    }
-
-    private static bool SupportsCodeActionResolve(JToken token)
-    {
-        var serverCapabilities = token.ToObject<ServerCapabilities>();
-
-        var (providesCodeActions, resolvesCodeActions) = serverCapabilities?.CodeActionProvider?.Match(
-            boolValue => (boolValue, false),
-            options => (true, options.ResolveProvider)) ?? (false, false);
-
-        return providesCodeActions && resolvesCodeActions;
     }
 }

@@ -13,12 +13,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 [Export(typeof(IRazorCSharpInterceptionMiddleLayer))]
 internal class RazorCSharpInterceptionMiddleLayer : IRazorCSharpInterceptionMiddleLayer
 {
-    private readonly InterceptionMiddleLayer _underlyingMiddleLayer;
+    private readonly InterceptionMiddleLayer2 _underlyingMiddleLayer;
 
     [ImportingConstructor]
     public RazorCSharpInterceptionMiddleLayer(InterceptorManager interceptorManager)
     {
-        _underlyingMiddleLayer = new InterceptionMiddleLayer(interceptorManager, RazorLSPConstants.CSharpContentTypeName);
+        _underlyingMiddleLayer = new InterceptionMiddleLayer2(interceptorManager, RazorLSPConstants.CSharpContentTypeName);
     }
 
     public bool CanHandle(string methodName)

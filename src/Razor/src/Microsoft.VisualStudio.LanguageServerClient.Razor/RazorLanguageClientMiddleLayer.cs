@@ -4,17 +4,14 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-#pragma warning disable CS0618 // Type or member is obsolete. Temporary until we remove ILanguageClientMiddleLayer
-internal abstract class RazorLanguageClientMiddleLayer : ILanguageClientMiddleLayer
-#pragma warning restore CS0618 // Type or member is obsolete
+internal abstract class RazorLanguageClientMiddleLayer : ILanguageClientMiddleLayer2
 {
     public abstract bool CanHandle(string methodName);
 
-    public abstract Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification);
+    public abstract Task HandleNotificationAsync<TMessage>(string methodName, TMessage message, Func<TMessage, Task> sendNotification);
 
-    public abstract Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest);
+    public abstract Task<TResponse?> HandleRequestAsync<TRequest, TResponse>(string methodName, TRequest methodParam, Func<TRequest, Task<TResponse?>> sendRequest);
 }
