@@ -52,8 +52,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
                 // CompletionItem.Kind and RazorCompletionItem.Kind are not compatible/comparable, so we need to convert
                 // Razor completion item to VS completion item (as logic to convert just the kind is not easy to separate from
                 // the rest of the conversion logic) prior to comparing them
-                RazorCompletionListProvider.TryConvert(completion, clientCapabilities, out var convertedRazorCompletionItem);
-                if (convertedRazorCompletionItem != null)
+                if (RazorCompletionListProvider.TryConvert(completion, clientCapabilities, out var convertedRazorCompletionItem))
                 {
                     return completionItem.Kind == convertedRazorCompletionItem.Kind;
                 }
