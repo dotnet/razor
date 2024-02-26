@@ -357,6 +357,54 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
         await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
     }
+
+    [Fact]
+    public async Task Handle_AddUsing()
+    {
+        var input = """
+            @functions
+            {
+                private [||]StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        var expected = """
+            @using System.Text
+            @functions
+            {
+                private StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
+    }
+
+    [Fact]
+    public async Task Handle_AddUsing_WithExisting()
+    {
+        var input = """
+            @using System
+            @using System.Collections.Generic
+
+            @functions
+            {
+                private [||]StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        var expected = """
+            @using System
+            @using System.Collections.Generic
+            @using System.Text
+
+            @functions
+            {
+                private StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
+    }
     #endregion
 
     #region RazorCodeAction Tests
@@ -624,7 +672,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri:null);
+        var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
 
         var result = await GetCodeActionsAsync(
             uri,
@@ -1093,7 +1141,11 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var endpoint = new CodeActionEndpoint(
             DocumentMappingService.AssumeNotNull(),
             razorCodeActionProviders: razorProviders ?? [],
-            csharpCodeActionProviders: [new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance)],
+            csharpCodeActionProviders:
+            [
+                new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
+                new TypeAccessibilityCodeActionProvider()
+            ],
             htmlCodeActionProviders: [],
             clientConnection,
             LanguageServerFeatureOptions.AssumeNotNull(),
