@@ -596,6 +596,6 @@
     <value>The '{0}' directive expects an identifier or explicit razor expression ("@()").</value>
   </data>
   <data name="UsingDirective_Description" xml:space="preserve">
-    <value>Adds the C# using directive to the generated view</value>
+    <value>Adds the C# using directive to the generated view.</value>
   </data>
 </root>
