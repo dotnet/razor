@@ -165,7 +165,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
             if (s_singleLineDirectiveSnippets.TryGetValue(directive.Directive, out var snippetTexts))
             {
                 var snippetCompletionItem = new RazorCompletionItem(
-                    $"{completionDisplayText} {SR.Directive}",
+                    $"{completionDisplayText} {SR.Directive} ...",
                     snippetTexts.InsertText,
                     RazorCompletionItemKind.Directive,
                     // Use the same sort text here as the directive completion item so both items are grouped together

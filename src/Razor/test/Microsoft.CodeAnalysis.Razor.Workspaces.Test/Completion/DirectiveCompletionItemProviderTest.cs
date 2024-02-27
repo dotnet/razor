@@ -178,7 +178,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
         Assert.Collection(
             completionItems,
             item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: false),
-            item => AssertRazorCompletionItem(knownDirective + " directive", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
+            item => AssertRazorCompletionItem(knownDirective + " directive ...", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
     }
 
     [Fact]
@@ -201,7 +201,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
             completionItems,
             [
                 item => AssertRazorCompletionItem("model", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: false),
-                item => AssertRazorCompletionItem("model directive", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true), ..
+                item => AssertRazorCompletionItem("model directive ...", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true), ..
                 s_defaultDirectiveCollectionVerifiers
             ]
         );
@@ -457,7 +457,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
     }
 
     private static void AssertRazorCompletionItem(DirectiveDescriptor directive, RazorCompletionItem item, bool isSnippet = false) =>
-        AssertRazorCompletionItem(directive.Directive + (isSnippet ? " directive" : string.Empty), directive, item, isSnippet: isSnippet);
+        AssertRazorCompletionItem(directive.Directive + (isSnippet ? " directive ..." : string.Empty), directive, item, isSnippet: isSnippet);
 
     private static RazorSyntaxTree CreateSyntaxTree(string text, params DirectiveDescriptor[] directives)
     {

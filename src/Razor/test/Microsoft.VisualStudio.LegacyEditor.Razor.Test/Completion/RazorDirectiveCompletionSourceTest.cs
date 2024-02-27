@@ -187,7 +187,7 @@ public class RazorDirectiveCompletionSourceTest(ITestOutputHelper testOutput) : 
 
     private static void AssertRazorCompletionItem(DirectiveDescriptor directive, CompletionItem item, IAsyncCompletionSource source, bool isSnippet = false)
     {
-        var expectedDisplayText = isSnippet ? directive.Directive + " directive" : directive.Directive;
+        var expectedDisplayText = isSnippet ? directive.Directive + " directive ..." : directive.Directive;
         AssertRazorCompletionItem(expectedDisplayText, directive, item, source, isSnippet: isSnippet);
     }
 
