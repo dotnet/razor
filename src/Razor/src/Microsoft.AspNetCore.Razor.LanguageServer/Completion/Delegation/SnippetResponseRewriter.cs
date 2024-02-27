@@ -19,9 +19,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 /// </remarks>
 internal class SnippetResponseRewriter : DelegatedCompletionResponseRewriter
 {
-    private static readonly FrozenDictionary<string, string> s_snippetToLabel = new Dictionary<string, string>()
+    private static readonly FrozenDictionary<string, (string Label, string SortText)> s_snippetToCompletionData = new Dictionary<string, (string Label, string SortText)>()
     {
-        ["using"] = $"using {SR.Statement}"
+        // Modifying label of the C# using snippet to "using statement" to disambiguate from
+        // Razor @using directive, and also appending a space to sort text to make sure it's sorted
+        // after Razor "using" keyword and "using directive ..." entries (which use "using" as sort text)
+        ["using"] = (Label:$"using {SR.Statement}", SortText:"using ")
     }
     .ToFrozenDictionary();
 
@@ -38,9 +41,10 @@ internal class SnippetResponseRewriter : DelegatedCompletionResponseRewriter
                     continue;
                 }
 
-                if (s_snippetToLabel.TryGetValue(item.Label, out var newLabel))
+                if (s_snippetToCompletionData.TryGetValue(item.Label, out var completionData))
                 {
-                    item.Label = newLabel;
+                    item.Label = completionData.Label;
+                    item.SortText = completionData.SortText;
                 }
             }
         }

@@ -38,10 +38,12 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
             completion =>
             {
                 Assert.Equal("using statement", completion.Label);
+                Assert.Equal("using ", completion.SortText);
             },
             completion =>
             {
                 Assert.Equal("if", completion.Label);
+                Assert.Equal("if", completion.SortText);
             }
         );
     }
@@ -69,10 +71,12 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
             completion =>
             {
                 Assert.Equal("using", completion.Label);
+                Assert.Equal("using", completion.SortText);
             },
             completion =>
             {
                 Assert.Equal("if", completion.Label);
+                Assert.Equal("if", completion.SortText);
             }
         );
     }
@@ -100,10 +104,12 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
             completion =>
             {
                 Assert.Equal("using", completion.Label);
+                Assert.Equal("using", completion.SortText);
             },
             completion =>
             {
                 Assert.Equal("if", completion.Label);
+                Assert.Equal("if", completion.SortText);
             }
         );
     }
@@ -131,17 +137,25 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
             completion =>
             {
                 Assert.Null(completion.Label);
+                Assert.Null(completion.SortText);
             },
             completion =>
             {
                 Assert.Equal("using statement", completion.Label);
+                Assert.Equal("using ", completion.SortText);
             }
         );
     }
 
     private static VSInternalCompletionList GenerateCompletionList(params (string? Label, CompletionItemKind Kind)[] itemsData)
     {
-        var items = itemsData.Select(itemData => new VSInternalCompletionItem() { Label = itemData.Label!, Kind = itemData.Kind}).ToArray();
+        var items = itemsData.Select(itemData => new VSInternalCompletionItem()
+            {
+                Label = itemData.Label!,
+                SortText = itemData.Label,
+                Kind = itemData.Kind})
+        .ToArray();
+
         return new VSInternalCompletionList()
         {
             Items = items

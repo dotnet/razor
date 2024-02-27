@@ -155,7 +155,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
                 // Make sort text one less than display text so if there are any delegated completion items
                 // with the same display text in the combined completion list, they will be sorted below
                 // our items.
-                sortText: completionDisplayText[..Math.Max(1, completionDisplayText.Length - 1)],
+                sortText: completionDisplayText,
                 commitCharacters: commitCharacters,
                 isSnippet: false);
             var completionDescription = new DirectiveCompletionDescription(directive.Description);
@@ -169,7 +169,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
                     snippetTexts.InsertText,
                     RazorCompletionItemKind.Directive,
                     // Use the same sort text here as the directive completion item so both items are grouped together
-                    sortText: completionItem.SortText,
+                    sortText: completionDisplayText,
                     commitCharacters: commitCharacters,
                     isSnippet: true);
 
