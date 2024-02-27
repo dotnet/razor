@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
+using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
@@ -28,7 +29,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.VisualStudio.Editor.Razor;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -46,7 +46,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     private readonly ClientConnection _clientConnection;
 
     // Cached for testing
-    private IHandlerProvider? _handlerProvider;
+    private AbstractHandlerProvider? _handlerProvider;
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
@@ -80,7 +80,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
     protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()
     {
-        var handlerProvider = GetHandlerProvider();
+        var handlerProvider = this.HandlerProvider;
         var queue = new RazorRequestExecutionQueue(this, _logger, handlerProvider);
         queue.Start();
         return queue;
@@ -134,7 +134,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         services.AddFormattingServices();
         services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
-        services.AddHoverServices();
+        services.AddHoverServices(featureOptions);
         services.AddTextDocumentServices();
 
         // Auto insert
@@ -146,7 +146,6 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
         // Other
-        services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
         services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
 
@@ -196,15 +195,26 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
             services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
             services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
-            services.AddHandler<MapCodeEndpoint>();
+            services.AddHandlerWithCapabilities<MapCodeEndpoint>();
+
+            if (!featureOptions.UseRazorCohostServer)
+            {
+                services.AddSingleton<IInlayHintService, InlayHintService>();
+
+                services.AddHandlerWithCapabilities<InlayHintEndpoint>();
+                services.AddHandler<InlayHintResolveEndpoint>();
+            }
         }
     }
 
-    protected override IHandlerProvider GetHandlerProvider()
+    protected override AbstractHandlerProvider HandlerProvider
     {
-        _handlerProvider ??= base.GetHandlerProvider();
+        get
+        {
+            _handlerProvider ??= base.HandlerProvider;
 
-        return _handlerProvider;
+            return _handlerProvider;
+        }
     }
 
     internal T GetRequiredService<T>() where T : notnull
@@ -229,10 +239,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             _server = server;
         }
 
-        public IHandlerProvider GetHandlerProvider()
-        {
-            return _server.GetHandlerProvider();
-        }
+        public AbstractHandlerProvider HandlerProvider => _server.HandlerProvider;
 
         public RazorRequestExecutionQueue GetRequestExecutionQueue()
         {

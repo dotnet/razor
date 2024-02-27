@@ -749,8 +749,40 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         Assert.Empty(_projectManager.GetProjects());
     }
 
+    [UITheory]
+    // Standard setup.  BaseIntermediateOutputPath ends in obj and IntermediateOutputPath starts with obj
+    [InlineData(@"C:\my repo root\solution folder\projectFolder\obj\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
+    // ArtifactsPath in use as ../artifacts
+    [InlineData(@"C:\my repo root\solution folder\projectFolder\../artifacts\obj\projectName\", @"C:\my repo root\solution folder\projectFolder\../artifacts\obj\projectName\debug", @"C:\my repo root\solution folder\artifacts\obj\projectName\debug")]
+    // .... and ArtifactsPivot is $(ArtifactsPivot)\_MyCustomPivot
+    [InlineData(@"C:\my repo root\solution folder\projectFolder\../artifacts\obj\projectName\", @"C:\my repo root\solution folder\projectFolder\../artifacts\obj\projectName\_MyCustomPivot", @"C:\my repo root\solution folder\artifacts\obj\projectName\_MyCustomPivot")]
+    // Set BIOP to ..\..\artifacts\obj\$(MSBuildProjectFolder), pre-ArtifactsPath existing
+    [InlineData(@"C:\my repo root\solution folder\projectFolder\..\..\artifacts\obj\projectName", @"..\..\artifacts\obj\projectName\Debug\net8.0", @"C:\my repo root\artifacts\obj\projectName\Debug\net8.0")]
+    public void IntermediateOutputPathCalculationHandlesRelativePaths(string baseIntermediateOutputPath, string intermediateOutputPath, string expectedCombinedIOP)
+    {
+        var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManagerAccessor, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+
+        var state = TestProjectRuleSnapshot.CreateProperties(
+             WindowsRazorProjectHostBase.ConfigurationGeneralSchemaName,
+             new Dictionary<string, string>()
+             {
+                 [WindowsRazorProjectHostBase.IntermediateOutputPathPropertyName] = intermediateOutputPath,
+                 [WindowsRazorProjectHostBase.BaseIntermediateOutputPathPropertyName] = baseIntermediateOutputPath,
+             });
+
+        var dict = ImmutableDictionary<string, IProjectRuleSnapshot>.Empty;
+        dict = dict.Add(WindowsRazorProjectHostBase.ConfigurationGeneralSchemaName, state);
+
+        var result = host.GetTestAccessor().GetIntermediateOutputPathFromProjectChange(dict,
+            out var combinedIntermediateOutputPath);
+
+        Assert.True(result);
+        Assert.Equal(expectedCombinedIOP, combinedIntermediateOutputPath);
+    }
+
     [UIFact]
-    public async Task OnProjectChanged_NoVersionFound_DoesNotIniatializeProject()
+    public async Task OnProjectChanged_NoVersionFound_DoesNotInitializeProject()
     {
         // Arrange
         _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "");
@@ -998,7 +1030,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
     }
 
     [UIFact]
-    public async Task OnProjectChanged_VersionRemoved_DeinitializesProject()
+    public async Task OnProjectChanged_VersionRemoved_DeInitializesProject()
     {
         // Arrange
         _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
@@ -1241,6 +1273,110 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
                Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
                Assert.Equal(FileKinds.Component, document.FileKind);
            });
+
+        await Task.Run(async () => await host.DisposeAsync());
+        Assert.Empty(_projectManager.GetProjects());
+    }
+
+    [UIFact]
+    public async Task OnProjectChanged_ChangeIntermediateOutputPath_RemovesAndAddsProject()
+    {
+        // Arrange
+        _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
+        _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
+
+        _configurationItems.Item("MVC-2.1");
+        _configurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
+
+        _extensionItems.Item("MVC-2.1");
+        _extensionItems.Item("Another-Thing");
+
+        _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
+        _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
+
+        _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath));
+        _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentImportFile1.TargetPath);
+
+        _razorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
+        _razorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
+
+        _configurationGeneral.Property(WindowsRazorProjectHostBase.BaseIntermediateOutputPathPropertyName, TestProjectData.SomeProject.IntermediateOutputPath);
+        _configurationGeneral.Property(WindowsRazorProjectHostBase.IntermediateOutputPathPropertyName, "obj");
+
+        var changes = new TestProjectChangeDescription[]
+        {
+             _razorGeneralProperties.ToChange(),
+             _configurationItems.ToChange(),
+             _extensionItems.ToChange(),
+             _razorComponentWithTargetPathItems.ToChange(),
+             _razorGenerateWithTargetPathItems.ToChange(),
+             _configurationGeneral.ToChange(),
+        };
+
+        var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManagerAccessor, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
+
+        await Task.Run(async () => await host.LoadAsync());
+        Assert.Empty(_projectManager.GetProjects());
+
+        // Act - 1
+        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+
+        // Assert - 1
+        var snapshot = Assert.Single(_projectManager.GetProjects());
+        Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
+
+        Assert.Equal(RazorLanguageVersion.Version_2_1, snapshot.Configuration.LanguageVersion);
+        Assert.Equal("MVC-2.1", snapshot.Configuration.ConfigurationName);
+        Assert.Collection(
+            snapshot.Configuration.Extensions.OrderBy(e => e.ExtensionName),
+            e => Assert.Equal("Another-Thing", e.ExtensionName),
+            e => Assert.Equal("MVC-2.1", e.ExtensionName));
+
+        Assert.Collection(
+            snapshot.DocumentFilePaths.OrderBy(d => d),
+            d =>
+            {
+                var document = snapshot.GetDocument(d);
+                Assert.Equal(TestProjectData.SomeProjectComponentImportFile1.FilePath, document.FilePath);
+                Assert.Equal(TestProjectData.SomeProjectComponentImportFile1.TargetPath, document.TargetPath);
+                Assert.Equal(FileKinds.ComponentImport, document.FileKind);
+            },
+            d =>
+            {
+                var document = snapshot.GetDocument(d);
+                Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, document.FilePath);
+                Assert.Equal(TestProjectData.SomeProjectFile1.TargetPath, document.TargetPath);
+            },
+            d =>
+            {
+                var document = snapshot.GetDocument(d);
+                Assert.Equal(TestProjectData.SomeProjectComponentFile1.FilePath, document.FilePath);
+                Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
+                Assert.Equal(FileKinds.Component, document.FileKind);
+            });
+
+        // Act - 2
+        _configurationGeneral.Property(WindowsRazorProjectHostBase.IntermediateOutputPathPropertyName, "obj2");
+
+        changes = new TestProjectChangeDescription[]
+        {
+             _razorGeneralProperties.ToChange(changes[0].After),
+             _configurationItems.ToChange(changes[1].After),
+             _extensionItems.ToChange(changes[2].After),
+             _razorComponentWithTargetPathItems.ToChange(changes[3].After),
+             _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
+             _configurationGeneral.ToChange(changes[5].After),
+        };
+
+        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+
+        // Assert - 2
+        // Changing intermediate output path is effectively removing the old project and adding a new one.
+        snapshot = Assert.Single(_projectManager.GetProjects());
+        Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
+        Assert.Equal(TestProjectData.SomeProject.IntermediateOutputPath + "2", snapshot.IntermediateOutputPath);
 
         await Task.Run(async () => await host.DisposeAsync());
         Assert.Empty(_projectManager.GetProjects());

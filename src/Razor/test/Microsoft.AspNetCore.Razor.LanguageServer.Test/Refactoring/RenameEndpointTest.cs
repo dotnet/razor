@@ -23,7 +23,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -717,7 +716,6 @@ public class RenameEndpointTest : LanguageServerTestBase
 
         var endpoint = new RenameEndpoint(
             Dispatcher,
-            _documentContextFactory,
             searchEngine,
             projectSnapshotManagerAccessor,
             languageServerFeatureOptions,

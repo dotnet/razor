@@ -25,16 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvider
 {
-    private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
-
-    private readonly ITagHelperFactsService _tagHelperFactsService;
-
-    public ComponentAccessibilityCodeActionProvider(ITagHelperFactsService tagHelperFactsService)
-    {
-        _tagHelperFactsService = tagHelperFactsService ?? throw new ArgumentNullException(nameof(tagHelperFactsService));
-    }
-
-    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         using var _ = ListPool<RazorVSInternalCodeAction>.GetPooledObject(out var codeActions);
 
@@ -42,7 +33,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         var node = context.CodeDocument.GetSyntaxTree().Root.FindInnermostNode(context.Location.AbsoluteIndex);
         if (node is null)
         {
-            return s_emptyResult;
+            return null;
         }
 
         // Find start tag. We allow this code action to work from anywhere in the start tag, which includes
@@ -53,7 +44,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         var startTag = (IStartTagSyntaxNode?)node.FirstAncestorOrSelf<SyntaxNode>(n => n is IStartTagSyntaxNode);
         if (startTag is null)
         {
-            return s_emptyResult;
+            return null;
         }
 
         if (context.Location.AbsoluteIndex < startTag.SpanStart)
@@ -61,27 +52,27 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             // Cursor is before the start tag, so we shouldn't show a light bulb. This can happen
             // in cases where the cursor is in whitespace at the beginning of the document
             // eg: $$ <Component></Component>
-            return s_emptyResult;
+            return null;
         }
 
         // Ignore if start tag has dots, as we only handle short tags
         if (startTag.Name.Content.Contains("."))
         {
-            return s_emptyResult;
+            return null;
         }
 
         if (!IsApplicableTag(startTag))
         {
-            return s_emptyResult;
+            return null;
         }
 
         if (IsTagUnknown(startTag, context))
         {
-            AddComponentAccessFromTag(context, startTag, codeActions);
+            await AddComponentAccessFromTagAsync(context, startTag, codeActions, cancellationToken).ConfigureAwait(false);
             AddCreateComponentFromTag(context, startTag, codeActions);
         }
 
-        return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions.ToArray());
+        return codeActions.ToArray();
     }
 
     private static bool IsApplicableTag(IStartTagSyntaxNode startTag)
@@ -136,7 +127,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         container.Add(codeAction);
     }
 
-    private void AddComponentAccessFromTag(RazorCodeActionContext context, IStartTagSyntaxNode startTag, List<RazorVSInternalCodeAction> container)
+    private async Task AddComponentAccessFromTagAsync(RazorCodeActionContext context, IStartTagSyntaxNode startTag, List<RazorVSInternalCodeAction> container, CancellationToken cancellationToken)
     {
         var haveAddedNonQualifiedFix = false;
 
@@ -155,7 +146,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             }
         }
 
-        var matching = FindMatchingTagHelpers(context, startTag);
+        var matching = await FindMatchingTagHelpersAsync(context, startTag, cancellationToken).ConfigureAwait(false);
 
         // For all the matches, add options for add @using and fully qualify
         foreach (var tagHelperPair in matching)
@@ -205,7 +196,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         }
     }
 
-    private List<TagHelperPair> FindMatchingTagHelpers(RazorCodeActionContext context, IStartTagSyntaxNode startTag)
+    private async Task<List<TagHelperPair>> FindMatchingTagHelpersAsync(RazorCodeActionContext context, IStartTagSyntaxNode startTag, CancellationToken cancellationToken)
     {
         // Get all data necessary for matching
         var tagName = startTag.Name.Content;
@@ -219,12 +210,14 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             parentTagName = parentTagHelperElement.StartTag?.Name.Content ?? parentTagHelperElement.EndTag?.Name.Content;
         }
 
-        var attributes = _tagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Find all matching tag helpers
         using var _ = DictionaryPool<string, TagHelperPair>.GetPooledObject(out var matching);
 
-        foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
+        var tagHelpers = await context.DocumentSnapshot.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var tagHelper in tagHelpers)
         {
             if (SatisfiesRules(tagHelper.TagMatchingRules, tagName.AsSpan(), parentTagName.AsSpan(), attributes, out var caseInsensitiveMatch))
             {
@@ -233,7 +226,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         }
 
         // Iterate and find the fully qualified version
-        foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
+        foreach (var tagHelper in tagHelpers)
         {
             if (matching.TryGetValue(tagHelper.Name, out var tagHelperPair))
             {
@@ -254,8 +247,8 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         foreach (var rule in tagMatchingRules)
         {
             // We have to match parent tag and attributes regardless, so check them first and exit early if there is a fail
-            if (!TagHelperMatchingConventions.SatisfiesParentTag(parentTagNameWithoutPrefix, rule) ||
-               !TagHelperMatchingConventions.SatisfiesAttributes(tagAttributes, rule))
+            if (!TagHelperMatchingConventions.SatisfiesParentTag(rule, parentTagNameWithoutPrefix) ||
+               !TagHelperMatchingConventions.SatisfiesAttributes(rule, tagAttributes))
             {
                 return false;
             }
@@ -266,11 +259,11 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             {
                 return false;
             }
-            else if (TagHelperMatchingConventions.SatisfiesTagName(tagNameWithoutPrefix, rule))
+            else if (TagHelperMatchingConventions.SatisfiesTagName(rule, tagNameWithoutPrefix))
             {
                 // Nothing to do, just loop around to the next rule
             }
-            else if (TagHelperMatchingConventions.SatisfiesTagName(tagNameWithoutPrefix, rule, StringComparison.OrdinalIgnoreCase))
+            else if (TagHelperMatchingConventions.SatisfiesTagName(rule, tagNameWithoutPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 // Because the code action will be fixing the casing of the tag, we don't need all the rules to be consistent.
                 caseInsensitiveMatch = true;
@@ -313,11 +306,11 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         {
             DocumentChanges = new TextDocumentEdit[]
             {
-                    new TextDocumentEdit()
-                    {
-                        TextDocument = codeDocumentIdentifier,
-                        Edits = textEdits.ToArray(),
-                    }
+                new TextDocumentEdit()
+                {
+                    TextDocument = codeDocumentIdentifier,
+                    Edits = textEdits.ToArray(),
+                }
             },
         };
     }

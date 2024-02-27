@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -317,7 +318,14 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         var languageServer = new MapCodeServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
-        var endpoint = new MapCodeEndpoint(documentMappingService, documentContextFactory, languageServer);
+        var endpoint = new MapCodeEndpoint(documentMappingService, documentContextFactory, languageServer, NoOpTelemetryReporter.Instance);
+
+        var capabilitiesProvider = Assert.IsAssignableFrom<ICapabilitiesProvider>(endpoint);
+
+        // Make sure the capabilities are applied
+        var serverCapabilities = new VSInternalServerCapabilities();
+        capabilitiesProvider.ApplyCapabilities(serverCapabilities, new());
+        Assert.True(serverCapabilities.MapCodeProvider);
 
         var sourceText = codeDocument.GetSourceText();
         sourceText.GetLineAndOffset(cursorPosition, out var line, out var offset);
@@ -407,7 +415,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             };
 
             var result = await _csharpServer.ExecuteRequestAsync<VSInternalMapCodeParams, WorkspaceEdit?>(
-                MapperMethods.WorkspaceMapCodeName, mapCodeRequest, cancellationToken);
+                VSInternalMethods.WorkspaceMapCodeName, mapCodeRequest, cancellationToken);
             if (result is null)
             {
                 return (TResponse)(object)new WorkspaceEdit();

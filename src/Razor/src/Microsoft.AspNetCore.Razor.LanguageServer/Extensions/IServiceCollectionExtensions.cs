@@ -26,7 +26,6 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -43,7 +42,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorLifeCycleManager>(razorLifeCycleManager);
         services.AddSingleton<CapabilitiesManager>();
         services.AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>(sp => sp.GetRequiredService<CapabilitiesManager>());
-        services.AddSingleton<IRequestContextFactory<RazorRequestContext>, RazorRequestContextFactory>();
+        services.AddSingleton<AbstractRequestContextFactory<RazorRequestContext>, RazorRequestContextFactory>();
+        services.AddSingleton<IClientCapabilitiesService, ClientCapabilitiesService>();
 
         services.AddSingleton<ICapabilitiesProvider, RazorLanguageServerCapability>();
 
@@ -94,7 +94,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<AggregateCompletionItemResolver>();
         services.AddSingleton<CompletionItemResolver, RazorCompletionItemResolver>();
         services.AddSingleton<CompletionItemResolver, DelegatedCompletionItemResolver>();
-        services.AddSingleton<TagHelperCompletionService, LanguageServerTagHelperCompletionService>();
+        services.AddSingleton<ITagHelperCompletionService, LspTagHelperCompletionService>();
         services.AddSingleton<IRazorCompletionFactsService, RazorCompletionFactsService>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeCompletionItemProvider>();
@@ -113,11 +113,17 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));
     }
 
-    public static void AddHoverServices(this IServiceCollection services)
+    public static void AddHoverServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
+        // Hover services aren't needed in a cohosted world
+        if (featureOptions.UseRazorCohostServer)
+        {
+            return;
+        }
+
         services.AddHandlerWithCapabilities<HoverEndpoint>();
 
-        services.AddSingleton<IHoverInfoService, HoverInfoService>();
+        services.AddSingleton<IHoverService, HoverService>();
     }
 
     public static void AddSemanticTokensServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
@@ -127,12 +133,14 @@ internal static class IServiceCollectionExtensions
             services.AddHandlerWithCapabilities<SemanticTokensRangeEndpoint>();
             // Ensure that we don't add the default service if something else has added one.
             services.TryAddSingleton<IRazorSemanticTokensInfoService, RazorSemanticTokensInfoService>();
+
+            services.AddSingleton<RazorSemanticTokensLegendService>();
         }
 
         services.AddHandler<RazorSemanticTokensRefreshEndpoint>();
 
-        services.AddSingleton<WorkspaceSemanticTokensRefreshPublisher, DefaultWorkspaceSemanticTokensRefreshPublisher>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger, DefaultWorkspaceSemanticTokensRefreshTrigger>();
+        services.AddSingleton<IWorkspaceSemanticTokensRefreshPublisher, WorkspaceSemanticTokensRefreshPublisher>();
+        services.AddSingleton<IProjectSnapshotChangeTrigger, WorkspaceSemanticTokensRefreshTrigger>();
     }
 
     public static void AddCodeActionsServices(this IServiceCollection services)
@@ -240,7 +248,6 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
 
         services.AddSingleton<IProjectSnapshotManagerAccessor, LspProjectSnapshotManagerAccessor>();
-        services.AddSingleton<ITagHelperFactsService, TagHelperFactsService>();
         services.AddSingleton<LSPTagHelperTooltipFactory, DefaultLSPTagHelperTooltipFactory>();
         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
     }
