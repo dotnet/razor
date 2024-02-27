@@ -1122,7 +1122,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var miscellaneousProject = TestProjectSnapshot.Create("/./__MISC_PROJECT__");
         var projectResolver = new TestSnapshotResolver(new Dictionary<string, IProjectSnapshot>(), miscellaneousProject);
 
-        var configuration = RazorConfiguration.Create(RazorLanguageVersion.Version_1_0, "TestName", Array.Empty<RazorExtension>());
+        var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "TestName", Extensions: []);
 
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectSnapshotManager.Setup(manager => manager.ProjectAdded(It.IsAny<HostProject>()))

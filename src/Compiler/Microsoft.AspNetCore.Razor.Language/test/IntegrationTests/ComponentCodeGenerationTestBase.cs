@@ -991,7 +991,7 @@ namespace Test
     public void IncludesMinimizedAttributeValueParameterBeforeLanguageVersion5()
     {
         // Arrange
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -1385,7 +1385,7 @@ namespace Test
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
     public void AddAttribute_ImplicitStringConversion_TypeInference()
     {
-        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 };
 
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
@@ -1436,7 +1436,7 @@ namespace Test
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
     public void AddAttribute_ImplicitStringConversion_Bind()
     {
-        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 };
 
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
@@ -1490,7 +1490,7 @@ namespace Test
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
     public void AddAttribute_ImplicitStringConversion_CustomEvent()
     {
-        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 };
 
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
@@ -1545,7 +1545,7 @@ namespace Test
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
     public void AddAttribute_ImplicitStringConversion_BindUnknown()
     {
-        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 };
 
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
@@ -1578,7 +1578,7 @@ namespace Test
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
     public void AddAttribute_ImplicitStringConversion_BindUnknown_Assignment()
     {
-        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 };
 
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
@@ -1612,7 +1612,7 @@ namespace Test
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
     public void AddAttribute_ImplicitBooleanConversion()
     {
-        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 };
 
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
@@ -3926,11 +3926,11 @@ namespace Test
     [IntegrationTestFact]
     public void BindToComponent_WithGetSet_ProducesErrorOnOlderLanguageVersions()
     {
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_6_0,
             "unnamed",
-            Array.Empty<RazorExtension>(),
-            false);
+            Extensions: [],
+            UseConsolidatedMvcViews: false);
 
         // Arrange
         AdditionalSyntaxTrees.Add(Parse(@"
@@ -9063,7 +9063,7 @@ namespace Test
     public void Legacy_3_1_LeadingWhiteSpace_WithDirective()
     {
         // Arrange/Act
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -9084,7 +9084,7 @@ namespace Test
     public void Legacy_3_1_LeadingWhiteSpace_WithCSharpExpression()
     {
         // Arrange/Act
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -9105,7 +9105,7 @@ namespace Test
     public void Legacy_3_1_LeadingWhiteSpace_WithComponent()
     {
         // Arrange
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -9141,7 +9141,7 @@ namespace Test
     public void Legacy_3_1_TrailingWhiteSpace_WithDirective()
     {
         // Arrange/Act
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -9163,7 +9163,7 @@ namespace Test
     public void Legacy_3_1_TrailingWhiteSpace_WithCSharpExpression()
     {
         // Arrange/Act
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -9185,7 +9185,7 @@ namespace Test
     public void Legacy_3_1_TrailingWhiteSpace_WithComponent()
     {
         // Arrange
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -9219,7 +9219,7 @@ namespace Test
     public void Legacy_3_1_Whitespace_BetweenElementAndFunctions()
     {
         // Arrange
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -9242,7 +9242,7 @@ namespace Test
     public void Legacy_3_1_WhiteSpace_InsideAttribute_InMarkupBlock()
     {
         // Arrange
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -9260,7 +9260,7 @@ namespace Test
     public void Legacy_3_1_WhiteSpace_InMarkupInFunctionsBlock()
     {
         // Arrange
-        _configuration = RazorConfiguration.Create(
+        _configuration = new(
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions);
@@ -10340,7 +10340,7 @@ namespace Test
         var generated = CompileToCSharp("""
             <script>alert("Hello");</script>
             """,
-            configuration: Configuration.WithVersion(RazorLanguageVersion.Parse(langVersion)));
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Parse(langVersion) });
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
@@ -10352,7 +10352,7 @@ namespace Test
         var generated = CompileToCSharp("""
             <script>alert("Hello");</script>
             """,
-            configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 });
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
@@ -10473,7 +10473,7 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp("""
                 @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
-                """, throwOnFailure: true);    
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10944,7 +10944,7 @@ Time: @DateTime.Now
             <div method="post" @onsubmit="() => { }" @formname="named-form-handler"></div>
             <div method="post" @onsubmit="() => { }" @formname="@("named-form-handler")"></div>
             """,
-            configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 });
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -11006,7 +11006,7 @@ Time: @DateTime.Now
             <TestComponent method="post" @onsubmit="() => { }" @formname="named-form-handler" />
             <TestComponent method="post" @onsubmit="() => { }" @formname="@("named-form-handler")" />
             """,
-            configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 });
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -11046,7 +11046,7 @@ Time: @DateTime.Now
                 [Parameter] public T Parameter { get; set; }
             }
             """,
-            configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 });
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -11256,7 +11256,7 @@ Time: @DateTime.Now
             @using Microsoft.AspNetCore.Components.Web
             <form method="post" @onsubmit="() => { }" @formname="named-form-handler"></form>
             """,
-            configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 });
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
