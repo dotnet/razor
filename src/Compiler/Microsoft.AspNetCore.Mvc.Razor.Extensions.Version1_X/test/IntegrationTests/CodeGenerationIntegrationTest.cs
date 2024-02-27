@@ -21,7 +21,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         Configuration = RazorConfiguration.Create(
             RazorLanguageVersion.Version_1_1,
             "MVC-1.1",
-            new[] { new AssemblyExtension("MVC-1.1", typeof(ExtensionInitializer).Assembly) });
+            extensions: []);
     }
 
     protected override CSharpCompilation BaseCompilation => DefaultBaseCompilation;

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -31,6 +30,11 @@ internal sealed partial class ProjectEngineFactory(string configurationName, str
             {
                 initializer = CreateInitializer(key);
 
+                if (initializer is null)
+                {
+                    throw new InvalidOperationException(SR.FormatUnsupported_Razor_extension_0(key.ConfigurationName));
+                }
+
                 s_initializerMap.Add(key, initializer);
             }
         }
@@ -42,19 +46,15 @@ internal sealed partial class ProjectEngineFactory(string configurationName, str
             configure?.Invoke(builder);
         });
 
-        static RazorExtensionInitializer CreateInitializer(InitializerKey key)
+        static RazorExtensionInitializer? CreateInitializer(InitializerKey key)
         {
-            // Rewrite the assembly name into a full name just like this one, but with the name of the MVC design time assembly.
-            var assemblyFullName = typeof(RazorProjectEngine).Assembly.FullName.AssumeNotNull();
-
-            var extensionAssemblyName = new AssemblyName(assemblyFullName)
+            return key.ConfigurationName switch
             {
-                Name = key.AssemblyName
+                "MVC-1.0" or "MVC-1.1" => new Mvc.Razor.Extensions.Version1_X.ExtensionInitializer(),
+                "MVC-2.0" or "MVC-2.1" => new Mvc.Razor.Extensions.Version2_X.ExtensionInitializer(),
+                "MVC-3.0" => new Mvc.Razor.Extensions.ExtensionInitializer(),
+                _ => null,
             };
-
-            var extension = new AssemblyExtension(key.ConfigurationName, Assembly.Load(extensionAssemblyName));
-
-            return extension.CreateInitializer();
         }
     }
 }

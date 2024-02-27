@@ -362,8 +362,6 @@ public class RazorProjectEngine
             AddComponentFeatures(builder, configuration.LanguageVersion);
         }
 
-        LoadExtensions(builder, configuration.Extensions);
-
         configure?.Invoke(builder);
 
         return builder.Build();
@@ -499,21 +497,6 @@ public class RazorProjectEngine
         builder.Features.Add(new ComponentMarkupDiagnosticPass());
         builder.Features.Add(new ComponentMarkupBlockPass(razorLanguageVersion));
         builder.Features.Add(new ComponentMarkupEncodingPass(razorLanguageVersion));
-    }
-
-    private static void LoadExtensions(RazorProjectEngineBuilder builder, IReadOnlyList<RazorExtension> extensions)
-    {
-        for (var i = 0; i < extensions.Count; i++)
-        {
-            // For now we only handle AssemblyExtension - which is not user-constructable. We're keeping a tight
-            // lid on how things work until we add official support for extensibility everywhere. So, this is
-            // intentionally inflexible for the time being.
-            if (extensions[i] is AssemblyExtension extension)
-            {
-                var initializer = extension.CreateInitializer();
-                initializer?.Initialize(builder);
-            }
-        }
     }
 
     // Internal for testing
