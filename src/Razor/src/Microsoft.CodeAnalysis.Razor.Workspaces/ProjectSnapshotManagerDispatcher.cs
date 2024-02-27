@@ -28,13 +28,13 @@ internal abstract class ProjectSnapshotManagerDispatcher : IDisposable
         _scheduler.Dispose();
     }
 
-    public Task RunOnDispatcherAsync(Action action, CancellationToken cancellationToken)
+    public Task RunAsync(Action action, CancellationToken cancellationToken)
         => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, Scheduler);
 
-    public Task RunOnDispatcherAsync<TArg>(Action<TArg, CancellationToken> action, TArg arg, CancellationToken cancellationToken)
+    public Task RunAsync<TArg>(Action<TArg, CancellationToken> action, TArg arg, CancellationToken cancellationToken)
         => Task.Factory.StartNew(() => action(arg, cancellationToken), cancellationToken, TaskCreationOptions.None, Scheduler);
 
-    public Task<TResult> RunOnDispatcherAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
+    public Task<TResult> RunAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
         => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, Scheduler);
 
     public void AssertRunningOnDispatcher([CallerMemberName] string? caller = null)

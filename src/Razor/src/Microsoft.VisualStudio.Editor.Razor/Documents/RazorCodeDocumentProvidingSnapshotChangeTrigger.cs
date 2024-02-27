@@ -75,7 +75,7 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IProjectSnapsho
             return null;
         }
 
-        var project = await _projectSnapshotManagerDispatcher.RunOnDispatcherAsync(
+        var project = await _projectSnapshotManagerDispatcher.RunAsync(
             () =>
             {
                 if (_projectManager is { } projectManager &&

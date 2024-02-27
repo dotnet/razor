@@ -233,7 +233,7 @@ internal class BackgroundDocumentGenerator(
 
             // This is something totally unexpected, let's just send it over to the workspace.
             await _dispatcher
-                .RunOnDispatcherAsync(
+                .RunAsync(
                     () => _projectManager.ReportError(ex),
                     CancellationToken.None)
                 .ConfigureAwait(false);
@@ -246,7 +246,7 @@ internal class BackgroundDocumentGenerator(
 
         Assumes.NotNull(_projectManager);
 
-        _dispatcher.RunOnDispatcherAsync(
+        _dispatcher.RunAsync(
             () => _projectManager.ReportError(ex, project),
             CancellationToken.None).Forget();
     }

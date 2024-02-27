@@ -262,7 +262,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     }
 
     protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
-        => _dispatcher.RunOnDispatcherAsync(action, cancellationToken);
+        => _dispatcher.RunAsync(action, cancellationToken);
 
     protected void UninitializeProjectUnsafe(ProjectKey projectKey)
     {

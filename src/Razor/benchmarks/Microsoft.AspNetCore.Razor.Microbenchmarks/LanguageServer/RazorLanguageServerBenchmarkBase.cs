@@ -63,7 +63,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
         var projectManager = CreateProjectSnapshotManager();
 
-        await Dispatcher.RunOnDispatcherAsync(
+        await Dispatcher.RunAsync(
             () =>
             {
                 projectManager.ProjectAdded(hostProject);

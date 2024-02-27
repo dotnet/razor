@@ -178,7 +178,7 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationH
 
         if (removeProject)
         {
-            await _dispatcher.RunOnDispatcherAsync(() =>
+            await _dispatcher.RunAsync(() =>
             {
                 _projectSnapshotManagerAccessor.Instance.ProjectRemoved(ProjectKey.FromString(projectKeyId));
             }, cancellationToken).ConfigureAwait(false);

@@ -18,7 +18,7 @@ public class BackgroundCodeGenerationBenchmark : ProjectSnapshotManagerBenchmark
     {
         ProjectManager = CreateProjectSnapshotManager();
 
-        await Dispatcher.RunOnDispatcherAsync(
+        await Dispatcher.RunAsync(
             () => ProjectManager.ProjectAdded(HostProject),
             CancellationToken.None);
 
@@ -40,7 +40,7 @@ public class BackgroundCodeGenerationBenchmark : ProjectSnapshotManagerBenchmark
     [Benchmark(Description = "Generates the code for 100 files", OperationsPerInvoke = 100)]
     public async Task BackgroundCodeGeneration_Generate100FilesAsync()
     {
-        await Dispatcher.RunOnDispatcherAsync(
+        await Dispatcher.RunAsync(
             () =>
             {
                 for (var i = 0; i < Documents.Length; i++)

@@ -31,7 +31,7 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
     [Benchmark(Description = "Does thread contention add/remove of documents", OperationsPerInvoke = 100)]
     public async Task ProjectMutation_Mutates100kFilesAsync()
     {
-        await Dispatcher.RunOnDispatcherAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             ProjectManager.ProjectAdded(HostProject);
         }, CancellationToken.None);
@@ -45,9 +45,9 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
             for (var i = 0; i < Documents.Length; i++)
             {
                 var document = Documents[i];
-                await Dispatcher.RunOnDispatcherAsync(() => ProjectManager.DocumentAdded(HostProject.Key, document, TextLoaders[i % 4]), CancellationToken.None).ConfigureAwait(false);
+                await Dispatcher.RunAsync(() => ProjectManager.DocumentAdded(HostProject.Key, document, TextLoaders[i % 4]), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
-                await Dispatcher.RunOnDispatcherAsync(() => ProjectManager.DocumentRemoved(HostProject.Key, document), CancellationToken.None).ConfigureAwait(false);
+                await Dispatcher.RunAsync(() => ProjectManager.DocumentRemoved(HostProject.Key, document), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
             }
 
@@ -64,9 +64,9 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
                     return;
                 }
 
-                await Dispatcher.RunOnDispatcherAsync(() => ProjectManager.GetProjects(), CancellationToken.None).ConfigureAwait(false);
+                await Dispatcher.RunAsync(() => ProjectManager.GetProjects(), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
-                await Dispatcher.RunOnDispatcherAsync(() => ProjectManager.GetOpenDocuments(), CancellationToken.None).ConfigureAwait(false);
+                await Dispatcher.RunAsync(() => ProjectManager.GetOpenDocuments(), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
             }
         });

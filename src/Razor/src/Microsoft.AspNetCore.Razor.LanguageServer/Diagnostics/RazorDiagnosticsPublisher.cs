@@ -140,7 +140,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
     private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
     {
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherAsync(
+        await _projectSnapshotManagerDispatcher.RunAsync(
             ClearClosedDocuments,
             cancellationToken).ConfigureAwait(false);
     }

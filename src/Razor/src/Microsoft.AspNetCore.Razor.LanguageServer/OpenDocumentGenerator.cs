@@ -202,7 +202,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
         {
             var codeDocument = await _latestDocument.GetGeneratedOutputAsync().ConfigureAwait(false);
 
-            await _dispatcher.RunOnDispatcherAsync(() =>
+            await _dispatcher.RunAsync(() =>
             {
                 foreach (var listener in _documentProcessedListeners)
                 {
