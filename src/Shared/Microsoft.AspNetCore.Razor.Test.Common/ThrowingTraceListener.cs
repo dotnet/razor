@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 public sealed class ThrowingTraceListener : TraceListener
 {
-    private static readonly List<string> _fails = new();
+    private static readonly ConcurrentBag<string> _fails = [];
 
     public static string[] Fails => _fails.ToArray();
 
