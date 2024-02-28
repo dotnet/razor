@@ -1,6 +1,13 @@
-﻿Source Location: (70:2,19 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web
+|
+Generated Location: (370:12,0 [43] )
+|using Microsoft.AspNetCore.Components.Web
+|
+
+Source Location: (70:2,19 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnClick|
-Generated Location: (1103:27,19 [7] )
+Generated Location: (1119:28,19 [7] )
 |OnClick|
 
 Source Location: (96:4,7 [31] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -8,7 +15,7 @@ Source Location: (96:4,7 [31] x:\dir\subdir\Test\TestComponent.cshtml)
     void OnClick() {
     }
 |
-Generated Location: (1383:39,7 [31] )
+Generated Location: (1399:40,7 [31] )
 |
     void OnClick() {
     }

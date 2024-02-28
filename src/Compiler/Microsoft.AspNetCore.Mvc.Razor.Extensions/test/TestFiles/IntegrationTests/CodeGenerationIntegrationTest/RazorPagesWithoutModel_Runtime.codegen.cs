@@ -13,12 +13,13 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
 #nullable restore
-#line 4 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
-using Microsoft.AspNetCore.Mvc.RazorPages;
+#line (4,2)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
+using Microsoft.AspNetCore.Mvc.RazorPages
 
 #line default
 #line hidden
 #nullable disable
+    ;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"4d4352438ec54cff935ed10c73f4fb4ce0ea8ffc7c46b467007618dead77f960", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]

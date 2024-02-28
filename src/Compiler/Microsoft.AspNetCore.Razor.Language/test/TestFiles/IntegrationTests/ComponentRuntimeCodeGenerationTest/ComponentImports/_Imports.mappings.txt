@@ -1,5 +1,19 @@
-﻿Source Location: (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor)
+﻿Source Location: (1:0,1 [19] x:\dir\subdir\Test\_Imports.razor)
+|using System.Text
+|
+Generated Location: (364:12,0 [19] )
+|using System.Text
+|
+
+Source Location: (21:1,1 [25] x:\dir\subdir\Test\_Imports.razor)
+|using System.Reflection
+|
+Generated Location: (514:20,0 [25] )
+|using System.Reflection
+|
+
+Source Location: (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor)
 |Foo|
-Generated Location: (889:32,24 [3] )
+Generated Location: (921:34,24 [3] )
 |Foo|
 

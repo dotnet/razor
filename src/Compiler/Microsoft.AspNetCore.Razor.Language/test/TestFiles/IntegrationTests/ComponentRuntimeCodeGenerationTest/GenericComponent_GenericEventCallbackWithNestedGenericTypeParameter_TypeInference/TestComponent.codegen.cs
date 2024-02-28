@@ -8,19 +8,21 @@ namespace Test
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-using Test;
+#line (1,2)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+using Test
 
 #line default
 #line hidden
 #nullable disable
+    ;
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-using System.Collections.Generic;
+#line (2,2)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+using System.Collections.Generic
 
 #line default
 #line hidden
 #nullable disable
+    ;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998

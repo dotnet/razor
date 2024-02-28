@@ -1,5 +1,12 @@
-﻿Source Location: (37:1,24 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (1:0,1 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Test
+|
+Generated Location: (370:12,0 [12] )
+|using Test
+|
+
+Source Location: (37:1,24 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |1|
-Generated Location: (898:25,24 [1] )
+Generated Location: (914:26,24 [1] )
 |1|
 

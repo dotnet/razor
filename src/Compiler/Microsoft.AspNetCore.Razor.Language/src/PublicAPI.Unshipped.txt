@@ -128,6 +128,8 @@ Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ConstraintsSource
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ConstraintsSource.init -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ParameterNameSource.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ParameterNameSource.init -> void
+Microsoft.AspNetCore.Razor.Language.Intermediate.UsingDirectiveIntermediateNode.HasExplicitSemicolon.get -> bool
+Microsoft.AspNetCore.Razor.Language.Intermediate.UsingDirectiveIntermediateNode.HasExplicitSemicolon.set -> void
 Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider
 Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider.Execute(Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorProviderContext! context) -> void
 Microsoft.AspNetCore.Razor.Language.ITagHelperDescriptorProvider.Order.get -> int

@@ -108,6 +108,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 Content = reference.Namespace,
                 Source = reference.Source,
+                HasExplicitSemicolon = reference.HasExplicitSemicolon
             };
 
             builder.Insert(index++, @using);
@@ -236,14 +237,17 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
     private struct UsingReference : IEquatable<UsingReference>
     {
-        public UsingReference(string @namespace, SourceSpan? source)
+        public UsingReference(string @namespace, SourceSpan? source, bool hasExplicitSemicolon)
         {
             Namespace = @namespace;
             Source = source;
+            HasExplicitSemicolon = hasExplicitSemicolon;
         }
         public string Namespace { get; }
 
         public SourceSpan? Source { get; }
+
+        public bool HasExplicitSemicolon { get; }
 
         public override bool Equals(object other)
         {
@@ -349,7 +353,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 case AddImportChunkGenerator importChunkGenerator:
                     var namespaceImport = importChunkGenerator.Namespace.Trim();
                     var namespaceSpan = BuildSourceSpanFromNode(node);
-                    _usings.Add(new UsingReference(namespaceImport, namespaceSpan));
+                    _usings.Add(new UsingReference(namespaceImport, namespaceSpan, importChunkGenerator.HasExplicitSemicolon));
                     break;
                 case AddTagHelperChunkGenerator addTagHelperChunkGenerator:
                     {

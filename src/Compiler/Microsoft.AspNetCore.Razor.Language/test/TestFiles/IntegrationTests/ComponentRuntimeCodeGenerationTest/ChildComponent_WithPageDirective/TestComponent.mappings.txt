@@ -1,10 +1,10 @@
 ﻿Source Location: (6:0,6 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |"/MyPage"|
-Generated Location: (474:14,6 [9] )
+Generated Location: (472:14,6 [9] )
 |"/MyPage"|
 
 Source Location: (23:1,6 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |"/AnotherRoute/{id}"|
-Generated Location: (727:24,6 [20] )
+Generated Location: (723:24,6 [20] )
 |"/AnotherRoute/{id}"|
 

@@ -62,12 +62,13 @@ public class RuntimeNodeWriterTest : RazorProjectEngineTestBase
         Assert.Equal(
 @"
 #nullable restore
-#line 1 ""test.cshtml""
-using System;
+#line (1,1)-(1,1) ""test.cshtml""
+using System
 
 #line default
 #line hidden
 #nullable disable
+;
 ",
             csharp,
             ignoreLineEndingDifferences: true);

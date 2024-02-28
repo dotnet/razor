@@ -12,12 +12,13 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
 #nullable restore
-#line 1 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\_ViewImports.cshtml"
-using System;
+#line (1,2)-(2,1) "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\_ViewImports.cshtml"
+using System
 
 #line default
 #line hidden
 #nullable disable
+    ;
 #nullable restore
 #line 2 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\_ViewImports.cshtml"
 [Serializable]

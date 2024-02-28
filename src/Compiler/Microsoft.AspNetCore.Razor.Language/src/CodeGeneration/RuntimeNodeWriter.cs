@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -34,9 +33,14 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
     {
         if (node.Source.HasValue)
         {
-            using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
+            using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context))
             {
-                context.CodeWriter.WriteUsing(node.Content);
+                context.AddSourceMappingFor(node);
+                context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
+            }
+            if (!node.HasExplicitSemicolon)
+            {
+                context.CodeWriter.WriteLine(";");
             }
         }
         else

@@ -1,38 +1,45 @@
-﻿Source Location: (55:1,11 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web
+|
+Generated Location: (370:12,0 [43] )
+|using Microsoft.AspNetCore.Components.Web
+|
+
+Source Location: (55:1,11 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |T|
-Generated Location: (565:20,0 [1] )
+Generated Location: (581:21,0 [1] )
 |T|
 
 Source Location: (98:2,40 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1190:33,40 [9] )
+Generated Location: (1206:34,40 [9] )
 |() => { }|
 
 Source Location: (151:2,93 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |1|
-Generated Location: (1459:41,93 [1] )
+Generated Location: (1475:42,93 [1] )
 |1|
 
 Source Location: (198:3,40 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1905:51,40 [9] )
+Generated Location: (1921:52,40 [9] )
 |() => { }|
 
 Source Location: (222:3,64 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |"named-form-handler"|
-Generated Location: (2120:59,64 [20] )
+Generated Location: (2136:60,64 [20] )
 |"named-form-handler"|
 
 Source Location: (256:3,98 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |2|
-Generated Location: (2380:67,98 [1] )
+Generated Location: (2396:68,98 [1] )
 |2|
 
 Source Location: (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     [Parameter] public T Parameter { get; set; }
 |
-Generated Location: (2575:77,7 [52] )
+Generated Location: (2591:78,7 [52] )
 |
     [Parameter] public T Parameter { get; set; }
 |
