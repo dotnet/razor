@@ -308,15 +308,7 @@ public abstract class IntegrationTestBase
         {
             b.Phases.Insert(0, new ConfigureCodeRenderingPhase(LineEnding));
 
-            RazorExtensionInitializer? initializer = configuration.ConfigurationName switch
-            {
-                "MVC-1.0" or "MVC-1.1" => new Mvc.Razor.Extensions.Version1_X.ExtensionInitializer(),
-                "MVC-2.0" or "MVC-2.1" => new Mvc.Razor.Extensions.Version2_X.ExtensionInitializer(),
-                "MVC-3.0" => new Mvc.Razor.Extensions.ExtensionInitializer(),
-                _ => null,
-            };
-
-            initializer?.Initialize(b);
+            b.RegisterExtensions();
 
             configure?.Invoke(b);
 
