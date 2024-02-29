@@ -3035,7 +3035,11 @@ namespace MyApp
             );
         }
 
+#pragma warning disable RS1041 // This compiler extension should not be implemented in an assembly with target framework '.NET 8.0'. References to other target frameworks will cause the compiler to behave unpredictably.
+#pragma warning disable RS1038 // This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces.
         [Generator]
+#pragma warning restore RS1038 // This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces.
+#pragma warning restore RS1041 // This compiler extension should not be implemented in an assembly with target framework '.NET 8.0'. References to other target frameworks will cause the compiler to behave unpredictably.
 #pragma warning disable RS1036 // Specify analyzer banned API enforcement setting
         public class LambdaGenerator(Action<IncrementalGeneratorInitializationContext> action) : IIncrementalGenerator
 #pragma warning restore RS1036 // Specify analyzer banned API enforcement setting
