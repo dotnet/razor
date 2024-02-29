@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageInterception;
 
-public class DefaultInterceptionManagerTest : TestBase
+public class DefaultInterceptionManagerTest : ToolingTestBase
 {
     public DefaultInterceptionManagerTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -30,11 +30,11 @@ public class DefaultInterceptionManagerTest : TestBase
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void HasInterceptor_InvalidMessageName_Throws(string input)
+    public void HasInterceptor_InvalidMessageName_Throws(string? input)
     {
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors());
 
-        Assert.Throws<ArgumentException>(() => sut.HasInterceptor(input, "testContentType"));
+        Assert.Throws<ArgumentException>(() => sut.HasInterceptor(input!, "testContentType"));
     }
 
     [Fact]
@@ -75,12 +75,12 @@ public class DefaultInterceptionManagerTest : TestBase
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public async Task ProcessInterceptorsAsync_InvalidMethodName_Throws(string input)
+    public async Task ProcessInterceptorsAsync_InvalidMethodName_Throws(string? input)
     {
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors());
 
         await Assert.ThrowsAsync<ArgumentException>(
-            () => sut.ProcessInterceptorsAsync(input, JToken.Parse("{}"), "valid", DisposalToken));
+            () => sut.ProcessInterceptorsAsync(input!, JToken.Parse("{}"), "valid", DisposalToken));
     }
 
     [Fact]
@@ -95,12 +95,12 @@ public class DefaultInterceptionManagerTest : TestBase
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public async Task ProcessInterceptorsAsync_InvalidSourceLanguageName_Throws(string input)
+    public async Task ProcessInterceptorsAsync_InvalidSourceLanguageName_Throws(string? input)
     {
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors());
 
         await Assert.ThrowsAsync<ArgumentException>(
-            () => sut.ProcessInterceptorsAsync("valid", JToken.Parse("{}"), input, DisposalToken));
+            () => sut.ProcessInterceptorsAsync("valid", JToken.Parse("{}"), input!, DisposalToken));
     }
 
     [Fact]

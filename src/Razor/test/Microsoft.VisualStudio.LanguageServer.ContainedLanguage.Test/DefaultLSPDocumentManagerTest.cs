@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.VisualStudio.Test;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class DefaultLSPDocumentManagerTest : TestBase
+public class DefaultLSPDocumentManagerTest : ToolingTestBase
 {
     private readonly IEnumerable<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>> _changeListeners;
     private readonly ITextBuffer _textBuffer;

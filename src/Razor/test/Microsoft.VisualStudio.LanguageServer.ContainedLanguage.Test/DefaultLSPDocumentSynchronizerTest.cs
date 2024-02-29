@@ -7,8 +7,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
-using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class DefaultLSPDocumentSynchronizerTest : TestBase
+public class DefaultLSPDocumentSynchronizerTest : ToolingTestBase
 {
     private readonly ITextSnapshot _virtualDocumentSnapshot;
     private readonly ITextBuffer _virtualDocumentTextBuffer;
@@ -128,16 +128,17 @@ public class DefaultLSPDocumentSynchronizerTest : TestBase
 
         var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, documentManager)
         {
-            _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
+            // Slow things down so even on slow CI machines, we still validate that updating doc 1 doesn't release the task for doc 2
+            _synchronizationTimeout = TimeSpan.FromSeconds(5)
         };
         NotifyLSPDocumentAdded(lspDocument, synchronizer);
 
         // Act
 
-        // Start synchronization, this will hang until we notify the buffer versions been updated because
+        // Start synchronization, this should block until we notify the buffer versions been updated for doc 1
         var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync<TestVirtualDocumentSnapshot>(lspDocument.Version, documentUri, virtualDocumentUri1, rejectOnNewerParallelRequest: true, DisposalToken);
 
-        // Start synchronization for doc 2, this will hang until we notify the buffer versions been updated because
+        // Start synchronization for doc 2, this should block until we notify the buffer versions been updated for doc 2
         var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync<TestVirtualDocumentSnapshot>(lspDocument.Version, documentUri, virtualDocumentUri2, rejectOnNewerParallelRequest: true, DisposalToken);
 
         NotifyBufferVersionUpdated(buffer1, lspDocument.Version);

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -46,7 +47,7 @@ internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRew
         }
 
         var syntaxTree = await hostDocumentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var owner = syntaxTree.GetOwner(hostDocumentIndex);
+        var owner = syntaxTree.Root.FindInnermostNode(hostDocumentIndex);
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");

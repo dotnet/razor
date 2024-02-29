@@ -1,17 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.Extensions.Logging;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -26,27 +30,35 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
     public MonitorProjectConfigurationFilePathEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _directoryPathResolver = Mock.Of<WorkspaceDirectoryPathResolver>(resolver => resolver.Resolve() == "C:/dir", MockBehavior.Strict);
+        var path = PathUtilities.CreateRootedPath("dir");
+        _directoryPathResolver = Mock.Of<WorkspaceDirectoryPathResolver>(resolver => resolver.Resolve() == path, MockBehavior.Strict);
     }
 
     [Fact]
     public async Task Handle_Disposed_Noops()
     {
         // Arrange
+        var projectSnapshotManagerAccessor = Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
         var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>(MockBehavior.Strict);
         directoryPathResolver.Setup(resolver => resolver.Resolve())
-            .Throws<XunitException>();
+            .Throws<Exception>();
         var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
-            LegacyDispatcher,
+            projectSnapshotManagerAccessor,
+            Dispatcher,
             directoryPathResolver.Object,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             TestLanguageServerFeatureOptions.Instance,
             LoggerFactory);
         configurationFileEndpoint.Dispose();
+
+        var debugDirectory = PathUtilities.CreateRootedPath("dir", "obj", "Debug");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
         var request = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = "C:/dir/obj/Debug/project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -58,19 +70,25 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
     public async Task Handle_ConfigurationFilePath_UntrackedMonitorNoops()
     {
         // Arrange
+        var projectSnapshotManagerAccessor = Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
         var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>(MockBehavior.Strict);
         directoryPathResolver.Setup(resolver => resolver.Resolve())
-            .Throws<XunitException>();
+            .Throws<Exception>();
         var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
-            LegacyDispatcher,
+            projectSnapshotManagerAccessor,
+            Dispatcher,
             directoryPathResolver.Object,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             TestLanguageServerFeatureOptions.Instance,
             LoggerFactory);
+
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
         var request = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = null,
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = null!,
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -85,21 +103,26 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = PathUtilities.CreateRootedPath("externaldir", "obj", "Debug");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
         var startRequest = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = "C:/externaldir/obj/Debug/project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
         await configurationFileEndpoint.HandleNotificationAsync(startRequest, requestContext, DisposalToken);
         var stopRequest = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = null,
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = null!,
         };
 
         // Act
@@ -117,14 +140,19 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = PathUtilities.CreateRootedPath("dir", "obj", "Debug");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
         var startRequest = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = "C:/dir/obj/Debug/project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -136,20 +164,56 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
     }
 
     [Fact]
+    public async Task Handle_InWorkspaceDirectory_MonitorsIfLanguageFeatureOptionSet()
+    {
+        // Arrange
+        var detector = new TestFileChangeDetector();
+        var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
+            () => detector,
+            Dispatcher,
+            _directoryPathResolver,
+            Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+            LoggerFactory,
+            options: new TestLanguageServerFeatureOptions(monitorWorkspaceFolderForConfigurationFiles: false));
+
+        var debugDirectory = PathUtilities.CreateRootedPath("dir", "obj", "Debug");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
+        var startRequest = new MonitorProjectConfigurationFilePathParams()
+        {
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
+        };
+        var requestContext = CreateRazorRequestContext(documentContext: null);
+
+        // Act
+        await configurationFileEndpoint.HandleNotificationAsync(startRequest, requestContext, DisposalToken);
+
+        // Assert
+        Assert.Equal(1, detector.StartCount);
+    }
+
+    [Fact]
     public async Task Handle_DuplicateMonitors_Noops()
     {
         // Arrange
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = PathUtilities.CreateRootedPath("externaldir", "obj", "Debug");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
         var startRequest = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = "C:/externaldir/obj/Debug/project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -169,20 +233,28 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = PathUtilities.CreateRootedPath("externaldir", "obj", "Debug");
+        var releaseDirectory = PathUtilities.CreateRootedPath("externaldir", "obj", "Release");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
         var debugOutputPath = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:/dir/obj").Id,
-            ConfigurationFilePath = "C:\\externaldir\\obj\\Debug\\project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
+
         var releaseOutputPath = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = debugOutputPath.ProjectKeyId,
-            ConfigurationFilePath = "C:\\externaldir\\obj\\Release\\project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(releaseDirectory, "project.razor.bin")
         };
+
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
         // Act
@@ -190,7 +262,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         await configurationFileEndpoint.HandleNotificationAsync(releaseOutputPath, requestContext, DisposalToken);
 
         // Assert
-        Assert.Equal(new[] { "C:\\externaldir\\obj\\Debug", "C:\\externaldir\\obj\\Release" }, detector.StartedWithDirectory);
+        Assert.Equal([debugDirectory, releaseDirectory], detector.StartedWithDirectory);
         Assert.Equal(1, detector.StopCount);
     }
 
@@ -201,20 +273,28 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = PathUtilities.CreateRootedPath("externaldir", "obj", "Debug");
+        var releaseDirectory = PathUtilities.CreateRootedPath("dir", "obj", "Release");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
         var externalRequest = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:\\dir\\obj").Id,
-            ConfigurationFilePath = "C:\\externaldir\\obj\\Debug\\project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
+
         var internalRequest = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = externalRequest.ProjectKeyId,
-            ConfigurationFilePath = "C:\\dir\\obj\\Release\\project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(releaseDirectory, "project.razor.bin")
         };
+
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
         // Act
@@ -222,7 +302,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         await configurationFileEndpoint.HandleNotificationAsync(internalRequest, requestContext, DisposalToken);
 
         // Assert
-        Assert.Equal(new[] { "C:\\externaldir\\obj\\Debug" }, detector.StartedWithDirectory);
+        Assert.Equal([debugDirectory], detector.StartedWithDirectory);
         Assert.Equal(1, detector.StopCount);
     }
 
@@ -237,20 +317,28 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detectors = new[] { projectOpenDebugDetector, releaseDetector, postPublishDebugDetector };
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detectors[callCount++],
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory = PathUtilities.CreateRootedPath("externaldir1", "obj", "Debug");
+        var releaseDirectory = PathUtilities.CreateRootedPath("externaldir1", "obj", "Release");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
         var debugOutputPath = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:\\dir\\obj").Id,
-            ConfigurationFilePath = "C:\\externaldir1\\obj\\Debug\\project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
         };
+
         var releaseOutputPath = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = debugOutputPath.ProjectKeyId,
-            ConfigurationFilePath = "C:\\externaldir1\\obj\\Release\\project.razor.json",
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(releaseDirectory, "project.razor.bin")
         };
+
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
         // Act
@@ -284,25 +372,37 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detectors = new[] { debug1Detector, debug2Detector, release1Detector };
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detectors[callCount++],
-            LegacyDispatcher,
+            Dispatcher,
             _directoryPathResolver,
             Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
             LoggerFactory);
+
+        var debugDirectory1 = PathUtilities.CreateRootedPath("externaldir1", "obj", "Debug");
+        var releaseDirectory1 = PathUtilities.CreateRootedPath("externaldir1", "obj", "Release");
+        var debugDirectory2 = PathUtilities.CreateRootedPath("externaldir2", "obj", "Debug");
+        var projectKeyDirectory1 = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey1 = TestProjectKey.Create(projectKeyDirectory1);
+        var projectKeyDirectory2 = PathUtilities.CreateRootedPath("dir", "obj2");
+        var projectKey2 = TestProjectKey.Create(projectKeyDirectory2);
+
         var debugOutputPath1 = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:\\dir\\obj").Id,
-            ConfigurationFilePath = "C:\\externaldir1\\obj\\Debug\\project.razor.json",
+            ProjectKeyId = projectKey1.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory1, "project.razor.bin")
         };
+
         var releaseOutputPath1 = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = debugOutputPath1.ProjectKeyId,
-            ConfigurationFilePath = "C:\\externaldir1\\obj\\Release\\project.razor.json",
+            ProjectKeyId = projectKey1.Id,
+            ConfigurationFilePath = Path.Combine(releaseDirectory1, "project.razor.bin")
         };
+
         var debugOutputPath2 = new MonitorProjectConfigurationFilePathParams()
         {
-            ProjectKeyId = TestProjectKey.Create("C:\\dir\\obj2").Id,
-            ConfigurationFilePath = "C:\\externaldir2\\obj\\Debug\\project.razor.json",
+            ProjectKeyId = projectKey2.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory2, "project.razor.bin")
         };
+
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
         // Act
@@ -319,6 +419,51 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         Assert.Equal(0, release1Detector.StopCount);
     }
 
+    [Fact]
+    public async Task Handle_ConfigurationFilePath_TrackedMonitor_RemovesProject()
+    {
+        // Arrange
+        var projectSnapshotManagerAccessor = new Mock<IProjectSnapshotManagerAccessor>(MockBehavior.Strict);
+
+        var detector = new TestFileChangeDetector();
+        var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
+            () => detector,
+            Dispatcher,
+            _directoryPathResolver,
+            Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+            LoggerFactory,
+            options: new TestLanguageServerFeatureOptions(monitorWorkspaceFolderForConfigurationFiles: false),
+            accessor: projectSnapshotManagerAccessor.Object);
+
+        var debugDirectory = PathUtilities.CreateRootedPath("externaldir", "obj", "Debug");
+        var projectKeyDirectory = PathUtilities.CreateRootedPath("dir", "obj");
+        var projectKey = TestProjectKey.Create(projectKeyDirectory);
+
+        projectSnapshotManagerAccessor
+            .Setup(a => a.Instance.ProjectRemoved(It.IsAny<ProjectKey>()))
+            .Callback((ProjectKey key) => Assert.Equal(projectKey, key));
+
+        var startRequest = new MonitorProjectConfigurationFilePathParams()
+        {
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = Path.Combine(debugDirectory, "project.razor.bin")
+        };
+        var requestContext = CreateRazorRequestContext(documentContext: null);
+        await configurationFileEndpoint.HandleNotificationAsync(startRequest, requestContext, DisposalToken);
+        var stopRequest = new MonitorProjectConfigurationFilePathParams()
+        {
+            ProjectKeyId = projectKey.Id,
+            ConfigurationFilePath = null!,
+        };
+
+        // Act
+        await configurationFileEndpoint.HandleNotificationAsync(stopRequest, requestContext, DisposalToken);
+
+        // Assert
+        Assert.Equal(1, detector.StartCount);
+        Assert.Equal(1, detector.StopCount);
+    }
+
     private class TestMonitorProjectConfigurationFilePathEndpoint : MonitorProjectConfigurationFilePathEndpoint
     {
         private readonly Func<IFileChangeDetector> _fileChangeDetectorFactory;
@@ -327,9 +472,9 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            ILoggerFactory loggerFactory)
+            IRazorLoggerFactory loggerFactory)
             : this(
-                fileChangeDetectorFactory: null,
+                fileChangeDetectorFactory: null!,
                 projectSnapshotManagerDispatcher,
                 workspaceDirectoryPathResolver,
                 listeners,
@@ -342,12 +487,15 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            ILoggerFactory loggerFactory)
+            IRazorLoggerFactory loggerFactory,
+            LanguageServerFeatureOptions? options = null,
+            IProjectSnapshotManagerAccessor? accessor = null)
             : base(
+                accessor ?? Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
                 projectSnapshotManagerDispatcher,
                 workspaceDirectoryPathResolver,
                 listeners,
-                TestLanguageServerFeatureOptions.Instance,
+                options ?? TestLanguageServerFeatureOptions.Instance,
                 loggerFactory)
         {
             _fileChangeDetectorFactory = fileChangeDetectorFactory ?? (() => Mock.Of<IFileChangeDetector>(MockBehavior.Strict));

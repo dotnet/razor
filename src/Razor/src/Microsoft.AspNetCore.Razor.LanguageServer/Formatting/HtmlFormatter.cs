@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal class HtmlFormatter
 {
-    private readonly DocumentVersionCache _documentVersionCache;
-    private readonly ClientNotifierServiceBase _server;
+    private readonly IDocumentVersionCache _documentVersionCache;
+    private readonly IClientConnection _clientConnection;
 
     public HtmlFormatter(
-        ClientNotifierServiceBase languageServer,
-        DocumentVersionCache documentVersionCache)
+        IClientConnection clientConnection,
+        IDocumentVersionCache documentVersionCache)
     {
-        _server = languageServer;
+        _clientConnection = clientConnection;
         _documentVersionCache = documentVersionCache;
     }
 
@@ -50,7 +50,7 @@ internal class HtmlFormatter
             Options = context.Options
         };
 
-        var result = await _server.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
+        var result = await _clientConnection.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
             CustomMessageNames.RazorHtmlFormattingEndpoint,
             @params,
             cancellationToken).ConfigureAwait(false);
@@ -77,7 +77,7 @@ internal class HtmlFormatter
             HostDocumentVersion = documentVersion.Value,
         };
 
-        var result = await _server.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(
+        var result = await _clientConnection.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(
             CustomMessageNames.RazorHtmlOnTypeFormattingEndpoint,
             @params,
             cancellationToken).ConfigureAwait(false);
@@ -98,12 +98,12 @@ internal class HtmlFormatter
             return edits;
 
         // First we apply the edits that the Html language server wanted, to the Html document
-        var textChanges = edits.Select(e => e.AsTextChange(htmlSourceText));
+        var textChanges = edits.Select(e => e.ToTextChange(htmlSourceText));
         var changedText = htmlSourceText.WithChanges(textChanges);
 
         // Now we use our minimal text differ algorithm to get the bare minimum of edits
         var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, DiffKind.Char);
-        var minimalEdits = minimalChanges.Select(f => f.AsTextEdit(htmlSourceText)).ToArray();
+        var minimalEdits = minimalChanges.Select(f => f.ToTextEdit(htmlSourceText)).ToArray();
 
         return minimalEdits;
     }

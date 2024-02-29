@@ -2,11 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
@@ -39,9 +40,9 @@ internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAtt
         }
     }
 
-    private static readonly IReadOnlyList<RazorCompletionItem> s_completions = new[] { TransitionCompletionItem };
+    private static readonly ImmutableArray<RazorCompletionItem> s_completions = ImmutableArray.Create(TransitionCompletionItem);
 
-    public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
         {
@@ -51,13 +52,13 @@ internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAtt
         if (!FileKinds.IsComponent(context.SyntaxTree.Options.FileKind))
         {
             // Directive attributes are only supported in components
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
         }
 
         var owner = context.Owner;
         if (owner is null)
         {
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
         }
 
         var attribute = owner.Parent;
@@ -69,19 +70,19 @@ internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAtt
 
         if (!TryGetAttributeInfo(owner, out var prefixLocation, out var attributeName, out var attributeNameLocation, out _, out _))
         {
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
         }
 
         if (attributeNameLocation.IntersectsWith(context.AbsoluteIndex) && attributeName.StartsWith("@", StringComparison.Ordinal))
         {
             // The transition is already provided for the attribute name
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
         }
 
         if (!IsValidCompletionPoint(context.AbsoluteIndex, prefixLocation, attributeNameLocation))
         {
             // Not operating in the attribute name area
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
         }
 
         // This represents a tag when there's no attribute content <InputText | />.

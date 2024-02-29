@@ -1,18 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.Razor.Test;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -22,153 +25,222 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
-public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
+public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
 {
-    private static readonly ProjectSnapshotManagerDispatcher s_dispatcher = new TestProjectSnapshotManagerDispatcher();
+    private static readonly HostProject s_someProject = new(
+        TestProjectData.SomeProject.FilePath,
+        TestProjectData.SomeProject.IntermediateOutputPath,
+        FallbackRazorConfiguration.MVC_1_0,
+        TestProjectData.SomeProject.RootNamespace);
+    private static readonly HostProject s_someOtherProject = new(
+        TestProjectData.AnotherProject.FilePath,
+        TestProjectData.AnotherProject.IntermediateOutputPath,
+        FallbackRazorConfiguration.MVC_2_0,
+        TestProjectData.AnotherProject.RootNamespace);
 
-    private readonly HostProject _someProject;
-    private readonly HostProject _someOtherProject;
-    private Project _someWorkspaceProject;
-    private readonly Workspace _workspace;
+    private readonly Project _someWorkspaceProject;
+    private readonly IWorkspaceProvider _workspaceProvider;
 
     public VsSolutionUpdatesProjectSnapshotChangeTriggerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _someProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
-        _someOtherProject = new HostProject(TestProjectData.AnotherProject.FilePath, TestProjectData.AnotherProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.AnotherProject.RootNamespace);
+        Project? someWorkspaceProject = null;
+        var workspace = TestWorkspace.Create(
+            w =>
+            {
+                someWorkspaceProject = w.AddProject(
+                    ProjectInfo.Create(
+                        ProjectId.CreateNewId(),
+                        VersionStamp.Create(),
+                        "SomeProject",
+                        "SomeProject",
+                        LanguageNames.CSharp,
+                        filePath: s_someProject.FilePath)
+                    .WithCompilationOutputInfo(
+                        new CompilationOutputInfo()
+                            .WithAssemblyPath(Path.Combine(s_someProject.IntermediateOutputPath, "SomeProject.dll"))));
+            });
+        _someWorkspaceProject = someWorkspaceProject.AssumeNotNull();
 
-        _workspace = TestWorkspace.Create(w => _someWorkspaceProject = w.AddProject(ProjectInfo.Create(
-                ProjectId.CreateNewId(),
-                VersionStamp.Create(),
-                "SomeProject",
-                "SomeProject",
-                LanguageNames.CSharp,
-                filePath: _someProject.FilePath).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(_someProject.IntermediateOutputPath, "SomeProject.dll")))));
+        AddDisposable(workspace);
 
-        AddDisposable(_workspace);
+        var workspaceProviderMock = new Mock<IWorkspaceProvider>(MockBehavior.Strict);
+        workspaceProviderMock
+            .Setup(x => x.GetWorkspace())
+            .Returns(workspace);
+
+        _workspaceProvider = workspaceProviderMock.Object;
     }
 
-    [Fact]
-    public void Initialize_AttachesEventSink()
+    private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
+        => new VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter);
+
+    [UIFact]
+    public async Task Initialize_AttachesEventSink()
     {
-        // Arrange
-        uint cookie;
-        var buildManager = new Mock<IVsSolutionBuildManager>(MockBehavior.Strict);
-        buildManager
+        uint cookie = 42;
+        var buildManagerMock = new StrictMock<IVsSolutionBuildManager>();
+        buildManagerMock
             .Setup(b => b.AdviseUpdateSolutionEvents(It.IsAny<VsSolutionUpdatesProjectSnapshotChangeTrigger>(), out cookie))
             .Returns(VSConstants.S_OK)
             .Verifiable();
+        buildManagerMock
+            .Setup(b => b.UnadviseUpdateSolutionEvents(cookie))
+            .Returns(VSConstants.S_OK)
+            .Verifiable();
 
-        var services = new Mock<IServiceProvider>(MockBehavior.Strict);
-        services.Setup(s => s.GetService(It.Is<Type>(f => f == typeof(SVsSolutionBuildManager)))).Returns(buildManager.Object);
+        var serviceProvider = VsMocks.CreateServiceProvider(b =>
+            b.AddService<SVsSolutionBuildManager>(buildManagerMock.Object));
 
-        var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
-            services.Object,
-            Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
-            Mock.Of<ProjectWorkspaceStateGenerator>(MockBehavior.Strict),
-            s_dispatcher,
-            JoinableTaskFactory.Context);
+        // Note: We're careful to use a using statement with a block to allow
+        // the call to UnadviseUpdateSolutionEvents() to be verified after disposal.
+        using (var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
+            serviceProvider,
+            StrictMock.Of<IProjectWorkspaceStateGenerator>(),
+            _workspaceProvider,
+            Dispatcher,
+            JoinableTaskContext))
+        {
+            var testAccessor = trigger.GetTestAccessor();
 
-        // Act
-        trigger.Initialize(Mock.Of<ProjectSnapshotManagerBase>(MockBehavior.Strict));
+            trigger.Initialize(StrictMock.Of<ProjectSnapshotManagerBase>());
 
-        // Assert
-        buildManager.Verify();
+            await testAccessor.InitializeTask.AssumeNotNull();
+        }
+
+        buildManagerMock.Verify();
     }
 
-    [Fact]
+    [UIFact]
     public async Task Initialize_SwitchesToMainThread()
     {
-        // Arrange
-        uint cookie;
-        var buildManager = new Mock<IVsSolutionBuildManager>(MockBehavior.Strict);
-        buildManager
+        uint cookie = 42;
+        var buildManagerMock = new StrictMock<IVsSolutionBuildManager>();
+        buildManagerMock
             .Setup(b => b.AdviseUpdateSolutionEvents(It.IsAny<VsSolutionUpdatesProjectSnapshotChangeTrigger>(), out cookie))
+            .Returns(VSConstants.S_OK)
+            // When IVsSolutionBuildManager.AdviseUpdateSolutionEvents is called, we should have switched to the main thread.
+            .Callback(() => Assert.True(JoinableTaskContext.IsOnMainThread));
+        buildManagerMock
+            .Setup(b => b.UnadviseUpdateSolutionEvents(cookie))
             .Returns(VSConstants.S_OK);
 
-        var context = JoinableTaskFactory.Context;
+        var serviceProvider = VsMocks.CreateServiceProvider(b =>
+            b.AddService<SVsSolutionBuildManager>(() =>
+            {
+                // When the IVsSolutionBuildManager service is retrieved, we should have switched to the main thread.
+                Assert.True(JoinableTaskContext.IsOnMainThread);
+                return buildManagerMock.Object;
+            }));
 
-        var services = new Mock<IServiceProvider>(MockBehavior.Strict);
-        services.Setup(s => s.GetService(It.Is<Type>(f => f == typeof(SVsSolutionBuildManager)))).Callback(() => Assert.True(context.IsOnMainThread)).Returns(buildManager.Object);
+        using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
+            serviceProvider,
+            StrictMock.Of<IProjectWorkspaceStateGenerator>(),
+            _workspaceProvider,
+            Dispatcher,
+            JoinableTaskContext);
 
-        var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
-            services.Object,
-            Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
-            Mock.Of<ProjectWorkspaceStateGenerator>(MockBehavior.Strict),
-            s_dispatcher,
-            context);
+        var testAccessor = trigger.GetTestAccessor();
 
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
-            Assert.False(context.IsOnMainThread);
-            trigger.Initialize(Mock.Of<ProjectSnapshotManagerBase>(MockBehavior.Strict));
-            return Task.CompletedTask;
+            Assert.False(JoinableTaskContext.IsOnMainThread);
+            trigger.Initialize(StrictMock.Of<ProjectSnapshotManagerBase>());
+            await testAccessor.InitializeTask.AssumeNotNull();
         });
     }
 
-    [Fact]
+    [UIFact]
     public async Task SolutionClosing_CancelsActiveWork()
     {
-        // Arrange
-        var projectManager = new TestProjectSnapshotManager(_workspace)
+        var projectManager = new TestProjectSnapshotManager(ProjectEngineFactories.DefaultProvider, Dispatcher)
         {
             AllowNotifyListeners = true,
         };
-        var expectedProjectPath = _someProject.FilePath;
-        var expectedProjectSnapshot = await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+
+        var expectedProjectPath = s_someProject.FilePath;
+
+        var expectedProjectSnapshot = await RunOnDispatcherAsync(() =>
         {
-            projectManager.ProjectAdded(_someProject);
-            projectManager.ProjectAdded(_someOtherProject);
+            projectManager.ProjectAdded(s_someProject);
+            projectManager.ProjectAdded(s_someOtherProject);
 
-            return projectManager.GetLoadedProject(_someProject.Key);
-        }, DisposalToken);
+            return projectManager.GetLoadedProject(s_someProject.Key);
+        });
 
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
-        projectService.Setup(p => p.GetProjectPath(It.IsAny<IVsHierarchy>())).Returns(expectedProjectPath);
+        var serviceProvider = VsMocks.CreateServiceProvider();
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-        var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(TestServiceProvider.Instance, projectService.Object, workspaceStateGenerator, s_dispatcher, JoinableTaskFactory.Context);
-        trigger.Initialize(projectManager);
-        trigger.UpdateProjectCfg_Done(Mock.Of<IVsHierarchy>(MockBehavior.Strict), pCfgProj: default, pCfgSln: default, dwAction: default, fSuccess: default, fCancel: default);
-        await trigger.CurrentUpdateTaskForTests;
+        var vsHierarchyMock = new StrictMock<IVsHierarchy>();
+        var vsProjectMock = vsHierarchyMock.As<IVsProject>();
+        vsProjectMock
+            .Setup(x => x.GetMkDocument((uint)VSConstants.VSITEMID.Root, out expectedProjectPath))
+            .Returns(VSConstants.S_OK);
 
-        // Act
-        await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
+            serviceProvider,
+            workspaceStateGenerator,
+            _workspaceProvider,
+            Dispatcher,
+            JoinableTaskContext);
+
+        var testAccessor = trigger.GetTestAccessor();
+
+        trigger.Initialize(projectManager);
+        trigger.UpdateProjectCfg_Done(vsHierarchyMock.Object, pCfgProj: null!, pCfgSln: null!, dwAction: 0, fSuccess: 0, fCancel: 0);
+
+        // UpdateProjectCfg_Done will call OnProjectBuiltAsync(). The test accessor
+        // provides a task we can wait on.
+        await testAccessor.OnProjectBuiltTask.AssumeNotNull();
+
+        await RunOnDispatcherAsync(() =>
         {
             projectManager.SolutionClosed();
-            projectManager.ProjectRemoved(_someProject.Key);
-        }, DisposalToken);
+            projectManager.ProjectRemoved(s_someProject.Key);
+        });
 
-        // Assert
         var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
         Assert.Equal(update.WorkspaceProject.Id, _someWorkspaceProject.Id);
         Assert.Same(expectedProjectSnapshot, update.ProjectSnapshot);
         Assert.True(update.CancellationToken.IsCancellationRequested);
     }
 
-    [Fact]
+    [UIFact]
     public async Task OnProjectBuiltAsync_KnownProject_EnqueuesProjectStateUpdate()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_workspace);
-        var expectedProjectPath = _someProject.FilePath;
-        var expectedProjectSnapshot = await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        var projectManager = new TestProjectSnapshotManager(ProjectEngineFactories.DefaultProvider, Dispatcher);
+        var expectedProjectPath = s_someProject.FilePath;
+
+        var expectedProjectSnapshot = await RunOnDispatcherAsync(() =>
         {
-            projectManager.ProjectAdded(_someProject);
-            projectManager.ProjectAdded(_someOtherProject);
+            projectManager.ProjectAdded(s_someProject);
+            projectManager.ProjectAdded(s_someOtherProject);
 
-            return projectManager.GetLoadedProject(_someProject.Key);
-        }, DisposalToken);
+            return projectManager.GetLoadedProject(s_someProject.Key);
+        });
 
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
-        projectService.Setup(p => p.GetProjectPath(It.IsAny<IVsHierarchy>())).Returns(expectedProjectPath);
+        var serviceProvider = VsMocks.CreateServiceProvider();
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-        var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(TestServiceProvider.Instance, projectService.Object, workspaceStateGenerator, s_dispatcher, JoinableTaskFactory.Context);
+        using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
+            serviceProvider,
+            workspaceStateGenerator,
+            _workspaceProvider,
+            Dispatcher,
+            JoinableTaskContext);
         trigger.Initialize(projectManager);
 
+        var vsHierarchyMock = new StrictMock<IVsHierarchy>();
+        var vsProjectMock = vsHierarchyMock.As<IVsProject>();
+        vsProjectMock
+            .Setup(x => x.GetMkDocument((uint)VSConstants.VSITEMID.Root, out expectedProjectPath))
+            .Returns(VSConstants.S_OK);
+
+        var testAccessor = trigger.GetTestAccessor();
+
         // Act
-        await trigger.OnProjectBuiltAsync(Mock.Of<IVsHierarchy>(MockBehavior.Strict), DisposalToken);
+        await testAccessor.OnProjectBuiltAsync(vsHierarchyMock.Object, DisposalToken);
 
         // Assert
         var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
@@ -176,93 +248,100 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
         Assert.Same(expectedProjectSnapshot, update.ProjectSnapshot);
     }
 
-    [Fact]
+    [UIFact]
     public async Task OnProjectBuiltAsync_WithoutWorkspaceProject_DoesNotEnqueueUpdate()
     {
         // Arrange
-        uint cookie;
-        var buildManager = new Mock<IVsSolutionBuildManager>(MockBehavior.Strict);
-        buildManager
+        uint cookie = 42;
+        var buildManagerMock = new StrictMock<IVsSolutionBuildManager>();
+        buildManagerMock
             .Setup(b => b.AdviseUpdateSolutionEvents(It.IsAny<VsSolutionUpdatesProjectSnapshotChangeTrigger>(), out cookie))
             .Returns(VSConstants.S_OK);
+        buildManagerMock
+            .Setup(b => b.UnadviseUpdateSolutionEvents(cookie))
+            .Returns(VSConstants.S_OK);
 
-        var services = new Mock<IServiceProvider>(MockBehavior.Strict);
-        services.Setup(s => s.GetService(It.Is<Type>(f => f == typeof(SVsSolutionBuildManager)))).Returns(buildManager.Object);
-        var projectSnapshot = new ProjectSnapshot(
+        var serviceProvider = VsMocks.CreateServiceProvider(b =>
+            b.AddService<SVsSolutionBuildManager>(buildManagerMock.Object));
+
+        var projectEngineFactoryProvider = StrictMock.Of<IProjectEngineFactoryProvider>();
+
+        IProjectSnapshot? projectSnapshot = new ProjectSnapshot(
             ProjectState.Create(
-                _workspace.Services,
-                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path")));
+                projectEngineFactoryProvider,
+                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path"),
+                ProjectWorkspaceState.Default));
         var expectedProjectPath = projectSnapshot.FilePath;
 
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
-        projectService.Setup(p => p.GetProjectPath(It.IsAny<IVsHierarchy>())).Returns(expectedProjectPath);
-
-        var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
-        projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
+        var projectManager = new StrictMock<ProjectSnapshotManagerBase>();
         projectManager
             .Setup(p => p.GetAllProjectKeys(projectSnapshot.FilePath))
             .Returns(ImmutableArray.Create(projectSnapshot.Key));
         projectManager
             .Setup(p => p.GetLoadedProject(projectSnapshot.Key))
             .Returns(projectSnapshot);
+        projectManager
+            .Setup(p => p.TryGetLoadedProject(projectSnapshot.Key, out projectSnapshot))
+            .Returns(true);
+
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-        var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, s_dispatcher, JoinableTaskFactory.Context);
+        using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
+            serviceProvider,
+            workspaceStateGenerator,
+            _workspaceProvider,
+            Dispatcher,
+            JoinableTaskContext);
         trigger.Initialize(projectManager.Object);
 
+        var testAccessor = trigger.GetTestAccessor();
+
         // Act
-        await trigger.OnProjectBuiltAsync(Mock.Of<IVsHierarchy>(MockBehavior.Strict), DisposalToken);
+        await testAccessor.OnProjectBuiltAsync(StrictMock.Of<IVsHierarchy>(), DisposalToken);
 
         // Assert
         Assert.Empty(workspaceStateGenerator.UpdateQueue);
     }
 
-    [Fact]
+    [UIFact]
     public async Task OnProjectBuiltAsync_UnknownProject_DoesNotEnqueueUpdate()
     {
         // Arrange
         var expectedProjectPath = "Path/To/Project/proj.csproj";
 
-        uint cookie;
-        var buildManager = new Mock<IVsSolutionBuildManager>(MockBehavior.Strict);
-        buildManager
+        uint cookie = 42;
+        var buildManagerMock = new StrictMock<IVsSolutionBuildManager>();
+        buildManagerMock
             .Setup(b => b.AdviseUpdateSolutionEvents(It.IsAny<VsSolutionUpdatesProjectSnapshotChangeTrigger>(), out cookie))
             .Returns(VSConstants.S_OK);
+        buildManagerMock
+            .Setup(b => b.UnadviseUpdateSolutionEvents(cookie))
+            .Returns(VSConstants.S_OK);
 
-        var services = new Mock<IServiceProvider>(MockBehavior.Strict);
-        services.Setup(s => s.GetService(It.Is<Type>(f => f == typeof(SVsSolutionBuildManager)))).Returns(buildManager.Object);
+        var serviceProvider = VsMocks.CreateServiceProvider(b =>
+            b.AddService<SVsSolutionBuildManager>(buildManagerMock.Object));
 
-        var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
-        projectService.Setup(p => p.GetProjectPath(It.IsAny<IVsHierarchy>())).Returns(expectedProjectPath);
-
-        var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
-        projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
+        var projectManager = new StrictMock<ProjectSnapshotManagerBase>();
         projectManager
             .Setup(p => p.GetAllProjectKeys(expectedProjectPath))
             .Returns(ImmutableArray<ProjectKey>.Empty);
+
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-        var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, s_dispatcher, JoinableTaskFactory.Context);
+        using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
+            serviceProvider,
+            workspaceStateGenerator,
+            _workspaceProvider,
+            Dispatcher,
+            JoinableTaskContext);
         trigger.Initialize(projectManager.Object);
 
+        var testAccessor = trigger.GetTestAccessor();
+
         // Act
-        await trigger.OnProjectBuiltAsync(Mock.Of<IVsHierarchy>(MockBehavior.Strict), DisposalToken);
+        await testAccessor.OnProjectBuiltAsync(StrictMock.Of<IVsHierarchy>(), DisposalToken);
 
         // Assert
         Assert.Empty(workspaceStateGenerator.UpdateQueue);
-    }
-
-    private class TestServiceProvider : IServiceProvider
-    {
-        public static readonly TestServiceProvider Instance = new TestServiceProvider();
-
-        private TestServiceProvider()
-        {
-        }
-
-        public object GetService(Type serviceType)
-        {
-            return null;
-        }
     }
 }

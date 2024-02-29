@@ -9,9 +9,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -33,8 +32,8 @@ public class CompletionListProviderTest : LanguageServerTestBase
     public CompletionListProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _completionList1 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
-        _completionList2 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
+        _completionList1 = new VSInternalCompletionList() { Items = [] };
+        _completionList2 = new VSInternalCompletionList() { Items = [] };
         _razorCompletionProvider = new TestRazorCompletionListProvider(_completionList1, new[] { SharedTriggerCharacter, }, LoggerFactory);
         _delegatedCompletionProvider = new TestDelegatedCompletionListProvider(_completionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
         _completionContext = new VSInternalCompletionContext();
@@ -105,8 +104,8 @@ public class CompletionListProviderTest : LanguageServerTestBase
         public TestRazorCompletionListProvider(
             VSInternalCompletionList completionList,
             IEnumerable<string> triggerCharacters,
-            ILoggerFactory loggerFactory)
-            : base(null, null, loggerFactory)
+            IRazorLoggerFactory loggerFactory)
+            : base(completionFactsService: null, completionListCache: null, loggerFactory)
         {
             _completionList = completionList;
             TriggerCharacters = triggerCharacters.ToImmutableHashSet();

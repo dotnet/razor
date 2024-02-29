@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -15,13 +16,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
-public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
+public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_Html_MakesRequest()
     {
@@ -35,15 +31,16 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentTextPresentationEndpoint(
             documentMappingService,
-            languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance);
+            clientConnection.Object,
+            FilePathService,
+            LoggerFactory);
 
         var parameters = new TextPresentationParams()
         {
@@ -64,7 +61,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
         var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
 
         // Assert
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -75,22 +72,23 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
         var csharpDocument = codeDocument.GetCSharpDocument();
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var projectedRange = It.IsAny<Range>();
+        var projectedRange = It.IsAny<LinePositionSpan>();
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp &&
-            s.TryMapToGeneratedDocumentRange(csharpDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
+            s.TryMapToGeneratedDocumentRange(csharpDocument, It.IsAny<LinePositionSpan>(), out projectedRange) == true, MockBehavior.Strict);
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentTextPresentationEndpoint(
             documentMappingService,
-            languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance);
+            clientConnection.Object,
+            FilePathService,
+            LoggerFactory);
 
         var parameters = new TextPresentationParams()
         {
@@ -111,7 +109,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
         var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
 
         // Assert
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -126,15 +124,16 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = (WorkspaceEdit?)null;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentTextPresentationEndpoint(
             documentMappingService,
-            languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance);
+            clientConnection.Object,
+            FilePathService,
+            LoggerFactory);
 
         var parameters = new TextPresentationParams()
         {
@@ -171,15 +170,16 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
 
         var response = new WorkspaceEdit();
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentTextPresentationEndpoint(
             documentMappingService,
-            languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance);
+            clientConnection.Object,
+            FilePathService,
+            LoggerFactory);
 
         var parameters = new TextPresentationParams()
         {

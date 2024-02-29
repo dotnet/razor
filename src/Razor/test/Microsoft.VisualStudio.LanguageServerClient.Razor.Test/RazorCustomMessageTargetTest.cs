@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -15,14 +14,16 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.Editor.Razor.Logging;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
+using Microsoft.VisualStudio.Editor.Razor.Snippets;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
-using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
@@ -32,7 +33,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-public class RazorCustomMessageTargetTest : TestBase
+public class RazorCustomMessageTargetTest : ToolingTestBase
 {
     private readonly ITextBuffer _textBuffer;
     private readonly IClientSettingsManager _editorSettingsManager;
@@ -41,11 +42,11 @@ public class RazorCustomMessageTargetTest : TestBase
         : base(testOutput)
     {
         _textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
-        _editorSettingsManager = new ClientSettingsManager(Array.Empty<ClientSettingsChangedTrigger>());
+        _editorSettingsManager = new ClientSettingsManager(Array.Empty<IClientSettingsChangedTrigger>());
     }
 
     [Fact]
-    public void UpdateCSharpBuffer_CannotLookupDocument_NoopsGracefully()
+    public async Task UpdateCSharpBuffer_CannotLookupDocument_NoopsGracefully()
     {
         // Arrange
         LSPDocumentSnapshot document;
@@ -54,7 +55,20 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer.Object,
+            new CSharpVirtualDocumentAddListener(LoggerFactory),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            new SnippetCache(),
+            LoggerFactory);
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
@@ -62,11 +76,11 @@ public class RazorCustomMessageTargetTest : TestBase
         };
 
         // Act & Assert
-        target.UpdateCSharpBuffer(request);
+        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
     }
 
     [Fact]
-    public void UpdateCSharpBuffer_UpdatesDocument()
+    public async Task UpdateCSharpBuffer_UpdatesDocument()
     {
         // Arrange
         var doc1 = new CSharpVirtualDocumentSnapshot(projectKey: default, new Uri("C:/path/to/file.razor.g.cs"), _textBuffer.CurrentSnapshot, 0);
@@ -74,11 +88,7 @@ public class RazorCustomMessageTargetTest : TestBase
         var document = Mock.Of<LSPDocumentSnapshot>(d => d.VirtualDocuments == documents, MockBehavior.Strict);
         var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
         documentManager
-          .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
-          .Returns(true);
-        documentManager
             .Setup(manager => manager.UpdateVirtualDocument<CSharpVirtualDocument>(
-                It.IsAny<Uri>(),
                 It.IsAny<Uri>(),
                 It.IsAny<IReadOnlyList<ITextChange>>(),
                 1337,
@@ -86,7 +96,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Verifiable();
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer.Object,
+            new CSharpVirtualDocumentAddListener(LoggerFactory),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            new SnippetCache(),
+            LoggerFactory);
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
@@ -95,14 +117,14 @@ public class RazorCustomMessageTargetTest : TestBase
         };
 
         // Act
-        target.UpdateCSharpBuffer(request);
+        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
 
         // Assert
         documentManager.VerifyAll();
     }
 
     [Fact]
-    public void UpdateCSharpBuffer_UpdatesCorrectDocument()
+    public async Task UpdateCSharpBuffer_UpdatesCorrectDocument()
     {
         // Arrange
         var projectKey1 = TestProjectKey.Create("Project1");
@@ -125,7 +147,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Verifiable();
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer.Object,
+            new CSharpVirtualDocumentAddListener(LoggerFactory),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true),
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            new SnippetCache(),
+            LoggerFactory);
         var request = new UpdateBufferRequest()
         {
             ProjectKeyId = projectKey2.Id,
@@ -135,7 +169,7 @@ public class RazorCustomMessageTargetTest : TestBase
         };
 
         // Act
-        target.UpdateCSharpBuffer(request);
+        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
 
         // Assert
         documentManager.VerifyAll();
@@ -151,7 +185,20 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer,
+            new CSharpVirtualDocumentAddListener(LoggerFactory),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            new SnippetCache(),
+            LoggerFactory);
         var request = new DelegatedCodeActionParams()
         {
             HostDocumentVersion = 1,
@@ -214,13 +261,13 @@ public class RazorCustomMessageTargetTest : TestBase
             .Returns(expectedResults);
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
+        var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(LoggerFactory);
 
         var target = new RazorCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, telemetryReporter.Object, outputWindowLogger);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
 
         var request = new DelegatedCodeActionParams()
         {
@@ -291,18 +338,18 @@ public class RazorCustomMessageTargetTest : TestBase
                 It.IsAny<Uri>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
+        var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(LoggerFactory);
 
         var target = new RazorCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
 
         var codeAction = new VSInternalCodeAction()
         {
             Title = "Something",
         };
-        var request = new RazorResolveCodeActionParams(razorUri, HostDocumentVersion: 1, RazorLanguageKind.CSharp, codeAction);
+        var request = new RazorResolveCodeActionParams(new TextDocumentIdentifier { Uri = razorUri }, HostDocumentVersion: 1, RazorLanguageKind.CSharp, codeAction);
 
         // Act
         var result = await target.ResolveCodeActionsAsync(request, DisposalToken);
@@ -311,8 +358,10 @@ public class RazorCustomMessageTargetTest : TestBase
         Assert.Equal(expectedCodeAction.Title, result.Title);
     }
 
-    [Fact]
-    public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync(bool isPreciseRange)
     {
         // Arrange
         LSPDocumentSnapshot document;
@@ -321,25 +370,42 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
-        var request = new ProvideSemanticTokensRangeParams(
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer,
+            new CSharpVirtualDocumentAddListener(LoggerFactory),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            new SnippetCache(),
+            LoggerFactory);
+        var request = new ProvideSemanticTokensRangesParams(
             textDocument: new TextDocumentIdentifier()
             {
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 1,
-            range: new Range(),
+            ranges: new[] { new Range() },
             correlationId: Guid.Empty);
 
         // Act
-        var result = await target.ProvideSemanticTokensRangeAsync(request, DisposalToken);
+        var result = isPreciseRange
+            ? await target.ProvidePreciseRangeSemanticTokensAsync(request, DisposalToken)
+            : await target.ProvideMinimalRangeSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Null(result);
     }
 
-    [Fact]
-    public async Task ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNullAsync()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNullAsync(bool isPreciseRange)
     {
         // Arrange
         var testDocUri = new Uri("C:/path/to/file.razor");
@@ -350,25 +416,42 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
             .Returns(true);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
-        var request = new ProvideSemanticTokensRangeParams(
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer,
+            new CSharpVirtualDocumentAddListener(LoggerFactory),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            new SnippetCache(),
+            LoggerFactory);
+        var request = new ProvideSemanticTokensRangesParams(
             textDocument: new TextDocumentIdentifier()
             {
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            range: new Range(),
+            ranges: new[] { new Range() },
             correlationId: Guid.Empty);
 
         // Act
-        var result = await target.ProvideSemanticTokensRangeAsync(request, DisposalToken);
+        var result = isPreciseRange
+            ? await target.ProvidePreciseRangeSemanticTokensAsync(request, DisposalToken)
+            : await target.ProvideMinimalRangeSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Null(result);
     }
 
-    [Fact]
-    public async Task ProvideSemanticTokensAsync_ReturnsSemanticTokensAsync()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ProvideSemanticTokensAsync_ContainsRange_ReturnsSemanticTokens(bool isPreciseRange)
     {
         // Arrange
         var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
@@ -385,16 +468,17 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
             .Returns(true);
 
-        var expectedCSharpResults = new VSSemanticTokensResponse();
+        var expectedCSharpResults = new SemanticTokens() { Data = new int[] { It.IsAny<int>() } };
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
         requestInvoker
-            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
                 _textBuffer,
-                Methods.TextDocumentSemanticTokensRangeName,
+                It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<SemanticTokensRangeParams>(),
+                It.IsAny<Func<JToken, bool>>(),
+                It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedCSharpResults));
+            .ReturnsAsync(new ReinvocationResponse<SemanticTokens>("languageClient", expectedCSharpResults));
 
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
         documentSynchronizer
@@ -403,35 +487,107 @@ public class RazorCustomMessageTargetTest : TestBase
                 It.IsAny<Uri>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
-        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<Property[]>())).Returns(TelemetryScope.Null);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
+        var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(LoggerFactory);
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
-        var request = new ProvideSemanticTokensRangeParams(
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
+        var request = new ProvideSemanticTokensRangesParams(
             textDocument: new TextDocumentIdentifier()
             {
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            range: new Range(),
+            ranges: new[] { new Range() { Start = It.IsAny<Position>(), End = It.IsAny<Position>() } },
             correlationId: Guid.Empty);
-        var expectedResults = new ProvideSemanticTokensResponse(expectedCSharpResults.Data, documentVersion);
 
         // Act
-        var result = await target.ProvideSemanticTokensRangeAsync(request, DisposalToken);
+        var result = isPreciseRange
+            ? await target.ProvidePreciseRangeSemanticTokensAsync(request, DisposalToken)
+            : await target.ProvideMinimalRangeSemanticTokensAsync(request, DisposalToken);
 
         // Assert
-        Assert.Equal(expectedResults, result);
+        Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
+        Assert.Equal(expectedCSharpResults.Data, result.Tokens);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ProvideSemanticTokensAsync_EmptyRange_ReturnsNoSemanticTokens(bool isPreciseRange)
+    {
+        // Arrange
+        var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
+        var testVirtualDocUri = new Uri("C:/path/to - project/file2.razor.g");
+        var testCSharpDocUri = new Uri("C:/path/to - project/file.razor.g.cs");
+
+        var documentVersion = 0;
+        var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
+        var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, testCSharpDocUri, _textBuffer.CurrentSnapshot, 0);
+        LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, documentVersion, testVirtualDocument, csharpVirtualDocument);
+
+        var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        documentManager
+            .Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
+            .Returns(true);
+
+        var expectedCSharpResults = new SemanticTokens();
+        var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+        requestInvoker
+            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+                _textBuffer,
+                It.IsAny<string>(),
+                RazorLSPConstants.RazorCSharpLanguageServerName,
+                It.IsAny<Func<JToken, bool>>(),
+                It.IsAny<SemanticTokensParams>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ReinvocationResponse<SemanticTokens>("languageClient", expectedCSharpResults));
+
+        var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+        documentSynchronizer
+            .Setup(r => r.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                0,
+                It.IsAny<Uri>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<Property[]>())).Returns(TelemetryScope.Null);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(TelemetryScope.Null);
+        var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(LoggerFactory);
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object, JoinableTaskContext, requestInvoker.Object,
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
+        var request = new ProvideSemanticTokensRangesParams(
+            textDocument: new TextDocumentIdentifier()
+            {
+                Uri = new Uri("C:/path/to%20-%20project/file.razor")
+            },
+            requiredHostDocumentVersion: 0,
+            ranges: new[] { new Range() },
+            correlationId: Guid.Empty);
+        var expectedResults = new ProvideSemanticTokensResponse(null, documentVersion);
+
+        // Act
+        var result = isPreciseRange
+            ? await target.ProvidePreciseRangeSemanticTokensAsync(request, DisposalToken)
+            : await target.ProvideMinimalRangeSemanticTokensAsync(request, DisposalToken);
+
+        // Assert
+        Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
+        Assert.Null(result.Tokens);
     }
 
     private LSPDocumentSynchronizer GetDocumentSynchronizer(CSharpVirtualDocumentSnapshot csharpDoc = null, HtmlVirtualDocumentSnapshot htmlDoc = null)
     {
         var synchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
         synchronizer.Setup(s => s.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(csharpDoc is not null, csharpDoc));
+
+        synchronizer.Setup(s => s.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<Uri>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(csharpDoc is not null, csharpDoc));
 
         synchronizer.Setup(s => s.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))

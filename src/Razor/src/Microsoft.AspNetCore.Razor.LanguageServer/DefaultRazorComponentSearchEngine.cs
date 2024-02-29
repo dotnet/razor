@@ -9,19 +9,21 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
 {
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
-    private readonly ILogger<DefaultRazorComponentSearchEngine> _logger;
+    private readonly IProjectSnapshotManager _projectSnapshotManager;
+    private readonly ILogger _logger;
 
     public DefaultRazorComponentSearchEngine(
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        ILoggerFactory loggerFactory)
+        IProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        IRazorLoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {
@@ -64,7 +66,8 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             }
 
             // If we got this far, we can check for tag helpers
-            foreach (var tagHelper in project.TagHelpers)
+            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var tagHelper in tagHelpers)
             {
                 // Check the typename and namespace match
                 if (IsPathCandidateForComponent(documentSnapshot, tagHelper.GetTypeNameIdentifier().AsMemory()) &&

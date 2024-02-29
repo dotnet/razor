@@ -4,12 +4,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -28,11 +28,11 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public OpenDocumentGeneratorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documents = new HostDocument[]
-        {
+        _documents =
+        [
             new HostDocument("c:/Test1/Index.cshtml", "Index.cshtml"),
             new HostDocument("c:/Test1/Components/Counter.cshtml", "Components/Counter.cshtml"),
-        };
+        ];
 
         _hostProject1 = new HostProject("c:/Test1/Test1.csproj", "c:/Test1/obj", RazorConfiguration.Default, "TestRootNamespace");
         _hostProject2 = new HostProject("c:/Test2/Test2.csproj", "c:/Test2/obj", RazorConfiguration.Default, "TestRootNamespace");
@@ -42,11 +42,11 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task DocumentAdded_IgnoresClosedDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -66,11 +66,11 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task DocumentChanged_IgnoresClosedDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -91,11 +91,11 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task DocumentChanged_ProcessesOpenDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -119,11 +119,11 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task ProjectChanged_IgnoresClosedDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -134,7 +134,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
 
             // Act
             projectManager.ProjectWorkspaceStateChanged(_hostProject1.Key,
-                new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp8));
+                ProjectWorkspaceState.Create(LanguageVersion.CSharp8));
         }, DisposalToken);
 
         // Assert
@@ -145,11 +145,11 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task ProjectChanged_ProcessesOpenDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
         var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
@@ -161,7 +161,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
 
             // Act
             projectManager.ProjectWorkspaceStateChanged(_hostProject1.Key,
-                new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp8));
+                ProjectWorkspaceState.Create(LanguageVersion.CSharp8));
         }, DisposalToken);
 
         // Assert
@@ -193,7 +193,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         public Task<IDocumentSnapshot> GetProcessedDocumentAsync(TimeSpan cancelAfter)
         {
             var cts = new CancellationTokenSource(cancelAfter);
-            var registration = cts.Token.Register(() => _tcs.SetCanceled(cts.Token));
+            var registration = cts.Token.Register(() => _tcs.SetCanceled());
             _ = _tcs.Task.ContinueWith(
                 (t) =>
                 {
@@ -210,7 +210,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
             _tcs.SetResult(document);
         }
 
-        public override void Initialize(ProjectSnapshotManager projectManager)
+        public override void Initialize(IProjectSnapshotManager projectManager)
         {
         }
     }

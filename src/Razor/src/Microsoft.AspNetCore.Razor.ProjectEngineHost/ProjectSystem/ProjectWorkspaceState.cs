@@ -10,20 +10,32 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
-public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
+internal sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 {
     public static readonly ProjectWorkspaceState Default = new(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.Default);
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
     public LanguageVersion CSharpLanguageVersion { get; }
 
-    public ProjectWorkspaceState(
+    private ProjectWorkspaceState(
         ImmutableArray<TagHelperDescriptor> tagHelpers,
         LanguageVersion csharpLanguageVersion)
     {
         TagHelpers = tagHelpers;
         CSharpLanguageVersion = csharpLanguageVersion;
     }
+
+    public static ProjectWorkspaceState Create(
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
+        LanguageVersion csharpLanguageVersion = LanguageVersion.Default)
+        => tagHelpers.IsEmpty && csharpLanguageVersion == LanguageVersion.Default
+            ? Default
+            : new(tagHelpers, csharpLanguageVersion);
+
+    public static ProjectWorkspaceState Create(LanguageVersion csharpLanguageVersion)
+        => csharpLanguageVersion == LanguageVersion.Default
+            ? Default
+            : new(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion);
 
     public override bool Equals(object? obj)
         => obj is ProjectWorkspaceState other && Equals(other);
@@ -37,11 +49,7 @@ public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
     {
         var hash = HashCodeCombiner.Start();
 
-        foreach (var tagHelper in TagHelpers)
-        {
-            hash.Add(tagHelper.GetHashCode());
-        }
-
+        hash.Add(TagHelpers);
         hash.Add(CSharpLanguageVersion);
 
         return hash.CombinedHash;

@@ -14,18 +14,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 internal class DelegatedCompletionItemResolver : CompletionItemResolver
 {
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly IRazorFormattingService _formattingService;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
 
     public DelegatedCompletionItemResolver(
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         IRazorFormattingService formattingService,
-        ClientNotifierServiceBase languageServer)
+        IClientConnection clientConnection)
     {
         _documentContextFactory = documentContextFactory;
         _formattingService = formattingService;
-        _languageServer = languageServer;
+        _clientConnection = clientConnection;
     }
 
     public override async Task<VSInternalCompletionItem?> ResolveAsync(
@@ -48,14 +48,23 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return null;
         }
 
-        item.Data = associatedDelegatedCompletion.Data ?? resolutionContext.OriginalCompletionListData;
+        // If the data was merged to combine resultId with original data, undo that merge and set the data back
+        // to what it originally was for the delegated request
+        if (CompletionListMerger.TrySplit(associatedDelegatedCompletion.Data, out var splitData) && splitData.Count == 2)
+        {
+            item.Data = splitData[1];
+        }
+        else
+        {
+            item.Data = associatedDelegatedCompletion.Data ?? resolutionContext.OriginalCompletionListData;
+        }
 
         var delegatedParams = resolutionContext.OriginalRequestParams;
         var delegatedResolveParams = new DelegatedCompletionItemResolveParams(
             delegatedParams.Identifier,
             item,
             delegatedParams.ProjectedKind);
-        var resolvedCompletionItem = await _languageServer.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(Common.LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
+        var resolvedCompletionItem = await _clientConnection.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(Common.LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
 
         if (resolvedCompletionItem is not null)
         {
@@ -95,7 +104,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return resolvedCompletionItem;
         }
 
-        var formattingOptions = await _languageServer.SendRequestAsync<TextDocumentIdentifierAndVersion, FormattingOptions?>(Common.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await _clientConnection.SendRequestAsync<TextDocumentIdentifierAndVersion, FormattingOptions?>(Common.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
         if (formattingOptions is null)
         {
             return resolvedCompletionItem;

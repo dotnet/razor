@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test;
 
-public class VirtualDocumentFactoryBaseTest : TestBase
+public class VirtualDocumentFactoryBaseTest : ToolingTestBase
 {
     private readonly ITextBuffer _nonHostLSPBuffer;
     private readonly ITextBuffer _hostLSPBuffer;

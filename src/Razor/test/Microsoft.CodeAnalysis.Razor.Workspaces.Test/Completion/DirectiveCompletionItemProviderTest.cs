@@ -3,19 +3,19 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-public class DirectiveCompletionItemProviderTest : TestBase
+public class DirectiveCompletionItemProviderTest : ToolingTestBase
 {
     private static readonly IReadOnlyList<DirectiveDescriptor> s_defaultDirectives = new[]
     {
@@ -226,20 +226,6 @@ public class DirectiveCompletionItemProviderTest : TestBase
     }
 
     [Fact]
-    public void ShouldProvideCompletions_ReturnsFalseIfNoOwner()
-    {
-        // Arrange
-        var syntaxTree = CreateSyntaxTree("@");
-        var context = CreateRazorCompletionContext(absoluteIndex: 2, syntaxTree);
-
-        // Act
-        var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
     public void ShouldProvideCompletions_ReturnsFalseWhenOwnerIsNotExpression()
     {
         // Arrange
@@ -447,9 +433,9 @@ public class DirectiveCompletionItemProviderTest : TestBase
 
     private static RazorCompletionContext CreateRazorCompletionContext(int absoluteIndex, RazorSyntaxTree syntaxTree, CompletionReason reason = CompletionReason.Invoked)
     {
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Array.Empty<TagHelperDescriptor>());
-        var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(queryableChange);
+        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, tagHelpers: []);
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
         return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext, reason);
     }
 
@@ -472,7 +458,6 @@ public class DirectiveCompletionItemProviderTest : TestBase
             Assert.Equal(directive.Description, completionDescription.Description);
         }
 
-        
         Assert.Equal(item.CommitCharacters, commitCharacters ?? DirectiveCompletionItemProvider.SingleLineDirectiveCommitCharacters);
     }
 

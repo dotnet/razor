@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
@@ -45,7 +45,6 @@ internal sealed class RazorFileUsingsFoldingSyntaxWalker : SyntaxWalker
                     isPartOfExistingRange = true;
                 }
             }
-
 
             if (!isPartOfExistingRange)
             {

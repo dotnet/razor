@@ -5,9 +5,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Serialization.Converters;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -36,7 +36,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
     public static RazorLanguageServerWrapper Create(
         Stream input,
         Stream output,
-        IRazorLogger razorLogger,
+        IRazorLoggerFactory loggerFactory,
         ITelemetryReporter telemetryReporter,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher = null,
         Action<IServiceCollection>? configure = null,
@@ -47,7 +47,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
     {
         var jsonRpc = CreateJsonRpc(input, output);
 
-        // This ensures each request is a separate activity in loghub
+        // This ensures each request is a separate activity in LogHub
         jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy
         {
             TraceSource = traceSource
@@ -55,7 +55,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
 
         var server = new RazorLanguageServer(
             jsonRpc,
-            razorLogger,
+            loggerFactory,
             projectSnapshotManagerDispatcher,
             featureOptions,
             configure,
@@ -73,10 +73,12 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
     {
         var messageFormatter = new JsonMessageFormatter();
         messageFormatter.JsonSerializer.AddVSInternalExtensionConverters();
-        messageFormatter.JsonSerializer.Converters.RegisterRazorConverters();
         messageFormatter.JsonSerializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input, messageFormatter));
+
+        // Get more information about exceptions that occur during RPC method invocations.
+        jsonRpc.ExceptionStrategy = ExceptionProcessing.ISerializable;
 
         return jsonRpc;
     }

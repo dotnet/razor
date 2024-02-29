@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -10,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -42,8 +42,9 @@ internal static class AddUsingsCodeActionProviderHelper
         foreach (var usingStatement in newUsings.Except(oldUsings))
         {
             // This identifier will be eventually thrown away.
+            Debug.Assert(codeDocument.Source.FilePath != null);
             var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
-            var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, codeDocumentIdentifier: identifier);
+            var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, additionalEdit: null, codeDocument, codeDocumentIdentifier: identifier);
             edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
         }
 
@@ -60,10 +61,11 @@ internal static class AddUsingsCodeActionProviderHelper
         var usings = syntaxRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
             // Filter to using directives
             .OfType<UsingDirectiveSyntax>()
-            // Select everything after the initial "using " part of the statement. This is slightly lazy, for sure, but has
+            // Select everything after the initial "using " part of the statement, and excluding the ending semi-colon. The
+            // semi-colon is valid in Razor, but users find it surprising. This is slightly lazy, for sure, but has
             // the advantage of us not caring about changes to C# syntax, we just grab whatever Roslyn wanted to put in, so
             // we should still work in C# v26
-            .Select(u => u.ToString()["using ".Length..]);
+            .Select(u => u.ToString()["using ".Length..^1]);
 
         return usings;
     }
@@ -81,7 +83,7 @@ internal static class AddUsingsCodeActionProviderHelper
         return namespaceName.ToString();
     }
 
-    internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, Uri uri, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
+    internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, Uri uri, TextDocumentEdit? additionalEdit, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
     {
         @namespace = GetNamespaceFromFQN(fullyQualifiedName);
         if (string.IsNullOrEmpty(@namespace))
@@ -94,7 +96,8 @@ internal static class AddUsingsCodeActionProviderHelper
         var actionParams = new AddUsingsCodeActionParams
         {
             Uri = uri,
-            Namespace = @namespace
+            Namespace = @namespace,
+            AdditionalEdit = additionalEdit
         };
 
         resolutionParams = new RazorCodeActionResolutionParams

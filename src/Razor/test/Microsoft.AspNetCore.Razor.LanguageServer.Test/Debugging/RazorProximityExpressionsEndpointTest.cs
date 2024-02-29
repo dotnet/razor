@@ -5,8 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,7 +20,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         : base(testOutput)
     {
         _mappingService = new RazorDocumentMappingService(
-            TestLanguageServerFeatureOptions.Instance,
+            FilePathService,
             new TestDocumentContextFactory(),
             LoggerFactory);
     }

@@ -9,150 +9,68 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
 using StreamJsonRpc;
-using Task = System.Threading.Tasks.Task;
-using Trace = Microsoft.AspNetCore.Razor.LanguageServer.Trace;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 [Export(typeof(ILanguageClient))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
-internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
+[method: ImportingConstructor]
+internal class RazorLanguageServerClient(
+    RazorCustomMessageTarget customTarget,
+    RazorLanguageClientMiddleLayer middleLayer,
+    LSPRequestInvoker requestInvoker,
+    ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+    IRazorLoggerFactory razorLoggerFactory,
+    RazorLogHubTraceProvider traceProvider,
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+    ILanguageClientBroker languageClientBroker,
+    ILanguageServiceBroker2 languageServiceBroker,
+    ITelemetryReporter telemetryReporter,
+    IClientSettingsManager clientSettingsManager,
+    ILspServerActivationTracker lspServerActivationTracker,
+    VisualStudioHostServicesProvider vsHostWorkspaceServicesProvider)
+    : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
 {
-    private const string LogFileIdentifier = "Razor.RazorLanguageServerClient";
+    private readonly ILanguageClientBroker _languageClientBroker = languageClientBroker ?? throw new ArgumentNullException(nameof(languageClientBroker));
+    private readonly ILanguageServiceBroker2 _languageServiceBroker = languageServiceBroker ?? throw new ArgumentNullException(nameof(languageServiceBroker));
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager ?? throw new ArgumentNullException(nameof(clientSettingsManager));
+    private readonly ILspServerActivationTracker _lspServerActivationTracker = lspServerActivationTracker ?? throw new ArgumentNullException(nameof(lspServerActivationTracker));
+    private readonly RazorCustomMessageTarget _customMessageTarget = customTarget ?? throw new ArgumentNullException(nameof(customTarget));
+    private readonly RazorLanguageClientMiddleLayer _middleLayer = middleLayer ?? throw new ArgumentNullException(nameof(middleLayer));
+    private readonly LSPRequestInvoker _requestInvoker = requestInvoker ?? throw new ArgumentNullException(nameof(requestInvoker));
+    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+    private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider ?? throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
+    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+    private readonly IRazorLoggerFactory _razorLoggerFactory = razorLoggerFactory ?? throw new ArgumentNullException(nameof(razorLoggerFactory));
+    private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
 
-    private readonly ILanguageClientBroker _languageClientBroker;
-    private readonly ILanguageServiceBroker2 _languageServiceBroker;
-    private readonly ITelemetryReporter _telemetryReporter;
-    private readonly IClientSettingsManager _clientSettingsManager;
-    private readonly ILspServerActivationTracker _lspServerActivationTracker;
-    private readonly RazorCustomMessageTarget _customMessageTarget;
-    private readonly ILanguageClientMiddleLayer _middleLayer;
-    private readonly LSPRequestInvoker _requestInvoker;
-    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-    private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
-    private readonly IOutputWindowLogger? _outputWindowLogger;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
     private RazorLanguageServerWrapper? _server;
-    private LogHubLoggerProvider? _loggerProvider;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-
-    private const string RazorLSPLogLevel = "RAZOR_TRACE";
 
     public event AsyncEventHandler<EventArgs>? StartAsync;
     public event AsyncEventHandler<EventArgs>? StopAsync
     {
         add { }
         remove { }
-    }
-
-    [ImportingConstructor]
-    public RazorLanguageServerClient(
-        RazorCustomMessageTarget customTarget,
-        RazorLanguageClientMiddleLayer middleLayer,
-        LSPRequestInvoker requestInvoker,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ILanguageClientBroker languageClientBroker,
-        ILanguageServiceBroker2 languageServiceBroker,
-        ITelemetryReporter telemetryReporter,
-        IClientSettingsManager clientSettingsManager,
-        ILspServerActivationTracker lspServerActivationTracker,
-        [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
-    {
-        if (customTarget is null)
-        {
-            throw new ArgumentNullException(nameof(customTarget));
-        }
-
-        if (middleLayer is null)
-        {
-            throw new ArgumentNullException(nameof(middleLayer));
-        }
-
-        if (requestInvoker is null)
-        {
-            throw new ArgumentNullException(nameof(requestInvoker));
-        }
-
-        if (projectConfigurationFilePathStore is null)
-        {
-            throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-        }
-
-        if (logHubLoggerProviderFactory is null)
-        {
-            throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
-        }
-
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
-
-        if (languageClientBroker is null)
-        {
-            throw new ArgumentNullException(nameof(languageClientBroker));
-        }
-
-        if (languageServiceBroker is null)
-        {
-            throw new ArgumentNullException(nameof(languageServiceBroker));
-        }
-
-        if (telemetryReporter is null)
-        {
-            throw new ArgumentNullException(nameof(telemetryReporter));
-        }
-
-        if (clientSettingsManager is null)
-        {
-            throw new ArgumentNullException(nameof(clientSettingsManager));
-        }
-
-        if (lspServerActivationTracker is null)
-        {
-            throw new ArgumentNullException(nameof(lspServerActivationTracker));
-        }
-
-        _customMessageTarget = customTarget;
-        _middleLayer = middleLayer;
-        _requestInvoker = requestInvoker;
-        _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-        _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
-        _outputWindowLogger = outputWindowLogger;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-        _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
-        _languageClientBroker = languageClientBroker;
-        _languageServiceBroker = languageServiceBroker;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _telemetryReporter = telemetryReporter;
-        _clientSettingsManager = clientSettingsManager;
-        _lspServerActivationTracker = lspServerActivationTracker;
     }
 
     public string Name => RazorLSPConstants.RazorLanguageServerName;
@@ -183,19 +101,14 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
         await EnsureCleanedUpServerAsync().ConfigureAwait(false);
 
-        var traceLevel = GetVerbosity();
+        var traceSource = _traceProvider.TryGetTraceSource();
 
-        // Initialize Logging Infrastructure
-        _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
-        var traceSource = _loggerProvider.GetTraceSource();
-        var logHubLogger = _loggerProvider.CreateLogger("Razor");
-        var loggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
-        var razorLogger = new LoggerAdapter(loggers, _telemetryReporter, traceSource);
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
+
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
             serverStream,
-            razorLogger,
+            _razorLoggerFactory,
             _telemetryReporter,
             _projectSnapshotManagerDispatcher,
             ConfigureLanguageServer,
@@ -210,9 +123,9 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         return connection;
     }
 
-    internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetReleventContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
+    internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetRelevantContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
     {
-        var releventClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
+        var relevantClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
 
 #pragma warning disable CS0618 // Type or member is obsolete
         foreach (var languageClientAndMetadata in languageServiceBroker.LanguageClients)
@@ -232,11 +145,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             if (IsCSharpApplicable(metadata) ||
                 metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPDelegationContentTypeName))
             {
-                releventClientAndMetadata.Add(languageClientAndMetadata);
+                relevantClientAndMetadata.Add(languageClientAndMetadata);
             }
         }
 
-        return releventClientAndMetadata;
+        return relevantClientAndMetadata;
 
         static bool IsCSharpApplicable(ILanguageClientMetadata metadata)
         {
@@ -247,11 +160,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     private async Task EnsureContainedLanguageServersInitializedAsync()
     {
-        var releventClientsAndMetadata = GetReleventContainedLanguageClientsAndMetadata(_languageServiceBroker);
+        var relevantClientsAndMetadata = GetRelevantContainedLanguageClientsAndMetadata(_languageServiceBroker);
 
         var clientLoadTasks = new List<Task>();
 
-        foreach (var languageClientAndMetadata in releventClientsAndMetadata)
+        foreach (var languageClientAndMetadata in relevantClientsAndMetadata)
         {
             if (languageClientAndMetadata.Metadata is not ILanguageClientMetadata metadata)
             {
@@ -270,30 +183,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     private void ConfigureLanguageServer(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddLogging(logging =>
-        {
-            logging.AddFilter<LogHubLoggerProvider>(level => true);
-            logging.AddProvider(_loggerProvider);
-
-            if (_outputWindowLogger is not null)
-            {
-                logging.AddProvider(new RazorOutputWindowLoggerProvider(_outputWindowLogger));
-            }
-        });
-
         if (_vsHostWorkspaceServicesProvider is not null)
         {
             var wrapper = new HostServicesProviderWrapper(_vsHostWorkspaceServicesProvider);
             serviceCollection.AddSingleton<HostServicesProvider>(wrapper);
         }
-    }
-
-    private Trace GetVerbosity()
-    {
-        var logString = Environment.GetEnvironmentVariable(RazorLSPLogLevel);
-        var result = Enum.TryParse<Trace>(logString, out var parsedTrace) ? parsedTrace : Trace.Off;
-
-        return result;
     }
 
     private async Task EnsureCleanedUpServerAsync()
@@ -319,6 +213,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     private async Task ProjectConfigurationFilePathStore_ChangedAsync(ProjectConfigurationFilePathChangedEventArgs args, CancellationToken cancellationToken)
     {
+        if (_languageServerFeatureOptions.DisableRazorLanguageServer)
+        {
+            return;
+        }
+
         try
         {
             var parameter = new MonitorProjectConfigurationFilePathParams()
@@ -339,7 +238,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             //
             // Note: When moving between solutions this can fail with a null reference exception because the underlying LSP platform's
             // JsonRpc object will be `null`. This can happen in two situations:
-            //      1.  There's currently a race in the platform on shutting down/activating so we don't get the opportunity to properly detatch
+            //      1.  There's currently a race in the platform on shutting down/activating so we don't get the opportunity to properly detach
             //          from the configuration file path store changed event properly.
             //          Tracked by: https://github.com/dotnet/aspnetcore/issues/23819
             //      2.  The LSP platform failed to shutdown our language server properly due to a JsonRpc timeout. There's currently a limitation in
@@ -365,6 +264,12 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     public Task OnLoadedAsync()
     {
+        // If the user hasn't turned on the Cohost server, then don't disable the Razor server
+        if (_languageServerFeatureOptions.DisableRazorLanguageServer && _languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            return Task.CompletedTask;
+        }
+
         return StartAsync.InvokeAsync(this, EventArgs.Empty);
     }
 
@@ -387,14 +292,9 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         }
     }
 
-    private class HostServicesProviderWrapper : HostServicesProvider
+    private sealed class HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider) : HostServicesProvider
     {
-        private readonly VisualStudioHostServicesProvider _vsHostServicesProvider;
-
-        public HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider)
-        {
-            _vsHostServicesProvider = vsHostServicesProvider;
-        }
+        private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider;
 
         public override HostServices GetServices() => _vsHostServicesProvider.GetServices();
     }

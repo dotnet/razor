@@ -23,6 +23,16 @@ internal record DelegatedPositionParams(
     Position ProjectedPosition,
     RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
+internal record DelegatedInlayHintParams(
+    TextDocumentIdentifierAndVersion Identifier,
+    Range ProjectedRange,
+    RazorLanguageKind ProjectedKind) : IDelegatedParams;
+
+internal record DelegatedInlayHintResolveParams(
+    TextDocumentIdentifierAndVersion Identifier,
+    InlayHint InlayHint,
+    RazorLanguageKind ProjectedKind) : IDelegatedParams;
+
 internal record DelegatedValidateBreakpointRangeParams(
     TextDocumentIdentifierAndVersion Identifier,
     Range ProjectedRange,
@@ -47,7 +57,15 @@ internal record DelegatedCompletionParams(
     RazorLanguageKind ProjectedKind,
     VSInternalCompletionContext Context,
     TextEdit? ProvisionalTextEdit,
+    bool ShouldIncludeSnippets,
     Guid CorrelationId) : IDelegatedParams;
+
+internal record DelegatedMapCodeParams(
+    TextDocumentIdentifierAndVersion Identifier,
+    RazorLanguageKind ProjectedKind,
+    Guid MapCodeCorrelationId,
+    string[] Contents,
+    Location[][] FocusLocations) : IDelegatedParams;
 
 internal record DelegatedCompletionResolutionContext(
     DelegatedCompletionParams OriginalRequestParams,
@@ -59,7 +77,7 @@ internal record DelegatedCompletionItemResolveParams(
     RazorLanguageKind OriginatingKind);
 
 internal record DelegatedProjectContextsParams(
-    TextDocumentIdentifierAndVersion Identifier);
+    Uri Uri);
 
 internal record DelegatedDocumentSymbolParams(
     TextDocumentIdentifierAndVersion Identifier);

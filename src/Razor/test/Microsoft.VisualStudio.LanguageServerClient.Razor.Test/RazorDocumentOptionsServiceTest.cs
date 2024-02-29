@@ -1,41 +1,34 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 
-public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
+public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {
-    public RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task RazorDocumentOptionsService_ReturnsCorrectOptions_UseTabs()
     {
         // Arrange
-        var editorSettings = new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 4);
-        var clientSettingsManager = new ClientSettingsManager(Array.Empty<ClientSettingsChangedTrigger>());
-        clientSettingsManager.Update(editorSettings);
+        var clientSpaceSettings = new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 4);
+        var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
+        clientSettingsManager.Update(clientSpaceSettings);
         var optionsService = new RazorDocumentOptionsService(clientSettingsManager);
 
         var document = InitializeDocument(SourceText.From("text"));
@@ -51,9 +44,9 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
         documentOptions.TryGetDocumentOption(indentationSizeOptionKey, out var indentationSize);
 
         // Assert
-        Assert.True((bool)useTabs);
-        Assert.Equal(4, (int)tabSize);
-        Assert.Equal(4, (int)indentationSize);
+        Assert.True((bool)useTabs!);
+        Assert.Equal(4, (int)tabSize!);
+        Assert.Equal(4, (int)indentationSize!);
     }
 
     [Fact]
@@ -61,7 +54,7 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
     {
         // Arrange
         var spaceSettings = new ClientSpaceSettings(IndentWithTabs: false, IndentSize: 2);
-        var clientSettingsManager = new ClientSettingsManager(Array.Empty<ClientSettingsChangedTrigger>());
+        var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
         clientSettingsManager.Update(spaceSettings);
         var optionsService = new RazorDocumentOptionsService(clientSettingsManager);
 
@@ -78,9 +71,9 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
         documentOptions.TryGetDocumentOption(indentationSizeOptionKey, out var indentationSize);
 
         // Assert
-        Assert.False((bool)useTabs);
-        Assert.Equal(2, (int)tabSize);
-        Assert.Equal(2, (int)indentationSize);
+        Assert.False((bool)useTabs!);
+        Assert.Equal(2, (int)tabSize!);
+        Assert.Equal(2, (int)indentationSize!);
     }
 
     private static OptionKey GetUseTabsOptionKey(Document document)
@@ -103,7 +96,7 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
             Path.Combine(baseDirectory, "SomeProject", "File1.cshtml"), "File1.cshtml", FileKinds.Legacy);
 
         var project = new ProjectSnapshot(
-            ProjectState.Create(Workspace.Services, hostProject)
+            ProjectState.Create(ProjectEngineFactoryProvider, hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
         var documentSnapshot = project.GetDocument(hostDocument.FilePath);

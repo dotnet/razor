@@ -6,10 +6,11 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,7 +26,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     public CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
+        _projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         _projectManager.AllowNotifyListeners = true;
         _referenceHolder = new CodeDocumentReferenceHolder();
         _referenceHolder.Initialize(_projectManager);
@@ -54,7 +55,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         // Arrange
         var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
         var unrelatedHostDocument = new HostDocument("C:/path/to/otherfile.razor", "otherfile.razor");
-        var unrelatedDocumentSnapshot = await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        var unrelatedDocumentSnapshot = await Dispatcher.RunAsync(() =>
         {
             var unrelatedTextLoader = new SourceTextLoader("<p>Unrelated</p>", unrelatedHostDocument.FilePath);
             _projectManager.DocumentAdded(_hostProject.Key, unrelatedHostDocument, unrelatedTextLoader);
@@ -69,7 +70,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         var unrelatedCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(unrelatedDocumentSnapshot, DisposalToken);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             _projectManager.DocumentChanged(_hostProject.Key, unrelatedHostDocument.FilePath, SourceText.From(string.Empty));
         }, DisposalToken);
@@ -89,7 +90,8 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+
+        await Dispatcher.RunAsync(() =>
         {
             _projectManager.DocumentChanged(_hostProject.Key, _hostDocument.FilePath, SourceText.From(string.Empty));
         }, DisposalToken);
@@ -108,7 +110,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             _projectManager.DocumentRemoved(_hostProject.Key, _hostDocument);
         }, DisposalToken);
@@ -125,16 +127,23 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         // Arrange
         var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
+        var asyncManualResetEvent = new AsyncManualResetEvent(false);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             _projectManager.ProjectConfigurationChanged(new HostProject(_hostProject.FilePath, _hostProject.IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: "NewRootNamespace"));
+            asyncManualResetEvent.Set();
         }, DisposalToken);
 
         GC.Collect();
 
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(5));
+        await asyncManualResetEvent.WaitAsync(cts.Token);
+
         // Assert
+        Assert.False(cts.IsCancellationRequested);
         Assert.False(codeDocumentReference.TryGetTarget(out _));
     }
 
@@ -146,7 +155,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             _projectManager.ProjectRemoved(_hostProject.Key);
         }, DisposalToken);
@@ -159,12 +168,12 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
 
     private Task<IDocumentSnapshot> CreateDocumentSnapshotAsync(CancellationToken cancellationToken)
     {
-        return Dispatcher.RunOnDispatcherThreadAsync(() =>
+        return Dispatcher.RunAsync(() =>
         {
             _projectManager.ProjectAdded(_hostProject);
             var textLoader = new SourceTextLoader("<p>Hello World</p>", _hostDocument.FilePath);
             _projectManager.DocumentAdded(_hostProject.Key, _hostDocument, textLoader);
-            var project = _projectManager.GetLoadedProject(_hostProject.Key).AssumeNotNull();
+            var project = _projectManager.GetLoadedProject(_hostProject.Key);
             return project.GetDocument(_hostDocument.FilePath).AssumeNotNull();
         }, cancellationToken);
     }
@@ -173,7 +182,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     private async Task<WeakReference<RazorCodeDocument>> ProcessDocumentAndRetrieveOutputAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             _referenceHolder.DocumentProcessed(codeDocument, documentSnapshot);
         }, cancellationToken);

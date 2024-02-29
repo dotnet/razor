@@ -7,7 +7,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -25,18 +26,18 @@ internal class DelegatedCompletionListProvider
 
     private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _responseRewriters;
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
     private readonly CompletionListCache _completionListCache;
 
     public DelegatedCompletionListProvider(
         IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         CompletionListCache completionListCache)
     {
         _responseRewriters = responseRewriters.OrderBy(rewriter => rewriter.Order).ToImmutableArray();
         _documentMappingService = documentMappingService;
-        _languageServer = languageServer;
+        _clientConnection = clientConnection;
         _completionListCache = completionListCache;
     }
 
@@ -70,22 +71,29 @@ internal class DelegatedCompletionListProvider
 
         completionContext = RewriteContext(completionContext, positionInfo.LanguageKind);
 
+        var shouldIncludeSnippets = await ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+
         var delegatedParams = new DelegatedCompletionParams(
             documentContext.Identifier,
             positionInfo.Position,
             positionInfo.LanguageKind,
             completionContext,
             provisionalTextEdit,
+            shouldIncludeSnippets,
             correlationId);
 
-        var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
+        var delegatedResponse = await _clientConnection.SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
             LanguageServerConstants.RazorCompletionEndpointName,
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
         if (delegatedResponse is null)
         {
-            return null;
+            // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
+            // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
+            // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
+            // so we'd only ever return Razor completion items.
+            return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
         }
 
         var rewrittenResponse = delegatedResponse;
@@ -106,6 +114,30 @@ internal class DelegatedCompletionListProvider
         rewrittenResponse.SetResultId(resultId, completionCapability);
 
         return rewrittenResponse;
+    }
+
+    private async Task<bool> ShouldIncludeSnippetsAsync(VersionedDocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
+    {
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var tree = codeDocument.GetSyntaxTree();
+
+        var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: false);
+        var node = token.Parent;
+        var startOrEndTag = node?.FirstAncestorOrSelf<SyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
+
+        if (startOrEndTag is null)
+        {
+            return token.Kind is not (SyntaxKind.OpenAngle or SyntaxKind.CloseAngle);
+        }
+
+        if (startOrEndTag.Span.Start == absoluteIndex)
+        {
+            // We're at the start of the tag, we should include snippets. This is the case for things like $$<div></div> or <div>$$</div>, since the
+            // index is right associative to the token when using FindToken.
+            return true;
+        }
+
+        return !startOrEndTag.Span.Contains(absoluteIndex);
     }
 
     private static VSInternalCompletionContext RewriteContext(VSInternalCompletionContext context, RazorLanguageKind languageKind)

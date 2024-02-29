@@ -4,6 +4,8 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -19,7 +21,7 @@ internal static class RazorSyntaxFacts
         attributeNameAbsoluteIndex = 0;
 
         var tree = codeDocument.GetSyntaxTree();
-        var owner = tree.GetOwner(absoluteIndex);
+        var owner = tree.Root.FindInnermostNode(absoluteIndex);
 
         var attributeName = owner?.Parent switch
         {
@@ -72,7 +74,7 @@ internal static class RazorSyntaxFacts
     public static bool TryGetFullAttributeNameSpan(RazorCodeDocument codeDocument, int absoluteIndex, out TextSpan attributeNameSpan)
     {
         var tree = codeDocument.GetSyntaxTree();
-        var owner = tree.GetOwner(absoluteIndex);
+        var owner = tree.Root.FindInnermostNode(absoluteIndex);
 
         attributeNameSpan = GetFullAttributeNameSpan(owner?.Parent);
 
@@ -117,11 +119,18 @@ internal static class RazorSyntaxFacts
         if (node is CSharpCodeBlockSyntax block &&
             block.Children.FirstOrDefault() is RazorDirectiveSyntax directive &&
             directive.Body is RazorDirectiveBodySyntax directiveBody &&
-            directiveBody.Keyword.GetContent().Equals("code"))
+            directiveBody.Keyword.GetContent() == "code")
         {
             return directiveBody.CSharpCode;
         }
 
         return null;
     }
+
+    public static bool IsAnyStartTag(SyntaxNode n)
+        => n.Kind is SyntaxKind.MarkupStartTag or SyntaxKind.MarkupTagHelperStartTag;
+            
+
+    public static bool IsAnyEndTag(SyntaxNode n)
+        => n.Kind is SyntaxKind.MarkupEndTag or SyntaxKind.MarkupTagHelperEndTag;
 }

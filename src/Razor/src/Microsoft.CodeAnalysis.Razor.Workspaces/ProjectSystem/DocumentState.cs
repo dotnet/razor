@@ -2,16 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -34,32 +31,24 @@ internal class DocumentState
     private VersionStamp? _version;
 
     public static DocumentState Create(
-        HostWorkspaceServices services,
         HostDocument hostDocument,
         Func<Task<TextAndVersion>>? loader)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
         if (hostDocument is null)
         {
             throw new ArgumentNullException(nameof(hostDocument));
         }
 
-        return new DocumentState(services, hostDocument, null, null, loader);
+        return new DocumentState(hostDocument, null, null, loader);
     }
 
     // Internal for testing
     internal DocumentState(
-        HostWorkspaceServices services,
         HostDocument hostDocument,
         SourceText? text,
         VersionStamp? version,
         Func<Task<TextAndVersion>>? loader)
     {
-        Services = services;
         HostDocument = hostDocument;
         _sourceText = text;
         _version = version;
@@ -68,8 +57,6 @@ internal class DocumentState
     }
 
     public HostDocument HostDocument { get; }
-
-    public HostWorkspaceServices Services { get; }
 
     public bool IsGeneratedOutputResultAvailable => ComputedState.IsResultAvailable == true;
 
@@ -92,11 +79,6 @@ internal class DocumentState
     public Task<(RazorCodeDocument output, VersionStamp inputVersion)> GetGeneratedOutputAndVersionAsync(ProjectSnapshot project, DocumentSnapshot document)
     {
         return ComputedState.GetGeneratedOutputAndVersionAsync(project, document);
-    }
-
-    public ImmutableArray<IDocumentSnapshot> GetImports(ProjectSnapshot project)
-    {
-        return GetImportsCore(project);
     }
 
     public async Task<SourceText> GetTextAsync()
@@ -171,7 +153,7 @@ internal class DocumentState
 
     public virtual DocumentState WithConfigurationChange()
     {
-        var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader)
+        var state = new DocumentState(HostDocument, _sourceText, _version, _loader)
         {
             // The source could not have possibly changed.
             _sourceText = _sourceText,
@@ -186,7 +168,7 @@ internal class DocumentState
 
     public virtual DocumentState WithImportsChange()
     {
-        var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader)
+        var state = new DocumentState(HostDocument, _sourceText, _version, _loader)
         {
             // The source could not have possibly changed.
             _sourceText = _sourceText,
@@ -202,7 +184,7 @@ internal class DocumentState
 
     public virtual DocumentState WithProjectWorkspaceStateChange()
     {
-        var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader)
+        var state = new DocumentState(HostDocument, _sourceText, _version, _loader)
         {
             // The source could not have possibly changed.
             _sourceText = _sourceText,
@@ -225,7 +207,7 @@ internal class DocumentState
 
         // Do not cache the computed state
 
-        return new DocumentState(Services, HostDocument, sourceText, version, null);
+        return new DocumentState(HostDocument, sourceText, version, null);
     }
 
     public virtual DocumentState WithTextLoader(Func<Task<TextAndVersion>> loader)
@@ -237,13 +219,13 @@ internal class DocumentState
 
         // Do not cache the computed state
 
-        return new DocumentState(Services, HostDocument, null, null, loader);
+        return new DocumentState(HostDocument, null, null, loader);
     }
 
-    private ImmutableArray<IDocumentSnapshot> GetImportsCore(ProjectSnapshot project)
+    // Internal, because we are temporarily sharing code with CohostDocumentSnapshot
+    internal static ImmutableArray<IDocumentSnapshot> GetImportsCore(IProjectSnapshot project, RazorProjectEngine projectEngine, string filePath, string fileKind)
     {
-        var projectEngine = project.GetProjectEngine();
-        var projectItem = projectEngine.FileSystem.GetItem(HostDocument.FilePath, HostDocument.FileKind);
+        var projectItem = projectEngine.FileSystem.GetItem(filePath, fileKind);
 
         using var _1 = ListPool<RazorProjectItem>.GetPooledObject(out var importItems);
 
@@ -279,8 +261,8 @@ internal class DocumentState
         return imports.ToImmutable();
     }
 
-    // See design notes on ProjectState.ComputedStateTracker.
-    private class ComputedStateTracker
+    // Internal, because we are temporarily sharing code with CohostDocumentSnapshot
+    internal class ComputedStateTracker
     {
         private readonly object _lock;
 
@@ -439,7 +421,7 @@ internal class DocumentState
             var configurationVersion = project.State.ConfigurationVersion;
             var projectWorkspaceStateVersion = project.State.ProjectWorkspaceStateVersion;
             var documentCollectionVersion = project.State.DocumentCollectionVersion;
-            var imports = await GetImportsAsync(document).ConfigureAwait(false);
+            var imports = await GetImportsAsync(document, project.GetProjectEngine()).ConfigureAwait(false);
             var documentVersion = await document.GetTextVersionAsync().ConfigureAwait(false);
 
             // OK now that have the previous output and all of the versions, we can see if anything
@@ -460,9 +442,9 @@ internal class DocumentState
                 inputVersion = documentCollectionVersion;
             }
 
-            for (var i = 0; i < imports.Count; i++)
+            foreach (var import in imports)
             {
-                var importVersion = imports[i].Version;
+                var importVersion = import.Version;
                 if (inputVersion.GetNewerVersion(importVersion) == importVersion)
                 {
                     inputVersion = importVersion;
@@ -485,9 +467,15 @@ internal class DocumentState
                 }
             }
 
+            var tagHelpers = await project.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
+            var codeDocument = await GenerateCodeDocumentAsync(tagHelpers, project.GetProjectEngine(), document, imports).ConfigureAwait(false);
+            return (codeDocument, inputVersion);
+        }
+
+        internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(ImmutableArray<TagHelperDescriptor> tagHelpers, RazorProjectEngine projectEngine, IDocumentSnapshot document, ImmutableArray<ImportItem> imports)
+        {
             // OK we have to generate the code.
-            var importSources = new List<RazorSourceDocument>();
-            var projectEngine = project.GetProjectEngine();
+            using var importSources = new PooledArrayBuilder<RazorSourceDocument>(imports.Length);
             foreach (var item in imports)
             {
                 var importProjectItem = item.FilePath is null ? null : projectEngine.FileSystem.GetItem(item.FilePath, item.FileKind);
@@ -498,42 +486,32 @@ internal class DocumentState
             var projectItem = document.FilePath is null ? null : projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
             var documentSource = await GetRazorSourceDocumentAsync(document, projectItem).ConfigureAwait(false);
 
-            var codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
-            return (codeDocument, inputVersion);
+            return projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources.DrainToImmutable(), tagHelpers);
         }
 
         private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(IDocumentSnapshot document, RazorProjectItem? projectItem)
         {
             var sourceText = await document.GetTextAsync().ConfigureAwait(false);
-            return sourceText.GetRazorSourceDocument(document.FilePath, projectItem?.RelativePhysicalPath);
+            return RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath));
         }
 
-        private static async Task<IReadOnlyList<ImportItem>> GetImportsAsync(IDocumentSnapshot document)
+        internal static async Task<ImmutableArray<ImportItem>> GetImportsAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine)
         {
-            var imports = new List<ImportItem>();
-            foreach (var snapshot in document.GetImports())
+            var imports = DocumentState.GetImportsCore(document.Project, projectEngine, document.FilePath.AssumeNotNull(), document.FileKind.AssumeNotNull());
+            using var result = new PooledArrayBuilder<ImportItem>(imports.Length);
+
+            foreach (var snapshot in imports)
             {
                 var versionStamp = await snapshot.GetTextVersionAsync().ConfigureAwait(false);
-                imports.Add(new ImportItem(snapshot.FilePath, versionStamp, snapshot));
+                result.Add(new ImportItem(snapshot.FilePath, versionStamp, snapshot));
             }
 
-            return imports;
+            return result.DrainToImmutable();
         }
 
-        private readonly struct ImportItem
+        internal record struct ImportItem(string? FilePath, VersionStamp Version, IDocumentSnapshot Document)
         {
-            public string? FilePath { get; }
-            public VersionStamp Version { get; }
-            public IDocumentSnapshot Document { get; }
-
-            public string? FileKind => Document.FileKind;
-
-            public ImportItem(string? filePath, VersionStamp version, IDocumentSnapshot document)
-            {
-                FilePath = filePath;
-                Version = version;
-                Document = document;
-            }
+            public readonly string? FileKind => Document.FileKind;
         }
 
         private class ComputedOutput

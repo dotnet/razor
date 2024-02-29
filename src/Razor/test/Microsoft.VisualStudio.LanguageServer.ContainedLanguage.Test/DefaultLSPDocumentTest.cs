@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.VisualStudio.Test;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class DefaultLSPDocumentTest : TestBase
+public class DefaultLSPDocumentTest : ToolingTestBase
 {
     private readonly Uri _uri;
     private readonly IContentType _notInertContentType;

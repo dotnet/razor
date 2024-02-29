@@ -4,18 +4,24 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
+internal abstract class ProjectSnapshotManagerBase : IProjectSnapshotManager
 {
-    internal abstract Workspace Workspace { get; }
+    public abstract event EventHandler<ProjectChangeEventArgs> Changed;
 
-    internal abstract IErrorReporter ErrorReporter { get; }
+    public abstract ImmutableArray<IProjectSnapshot> GetProjects();
+
+    public abstract bool IsDocumentOpen(string documentFilePath);
+
+    public abstract IProjectSnapshot GetLoadedProject(ProjectKey projectKey);
+
+    public abstract bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project);
+
+    public abstract ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
 
     internal abstract ImmutableArray<string> GetOpenDocuments();
 
@@ -48,18 +54,4 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
     internal abstract void SolutionOpened();
 
     internal abstract void SolutionClosed();
-
-    /// <summary>
-    /// Gets a project if it's already loaded, or calls <see cref="ProjectAdded(HostProject)" /> with a new host project
-    /// </summary>
-    internal abstract IProjectSnapshot GetOrAddLoadedProject(ProjectKey projectKey, Func<HostProject> createHostProjectFunc);
-
-    internal abstract bool TryRemoveLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project);
-
-    internal abstract void UpdateProject(
-        ProjectKey projectKey,
-        RazorConfiguration configuration,
-        ProjectWorkspaceState projectWorkspaceState,
-        string? rootNamespace,
-        Func<IProjectSnapshot, ImmutableArray<IUpdateProjectAction>> calculateUpdates);
 }

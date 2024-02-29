@@ -7,14 +7,39 @@
         <target state="translated">Blazor 指示詞屬性</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changes">
+        <source>Changes:</source>
+        <target state="translated">變更:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
         <target state="translated">從標籤建立元件</target>
         <note />
       </trans-unit>
+      <trans-unit id="Diagnostics_after">
+        <source>Diagnostics after:</source>
+        <target state="translated">在以下事項之後的診斷:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostics_before">
+        <source>Diagnostics before:</source>
+        <target state="translated">在以下事項之前的診斷:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_Not_Found">
         <source>Document {0} was not found.</source>
         <target state="translated">找不到文件 {0}。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_adds">
+        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
+        <target state="translated">在 {0} 處編輯將新增非空白內容 '{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_deletes">
+        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
+        <target state="translated">在 {0} 處編輯將刪除非空白內容 '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
@@ -24,7 +49,17 @@
       </trans-unit>
       <trans-unit id="File_Externally_Modified">
         <source>File was externally modified: {0}</source>
-        <target state="new">File was externally modified: {0}</target>
+        <target state="translated">已在外部修改檔案: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_operation_changed_diagnostics">
+        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
+        <target state="translated">將放棄格式化作業，因為它將引入或移除一個或多個診斷。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_operation_changed_nonwhitespace">
+        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
+        <target state="translated">將放棄格式化作業，因為它將新增或删除非空白內容。</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
@@ -44,10 +79,20 @@
       </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
         <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="new">Razor language services not configured properly, missing language service '{0}'.</target>
+        <target state="translated">未正確設定 Razor 語言服務，遺漏語言服務 '{0}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="PositionIndex_Outside_Range">
+      <trans-unit id="Not_Available_In">
+        <source>Not available in</source>
+        <target state="translated">無法使用於</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PositionCharacter_Outside_Range">
+        <source>Character '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
+        <target state="translated">已查詢 '{2}' 的 {1} 範圍以外的字元 '{0}'。文件可能不是最新。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PositionLine_Outside_Range">
         <source>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
         <target state="translated">已查詢 '{2}' 之 {1} 範圍以外的行 '{0}'。文件可能不是最新狀態。</target>
         <note />
@@ -69,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
-        <target state="new">Unknown ProjectChangeKind {0}</target>
+        <target state="translated">未知的 ProjectChangeKind {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">

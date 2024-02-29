@@ -3,32 +3,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal class SnapshotResolver : ISnapshotResolver
+[Export(typeof(ISnapshotResolver)), Shared]
+internal sealed class SnapshotResolver : ISnapshotResolver
 {
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
-    private readonly ILogger<SnapshotResolver> _logger;
+    private readonly IProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly ILogger _logger;
 
     // Internal for testing
     internal readonly HostProject MiscellaneousHostProject;
 
-    public SnapshotResolver(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor, ILoggerFactory loggerFactory)
+    [ImportingConstructor]
+    public SnapshotResolver(IProjectSnapshotManagerAccessor projectSnapshotManagerAccessor, IRazorLoggerFactory loggerFactory)
     {
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        _logger = loggerFactory?.CreateLogger<SnapshotResolver>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+        _logger = loggerFactory.CreateLogger<SnapshotResolver>();
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         var normalizedPath = FilePathNormalizer.Normalize(miscellaneousProjectPath);
-        MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null);
+        MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null, "Miscellaneous Files");
     }
 
     /// <inheritdoc/>
@@ -49,7 +54,7 @@ internal class SnapshotResolver : ISnapshotResolver
                 continue;
             }
 
-            var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
+            var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(projectSnapshot.FilePath);
             if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance))
             {
                 yield return projectSnapshot;
@@ -59,8 +64,7 @@ internal class SnapshotResolver : ISnapshotResolver
 
     public IProjectSnapshot GetMiscellaneousProject()
     {
-        var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.Key);
-        if (miscellaneousProject is null)
+        if (!_projectSnapshotManagerAccessor.Instance.TryGetLoadedProject(MiscellaneousHostProject.Key, out var miscellaneousProject))
         {
             _projectSnapshotManagerAccessor.Instance.ProjectAdded(MiscellaneousHostProject);
             miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.Key);

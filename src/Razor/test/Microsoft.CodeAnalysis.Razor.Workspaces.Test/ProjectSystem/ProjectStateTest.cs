@@ -1,17 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,8 +22,6 @@ public class ProjectStateTest : WorkspaceTestBase
     private readonly HostProject _hostProject;
     private readonly HostProject _hostProjectWithConfigurationChange;
     private readonly ProjectWorkspaceState _projectWorkspaceState;
-    private TestTagHelperResolver _tagHelperResolver;
-    private readonly ImmutableArray<TagHelperDescriptor> _someTagHelpers;
     private readonly Func<Task<TextAndVersion>> _textLoader;
     private readonly SourceText _text;
 
@@ -34,13 +30,9 @@ public class ProjectStateTest : WorkspaceTestBase
     {
         _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
         _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
-        _projectWorkspaceState = new ProjectWorkspaceState(
+        _projectWorkspaceState = ProjectWorkspaceState.Create(
             ImmutableArray.Create(
-                TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
-            csharpLanguageVersion: default);
-
-        _someTagHelpers = ImmutableArray.Create(
-            TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build());
+                TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()));
 
         _documents = new HostDocument[]
         {
@@ -55,12 +47,6 @@ public class ProjectStateTest : WorkspaceTestBase
         _textLoader = () => Task.FromResult(TextAndVersion.Create(_text, VersionStamp.Create()));
     }
 
-    protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
-    {
-        _tagHelperResolver = new TestTagHelperResolver();
-        services.Add(_tagHelperResolver);
-    }
-
     protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
     {
         builder.SetImportFeature(new TestImportProjectFeature());
@@ -70,7 +56,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void GetImportDocumentTargetPaths_DoesNotIncludeCurrentImport()
     {
         // Arrange
-        var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
 
         // Act
         var paths = state.GetImportDocumentTargetPaths(TestProjectData.SomeProjectComponentImportFile1);
@@ -85,7 +71,7 @@ public class ProjectStateTest : WorkspaceTestBase
         // Arrange
 
         // Act
-        var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
 
         // Assert
         Assert.Empty(state.Documents);
@@ -96,7 +82,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_AddHostDocument_ToEmpty()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
 
         // Act
         var state = original.WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
@@ -114,7 +100,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public async Task ProjectState_AddHostDocument_DocumentIsEmpty()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
 
         // Act
         var state = original.WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
@@ -128,7 +114,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_AddHostDocument_ToProjectWithDocuments()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -152,7 +138,7 @@ public class ProjectStateTest : WorkspaceTestBase
         // Arrange
 
         // Act
-        var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectFile2, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectNestedFile3, DocumentState.EmptyLoader)
@@ -191,7 +177,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_AddHostDocument_TracksImports_AddImportFile()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectFile2, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectNestedFile3, DocumentState.EmptyLoader)
@@ -234,7 +220,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_AddHostDocument_RetainsComputedState()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -267,7 +253,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_AddHostDocument_DuplicateNoops()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -282,7 +268,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public async Task ProjectState_WithChangedHostDocument_Loader()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -302,7 +288,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public async Task ProjectState_WithChangedHostDocument_Snapshot()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -322,7 +308,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithChangedHostDocument_Loader_RetainsComputedState()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -354,7 +340,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithChangedHostDocument_Snapshot_RetainsComputedState()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -386,7 +372,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithChangedHostDocument_Loader_NotFoundNoops()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -401,7 +387,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithChangedHostDocument_Snapshot_NotFoundNoops()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -416,7 +402,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_RemoveHostDocument_FromProjectWithDocuments()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -437,7 +423,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_RemoveHostDocument_TracksImports()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectFile2, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectNestedFile3, DocumentState.EmptyLoader)
@@ -477,7 +463,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_RemoveHostDocument_TracksImports_RemoveAllDocuments()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectFile2, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectNestedFile3, DocumentState.EmptyLoader)
@@ -499,7 +485,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_RemoveHostDocument_RetainsComputedState()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -531,7 +517,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_RemoveHostDocument_NotFoundNoops()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -546,15 +532,13 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithHostProject_ConfigurationChange_UpdatesConfigurationState()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
         // Force init
         var originalTagHelpers = original.TagHelpers;
         var originalProjectWorkspaceStateVersion = original.ConfigurationVersion;
-
-        _tagHelperResolver.TagHelpers = _someTagHelpers;
 
         // Act
         var state = original.WithHostProject(_hostProjectWithConfigurationChange);
@@ -586,7 +570,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithHostProject_RootNamespaceChange_UpdatesConfigurationState()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
         var hostProjectWithRootNamespaceChange = new HostProject(
@@ -599,8 +583,6 @@ public class ProjectStateTest : WorkspaceTestBase
         _ = original.TagHelpers;
         _ = original.ConfigurationVersion;
 
-        _tagHelperResolver.TagHelpers = _someTagHelpers;
-
         // Act
         var state = original.WithHostProject(hostProjectWithRootNamespaceChange);
 
@@ -612,7 +594,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithHostProject_NoConfigurationChange_Noops()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -633,10 +615,10 @@ public class ProjectStateTest : WorkspaceTestBase
         var callCount = 0;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[_documents[1].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[1], onConfigurationChange: () => callCount++);
-        documents[_documents[2].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[2], onConfigurationChange: () => callCount++);
+        documents[_documents[1].FilePath] = TestDocumentState.Create(_documents[1], onConfigurationChange: () => callCount++);
+        documents[_documents[2].FilePath] = TestDocumentState.Create(_documents[2], onConfigurationChange: () => callCount++);
 
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
 
         // Act
@@ -652,7 +634,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithHostProject_ResetsImportedDocuments()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
         original = original.WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader);
 
         // Act
@@ -665,86 +647,10 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithProjectWorkspaceState_Removed()
-    {
-        // Arrange
-        var emptyProjectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
-        var original = ProjectState.Create(Workspace.Services, _hostProject, emptyProjectWorkspaceState)
-            .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
-            .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
-
-        // Force init
-        var originalTagHelpers = original.TagHelpers;
-        var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
-
-        // Act
-        var state = original.WithProjectWorkspaceState(null);
-
-        // Assert
-        Assert.NotEqual(original.Version, state.Version);
-        Assert.Null(state.ProjectWorkspaceState);
-
-        var actualTagHelpers = state.TagHelpers;
-        var actualProjectWorkspaceStateVersion = state.ProjectWorkspaceStateVersion;
-
-        // The configuration didn't change, and the tag helpers didn't actually change
-        Assert.Same(original.ProjectEngine, state.ProjectEngine);
-
-        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
-        for (var i = 0; i < originalTagHelpers.Length; i++)
-        {
-            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
-        }
-
-        Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
-
-        Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
-        Assert.NotSame(original.Documents[_documents[2].FilePath], state.Documents[_documents[2].FilePath]);
-    }
-
-    [Fact]
-    public void ProjectState_WithProjectWorkspaceState_Added()
-    {
-        // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, null)
-            .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
-            .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
-
-        // Force init
-        var originalTagHelpers = original.TagHelpers;
-        var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
-        var newProjectWorkspaceState = ProjectWorkspaceState.Default;
-
-        // Act
-        var state = original.WithProjectWorkspaceState(newProjectWorkspaceState);
-
-        // Assert
-        Assert.NotEqual(original.Version, state.Version);
-        Assert.Same(newProjectWorkspaceState, state.ProjectWorkspaceState);
-
-        var actualTagHelpers = state.TagHelpers;
-        var actualProjectWorkspaceStateVersion = state.ProjectWorkspaceStateVersion;
-
-        // The configuration didn't change, and the tag helpers didn't actually change
-        Assert.Same(original.ProjectEngine, state.ProjectEngine);
-
-        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
-        for (var i = 0; i < originalTagHelpers.Length; i++)
-        {
-            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
-        }
-
-        Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
-
-        Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
-        Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
-    }
-
-    [Fact]
     public void ProjectState_WithProjectWorkspaceState_Changed()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -752,7 +658,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalTagHelpers = original.TagHelpers;
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
-        var changed = new ProjectWorkspaceState(_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
+        var changed = ProjectWorkspaceState.Create(_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);
@@ -783,7 +689,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithProjectWorkspaceState_Changed_TagHelpersChanged()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -791,10 +697,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalTagHelpers = original.TagHelpers;
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
-        var changed = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
-
-        // Now create some tag helpers
-        _tagHelperResolver.TagHelpers = _someTagHelpers;
+        var changed = ProjectWorkspaceState.Default;
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);
@@ -820,7 +723,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithProjectWorkspaceState_IdenticalState_Caches()
     {
         // Arrange
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
@@ -828,10 +731,7 @@ public class ProjectStateTest : WorkspaceTestBase
         _ = original.TagHelpers;
         _ = original.ProjectWorkspaceStateVersion;
 
-        var changed = new ProjectWorkspaceState(original.TagHelpers, original.CSharpLanguageVersion);
-
-        // Now create some tag helpers
-        _tagHelperResolver.TagHelpers = _someTagHelpers;
+        var changed = ProjectWorkspaceState.Create(original.TagHelpers, original.CSharpLanguageVersion);
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);
@@ -847,13 +747,13 @@ public class ProjectStateTest : WorkspaceTestBase
         var callCount = 0;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[_documents[1].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[1], onProjectWorkspaceStateChange: () => callCount++);
-        documents[_documents[2].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[2], onProjectWorkspaceStateChange: () => callCount++);
+        documents[_documents[1].FilePath] = TestDocumentState.Create(_documents[1], onProjectWorkspaceStateChange: () => callCount++);
+        documents[_documents[2].FilePath] = TestDocumentState.Create(_documents[2], onProjectWorkspaceStateChange: () => callCount++);
 
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
 
-        var changed = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
+        var changed = ProjectWorkspaceState.Default;
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);
@@ -875,10 +775,10 @@ public class ProjectStateTest : WorkspaceTestBase
         var document4 = TestProjectData.AnotherProjectNestedFile4;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -894,7 +794,7 @@ public class ProjectStateTest : WorkspaceTestBase
                 TestProjectData.SomeProjectNestedFile3.FilePath,
                 TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
         original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
@@ -918,10 +818,10 @@ public class ProjectStateTest : WorkspaceTestBase
         var document4 = TestProjectData.AnotherProjectNestedFile4;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -937,7 +837,7 @@ public class ProjectStateTest : WorkspaceTestBase
                 TestProjectData.SomeProjectNestedFile3.FilePath,
                 TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
         original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
@@ -962,11 +862,11 @@ public class ProjectStateTest : WorkspaceTestBase
         var document5 = TestProjectData.AnotherProjectNestedImportFile;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
-        documents[document5.FilePath] = TestDocumentState.Create(Workspace.Services, document5, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
+        documents[document5.FilePath] = TestDocumentState.Create(document5, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -983,7 +883,7 @@ public class ProjectStateTest : WorkspaceTestBase
                 TestProjectData.SomeProjectNestedFile3.FilePath,
                 TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
         original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
@@ -1008,11 +908,11 @@ public class ProjectStateTest : WorkspaceTestBase
         var document5 = TestProjectData.AnotherProjectNestedImportFile;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
-        documents[document5.FilePath] = TestDocumentState.Create(Workspace.Services, document5, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
+        documents[document5.FilePath] = TestDocumentState.Create(document5, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -1029,7 +929,7 @@ public class ProjectStateTest : WorkspaceTestBase
                 TestProjectData.SomeProjectNestedFile3.FilePath,
                 TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
         original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
@@ -1054,11 +954,11 @@ public class ProjectStateTest : WorkspaceTestBase
         var document5 = TestProjectData.AnotherProjectNestedImportFile;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[document1.FilePath] = TestDocumentState.Create(Workspace.Services, document1, onImportsChange: () => callCount++);
-        documents[document2.FilePath] = TestDocumentState.Create(Workspace.Services, document2, onImportsChange: () => callCount++);
-        documents[document3.FilePath] = TestDocumentState.Create(Workspace.Services, document3, onImportsChange: () => callCount++);
-        documents[document4.FilePath] = TestDocumentState.Create(Workspace.Services, document4, onImportsChange: () => callCount++);
-        documents[document5.FilePath] = TestDocumentState.Create(Workspace.Services, document5, onImportsChange: () => callCount++);
+        documents[document1.FilePath] = TestDocumentState.Create(document1, onImportsChange: () => callCount++);
+        documents[document2.FilePath] = TestDocumentState.Create(document2, onImportsChange: () => callCount++);
+        documents[document3.FilePath] = TestDocumentState.Create(document3, onImportsChange: () => callCount++);
+        documents[document4.FilePath] = TestDocumentState.Create(document4, onImportsChange: () => callCount++);
+        documents[document5.FilePath] = TestDocumentState.Create(document5, onImportsChange: () => callCount++);
 
         var importsToRelatedDocuments = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(FilePathComparer.Instance);
         importsToRelatedDocuments.Add(
@@ -1075,7 +975,7 @@ public class ProjectStateTest : WorkspaceTestBase
                 TestProjectData.SomeProjectNestedFile3.FilePath,
                 TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-        var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
         original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
@@ -1090,17 +990,15 @@ public class ProjectStateTest : WorkspaceTestBase
     private class TestDocumentState : DocumentState
     {
         public static TestDocumentState Create(
-            HostWorkspaceServices services,
             HostDocument hostDocument,
-            Func<Task<TextAndVersion>> loader = null,
-            Action onTextChange = null,
-            Action onTextLoaderChange = null,
-            Action onConfigurationChange = null,
-            Action onImportsChange = null,
-            Action onProjectWorkspaceStateChange = null)
+            Func<Task<TextAndVersion>>? loader = null,
+            Action? onTextChange = null,
+            Action? onTextLoaderChange = null,
+            Action? onConfigurationChange = null,
+            Action? onImportsChange = null,
+            Action? onProjectWorkspaceStateChange = null)
         {
             return new TestDocumentState(
-                services,
                 hostDocument,
                 null,
                 null,
@@ -1112,24 +1010,23 @@ public class ProjectStateTest : WorkspaceTestBase
                 onProjectWorkspaceStateChange);
         }
 
-        private readonly Action _onTextChange;
-        private readonly Action _onTextLoaderChange;
-        private readonly Action _onConfigurationChange;
-        private readonly Action _onImportsChange;
-        private readonly Action _onProjectWorkspaceStateChange;
+        private readonly Action? _onTextChange;
+        private readonly Action? _onTextLoaderChange;
+        private readonly Action? _onConfigurationChange;
+        private readonly Action? _onImportsChange;
+        private readonly Action? _onProjectWorkspaceStateChange;
 
         private TestDocumentState(
-            HostWorkspaceServices services,
             HostDocument hostDocument,
-            SourceText text,
+            SourceText? text,
             VersionStamp? version,
-            Func<Task<TextAndVersion>> loader,
-            Action onTextChange,
-            Action onTextLoaderChange,
-            Action onConfigurationChange,
-            Action onImportsChange,
-            Action onProjectWorkspaceStateChange)
-            : base(services, hostDocument, text, version, loader)
+            Func<Task<TextAndVersion>>? loader,
+            Action? onTextChange,
+            Action? onTextLoaderChange,
+            Action? onConfigurationChange,
+            Action? onImportsChange,
+            Action? onProjectWorkspaceStateChange)
+            : base(hostDocument, text, version, loader)
         {
             _onTextChange = onTextChange;
             _onTextLoaderChange = onTextLoaderChange;

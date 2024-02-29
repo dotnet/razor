@@ -7,10 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
-using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -22,15 +22,9 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
-public class RazorLanguageService_IVsLanguageDebugInfoTest : TestBase
+public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private readonly TextSpan[] _textSpans;
-
-    public RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _textSpans = new[] { new TextSpan() };
-    }
+    private readonly TextSpan[] _textSpans = [new TextSpan()];
 
     [Fact]
     public void ValidateBreakpointLocation_CanNotGetBackingTextBuffer_ReturnsNotImpl()
@@ -216,7 +210,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest : TestBase
         }
 
         uiThreadOperationExecutor ??= new TestIUIThreadOperationExecutor();
-        editorAdaptersFactory ??= Mock.Of<IVsEditorAdaptersFactoryService>(service => service.GetDataBuffer(It.IsAny<IVsTextBuffer>()) == new TestTextBuffer(new StringTextSnapshot(Environment.NewLine)), MockBehavior.Strict);
+        editorAdaptersFactory ??= Mock.Of<IVsEditorAdaptersFactoryService>(service => service.GetDataBuffer(It.IsAny<IVsTextBuffer>()) == new TestTextBuffer(new StringTextSnapshot(Environment.NewLine), /* contentType */ null), MockBehavior.Strict);
 
         var lspServerActivationTracker = new LspServerActivationTracker();
         lspServerActivationTracker.Activated();

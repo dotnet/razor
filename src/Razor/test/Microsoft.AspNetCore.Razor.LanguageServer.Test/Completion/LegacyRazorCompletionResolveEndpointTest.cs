@@ -3,13 +3,13 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -27,13 +27,13 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
     private readonly CompletionListCache _completionListCache;
     private readonly VSInternalCompletionSetting _completionCapability;
     private readonly VSInternalClientCapabilities _defaultClientCapability;
-    private readonly VSInternalClientCapabilities _vsClientCapability;
 
     public LegacyRazorCompletionResolveEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _lspTagHelperTooltipFactory = Mock.Of<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-        _vsLspTagHelperTooltipFactory = Mock.Of<VSLSPTagHelperTooltipFactory>(MockBehavior.Strict);
+        var snapshotResolver = new TestSnapshotResolver();
+        _lspTagHelperTooltipFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver).Object;
+        _vsLspTagHelperTooltipFactory = new Mock<VSLSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver).Object;
         _completionListCache = new CompletionListCache();
         _completionCapability = new VSInternalCompletionSetting()
         {
@@ -50,15 +50,6 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
                 Completion = _completionCapability,
             },
         };
-
-        _vsClientCapability = new VSInternalClientCapabilities()
-        {
-            TextDocument = new TextDocumentClientCapabilities()
-            {
-                Completion = _completionCapability,
-            },
-            SupportsVisualStudioExtensions = true,
-        };
     }
 
     [Fact]
@@ -69,7 +60,7 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
         endpoint.ApplyCapabilities(new(), _defaultClientCapability);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.Directive);
         razorCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription("Test directive"));
-        var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
+        var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single();
         var parameters = ConvertToBridgedItem(completionItem);
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -89,7 +80,7 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
         endpoint.ApplyCapabilities(new(), _defaultClientCapability);
         var razorCompletionItem = new RazorCompletionItem("@...", "@", RazorCompletionItemKind.MarkupTransition);
         razorCompletionItem.SetMarkupTransitionCompletionDescription(new MarkupTransitionCompletionDescription("Test description"));
-        var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
+        var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single();
         var parameters = ConvertToBridgedItem(completionItem);
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -105,7 +96,8 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
     public async Task Handle_Resolve_DirectiveAttributeCompletion_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
+        var snapshotResolver = new TestSnapshotResolver();
+        var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver);
         var markdown = new MarkupContent
         {
             Kind = MarkupKind.Markdown,
@@ -116,8 +108,8 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
         var endpoint = new LegacyRazorCompletionResolveEndpoint(lspDescriptionFactory.Object, _vsLspTagHelperTooltipFactory, _completionListCache, LoggerFactory);
         endpoint.ApplyCapabilities(new(), _defaultClientCapability);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttribute);
-        razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
-        var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
+        razorCompletionItem.SetAttributeCompletionDescription(AggregateBoundAttributeDescription.Empty);
+        var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single();
         var parameters = ConvertToBridgedItem(completionItem);
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -133,7 +125,8 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
     public async Task Handle_Resolve_DirectiveAttributeParameterCompletion_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var descriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
+        var snapshotResolver = new TestSnapshotResolver();
+        var descriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver);
         var markdown = new MarkupContent
         {
             Kind = MarkupKind.Markdown,
@@ -144,8 +137,8 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
         var endpoint = new LegacyRazorCompletionResolveEndpoint(descriptionFactory.Object, _vsLspTagHelperTooltipFactory, _completionListCache, LoggerFactory);
         endpoint.ApplyCapabilities(new(), _defaultClientCapability);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttributeParameter);
-        razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
-        var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
+        razorCompletionItem.SetAttributeCompletionDescription(AggregateBoundAttributeDescription.Empty);
+        var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single();
         var parameters = ConvertToBridgedItem(completionItem);
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -161,19 +154,20 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
     public async Task Handle_Resolve_TagHelperElementCompletion_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
+        var snapshotResolver = new TestSnapshotResolver();
+        var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver);
         var markdown = new MarkupContent
         {
             Kind = MarkupKind.Markdown,
             Value = "Some Markdown"
         };
-        lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), MarkupKind.Markdown, out markdown))
-            .Returns(true);
+        lspDescriptionFactory.Setup(factory => factory.TryCreateTooltipAsync(It.IsAny<string>(), It.IsAny<AggregateBoundElementDescription>(), MarkupKind.Markdown, It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(markdown));
         var endpoint = new LegacyRazorCompletionResolveEndpoint(lspDescriptionFactory.Object, _vsLspTagHelperTooltipFactory, _completionListCache, LoggerFactory);
         endpoint.ApplyCapabilities(new(), _defaultClientCapability);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperElement);
-        razorCompletionItem.SetTagHelperElementDescriptionInfo(new AggregateBoundElementDescription(Array.Empty<BoundElementDescriptionInfo>()));
-        var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
+        razorCompletionItem.SetTagHelperElementDescriptionInfo(AggregateBoundElementDescription.Empty);
+        var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single();
         var parameters = ConvertToBridgedItem(completionItem);
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -189,7 +183,8 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
     public async Task Handle_Resolve_TagHelperAttribute_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
+        var snapshotResolver = new TestSnapshotResolver();
+        var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver);
         var markdown = new MarkupContent
         {
             Kind = MarkupKind.Markdown,
@@ -200,8 +195,8 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
         var endpoint = new LegacyRazorCompletionResolveEndpoint(lspDescriptionFactory.Object, _vsLspTagHelperTooltipFactory, _completionListCache, LoggerFactory);
         endpoint.ApplyCapabilities(new(), _defaultClientCapability);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute);
-        razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
-        var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
+        razorCompletionItem.SetAttributeCompletionDescription(AggregateBoundAttributeDescription.Empty);
+        var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single();
         var parameters = ConvertToBridgedItem(completionItem);
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -223,8 +218,8 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
             Kind = MarkupKind.Markdown,
             Value = "Some Markdown"
         };
-        lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), MarkupKind.Markdown, out markdown))
-            .Returns(true);
+        lspDescriptionFactory.Setup(factory => factory.TryCreateTooltipAsync(It.IsAny<string>(), It.IsAny<AggregateBoundElementDescription>(), MarkupKind.Markdown, It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(markdown));
         var endpoint = new LegacyRazorCompletionResolveEndpoint(_lspTagHelperTooltipFactory, _vsLspTagHelperTooltipFactory, _completionListCache, LoggerFactory);
         endpoint.ApplyCapabilities(new(), _defaultClientCapability);
         var completionItem = new CompletionItem();
@@ -238,10 +233,12 @@ public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
         Assert.Null(newCompletionItem.Documentation);
     }
 
-    private VSInternalCompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems)
+    private VSInternalCompletionList CreateLSPCompletionList(params RazorCompletionItem[] razorCompletionItems)
     {
-        var completionList = LegacyRazorCompletionEndpoint.CreateLSPCompletionList(razorCompletionItems, _defaultClientCapability);
-        var resultId = _completionListCache.Add(completionList, razorCompletionItems);
+        var completionItems = razorCompletionItems.ToImmutableArray();
+        var completionList = LegacyRazorCompletionEndpoint.CreateLSPCompletionList(completionItems, _defaultClientCapability);
+        var context = new RazorCompletionResolveContext("file.cshtml", completionItems);
+        var resultId = _completionListCache.Add(completionList, context);
         completionList.SetResultId(resultId, completionSetting: null);
         return completionList;
     }

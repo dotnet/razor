@@ -7,11 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
-using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 
-public class DefaultRazorBreakpointResolverTest : TestBase
+public class DefaultRazorBreakpointResolverTest : ToolingTestBase
 {
     private const string ValidBreakpointCSharp = "private int foo = 123;";
     private const string InvalidBreakpointCSharp = "private int bar;";
@@ -35,21 +35,22 @@ public class DefaultRazorBreakpointResolverTest : TestBase
         _documentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
         _csharpDocumentUri = new Uri(_documentUri.OriginalString + ".g.cs", UriKind.Absolute);
 
-        var csharpTextSnapshot = new StringTextSnapshot(
-$@"public class SomeRazorFile
-{{
-    {ValidBreakpointCSharp}
-    {InvalidBreakpointCSharp}
-}}");
+        var csharpTextSnapshot = new StringTextSnapshot($$"""
+            public class SomeRazorFile
+            {
+                {{ValidBreakpointCSharp}}
+                {{InvalidBreakpointCSharp}}
+            }
+            """);
         _csharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
 
-        var textBufferSnapshot = new StringTextSnapshot(@$"
-@code
-{{
-    {ValidBreakpointCSharp}
-    {InvalidBreakpointCSharp}
-}}
-");
+        var textBufferSnapshot = new StringTextSnapshot($$"""
+            @code
+            {
+                {{ValidBreakpointCSharp}}
+                {{InvalidBreakpointCSharp}}
+            }
+            """);
         _hostTextbuffer = new TestTextBuffer(textBufferSnapshot);
     }
 

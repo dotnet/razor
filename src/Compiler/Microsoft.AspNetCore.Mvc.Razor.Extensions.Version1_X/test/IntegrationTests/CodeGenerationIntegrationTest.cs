@@ -16,7 +16,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     private static readonly CSharpCompilation DefaultBaseCompilation = MvcShim.BaseCompilation.WithAssemblyName("AppCode");
 
     public CodeGenerationIntegrationTest()
-        : base(generateBaselines: null, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X")
+        : base(layer: TestProject.Layer.Compiler, generateBaselines: null, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X")
     {
         Configuration = RazorConfiguration.Create(
             RazorLanguageVersion.Version_1_1,
@@ -157,14 +157,14 @@ public class MyModel
     public void Sections_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-public class InputTestTagHelper : {typeof(TagHelper).FullName}
-{{
-    public ModelExpression For {{ get; set; }}
-}}
-");
+public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public ModelExpression For { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -320,14 +320,14 @@ public class ThisShouldBeGenerated
     public void ModelExpressionTagHelper_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-public class InputTestTagHelper : {typeof(TagHelper).FullName}
-{{
-    public ModelExpression For {{ get; set; }}
-}}
-");
+public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public ModelExpression For { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 
@@ -344,21 +344,21 @@ public class InputTestTagHelper : {typeof(TagHelper).FullName}
     public void ViewComponentTagHelper_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree($@"
+        AddCSharpSyntaxTree($$"""
 public class TestViewComponent
-{{
+{
     public string Invoke(string firstName)
-    {{
+    {
         return firstName;
-    }}
-}}
+    }
+}
 
-[{typeof(HtmlTargetElementAttribute).FullName}]
-public class AllTagHelper : {typeof(TagHelper).FullName}
-{{
-    public string Bar {{ get; set; }}
-}}
-");
+[{{typeof(HtmlTargetElementAttribute).FullName}}]
+public class AllTagHelper : {{typeof(TagHelper).FullName}}
+{
+    public string Bar { get; set; }
+}
+""");
 
         var projectItem = CreateProjectItemFromFile();
 

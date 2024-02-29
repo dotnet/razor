@@ -12,18 +12,18 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
-[LanguageServerEndpoint(Methods.TextDocumentFoldingRangeName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentFoldingRangeName)]
 internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangeParams, IEnumerable<FoldingRange>?>, ICapabilitiesProvider
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
     private readonly IEnumerable<IRazorFoldingRangeProvider> _foldingRangeProviders;
     private readonly ILogger _logger;
 
@@ -31,12 +31,12 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
 
     public FoldingRangeEndpoint(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         IEnumerable<IRazorFoldingRangeProvider> foldingRangeProviders,
-        ILoggerFactory loggerFactory)
+        IRazorLoggerFactory loggerFactory)
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
         _foldingRangeProviders = foldingRangeProviders ?? throw new ArgumentNullException(nameof(foldingRangeProviders));
         _logger = loggerFactory.CreateLogger<FoldingRangeEndpoint>();
     }
@@ -88,9 +88,9 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         return foldingRanges;
     }
 
-    private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentContext documentContext, CancellationToken cancellationToken)
+    private async Task<List<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentContext documentContext, CancellationToken cancellationToken)
     {
-        var foldingResponse = await _languageServer.SendRequestAsync<RazorFoldingRangeRequestParam, RazorFoldingRangeResponse?>(
+        var foldingResponse = await _clientConnection.SendRequestAsync<RazorFoldingRangeRequestParam, RazorFoldingRangeResponse?>(
             CustomMessageNames.RazorFoldingRangeEndpoint,
             requestParams,
             cancellationToken).ConfigureAwait(false);
@@ -132,7 +132,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         return finalRanges;
     }
 
-    private static IEnumerable<FoldingRange> FinalizeFoldingRanges(List<FoldingRange> mappedRanges, RazorCodeDocument codeDocument)
+    private List<FoldingRange> FinalizeFoldingRanges(List<FoldingRange> mappedRanges, RazorCodeDocument codeDocument)
     {
         // Don't allow ranges to be reported if they aren't spanning at least one line
         var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine);
@@ -144,27 +144,28 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
             .Select(ranges => ranges.OrderByDescending(r => r.EndLine).First());
 
         // Fix the starting range so the "..." is shown at the end
-        return reducedRanges.Select(r => FixFoldingRangeStart(r, codeDocument));
+        return reducedRanges.Select(r => FixFoldingRangeStart(r, codeDocument)).ToList();
     }
 
     /// <summary>
     /// Fixes the start of a range so that the offset of the first line is the last character on that line. This makes
     /// it so collapsing will still show the text instead of just "..."
     /// </summary>
-    private static FoldingRange FixFoldingRangeStart(FoldingRange range, RazorCodeDocument codeDocument)
+    private FoldingRange FixFoldingRangeStart(FoldingRange range, RazorCodeDocument codeDocument)
     {
         Debug.Assert(range.StartLine < range.EndLine);
 
-        // If the range has collapsed text set, we don't need
-        // to adjust anything. Just take that value as what
-        // should be shown
-        if (!string.IsNullOrEmpty(range.CollapsedText))
+        var sourceText = codeDocument.GetSourceText();
+        var startLine = range.StartLine;
+
+        if (startLine >= sourceText.Lines.Count)
         {
+            // Sometimes VS Code seems to send us wildly out-of-range folding ranges for Html, so log a warning,
+            // but prevent a toast from appearing from an exception.
+            _logger.LogWarning("Got a folding range of ({StartLine}-{EndLine}) but Razor document {filePath} only has {count} lines.", range.StartLine, range.EndLine, codeDocument.Source.FilePath, sourceText.Lines.Count);
             return range;
         }
 
-        var sourceText = codeDocument.GetSourceText();
-        var startLine = range.StartLine;
         var lineSpan = sourceText.Lines[startLine].Span;
 
         // Search from the end of the line to the beginning for the first non whitespace character. We want that
@@ -176,7 +177,9 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
             // +1 to the offset value because the helper goes to the character position
             // that we want to be after. Make sure we don't exceed the line end
             var newCharacter = Math.Min(offset.Value + 1, lineSpan.Length);
+
             range.StartCharacter = newCharacter;
+            range.CollapsedText = null; // Let the client deside what to show
             return range;
         }
 

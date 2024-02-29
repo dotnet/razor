@@ -10,29 +10,29 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 
-[LanguageServerEndpoint(Methods.TextDocumentReferencesName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentReferencesName)]
 internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParams, VSInternalReferenceItem[]>, ICapabilitiesProvider
 {
-    private readonly LanguageServerFeatureOptions _featureOptions;
+    private readonly FilePathService _filePathService;
     private readonly IRazorDocumentMappingService _documentMappingService;
 
     public FindAllReferencesEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
-        ILoggerFactory loggerFactory,
-        LanguageServerFeatureOptions featureOptions)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())
+        IClientConnection clientConnection,
+        IRazorLoggerFactory loggerFactory,
+        FilePathService filePathService)
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())
     {
-        _featureOptions = featureOptions;
+        _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
@@ -85,8 +85,8 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
             // Indicates the reference item is directly available in the code
             referenceItem.Origin = VSInternalItemOrigin.Exact;
 
-            if (!_featureOptions.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
-                !_featureOptions.IsVirtualHtmlFile(referenceItem.Location.Uri))
+            if (!_filePathService.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
+                !_filePathService.IsVirtualHtmlFile(referenceItem.Location.Uri))
             {
                 // This location doesn't point to a virtual file. No need to remap.
                 remappedLocations.Add(referenceItem);

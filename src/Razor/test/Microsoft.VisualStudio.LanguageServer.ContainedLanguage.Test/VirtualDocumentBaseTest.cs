@@ -5,16 +5,15 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common;
-using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class VirtualDocumentBaseTest : TestBase
+public class VirtualDocumentBaseTest : ToolingTestBase
 {
     private readonly Uri _uri;
 

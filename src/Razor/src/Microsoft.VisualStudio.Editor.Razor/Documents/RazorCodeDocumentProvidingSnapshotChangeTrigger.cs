@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
 [Export(typeof(RazorCodeDocumentProvidingSnapshotChangeTrigger))]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
-[System.Composition.Shared]
 internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IProjectSnapshotChangeTrigger
 {
     private readonly HashSet<string> _openDocuments = new(FilePathComparer.Instance);
@@ -76,8 +75,19 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IProjectSnapsho
             return null;
         }
 
-        var project = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-            () => _projectManager?.GetLoadedProject(projectKey), cancellationToken);
+        var project = await _projectSnapshotManagerDispatcher.RunAsync(
+            () =>
+            {
+                if (_projectManager is { } projectManager &&
+                    projectManager.TryGetLoadedProject(projectKey, out var project))
+                {
+                    return project;
+                }
+                else
+                {
+                    return null;
+                }
+            }, cancellationToken);
 
         if (project is null)
         {

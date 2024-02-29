@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -83,7 +84,7 @@ internal sealed class DefaultCSharpCodeActionProvider : ICSharpCodeActionProvide
         }
 
         var tree = context.CodeDocument.GetSyntaxTree();
-        var node = tree.GetOwner(context.Location.AbsoluteIndex);
+        var node = tree.Root.FindInnermostNode(context.Location.AbsoluteIndex);
         var isInImplicitExpression = node?.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax) ?? false;
 
         var allowList = isInImplicitExpression

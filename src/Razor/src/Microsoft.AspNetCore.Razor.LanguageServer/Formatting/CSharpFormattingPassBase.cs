@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
@@ -20,10 +20,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal abstract class CSharpFormattingPassBase : FormattingPassBase
 {
-    protected CSharpFormattingPassBase(IRazorDocumentMappingService documentMappingService, ClientNotifierServiceBase server)
-        : base(documentMappingService, server)
+    protected CSharpFormattingPassBase(IRazorDocumentMappingService documentMappingService, IClientConnection clientConnection)
+        : base(documentMappingService, clientConnection)
     {
-        CSharpFormatter = new CSharpFormatter(documentMappingService, server);
+        CSharpFormatter = new CSharpFormatter(documentMappingService, clientConnection);
     }
 
     protected CSharpFormatter CSharpFormatter { get; }
@@ -38,7 +38,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
         // 2. The indentation due to Razor and HTML constructs
 
         var text = context.SourceText;
-        range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
+        range ??= TextSpan.FromBounds(0, text.Length).ToRange(text);
 
         // To help with figuring out the correct indentation, first we will need the indentation
         // that the C# formatter wants to apply in the following locations,
@@ -58,20 +58,21 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
 #if DEBUG
             var spanText = context.SourceText.GetSubText(mappingSpan).ToString();
 #endif
-            if (!ShouldFormat(context, mappingSpan, allowImplicitStatements: true, out var owner))
+
+            var options = new ShouldFormatOptions(
+                // Implicit expressions and single line explicit expressions don't affect the indentation of anything
+                // under them, so we don't want their positions to be "significant".
+                AllowImplicitExpressions: false,
+                AllowSingleLineExplicitExpressions: false,
+
+                // Implicit statements are @if, @foreach etc. so they do affect indentation
+                AllowImplicitStatements: true,
+
+                IsLineRequest: false);
+
+            if (!ShouldFormat(context, mappingSpan, options, out var owner))
             {
                 // We don't care about this range as this can potentially lead to incorrect scopes.
-                continue;
-            }
-
-            // Special case: We are looking for "significant locations" that should affect indentation, but
-            // single line explicit expressions shouldn't. If there are any at the start of a line, the next
-            // loop will find them. Sadly the ShouldFormat method is used in too many places, for too many
-            // different purposes, to put this check there.
-            if (owner is { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
-                explicitExpression.Span.AsRange(text) is { } exprRange &&
-                exprRange.Start.Line == exprRange.End.Line)
-            {
                 continue;
             }
 
@@ -129,7 +130,12 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
                 continue;
             }
 
-            var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(originalLocation, 0, string.Empty));
+            if (originalLocation > syntaxTreeRoot.EndPosition)
+            {
+                continue;
+            }
+
+            var scopeOwner = syntaxTreeRoot.FindInnermostNode(originalLocation);
             sourceMappingIndentations[originalLocation] = new IndentationData(indentation);
 
             // For @section blocks we have special handling to add a fake source mapping/significant location at the end of the
@@ -286,21 +292,15 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
     }
 
     protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
-    {
-        return ShouldFormat(context, mappingSpan, allowImplicitStatements, out _);
-    }
+        => ShouldFormat(context, mappingSpan, allowImplicitStatements, out _);
 
     protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out SyntaxNode? foundOwner)
-    {
-        return ShouldFormatCore(context, mappingSpan, allowImplicitStatements, isLineRequest: false, out foundOwner);
-    }
+        => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: false), out foundOwner);
 
     private static bool ShouldFormatLine(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
-    {
-        return ShouldFormatCore(context, mappingSpan, allowImplicitStatements, isLineRequest: true, out _);
-    }
+        => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: true), out _);
 
-    private static bool ShouldFormatCore(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, bool isLineRequest, out SyntaxNode? foundOwner)
+    private static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, ShouldFormatOptions options, out SyntaxNode? foundOwner)
     {
         // We should be called with the range of various C# SourceMappings.
 
@@ -311,21 +311,8 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return true;
         }
 
-        var sourceText = context.SourceText;
-        var absoluteIndex = mappingSpan.Start;
-
-        if (mappingSpan.Length > 0)
-        {
-            // Slightly ugly hack to get around the behavior of LocateOwner.
-            // In some cases, using the start of a mapping doesn't work well
-            // because LocateOwner returns the previous node due to it owning the edge.
-            // So, if we can try to find the owner using a position that fully belongs to the current mapping.
-            absoluteIndex = mappingSpan.Start + 1;
-        }
-
-        var change = new SourceChange(absoluteIndex, 0, string.Empty);
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var owner = syntaxTree.Root.LocateOwner(change);
+        var owner = syntaxTree.Root.FindInnermostNode(mappingSpan.Start, includeWhitespace: true);
         if (owner is null)
         {
             // Can't determine owner of this position. Optimistically allow formatting.
@@ -333,12 +320,11 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return true;
         }
 
-        owner = FixOwnerToWorkaroundCompilerQuirks(owner);
         foundOwner = owner;
 
         // Special case: If we're formatting implicit statements, we want to treat the `@attribute` directive and
         // the `@typeparam` directive as one so that the C# content within them is formatted as C#
-        if (allowImplicitStatements &&
+        if (options.AllowImplicitStatements &&
             (
                 IsAttributeDirective() ||
                 IsTypeParamDirective()
@@ -347,23 +333,63 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return true;
         }
 
-        if (IsRazorComment() ||
-            IsInBoundComponentAttributeName() ||
-            IsInHtmlAttributeValue() ||
-            IsInDirectiveWithNoKind() ||
-            IsInSingleLineDirective() ||
-            IsImplicitExpression() ||
-            IsInSectionDirectiveCloseBrace() ||
-            (!allowImplicitStatements && IsImplicitStatementStart()))
+        if (IsInsideRazorComment())
+        {
+            return false;
+        }
+
+        if (IsInBoundComponentAttributeName())
+        {
+            return false;
+        }
+
+        if (IsInHtmlAttributeValue())
+        {
+            return false;
+        }
+
+        if (IsInDirectiveWithNoKind())
+        {
+            return false;
+        }
+
+        if (IsInSingleLineDirective())
+        {
+            return false;
+        }
+
+        if (!options.AllowImplicitExpressions && IsImplicitExpression())
+        {
+            return false;
+        }
+
+        if (!options.AllowSingleLineExplicitExpressions && IsSingleLineExplicitExpression())
+        {
+            return false;
+        }
+
+        if (IsInSectionDirectiveBrace())
+        {
+            return false;
+        }
+
+        if (!options.AllowImplicitStatements && IsImplicitStatementStart())
+        {
+            return false;
+        }
+
+        if (IsInTemplateBlock())
         {
             return false;
         }
 
         return true;
 
-        bool IsRazorComment()
+        bool IsInsideRazorComment()
         {
-            if (owner.IsCommentSpanKind())
+            // We don't want to format _in_ comments, but we do want to move the start `@*` to the right position
+            if (owner is RazorCommentBlockSyntax &&
+                mappingSpan.Start != owner.SpanStart)
             {
                 return true;
             }
@@ -415,8 +441,10 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return owner is MarkupTextLiteralSyntax
             {
                 Parent: MarkupTagHelperAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
-                        MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } }
-            } && !isLineRequest;
+                        MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
+                        MarkupMinimizedTagHelperAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
+                        MarkupMinimizedTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } }
+            } && !options.IsLineRequest;
         }
 
         bool IsInHtmlAttributeValue()
@@ -486,19 +514,59 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax);
         }
 
-        bool IsInSectionDirectiveCloseBrace()
+        bool IsSingleLineExplicitExpression()
+        {
+            // E.g, (| is position)
+            //
+            // `|@{ foo }` - true
+            //
+            if (owner is { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
+                explicitExpression.Span.ToRange(context.SourceText) is { } exprRange &&
+                exprRange.Start.Line == exprRange.End.Line)
+            {
+                return true;
+            }
+
+            return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax);
+        }
+
+        bool IsInTemplateBlock()
+        {
+            // E.g, (| is position)
+            //
+            // `RenderFragment(|@<Component>);` - true
+            //
+            return owner.AncestorsAndSelf().Any(n => n is CSharpTemplateBlockSyntax);
+        }
+
+        bool IsInSectionDirectiveBrace()
         {
             // @section Scripts {
             //     <script></script>
             // }
             //
-            // We are fine to format these, but due to how they are generated (inside a multi-line lambda)
-            // we want to exlude the final close brace from being formatted, or it will be indented by one
-            // level due to the lambda. The rest we don't need to worry about, because the one level indent
-            // is actually desirable.
+            // Due to how sections are generated (inside a multi-line lambda), we want to exclude the braces
+            // from being formatted, or it will be indented by one level due to the lambda. The rest we don't
+            // need to worry about, because the one level indent is actually desirable.
+
+            // Due to the Razor tree being so odd, the checks for open and close are surprisingly different
+
+            // Open brace is a child of the C# code block that is the directive itself
+            if (owner is RazorMetaCodeSyntax &&
+                owner.Parent is CSharpCodeBlockSyntax codeBlock &&
+                codeBlock.Children.Count > 3 &&
+                owner == codeBlock.Children[3] &&
+                // CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
+                codeBlock.Parent?.Parent is RazorDirectiveSyntax directive2 &&
+                directive2.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
+            {
+                return true;
+            }
+
+            // Close brace is a child of the section content, which is a MarkupBlock
             if (owner is MarkupTextLiteralSyntax &&
                 owner.Parent is MarkupBlockSyntax block &&
-                owner == block.Children[block.Children.Count - 1] &&
+                owner == block.Children[^1] &&
                 // MarkupBlock -> CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
                 block.Parent?.Parent?.Parent is RazorDirectiveSyntax directive &&
                 directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
@@ -510,24 +578,12 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
         }
     }
 
-    private static SyntaxNode FixOwnerToWorkaroundCompilerQuirks(SyntaxNode owner)
+    private record struct ShouldFormatOptions(bool AllowImplicitStatements, bool AllowImplicitExpressions, bool AllowSingleLineExplicitExpressions, bool IsLineRequest)
     {
-        // Workaround for https://github.com/dotnet/aspnetcore/issues/36689
-        // A tags owner comes back as itself if it is preceeded by a HTML comment,
-        // because the whitespace between the comment and the tag is reported as not editable
-
-        // Get to the outermost node first. eg in "<span" we might be on the node for the "<", which is parented
-        // by some other intermediate node, which is parented by the actual start tag node. We need to get out to
-        // the start tag node, in order to reason about its siblings. The siblings of the "<" are not helpful :)
-        var outerNode = owner.GetOutermostNode();
-        if (outerNode is not null &&
-            outerNode.TryGetPreviousSibling(out var whiteSpace) && whiteSpace.ContainsOnlyWhitespace() &&
-            whiteSpace.TryGetPreviousSibling(out var comment) && comment is MarkupCommentBlockSyntax)
+        public ShouldFormatOptions(bool allowImplicitStatements, bool isLineRequest)
+            : this(allowImplicitStatements, true, true, isLineRequest)
         {
-            return whiteSpace;
         }
-
-        return owner;
     }
 
     private class IndentationData

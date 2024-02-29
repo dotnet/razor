@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Item = System.Collections.Generic.KeyValuePair<string, System.Collections.Immutable.IImmutableDictionary<string, string>>;
@@ -35,41 +34,40 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             Rules.RazorGenerateWithTargetPath.SchemaName,
             ConfigurationGeneralSchemaName,
         });
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly LanguageServerFeatureOptions? _languageServerFeatureOptions;
 
     [ImportingConstructor]
     public DefaultWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
-        [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerAccessor projectManagerAccessor,
+        ProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
+        LanguageServerFeatureOptions? languageServerFeatureOptions)
+        : base(commonServices, projectManagerAccessor, dispatcher, projectConfigurationFilePathStore)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
 
-    // Internal for testing
-#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
-    internal DefaultWindowsRazorProjectHost(
-#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
-        IUnconfiguredProjectCommonServices commonServices,
-        Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        ProjectSnapshotManagerBase projectManager)
-        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
-    {
-    }
-
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
 
-    protected override async Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+    protected override async Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
         if (TryGetConfiguration(update.Value.CurrentState, out var configuration) &&
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
+
+            if (TryGetBeforeIntermediateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath) &&
+                beforeIntermediateOutputPath != intermediatePath)
+            {
+                // If the intermediate output path is in the ProjectChanges, then we know that it has changed, so we want to ensure we remove the old one,
+                // otherwise this would be seen as an Add, and we'd end up with two active projects
+                await UpdateAsync(() =>
+                {
+                    var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                    UninitializeProjectUnsafe(beforeProjectKey);
+                }, CancellationToken.None).ConfigureAwait(false);
+            }
 
             // We need to deal with the case where the project was uninitialized, but now
             // is valid for Razor. In that case we might have previously seen all of the documents
@@ -83,7 +81,12 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
             await UpdateAsync(() =>
             {
-                var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace);
+                var projectFileName = Path.GetFileNameWithoutExtension(CommonServices.UnconfiguredProject.FullPath);
+                var displayName = sliceDimensions is { Length: > 0 }
+                    ? $"{projectFileName} ({sliceDimensions})"
+                    : projectFileName;
+
+                var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
 
                 if (_languageServerFeatureOptions is not null)
                 {
@@ -274,7 +277,6 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         return true;
     }
 
-    // Internal for testing
     internal static bool TryGetRootNamespace(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
         [NotNullWhen(returnValue: true)] out string? rootNamespace)

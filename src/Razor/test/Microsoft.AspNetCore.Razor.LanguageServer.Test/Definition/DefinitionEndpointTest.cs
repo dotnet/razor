@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
@@ -20,13 +20,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-public class DefinitionEndpointTest : TagHelperServiceTestBase
+public class DefinitionEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
-    public DefinitionEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task GetOriginTagHelperBindingAsync_TagHelper_Element()
     {
@@ -399,9 +394,9 @@ public class DefinitionEndpointTest : TagHelperServiceTestBase
         TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
         SetupDocument(out var codeDocument, out _, content);
-        var expectedRange = selection.AsRange(codeDocument.GetSourceText());
+        var expectedRange = selection.ToRange(codeDocument.GetSourceText());
 
-        var mappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var mappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var range = await DefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, propertyName, mappingService, Logger, DisposalToken);
         Assert.NotNull(range);

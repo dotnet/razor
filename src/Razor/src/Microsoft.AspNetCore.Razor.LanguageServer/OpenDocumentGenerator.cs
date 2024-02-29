@@ -85,7 +85,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
             return;
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         switch (args.Kind)
         {
@@ -162,17 +162,23 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
                     break;
                 }
 
-                void TryEnqueue(IDocumentSnapshot document)
+            case ProjectChangeKind.ProjectRemoved:
                 {
-                    if (!ProjectManager.IsDocumentOpen(document.FilePath) && !_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
-                    {
-                        return;
-                    }
-
-                    var key = $"{document.Project.Key.Id}:{document.FilePath.AssumeNotNull()}";
-                    var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
-                    _workQueue.Enqueue(key, workItem);
+                    // No-op. We don't need to enqueue recompilations if the project is being removed
+                    break;
                 }
+        }
+
+        void TryEnqueue(IDocumentSnapshot document)
+        {
+            if (!ProjectManager.IsDocumentOpen(document.FilePath.AssumeNotNull()) && !_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
+            {
+                return;
+            }
+
+            var key = $"{document.Project.Key.Id}:{document.FilePath.AssumeNotNull()}";
+            var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
+            _workQueue.Enqueue(key, workItem);
         }
     }
 
@@ -196,7 +202,7 @@ internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposabl
         {
             var codeDocument = await _latestDocument.GetGeneratedOutputAsync().ConfigureAwait(false);
 
-            await _dispatcher.RunOnDispatcherThreadAsync(() =>
+            await _dispatcher.RunAsync(() =>
             {
                 foreach (var listener in _documentProcessedListeners)
                 {

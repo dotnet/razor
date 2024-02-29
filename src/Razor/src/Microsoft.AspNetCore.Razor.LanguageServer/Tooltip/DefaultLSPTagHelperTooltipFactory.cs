@@ -2,32 +2,38 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
+[Export(typeof(LSPTagHelperTooltipFactory)), Shared]
+[method: ImportingConstructor]
+internal class DefaultLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResolver) : LSPTagHelperTooltipFactory(snapshotResolver)
 {
-    public override bool TryCreateTooltip(
+    public override async Task<MarkupContent?> TryCreateTooltipAsync(
+        string documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         MarkupKind markupKind,
-        [NotNullWhen(true)] out MarkupContent? tooltipContent)
+        CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(elementDescriptionInfo));
         }
 
-        var associatedTagHelperInfos = elementDescriptionInfo.AssociatedTagHelperDescriptions;
-        if (associatedTagHelperInfos.Count == 0)
+        var associatedTagHelperInfos = elementDescriptionInfo.DescriptionInfos;
+        if (associatedTagHelperInfos.Length == 0)
         {
-            tooltipContent = null;
-            return false;
+            return null;
         }
 
         // This generates a markdown description that looks like the following:
@@ -39,10 +45,8 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
 
         using var _ = StringBuilderPool.GetPooledObject(out var descriptionBuilder);
 
-        for (var i = 0; i < associatedTagHelperInfos.Count; i++)
+        foreach (var descriptionInfo in associatedTagHelperInfos)
         {
-            var descriptionInfo = associatedTagHelperInfos[i];
-
             if (descriptionBuilder.Length > 0)
             {
                 descriptionBuilder.AppendLine();
@@ -51,29 +55,40 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
 
             var tagHelperType = descriptionInfo.TagHelperTypeName;
             var reducedTypeName = ReduceTypeName(tagHelperType);
+
+            // If the reducedTypeName != tagHelperType, then the type is prefixed by a namespace
+            if (reducedTypeName != tagHelperType)
+            {
+                descriptionBuilder.Append(tagHelperType[..^reducedTypeName.Length]);
+            }
+
+            // We make the reducedTypeName bold while leaving the namespace intact
             StartOrEndBold(descriptionBuilder, markupKind);
             descriptionBuilder.Append(reducedTypeName);
             StartOrEndBold(descriptionBuilder, markupKind);
 
             var documentation = descriptionInfo.Documentation;
-            if (!TryExtractSummary(documentation, out var summaryContent))
+            if (TryExtractSummary(documentation, out var summaryContent))
             {
-                continue;
+                descriptionBuilder.AppendLine();
+                descriptionBuilder.AppendLine();
+                var finalSummaryContent = CleanSummaryContent(summaryContent);
+                descriptionBuilder.Append(finalSummaryContent);
             }
 
-            descriptionBuilder.AppendLine();
-            descriptionBuilder.AppendLine();
-            var finalSummaryContent = CleanSummaryContent(summaryContent);
-            descriptionBuilder.Append(finalSummaryContent);
+            var availability = await GetProjectAvailabilityAsync(documentFilePath, tagHelperType, cancellationToken).ConfigureAwait(false);
+            if (availability is not null)
+            {
+                descriptionBuilder.AppendLine();
+                descriptionBuilder.Append(availability);
+            }
         }
 
-        tooltipContent = new MarkupContent
+        return  new MarkupContent
         {
             Kind = markupKind,
             Value = descriptionBuilder.ToString(),
         };
-
-        return true;
     }
 
     public override bool TryCreateTooltip(
@@ -87,7 +102,7 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
         }
 
         var associatedAttributeInfos = attributeDescriptionInfo.DescriptionInfos;
-        if (associatedAttributeInfos.Count == 0)
+        if (associatedAttributeInfos.Length == 0)
         {
             tooltipContent = null;
             return false;
@@ -102,10 +117,8 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
 
         using var _ = StringBuilderPool.GetPooledObject(out var descriptionBuilder);
 
-        for (var i = 0; i < associatedAttributeInfos.Count; i++)
+        foreach (var descriptionInfo in associatedAttributeInfos)
         {
-            var descriptionInfo = associatedAttributeInfos[i];
-
             if (descriptionBuilder.Length > 0)
             {
                 descriptionBuilder.AppendLine();

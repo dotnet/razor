@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -11,11 +12,9 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvider
+internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProvider
 {
     private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { ">" });
-
-    private readonly HtmlFactsService _htmlFactsService;
 
     private static RazorCompletionItem? s_markupTransitionCompletionItem;
     public static RazorCompletionItem MarkupTransitionCompletionItem
@@ -38,17 +37,7 @@ internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvi
         }
     }
 
-    public MarkupTransitionCompletionItemProvider(HtmlFactsService htmlFactsService)
-    {
-        if (htmlFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(htmlFactsService));
-        }
-
-        _htmlFactsService = htmlFactsService;
-    }
-
-    public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
         {
@@ -59,26 +48,32 @@ internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvi
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
+        }
+
+        // If we're at the edge of a razor code block, FindInnermostNode will have returned that edge. However,
+        // the cursor, from the user's perspective, may still be on a markup element, so we want to walk back
+        // one token.
+        if (owner is RazorMetaCodeSyntax { SpanStart: var spanStart, MetaCode: [var metaCodeToken, ..] } && spanStart == context.AbsoluteIndex)
+        {
+            var previousToken = metaCodeToken.GetPreviousToken();
+            owner = previousToken.Parent;
         }
 
         if (!AtMarkupTransitionCompletionPoint(owner))
         {
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
         }
-
-        var parent = owner.Parent;
 
         // Also helps filter out edge cases like `< te` and `< te=""`
         // (see comment in AtMarkupTransitionCompletionPoint)
-        if (!_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out _) ||
+        if (!HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, closingForwardSlashOrCloseAngleToken: out _) ||
             !containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
         }
 
-        var completions = new List<RazorCompletionItem>() { MarkupTransitionCompletionItem };
-        return completions;
+        return ImmutableArray.Create(MarkupTransitionCompletionItem);
     }
 
     private static bool AtMarkupTransitionCompletionPoint(RazorSyntaxNode owner)

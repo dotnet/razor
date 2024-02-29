@@ -3,6 +3,8 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
 using Microsoft.VisualStudio.Shell;
@@ -19,6 +21,9 @@ internal class AdvancedOptionPage : DialogPage
     private bool? _autoClosingTags;
     private bool? _autoInsertAttributeQuotes;
     private bool? _colorBackground;
+    private bool? _commitElementsWithSpace;
+    private SnippetSetting? _snippets;
+    private LogLevel? _logLevel;
 
     public AdvancedOptionPage()
     {
@@ -58,6 +63,15 @@ internal class AdvancedOptionPage : DialogPage
         set => _autoInsertAttributeQuotes = value;
     }
 
+    [LocCategory(nameof(VSPackage.Completion))]
+    [LocDescription(nameof(VSPackage.Setting_CommitElementsWithSpaceDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_CommitElementsWithSpaceDisplayName))]
+    public bool CommitElementsWithSpace
+    {
+        get => _commitElementsWithSpace ?? _optionsStorage.Value.CommitElementsWithSpace;
+        set => _commitElementsWithSpace = value;
+    }
+
     [LocCategory(nameof(VSPackage.Formatting))]
     [LocDescription(nameof(VSPackage.Setting_ColorBackgroundDescription))]
     [LocDisplayName(nameof(VSPackage.Setting_ColorBackgroundDisplayName))]
@@ -65,6 +79,24 @@ internal class AdvancedOptionPage : DialogPage
     {
         get => _colorBackground ?? _optionsStorage.Value.ColorBackground;
         set => _colorBackground = value;
+    }
+
+    [LocCategory(nameof(VSPackage.Completion))]
+    [LocDescription(nameof(VSPackage.Setting_SnippetsDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_SnippetsDisplayName))]
+    public SnippetSetting Snippets
+    {
+        get => _snippets ?? (SnippetSetting)_optionsStorage.Value.Snippets;
+        set => _snippets = value;
+    }
+
+    [LocCategory(nameof(VSPackage.Other))]
+    [LocDescription(nameof(VSPackage.Setting_LogLevelDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_LogLevelDisplayName))]
+    public LogLevel LogLevel
+    {
+        get => _logLevel ?? (LogLevel)_optionsStorage.Value.LogLevel;
+        set => _logLevel = value;
     }
 
     protected override void OnApply(PageApplyEventArgs e)
@@ -88,6 +120,21 @@ internal class AdvancedOptionPage : DialogPage
         {
             _optionsStorage.Value.ColorBackground = _colorBackground.Value;
         }
+
+        if (_commitElementsWithSpace is not null)
+        {
+            _optionsStorage.Value.CommitElementsWithSpace = _commitElementsWithSpace.Value;
+        }
+
+        if (_snippets is SnippetSetting snippets)
+        {
+            _optionsStorage.Value.Snippets = snippets;
+        }
+
+        if (_logLevel is LogLevel logLevel)
+        {
+            _optionsStorage.Value.LogLevel = logLevel;
+        }
     }
 
     protected override void OnClosed(EventArgs e)
@@ -96,5 +143,8 @@ internal class AdvancedOptionPage : DialogPage
         _autoClosingTags = null;
         _autoInsertAttributeQuotes = null;
         _colorBackground = null;
+        _commitElementsWithSpace = null;
+        _snippets = null;
+        _logLevel = null;
     }
 }

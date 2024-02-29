@@ -11,8 +11,9 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,14 +21,9 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
+public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private static readonly ProjectSnapshotManagerAccessor s_projectSnapshotManager = CreateProjectSnapshotManagerAccessor();
-
-    public DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
+    private static readonly IProjectSnapshotManagerAccessor s_projectSnapshotManager = CreateProjectSnapshotManagerAccessor();
 
     [Fact]
     public async Task Handle_SearchFound_GenericComponent()
@@ -150,7 +146,7 @@ public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
     {
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, builder => builder.AddDirective(NamespaceDirective.Directive));
-        var codeDocument = projectEngine.Process(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
+        var codeDocument = projectEngine.Process(sourceDocument, FileKinds.Component, importSources: default, Array.Empty<TagHelperDescriptor>());
 
         var namespaceNode = (NamespaceDeclarationIntermediateNode)codeDocument
             .GetDocumentIntermediateNode()
@@ -165,7 +161,7 @@ public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
         return documentSnapshot;
     }
 
-    internal static ProjectSnapshotManagerAccessor CreateProjectSnapshotManagerAccessor()
+    internal static IProjectSnapshotManagerAccessor CreateProjectSnapshotManagerAccessor()
     {
         var firstProject = Mock.Of<IProjectSnapshot>(p =>
             p.FilePath == "c:/First/First.csproj" &&
@@ -182,13 +178,8 @@ public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
         return new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
     }
 
-    internal class TestProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor
+    internal class TestProjectSnapshotManagerAccessor(ProjectSnapshotManagerBase instance) : IProjectSnapshotManagerAccessor
     {
-        public TestProjectSnapshotManagerAccessor(ProjectSnapshotManagerBase instance)
-        {
-            Instance = instance;
-        }
-
-        public override ProjectSnapshotManagerBase Instance { get; }
+        public ProjectSnapshotManagerBase Instance => instance;
     }
 }

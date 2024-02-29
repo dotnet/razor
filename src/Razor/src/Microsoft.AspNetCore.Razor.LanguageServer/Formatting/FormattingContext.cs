@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,16 +20,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal class FormattingContext : IDisposable
 {
-    private readonly AdhocWorkspaceFactory _workspaceFactory;
+    private readonly IAdhocWorkspaceFactory _workspaceFactory;
     private Document? _csharpWorkspaceDocument;
     private AdhocWorkspace? _csharpWorkspace;
 
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
-    private RazorProjectEngine? _engine;
-    private IReadOnlyList<RazorSourceDocument>? _importSources;
 
-    private FormattingContext(AdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
+    private FormattingContext(IAdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
         bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
     {
         _workspaceFactory = workspaceFactory;
@@ -40,14 +39,6 @@ internal class FormattingContext : IDisposable
         AutomaticallyAddUsings = automaticallyAddUsings;
         HostDocumentIndex = hostDocumentIndex;
         TriggerCharacter = triggerCharacter;
-    }
-
-    private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
-        bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
-        : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings, hostDocumentIndex, triggerCharacter)
-    {
-        _engine = engine;
-        _importSources = importSources;
     }
 
     public static bool SkipValidateComponents { get; set; }
@@ -161,8 +152,8 @@ internal class FormattingContext : IDisposable
                     // Couldn't find a corresponding FormattingSpan. Happens if it is a 0 length line.
                     // Let's create a 0 length span to represent this and default it to HTML.
                     var placeholderSpan = new FormattingSpan(
-                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
-                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
+                        new TextSpan(nonWsPos.Value, 0),
+                        new TextSpan(nonWsPos.Value, 0),
                         FormattingSpanKind.Markup,
                         FormattingBlockKind.Markup,
                         razorIndentationLevel: 0,
@@ -279,20 +270,13 @@ internal class FormattingContext : IDisposable
             throw new ArgumentNullException(nameof(changedText));
         }
 
-        if (_engine is null)
-        {
-            await InitializeProjectEngineAsync().ConfigureAwait(false);
-        }
+        var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
-        var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
-
-        var codeDocument = _engine!.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, _importSources, OriginalSnapshot.Project.TagHelpers);
+        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
         var newContext = new FormattingContext(
-            _engine,
-            _importSources!,
             _workspaceFactory,
             Uri,
             OriginalSnapshot,
@@ -304,23 +288,6 @@ internal class FormattingContext : IDisposable
             TriggerCharacter);
 
         return newContext;
-    }
-
-    private async Task InitializeProjectEngineAsync()
-    {
-        var engine = OriginalSnapshot.Project.GetProjectEngine();
-        var importSources = new List<RazorSourceDocument>();
-
-        var imports = OriginalSnapshot.GetImports();
-        foreach (var import in imports)
-        {
-            var sourceText = await import.GetTextAsync().ConfigureAwait(false);
-            var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
-            importSources.Add(source);
-        }
-
-        _engine = engine;
-        _importSources = importSources;
     }
 
     /// <summary>
@@ -346,7 +313,7 @@ internal class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
-        AdhocWorkspaceFactory workspaceFactory,
+        IAdhocWorkspaceFactory workspaceFactory,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
@@ -359,7 +326,7 @@ internal class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
-        AdhocWorkspaceFactory workspaceFactory)
+        IAdhocWorkspaceFactory workspaceFactory)
     {
         return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
     }
@@ -369,7 +336,7 @@ internal class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
-        AdhocWorkspaceFactory workspaceFactory,
+        IAdhocWorkspaceFactory workspaceFactory,
         bool isFormatOnType,
         bool automaticallyAddUsings,
         int hostDocumentIndex,

@@ -7,20 +7,19 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-[LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
 internal class DocumentDidOpenEndpoint : IRazorNotificationHandler<DidOpenTextDocumentParams>
 {
     public bool MutatesSolutionState => true;
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly RazorProjectService _projectService;
+    private readonly IRazorProjectService _projectService;
 
-    public DocumentDidOpenEndpoint(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService)
+    public DocumentDidOpenEndpoint(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, IRazorProjectService razorProjectService)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = razorProjectService;
@@ -30,7 +29,7 @@ internal class DocumentDidOpenEndpoint : IRazorNotificationHandler<DidOpenTextDo
     {
         var sourceText = SourceText.From(request.TextDocument.Text);
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _projectSnapshotManagerDispatcher.RunAsync(
             () => _projectService.OpenDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, request.TextDocument.Version),
             cancellationToken).ConfigureAwait(false);
     }

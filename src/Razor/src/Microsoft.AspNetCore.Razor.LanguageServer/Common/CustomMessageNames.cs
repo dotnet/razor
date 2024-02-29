@@ -21,6 +21,9 @@ internal static class CustomMessageNames
     public const string RazorUriPresentationEndpoint = "razor/uriPresentation";
     public const string RazorSpellCheckEndpoint = "razor/spellCheck";
     public const string RazorProjectContextsEndpoint = "razor/projectContexts";
+    public const string RazorPullDiagnosticEndpointName = "razor/pullDiagnostics";
+    public const string RazorProvidePreciseRangeSemanticTokensEndpoint = "razor/provideSemanticTokensRanges";
+    public const string RazorMapCodeEndpoint = "razor/mapCode";
 
     // VS Windows and VS Code
     public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
@@ -29,11 +32,14 @@ internal static class CustomMessageNames
     public const string RazorResolveCodeActionsEndpoint = "razor/resolveCodeActions";
     public const string RazorProvideHtmlColorPresentationEndpoint = "razor/provideHtmlColorPresentation";
     public const string RazorProvideHtmlDocumentColorEndpoint = "razor/provideHtmlDocumentColor";
-    public const string RazorPullDiagnosticEndpointName = "razor/pullDiagnostics";
     public const string RazorProvideSemanticTokensRangeEndpoint = "razor/provideSemanticTokensRange";
     public const string RazorFoldingRangeEndpoint = "razor/foldingRange";
     public const string RazorHtmlFormattingEndpoint = "razor/htmlFormatting";
     public const string RazorHtmlOnTypeFormattingEndpoint = "razor/htmlOnTypeFormatting";
+    public const string RazorSimplifyMethodEndpointName = "razor/simplifyMethod";
+    public const string RazorFormatNewFileEndpointName = "razor/formatNewFile";
+    public const string RazorInlayHintEndpoint = "razor/inlayHint";
+    public const string RazorInlayHintResolveEndpoint = "razor/inlayHintResolve";
 
     // VS Windows only at the moment, but could/should be migrated
     public const string RazorDocumentSymbolEndpoint = "razor/documentSymbol";
@@ -52,5 +58,6 @@ internal static class CustomMessageNames
 
     public const string RazorReferencesEndpointName = "razor/references";
 
-    public const string RazorSimplifyMethodEndpointName = "razor/simplifyMethod";
+    // Called to get C# diagnostics from Roslyn when publishing diagnostics for VS Code
+    public const string RazorCSharpPullDiagnosticsEndpointName = "razor/csharpPullDiagnostics";
 }

@@ -7,10 +7,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -30,31 +30,45 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
     private readonly Dictionary<string, IDocumentSnapshot> _work;
-    private readonly ILogger<RazorDiagnosticsPublisher> _logger;
-    private ProjectSnapshotManager? _projectManager;
+    private readonly ILogger _logger;
+    private IProjectSnapshotManager? _projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly Lazy<RazorTranslateDiagnosticsService> _razorTranslateDiagnosticsService;
+    private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
 
     public RazorDiagnosticsPublisher(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        ILoggerFactory loggerFactory)
+        Lazy<RazorTranslateDiagnosticsService> razorTranslateDiagnosticsService,
+        Lazy<IDocumentContextFactory> documentContextFactory,
+        IRazorLoggerFactory loggerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
         {
             throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        if (languageServer is null)
+        if (clientConnection is null)
         {
-            throw new ArgumentNullException(nameof(languageServer));
+            throw new ArgumentNullException(nameof(clientConnection));
         }
 
         if (languageServerFeatureOptions is null)
         {
             throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        }
+
+        if (razorTranslateDiagnosticsService is null)
+        {
+            throw new ArgumentNullException(nameof(razorTranslateDiagnosticsService));
+        }
+
+        if (documentContextFactory is null)
+        {
+            throw new ArgumentNullException(nameof(documentContextFactory));
         }
 
         if (loggerFactory is null)
@@ -63,8 +77,10 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         }
 
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _languageServer = languageServer;
+        _clientConnection = clientConnection;
         _languageServerFeatureOptions = languageServerFeatureOptions;
+        _razorTranslateDiagnosticsService = razorTranslateDiagnosticsService;
+        _documentContextFactory = documentContextFactory;
         PublishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
         PublishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
         _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
@@ -77,7 +93,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     // Used in tests to ensure we can control when background work completes.
     public ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
 
-    public override void Initialize(ProjectSnapshotManager projectManager)
+    public override void Initialize(IProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {
@@ -94,7 +110,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             throw new ArgumentNullException(nameof(document));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         lock (_work)
         {
@@ -124,7 +140,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
     private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
     {
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _projectSnapshotManagerDispatcher.RunAsync(
             ClearClosedDocuments,
             cancellationToken).ConfigureAwait(false);
     }
@@ -193,8 +209,8 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     {
         var result = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
-        SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>? delegatedResponse = null;
-        if (_languageServerFeatureOptions.SupportsDelegatedDiagnostics)
+        Diagnostic[]? csharpDiagnostics = null;
+        if (_languageServerFeatureOptions.DelegateToCSharpOnDiagnosticPublish)
         {
             var uriBuilder = new UriBuilder()
             {
@@ -208,23 +224,26 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
                 TextDocument = new TextDocumentIdentifier { Uri = uriBuilder.Uri },
             };
 
-            delegatedResponse = await _languageServer.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
-                CustomMessageNames.RazorPullDiagnosticEndpointName,
+            var delegatedResponse = await _clientConnection.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+                CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
                 delegatedParams,
                 CancellationToken.None).ConfigureAwait(false);
+
+            if (delegatedResponse.HasValue &&
+                delegatedResponse.Value.TryGetFirst(out var fullDiagnostics) &&
+                fullDiagnostics.Items is not null &&
+                _documentContextFactory.Value.TryCreate(delegatedParams.TextDocument.Uri, projectContext: null) is { } documentContext)
+            {
+                csharpDiagnostics = await _razorTranslateDiagnosticsService.Value.TranslateAsync(Protocol.RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None).ConfigureAwait(false);
+            }
         }
 
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
-        IReadOnlyList<Diagnostic>? csharpDiagnostics = null;
 
         lock (PublishedRazorDiagnostics)
         lock (PublishedCSharpDiagnostics)
         {
             var filePath = document.FilePath.AssumeNotNull();
-            if (delegatedResponse != null && delegatedResponse.Value.TryGetFirst(out var fullDocumentDiagnosticReport))
-            {
-                csharpDiagnostics = fullDocumentDiagnosticReport.Items;
-            }
 
             if (PublishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
                 && (csharpDiagnostics == null || (PublishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
@@ -246,7 +265,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             return;
         }
 
-        var convertedDiagnostics = razorDiagnostics.Select(razorDiagnostic => RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText));
+        var convertedDiagnostics = razorDiagnostics.Select(razorDiagnostic => RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, document));
         var combinedDiagnostics = csharpDiagnostics == null ? convertedDiagnostics : convertedDiagnostics.Concat(csharpDiagnostics);
         PublishDiagnosticsForFilePath(document.FilePath, combinedDiagnostics);
 
@@ -341,7 +360,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             Host = string.Empty,
         };
 
-        _ = _languageServer.SendNotificationAsync(
+        _ = _clientConnection.SendNotificationAsync(
             Methods.TextDocumentPublishDiagnosticsName,
             new PublishDiagnosticParams()
             {

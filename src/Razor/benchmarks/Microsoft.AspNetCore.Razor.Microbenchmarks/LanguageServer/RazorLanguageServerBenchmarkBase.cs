@@ -12,9 +12,11 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -28,10 +30,11 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     {
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, NoOpTelemetryReporter.Instance, configure: (collection) =>
+        var razorLoggerFactory = new RazorLoggerFactory([new NoopLoggerProvider()]);
+        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLoggerFactory, NoOpTelemetryReporter.Instance, configure: (collection) =>
         {
             collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
-            collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
+            collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
             Builder(collection);
         }, featureOptions: BuildFeatureOptions());
     }
@@ -47,9 +50,9 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
 
-    private protected IRazorLogger Logger { get; }
+    private protected NoopLogger Logger { get; }
 
-    internal IDocumentSnapshot GetDocumentSnapshot(string projectFilePath, string filePath, string targetPath)
+    internal async Task<IDocumentSnapshot> GetDocumentSnapshotAsync(string projectFilePath, string filePath, string targetPath)
     {
         var intermediateOutputPath = Path.Combine(Path.GetDirectoryName(projectFilePath), "obj");
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
@@ -58,42 +61,60 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
         var hostDocument = new HostDocument(filePath, targetPath, FileKinds.Component);
 
-        var projectSnapshotManager = CreateProjectSnapshotManager();
-        projectSnapshotManager.ProjectAdded(hostProject);
-        var tagHelpers = CommonResources.LegacyTagHelpers;
-        var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
-        projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
-        projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, textLoader);
-        var projectSnapshot = projectSnapshotManager.GetLoadedProject(hostProject.Key);
+        var projectManager = CreateProjectSnapshotManager();
 
-        var documentSnapshot = projectSnapshot.GetDocument(filePath);
-        return documentSnapshot;
+        await Dispatcher.RunAsync(
+            () =>
+            {
+                projectManager.ProjectAdded(hostProject);
+                var tagHelpers = CommonResources.LegacyTagHelpers;
+                var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
+                projectManager.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
+                projectManager.DocumentAdded(hostProject.Key, hostDocument, textLoader);
+            },
+            CancellationToken.None);
+
+        var projectSnapshot = projectManager.GetLoadedProject(hostProject.Key);
+
+        return projectSnapshot.GetDocument(filePath);
     }
 
-    private class NoopClientNotifierService : ClientNotifierServiceBase
+    private class NoopClientNotifierService : IClientConnection, IOnInitialized
     {
-        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }
 
-        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
     }
 
-    internal class NoopLogger : IRazorLogger
+    internal class NoopLoggerProvider : IRazorLoggerProvider
+    {
+        public ILogger CreateLogger(string categoryName)
+        {
+            return new NoopLogger();
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    internal class NoopLogger : ILogger, ILspLogger
     {
         public IDisposable BeginScope<TState>(TState state)
         {

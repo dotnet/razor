@@ -8,18 +8,24 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpTemplateTest : ParserTestBase
+public class CSharpTemplateTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void HandlesSingleLineTemplate()
     {
-        ParseDocumentTest("@{ var foo = @: bar" + Environment.NewLine + "; }");
+        ParseDocumentTest("""
+            @{ var foo = @: bar
+            ; }
+            """);
     }
 
     [Fact]
     public void HandlesSingleLineImmediatelyFollowingStatementChar()
     {
-        ParseDocumentTest("@{i@: bar" + Environment.NewLine + "}");
+        ParseDocumentTest("""
+            @{i@: bar
+            }
+            """);
     }
 
     [Fact]

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 
@@ -19,15 +21,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly RazorProjectService _projectService;
+    private readonly IRazorProjectService _projectService;
     private readonly ILogger _logger;
     private readonly Dictionary<string, ProjectKey> _configurationToProjectMap;
     internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
 
     public ProjectConfigurationStateSynchronizer(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        RazorProjectService projectService,
-        ILoggerFactory loggerFactory)
+        IRazorProjectService projectService,
+        IRazorLoggerFactory loggerFactory)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = projectService;
@@ -45,14 +47,14 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             throw new ArgumentNullException(nameof(args));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         switch (args.Kind)
         {
             case RazorFileChangeKind.Changed:
                 {
                     var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-                    if (!args.TryDeserialize(out var projectRazorJson))
+                    if (!args.TryDeserialize(out var projectInfo))
                     {
                         if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var lastAssociatedProjectKey))
                         {
@@ -68,7 +70,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         // We found the last associated project file for the configuration file. Reset the project since we can't
                         // accurately determine its configurations.
 
-                        EnqueueUpdateProject(lastAssociatedProjectKey, projectRazorJson: null);
+                        EnqueueUpdateProject(lastAssociatedProjectKey, projectInfo: null);
                         return;
                     }
 
@@ -76,19 +78,19 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     {
                         _logger.LogWarning("Found no project key for configuration file. Assuming new project. Configuration file path: '{0}'", configurationFilePath);
 
-                        AddProject(configurationFilePath, projectRazorJson);
+                        AddProject(configurationFilePath, projectInfo);
                         return;
                     }
 
                     _logger.LogInformation("Project configuration file changed for project '{0}': '{1}'", associatedProjectKey.Id, configurationFilePath);
 
-                    EnqueueUpdateProject(associatedProjectKey, projectRazorJson);
+                    EnqueueUpdateProject(associatedProjectKey, projectInfo);
                     break;
                 }
             case RazorFileChangeKind.Added:
                 {
                     var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-                    if (!args.TryDeserialize(out var projectRazorJson))
+                    if (!args.TryDeserialize(out var projectInfo))
                     {
                         // Given that this is the first time we're seeing this configuration file if we can't deserialize it
                         // then we have to noop.
@@ -96,7 +98,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         return;
                     }
 
-                    AddProject(configurationFilePath, projectRazorJson);
+                    AddProject(configurationFilePath, projectInfo);
                     break;
                 }
             case RazorFileChangeKind.Removed:
@@ -113,38 +115,41 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
                     _logger.LogInformation("Project configuration file removed for project '{0}': '{1}'", projectFilePath, configurationFilePath);
 
-                    EnqueueUpdateProject(projectFilePath, projectRazorJson: null);
+                    EnqueueUpdateProject(projectFilePath, projectInfo: null);
                     break;
                 }
         }
 
-        void AddProject(string configurationFilePath, ProjectRazorJson projectRazorJson)
+        void AddProject(string configurationFilePath, RazorProjectInfo projectInfo)
         {
-            var projectFilePath = FilePathNormalizer.Normalize(projectRazorJson.FilePath);
+            var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
             var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
-            var rootNamespace = projectRazorJson.RootNamespace;
+            var rootNamespace = projectInfo.RootNamespace;
 
-            var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectRazorJson.Configuration, rootNamespace);
+            var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
             _configurationToProjectMap[configurationFilePath] = projectKey;
 
             _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
-            EnqueueUpdateProject(projectKey, projectRazorJson);
+            EnqueueUpdateProject(projectKey, projectInfo);
         }
 
-        void UpdateProject(ProjectKey projectKey, ProjectRazorJson? projectRazorJson)
+        void UpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
         {
-            if (projectRazorJson is null)
+            if (projectInfo is null)
             {
                 ResetProject(projectKey);
                 return;
             }
 
-            var projectWorkspaceState = projectRazorJson.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
-            var documents = projectRazorJson.Documents;
+            _logger.LogInformation("Actually updating {project} with a real projectInfo", projectKey);
+
+            var projectWorkspaceState = projectInfo.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
+            var documents = projectInfo.Documents;
             _projectService.UpdateProject(
                 projectKey,
-                projectRazorJson.Configuration,
-                projectRazorJson.RootNamespace,
+                projectInfo.Configuration,
+                projectInfo.RootNamespace,
+                projectInfo.DisplayName,
                 projectWorkspaceState,
                 documents);
         }
@@ -154,10 +159,10 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             await Task.Delay(EnqueueDelay).ConfigureAwait(true);
 
             var delayedProjectInfo = ProjectInfoMap[projectKey];
-            UpdateProject(projectKey, delayedProjectInfo.ProjectRazorJson);
+            UpdateProject(projectKey, delayedProjectInfo.ProjectInfo);
         }
 
-        void EnqueueUpdateProject(ProjectKey projectKey, ProjectRazorJson? projectRazorJson)
+        void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
         {
             if (!ProjectInfoMap.ContainsKey(projectKey))
             {
@@ -165,7 +170,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             }
 
             var delayedProjectInfo = ProjectInfoMap[projectKey];
-            delayedProjectInfo.ProjectRazorJson = projectRazorJson;
+            delayedProjectInfo.ProjectInfo = projectInfo;
 
             if (delayedProjectInfo.ProjectUpdateTask is null || delayedProjectInfo.ProjectUpdateTask.IsCompleted)
             {
@@ -179,8 +184,9 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                 projectKey,
                 configuration: null,
                 rootNamespace: null,
+                displayName: "",
                 ProjectWorkspaceState.Default,
-                Array.Empty<DocumentSnapshotHandle>());
+                ImmutableArray<DocumentSnapshotHandle>.Empty);
         }
     }
 
@@ -188,6 +194,6 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
     {
         public Task? ProjectUpdateTask { get; set; }
 
-        public ProjectRazorJson? ProjectRazorJson { get; set; }
+        public RazorProjectInfo? ProjectInfo { get; set; }
     }
 }
