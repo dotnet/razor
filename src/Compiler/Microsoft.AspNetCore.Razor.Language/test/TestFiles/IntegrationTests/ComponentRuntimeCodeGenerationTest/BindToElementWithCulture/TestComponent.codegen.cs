@@ -24,16 +24,16 @@ using System.Globalization
             __builder.OpenElement(0, "div");
             __builder.AddAttribute(1, "myvalue", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                   ParentValue
+#line (2,20)-(2,31) "x:\dir\subdir\Test\TestComponent.cshtml"
+ParentValue
 
 #line default
 #line hidden
 #nullable disable
             , culture: 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                                      CultureInfo.InvariantCulture
+#line (2,87)-(2,115) "x:\dir\subdir\Test\TestComponent.cshtml"
+CultureInfo.InvariantCulture
 
 #line default
 #line hidden
@@ -45,13 +45,14 @@ using System.Globalization
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     public string ParentValue { get; set; } = "hi";
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

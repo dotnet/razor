@@ -24,8 +24,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.OpenElement(0, "input");
             __builder.AddEventPreventDefaultAttribute(1, "onclick", 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                true
+#line (2,33)-(2,37) "x:\dir\subdir\Test\TestComponent.cshtml"
+true
 
 #line default
 #line hidden

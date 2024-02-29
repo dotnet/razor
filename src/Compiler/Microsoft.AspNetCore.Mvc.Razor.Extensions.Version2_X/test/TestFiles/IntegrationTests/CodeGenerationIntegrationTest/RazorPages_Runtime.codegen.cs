@@ -83,11 +83,13 @@ using Microsoft.AspNetCore.Mvc.RazorPages
                 WriteLiteral("\r\n        <label class=\"col-md-2 control-label\">");
                 EndContext();
                 BeginContext(661, 10, false);
-#line (29,48)-(29,58) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
-Write(Model.Name);
+                Write(
+#line (29,48)-(29,58) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
+Model.Name
 
 #line default
 #line hidden
+                );
                 EndContext();
                 BeginContext(671, 18, true);
                 WriteLiteral("</label>\r\n        ");
@@ -173,8 +175,8 @@ Write(Model.Name);
             EndContext();
         }
         #pragma warning restore 1998
-#line 7 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
-            
+#line (7,13)-(23,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
+
     public class NewModel : PageModel
     {
         public IActionResult OnPost(Customer customer)
@@ -193,6 +195,7 @@ Write(Model.Name);
 
 #line default
 #line hidden
+
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

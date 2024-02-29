@@ -23,8 +23,8 @@ using Microsoft.AspNetCore.Components.Rendering;
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     void RenderChildComponent(RenderTreeBuilder __builder)
     {
         var output = string.Empty;
@@ -34,23 +34,27 @@ using Microsoft.AspNetCore.Components.Rendering;
 #line default
 #line hidden
 #nullable disable
+
         __builder.OpenElement(0, "p");
         __builder.AddContent(1, "Output: ");
+        __builder.AddContent(2, 
 #nullable restore
-#line (9,21)-(9,27) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder.AddContent(2, output);
+#line (9,21)-(9,27) "x:\dir\subdir\Test\TestComponent.cshtml"
+output
 
 #line default
 #line hidden
 #nullable disable
+        );
         __builder.CloseElement();
 #nullable restore
-#line 10 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (10,1)-(11,1) "x:\dir\subdir\Test\TestComponent.cshtml"
     }
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

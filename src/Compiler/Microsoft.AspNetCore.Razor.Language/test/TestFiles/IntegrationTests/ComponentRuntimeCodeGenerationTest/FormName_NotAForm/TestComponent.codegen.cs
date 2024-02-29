@@ -25,8 +25,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.AddAttribute(1, "method", "post");
             __builder.AddAttribute(2, "onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                              () => { }
+#line (2,31)-(2,40) "x:\dir\subdir\Test\TestComponent.cshtml"
+() => { }
 
 #line default
 #line hidden
@@ -39,8 +39,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.AddAttribute(6, "method", "post");
             __builder.AddAttribute(7, "onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                              () => { }
+#line (3,31)-(3,40) "x:\dir\subdir\Test\TestComponent.cshtml"
+() => { }
 
 #line default
 #line hidden
@@ -48,8 +48,8 @@ using Microsoft.AspNetCore.Components.Web
             ));
             __builder.AddAttribute(8, "@formname", 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                      "named-form-handler"
+#line (3,55)-(3,75) "x:\dir\subdir\Test\TestComponent.cshtml"
+"named-form-handler"
 
 #line default
 #line hidden

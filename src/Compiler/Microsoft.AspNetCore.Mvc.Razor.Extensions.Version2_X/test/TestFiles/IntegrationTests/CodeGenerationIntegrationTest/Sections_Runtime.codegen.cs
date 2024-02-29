@@ -46,12 +46,13 @@ namespace AspNetCore
             BeginContext(64, 2, true);
             WriteLiteral("\r\n");
             EndContext();
-#line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
-   
+#line (5,3)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
+ 
     Layout = "_SectionTestLayout.cshtml";
 
 #line default
 #line hidden
+
             BeginContext(117, 26, true);
             WriteLiteral("\r\n<div>Some body</div>\r\n\r\n");
             EndContext();

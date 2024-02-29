@@ -16,8 +16,8 @@ namespace MyApp.Components
             {
                 global::__Blazor.MyApp.Components.TestComponent.TypeInference.CreateParentComponent_0_CaptureParameters(
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            new MyClass<string>()
+#line (3,29)-(3,50) "x:\dir\subdir\Test\TestComponent.cshtml"
+new MyClass<string>()
 
 #line default
 #line hidden

@@ -46,13 +46,14 @@ namespace AspNetCore
             WriteLiteral("\r\n");
             WriteLiteral("\r\n");
 #nullable restore
-#line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
-   
+#line (5,3)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
+ 
     Layout = "_SectionTestLayout.cshtml";
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("\r\n<div>Some body</div>\r\n\r\n");
             DefineSection("Section1", async() => {
                 WriteLiteral("\r\n    <div>This is in Section 1</div>\r\n    ");

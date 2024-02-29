@@ -739,25 +739,23 @@ namespace MyApp.Pages
             __builder.AddMarkupContent(0, ""<h2>Counter</h2>\r\n"");
             __builder.OpenElement(1, ""h3"");
             __builder.AddContent(2, ""Current count: "");
+            __builder.AddContent(3, 
 #nullable restore
-#line (3,21)-(3,26) 24 ""Pages/Counter.razor""
-__builder.AddContent(3, count);
-
+#line (3,21)-(3,26) ""Pages/Counter.razor""
+count
 #line default
 #line hidden
 #nullable disable
+            );
             __builder.CloseElement();
             __builder.AddMarkupContent(4, ""\r\n"");
             __builder.AddMarkupContent(5, ""<button @onclick=\""Click\"">Click me</button>"");
         }
         #pragma warning restore 1998
 #nullable restore
-#line 7 ""Pages/Counter.razor""
-
+#line (7,2)-(11,1) ""Pages/Counter.razor""
     private int count;
-
     public void Click() => count++;
-
 #line default
 #line hidden
 #nullable disable
@@ -899,27 +897,24 @@ namespace MyApp.Pages
             __builder.AddMarkupContent(0, ""<h2>Counter</h2>\r\n"");
             __builder.OpenElement(1, ""h3"");
             __builder.AddContent(2, ""Current count: "");
+            __builder.AddContent(3, 
 #nullable restore
-#line (3,21)-(3,26) 24 ""Pages/Counter.razor""
-__builder.AddContent(3, count);
-
+#line (3,21)-(3,26) ""Pages/Counter.razor""
+count
 #line default
 #line hidden
 #nullable disable
+            );
             __builder.CloseElement();
             __builder.AddMarkupContent(4, ""\r\n"");
             __builder.AddMarkupContent(5, ""<button @onclick=\""Click\"">Click me</button>"");
         }
         #pragma warning restore 1998
 #nullable restore
-#line 7 ""Pages/Counter.razor""
-
+#line (7,2)-(13,1) ""Pages/Counter.razor""
     private int count;
-
     public void Click() => count++;
-
     [Parameter] public int IncrementAmount { get; set; }
-
 #line default
 #line hidden
 #nullable disable
@@ -1310,12 +1305,12 @@ namespace AspNetCoreGeneratedDocument
 
             // Act
             var result = RunGenerator(compilation!, ref driver,
-                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(64,167): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(66,167): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(64, 167),
-                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(80,171): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(66, 167),
+                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(82,171): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(80, 171)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(82, 171)
             );
 
             // Assert
@@ -2680,10 +2675,8 @@ namespace MyApp
                         }
                         #pragma warning restore 1998
                 #nullable restore
-                #line 4 "Component.Razor"
-
+                #line (4,2)-(6,1) "Component.Razor"
                     public class X {}
-
                 #line default
                 #line hidden
                 #nullable disable

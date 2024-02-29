@@ -14,11 +14,11 @@ Generated Location: (472:19,0 [34] )
 
 Source Location: (67:2,19 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |3|
-Generated Location: (1033:33,19 [1] )
+Generated Location: (1026:33,0 [1] )
 |3|
 
 Source Location: (79:2,31 [26] x:\dir\subdir\Test\TestComponent.cshtml)
 |(IEnumerable<int> x) => {}|
-Generated Location: (1281:41,31 [26] )
+Generated Location: (1255:41,0 [26] )
 |(IEnumerable<int> x) => {}|
 

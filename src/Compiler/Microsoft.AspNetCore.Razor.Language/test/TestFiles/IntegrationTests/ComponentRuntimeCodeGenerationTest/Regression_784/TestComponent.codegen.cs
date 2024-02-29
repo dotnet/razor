@@ -24,8 +24,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.OpenElement(0, "p");
             __builder.AddAttribute(1, "onmouseover", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                 OnComponentHover
+#line (2,18)-(2,34) "x:\dir\subdir\Test\TestComponent.cshtml"
+OnComponentHover
 
 #line default
 #line hidden
@@ -33,8 +33,8 @@ using Microsoft.AspNetCore.Components.Web
             ));
             __builder.AddAttribute(2, "style", "background:" + " " + (
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                       ParentBgColor
+#line (2,56)-(2,69) "x:\dir\subdir\Test\TestComponent.cshtml"
+ParentBgColor
 
 #line default
 #line hidden
@@ -44,8 +44,8 @@ using Microsoft.AspNetCore.Components.Web
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     public string ParentBgColor { get; set; } = "#FFFFFF";
 
     public void OnComponentHover(MouseEventArgs e)
@@ -55,6 +55,7 @@ using Microsoft.AspNetCore.Components.Web
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

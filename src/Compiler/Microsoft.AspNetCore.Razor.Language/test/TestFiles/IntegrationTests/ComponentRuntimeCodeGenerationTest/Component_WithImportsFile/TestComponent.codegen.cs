@@ -25,12 +25,13 @@ using System.Reflection
 #nullable disable
     ;
 #nullable restore
-#line 3 "x:\dir\subdir\Test\_Imports.razor"
+#line (3,12)-(3,26) "x:\dir\subdir\Test\_Imports.razor"
 [Serializable]
 
 #line default
 #line hidden
 #nullable disable
+
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998

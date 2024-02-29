@@ -1,5 +1,5 @@
 ﻿Source Location: (59:2,28 [21] x:\dir\subdir\Test\TestComponent.cshtml)
 |new MyClass<string>()|
-Generated Location: (817:19,28 [21] )
+Generated Location: (801:19,0 [21] )
 |new MyClass<string>()|
 

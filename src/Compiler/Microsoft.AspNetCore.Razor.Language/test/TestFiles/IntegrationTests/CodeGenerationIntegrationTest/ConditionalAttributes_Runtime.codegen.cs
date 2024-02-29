@@ -12,14 +12,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
-  
+#line (1,3)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
+
     var ch = true;
     var cls = "bar";
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("    <a href=\"Foo\" />\r\n    <p");
             BeginWriteAttribute("class", " class=\"", 74, "\"", 86, 1);
 #nullable restore
@@ -84,13 +85,15 @@ WriteAttributeValue(" ", 232, ch, 233, 3, false);
 #line default
 #line hidden
 #nullable disable
+                Write(
 #nullable restore
-#line (10,35)-(10,38) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
-Write(cls);
+#line (10,35)-(10,38) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
+cls
 
 #line default
 #line hidden
 #nullable disable
+                );
 #nullable restore
 #line 10 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
                                       }

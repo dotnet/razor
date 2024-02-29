@@ -15,7 +15,7 @@ variables:
 - name: LogLevel
   value: 'All'
 - name: RunIntegrationTests
-  value: false
+  value: true
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
   - group: DotNetBuilds storage account read tokens
   - name: _InternalRuntimeDownloadArgs

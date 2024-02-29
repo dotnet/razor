@@ -31,8 +31,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.AddAttribute(4, "method", "post");
             string __formName1_1 = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>(
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                 "named-form-handler"
+#line (3,34)-(3,54) "x:\dir\subdir\Test\TestComponent.cshtml"
+"named-form-handler"
 
 #line default
 #line hidden

@@ -10583,9 +10583,13 @@ Time: @DateTime.Now
         var result = CompileToAssembly(generated, throwOnFailure: false);
 
         result.Diagnostics.Verify(
+            DesignTime
             // x:\dir\subdir\Test\TestComponent.cshtml(10,29): warning CS8602: Dereference of a possibly null reference.
             //                             Container.RenderMode
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Container").WithLocation(10, 29)
+            ? Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Container").WithLocation(10, 29)
+            // x:\dir\subdir\Test\TestComponent.cshtml(10,31): warning CS8602: Dereference of a possibly null reference.
+            //                             Container.RenderMode
+            : Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Container").WithLocation(10, 31)
             );
     }
 

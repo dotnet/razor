@@ -33,21 +33,24 @@ WriteAttributeValue("", 12, this.ToString(), 12, 16, false);
             WriteLiteral(">\r\n    Hello world\r\n    ");
             EndContext();
             BeginContext(54, 29, false);
-#line (3,6)-(3,35) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-Write(string.Format("{0}", "Hello"));
+            Write(
+#line (3,6)-(3,35) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+string.Format("{0}", "Hello")
 
 #line default
 #line hidden
+            );
             EndContext();
             BeginContext(83, 10, true);
             WriteLiteral("\r\n</div>\r\n");
             EndContext();
-#line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-   
+#line (5,3)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+ 
     var cls = "foo";
 
 #line default
 #line hidden
+
             BeginContext(123, 2, true);
             WriteLiteral("<p");
             EndContext();
@@ -60,11 +63,13 @@ Write(string.Format("{0}", "Hello"));
 #line default
 #line hidden
                 BeginContext(153, 3, false);
-#line (8,31)-(8,34) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-Write(cls);
+                Write(
+#line (8,31)-(8,34) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+cls
 
 #line default
 #line hidden
+                );
                 EndContext();
 #line 8 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
                                   }

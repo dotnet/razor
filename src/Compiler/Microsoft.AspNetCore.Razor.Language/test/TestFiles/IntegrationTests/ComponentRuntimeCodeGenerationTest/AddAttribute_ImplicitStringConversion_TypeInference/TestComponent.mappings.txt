@@ -1,28 +1,28 @@
 ﻿Source Location: (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |c|
-Generated Location: (767:18,26 [1] )
+Generated Location: (753:18,0 [1] )
 |c|
 
 Source Location: (49:1,19 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |true|
-Generated Location: (928:26,19 [4] )
+Generated Location: (907:26,0 [4] )
 |true|
 
 Source Location: (106:3,23 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1106:34,23 [9] )
+Generated Location: (1074:34,0 [9] )
 |() => { }|
 
 Source Location: (139:4,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |c|
-Generated Location: (1277:42,21 [1] )
+Generated Location: (1236:42,0 [1] )
 |c|
 
 Source Location: (155:6,7 [51] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private readonly MyClass<string> c = new();
 |
-Generated Location: (1472:52,7 [51] )
+Generated Location: (1434:52,0 [51] )
 |
     private readonly MyClass<string> c = new();
 |

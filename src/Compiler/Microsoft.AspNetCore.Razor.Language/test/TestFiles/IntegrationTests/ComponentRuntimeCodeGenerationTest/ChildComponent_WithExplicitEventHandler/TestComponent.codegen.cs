@@ -16,8 +16,8 @@ namespace Test
             __builder.OpenComponent<global::Test.MyComponent>(0);
             __builder.AddComponentParameter(1, "OnClick", (global::System.Action<System.EventArgs>)(
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                       Increment
+#line (1,24)-(1,33) "x:\dir\subdir\Test\TestComponent.cshtml"
+Increment
 
 #line default
 #line hidden
@@ -27,8 +27,8 @@ namespace Test
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     private int counter;
     private void Increment(EventArgs e) {
         counter++;
@@ -37,6 +37,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

@@ -12,6 +12,6 @@ Generated Location: (550:21,0 [6] )
 
 Source Location: (69:2,37 [16] x:\dir\subdir\Test\TestComponent.cshtml)
 |(TChild x) => {}|
-Generated Location: (1325:35,37 [16] )
+Generated Location: (1300:35,0 [16] )
 |(TChild x) => {}|
 

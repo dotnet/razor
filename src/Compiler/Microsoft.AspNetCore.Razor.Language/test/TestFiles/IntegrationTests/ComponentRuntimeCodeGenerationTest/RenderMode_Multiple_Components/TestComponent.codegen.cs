@@ -16,12 +16,13 @@ namespace Test
             __builder.OpenComponent<global::Test.TestComponent>(0);
             global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = 
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            Microsoft.AspNetCore.Components.Web.RenderMode.Server
+#line (1,29)-(1,82) "x:\dir\subdir\Test\TestComponent.cshtml"
+Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden
 #nullable disable
+
             ;
             __builder.AddComponentRenderMode(__renderMode);
             __builder.CloseComponent();
@@ -29,12 +30,13 @@ namespace Test
             __builder.OpenComponent<global::Test.TestComponent>(2);
             global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode1_1 = 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            Microsoft.AspNetCore.Components.Web.RenderMode.Server
+#line (2,29)-(2,82) "x:\dir\subdir\Test\TestComponent.cshtml"
+Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden
 #nullable disable
+
             ;
             __builder.AddComponentRenderMode(__renderMode1_1);
             __builder.CloseComponent();

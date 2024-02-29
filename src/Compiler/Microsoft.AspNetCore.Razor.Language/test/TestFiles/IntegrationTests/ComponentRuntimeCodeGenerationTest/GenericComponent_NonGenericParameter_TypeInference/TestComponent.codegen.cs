@@ -23,16 +23,16 @@ using Test.Shared
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                   3
+#line (2,20)-(2,21) "x:\dir\subdir\Test\TestComponent.cshtml"
+3
 
 #line default
 #line hidden
 #nullable disable
             , 2, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            Hello
+#line (2,29)-(2,34) "x:\dir\subdir\Test\TestComponent.cshtml"
+Hello
 
 #line default
 #line hidden
@@ -41,13 +41,14 @@ using Test.Shared
         }
         #pragma warning restore 1998
 #nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (4,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     MyClass Hello = new MyClass();
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 namespace __Blazor.Test.TestComponent

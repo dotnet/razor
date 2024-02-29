@@ -34,14 +34,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
-   
+#line (2,3)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+ 
     var @class = "container-fluid";
     var @int = 1;
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("\r\n");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 WriteLiteral("Body of Tag");

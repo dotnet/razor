@@ -31,16 +31,16 @@ T
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateTestComponent_0(__builder, 0, 1, "post", 2, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                        () => { }
+#line (3,41)-(3,50) "x:\dir\subdir\Test\TestComponent.cshtml"
+() => { }
 
 #line default
 #line hidden
 #nullable disable
             ), 3, "named-form-handler", 4, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                                             1
+#line (3,94)-(3,95) "x:\dir\subdir\Test\TestComponent.cshtml"
+1
 
 #line default
 #line hidden
@@ -49,24 +49,24 @@ T
             __builder.AddMarkupContent(5, "\r\n");
             global::__Blazor.Test.TestComponent.TypeInference.CreateTestComponent_1(__builder, 6, 7, "post", 8, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                        () => { }
+#line (4,41)-(4,50) "x:\dir\subdir\Test\TestComponent.cshtml"
+() => { }
 
 #line default
 #line hidden
 #nullable disable
             ), 9, 
 #nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                "named-form-handler"
+#line (4,65)-(4,85) "x:\dir\subdir\Test\TestComponent.cshtml"
+"named-form-handler"
 
 #line default
 #line hidden
 #nullable disable
             , 10, 
 #nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                                                  2
+#line (4,99)-(4,100) "x:\dir\subdir\Test\TestComponent.cshtml"
+2
 
 #line default
 #line hidden
@@ -75,13 +75,14 @@ T
         }
         #pragma warning restore 1998
 #nullable restore
-#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (5,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     [Parameter] public T Parameter { get; set; }
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 namespace __Blazor.Test.TestComponent

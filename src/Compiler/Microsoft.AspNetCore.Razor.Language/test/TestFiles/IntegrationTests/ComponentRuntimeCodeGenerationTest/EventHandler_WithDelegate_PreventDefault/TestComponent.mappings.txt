@@ -7,12 +7,12 @@ Generated Location: (370:12,0 [43] )
 
 Source Location: (61:1,17 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnFocus|
-Generated Location: (1071:27,17 [7] )
+Generated Location: (1066:27,0 [7] )
 |OnFocus|
 
 Source Location: (95:1,51 [22] x:\dir\subdir\Test\TestComponent.cshtml)
 |ShouldPreventDefault()|
-Generated Location: (1338:36,51 [22] )
+Generated Location: (1294:36,0 [22] )
 |ShouldPreventDefault()|
 
 Source Location: (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -21,7 +21,7 @@ Source Location: (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml)
 
     bool ShouldPreventDefault() { return false; }
 |
-Generated Location: (1593:47,7 [95] )
+Generated Location: (1552:47,0 [95] )
 |
     void OnFocus(FocusEventArgs e) { }
 

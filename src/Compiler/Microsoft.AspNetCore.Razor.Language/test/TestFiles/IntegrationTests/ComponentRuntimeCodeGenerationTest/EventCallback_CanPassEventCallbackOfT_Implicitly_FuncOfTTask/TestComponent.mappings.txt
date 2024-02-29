@@ -7,7 +7,7 @@ Generated Location: (370:12,0 [43] )
 
 Source Location: (67:1,23 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |Increment|
-Generated Location: (1302:27,23 [9] )
+Generated Location: (1291:27,0 [9] )
 |Increment|
 
 Source Location: (90:3,7 [139] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -18,7 +18,7 @@ Source Location: (90:3,7 [139] x:\dir\subdir\Test\TestComponent.cshtml)
         return Task.CompletedTask;
     }
 |
-Generated Location: (1548:38,7 [139] )
+Generated Location: (1541:38,0 [139] )
 |
     private int counter;
     private Task Increment(MouseEventArgs e) {

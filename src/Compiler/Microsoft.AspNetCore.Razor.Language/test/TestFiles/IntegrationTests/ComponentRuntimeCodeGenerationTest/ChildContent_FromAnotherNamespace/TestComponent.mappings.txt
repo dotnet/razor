@@ -7,11 +7,11 @@ Generated Location: (370:12,0 [19] )
 
 Source Location: (119:6,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |context|
-Generated Location: (1438:34,25 [7] )
+Generated Location: (1453:35,0 [7] )
 |context|
 
 Source Location: (276:12,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |context|
-Generated Location: (2343:54,26 [7] )
+Generated Location: (2391:57,0 [7] )
 |context|
 

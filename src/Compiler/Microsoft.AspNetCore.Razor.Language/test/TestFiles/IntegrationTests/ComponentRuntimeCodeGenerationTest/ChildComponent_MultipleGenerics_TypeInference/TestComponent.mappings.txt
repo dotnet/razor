@@ -1,20 +1,20 @@
 ﻿Source Location: (21:0,21 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |"hi"|
-Generated Location: (762:18,21 [4] )
+Generated Location: (753:18,0 [4] )
 |"hi"|
 
 Source Location: (36:0,36 [16] x:\dir\subdir\Test\TestComponent.cshtml)
 |new List<long>()|
-Generated Location: (943:26,36 [16] )
+Generated Location: (910:26,0 [16] )
 |new List<long>()|
 
 Source Location: (78:1,22 [17] x:\dir\subdir\Test\TestComponent.cshtml)
 |context.ToLower()|
-Generated Location: (1221:35,25 [17] )
+Generated Location: (1203:36,0 [17] )
 |context.ToLower()|
 
 Source Location: (159:3,3 [29] x:\dir\subdir\Test\TestComponent.cshtml)
 |System.Math.Max(0, item.Item)|
-Generated Location: (1506:45,25 [29] )
+Generated Location: (1521:48,0 [29] )
 |System.Math.Max(0, item.Item)|
 

@@ -25,8 +25,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.AddAttribute(1, "method", "post");
             __builder.AddAttribute(2, "onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                               () => { }
+#line (2,32)-(2,41) "x:\dir\subdir\Test\TestComponent.cshtml"
+() => { }
 
 #line default
 #line hidden
@@ -34,16 +34,16 @@ using Microsoft.AspNetCore.Components.Web
             ));
             string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>("start" + " " + (
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                             "literal"
+#line (2,62)-(2,71) "x:\dir\subdir\Test\TestComponent.cshtml"
+"literal"
 
 #line default
 #line hidden
 #nullable disable
             ) + " " + (
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                         x
+#line (2,74)-(2,75) "x:\dir\subdir\Test\TestComponent.cshtml"
+x
 
 #line default
 #line hidden
@@ -54,13 +54,14 @@ using Microsoft.AspNetCore.Components.Web
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     int x = 1;
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

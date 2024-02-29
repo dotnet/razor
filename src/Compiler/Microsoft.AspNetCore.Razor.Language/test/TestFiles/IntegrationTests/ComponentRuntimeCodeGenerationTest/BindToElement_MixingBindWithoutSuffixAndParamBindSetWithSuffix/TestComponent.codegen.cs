@@ -16,8 +16,8 @@ namespace Test
             __builder.OpenElement(0, "div");
             __builder.AddAttribute(1, "myvalue", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-             ParentValue
+#line (1,14)-(1,25) "x:\dir\subdir\Test\TestComponent.cshtml"
+ParentValue
 
 #line default
 #line hidden
@@ -29,8 +29,8 @@ namespace Test
         }
         #pragma warning restore 1998
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (2,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     public string ParentValue { get; set; } = "hi";
 
     public void UpdateValue(string value) => ParentValue = value;
@@ -38,6 +38,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

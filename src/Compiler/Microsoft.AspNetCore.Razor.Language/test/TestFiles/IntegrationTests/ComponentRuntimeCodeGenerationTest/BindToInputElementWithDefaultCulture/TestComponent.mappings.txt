@@ -7,14 +7,14 @@ Generated Location: (370:12,0 [28] )
 
 Source Location: (64:1,35 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (1061:28,35 [11] )
+Generated Location: (1038:28,0 [11] )
 |ParentValue|
 
 Source Location: (121:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public int ParentValue { get; set; }
 |
-Generated Location: (1548:41,7 [44] )
+Generated Location: (1528:41,0 [44] )
 |
     public int ParentValue { get; set; }
 |

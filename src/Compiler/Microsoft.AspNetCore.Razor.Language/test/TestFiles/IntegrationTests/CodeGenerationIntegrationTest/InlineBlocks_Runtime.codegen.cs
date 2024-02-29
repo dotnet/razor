@@ -22,13 +22,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #line default
 #line hidden
 #nullable disable
+                Write(
 #nullable restore
-#line (2,35)-(2,39) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InlineBlocks.cshtml"
-Write(link);
+#line (2,35)-(2,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InlineBlocks.cshtml"
+link
 
 #line default
 #line hidden
 #nullable disable
+                );
 #nullable restore
 #line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InlineBlocks.cshtml"
                                        } else { 

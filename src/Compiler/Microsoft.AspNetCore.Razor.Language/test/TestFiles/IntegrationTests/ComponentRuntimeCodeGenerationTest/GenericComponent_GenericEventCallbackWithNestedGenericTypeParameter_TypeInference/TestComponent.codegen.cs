@@ -30,16 +30,16 @@ using System.Collections.Generic
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                   3
+#line (3,20)-(3,21) "x:\dir\subdir\Test\TestComponent.cshtml"
+3
 
 #line default
 #line hidden
 #nullable disable
             , 2, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                               (IEnumerable<int> x) => {}
+#line (3,32)-(3,58) "x:\dir\subdir\Test\TestComponent.cshtml"
+(IEnumerable<int> x) => {}
 
 #line default
 #line hidden

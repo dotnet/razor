@@ -1,13 +1,13 @@
 ﻿Source Location: (44:0,44 [14] x:\dir\subdir\Test\TestComponent.cshtml)
 |someAttributes|
-Generated Location: (1044:20,44 [14] )
+Generated Location: (1012:20,0 [14] )
 |someAttributes|
 
 Source Location: (106:2,7 [93] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private Dictionary<string, object> someAttributes = new Dictionary<string, object>();
 |
-Generated Location: (1406:33,7 [93] )
+Generated Location: (1377:33,0 [93] )
 |
     private Dictionary<string, object> someAttributes = new Dictionary<string, object>();
 |

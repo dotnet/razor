@@ -24,8 +24,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.OpenElement(0, "input");
             __builder.AddAttribute(1, "onclick", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                 OnClick
+#line (2,18)-(2,25) "x:\dir\subdir\Test\TestComponent.cshtml"
+OnClick
 
 #line default
 #line hidden
@@ -35,14 +35,15 @@ using Microsoft.AspNetCore.Components.Web
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     void OnClick() {
     }
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

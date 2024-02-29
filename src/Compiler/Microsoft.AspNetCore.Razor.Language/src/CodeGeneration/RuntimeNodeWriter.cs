@@ -61,35 +61,10 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        IDisposable linePragmaScope = null;
-        if (node.Source != null)
-        {
-            linePragmaScope = context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context, WriteCSharpExpressionMethod.Length + 1);
-            if (!context.Options.UseEnhancedLinePragma)
-            {
-                context.CodeWriter.WritePadding(WriteCSharpExpressionMethod.Length + 1, node.Source, context);
-            }
-        }
-
         context.CodeWriter.WriteStartMethodInvocation(WriteCSharpExpressionMethod);
-
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            if (node.Children[i] is IntermediateToken token && token.IsCSharp)
-            {
-                context.AddSourceMappingFor(token);
-                context.CodeWriter.Write(token.Content);
-            }
-            else
-            {
-                // There may be something else inside the expression like a Template or another extension node.
-                context.RenderNode(node.Children[i]);
-            }
-        }
-
+        context.CodeWriter.WriteLine();
+        WriteCSharpChildren(node.Children, context);
         context.CodeWriter.WriteEndMethodInvocation();
-
-        linePragmaScope?.Dispose();
     }
 
     public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
@@ -110,33 +85,32 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
             return;
         }
 
-        IDisposable linePragmaScope = null;
-        if (node.Source != null)
-        {
-            linePragmaScope = context.CodeWriter.BuildLinePragma(node.Source.Value, context);
-            context.CodeWriter.WritePadding(0, node.Source.Value, context);
-        }
+        WriteCSharpChildren(node.Children, context);
+        context.CodeWriter.WriteLine();
+    }
 
-        for (var i = 0; i < node.Children.Count; i++)
+    private static void WriteCSharpChildren(IntermediateNodeCollection children, CodeRenderingContext context)
+    {
+        for (var i = 0; i < children.Count; i++)
         {
-            if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+            if (children[i] is IntermediateToken token && token.IsCSharp)
             {
-                context.AddSourceMappingFor(token);
-                context.CodeWriter.Write(token.Content);
+                using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
+                {
+                    if (!context.Options.UseEnhancedLinePragma)
+                    {
+                        context.CodeWriter.WritePadding(0, token.Source, context);
+                    }
+                    context.AddSourceMappingFor(token);
+                    context.CodeWriter.Write(token.Content);
+                }
             }
             else
             {
                 // There may be something else inside the statement like an extension node.
-                context.RenderNode(node.Children[i]);
+                context.RenderNode(children[i]);
             }
         }
-
-        if (linePragmaScope == null)
-        {
-            context.CodeWriter.WriteLine();
-        }
-
-        linePragmaScope?.Dispose();
     }
 
     public override void WriteHtmlAttribute(CodeRenderingContext context, HtmlAttributeIntermediateNode node)
