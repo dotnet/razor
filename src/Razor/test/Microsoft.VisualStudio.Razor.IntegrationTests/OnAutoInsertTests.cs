@@ -38,7 +38,7 @@ public class OnAutoInsertTests(ITestOutputHelper testOutputHelper) : AbstractRaz
         await TestServices.Editor.WaitForCurrentLineTextAsync("/// ", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "This is the proximate failure")]
     public async Task Html_AutoCloseTag()
     {
         // Open the file

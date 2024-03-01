@@ -35,13 +35,13 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
     public override async Task InitializeAsync()
     {
+        VisualStudioLogging.AddCustomLoggers();
+
         await base.InitializeAsync();
 
         _testLogger = await TestServices.Output.SetupIntegrationTestLoggerAsync(_testOutputHelper, ControlledHangMitigatingCancellationToken);
 
         _testLogger.LogInformation("#### Razor integration test initialize.");
-
-        VisualStudioLogging.AddCustomLoggers();
 
         var projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
