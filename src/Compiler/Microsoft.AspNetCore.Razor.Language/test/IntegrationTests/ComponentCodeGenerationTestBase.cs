@@ -4877,7 +4877,7 @@ namespace AnotherTest
         Assert.Collection(generated.Diagnostics, d => { Assert.Equal("RZ1038", d.Id); });
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
     public void InheritsDirective_NullableReferenceType()
     {
         // Arrange
