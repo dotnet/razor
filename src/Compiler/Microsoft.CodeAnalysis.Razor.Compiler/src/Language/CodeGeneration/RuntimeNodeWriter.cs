@@ -44,6 +44,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
 
             if (node.AppendLineDefaultAndHidden)
             {
+                context.CodeWriter.WriteLine("#line default");
                 context.CodeWriter.WriteLine("#line hidden");
             }
         }

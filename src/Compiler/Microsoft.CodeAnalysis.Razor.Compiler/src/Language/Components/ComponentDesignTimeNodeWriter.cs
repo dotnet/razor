@@ -86,6 +86,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
             if (node.AppendLineDefaultAndHidden)
             {
+                context.CodeWriter.WriteLine("#line default");
                 context.CodeWriter.WriteLine("#line hidden");
             }
         }
