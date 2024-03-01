@@ -9,7 +9,9 @@ namespace Custom.Namespace
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
     [global::Custom.Namespace.TestComponent.__PrivateComponentRenderModeAttribute]
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

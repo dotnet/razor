@@ -5,16 +5,16 @@ Generated Location: (360:12,0 [41] )
 
 Source Location: (74:1,30 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1216:32,30 [9] )
+Generated Location: (1262:34,30 [9] )
 |() => { }|
 
 Source Location: (154:2,30 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1514:41,30 [9] )
+Generated Location: (1560:43,30 [9] )
 |() => { }|
 
 Source Location: (178:2,54 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |"named-form-handler"|
-Generated Location: (1735:50,54 [20] )
+Generated Location: (1781:52,54 [20] )
 |"named-form-handler"|
 

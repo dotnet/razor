@@ -5,17 +5,17 @@ Generated Location: (360:12,0 [41] )
 
 Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1217:32,31 [9] )
+Generated Location: (1263:34,31 [9] )
 |() => { }|
 
 Source Location: (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |x|
-Generated Location: (1522:41,54 [1] )
+Generated Location: (1568:43,54 [1] )
 |x|
 
 Source Location: (113:1,69 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |y|
-Generated Location: (1730:49,69 [1] )
+Generated Location: (1776:51,69 [1] )
 |y|
 
 Source Location: (132:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -23,7 +23,7 @@ Source Location: (132:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
     string x = "a";
     string y = "b";
 |
-Generated Location: (1910:58,7 [44] )
+Generated Location: (1956:60,7 [44] )
 |
     string x = "a";
     string y = "b";
