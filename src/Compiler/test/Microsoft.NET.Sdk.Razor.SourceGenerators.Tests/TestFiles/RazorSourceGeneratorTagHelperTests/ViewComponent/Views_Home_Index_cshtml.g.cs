@@ -12,6 +12,7 @@ namespace AspNetCoreGeneratedDocument
     using global::Microsoft.AspNetCore.Mvc;
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line default
     #line hidden
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/Views/Home/Index.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]

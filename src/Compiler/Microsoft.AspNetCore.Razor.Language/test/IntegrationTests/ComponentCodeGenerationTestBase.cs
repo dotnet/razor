@@ -10221,10 +10221,10 @@ namespace Test
             DesignTime
             // (23,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
             //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            ? Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(24, 91)
+            ? Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(25, 91)
             // (17,138): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
             //             __builder.AddComponentParameter(1, "StringProperty", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            : Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(18, 138));
+            : Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(19, 138));
         Assert.NotEmpty(generated.Diagnostics);
     }
 

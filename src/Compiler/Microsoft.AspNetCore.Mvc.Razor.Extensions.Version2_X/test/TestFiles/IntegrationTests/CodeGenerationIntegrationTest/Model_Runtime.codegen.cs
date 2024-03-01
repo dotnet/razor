@@ -13,6 +13,7 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line default
     #line hidden
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"36b79708f36f3606c2eb7c7eaf383853df55ab030280d5deb8f762fac54fd1c0", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Model.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Model : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<System.Collections.IEnumerable>

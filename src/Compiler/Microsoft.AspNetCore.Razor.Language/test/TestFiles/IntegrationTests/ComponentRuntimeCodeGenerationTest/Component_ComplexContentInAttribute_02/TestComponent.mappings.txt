@@ -6,7 +6,7 @@
         Two
     }
 |
-Generated Location: (1170:31,7 [67] )
+Generated Location: (1189:32,7 [67] )
 |
     public enum MyEnum
     {

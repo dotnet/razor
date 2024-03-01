@@ -8,6 +8,7 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
     [global::Microsoft.AspNetCore.Components.RouteAttribute("/MyPage")]
     [global::Microsoft.AspNetCore.Components.RouteAttribute("/AnotherRoute/{id}")]

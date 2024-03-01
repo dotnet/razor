@@ -1,23 +1,23 @@
 ﻿Source Location: (2:0,2 [25] x:\dir\subdir\Test\TestComponent.cshtml)
 | var x = "anotherevent"; |
-Generated Location: (922:25,2 [25] )
+Generated Location: (941:26,2 [25] )
 | var x = "anotherevent"; |
 
 Source Location: (49:1,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (1174:33,19 [11] )
+Generated Location: (1193:34,19 [11] )
 |ParentValue|
 
 Source Location: (83:1,53 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |x.ToString()|
-Generated Location: (1376:41,53 [12] )
+Generated Location: (1395:42,53 [12] )
 |x.ToString()|
 
 Source Location: (109:2,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public string ParentValue { get; set; } = "hi";
 |
-Generated Location: (1715:51,7 [55] )
+Generated Location: (1734:52,7 [55] )
 |
     public string ParentValue { get; set; } = "hi";
 |

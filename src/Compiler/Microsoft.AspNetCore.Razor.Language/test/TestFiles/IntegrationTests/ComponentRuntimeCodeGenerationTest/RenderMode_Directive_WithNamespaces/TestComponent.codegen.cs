@@ -8,6 +8,7 @@ namespace Custom.Namespace
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
     [global::Custom.Namespace.TestComponent.__PrivateComponentRenderModeAttribute]
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase

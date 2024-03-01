@@ -1,63 +1,63 @@
 ﻿Source Location: (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |c|
-Generated Location: (1091:26,26 [1] )
+Generated Location: (1110:27,26 [1] )
 |c|
 
 Source Location: (43:1,13 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1322:34,13 [9] )
+Generated Location: (1341:35,13 [9] )
 |() => { }|
 
 Source Location: (74:2,19 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |true|
-Generated Location: (1493:42,19 [4] )
+Generated Location: (1512:43,19 [4] )
 |true|
 
 Source Location: (131:4,23 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1670:50,23 [9] )
+Generated Location: (1689:51,23 [9] )
 |() => { }|
 
 Source Location: (164:5,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |c|
-Generated Location: (1842:58,21 [1] )
+Generated Location: (1861:59,21 [1] )
 |c|
 
 Source Location: (13:0,13 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyParameter|
-Generated Location: (2088:68,13 [11] )
+Generated Location: (2107:69,13 [11] )
 |MyParameter|
 
 Source Location: (34:1,4 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyEvent|
-Generated Location: (2300:77,4 [7] )
+Generated Location: (2319:78,4 [7] )
 |MyEvent|
 
 Source Location: (59:2,4 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |BoolParameter|
-Generated Location: (2508:86,4 [13] )
+Generated Location: (2527:87,4 [13] )
 |BoolParameter|
 
 Source Location: (85:3,4 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |StringParameter|
-Generated Location: (2722:95,4 [15] )
+Generated Location: (2741:96,4 [15] )
 |StringParameter|
 
 Source Location: (112:4,4 [17] x:\dir\subdir\Test\TestComponent.cshtml)
 |DelegateParameter|
-Generated Location: (2938:104,4 [17] )
+Generated Location: (2957:105,4 [17] )
 |DelegateParameter|
 
 Source Location: (147:5,4 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |ObjectParameter|
-Generated Location: (3156:113,4 [15] )
+Generated Location: (3175:114,4 [15] )
 |ObjectParameter|
 
 Source Location: (180:7,7 [42] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private MyClass<string> c = new();
 |
-Generated Location: (3581:131,7 [42] )
+Generated Location: (3600:132,7 [42] )
 |
     private MyClass<string> c = new();
 |

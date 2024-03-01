@@ -1,15 +1,15 @@
 ﻿Source Location: (2:0,2 [27] x:\dir\subdir\Test\TestComponent.cshtml)
 | RenderFragment template = |
-Generated Location: (922:25,2 [27] )
+Generated Location: (941:26,2 [27] )
 | RenderFragment template = |
 
 Source Location: (45:0,45 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |; |
-Generated Location: (1162:34,45 [2] )
+Generated Location: (1181:35,45 [2] )
 |; |
 
 Source Location: (72:1,22 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |template|
-Generated Location: (1328:42,22 [8] )
+Generated Location: (1347:43,22 [8] )
 |template|
 

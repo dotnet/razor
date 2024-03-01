@@ -2,26 +2,26 @@
 |for (var i = 0; i < 10; i++)
 {
     |
-Generated Location: (921:25,1 [37] )
+Generated Location: (940:26,1 [37] )
 |for (var i = 0; i < 10; i++)
 {
     |
 
 Source Location: (74:3,8 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |i|
-Generated Location: (1088:34,8 [1] )
+Generated Location: (1107:35,8 [1] )
 |i|
 
 Source Location: (79:3,13 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |
 }|
-Generated Location: (1225:41,13 [3] )
+Generated Location: (1244:42,13 [3] )
 |
 }|
 
 Source Location: (127:7,2 [56] x:\dir\subdir\Test\TestComponent.cshtml)
 |System.Console.WriteLine(1);System.Console.WriteLine(2);|
-Generated Location: (1352:49,2 [56] )
+Generated Location: (1371:50,2 [56] )
 |System.Console.WriteLine(1);System.Console.WriteLine(2);|
 
 Source Location: (224:10,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -29,7 +29,7 @@ Source Location: (224:10,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
     [Parameter]
     public int IncrementAmount { get; set; }
 |
-Generated Location: (1587:58,7 [65] )
+Generated Location: (1606:59,7 [65] )
 |
     [Parameter]
     public int IncrementAmount { get; set; }

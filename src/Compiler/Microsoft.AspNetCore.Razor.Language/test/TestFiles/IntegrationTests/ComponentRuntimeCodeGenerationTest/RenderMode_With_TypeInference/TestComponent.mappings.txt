@@ -1,23 +1,23 @@
 ﻿Source Location: (11:0,11 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |TRenderMode|
-Generated Location: (420:14,0 [11] )
+Generated Location: (439:15,0 [11] )
 |TRenderMode|
 
 Source Location: (23:0,23 [72] x:\dir\subdir\Test\TestComponent.cshtml)
 |where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode|
-Generated Location: (616:22,0 [72] )
+Generated Location: (635:23,0 [72] )
 |where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode|
 
 Source Location: (127:2,28 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |RenderModeParam|
-Generated Location: (1125:34,28 [15] )
+Generated Location: (1144:35,28 [15] )
 |RenderModeParam|
 
 Source Location: (230:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     [Parameter] public TRenderMode RenderModeParam { get; set;}
 |
-Generated Location: (1584:52,1 [67] )
+Generated Location: (1603:53,1 [67] )
 |
     [Parameter] public TRenderMode RenderModeParam { get; set;}
 |

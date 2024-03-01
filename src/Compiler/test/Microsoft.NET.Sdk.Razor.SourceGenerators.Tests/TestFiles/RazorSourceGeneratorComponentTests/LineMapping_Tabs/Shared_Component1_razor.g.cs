@@ -9,6 +9,7 @@ namespace MyApp.Shared
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
     public partial class Component1 : global::Microsoft.AspNetCore.Components.ComponentBase
     {

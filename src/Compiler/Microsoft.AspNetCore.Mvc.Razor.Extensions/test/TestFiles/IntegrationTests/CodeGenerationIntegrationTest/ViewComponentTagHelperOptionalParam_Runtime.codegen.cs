@@ -12,6 +12,7 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc;
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line default
     #line hidden
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"83aa72bbe254ff67d9ee42878d80c6403361bcbb777a50d8b3d718cba176d15c", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelperOptionalParam.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelperOptionalParam.cshtml")]

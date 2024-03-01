@@ -11,6 +11,7 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line default
     #line hidden
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_MalformedPageDirective : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     {
