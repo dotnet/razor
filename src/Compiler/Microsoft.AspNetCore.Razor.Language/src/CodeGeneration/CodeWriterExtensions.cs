@@ -398,10 +398,22 @@ internal static class CodeWriterExtensions
         return scope;
     }
 
-    public static CSharpCodeWritingScope BuildNamespace(this CodeWriter writer, string name)
+    public static CSharpCodeWritingScope BuildNamespace(this CodeWriter writer, string name, SourceSpan? span, CodeRenderingContext context)
     {
-        writer.Write("namespace ").WriteLine(name);
-
+        writer.Write("namespace ");
+        if (context.Options.DesignTime || span is null)
+        {
+            writer.WriteLine(name);
+        }
+        else
+        {
+            writer.WriteLine();
+            using (writer.BuildEnhancedLinePragma(span, context))
+            {
+                context.AddSourceMappingFor(span.Value);
+                writer.WriteLine(name);
+            }
+        }
         return new CSharpCodeWritingScope(writer);
     }
 
