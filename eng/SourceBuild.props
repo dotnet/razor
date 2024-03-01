@@ -18,7 +18,7 @@
     <Delete Files="$(InnerSourceBuildRepoRoot).globalconfig" />
 
     <PropertyGroup>
-      <TargetRid>$(TargetRid)</TargetRid>
+      <InnerBuildArgs>/p:TargetRid=$(TargetRid)</InnerBuildArgs>
     </PropertyGroup>
   </Target>
 
