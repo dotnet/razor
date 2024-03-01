@@ -337,7 +337,7 @@ internal static class CodeWriterExtensions
             .WriteEndMethodInvocation(endLine);
     }
 
-    public static CodeWriter WriteAutoPropertyDeclaration(this CodeWriter writer, IList<string> modifiers, string typeName, string propertyName)
+    public static CodeWriter WriteAutoPropertyDeclaration(this CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan = null, SourceSpan? propertySpan = null, CodeRenderingContext context = null)
     {
         if (modifiers == null)
         {
@@ -360,13 +360,30 @@ internal static class CodeWriterExtensions
             writer.Write(" ");
         }
 
-        writer.Write(typeName);
+        WriteToken(writer, typeName, typeSpan, context);
         writer.Write(" ");
-        writer.Write(propertyName);
+        WriteToken(writer, propertyName, propertySpan, context);
         writer.Write(" { get; set; }");
         writer.WriteLine();
 
         return writer;
+
+        static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext context)
+        {
+            if (span is not null && context?.Options.DesignTime == false)
+            {
+                writer.WriteLine();
+                using (writer.BuildEnhancedLinePragma(span, context))
+                {
+                    context.AddSourceMappingFor(span.Value);
+                    writer.Write(content);
+                }
+            }
+            else
+            {
+                writer.Write(content);
+            }
+        }
     }
 
     public static CSharpCodeWritingScope BuildScope(this CodeWriter writer)
