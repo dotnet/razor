@@ -114,8 +114,8 @@ internal class RazorFormattingPass(
             if (TryGetWhitespace(children, out var whitespaceBeforeSectionName, out var whitespaceAfterSectionName))
             {
                 // For whitespace we normalize it differently depending on if its multi-line or not
-                FormatWhitespaceBetweenDirectiveAndBrace(whitespaceBeforeSectionName, directive, edits, source, context);
-                FormatWhitespaceBetweenDirectiveAndBrace(whitespaceAfterSectionName, directive, edits, source, context);
+                FormatWhitespaceBetweenDirectiveAndBrace(whitespaceBeforeSectionName, directive, edits, source, context, forceNewLine: false);
+                FormatWhitespaceBetweenDirectiveAndBrace(whitespaceAfterSectionName, directive, edits, source, context, forceNewLine: false);
 
                 return true;
             }
@@ -276,11 +276,16 @@ internal class RazorFormattingPass(
             !directive.ContainsDiagnostics &&
             directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
         {
+            // If we're formatting a @code or @functions directive, the user might have indicated they always want a newline
+            var forceNewLine = _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine &&
+                directive.Body is RazorDirectiveBodySyntax { Keyword: { } keyword } &&
+                keyword.GetContent() is "code" or "functions";
+
             var children = code.Children;
             if (TryGetLeadingWhitespace(children, out var whitespace))
             {
                 // For whitespace we normalize it differently depending on if its multi-line or not
-                FormatWhitespaceBetweenDirectiveAndBrace(whitespace, directive, edits, source, context);
+                FormatWhitespaceBetweenDirectiveAndBrace(whitespace, directive, edits, source, context, forceNewLine);
             }
             else if (children.TryGetOpenBraceToken(out var brace))
             {
@@ -289,7 +294,9 @@ internal class RazorFormattingPass(
                 var edit = new TextEdit
                 {
                     Range = new Range { Start = start, End = start },
-                    NewText = " "
+                    NewText = forceNewLine
+                        ? context.NewLineString + FormattingUtilities.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize)
+                        : " "
                 };
                 edits.Add(edit);
             }
@@ -347,13 +354,8 @@ internal class RazorFormattingPass(
         }
     }
 
-    private void FormatWhitespaceBetweenDirectiveAndBrace(SyntaxNode node, RazorDirectiveSyntax directive, List<TextEdit> edits, RazorSourceDocument source, FormattingContext context)
+    private void FormatWhitespaceBetweenDirectiveAndBrace(SyntaxNode node, RazorDirectiveSyntax directive, List<TextEdit> edits, RazorSourceDocument source, FormattingContext context, bool forceNewLine)
     {
-        // If we're formatting a @code or @functions directive, the user might have indicated they always want a newline
-        var forceNewLine = _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine &&
-            directive.Body is RazorDirectiveBodySyntax { Keyword: { } keyword } &&
-            keyword.GetContent() is "code" or "functions";
-
         if (node.ContainsOnlyWhitespace(includingNewLines: false) && !forceNewLine)
         {
             ShrinkToSingleSpace(node, edits, source);
