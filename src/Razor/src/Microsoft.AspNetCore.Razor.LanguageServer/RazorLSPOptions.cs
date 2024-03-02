@@ -18,21 +18,6 @@ internal record RazorLSPOptions(
     bool CodeBlockBraceOnNextLine,
     bool CommitElementsWithSpace)
 {
-    public RazorLSPOptions(bool enableFormatting, bool autoClosingTags, bool commitElementsWithSpace, ClientSettings settings)
-        : this(enableFormatting,
-              autoClosingTags,
-              !settings.ClientSpaceSettings.IndentWithTabs,
-              settings.ClientSpaceSettings.IndentSize,
-              settings.ClientCompletionSettings.AutoShowCompletion,
-              settings.ClientCompletionSettings.AutoListParams,
-              settings.AdvancedSettings.FormatOnType,
-              settings.AdvancedSettings.AutoInsertAttributeQuotes,
-              settings.AdvancedSettings.ColorBackground,
-              settings.AdvancedSettings.CodeBlockBraceOnNextLine,
-              commitElementsWithSpace)
-    {
-    }
-
     public readonly static RazorLSPOptions Default = new(EnableFormatting: true,
                                                          AutoClosingTags: true,
                                                          AutoListParams: true,
@@ -49,9 +34,16 @@ internal record RazorLSPOptions(
     /// Initializes the LSP options with the settings from the passed in client settings, and default values for anything
     /// not defined in client settings.
     /// </summary>
-    internal static RazorLSPOptions From(ClientSettings clientSettings)
+    internal static RazorLSPOptions From(ClientSettings settings)
         => new(Default.EnableFormatting,
-            clientSettings.AdvancedSettings.AutoClosingTags,
-            clientSettings.AdvancedSettings.CommitElementsWithSpace,
-            clientSettings);
+              settings.AdvancedSettings.AutoClosingTags,
+              !settings.ClientSpaceSettings.IndentWithTabs,
+              settings.ClientSpaceSettings.IndentSize,
+              settings.ClientCompletionSettings.AutoShowCompletion,
+              settings.ClientCompletionSettings.AutoListParams,
+              settings.AdvancedSettings.FormatOnType,
+              settings.AdvancedSettings.AutoInsertAttributeQuotes,
+              settings.AdvancedSettings.ColorBackground,
+              settings.AdvancedSettings.CodeBlockBraceOnNextLine,
+              settings.AdvancedSettings.CommitElementsWithSpace);
 }
