@@ -15,6 +15,7 @@ internal record RazorLSPOptions(
     bool FormatOnType,
     bool AutoInsertAttributeQuotes,
     bool ColorBackground,
+    bool CodeBlockBraceOnNextLine,
     bool CommitElementsWithSpace)
 {
     public RazorLSPOptions(bool enableFormatting, bool autoClosingTags, bool commitElementsWithSpace, ClientSettings settings)
@@ -27,6 +28,7 @@ internal record RazorLSPOptions(
               settings.AdvancedSettings.FormatOnType,
               settings.AdvancedSettings.AutoInsertAttributeQuotes,
               settings.AdvancedSettings.ColorBackground,
+              settings.AdvancedSettings.CodeBlockBraceOnNextLine,
               commitElementsWithSpace)
     {
     }
@@ -40,6 +42,7 @@ internal record RazorLSPOptions(
                                                          FormatOnType: true,
                                                          AutoInsertAttributeQuotes: true,
                                                          ColorBackground: false,
+                                                         CodeBlockBraceOnNextLine: false,
                                                          CommitElementsWithSpace: true);
 
     /// <summary>
