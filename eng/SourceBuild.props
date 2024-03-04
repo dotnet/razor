@@ -16,10 +16,10 @@
           DependsOnTargets="PrepareInnerSourceBuildRepoRoot"
           BeforeTargets="RunInnerSourceBuildCommand">
     <Delete Files="$(InnerSourceBuildRepoRoot).globalconfig" />
-
-    <PropertyGroup>
-      <InnerBuildArgs>/p:TargetRid=$(TargetRid)</InnerBuildArgs>
-    </PropertyGroup>
   </Target>
+
+  <PropertyGroup>
+    <InnerBuildArgs>$(InnerBuildArgs) /p:TargetRid=$(TargetRid)</InnerBuildArgs>
+  </PropertyGroup>
 
 </Project>
