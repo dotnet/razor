@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -95,7 +96,7 @@ internal class RazorFormattingPass(
             TryFormatSectionBlock(context, edits, source, node);
     }
 
-    private bool TryFormatSectionBlock(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
+    private static bool TryFormatSectionBlock(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
     {
         // @section Goo {
         // }
@@ -170,8 +171,7 @@ internal class RazorFormattingPass(
         // }
         if (node is CSharpCodeBlockSyntax { Children: [RazorDirectiveSyntax { Body: RazorDirectiveBodySyntax body } directive] })
         {
-            var keywordContent = body.Keyword.GetContent();
-            if (keywordContent != "functions" && keywordContent != "code")
+            if (!IsCodeOrFunctionsBlock(body.Keyword))
             {
                 return false;
             }
@@ -279,7 +279,7 @@ internal class RazorFormattingPass(
             // If we're formatting a @code or @functions directive, the user might have indicated they always want a newline
             var forceNewLine = _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine &&
                 directive.Body is RazorDirectiveBodySyntax { Keyword: { } keyword } &&
-                keyword.GetContent() is "code" or "functions";
+                IsCodeOrFunctionsBlock(keyword);
 
             var children = code.Children;
             if (TryGetLeadingWhitespace(children, out var whitespace))
@@ -354,7 +354,7 @@ internal class RazorFormattingPass(
         }
     }
 
-    private void FormatWhitespaceBetweenDirectiveAndBrace(SyntaxNode node, RazorDirectiveSyntax directive, List<TextEdit> edits, RazorSourceDocument source, FormattingContext context, bool forceNewLine)
+    private static void FormatWhitespaceBetweenDirectiveAndBrace(SyntaxNode node, RazorDirectiveSyntax directive, List<TextEdit> edits, RazorSourceDocument source, FormattingContext context, bool forceNewLine)
     {
         if (node.ContainsOnlyWhitespace(includingNewLines: false) && !forceNewLine)
         {
@@ -535,5 +535,12 @@ internal class RazorFormattingPass(
                 return whitespaceLength;
             }
         }
+    }
+
+    private static bool IsCodeOrFunctionsBlock(RazorSyntaxNode keyword)
+    {
+        var keywordContent = keyword.GetContent();
+        return keywordContent == FunctionsDirective.Directive.Directive ||
+            keywordContent == ComponentCodeDirective.Directive.Directive;
     }
 }
