@@ -760,9 +760,14 @@ internal static class CodeWriterExtensions
                 WriteLineNumberDirective(writer, span);
             }
 
-
             // Capture the line index after writing the #line directive.
             _startLineIndex = writer.Location.LineIndex;
+
+            // If the caller requested an enhanced line directive, but we fell back to regular ones, write out the extra padding that is required
+            if (useEnhancedLinePragma && !_context.Options.UseEnhancedLinePragma)
+            {
+                context.CodeWriter.WritePadding(0, span, context);
+            }
         }
 
         public void Dispose()

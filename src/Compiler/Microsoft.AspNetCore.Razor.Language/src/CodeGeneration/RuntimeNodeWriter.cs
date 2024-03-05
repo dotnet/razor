@@ -97,10 +97,6 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
             {
                 using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
                 {
-                    if (!context.Options.UseEnhancedLinePragma)
-                    {
-                        context.CodeWriter.WritePadding(0, token.Source, context);
-                    }
                     context.AddSourceMappingFor(token);
                     context.CodeWriter.Write(token.Content);
                 }
