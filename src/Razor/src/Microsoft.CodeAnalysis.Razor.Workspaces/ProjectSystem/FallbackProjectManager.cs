@@ -115,7 +115,7 @@ internal sealed class FallbackProjectManager(
         var hostProject = new FallbackHostProject(project.FilePath, intermediateOutputPath, FallbackRazorConfiguration.Latest, rootNamespace, project.Name);
 
         await _dispatcher
-            .RunOnDispatcherThreadAsync(
+            .RunAsync(
                 () => _projectManagerAccessor.Instance.ProjectAdded(hostProject),
                 cancellationToken)
             .ConfigureAwait(false);
@@ -138,7 +138,7 @@ internal sealed class FallbackProjectManager(
         var textLoader = new FileTextLoader(filePath, defaultEncoding: null);
 
         await _dispatcher
-            .RunOnDispatcherThreadAsync(
+            .RunAsync(
                 () => _projectManagerAccessor.Instance.DocumentAdded(projectKey, hostDocument, textLoader),
                 cancellationToken)
             .ConfigureAwait(false);
@@ -181,7 +181,7 @@ internal sealed class FallbackProjectManager(
         }
 
         await _dispatcher
-            .RunOnDispatcherThreadAsync(
+            .RunAsync(
                 () => _projectManagerAccessor.Instance.DocumentRemoved(razorProjectKey, hostDocument),
                 cancellationToken)
             .ConfigureAwait(false);
