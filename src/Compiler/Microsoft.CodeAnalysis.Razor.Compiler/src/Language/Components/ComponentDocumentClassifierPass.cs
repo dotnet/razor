@@ -110,7 +110,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
             // Constrained type parameters are only supported in Razor language versions v6.0
             var razorLanguageVersion = codeDocument.GetParserOptions()?.Version ?? RazorLanguageVersion.Latest;
-            var directiveType = razorLanguageVersion.CompareTo(RazorLanguageVersion.Version_6_0) >= 0
+            var directiveType = razorLanguageVersion >= RazorLanguageVersion.Version_6_0
                 ? ComponentConstrainedTypeParamDirective.Directive
                 : ComponentTypeParamDirective.Directive;
             var typeParamReferences = documentNode.FindDirectiveReferences(directiveType);
