@@ -3,7 +3,7 @@
 #
 
 variables:
-- template: /eng/common/templates/variables/pool-providers.yml@self
+- template: /eng/common/templates-official/variables/pool-providers.yml@self
 - name: Build.Repository.Clean
   value: true
 - name: _TeamName
@@ -92,13 +92,13 @@ extends:
       displayName: Build
       jobs:
       - ${{ if and(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
-        - template: /eng/common/templates/job/onelocbuild.yml@self
+        - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-RAZORTOOL'
             MirrorRepo: razor
 
-      - template: /eng/common/templates/jobs/jobs.yml@self
+      - template: /eng/common/templates-official/jobs/jobs.yml@self
         parameters:
           enablePublishBuildArtifacts: false
           enablePublishTestResults: false
@@ -137,7 +137,7 @@ extends:
       # Windows based jobs. This needs to be separate from Unix based jobs because it generates
       # TRX files. That can only be toggled at the top level template level, not at the individual
       # job.
-      - template: /eng/common/templates/jobs/jobs.yml@self
+      - template: /eng/common/templates-official/jobs/jobs.yml@self
         parameters:
           enablePublishBuildArtifacts: false
           enablePublishTestResults: true
@@ -310,7 +310,7 @@ extends:
                 condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
       # Unix jobs done as a group since they share the same test results format.
-      - template: /eng/common/templates/jobs/jobs.yml@self
+      - template: /eng/common/templates-official/jobs/jobs.yml@self
         parameters:
           enablePublishBuildArtifacts: false
           enablePublishTestResults: true
@@ -427,7 +427,7 @@ extends:
               condition: always()
 
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-      - template: /eng/common/templates/post-build/post-build.yml@self
+      - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3
           enableSigningValidation: false
