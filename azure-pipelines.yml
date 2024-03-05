@@ -329,7 +329,9 @@ extends:
           jobs:
           - job: macOS
             pool:
-              vmImage: macOS-12
+              name: Azure Pipelines
+              image: macOS-12
+              os: macOS
             strategy:
               matrix:
                 release:
