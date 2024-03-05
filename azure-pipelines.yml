@@ -194,6 +194,31 @@ extends:
 
             templateContext:
               outputs:
+              - output: pipelineArtifact
+                path: artifacts/log/$(_BuildConfig)
+                artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) Logs
+                displayName: Publish Build Artifacts
+                condition: always()
+
+              - output: pipelineArtifact
+                path: artifacts/TestResults/$(_BuildConfig)
+                artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
+                displayName: Publish Test Artifacts
+                condition: in(variables['Build.Reason'], 'PullRequest')
+
+              # Publish an artifact that the RoslynInsertionTool is able to find by its name.
+              - output: pipelineArtifact
+                path: artifacts\VSSetup\$(_BuildConfig)
+                artifact: VSSetup
+                displayName: Publish VSSetup
+                condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+
+              - output: pipelineArtifact
+                path: artifacts\packages\$(_BuildConfig)
+                artifact: Packages_$(Agent.Os)_$(_BuildConfig)
+                displayName: Publish package artifacts
+                condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+
               # Publishes setup VSIXes to a drop.
               # Note: The insertion tool looks for the display name of this task in the logs.
               - ${{ if ne(variables['System.TeamProject'], 'public') }}:
@@ -201,6 +226,8 @@ extends:
                   dropFolder: 'artifacts\VSSetup\$(_BuildConfig)\Insertion'
                   dropName: $(VisualStudio.DropName)
                   accessToken: $(_DevDivDropAccessToken)
+                  displayName: Upload VSTS Drop
+                  condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
             steps:
             - task: NuGetCommand@2
@@ -283,27 +310,6 @@ extends:
               continueOnError: true
               condition: always()
 
-            - publish: artifacts/log/$(_BuildConfig)
-              artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) Logs
-              displayName: Publish Build Artifacts
-              condition: always()
-
-            - publish: artifacts/TestResults/$(_BuildConfig)
-              artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
-              displayName: Publish Test Artifacts
-              condition: in(variables['Build.Reason'], 'PullRequest')
-
-            # Publish an artifact that the RoslynInsertionTool is able to find by its name.
-            - publish: artifacts\VSSetup\$(_BuildConfig)
-              artifact: VSSetup
-              displayName: Publish VSSetup
-              condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
-
-            - publish: artifacts\packages\$(_BuildConfig)
-              artifact: Packages_$(Agent.Os)_$(_BuildConfig)
-              displayName: Publish package artifacts
-              condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
-
             - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)"
               displayName: Setting VisualStudio.DropName variable
 
@@ -335,6 +341,14 @@ extends:
               - _BuildArgs: /p:DotNetPublishUsingPipelines=true
                   /p:OfficialBuildId=$(Build.BuildNumber)
 
+            templateContext:
+              outputs:
+              - output: pipelineArtifact
+                path: artifacts/TestResults/$(_BuildConfig)
+                artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
+                displayName: Publish Test Results
+                condition: always()
+
             steps:
             - ${{ if ne(variables['System.TeamProject'], 'public') }}:
               - task: Bash@3
@@ -358,11 +372,6 @@ extends:
               name: Build
               displayName: Restore, Build and Test
               condition: succeeded()
-
-            - publish: artifacts/TestResults/$(_BuildConfig)
-              artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
-              displayName: Publish Test Results
-              condition: always()
 
           - job: Linux
             container:
@@ -395,6 +404,14 @@ extends:
               - _BuildArgs: /p:DotNetPublishUsingPipelines=true
                   /p:OfficialBuildId=$(Build.BuildNumber)
 
+            templateContext:
+              outputs:
+              - output: pipelineArtifact
+                path: artifacts/TestResults/$(_BuildConfig)/
+                artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
+                displayName: Publish Test Results
+                condition: always()
+
             steps:
             - ${{ if ne(variables['System.TeamProject'], 'public') }}:
               - task: Bash@3
@@ -418,11 +435,6 @@ extends:
               name: Build
               displayName: Restore, Build and Test
               condition: succeeded()
-
-            - publish: artifacts/TestResults/$(_BuildConfig)/
-              artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
-              displayName: Publish Test Results
-              condition: always()
 
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
