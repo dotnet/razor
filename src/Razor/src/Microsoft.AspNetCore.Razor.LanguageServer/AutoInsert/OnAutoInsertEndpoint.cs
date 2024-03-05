@@ -54,6 +54,35 @@ internal class OnAutoInsertEndpoint(
         };
     }
 
+    // internal for testing
+    // The main reason for this method is auto-insert of empty double quotes when a user types
+    // equals "=" after Blazor component attribute. We think this is Razor (correctly I guess)
+    // and wouldn't forward auto-insert request to HTML in this case. By essentially overriding
+    // language info here we allow the request to be sent over to HTML where it will insert empty
+    // double-quotes as it would for any other attribute value
+    internal override async Task<bool> PreferHtmlOverRazorIfPossibleAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    {
+        if (request.Character != "=")
+        {
+            return false;
+        }
+
+        var positionBeforeEquals = positionInfo.HostDocumentIndex - 1;
+        if (positionBeforeEquals < 0)
+        {
+            return false;
+        }
+
+        var documentContext = requestContext.GetRequiredDocumentContext();
+        var owner = await documentContext.GetSyntaxNodeAsync(positionBeforeEquals, cancellationToken).ConfigureAwait(false);
+        if (owner is null)
+        {
+            return false;
+        }
+
+        return owner.Kind == SyntaxKind.MarkupTagHelperAttribute;
+    }
+
     protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();

@@ -3,9 +3,13 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -48,6 +52,58 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         Assert.False(insertProvider1.Called);
         Assert.False(insertProvider2.Called);
         Assert.Equal(0, languageServer.RequestCount);
+    }
+
+    [Theory]
+    [InlineData("=", true)]
+    [InlineData(">", false)]
+    public async Task PreferHtmlOverRazor_EqualsTriggerInTagHelperAttribute_ReturnsAppropriateValue(string trigger, bool expectedValue)
+    {
+        // Arrange
+        var documentText = """
+@page "/"
+@using Microsoft.AspNetCore.Components.Forms
+<InputText ValueChanged=$$></InputText>
+""";
+        TestFileMarkupParser.GetPosition(documentText, out documentText, out var cursorPosition);
+        var razorFilePath = "file://path/test.razor";
+        var codeDocument = CreateCodeDocument(documentText, filePath:razorFilePath);
+        codeDocument.Source.Text.GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var position = new Position(line, offset);
+        var uri = new Uri(razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+
+        var optionsMonitor = GetOptionsMonitor();
+        var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true);
+        var insertProvider2 = new TestOnAutoInsertProvider("<", canResolve: true);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, new[] { insertProvider1, insertProvider2 }, optionsMonitor, LoggerFactory);
+        var @params = new VSInternalDocumentOnAutoInsertParams()
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = uri, },
+            Position = position,
+            Character = trigger,
+            Options = new FormattingOptions
+            {
+                TabSize = 4,
+                InsertSpaces = true
+            },
+        };
+        var requestContext = CreateRazorRequestContext(documentContext);
+        var positionInfo = new DocumentPositionInfo(RazorLanguageKind.Razor, position, cursorPosition);
+
+        // Act
+        var result = await endpoint.PreferHtmlOverRazorIfPossibleAsync(@params, requestContext, positionInfo, CancellationToken.None);
+
+        // Assert
+        if (expectedValue)
+        {
+            Assert.True(result);
+        }
+        else
+        {
+            Assert.False(result);
+        }
     }
 
     [Fact]
