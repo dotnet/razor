@@ -385,6 +385,7 @@ extends:
               ${{ if eq(variables['System.TeamProject'], 'internal') }}:
                 name: $(DncEngInternalBuildPool)
                 demands: ImageOverride -equals 1es-ubuntu-2004-pt
+              os: linux
 
             strategy:
               matrix:
