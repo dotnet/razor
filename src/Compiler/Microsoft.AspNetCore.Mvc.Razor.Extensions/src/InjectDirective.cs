@@ -69,7 +69,9 @@ public static class InjectDirective
                 }
 
                 var typeName = tokens[0].Content;
+                var typeSpan = tokens[1].Source;
                 var memberName = tokens[1].Content;
+                var memberSpan = tokens[1].Source;
 
                 if (!properties.Add(memberName))
                 {
@@ -82,6 +84,8 @@ public static class InjectDirective
                 {
                     TypeName = typeName,
                     MemberName = memberName,
+                    TypeSource = typeSpan,
+                    MemberSource = memberSpan
                 };
 
                 visitor.Class.Children.Add(injectNode);

@@ -337,7 +337,7 @@ internal static class CodeWriterExtensions
             .WriteEndMethodInvocation(endLine);
     }
 
-    public static CodeWriter WriteAutoPropertyDeclaration(this CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan = null, SourceSpan? propertySpan = null, CodeRenderingContext context = null)
+    public static CodeWriter WriteAutoPropertyDeclaration(this CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan = null, SourceSpan? propertySpan = null, CodeRenderingContext context = null, bool privateSetter = false)
     {
         if (modifiers == null)
         {
@@ -363,7 +363,12 @@ internal static class CodeWriterExtensions
         WriteToken(writer, typeName, typeSpan, context);
         writer.Write(" ");
         WriteToken(writer, propertyName, propertySpan, context);
-        writer.Write(" { get; set; }");
+        writer.Write(" { get;");
+        if (privateSetter)
+        {
+            writer.Write(" private");
+        }
+        writer.Write(" set; }");
         writer.WriteLine();
 
         return writer;
