@@ -31,16 +31,16 @@ TChild
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                   ChildItem
+#line (3,20)-(3,29) "x:\dir\subdir\Test\TestComponent.cshtml"
+ChildItem
 
 #line default
 #line hidden
 #nullable disable
             , 2, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                       MyChildEvent
+#line (3,40)-(3,52) "x:\dir\subdir\Test\TestComponent.cshtml"
+MyChildEvent
 
 #line default
 #line hidden
@@ -49,14 +49,15 @@ TChild
         }
         #pragma warning restore 1998
 #nullable restore
-#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
- 
+#line (5,2)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
         [Parameter] public TChild ChildItem { get; set; }
         [Parameter] public EventCallback<TChild> MyChildEvent { get; set; }
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 namespace __Blazor.Test.TestComponent

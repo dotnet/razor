@@ -25,8 +25,8 @@ using Microsoft.AspNetCore.Components.Web
             __builder.AddAttribute(1, "method", "post");
             __builder.AddAttribute(2, "onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                               () => { }
+#line (2,32)-(2,41) "x:\dir\subdir\Test\TestComponent.cshtml"
+() => { }
 
 #line default
 #line hidden

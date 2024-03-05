@@ -7,14 +7,14 @@ Generated Location: (370:12,0 [43] )
 
 Source Location: (91:2,40 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |text|
-Generated Location: (1180:30,40 [4] )
+Generated Location: (1152:30,0 [4] )
 |text|
 
 Source Location: (127:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private string text = "hi";
 |
-Generated Location: (1686:44,12 [35] )
+Generated Location: (1657:44,0 [35] )
 |
     private string text = "hi";
 |

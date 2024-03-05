@@ -23,8 +23,8 @@ using Test
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, 
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                        1
+#line (2,25)-(2,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+1
 
 #line default
 #line hidden

@@ -1,13 +1,13 @@
 ﻿Source Location: (46:0,46 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |Header|
-Generated Location: (893:19,46 [6] )
+Generated Location: (859:19,0 [6] )
 |Header|
 
 Source Location: (65:1,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
 |
 	[Parameter] public RenderFragment Header { get; set; }
 |
-Generated Location: (1135:30,7 [59] )
+Generated Location: (1104:30,0 [59] )
 |
 	[Parameter] public RenderFragment Header { get; set; }
 |

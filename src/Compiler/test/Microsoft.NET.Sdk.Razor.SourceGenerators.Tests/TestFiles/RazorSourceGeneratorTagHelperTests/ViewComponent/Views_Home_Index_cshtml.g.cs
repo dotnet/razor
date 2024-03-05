@@ -43,13 +43,14 @@ namespace AspNetCoreGeneratedDocument
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 2 "Views/Home/Index.cshtml"
+#line (2,3)-(4,1) "Views/Home/Index.cshtml"
 
     var num = 42;
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("\r\n");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:test", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
             }

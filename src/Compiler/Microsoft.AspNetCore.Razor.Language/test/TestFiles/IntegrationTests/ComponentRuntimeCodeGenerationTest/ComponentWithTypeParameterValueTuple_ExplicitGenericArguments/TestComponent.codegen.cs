@@ -46,8 +46,8 @@ where TValue : struct
             __builder.OpenComponent<global::Test.TestComponent<decimal, decimal>>(0);
             __builder.AddComponentParameter(1, "Data", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.List<(decimal Domain, decimal Value)>>(
 #nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-                     null
+#line (4,22)-(4,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+null
 
 #line default
 #line hidden
@@ -57,14 +57,15 @@ where TValue : struct
         }
         #pragma warning restore 1998
 #nullable restore
-#line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (6,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     [Parameter]
     public List<(TDomain Domain, TValue Value)> Data { get; set; }
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

@@ -1,15 +1,15 @@
 ﻿Source Location: (46:0,46 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |"hi"|
-Generated Location: (913:19,46 [4] )
+Generated Location: (879:19,0 [4] )
 |"hi"|
 
 Source Location: (77:1,22 [17] x:\dir\subdir\Test\TestComponent.cshtml)
 |context.ToLower()|
-Generated Location: (1298:29,25 [17] )
+Generated Location: (1279:30,0 [17] )
 |context.ToLower()|
 
 Source Location: (158:3,3 [29] x:\dir\subdir\Test\TestComponent.cshtml)
 |System.Math.Max(0, item.Item)|
-Generated Location: (1740:40,25 [29] )
+Generated Location: (1754:43,0 [29] )
 |System.Math.Max(0, item.Item)|
 

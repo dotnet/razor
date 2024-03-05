@@ -12,7 +12,7 @@ namespace Test
     // language=Route,Component
 #nullable restore
 #line (3,7)-(3,16) "x:\dir\subdir\Test\TestComponent.cshtml"
-      "/my/url"
+"/my/url"
 
 #line default
 #line hidden

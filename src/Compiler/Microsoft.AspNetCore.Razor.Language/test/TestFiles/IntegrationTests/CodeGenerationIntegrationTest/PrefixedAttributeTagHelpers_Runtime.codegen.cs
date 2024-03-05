@@ -42,8 +42,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
         {
             WriteLiteral("\r\n");
 #nullable restore
-#line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml"
-  
+#line (3,3)-(13,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml"
+
     var literate = "or illiterate";
     var intDictionary = new Dictionary<string, int>
     {
@@ -57,6 +57,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("\r\n<div class=\"randomNonTagHelperAttribute\">\r\n    ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
             }
@@ -209,13 +210,15 @@ __TestNamespace_InputTagHelper1.IntDictionaryProperty["pepper"] = 98;
             }
             BeginWriteTagHelperAttribute();
             WriteLiteral("literate ");
+            WriteLiteral(
 #nullable restore
-#line (21,43)-(21,51) 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml"
-WriteLiteral(literate);
+#line (21,43)-(21,51) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml"
+literate
 
 #line default
 #line hidden
 #nullable disable
+            );
             WriteLiteral("?");
             __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
             __TestNamespace_InputTagHelper1.StringDictionaryProperty["cumin"] = __tagHelperStringValueBuffer;

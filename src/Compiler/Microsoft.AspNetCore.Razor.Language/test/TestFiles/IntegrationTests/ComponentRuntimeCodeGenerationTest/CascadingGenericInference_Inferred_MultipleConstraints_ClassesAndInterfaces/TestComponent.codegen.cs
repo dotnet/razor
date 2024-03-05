@@ -23,8 +23,8 @@ using Models;
             __builder.OpenComponent<global::Test.Grid<WeatherForecast>>(0);
             __builder.AddComponentParameter(1, "Items", 
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                       Array.Empty<WeatherForecast>()
+#line (3,40)-(3,70) "x:\dir\subdir\Test\TestComponent.cshtml"
+Array.Empty<WeatherForecast>()
 
 #line default
 #line hidden

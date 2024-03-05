@@ -25,8 +25,8 @@ using System.Globalization
             __builder.AddAttribute(1, "type", "custom");
             __builder.AddAttribute(2, "value", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                   ParentValue
+#line (2,36)-(2,47) "x:\dir\subdir\Test\TestComponent.cshtml"
+ParentValue
 
 #line default
 #line hidden
@@ -38,13 +38,14 @@ using System.Globalization
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     public int ParentValue { get; set; }
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

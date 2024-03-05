@@ -720,9 +720,8 @@ internal static class CodeWriterExtensions
         private readonly CodeWriter _writer;
         private readonly CodeRenderingContext _context;
         private readonly int _startIndent;
-        private readonly int _sourceLineIndex;
         private readonly int _startLineIndex;
-        private readonly string _sourceFilePath;
+        private readonly SourceSpan _span;
 
         public LinePragmaWriter(
             CodeWriter writer,
@@ -739,9 +738,8 @@ internal static class CodeWriterExtensions
             _writer = writer;
             _context = context;
             _startIndent = _writer.CurrentIndent;
-            _sourceFilePath = span.FilePath;
-            _sourceLineIndex = span.LineIndex;
             _writer.CurrentIndent = 0;
+            _span = span;
 
             if (!_context.Options.SuppressNullabilityEnforcement)
             {
@@ -762,9 +760,14 @@ internal static class CodeWriterExtensions
                 WriteLineNumberDirective(writer, span);
             }
 
-
             // Capture the line index after writing the #line directive.
             _startLineIndex = writer.Location.LineIndex;
+
+            // If the caller requested an enhanced line directive, but we fell back to regular ones, write out the extra padding that is required
+            if (useEnhancedLinePragma && !_context.Options.UseEnhancedLinePragma)
+            {
+                context.CodeWriter.WritePadding(0, span, context);
+            }
         }
 
         public void Dispose()
@@ -783,7 +786,7 @@ internal static class CodeWriterExtensions
             }
 
             var lineCount = _writer.Location.LineIndex - _startLineIndex;
-            var linePragma = new LinePragma(_sourceLineIndex, lineCount, _sourceFilePath);
+            var linePragma = new LinePragma(_span.LineIndex, lineCount, _span.FilePath, _span.EndCharacterIndex, _span.EndCharacterIndex, _span.CharacterIndex);
             _context.AddLinePragma(linePragma);
 
             _writer

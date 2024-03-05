@@ -66,36 +66,40 @@ where TItem3 : Image, new()
         {
             __builder.AddMarkupContent(0, "<h1>Item1</h1>");
 #nullable restore
-#line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
- foreach (var item2 in Items2)
+#line (7,2)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+foreach (var item2 in Items2)
 {
 
 #line default
 #line hidden
 #nullable disable
+
             __builder.OpenElement(1, "p");
+            __builder.AddContent(2, 
 #nullable restore
-#line (10,6)-(10,25) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder.AddContent(2, ChildContent(item2));
+#line (10,6)-(10,25) "x:\dir\subdir\Test\TestComponent.cshtml"
+ChildContent(item2)
 
 #line default
 #line hidden
 #nullable disable
+            );
             __builder.AddMarkupContent(3, ";\r\n    ");
             __builder.CloseElement();
 #nullable restore
-#line 12 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (12,1)-(13,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 }
 
 #line default
 #line hidden
 #nullable disable
+
             __builder.AddMarkupContent(4, "<p>Item3</p>");
         }
         #pragma warning restore 1998
 #nullable restore
-#line 16 "x:\dir\subdir\Test\TestComponent.cshtml"
-       
+#line (16,8)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
     [Parameter] public TItem1 Item1 { get; set; }
     [Parameter] public List<TItem2> Items2 { get; set; }
     [Parameter] public TItem3 Item3 { get; set; }
@@ -104,6 +108,7 @@ __builder.AddContent(2, ChildContent(item2));
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591
