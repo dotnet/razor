@@ -24,7 +24,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages
     // language=Route
 #nullable restore
 #line (1,7)-(1,15) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
-      "/About"
+"/About"
 
 #line default
 #line hidden

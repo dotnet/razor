@@ -20,7 +20,7 @@ using Test2
     // language=Route,Component
 #nullable restore
 #line (1,7)-(1,16) "x:\dir\subdir\Test\TestComponent.cshtml"
-      "/MyPage"
+"/MyPage"
 
 #line default
 #line hidden
@@ -30,7 +30,7 @@ using Test2
     // language=Route,Component
 #nullable restore
 #line (2,7)-(2,27) "x:\dir\subdir\Test\TestComponent.cshtml"
-      "/AnotherRoute/{id}"
+"/AnotherRoute/{id}"
 
 #line default
 #line hidden

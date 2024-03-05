@@ -22,7 +22,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("RouteTemplate", 
     // language=Route
 #line (1,7)-(1,15) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
-      "/About"
+"/About"
 
 #line default
 #line hidden
