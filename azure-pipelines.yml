@@ -192,6 +192,16 @@ extends:
                   /p:VisualStudioDropName=Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
                   /p:GenerateSbom=true
 
+            templateContext:
+              outputs:
+              # Publishes setup VSIXes to a drop.
+              # Note: The insertion tool looks for the display name of this task in the logs.
+              - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+                - output: microBuildVstsDrop
+                  dropFolder: 'artifacts\VSSetup\$(_BuildConfig)\Insertion'
+                  dropName: $(VisualStudio.DropName)
+                  accessToken: $(_DevDivDropAccessToken)
+
             steps:
             - task: NuGetCommand@2
               displayName: 'Clear NuGet caches'
@@ -296,18 +306,6 @@ extends:
 
             - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)"
               displayName: Setting VisualStudio.DropName variable
-
-            # Publishes setup VSIXes to a drop.
-            # Note: The insertion tool looks for the display name of this task in the logs.
-            - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-              - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
-                displayName: Upload VSTS Drop
-                inputs:
-                  DropName: $(VisualStudio.DropName)
-                  DropFolder: 'artifacts\VSSetup\$(_BuildConfig)\Insertion'
-                  AccessToken: $(_DevDivDropAccessToken)
-                continueOnError: true
-                condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
       # Unix jobs done as a group since they share the same test results format.
       - template: /eng/common/templates-official/jobs/jobs.yml@self
