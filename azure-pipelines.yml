@@ -76,6 +76,8 @@ resources:
 extends:
   template: ${{ variables.TemplateToExtend }}
   parameters:
+    featureFlags:
+      autoBaseline: true
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
