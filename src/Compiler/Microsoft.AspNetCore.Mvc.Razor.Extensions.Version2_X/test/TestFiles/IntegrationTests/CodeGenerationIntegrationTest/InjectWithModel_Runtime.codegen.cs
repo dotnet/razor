@@ -22,9 +22,33 @@ namespace AspNetCore
         }
         #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
-        public MyService<MyModel> Html { get; private set; }
+        public 
+#line (3,27)-(3,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
+MyService<MyModel>
+
+#line default
+#line hidden
+         
+#line (3,27)-(3,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
+Html
+
+#line default
+#line hidden
+         { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
-        public MyApp MyPropertyName { get; private set; }
+        public 
+#line (2,15)-(2,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
+MyApp
+
+#line default
+#line hidden
+         
+#line (2,15)-(2,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
+MyPropertyName
+
+#line default
+#line hidden
+         { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
