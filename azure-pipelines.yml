@@ -74,7 +74,7 @@ resources:
     ref: refs/tags/release
 
 extends:
-  template: ${{ parameters.TemplateToExtend }}
+  template: ${{ variables.TemplateToExtend }}
   parameters:
     sdl:
       sourceAnalysisPool:
