@@ -380,7 +380,6 @@ internal static class CodeWriterExtensions
                 writer.WriteLine();
                 using (writer.BuildEnhancedLinePragma(span, context))
                 {
-                    context.AddSourceMappingFor(span.Value);
                     writer.Write(content);
                 }
             }
@@ -432,7 +431,6 @@ internal static class CodeWriterExtensions
             writer.WriteLine();
             using (writer.BuildEnhancedLinePragma(span, context))
             {
-                context.AddSourceMappingFor(span.Value);
                 writer.WriteLine(name);
             }
         }
@@ -764,6 +762,8 @@ internal static class CodeWriterExtensions
             int characterOffset,
             bool useEnhancedLinePragma = false)
         {
+            //Debug.Assert(context.Options.DesignTime || useEnhancedLinePragma, "Runtime generation should only use enhanced line pragmas");
+
             if (writer == null)
             {
                 throw new ArgumentNullException(nameof(writer));
@@ -797,10 +797,14 @@ internal static class CodeWriterExtensions
             // Capture the line index after writing the #line directive.
             _startLineIndex = writer.Location.LineIndex;
 
-            // If the caller requested an enhanced line directive, but we fell back to regular ones, write out the extra padding that is required
-            if (useEnhancedLinePragma && !_context.Options.UseEnhancedLinePragma)
+            if (useEnhancedLinePragma)
             {
-                context.CodeWriter.WritePadding(0, span, context);
+                // If the caller requested an enhanced line directive, but we fell back to regular ones, write out the extra padding that is required
+                if (!_context.Options.UseEnhancedLinePragma)
+                {
+                    context.CodeWriter.WritePadding(0, span, context);
+                }
+                context.AddSourceMappingFor(span);
             }
         }
 

@@ -333,7 +333,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context))
             {
-                context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
             }
             if (!node.HasExplicitSemicolon)
@@ -1198,7 +1197,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
         {
-            context.AddSourceMappingFor(token);
             context.CodeWriter.Write(token.Content);
         }
     }

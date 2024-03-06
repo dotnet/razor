@@ -35,7 +35,6 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         {
             using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context))
             {
-                context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
             }
             if (!node.HasExplicitSemicolon)
@@ -97,7 +96,6 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
             {
                 using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
                 {
-                    context.AddSourceMappingFor(token);
                     context.CodeWriter.Write(token.Content);
                 }
             }
@@ -194,6 +192,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
             + parameterSepLength
             + prefixLocation.Length
             + parameterSepLength;
+        // TODO: fix this
         using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context, offsetLength))
         {
 
@@ -261,6 +260,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
                     {
                         if (!isWhitespaceStatement)
                         {
+                            // TODO: fix this
                             linePragmaScope = context.CodeWriter.BuildLinePragma(token.Source.Value, context);
                         }
 
