@@ -2,12 +2,14 @@
 #pragma warning disable 1591
 namespace Custom.Namespace
 {
-    #line hidden
+    #line default
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
+    #line default
+    #line hidden
     [global::Custom.Namespace.TestComponent.__PrivateComponentRenderModeAttribute]
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
