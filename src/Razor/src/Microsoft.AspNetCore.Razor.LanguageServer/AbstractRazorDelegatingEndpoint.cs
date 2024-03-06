@@ -53,16 +53,6 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     protected virtual bool PreferCSharpOverHtmlIfPossible { get; } = false;
 
     /// <summary>
-    /// When <see langword="true" />, we'll try to send request to Html even when it is in a Razor context, for example
-    /// for component attributes that are a Razor context context, but we want to treat them as Html for auto-inserting quotes
-    /// after typing equals for attribute values.
-    /// </summary>
-    internal virtual Task<bool> PreferHtmlOverRazorIfPossibleAsync(TRequest request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(false);
-    }
-
-    /// <summary>
     /// The name of the endpoint to delegate to, from <see cref="CustomMessageNames"/>. This is the
     /// custom endpoint that is sent via <see cref="IClientConnection"/> which returns
     /// a response by delegating to C#/HTML.
@@ -140,15 +130,9 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
 
         if (positionInfo.LanguageKind == RazorLanguageKind.Razor)
         {
-            if (!await PreferHtmlOverRazorIfPossibleAsync(request, requestContext, positionInfo, cancellationToken).ConfigureAwait(false))
-            {
-                // We can only delegate to C# and HTML, so if we're in a Razor context and our inheritor didn't want to provide
-                // any response then that's all we can do.
-                return default;
-            }
-
-            // We don't need to remap Razor host position to Html as they are always the same
-            positionInfo = new DocumentPositionInfo(RazorLanguageKind.Html, positionInfo.Position, positionInfo.HostDocumentIndex);
+            // We can only delegate to C# and HTML, so if we're in a Razor context and our inheritor didn't want to provide
+            // any response then that's all we can do.
+            return default;
         }
         else if (positionInfo.LanguageKind == RazorLanguageKind.Html && PreferCSharpOverHtmlIfPossible)
         {
