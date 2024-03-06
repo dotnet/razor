@@ -34,7 +34,7 @@ internal sealed class VisualStudioProjectSnapshotManagerAccessor(
                 return projectManager;
             }
 
-            if (_dispatcher.IsDispatcherThread)
+            if (_dispatcher.IsRunningOnDispatcher)
             {
                 return _projectManager ??= Create();
             }
@@ -45,14 +45,14 @@ internal sealed class VisualStudioProjectSnapshotManagerAccessor(
 
             return _jtf.Run(async () =>
             {
-                await _dispatcher.DispatcherScheduler;
+                await _dispatcher.Scheduler;
 
                 return _projectManager ??= Create();
             });
 
             ProjectSnapshotManagerBase Create()
             {
-                _dispatcher.AssertDispatcherThread();
+                _dispatcher.AssertRunningOnDispatcher();
 
                 return (ProjectSnapshotManagerBase)_workspace.Services
                     .GetLanguageServices(RazorLanguage.Name)

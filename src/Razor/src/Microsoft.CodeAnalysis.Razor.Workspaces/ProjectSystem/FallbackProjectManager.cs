@@ -114,18 +114,11 @@ internal sealed class FallbackProjectManager(
         // the project will be updated, and it will no longer be a fallback project.
         var hostProject = new FallbackHostProject(project.FilePath, intermediateOutputPath, FallbackRazorConfiguration.Latest, rootNamespace, project.Name);
 
-        if (_dispatcher.IsDispatcherThread)
-        {
-            _projectManagerAccessor.Instance.ProjectAdded(hostProject);
-        }
-        else
-        {
-            await _dispatcher
-                .RunOnDispatcherThreadAsync(
-                    () => _projectManagerAccessor.Instance.ProjectAdded(hostProject),
-                    cancellationToken)
-                .ConfigureAwait(false);
-        }
+        await _dispatcher
+            .RunAsync(
+                () => _projectManagerAccessor.Instance.ProjectAdded(hostProject),
+                cancellationToken)
+            .ConfigureAwait(false);
 
         await AddFallbackDocumentAsync(hostProject.Key, filePath, project.FilePath, cancellationToken).ConfigureAwait(false);
 
@@ -144,18 +137,11 @@ internal sealed class FallbackProjectManager(
 
         var textLoader = new FileTextLoader(filePath, defaultEncoding: null);
 
-        if (_dispatcher.IsDispatcherThread)
-        {
-            _projectManagerAccessor.Instance.DocumentAdded(projectKey, hostDocument, textLoader);
-        }
-        else
-        {
-            await _dispatcher
-                .RunOnDispatcherThreadAsync(
-                    () => _projectManagerAccessor.Instance.DocumentAdded(projectKey, hostDocument, textLoader),
-                    cancellationToken)
-                .ConfigureAwait(false);
-        }
+        await _dispatcher
+            .RunAsync(
+                () => _projectManagerAccessor.Instance.DocumentAdded(projectKey, hostDocument, textLoader),
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private static HostDocument? CreateHostDocument(string filePath, string projectFilePath)
@@ -194,18 +180,11 @@ internal sealed class FallbackProjectManager(
             return;
         }
 
-        if (_dispatcher.IsDispatcherThread)
-        {
-            _projectManagerAccessor.Instance.DocumentRemoved(razorProjectKey, hostDocument);
-        }
-        else
-        {
-            await _dispatcher
-                .RunOnDispatcherThreadAsync(
-                    () => _projectManagerAccessor.Instance.DocumentRemoved(razorProjectKey, hostDocument),
-                    cancellationToken)
-                .ConfigureAwait(false);
-        }
+        await _dispatcher
+            .RunAsync(
+                () => _projectManagerAccessor.Instance.DocumentRemoved(razorProjectKey, hostDocument),
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private Project? TryFindProjectForProjectId(ProjectId projectId)

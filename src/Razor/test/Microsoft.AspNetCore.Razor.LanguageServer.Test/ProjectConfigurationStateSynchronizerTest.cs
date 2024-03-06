@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
@@ -38,7 +37,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             projectInfoDeserializer: deserializerMock.Object);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(
+        await Dispatcher.RunAsync(
             () => synchronizer.ProjectConfigurationFileChanged(args), DisposalToken);
 
         // Assert
@@ -89,7 +88,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var synchronizer = GetSynchronizer(projectService.Object);
         var jsonFileDeserializer = CreateDeserializer(projectInfo);
         var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.bin", RazorFileChangeKind.Added, jsonFileDeserializer);
-        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        var enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(addArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -102,7 +101,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             projectInfoDeserializer: Mock.Of<IRazorProjectInfoDeserializer>(MockBehavior.Strict));
 
         // Act
-        enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(removeArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -131,7 +130,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             projectInfoDeserializer: deserializerMock.Object);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(
+        await Dispatcher.RunAsync(
             () => synchronizer.ProjectConfigurationFileChanged(args), DisposalToken);
 
         // Assert
@@ -175,7 +174,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, jsonFileDeserializer);
 
         // Act
-        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        var enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(args);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -230,7 +229,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var synchronizer = GetSynchronizer(projectService.Object);
         var deserializer = CreateDeserializer(projectInfo);
         var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, deserializer);
-        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        var enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(addArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -243,7 +242,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             projectInfoDeserializer: Mock.Of<IRazorProjectInfoDeserializer>(MockBehavior.Strict));
 
         // Act
-        enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(removeArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -289,10 +288,9 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var changedProjectInfo = new RazorProjectInfo(
             "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
-            RazorConfiguration.Create(
-                RazorLanguageVersion.Experimental,
+            new(RazorLanguageVersion.Experimental,
                 "TestConfiguration",
-                Array.Empty<RazorExtension>()),
+                Extensions: []),
             rootNamespace: "TestRootNamespace2",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp6),
@@ -313,7 +311,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             RazorFileChangeKind.Added,
             addDeserializer);
 
-        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        var enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(addArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -327,7 +325,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             changedDeserializer);
 
         // Act
-        enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(changedArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -373,10 +371,9 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var changedProjectInfo = new RazorProjectInfo(
             "/path/to/obj/project.razor.bin",
             "path/to/project.csproj",
-            RazorConfiguration.Create(
-                RazorLanguageVersion.Experimental,
+            new(RazorLanguageVersion.Experimental,
                 "TestConfiguration",
-                Array.Empty<RazorExtension>()),
+                Extensions: []),
             rootNamespace: "TestRootNamespace2",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp6),
@@ -395,7 +392,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var synchronizer = GetSynchronizer(projectService.Object);
         var addDeserializer = CreateDeserializer(initialProjectInfo);
         var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, addDeserializer);
-        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        var enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(addArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -413,7 +410,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             projectInfoDeserializer: changedDeserializerMock.Object);
 
         // Act
-        enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(changedArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
@@ -442,7 +439,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             projectInfoDeserializer: changedDeserializerMock.Object);
 
         // Act
-        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        var enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(changedArgs);
             await WaitForEnqueue_DispatcherThreadAsync(synchronizer, hasTask: false);
@@ -492,7 +489,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var changedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Changed, changedDeserializer);
 
         // Act
-        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
+        var enqueueTask = await Dispatcher.RunAsync(async () =>
         {
             synchronizer.ProjectConfigurationFileChanged(addedArgs);
             synchronizer.ProjectConfigurationFileChanged(changedArgs);
@@ -514,7 +511,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
     private async Task WaitForEnqueue_DispatcherThreadAsync(ProjectConfigurationStateSynchronizer synchronizer, bool hasTask = true)
     {
-        Dispatcher.AssertDispatcherThread();
+        Dispatcher.AssertRunningOnDispatcher();
         if (hasTask)
         {
             var kvp = Assert.Single(synchronizer.ProjectInfoMap);
