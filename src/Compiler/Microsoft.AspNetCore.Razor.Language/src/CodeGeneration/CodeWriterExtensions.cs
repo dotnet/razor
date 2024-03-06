@@ -472,11 +472,7 @@ internal static class CodeWriterExtensions
                 var typeParameter = typeParameters[i];
                 if (typeParameter.ParameterNameSource is { } source)
                 {
-                    using (writer.BuildLinePragma(source, context))
-                    {
-                        context.AddSourceMappingFor(source);
-                        writer.Write(typeParameter.ParameterName);
-                    }
+                    WriteWithPragma(writer, typeParameter.ParameterName, context, source);
                 }
                 else
                 {
@@ -527,11 +523,7 @@ internal static class CodeWriterExtensions
                     if (typeParameter.ConstraintsSource is { } source)
                     {
                         Debug.Assert(context != null);
-                        using (writer.BuildLinePragma(source, context))
-                        {
-                            context.AddSourceMappingFor(source);
-                            writer.Write(constraint);
-                        }
+                        WriteWithPragma(writer, constraint, context, source);
                     }
                     else
                     {
@@ -548,6 +540,25 @@ internal static class CodeWriterExtensions
         }
 
         return new CSharpCodeWritingScope(writer);
+
+        static void WriteWithPragma(CodeWriter writer, string content, CodeRenderingContext context, SourceSpan source)
+        {
+            if (context.Options.DesignTime)
+            {
+                using (writer.BuildLinePragma(source, context))
+                {
+                    context.AddSourceMappingFor(source);
+                    writer.Write(content);
+                }
+            }
+            else
+            {
+                using (writer.BuildEnhancedLinePragma(source, context))
+                {
+                    writer.Write(content);
+                }
+            }
+        }
     }
 
     public static CSharpCodeWritingScope BuildMethodDeclaration(
@@ -762,7 +773,7 @@ internal static class CodeWriterExtensions
             int characterOffset,
             bool useEnhancedLinePragma = false)
         {
-            //Debug.Assert(context.Options.DesignTime || useEnhancedLinePragma, "Runtime generation should only use enhanced line pragmas");
+            Debug.Assert(context.Options.DesignTime || useEnhancedLinePragma, "Runtime generation should only use enhanced line pragmas");
 
             if (writer == null)
             {
