@@ -4884,7 +4884,10 @@ namespace AnotherTest
         AdditionalSyntaxTrees.Add(Parse("""
             namespace Test;
 
-            public class BaseComponent<T> : Microsoft.AspNetCore.Components.ComponentBase { }
+            public class BaseComponent<T> : Microsoft.AspNetCore.Components.ComponentBase
+            {
+                protected T _field = default!;
+            }
             """));
 
         // Act
@@ -4892,13 +4895,75 @@ namespace AnotherTest
             @inherits BaseComponent<string?>
 
             <h1>My component</h1>
+            @(_field.ToString())
             """,
             nullableEnable: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var compiled = CompileToAssembly(generated, throwOnFailure: false);
+        if (DesignTime)
+        {
+            compiled.Diagnostics.Verify(
+                // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
+                // __o = _field.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 7));
+        }
+        else
+        {
+            compiled.Diagnostics.Verify(
+                // x:\dir\subdir\Test\TestComponent.cshtml(4,3): warning CS8602: Dereference of a possibly null reference.
+                // __builder.AddContent(1, _field.ToString());
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 3));
+        }
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
+    public void InheritsDirective_NullableReferenceType_NullableDisabled()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            public class BaseComponent<T> : Microsoft.AspNetCore.Components.ComponentBase
+            {
+                protected T _field;
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits BaseComponent<string?>
+
+            <h1>My component</h1>
+            @(_field.ToString())
+            """,
+            nullableEnable: false,
+            throwOnFailure: false);
+
+        // Assert
+        Assert.Empty(generated.Diagnostics);
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var compiled = CompileToAssembly(generated, throwOnFailure: false);
+        if (DesignTime)
+        {
+            compiled.Diagnostics.Verify(
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,21): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                // BaseComponent<string?> __typeHelper = default!;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 21),
+                // (12,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                //     public partial class TestComponent : BaseComponent<string?>
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(12, 62));
+        }
+        else
+        {
+            compiled.Diagnostics.Verify(
+                // (12,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                //     public partial class TestComponent : BaseComponent<string?>
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(12, 62));
+        }
     }
 
     #endregion
