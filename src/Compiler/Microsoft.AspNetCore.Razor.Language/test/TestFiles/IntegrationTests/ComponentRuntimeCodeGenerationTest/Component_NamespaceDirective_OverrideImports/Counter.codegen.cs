@@ -2,7 +2,7 @@
 #pragma warning disable 1591
 namespace 
 #nullable restore
-#line (1,12)-(2,1) "x:\dir\subdir\Test\Pages/Counter.razor"
+#line (1,12)-(1,20) "x:\dir\subdir\Test\Pages/Counter.razor"
 New.Test
 
 #line default

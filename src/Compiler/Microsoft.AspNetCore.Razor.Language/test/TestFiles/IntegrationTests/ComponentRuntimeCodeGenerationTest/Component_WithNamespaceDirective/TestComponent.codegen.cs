@@ -2,7 +2,7 @@
 #pragma warning disable 1591
 namespace 
 #nullable restore
-#line (2,12)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,12)-(2,23) "x:\dir\subdir\Test\TestComponent.cshtml"
 AnotherTest
 
 #line default

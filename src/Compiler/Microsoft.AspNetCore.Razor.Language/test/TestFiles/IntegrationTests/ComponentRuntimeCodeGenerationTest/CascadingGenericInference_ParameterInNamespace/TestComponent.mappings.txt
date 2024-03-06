@@ -1,12 +1,10 @@
-﻿Source Location: (11:0,11 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-|MyApp.Components
-|
-Generated Location: (145:5,0 [18] )
-|MyApp.Components
-|
+﻿Source Location: (11:0,11 [16] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyApp.Components|
+Generated Location: (146:5,0 [16] )
+|MyApp.Components|
 
 Source Location: (59:2,28 [21] x:\dir\subdir\Test\TestComponent.cshtml)
 |new MyClass<string>()|
-Generated Location: (934:26,0 [21] )
+Generated Location: (935:26,0 [21] )
 |new MyClass<string>()|
 
