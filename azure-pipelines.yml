@@ -472,8 +472,10 @@ extends:
             name: NetCore1ESPool-Svc-Internal
             demands: ImageOverride -equals windows.vs2022.amd64
           steps:
-          - download: current
-            artifact: VSSetup
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: current
+              artifact: VSSetup
           - powershell: |
               $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
               Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
