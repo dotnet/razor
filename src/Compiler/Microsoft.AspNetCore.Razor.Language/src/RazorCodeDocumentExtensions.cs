@@ -555,22 +555,11 @@ public static class RazorCodeDocumentExtensions
         {
             if (node != null && node.DirectiveDescriptor == NamespaceDirective.Directive)
             {
-                var directiveContent = node.Body?.GetContent();
-
-                // In practice, this should never be null and always start with 'namespace'. Just being defensive here.
-                if (directiveContent != null && directiveContent.StartsWith(NamespaceDirective.Directive.Directive, StringComparison.Ordinal))
+                var children = node.Body?.ChildNodes().ToImmutableArray();
+                if (children is [_, CSharpCodeBlockSyntax {  Children: [ _, CSharpSyntaxNode @namespace, ..] }])
                 {
-                    LastNamespaceContent = directiveContent.Substring(NamespaceDirective.Directive.Directive.Length).Trim();
-                    var location = node.GetSourceSpan(_source);
-
-                    var offset = 1 + NamespaceDirective.Directive.Directive.Length + 1; // @ + namespace + " "
-                    LastNamespaceLocation = new SourceSpan(location.FilePath,
-                        location.AbsoluteIndex + offset,
-                        location.LineIndex,
-                        location.CharacterIndex + offset,
-                        location.Length - offset,
-                        location.LineCount,
-                        location.EndCharacterIndex);
+                    LastNamespaceContent = @namespace.GetContent();
+                    LastNamespaceLocation = @namespace.GetSourceSpan(_source);
                 }
             }
 

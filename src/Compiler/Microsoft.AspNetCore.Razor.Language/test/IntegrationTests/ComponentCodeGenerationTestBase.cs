@@ -4828,6 +4828,19 @@ namespace AnotherTest
     }
 
     [IntegrationTestFact]
+    public void Component_WithNamespaceDirective_WithWhitespace()
+    {
+        var generated = CompileToCSharp(@"
+@namespace              My.Custom.Namespace
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
     public void Component_WithPreserveWhitespaceDirective_True()
     {
         // Arrange / Act
