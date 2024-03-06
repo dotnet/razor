@@ -343,7 +343,7 @@ public static class RazorCodeDocumentExtensions
 
         return true;
 
-        bool TryComputeNamespaceCore(RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace,  out SourceSpan? namespaceSpan)
+        bool TryComputeNamespaceCore(RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace, out SourceSpan? namespaceSpan)
         {
             var filePath = document.Source.FilePath;
             if (filePath == null || document.Source.RelativePath == null || filePath.Length < document.Source.RelativePath.Length)
