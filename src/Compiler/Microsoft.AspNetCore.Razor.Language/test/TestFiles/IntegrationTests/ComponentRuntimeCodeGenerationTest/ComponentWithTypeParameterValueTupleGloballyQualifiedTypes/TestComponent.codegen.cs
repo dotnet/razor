@@ -18,7 +18,7 @@ using N
     ;
     public partial class TestComponent<
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,12)-(2,18) "x:\dir\subdir\Test\TestComponent.cshtml"
 TParam
 
 #line default

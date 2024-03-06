@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Components;
 #nullable disable
     public partial class TestComponent<
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,12)-(2,18) "x:\dir\subdir\Test\TestComponent.cshtml"
 TItem1
 
 #line default
@@ -24,7 +24,7 @@ TItem1
 #nullable disable
     ,
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (3,12)-(3,18) "x:\dir\subdir\Test\TestComponent.cshtml"
 TItem2
 
 #line default

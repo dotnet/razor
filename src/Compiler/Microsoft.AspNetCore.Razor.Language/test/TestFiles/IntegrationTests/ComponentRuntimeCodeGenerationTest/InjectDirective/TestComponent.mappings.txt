@@ -1,4 +1,4 @@
-Source Location: (1:0,1 [19] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (1:0,1 [19] x:\dir\subdir\Test\TestComponent.cshtml)
 |using System.Text
 |
 Generated Location: (370:12,0 [19] )

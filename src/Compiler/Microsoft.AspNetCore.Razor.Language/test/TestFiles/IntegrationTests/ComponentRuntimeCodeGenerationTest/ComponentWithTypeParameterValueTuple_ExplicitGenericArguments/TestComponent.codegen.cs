@@ -10,7 +10,7 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     public partial class TestComponent<
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,12)-(1,19) "x:\dir\subdir\Test\TestComponent.cshtml"
 TDomain
 
 #line default
@@ -18,7 +18,7 @@ TDomain
 #nullable disable
     ,
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,12)-(2,18) "x:\dir\subdir\Test\TestComponent.cshtml"
 TValue
 
 #line default
@@ -26,14 +26,14 @@ TValue
 #nullable disable
     > : global::Microsoft.AspNetCore.Components.ComponentBase
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,20)-(1,42) "x:\dir\subdir\Test\TestComponent.cshtml"
 where TDomain : struct
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,19)-(2,40) "x:\dir\subdir\Test\TestComponent.cshtml"
 where TValue : struct
 
 #line default

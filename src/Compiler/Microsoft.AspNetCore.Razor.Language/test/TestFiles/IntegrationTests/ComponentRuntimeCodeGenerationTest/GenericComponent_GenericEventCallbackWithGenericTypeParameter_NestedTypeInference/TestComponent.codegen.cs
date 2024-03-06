@@ -18,7 +18,7 @@ using Test
     ;
     public partial class TestComponent<
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,12)-(1,18) "x:\dir\subdir\Test\TestComponent.cshtml"
 TChild
 
 #line default

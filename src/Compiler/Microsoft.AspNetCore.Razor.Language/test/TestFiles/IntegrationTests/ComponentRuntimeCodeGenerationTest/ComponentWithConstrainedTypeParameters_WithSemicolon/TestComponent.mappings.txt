@@ -7,52 +7,52 @@ Generated Location: (318:11,0 [40] )
 
 Source Location: (52:1,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |TItem1|
-Generated Location: (519:19,0 [6] )
+Generated Location: (531:19,0 [6] )
 |TItem1|
 
 Source Location: (93:2,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |TItem2|
-Generated Location: (654:27,0 [6] )
+Generated Location: (678:27,0 [6] )
 |TItem2|
 
 Source Location: (133:3,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |TItem3|
-Generated Location: (789:35,0 [6] )
+Generated Location: (825:35,0 [6] )
 |TItem3|
 
 Source Location: (59:1,18 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |where TItem1 : Image|
-Generated Location: (980:43,0 [20] )
+Generated Location: (1028:43,0 [20] )
 |where TItem1 : Image|
 
 Source Location: (100:2,18 [19] x:\dir\subdir\Test\TestComponent.cshtml)
 |where TItem2 : ITag|
-Generated Location: (1122:50,0 [19] )
+Generated Location: (1182:50,0 [19] )
 |where TItem2 : ITag|
 
 Source Location: (140:3,18 [27] x:\dir\subdir\Test\TestComponent.cshtml)
 |where TItem3 : Image, new()|
-Generated Location: (1263:57,0 [27] )
+Generated Location: (1335:57,0 [27] )
 |where TItem3 : Image, new()|
 
 Source Location: (189:6,1 [34] x:\dir\subdir\Test\TestComponent.cshtml)
 |foreach (var item2 in Items2)
 {
 |
-Generated Location: (1668:69,0 [34] )
+Generated Location: (1740:69,0 [34] )
 |foreach (var item2 in Items2)
 {
 |
 
 Source Location: (237:9,5 [19] x:\dir\subdir\Test\TestComponent.cshtml)
 |ChildContent(item2)|
-Generated Location: (1919:80,0 [19] )
+Generated Location: (1991:80,0 [19] )
 |ChildContent(item2)|
 
 Source Location: (269:11,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |}
 |
-Generated Location: (2184:90,0 [3] )
+Generated Location: (2256:90,0 [3] )
 |}
 |
 
@@ -63,7 +63,7 @@ Source Location: (297:15,7 [236] x:\dir\subdir\Test\TestComponent.cshtml)
     [Parameter] public TItem3 Item3 { get; set; }
     [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }
 |
-Generated Location: (2430:101,0 [236] )
+Generated Location: (2502:101,0 [236] )
 |
     [Parameter] public TItem1 Item1 { get; set; }
     [Parameter] public List<TItem2> Items2 { get; set; }

@@ -7,39 +7,39 @@ Generated Location: (370:12,0 [43] )
 
 Source Location: (55:1,11 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |T|
-Generated Location: (581:21,0 [1] )
+Generated Location: (593:21,0 [1] )
 |T|
 
 Source Location: (98:2,40 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1178:34,0 [9] )
+Generated Location: (1190:34,0 [9] )
 |() => { }|
 
 Source Location: (151:2,93 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |1|
-Generated Location: (1366:42,0 [1] )
+Generated Location: (1378:42,0 [1] )
 |1|
 
 Source Location: (198:3,40 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1784:52,0 [9] )
+Generated Location: (1796:52,0 [9] )
 |() => { }|
 
 Source Location: (222:3,64 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |"named-form-handler"|
-Generated Location: (1947:60,0 [20] )
+Generated Location: (1959:60,0 [20] )
 |"named-form-handler"|
 
 Source Location: (256:3,98 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |2|
-Generated Location: (2122:68,0 [1] )
+Generated Location: (2134:68,0 [1] )
 |2|
 
 Source Location: (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     [Parameter] public T Parameter { get; set; }
 |
-Generated Location: (2320:78,0 [52] )
+Generated Location: (2332:78,0 [52] )
 |
     [Parameter] public T Parameter { get; set; }
 |
