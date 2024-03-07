@@ -234,7 +234,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
                 fullDiagnostics.Items is not null &&
                 _documentContextFactory.Value.TryCreate(delegatedParams.TextDocument.Uri, projectContext: null) is { } documentContext)
             {
-                csharpDiagnostics = await _razorTranslateDiagnosticsService.Value.TranslateAsync(Protocol.RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None).ConfigureAwait(false);
+                csharpDiagnostics = await _razorTranslateDiagnosticsService.Value.TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None).ConfigureAwait(false);
             }
         }
 
