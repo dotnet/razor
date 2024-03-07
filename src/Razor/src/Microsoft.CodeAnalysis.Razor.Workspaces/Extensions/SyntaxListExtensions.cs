@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class SyntaxListExtensions
 {

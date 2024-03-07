@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class TextSpanExtensions
 {

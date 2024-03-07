@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 #pragma warning disable IDE0065 // Misplaced using directive
 using SyntaxKind = AspNetCore.Razor.Language.SyntaxKind;

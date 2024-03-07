@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class RazorCodeDocumentExtensions
 {
