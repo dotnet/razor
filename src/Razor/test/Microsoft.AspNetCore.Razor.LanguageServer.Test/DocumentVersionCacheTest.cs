@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#if NETFRAMEWORK
 using System;
 using System.Collections.Generic;
+#endif
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -57,6 +59,7 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         // Arrange
         var cache = new DocumentVersionCache();
         var projectSnapshotManager = CreateProjectSnapshotManager();
+        projectSnapshotManager.AllowNotifyListeners = true;
         cache.Initialize(projectSnapshotManager);
 
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -92,6 +95,7 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         // Arrange
         var cache = new DocumentVersionCache();
         var projectSnapshotManager = CreateProjectSnapshotManager();
+        projectSnapshotManager.AllowNotifyListeners = true;
         cache.Initialize(projectSnapshotManager);
 
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -129,6 +133,7 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         // Arrange
         var cache = new DocumentVersionCache();
         var projectSnapshotManager = CreateProjectSnapshotManager();
+        projectSnapshotManager.AllowNotifyListeners = true;
         cache.Initialize(projectSnapshotManager);
 
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -257,6 +262,7 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         var cache = new DocumentVersionCache();
         var cacheAccessor = cache.GetTestAccessor();
         var projectSnapshotManager = CreateProjectSnapshotManager();
+        projectSnapshotManager.AllowNotifyListeners = true;
         cache.Initialize(projectSnapshotManager);
 
         var project1 = TestProjectSnapshot.Create(
@@ -314,13 +320,5 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         (actualDocument, actualVersion) = entries[1];
         Assert.Same(document2, actualDocument);
         Assert.Equal(1337, actualVersion);
-    }
-
-    private TestProjectSnapshotManager CreateProjectSnapshotManager()
-    {
-        var result = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
-        result.AllowNotifyListeners = true;
-
-        return result;
     }
 }

@@ -30,7 +30,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         var languageServerFeatureOptions = TestLanguageServerFeatureOptions.Instance;
         _projectConfigurationFilePathStore = new TestProjectConfigurationFilePathStore();
 
-        _projectManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, Dispatcher);
+        _projectManager = CreateProjectSnapshotManager();
 
         _fallbackProjectManger = new FallbackProjectManager(
             _projectConfigurationFilePathStore,

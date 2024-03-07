@@ -56,7 +56,7 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         var someTagHelpers = ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build());
 
-        _projectManager = new TestProjectSnapshotManager(triggers: [], ProjectEngineFactoryProvider, Dispatcher);
+        _projectManager = CreateProjectSnapshotManager();
 
         _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(someTagHelpers);
 
@@ -75,7 +75,7 @@ public class DefaultProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         var triggers = new[] { defaultPriorityTrigger, highPriorityTrigger };
 
         // Act
-        var projectManager = new TestProjectSnapshotManager(triggers, ProjectEngineFactoryProvider, Dispatcher);
+        var projectManager = CreateProjectSnapshotManager(triggers);
 
         // Assert
         Assert.Equal(["highPriority", "lowPriority"], initializedOrder);

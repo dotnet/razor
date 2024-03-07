@@ -11,42 +11,15 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
-internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
+internal class TestProjectSnapshotManager(
+    IProjectSnapshotChangeTrigger[] triggers,
+    IProjectEngineFactoryProvider projectEngineFactoryProvider,
+    ProjectSnapshotManagerDispatcher dispatcher,
+    IErrorReporter errorReporter)
+    : DefaultProjectSnapshotManager(triggers, projectEngineFactoryProvider, dispatcher, errorReporter)
 {
     public bool AllowNotifyListeners { get; set; }
     public ProjectChangeKind? ListenersNotifiedOf { get; private set; }
-
-    public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher)
-       : this(triggers: [], ProjectEngineFactories.DefaultProvider, dispatcher, StrictMock.Of<IErrorReporter>())
-    {
-    }
-
-    public TestProjectSnapshotManager(
-        IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        ProjectSnapshotManagerDispatcher dispatcher)
-        : this(triggers: [], projectEngineFactoryProvider, dispatcher, StrictMock.Of<IErrorReporter>())
-    {
-    }
-
-    public TestProjectSnapshotManager(
-        IProjectSnapshotChangeTrigger[] triggers,
-        IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        ProjectSnapshotManagerDispatcher dispatcher)
-        : this(triggers, projectEngineFactoryProvider, dispatcher, StrictMock.Of<IErrorReporter>())
-    {
-    }
-
-    public TestProjectSnapshotManager(
-        IProjectSnapshotChangeTrigger[] triggers,
-        IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        ProjectSnapshotManagerDispatcher dispatcher,
-        IErrorReporter errorReporter)
-        : base(triggers, projectEngineFactoryProvider, dispatcher, errorReporter)
-    {
-    }
-
-    public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher, IErrorReporter errorReporter)
-        => new TestProjectSnapshotManager(triggers: [], ProjectEngineFactories.DefaultProvider, dispatcher, errorReporter);
 
     public IProjectSnapshotManagerAccessor GetAccessor()
     {

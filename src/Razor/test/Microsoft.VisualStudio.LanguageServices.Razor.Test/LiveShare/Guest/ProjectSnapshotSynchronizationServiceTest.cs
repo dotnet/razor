@@ -28,7 +28,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
     {
         _sessionContext = new TestCollaborationSession(isHost: false);
 
-        _projectManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, Dispatcher);
+        _projectManager = CreateProjectSnapshotManager();
 
         _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(
             tagHelpers: [TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()]);

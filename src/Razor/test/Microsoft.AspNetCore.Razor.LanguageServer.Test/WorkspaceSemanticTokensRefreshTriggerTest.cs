@@ -22,7 +22,7 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
     public WorkspaceSemanticTokensRefreshTriggerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
+        _projectManager = CreateProjectSnapshotManager();
         _projectManager.AllowNotifyListeners = true;
     }
 

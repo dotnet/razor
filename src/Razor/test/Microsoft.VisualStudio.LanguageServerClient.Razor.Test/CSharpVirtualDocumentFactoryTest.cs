@@ -137,7 +137,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             .Setup(x => x.AddOrUpdate(It.IsAny<ITextBuffer>(), It.IsAny<Uri>()))
             .Verifiable();
 
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
+        var projectManager = CreateProjectSnapshotManager();
 
         await RunOnDispatcherAsync(() =>
         {
@@ -175,7 +175,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             .Setup(x => x.AddOrUpdate(It.IsAny<ITextBuffer>(), It.IsAny<Uri>()))
             .Verifiable();
 
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
+        var projectManager = CreateProjectSnapshotManager();
 
         await RunOnDispatcherAsync(() =>
         {

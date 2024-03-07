@@ -63,7 +63,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
             CreateFactory("Test-2"));
 
         var projectEngineFactoryProvider = new ProjectEngineFactoryProvider(customFactories);
-        _projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider, Dispatcher);
+        _projectManager = CreateProjectSnapshotManager(projectEngineFactoryProvider);
 
         static IProjectEngineFactory CreateFactory(string configurationName)
         {

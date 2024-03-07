@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -22,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test;
 
 public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
 {
-    private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly TestTagHelperResolver _tagHelperResolver;
     private readonly Project _workspaceProject;
     private readonly ProjectSnapshot _projectSnapshot;
@@ -32,8 +30,6 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectEngineFactoryProvider = StrictMock.Of<IProjectEngineFactoryProvider>();
-
         _tagHelperResolver = new TestTagHelperResolver(
             [TagHelperDescriptorBuilder.Create("ResolvableTagHelper", "TestAssembly").Build()]);
 
@@ -47,11 +43,11 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
             TestProjectData.SomeProject.FilePath));
         _workspaceProject = solution.GetProject(projectId).AssumeNotNull();
         _projectSnapshot = new ProjectSnapshot(
-            ProjectState.Create(_projectEngineFactoryProvider, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
+            ProjectState.Create(ProjectEngineFactoryProvider, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
         _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(
             [TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()]);
 
-        _projectManager = new TestProjectSnapshotManager(_projectEngineFactoryProvider, Dispatcher);
+        _projectManager = CreateProjectSnapshotManager();
     }
 
     [UIFact]

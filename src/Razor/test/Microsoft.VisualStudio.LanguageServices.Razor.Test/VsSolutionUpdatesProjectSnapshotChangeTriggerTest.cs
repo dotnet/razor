@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
@@ -25,7 +24,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
-public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
+public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTestBase
 {
     private static readonly HostProject s_someProject = new(
         TestProjectData.SomeProject.FilePath,
@@ -153,10 +152,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
     [UIFact]
     public async Task SolutionClosing_CancelsActiveWork()
     {
-        var projectManager = new TestProjectSnapshotManager(ProjectEngineFactories.DefaultProvider, Dispatcher)
-        {
-            AllowNotifyListeners = true,
-        };
+        var projectManager = CreateProjectSnapshotManager();
+        projectManager.AllowNotifyListeners = true;
 
         var expectedProjectPath = s_someProject.FilePath;
 
@@ -209,7 +206,9 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : ToolingTestBase
     public async Task OnProjectBuiltAsync_KnownProject_EnqueuesProjectStateUpdate()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(ProjectEngineFactories.DefaultProvider, Dispatcher);
+        var projectManager = CreateProjectSnapshotManager();
+        projectManager.AllowNotifyListeners = true;
+
         var expectedProjectPath = s_someProject.FilePath;
 
         var expectedProjectSnapshot = await RunOnDispatcherAsync(() =>

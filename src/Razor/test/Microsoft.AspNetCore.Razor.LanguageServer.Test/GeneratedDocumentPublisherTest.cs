@@ -26,7 +26,7 @@ public class GeneratedDocumentPublisherTest : LanguageServerTestBase
     public GeneratedDocumentPublisherTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
+        _projectManager = CreateProjectSnapshotManager();
         _projectManager.AllowNotifyListeners = true;
     }
 
