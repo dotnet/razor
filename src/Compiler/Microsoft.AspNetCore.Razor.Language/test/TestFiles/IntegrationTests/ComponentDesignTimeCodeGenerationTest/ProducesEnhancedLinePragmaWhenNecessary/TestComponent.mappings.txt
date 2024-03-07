@@ -1,6 +1,6 @@
 ﻿Source Location: (41:2,7 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |DateTime.Now|
-Generated Location: (954:26,7 [12] )
+Generated Location: (946:26,7 [12] )
 |DateTime.Now|
 
 Source Location: (96:6,1 [59] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -8,7 +8,7 @@ Source Location: (96:6,1 [59] x:\dir\subdir\Test\TestComponent.cshtml)
   'key1': 'value1'
   'key2': 'value2'
 }")|
-Generated Location: (1095:33,6 [59] )
+Generated Location: (1087:33,6 [59] )
 |JsonToHtml(@"{
   'key1': 'value1'
   'key2': 'value2'
@@ -21,7 +21,7 @@ Source Location: (166:11,7 [79] x:\dir\subdir\Test\TestComponent.cshtml)
         return foo;
     }
 |
-Generated Location: (1334:45,7 [79] )
+Generated Location: (1326:45,7 [79] )
 |
     public string JsonToHtml(string foo)
     {

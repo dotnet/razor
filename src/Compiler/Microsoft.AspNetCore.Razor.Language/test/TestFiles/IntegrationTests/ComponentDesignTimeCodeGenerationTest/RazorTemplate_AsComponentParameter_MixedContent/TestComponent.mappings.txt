@@ -1,30 +1,30 @@
 ﻿Source Location: (2:0,2 [54] x:\dir\subdir\Test\TestComponent.cshtml)
 | RenderFragment<Test.Context> template = (context) => |
-Generated Location: (949:26,2 [54] )
+Generated Location: (941:26,2 [54] )
 | RenderFragment<Test.Context> template = (context) => |
 
 Source Location: (63:0,63 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |context.Index|
-Generated Location: (1219:34,63 [13] )
+Generated Location: (1211:34,63 [13] )
 |context.Index|
 
 Source Location: (80:0,80 [22] x:\dir\subdir\Test\TestComponent.cshtml)
 |context.Item.ToLower()|
-Generated Location: (1435:41,80 [22] )
+Generated Location: (1427:41,80 [22] )
 |context.Item.ToLower()|
 
 Source Location: (107:0,107 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |; |
-Generated Location: (1702:49,107 [2] )
+Generated Location: (1694:49,107 [2] )
 |; |
 
 Source Location: (136:1,24 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |template|
-Generated Location: (1943:57,24 [8] )
+Generated Location: (1935:57,24 [8] )
 |template|
 
 Source Location: (125:1,13 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |Template|
-Generated Location: (2359:70,13 [8] )
+Generated Location: (2351:70,13 [8] )
 |Template|
 

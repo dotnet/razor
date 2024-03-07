@@ -1,20 +1,20 @@
 ﻿Source Location: (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |1|
-Generated Location: (1097:27,26 [1] )
+Generated Location: (1089:27,26 [1] )
 |1|
 
 Source Location: (13:0,13 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |IntProperty|
-Generated Location: (1506:40,13 [11] )
+Generated Location: (1498:40,13 [11] )
 |IntProperty|
 
 Source Location: (59:1,26 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |2|
-Generated Location: (2019:57,26 [1] )
+Generated Location: (2011:57,26 [1] )
 |2|
 
 Source Location: (46:1,13 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |IntProperty|
-Generated Location: (2428:70,13 [11] )
+Generated Location: (2420:70,13 [11] )
 |IntProperty|
 

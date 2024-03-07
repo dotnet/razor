@@ -1,53 +1,53 @@
 ﻿Source Location: (55:1,19 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |true|
-Generated Location: (1111:27,19 [4] )
+Generated Location: (1103:27,19 [4] )
 |true|
 
 Source Location: (112:3,23 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1288:35,23 [9] )
+Generated Location: (1280:35,23 [9] )
 |() => { }|
 
 Source Location: (145:4,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |c|
-Generated Location: (1460:43,21 [1] )
+Generated Location: (1452:43,21 [1] )
 |c|
 
 Source Location: (32:0,32 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |c|
-Generated Location: (1635:51,32 [1] )
+Generated Location: (1627:51,32 [1] )
 |c|
 
 Source Location: (40:1,4 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |BoolParameter|
-Generated Location: (2100:62,4 [13] )
+Generated Location: (2092:62,4 [13] )
 |BoolParameter|
 
 Source Location: (66:2,4 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |StringParameter|
-Generated Location: (2314:71,4 [15] )
+Generated Location: (2306:71,4 [15] )
 |StringParameter|
 
 Source Location: (93:3,4 [17] x:\dir\subdir\Test\TestComponent.cshtml)
 |DelegateParameter|
-Generated Location: (2530:80,4 [17] )
+Generated Location: (2522:80,4 [17] )
 |DelegateParameter|
 
 Source Location: (128:4,4 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |ObjectParameter|
-Generated Location: (2748:89,4 [15] )
+Generated Location: (2740:89,4 [15] )
 |ObjectParameter|
 
 Source Location: (19:0,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyParameter|
-Generated Location: (2979:98,19 [11] )
+Generated Location: (2971:98,19 [11] )
 |MyParameter|
 
 Source Location: (161:6,7 [42] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private MyClass<string> c = new();
 |
-Generated Location: (3400:116,7 [42] )
+Generated Location: (3392:116,7 [42] )
 |
     private MyClass<string> c = new();
 |

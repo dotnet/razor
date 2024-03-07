@@ -1,13 +1,13 @@
 ﻿Source Location: (27:0,27 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |CurrentDate|
-Generated Location: (994:27,27 [11] )
+Generated Location: (986:27,27 [11] )
 |CurrentDate|
 
 Source Location: (76:1,7 [77] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
 |
-Generated Location: (1198:37,7 [77] )
+Generated Location: (1190:37,7 [77] )
 |
     public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
 |

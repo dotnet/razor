@@ -1,11 +1,11 @@
 ﻿Source Location: (25:0,25 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (1058:27,25 [11] )
+Generated Location: (1050:27,25 [11] )
 |ParentValue|
 
 Source Location: (57:0,57 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |ValueChanged|
-Generated Location: (1472:36,57 [12] )
+Generated Location: (1464:36,57 [12] )
 |ValueChanged|
 
 Source Location: (88:2,7 [144] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -17,7 +17,7 @@ Source Location: (88:2,7 [144] x:\dir\subdir\Test\TestComponent.cshtml)
         return Task.CompletedTask;
     }
 |
-Generated Location: (1712:46,7 [144] )
+Generated Location: (1704:46,7 [144] )
 |
     public string ParentValue { get; set; } = "hi";
 

@@ -3,7 +3,7 @@
 #pragma warning disable CS9113
     public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
 |
-Generated Location: (1069:29,1 [137] )
+Generated Location: (1061:29,1 [137] )
 |
 #pragma warning disable CS9113
     public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
@@ -11,6 +11,6 @@ Generated Location: (1069:29,1 [137] )
 
 Source Location: (14:0,14 [51] x:\dir\subdir\Test\TestComponent.cshtml)
 |new TestComponent.MyRenderMode("This is some text")|
-Generated Location: (1872:48,14 [51] )
+Generated Location: (1864:48,14 [51] )
 |new TestComponent.MyRenderMode("This is some text")|
 

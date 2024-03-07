@@ -2,7 +2,7 @@
 #pragma warning disable 1591
 namespace Test
 {
-    #line hidden
+    #line default
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Linq;
@@ -12,8 +12,6 @@ namespace Test
 #line 1 "x:\dir\subdir\Test\_Imports.razor"
 using System.Text;
 
-#line default
-#line hidden
 #nullable disable
 #nullable restore
 #line 2 "x:\dir\subdir\Test\_Imports.razor"

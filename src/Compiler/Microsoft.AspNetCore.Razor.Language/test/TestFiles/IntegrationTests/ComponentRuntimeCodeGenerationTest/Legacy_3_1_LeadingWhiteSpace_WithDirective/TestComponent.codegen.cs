@@ -2,7 +2,7 @@
 #pragma warning disable 1591
 namespace Test
 {
-    #line hidden
+    #line default
     using global::System.Collections.Generic;
     using global::System.Linq;
     using global::System.Threading.Tasks;

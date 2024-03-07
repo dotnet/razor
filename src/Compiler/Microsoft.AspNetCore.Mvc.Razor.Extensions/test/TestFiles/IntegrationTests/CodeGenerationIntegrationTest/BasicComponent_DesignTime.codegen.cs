@@ -2,13 +2,14 @@
 #pragma warning disable 1591
 namespace __GeneratedComponent
 {
-    #line hidden
+    #line default
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-    #nullable restore
+    #line default
+    #line hidden
     public partial class AspNetCore_3708c9fcd2e1ecb6cbaba92bcc60927f830690f42092c4aa1a7275c2f37020fd : global::Microsoft.AspNetCore.Components.ComponentBase, IDisposable
     #nullable disable
     {

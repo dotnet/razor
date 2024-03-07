@@ -2,7 +2,7 @@
 |
     private object someObject = new object();
 |
-Generated Location: (880:22,7 [49] )
+Generated Location: (872:22,7 [49] )
 |
     private object someObject = new object();
 |

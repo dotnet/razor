@@ -3,7 +3,7 @@
     [Parameter]
     public bool TestBool { get; set; }
 |
-Generated Location: (1502:42,7 [59] )
+Generated Location: (1494:42,7 [59] )
 |
     [Parameter]
     public bool TestBool { get; set; }
