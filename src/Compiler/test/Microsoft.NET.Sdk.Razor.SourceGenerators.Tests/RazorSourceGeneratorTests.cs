@@ -48,6 +48,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -165,6 +166,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -191,6 +193,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -267,6 +270,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -293,6 +297,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -348,6 +353,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -374,6 +380,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -419,6 +426,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -479,6 +487,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -505,6 +514,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -597,6 +607,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -623,6 +634,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -695,6 +707,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -721,6 +734,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -778,6 +792,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -862,6 +877,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -888,6 +904,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -947,6 +964,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -1081,6 +1099,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -2594,6 +2613,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -2620,6 +2640,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -2740,6 +2761,7 @@ namespace MyApp.Pages
                     using global::Microsoft.AspNetCore.Components;
                     #line default
                     #line hidden
+                    #nullable restore
                     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
                     #nullable disable
                     {
@@ -2766,6 +2788,7 @@ namespace MyApp.Pages
                     using global::Microsoft.AspNetCore.Components;
                     #line default
                     #line hidden
+                    #nullable restore
                     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
                     #nullable disable
                     {
@@ -2908,6 +2931,7 @@ namespace MyApp
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Component : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
@@ -2990,6 +3014,7 @@ namespace MyApp
                     using global::Microsoft.AspNetCore.Components;
                     #line default
                     #line hidden
+                    #nullable restore
                     public partial class Component : global::Microsoft.AspNetCore.Components.ComponentBase
                     #nullable disable
                     {

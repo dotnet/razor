@@ -11,6 +11,7 @@ namespace __GeneratedComponent
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class AspNetCore_3708c9fcd2e1ecb6cbaba92bcc60927f830690f42092c4aa1a7275c2f37020fd : global::Microsoft.AspNetCore.Components.ComponentBase, IDisposable
     #nullable disable
     {

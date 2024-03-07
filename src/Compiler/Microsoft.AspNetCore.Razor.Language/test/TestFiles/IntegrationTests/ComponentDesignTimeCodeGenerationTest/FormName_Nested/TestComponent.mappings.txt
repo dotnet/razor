@@ -5,29 +5,29 @@ Generated Location: (361:12,0 [41] )
 
 Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1218:32,31 [9] )
+Generated Location: (1264:34,31 [9] )
 |() => { }|
 
 Source Location: (161:3,35 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1656:42,35 [9] )
+Generated Location: (1702:44,35 [9] )
 |() => { }|
 
 Source Location: (255:5,39 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (2111:52,39 [9] )
+Generated Location: (2157:54,39 [9] )
 |() => { }|
 
 Source Location: (346:7,35 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (2629:70,35 [9] )
+Generated Location: (2675:72,35 [9] )
 |() => { }|
 
 Source Location: (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     [Parameter] public RenderFragment ChildContent { get; set; }
 |
-Generated Location: (3032:89,7 [68] )
+Generated Location: (3078:91,7 [68] )
 |
     [Parameter] public RenderFragment ChildContent { get; set; }
 |

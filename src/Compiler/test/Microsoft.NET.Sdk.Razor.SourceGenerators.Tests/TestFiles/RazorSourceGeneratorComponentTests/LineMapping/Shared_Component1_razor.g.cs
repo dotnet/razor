@@ -11,6 +11,7 @@ namespace MyApp.Shared
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class Component1 : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
