@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -21,8 +20,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-[Export(typeof(IRazorSemanticTokensInfoService)), Shared]
-[method: ImportingConstructor]
 internal class RazorSemanticTokensInfoService(
     IRazorDocumentMappingService documentMappingService,
     RazorSemanticTokensLegendService razorSemanticTokensLegendService,
