@@ -23,7 +23,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
-using TestProjectSnapshotManager = Microsoft.AspNetCore.Razor.Test.Common.LanguageServer.TestProjectSnapshotManager;
+using TestProjectSnapshotManager = Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem.TestProjectSnapshotManager;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 

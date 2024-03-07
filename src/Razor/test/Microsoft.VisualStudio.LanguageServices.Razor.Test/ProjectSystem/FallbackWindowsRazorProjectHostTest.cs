@@ -10,7 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -671,15 +671,5 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             path = "obj";
             return true;
         }
-    }
-
-    private class TestProjectSnapshotManager(
-        IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        ProjectSnapshotManagerDispatcher dispatcher) : DefaultProjectSnapshotManager(
-            triggers: [],
-            projectEngineFactoryProvider,
-            dispatcher,
-            Mock.Of<IErrorReporter>(MockBehavior.Strict))
-    {
     }
 }

@@ -9,8 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -1380,16 +1380,5 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         await Task.Run(async () => await host.DisposeAsync());
         Assert.Empty(_projectManager.GetProjects());
-    }
-
-    private class TestProjectSnapshotManager(
-        IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        ProjectSnapshotManagerDispatcher dispatcher)
-        : DefaultProjectSnapshotManager(
-            triggers: [],
-            projectEngineFactoryProvider,
-            dispatcher,
-            Mock.Of<IErrorReporter>(MockBehavior.Strict))
-    {
     }
 }

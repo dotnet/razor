@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -11,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
@@ -22,6 +22,14 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
 
 public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
 {
+    private const string ProjectName1 = "project1";
+    private const string ProjectName2 = "project2";
+    private const string ProjectFilePath1 = $"/host/path/to/{ProjectName1}.csproj";
+    private const string ProjectFilePath2 = $"/host/path/to/{ProjectName2}.csproj";
+    private const string IntermediateOutputPath = "/host/path/to/obj";
+    private const string LspProjectFilePath1 = $"vsls:/path/to/{ProjectName1}.csproj";
+    private const string LspProjectFilePath2 = $"vsls:/path/to/{ProjectName2}.csproj";
+
     private readonly IProjectSnapshot _projectSnapshot1;
     private readonly IProjectSnapshot _projectSnapshot2;
 
@@ -30,30 +38,25 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
     {
         var projectEngineFactoryProvider = StrictMock.Of<IProjectEngineFactoryProvider>();
 
-        var projectWorkspaceState1 = ProjectWorkspaceState.Create(
-            [TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build()]);
-
         _projectSnapshot1 = new ProjectSnapshot(
             ProjectState.Create(
                 projectEngineFactoryProvider,
-                new HostProject("/host/path/to/project1.csproj", "/host/path/to/obj", RazorConfiguration.Default, "project1"),
-                projectWorkspaceState1));
-
-        var projectWorkspaceState2 = ProjectWorkspaceState.Create(
-            [TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build()]);
+                new HostProject(ProjectFilePath1, IntermediateOutputPath, RazorConfiguration.Default, ProjectName1),
+                ProjectWorkspaceState.Create([TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build()])));
 
         _projectSnapshot2 = new ProjectSnapshot(
             ProjectState.Create(
                 projectEngineFactoryProvider,
-                new HostProject("/host/path/to/project2.csproj", "/host/path/to/obj", RazorConfiguration.Default, "project2"),
-                projectWorkspaceState2));
+                new HostProject(ProjectFilePath2, IntermediateOutputPath, RazorConfiguration.Default, ProjectName2),
+                ProjectWorkspaceState.Create([TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build()])));
     }
 
     [UIFact]
     public async Task CalculateUpdatedStateAsync_ReturnsStateForAllProjects()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
+        var projectManagerMock = CreateProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
+        var projectManager = projectManagerMock.Object;
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
@@ -69,44 +72,39 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
 
         Assert.Collection(
             state.ProjectHandles,
-            handle =>
-            {
-                Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                Assert.Equal<TagHelperDescriptor>(project1TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
-            },
-            handle =>
-            {
-                Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                Assert.Equal<TagHelperDescriptor>(project2TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
-            });
+            AssertProjectSnapshotHandle(LspProjectFilePath1, project1TagHelpers),
+            AssertProjectSnapshotHandle(LspProjectFilePath2, project2TagHelpers));
     }
 
     [UIFact]
     public async Task Changed_TriggersOnSnapshotManagerChanged()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var projectManagerMock = CreateProjectSnapshotManager(_projectSnapshot1);
+        var projectManager = projectManagerMock.Object;
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
             Dispatcher,
             JoinableTaskFactory);
+
         var proxyAccessor = proxy.GetTestAccessor();
-        var changedArgs = new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged);
+
         var called = false;
         proxy.Changed += (sender, args) =>
         {
             called = true;
-            Assert.Equal($"vsls:/path/to/project1.csproj", args.ProjectFilePath.ToString());
+            Assert.Equal(LspProjectFilePath1, args.ProjectFilePath.ToString());
             Assert.Equal(ProjectProxyChangeKind.ProjectChanged, args.Kind);
             Assert.NotNull(args.Newer);
-            Assert.Equal("vsls:/path/to/project1.csproj", args.Newer.FilePath.ToString());
+            Assert.Equal(LspProjectFilePath1, args.Newer.FilePath.ToString());
         };
 
         // Act
         await RunOnDispatcherAsync(() =>
         {
-            projectManager.TriggerChanged(changedArgs);
+            projectManagerMock.RaiseChanged(
+                new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged));
         });
 
         await proxyAccessor.ProcessingChangedEventTestTask.AssumeNotNull().JoinAsync();
@@ -116,22 +114,25 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
     }
 
     [UIFact]
-    public void Changed_NoopsIfProxyDisposed()
+    public void Changed_DoesNotFireIfProxyIsDisposed()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var projectManagerMock = CreateProjectSnapshotManager(_projectSnapshot1);
+        var projectManager = projectManagerMock.Object;
         var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
             Dispatcher,
             JoinableTaskFactory);
+
         var proxyAccessor = proxy.GetTestAccessor();
-        var changedArgs = new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged);
+
         proxy.Changed += (sender, args) => throw new InvalidOperationException("Should not have been called.");
         proxy.Dispose();
 
         // Act
-        projectManager.TriggerChanged(changedArgs);
+        projectManagerMock.RaiseChanged(
+            new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged));
 
         // Assert
         Assert.Null(proxyAccessor.ProcessingChangedEventTestTask);
@@ -141,7 +142,8 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
     public async Task GetLatestProjectsAsync_ReturnsSnapshotManagerProjects()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var projectManagerMock = CreateProjectSnapshotManager(_projectSnapshot1);
+        var projectManager = projectManagerMock.Object;
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
@@ -160,7 +162,8 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
     public async Task GetStateAsync_ReturnsProjectState()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
+        var projectManagerMock = CreateProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
+        var projectManager = projectManagerMock.Object;
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
@@ -176,23 +179,16 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
 
         Assert.Collection(
             state.ProjectHandles,
-            handle =>
-            {
-                Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                Assert.Equal<TagHelperDescriptor>(project1TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
-            },
-            handle =>
-            {
-                Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                Assert.Equal<TagHelperDescriptor>(project2TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
-            });
+            AssertProjectSnapshotHandle(LspProjectFilePath1, project1TagHelpers),
+            AssertProjectSnapshotHandle(LspProjectFilePath2, project2TagHelpers));
     }
 
     [UIFact]
     public async Task GetStateAsync_CachesState()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var projectManagerMock = CreateProjectSnapshotManager(_projectSnapshot1);
+        var projectManager = projectManagerMock.Object;
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
@@ -207,29 +203,22 @@ public class ProjectSnapshotManagerProxyTest : VisualStudioTestBase
         Assert.Same(state1, state2);
     }
 
-    private sealed class TestProjectSnapshotManager(params IProjectSnapshot[] projects) : IProjectSnapshotManager
+    private static StrictMock<IProjectSnapshotManager> CreateProjectSnapshotManager(params IProjectSnapshot[] projects)
     {
-        private readonly ImmutableArray<IProjectSnapshot> _projects = [.. projects];
+        var mock = new StrictMock<IProjectSnapshotManager>();
 
-        public ImmutableArray<IProjectSnapshot> GetProjects() => _projects;
+        mock.Setup(x => x.GetProjects())
+            .Returns([.. projects]);
 
-        public event EventHandler<ProjectChangeEventArgs>? Changed;
-
-        public void TriggerChanged(ProjectChangeEventArgs args)
-        {
-            Changed?.Invoke(this, args);
-        }
-
-        public IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
-            => throw new NotImplementedException();
-
-        public ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
-            => throw new NotImplementedException();
-
-        public bool IsDocumentOpen(string documentFilePath)
-            => throw new NotImplementedException();
-
-        public bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot project)
-            => throw new NotImplementedException();
+        return mock;
     }
+
+    private static Action<ProjectSnapshotHandleProxy> AssertProjectSnapshotHandle(
+        string expectedFilePath,
+        ImmutableArray<TagHelperDescriptor> expectedTagHelpers)
+        => handle =>
+        {
+            Assert.Equal(expectedFilePath, handle.FilePath.ToString());
+            Assert.Equal<TagHelperDescriptor>(expectedTagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+        };
 }
