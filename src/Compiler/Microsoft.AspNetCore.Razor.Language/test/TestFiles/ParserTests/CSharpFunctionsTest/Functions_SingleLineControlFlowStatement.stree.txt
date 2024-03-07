@@ -47,7 +47,7 @@
                                 Whitespace;[ ];
                                 StringLiteral;["Anouncement: "];
                                 Whitespace;[ ];
-                                Plus;[+];
+                                CSharpOperator;[+];
                                 Whitespace;[ ];
                                 Identifier;[message];
                                 Semicolon;[;];

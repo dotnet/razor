@@ -40,7 +40,7 @@
                         Whitespace;[ ];
                 CSharpStatementLiteral - [35..61)::26 - [foo++; } while (foo<bar>);] - Gen<Stmt>
                     Identifier;[foo];
-                    Increment;[++];
+                    CSharpOperator;[++];
                     Semicolon;[;];
                     Whitespace;[ ];
                     RightBrace;[}];
@@ -101,7 +101,7 @@
                         Whitespace;[ ];
                 CSharpStatementLiteral - [101..127)::26 - [foo++; } while (foo<bar>);] - Gen<Stmt>
                     Identifier;[foo];
-                    Increment;[++];
+                    CSharpOperator;[++];
                     Semicolon;[;];
                     Whitespace;[ ];
                     RightBrace;[}];

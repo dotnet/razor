@@ -34,7 +34,7 @@
                                             CSharpCodeBlock - [16..19)::3
                                                 CSharpExpressionLiteral - [16..19)::3 - [2+3] - Gen<Expr>
                                                     NumericLiteral;[2];
-                                                    Plus;[+];
+                                                    CSharpOperator;[+];
                                                     NumericLiteral;[3];
                                             RazorMetaCode - [19..20)::1 - Gen<None>
                                                 RightParenthesis;[)];
@@ -61,7 +61,7 @@
                                             CSharpCodeBlock - [29..32)::3
                                                 CSharpExpressionLiteral - [29..32)::3 - [2+3] - Gen<Expr>
                                                     NumericLiteral;[2];
-                                                    Plus;[+];
+                                                    CSharpOperator;[+];
                                                     NumericLiteral;[3];
                                             RazorMetaCode - [32..33)::1 - Gen<None>
                                                 RightParenthesis;[)];

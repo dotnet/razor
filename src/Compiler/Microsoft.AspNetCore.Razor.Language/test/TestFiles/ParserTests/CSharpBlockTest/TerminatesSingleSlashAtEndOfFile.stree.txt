@@ -19,7 +19,7 @@
                 Whitespace;[ ];
                 LeftBrace;[{];
                 Whitespace;[ ];
-                Slash;[/];
+                CSharpOperator;[/];
                 Whitespace;[ ];
                 Identifier;[foo];
                 Whitespace;[ ];

@@ -18,7 +18,7 @@
                             Whitespace;[ ];
                             Identifier;[e];
                             Whitespace;[ ];
-                            GreaterThanEqual;[=>];
+                            CSharpOperator;[=>];
                             Whitespace;[ ];
                             LeftParenthesis;[(];
                             Keyword;[int];
@@ -32,14 +32,14 @@
                             Dot;[.];
                             Identifier;[Now];
                             Whitespace;[ ];
-                            Minus;[-];
+                            CSharpOperator;[-];
                             Whitespace;[ ];
                             Identifier;[dt];
                             RightParenthesis;[)];
                             Dot;[.];
                             Identifier;[TotalDays];
                             Whitespace;[ ];
-                            Slash;[/];
+                            CSharpOperator;[/];
                             Whitespace;[ ];
                             NumericLiteral;[365];
                             RightParenthesis;[)];

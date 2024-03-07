@@ -27,7 +27,7 @@
                                 Identifier;[message];
                                 RightParenthesis;[)];
                                 Whitespace;[ ];
-                                GreaterThanEqual;[=>];
+                                CSharpOperator;[=>];
                                 Whitespace;[ ];
                             MarkupBlock - [56..75)::19
                                 MarkupElement - [56..73)::17

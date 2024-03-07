@@ -12,7 +12,7 @@
                             Identifier;[val];
                             Not;[!];
                             LeftBracket;[[];
-                            Minus;[-];
+                            CSharpOperator;[-];
                             NumericLiteral;[1];
                             RightBracket;[]];
         MarkupTextLiteral - [9..10)::1 - [!] - Gen<Markup>

@@ -35,7 +35,7 @@
                             LeftParenthesis;[(];
                             RightParenthesis;[)];
                             Whitespace;[ ];
-                            GreaterThanEqual;[=>];
+                            CSharpOperator;[=>];
                             Whitespace;[ ];
                             LeftBrace;[{];
                             Whitespace;[ ];
@@ -49,9 +49,9 @@
                             Whitespace;[ ];
                             LeftParenthesis;[(];
                             NumericLiteral;[4];
-                            Plus;[+];
+                            CSharpOperator;[+];
                             NumericLiteral;[5];
-                            Plus;[+];
+                            CSharpOperator;[+];
                             Keyword;[new];
                             Whitespace;[ ];
                             LeftBrace;[{];

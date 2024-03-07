@@ -34,11 +34,11 @@
                             LeftParenthesis;[(];
                             RightParenthesis;[)];
                             Whitespace;[ ];
-                            Modulo;[%];
+                            CSharpOperator;[%];
                             Whitespace;[ ];
                             NumericLiteral;[2];
                             Whitespace;[ ];
-                            Equals;[==];
+                            CSharpOperator;[==];
                             Whitespace;[ ];
                             NumericLiteral;[0];
                             RightParenthesis;[)];

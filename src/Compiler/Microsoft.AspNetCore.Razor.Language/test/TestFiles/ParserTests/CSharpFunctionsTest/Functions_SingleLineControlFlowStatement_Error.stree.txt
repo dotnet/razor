@@ -75,7 +75,7 @@
                                 LeftParenthesis;[(];
                                 Identifier;[message];
                                 Whitespace;[ ];
-                                Equals;[==];
+                                CSharpOperator;[==];
                                 Whitespace;[ ];
                                 Keyword;[null];
                                 RightParenthesis;[)];
@@ -117,11 +117,11 @@
                                 LeftParenthesis;[(];
                                 RightParenthesis;[)];
                                 Whitespace;[ ];
-                                Modulo;[%];
+                                CSharpOperator;[%];
                                 Whitespace;[ ];
                                 NumericLiteral;[2];
                                 Whitespace;[ ];
-                                Equals;[==];
+                                CSharpOperator;[==];
                                 Whitespace;[ ];
                                 NumericLiteral;[0];
                                 RightParenthesis;[)];
@@ -163,7 +163,7 @@
                                 LeftParenthesis;[(];
                                 Identifier;[message];
                                 Whitespace;[ ];
-                                NotEqual;[!=];
+                                CSharpOperator;[!=];
                                 Whitespace;[ ];
                                 Keyword;[null];
                                 RightParenthesis;[)];

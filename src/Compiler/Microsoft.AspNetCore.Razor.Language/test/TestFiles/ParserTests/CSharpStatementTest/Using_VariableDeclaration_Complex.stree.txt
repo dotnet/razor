@@ -36,7 +36,7 @@
                             LeftParenthesis;[(];
                             RightParenthesis;[)];
                             Whitespace;[ ];
-                            GreaterThanEqual;[=>];
+                            CSharpOperator;[=>];
                             Whitespace;[ ];
                             LeftBrace;[{];
                             Whitespace;[ ];

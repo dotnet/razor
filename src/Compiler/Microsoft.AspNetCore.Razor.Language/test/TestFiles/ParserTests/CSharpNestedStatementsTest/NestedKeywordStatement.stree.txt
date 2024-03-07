@@ -32,7 +32,7 @@
                 Semicolon;[;];
                 Whitespace;[ ];
                 Identifier;[i];
-                Increment;[++];
+                CSharpOperator;[++];
                 RightParenthesis;[)];
                 Whitespace;[ ];
                 LeftBrace;[{];
