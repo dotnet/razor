@@ -3,9 +3,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -28,22 +27,20 @@ internal class PreferHtmlInAttributeValuesDocumentPositionInfoStrategy : IDocume
             return null;
         }
 
+        var absolutePosition = defaultDocumentPositionInfo.HostDocumentIndex;
         if (defaultDocumentPositionInfo.LanguageKind != RazorLanguageKind.Razor ||
-            defaultDocumentPositionInfo.HostDocumentIndex < 1)
+            absolutePosition < 1)
         {
             return defaultDocumentPositionInfo;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var previousPosition = defaultDocumentPositionInfo.HostDocumentIndex - 1;
-        var charBeforePosition = codeDocument.GetSourceText()[previousPosition];
-        if (charBeforePosition != '=')
-        {
-            return defaultDocumentPositionInfo;
-        }
-
+        // Get the node at previous position to see if we are after markup tag helper attribute,
+        // and more specifically after the EqualsToken of it
+        var previousPosition = absolutePosition - 1;
         var owner = await documentContext.GetSyntaxNodeAsync(previousPosition, cancellationToken).ConfigureAwait(false);
-        if (owner is null || owner.Kind != SyntaxKind.MarkupTagHelperAttribute)
+        if (owner is not MarkupTagHelperAttributeSyntax markupTagHelperAttributeSyntax
+            || markupTagHelperAttributeSyntax.EqualsToken.Width != 1
+            || markupTagHelperAttributeSyntax.EqualsToken.EndPosition != defaultDocumentPositionInfo.HostDocumentIndex)
         {
             return defaultDocumentPositionInfo;
         }
