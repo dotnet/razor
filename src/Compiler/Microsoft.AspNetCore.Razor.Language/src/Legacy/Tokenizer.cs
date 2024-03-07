@@ -205,6 +205,20 @@ internal abstract class Tokenizer : ITokenizer
         SyntaxToken token = null;
         if (HaveContent)
         {
+            var tokenContent = GetTokenContent(type);
+            Debug.Assert(string.Equals(tokenContent, Buffer.ToString(), StringComparison.Ordinal));
+            token = EndToken(tokenContent, type);
+            Buffer.Clear();
+        }
+
+        return token;
+    }
+
+    protected SyntaxToken EndToken(string tokenContent, SyntaxKind type)
+    {
+        SyntaxToken token = null;
+        if (tokenContent != null)
+        {
             // Perf: Don't allocate a new errors array unless necessary.
             var errors = CurrentErrors.Count == 0 ? Array.Empty<RazorDiagnostic>() : new RazorDiagnostic[CurrentErrors.Count];
             for (var i = 0; i < CurrentErrors.Count; i++)
@@ -212,11 +226,8 @@ internal abstract class Tokenizer : ITokenizer
                 errors[i] = CurrentErrors[i];
             }
 
-            var tokenContent = GetTokenContent(type);
-            Debug.Assert(string.Equals(tokenContent, Buffer.ToString(), StringComparison.Ordinal));
             token = CreateToken(tokenContent, type, errors);
 
-            Buffer.Clear();
             CurrentErrors.Clear();
         }
 

@@ -10,12 +10,12 @@ using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.CSharp;
 
 using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxFactory;
+using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class CSharpTokenizer : Tokenizer
 {
-    private readonly Dictionary<char, Func<SyntaxKind>> _operatorHandlers;
     private readonly SourceTextLexer _lexer;
 
     private static readonly Dictionary<string, CSharpKeyword> _keywords = new Dictionary<string, CSharpKeyword>(StringComparer.Ordinal)
@@ -107,32 +107,32 @@ internal class CSharpTokenizer : Tokenizer
     {
         base.CurrentState = StartState;
 
-        _operatorHandlers = new Dictionary<char, Func<SyntaxKind>>()
-            {
-                { '-', MinusOperator },
-                { '<', LessThanOperator },
-                { '>', GreaterThanOperator },
-                { '&', CreateTwoCharOperatorHandler(SyntaxKind.And, '=', SyntaxKind.AndAssign, '&', SyntaxKind.DoubleAnd) },
-                { '|', CreateTwoCharOperatorHandler(SyntaxKind.Or, '=', SyntaxKind.OrAssign, '|', SyntaxKind.DoubleOr) },
-                { '+', CreateTwoCharOperatorHandler(SyntaxKind.Plus, '=', SyntaxKind.PlusAssign, '+', SyntaxKind.Increment) },
-                { '=', CreateTwoCharOperatorHandler(SyntaxKind.Assign, '=', SyntaxKind.Equals, '>', SyntaxKind.GreaterThanEqual) },
-                { '!', CreateTwoCharOperatorHandler(SyntaxKind.Not, '=', SyntaxKind.NotEqual) },
-                { '%', CreateTwoCharOperatorHandler(SyntaxKind.Modulo, '=', SyntaxKind.ModuloAssign) },
-                { '*', CreateTwoCharOperatorHandler(SyntaxKind.Star, '=', SyntaxKind.MultiplyAssign) },
-                { ':', CreateTwoCharOperatorHandler(SyntaxKind.Colon, ':', SyntaxKind.DoubleColon) },
-                { '?', CreateTwoCharOperatorHandler(SyntaxKind.QuestionMark, '?', SyntaxKind.NullCoalesce) },
-                { '^', CreateTwoCharOperatorHandler(SyntaxKind.Xor, '=', SyntaxKind.XorAssign) },
-                { '(', () => SyntaxKind.LeftParenthesis },
-                { ')', () => SyntaxKind.RightParenthesis },
-                { '{', () => SyntaxKind.LeftBrace },
-                { '}', () => SyntaxKind.RightBrace },
-                { '[', () => SyntaxKind.LeftBracket },
-                { ']', () => SyntaxKind.RightBracket },
-                { ',', () => SyntaxKind.Comma },
-                { ';', () => SyntaxKind.Semicolon },
-                { '~', () => SyntaxKind.Tilde },
-                { '#', () => SyntaxKind.Hash }
-            };
+        // _operatorHandlers = new Dictionary<char, Func<SyntaxKind>>()
+        //     {
+        //         { '-', MinusOperator },
+        //         { '<', LessThanOperator },
+        //         { '>', GreaterThanOperator },
+        //         { '&', CreateTwoCharOperatorHandler(SyntaxKind.And, '=', SyntaxKind.AndAssign, '&', SyntaxKind.DoubleAnd) },
+        //         { '|', CreateTwoCharOperatorHandler(SyntaxKind.Or, '=', SyntaxKind.OrAssign, '|', SyntaxKind.DoubleOr) },
+        //         { '+', CreateTwoCharOperatorHandler(SyntaxKind.Plus, '=', SyntaxKind.PlusAssign, '+', SyntaxKind.Increment) },
+        //         { '=', CreateTwoCharOperatorHandler(SyntaxKind.Assign, '=', SyntaxKind.Equals, '>', SyntaxKind.GreaterThanEqual) },
+        //         { '!', CreateTwoCharOperatorHandler(SyntaxKind.Not, '=', SyntaxKind.NotEqual) },
+        //         { '%', CreateTwoCharOperatorHandler(SyntaxKind.Modulo, '=', SyntaxKind.ModuloAssign) },
+        //         { '*', CreateTwoCharOperatorHandler(SyntaxKind.Star, '=', SyntaxKind.MultiplyAssign) },
+        //         { ':', CreateTwoCharOperatorHandler(SyntaxKind.Colon, ':', SyntaxKind.DoubleColon) },
+        //         { '?', CreateTwoCharOperatorHandler(SyntaxKind.QuestionMark, '?', SyntaxKind.NullCoalesce) },
+        //         { '^', CreateTwoCharOperatorHandler(SyntaxKind.Xor, '=', SyntaxKind.XorAssign) },
+        //         { '(', () => SyntaxKind.LeftParenthesis },
+        //         { ')', () => SyntaxKind.RightParenthesis },
+        //         { '{', () => SyntaxKind.LeftBrace },
+        //         { '}', () => SyntaxKind.RightBrace },
+        //         { '[', () => SyntaxKind.LeftBracket },
+        //         { ']', () => SyntaxKind.RightBracket },
+        //         { ',', () => SyntaxKind.Comma },
+        //         { ';', () => SyntaxKind.Semicolon },
+        //         { '~', () => SyntaxKind.Tilde },
+        //         { '#', () => SyntaxKind.Hash }
+        //     };
 
         _lexer = CodeAnalysis.CSharp.SyntaxFactory.CreateLexer(source.SourceText);
     }
@@ -227,26 +227,26 @@ internal class CSharpTokenizer : Tokenizer
                         return "\t";
                     }
                     break;
-                case SyntaxKind.Minus:
-                    return "-";
+                // case SyntaxKind.Minus:
+                //     return "-";
                 case SyntaxKind.Not:
                     return "!";
-                case SyntaxKind.Modulo:
-                    return "%";
-                case SyntaxKind.And:
-                    return "&";
+                // case SyntaxKind.Modulo:
+                //     return "%";
+                // case SyntaxKind.And:
+                //     return "&";
                 case SyntaxKind.LeftParenthesis:
                     return "(";
                 case SyntaxKind.RightParenthesis:
                     return ")";
-                case SyntaxKind.Star:
-                    return "*";
+                // case SyntaxKind.Star:
+                //     return "*";
                 case SyntaxKind.Comma:
                     return ",";
                 case SyntaxKind.Dot:
                     return ".";
-                case SyntaxKind.Slash:
-                    return "/";
+                // case SyntaxKind.Slash:
+                //     return "/";
                 case SyntaxKind.Colon:
                     return ":";
                 case SyntaxKind.Semicolon:
@@ -257,26 +257,26 @@ internal class CSharpTokenizer : Tokenizer
                     return "]";
                 case SyntaxKind.LeftBracket:
                     return "[";
-                case SyntaxKind.Xor:
-                    return "^";
+                // case SyntaxKind.Xor:
+                //     return "^";
                 case SyntaxKind.LeftBrace:
                     return "{";
-                case SyntaxKind.Or:
-                    return "|";
+                // case SyntaxKind.Or:
+                //     return "|";
                 case SyntaxKind.RightBrace:
                     return "}";
-                case SyntaxKind.Tilde:
-                    return "~";
-                case SyntaxKind.Plus:
-                    return "+";
+                // case SyntaxKind.Tilde:
+                //     return "~";
+                // case SyntaxKind.Plus:
+                //     return "+";
                 case SyntaxKind.LessThan:
                     return "<";
                 case SyntaxKind.Assign:
                     return "=";
                 case SyntaxKind.GreaterThan:
                     return ">";
-                case SyntaxKind.Hash:
-                    return "#";
+                // case SyntaxKind.Hash:
+                //     return "#";
                 case SyntaxKind.Transition:
                     return "@";
 
@@ -288,65 +288,65 @@ internal class CSharpTokenizer : Tokenizer
             {
                 case SyntaxKind.NewLine:
                     return "\r\n";
-                case SyntaxKind.Arrow:
-                    return "->";
-                case SyntaxKind.Decrement:
-                    return "--";
-                case SyntaxKind.MinusAssign:
-                    return "-=";
-                case SyntaxKind.NotEqual:
-                    return "!=";
-                case SyntaxKind.ModuloAssign:
-                    return "%=";
-                case SyntaxKind.AndAssign:
-                    return "&=";
-                case SyntaxKind.DoubleAnd:
-                    return "&&";
-                case SyntaxKind.MultiplyAssign:
-                    return "*=";
-                case SyntaxKind.DivideAssign:
-                    return "/=";
+                // case SyntaxKind.Arrow:
+                //     return "->";
+                // case SyntaxKind.Decrement:
+                //     return "--";
+                // case SyntaxKind.MinusAssign:
+                //     return "-=";
+                // case SyntaxKind.NotEqual:
+                //     return "!=";
+                // case SyntaxKind.ModuloAssign:
+                //     return "%=";
+                // case SyntaxKind.AndAssign:
+                //     return "&=";
+                // case SyntaxKind.DoubleAnd:
+                //     return "&&";
+                // case SyntaxKind.MultiplyAssign:
+                //     return "*=";
+                // case SyntaxKind.DivideAssign:
+                //     return "/=";
                 case SyntaxKind.DoubleColon:
                     return "::";
-                case SyntaxKind.NullCoalesce:
-                    return "??";
-                case SyntaxKind.XorAssign:
-                    return "^=";
-                case SyntaxKind.OrAssign:
-                    return "|=";
-                case SyntaxKind.DoubleOr:
-                    return "||";
-                case SyntaxKind.PlusAssign:
-                    return "+=";
-                case SyntaxKind.Increment:
-                    return "++";
-                case SyntaxKind.LessThanEqual:
-                    return "<=";
-                case SyntaxKind.LeftShift:
-                    return "<<";
+                // case SyntaxKind.NullCoalesce:
+                //     return "??";
+                // case SyntaxKind.XorAssign:
+                //     return "^=";
+                // case SyntaxKind.OrAssign:
+                //     return "|=";
+                // case SyntaxKind.DoubleOr:
+                //     return "||";
+                // case SyntaxKind.PlusAssign:
+                //     return "+=";
+                // case SyntaxKind.Increment:
+                //     return "++";
+                // case SyntaxKind.LessThanEqual:
+                //     return "<=";
+                // case SyntaxKind.LeftShift:
+                //     return "<<";
                 case SyntaxKind.Equals:
                     return "==";
-                case SyntaxKind.GreaterThanEqual:
-                    if (Buffer[0] == '=')
-                    {
-                        return "=>";
-                    }
-                    return ">=";
-                case SyntaxKind.RightShift:
-                    return ">>";
+                    // case SyntaxKind.GreaterThanEqual:
+                    //     if (Buffer[0] == '=')
+                    //     {
+                    //         return "=>";
+                    //     }
+                    //     return ">=";
+                    // case SyntaxKind.RightShift:
+                    //     return ">>";
 
 
             }
         }
         else if (tokenLength == 3)
         {
-            switch (type)
-            {
-                case SyntaxKind.LeftShiftAssign:
-                    return "<<=";
-                case SyntaxKind.RightShiftAssign:
-                    return ">>=";
-            }
+            // switch (type)
+            // {
+            //     case SyntaxKind.LeftShiftAssign:
+            //         return "<<=";
+            //     case SyntaxKind.RightShiftAssign:
+            //         return ">>=";
+            // }
         }
 
         return base.GetTokenContent(type);
@@ -413,14 +413,14 @@ internal class CSharpTokenizer : Tokenizer
                 else if (CurrentCharacter == '=')
                 {
                     TakeCurrent();
-                    return Stay(EndToken(SyntaxKind.DivideAssign));
+                    return Stay(EndToken(SyntaxKind.CSharpOperator));
                 }
                 else
                 {
-                    return Stay(EndToken(SyntaxKind.Slash));
+                    return Stay(EndToken(SyntaxKind.CSharpOperator));
                 }
             default:
-                return Stay(EndToken(Operator()));
+                return Stay(Operator());
         }
     }
 
@@ -455,87 +455,105 @@ internal class CSharpTokenizer : Tokenizer
         return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.Transition));
     }
 
-    private SyntaxKind Operator()
+    private SyntaxToken Operator()
     {
-        var first = CurrentCharacter;
-        TakeCurrent();
-        Func<SyntaxKind> handler;
-        if (_operatorHandlers.TryGetValue(first, out handler))
-        {
-            return handler();
-        }
-        return SyntaxKind.Marker;
-    }
+        var curPosition = Source.Position;
+        var token = _lexer.LexSyntax(curPosition);
 
-    private SyntaxKind LessThanOperator()
-    {
-        if (CurrentCharacter == '=')
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + token.Span.Length;
+
+        for (; curPosition < finalPosition; curPosition++)
         {
             TakeCurrent();
-            return SyntaxKind.LessThanEqual;
         }
-        return SyntaxKind.LessThan;
-    }
 
-    private SyntaxKind GreaterThanOperator()
-    {
-        if (CurrentCharacter == '=')
+        SyntaxKind kind;
+        string content;
+        switch (token.RawKind)
         {
-            TakeCurrent();
-            return SyntaxKind.GreaterThanEqual;
+            case (int)CSharpSyntaxKind.ExclamationToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Not;
+                break;
+            case (int)CSharpSyntaxKind.OpenParenToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.LeftParenthesis;
+                break;
+            case (int)CSharpSyntaxKind.CloseParenToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.RightParenthesis;
+                break;
+            case (int)CSharpSyntaxKind.CommaToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Comma;
+                break;
+            case (int)CSharpSyntaxKind.DotToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Dot;
+                break;
+            case (int)CSharpSyntaxKind.ColonColonToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.DoubleColon;
+                break;
+            case (int)CSharpSyntaxKind.ColonToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Colon;
+                break;
+            case (int)CSharpSyntaxKind.OpenBraceToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.LeftBrace;
+                break;
+            case (int)CSharpSyntaxKind.CloseBraceToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.RightBrace;
+                break;
+            case (int)CSharpSyntaxKind.LessThanToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.LessThan;
+                break;
+            case (int)CSharpSyntaxKind.GreaterThanToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.GreaterThan;
+                break;
+            case (int)CSharpSyntaxKind.EqualsToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Assign;
+                break;
+            case (int)CSharpSyntaxKind.OpenBracketToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.LeftBracket;
+                break;
+            case (int)CSharpSyntaxKind.CloseBracketToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.RightBracket;
+                break;
+            case (int)CSharpSyntaxKind.QuestionToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.QuestionMark;
+                break;
+            case (int)CSharpSyntaxKind.SemicolonToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Semicolon;
+                break;
+            case <= (int)CSharpSyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken and >= (int)CSharpSyntaxKind.TildeToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.CSharpOperator;
+                break;
+            default:
+                kind = SyntaxKind.Marker;
+                content = Buffer.ToString();
+                Buffer.Clear();
+                break;
         }
-        return SyntaxKind.GreaterThan;
-    }
 
-    private SyntaxKind MinusOperator()
-    {
-        if (CurrentCharacter == '>')
-        {
-            TakeCurrent();
-            return SyntaxKind.Arrow;
-        }
-        else if (CurrentCharacter == '-')
-        {
-            TakeCurrent();
-            return SyntaxKind.Decrement;
-        }
-        else if (CurrentCharacter == '=')
-        {
-            TakeCurrent();
-            return SyntaxKind.MinusAssign;
-        }
-        return SyntaxKind.Minus;
-    }
+        return EndToken(content, kind);
 
-    private Func<SyntaxKind> CreateTwoCharOperatorHandler(SyntaxKind typeIfOnlyFirst, char second, SyntaxKind typeIfBoth)
-    {
-        return () =>
+        void TakeTokenContent(CodeAnalysis.SyntaxToken token, out string content)
         {
-            if (CurrentCharacter == second)
-            {
-                TakeCurrent();
-                return typeIfBoth;
-            }
-            return typeIfOnlyFirst;
-        };
-    }
-
-    private Func<SyntaxKind> CreateTwoCharOperatorHandler(SyntaxKind typeIfOnlyFirst, char option1, SyntaxKind typeIfOption1, char option2, SyntaxKind typeIfOption2)
-    {
-        return () =>
-        {
-            if (CurrentCharacter == option1)
-            {
-                TakeCurrent();
-                return typeIfOption1;
-            }
-            else if (CurrentCharacter == option2)
-            {
-                TakeCurrent();
-                return typeIfOption2;
-            }
-            return typeIfOnlyFirst;
-        };
+            content = token.ValueText;
+            Buffer.Clear();
+        }
     }
 
     private StateResult TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind expectedCSharpTokenKind, SyntaxKind razorTokenKind, string expectedPrefix, string expectedPostFix)
