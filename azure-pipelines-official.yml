@@ -39,8 +39,6 @@ variables:
     value: ''
   - name: Codeql.Enabled
     value: true
-  - name: TemplateToExtend
-    value: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - name: _InternalRuntimeDownloadArgs
     value: ''
@@ -48,8 +46,6 @@ variables:
     value: false
   - name: Codeql.SkipTaskAutoInjection
     value: true
-  - name: TemplateToExtend
-    value: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
 
 trigger:
   batch: true
@@ -74,7 +70,7 @@ resources:
     ref: refs/tags/release
 
 extends:
-  template: ${{ variables.TemplateToExtend }}
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     featureFlags:
       autoBaseline: true
