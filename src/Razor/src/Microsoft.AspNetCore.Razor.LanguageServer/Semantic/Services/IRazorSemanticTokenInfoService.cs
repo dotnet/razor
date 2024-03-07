@@ -10,5 +10,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal interface IRazorSemanticTokensInfoService
 {
+    /// <summary>
+    /// Gets the int array representing the semantic tokens for the given range.
+    /// </summary>
+    /// <remarks>See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_semanticTokens for details about the int array</remarks>
     Task<int[]?> GetSemanticTokensAsync(VersionedDocumentContext documentContext, LinePositionSpan range, bool colorBackground, Guid correlationId, CancellationToken cancellationToken);
 }

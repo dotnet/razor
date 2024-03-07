@@ -1006,12 +1006,12 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             options.HtmlVirtualDocumentSuffix == "__virtual.html",
             MockBehavior.Strict);
 
-        var cSharpSemanticTokensProvider = new LSPCSharpSemanticTokensProvider(_clientConnection.Object, LoggerFactory);
+        var csharpSemanticTokensProvider = new LSPCSharpSemanticTokensProvider(_clientConnection.Object, LoggerFactory);
 
         var service = new RazorSemanticTokensInfoService(
             documentMappingService,
             TestRazorSemanticTokensLegendService.Instance,
-            cSharpSemanticTokensProvider,
+            csharpSemanticTokensProvider,
             featureOptions,
             LoggerFactory);
 
