@@ -3,12 +3,11 @@
 
 using System;
 
+using Microsoft.AspNetCore.Razor.Language;
+
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-#pragma warning disable IDE0065 // Misplaced using directive
-using SyntaxKind = AspNetCore.Razor.Language.SyntaxKind;
-using SyntaxToken = AspNetCore.Razor.Language.Syntax.SyntaxToken;
-#pragma warning restore IDE0065 // Misplaced using directive
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal static class RazorSyntaxTokenExtensions
 {

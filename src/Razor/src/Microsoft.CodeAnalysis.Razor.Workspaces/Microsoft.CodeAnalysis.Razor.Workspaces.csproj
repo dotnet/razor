@@ -15,6 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
