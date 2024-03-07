@@ -555,8 +555,7 @@ public static class RazorCodeDocumentExtensions
         {
             if (node != null && node.DirectiveDescriptor == NamespaceDirective.Directive)
             {
-                var children = node.Body?.ChildNodes().ToImmutableArray();
-                if (children is [_, CSharpCodeBlockSyntax {  Children: [ _, CSharpSyntaxNode @namespace, ..] }])
+                if (node.Body?.ChildNodes() is [_, CSharpCodeBlockSyntax { Children: [ _, CSharpSyntaxNode @namespace, ..] }])
                 {
                     LastNamespaceContent = @namespace.GetContent();
                     LastNamespaceLocation = @namespace.GetSourceSpan(_source);
