@@ -38,13 +38,12 @@ internal class PreferHtmlInAttributeValuesDocumentPositionInfoStrategy : IDocume
         // and more specifically after the EqualsToken of it
         var previousPosition = absolutePosition - 1;
         var owner = await documentContext.GetSyntaxNodeAsync(previousPosition, cancellationToken).ConfigureAwait(false);
-        if (owner is not MarkupTagHelperAttributeSyntax markupTagHelperAttributeSyntax
-            || markupTagHelperAttributeSyntax.EqualsToken.Width != 1
-            || markupTagHelperAttributeSyntax.EqualsToken.EndPosition != defaultDocumentPositionInfo.HostDocumentIndex)
+        if (owner is MarkupTagHelperAttributeSyntax { EqualsToken: { IsMissing: false } equalsToken } &&
+            equalsToken.EndPosition == defaultDocumentPositionInfo.HostDocumentIndex)
         {
-            return defaultDocumentPositionInfo;
+            return new DocumentPositionInfo(RazorLanguageKind.Html, defaultDocumentPositionInfo.Position, defaultDocumentPositionInfo.HostDocumentIndex);
         }
 
-        return new DocumentPositionInfo(RazorLanguageKind.Html, defaultDocumentPositionInfo.Position, defaultDocumentPositionInfo.HostDocumentIndex);
+        return defaultDocumentPositionInfo;
     }
 }
