@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,6 +27,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     private readonly Project _workspaceProject;
     private readonly ProjectSnapshot _projectSnapshot;
     private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
+    private readonly TestProjectSnapshotManager _projectManager;
 
     public ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -50,23 +50,16 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
             ProjectState.Create(_projectEngineFactoryProvider, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
         _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(
             [TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()]);
-    }
 
-    private IProjectSnapshotManagerAccessor CreateProjectManagerAccessor()
-    {
-        var projectManager = new TestProjectSnapshotManager(_projectEngineFactoryProvider, Dispatcher);
-
-        return StrictMock.Of<IProjectSnapshotManagerAccessor>(x =>
-            x.Instance == projectManager);
+        _projectManager = new TestProjectSnapshotManager(_projectEngineFactoryProvider, Dispatcher);
     }
 
     [UIFact]
     public async Task Dispose_MakesUpdateNoop()
     {
         // Arrange
-        var projectManagerAccessor = CreateProjectManagerAccessor();
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager.GetAccessor(), _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
@@ -85,9 +78,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public async Task Update_StartsUpdateTask()
     {
         // Arrange
-        var projectManagerAccessor = CreateProjectManagerAccessor();
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager.GetAccessor(), _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
@@ -105,9 +97,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public async Task Update_SoftCancelsIncompleteTaskForSameProject()
     {
         // Arrange
-        var projectManagerAccessor = CreateProjectManagerAccessor();
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager.GetAccessor(), _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         await RunOnDispatcherAsync(() =>
@@ -131,15 +122,14 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
     {
         // Arrange
-        var projectManagerAccessor = CreateProjectManagerAccessor();
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager.GetAccessor(), _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await RunOnDispatcherAsync(() =>
         {
-            projectManagerAccessor.Instance.ProjectAdded(_projectSnapshot.HostProject);
-            projectManagerAccessor.Instance.ProjectWorkspaceStateChanged(_projectSnapshot.Key, _projectWorkspaceStateWithTagHelpers);
+            _projectManager.ProjectAdded(_projectSnapshot.HostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_projectSnapshot.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
         // Act
@@ -152,7 +142,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
         // Assert
-        var newProjectSnapshot = projectManagerAccessor.Instance.GetLoadedProject(_projectSnapshot.Key);
+        var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
         Assert.NotNull(newProjectSnapshot);
         Assert.Empty(await newProjectSnapshot.GetTagHelpersAsync(CancellationToken.None));
     }
@@ -161,14 +151,13 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
     {
         // Arrange
-        var projectManagerAccessor = CreateProjectManagerAccessor();
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            projectManagerAccessor, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager.GetAccessor(), _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await RunOnDispatcherAsync(() =>
         {
-            projectManagerAccessor.Instance.ProjectAdded(_projectSnapshot.HostProject);
+            _projectManager.ProjectAdded(_projectSnapshot.HostProject);
         });
 
         // Act
@@ -181,7 +170,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
         // Assert
-        var newProjectSnapshot = projectManagerAccessor.Instance.GetLoadedProject(_projectSnapshot.Key);
+        var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
         Assert.NotNull(newProjectSnapshot);
         Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(CancellationToken.None));
     }

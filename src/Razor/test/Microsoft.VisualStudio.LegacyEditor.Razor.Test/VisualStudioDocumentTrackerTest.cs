@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
@@ -30,7 +29,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
     private readonly HostProject _hostProject;
     private readonly HostProject _updatedHostProject;
     private readonly HostProject _otherHostProject;
-    private readonly ProjectSnapshotManagerBase _projectManager;
+    private readonly TestProjectSnapshotManager _projectManager;
     private readonly VisualStudioDocumentTracker _documentTracker;
 
     public VisualStudioDocumentTrackerTest(ITestOutputHelper testOutput)
@@ -55,11 +54,6 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
 
         _projectManager = new TestProjectSnapshotManager(ProjectEngineFactoryProvider, Dispatcher) { AllowNotifyListeners = true };
 
-        var projectManagerAccessorMock = new StrictMock<IProjectSnapshotManagerAccessor>();
-        projectManagerAccessorMock
-            .SetupGet(x => x.Instance)
-            .Returns(_projectManager);
-
         _hostProject = new HostProject(projectPath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_1, rootNamespace);
         _updatedHostProject = new HostProject(projectPath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, rootNamespace);
         _otherHostProject = new HostProject(TestProjectData.AnotherProject.FilePath, TestProjectData.AnotherProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.AnotherProject.RootNamespace);
@@ -69,7 +63,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             JoinableTaskFactory.Context,
             _filePath,
             projectPath,
-            projectManagerAccessorMock.Object,
+            _projectManager.GetAccessor(),
             workspaceEditorSettings,
             ProjectEngineFactoryProvider,
             _textBuffer,

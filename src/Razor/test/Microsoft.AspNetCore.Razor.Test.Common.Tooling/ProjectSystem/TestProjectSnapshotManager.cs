@@ -48,6 +48,20 @@ internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher, IErrorReporter errorReporter)
         => new TestProjectSnapshotManager(triggers: [], ProjectEngineFactories.DefaultProvider, dispatcher, errorReporter);
 
+    public IProjectSnapshotManagerAccessor GetAccessor()
+    {
+        var mock = new StrictMock<IProjectSnapshotManagerAccessor>();
+
+        mock.SetupGet(x => x.Instance)
+            .Returns(this);
+
+        ProjectSnapshotManagerBase? @this = this;
+        mock.Setup(x => x.TryGetInstance(out @this))
+            .Returns(true);
+
+        return mock.Object;
+    }
+
     public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
     {
         var documentSnapshot = TestDocumentSnapshot.Create(projectSnapshot, filePath);

@@ -67,13 +67,11 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
         var filePathService = new FilePathService(languageServerFeatureOptions);
-        var projectManagerAccessor = StrictMock.Of<IProjectSnapshotManagerAccessor>(a =>
-            a.Instance == _projectManager);
 
         var fallbackProjectManager = new FallbackProjectManager(
             StrictMock.Of<ProjectConfigurationFilePathStore>(),
             languageServerFeatureOptions,
-            projectManagerAccessor,
+            _projectManager.GetAccessor(),
             Dispatcher,
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);
