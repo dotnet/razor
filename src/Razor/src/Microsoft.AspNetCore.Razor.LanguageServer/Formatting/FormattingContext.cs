@@ -188,10 +188,23 @@ internal class FormattingContext : IDisposable
         if (_formattingSpans is null)
         {
             var syntaxTree = CodeDocument.GetSyntaxTree();
-            _formattingSpans = syntaxTree.GetFormattingSpans();
+            _formattingSpans = GetFormattingSpans(syntaxTree);
         }
 
         return _formattingSpans;
+    }
+
+    private static IReadOnlyList<FormattingSpan> GetFormattingSpans(RazorSyntaxTree syntaxTree)
+    {
+        if (syntaxTree is null)
+        {
+            throw new ArgumentNullException(nameof(syntaxTree));
+        }
+
+        var visitor = new FormattingVisitor();
+        visitor.Visit(syntaxTree.Root);
+
+        return visitor.FormattingSpans;
     }
 
     /// <summary>

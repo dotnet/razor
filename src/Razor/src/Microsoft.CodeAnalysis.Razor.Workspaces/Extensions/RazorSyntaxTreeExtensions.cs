@@ -16,19 +16,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class RazorSyntaxTreeExtensions
 {
-    public static IReadOnlyList<FormattingSpan> GetFormattingSpans(this RazorSyntaxTree syntaxTree)
-    {
-        if (syntaxTree is null)
-        {
-            throw new ArgumentNullException(nameof(syntaxTree));
-        }
-
-        var visitor = new FormattingVisitor();
-        visitor.Visit(syntaxTree.Root);
-
-        return visitor.FormattingSpans;
-    }
-
     public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
     {
         if (syntaxTree is null)
