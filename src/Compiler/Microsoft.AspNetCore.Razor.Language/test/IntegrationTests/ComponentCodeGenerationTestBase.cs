@@ -4877,6 +4877,95 @@ namespace AnotherTest
         Assert.Collection(generated.Diagnostics, d => { Assert.Equal("RZ1038", d.Id); });
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
+    public void InheritsDirective_NullableReferenceType()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            public class BaseComponent<T> : Microsoft.AspNetCore.Components.ComponentBase
+            {
+                protected T _field = default!;
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits BaseComponent<string?>
+
+            <h1>My component</h1>
+            @(_field.ToString())
+            """,
+            nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var compiled = CompileToAssembly(generated, throwOnFailure: false);
+        if (DesignTime)
+        {
+            compiled.Diagnostics.Verify(
+                // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
+                // __o = _field.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 7));
+        }
+        else
+        {
+            compiled.Diagnostics.Verify(
+                // x:\dir\subdir\Test\TestComponent.cshtml(4,3): warning CS8602: Dereference of a possibly null reference.
+                // __builder.AddContent(1, _field.ToString());
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 3));
+        }
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
+    public void InheritsDirective_NullableReferenceType_NullableDisabled()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            public class BaseComponent<T> : Microsoft.AspNetCore.Components.ComponentBase
+            {
+                protected T _field;
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits BaseComponent<string?>
+
+            <h1>My component</h1>
+            @(_field.ToString())
+            """,
+            nullableEnable: false,
+            throwOnFailure: false);
+
+        // Assert
+        Assert.Empty(generated.Diagnostics);
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var compiled = CompileToAssembly(generated, throwOnFailure: false);
+        if (DesignTime)
+        {
+            compiled.Diagnostics.Verify(
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,21): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                // BaseComponent<string?> __typeHelper = default!;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 21),
+                // (14,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                //     public partial class TestComponent : BaseComponent<string?>
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62));
+        }
+        else
+        {
+            compiled.Diagnostics.Verify(
+                // (14,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                //     public partial class TestComponent : BaseComponent<string?>
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62));
+        }
+    }
+
     #endregion
 
     #region EventCallback
@@ -10219,12 +10308,12 @@ namespace Test
             //                               x
             Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
             DesignTime
-            // (23,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
+            // (27,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
             //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            ? Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(25, 91)
-            // (17,138): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
+            ? Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(27, 91)
+            // (21,138): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
             //             __builder.AddComponentParameter(1, "StringProperty", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            : Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(19, 138));
+            : Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(21, 138));
         Assert.NotEmpty(generated.Diagnostics);
     }
 
@@ -10898,12 +10987,12 @@ Time: @DateTime.Now
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         var result = CompileToAssembly(generated, throwOnFailure: false);
         result.Diagnostics.Verify(DesignTime
-            // (39,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+            // (41,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
             //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
-            ? Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(39, 85)
-            // (34,105): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+            ? Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(41, 85)
+            // (36,105): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
             //             string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
-            : Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(34, 105));
+            : Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(36, 105));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]

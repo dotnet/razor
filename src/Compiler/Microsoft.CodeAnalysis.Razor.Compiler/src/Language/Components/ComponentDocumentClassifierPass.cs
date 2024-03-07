@@ -85,6 +85,8 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
             computedClass = ComponentMetadata.MangleClassName(computedClass);
         }
 
+        @class.Annotations[CommonAnnotations.NullableContext] = CommonAnnotations.NullableContext;
+
         @namespace.Content = computedNamespace;
         @class.ClassName = computedClass;
         @class.Modifiers.Clear();

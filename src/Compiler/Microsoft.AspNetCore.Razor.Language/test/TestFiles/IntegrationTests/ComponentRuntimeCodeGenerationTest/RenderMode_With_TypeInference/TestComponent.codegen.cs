@@ -10,6 +10,7 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -26,6 +27,7 @@ where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
 #line default
 #line hidden
 #nullable disable
+    #nullable disable
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)

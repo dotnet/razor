@@ -11,7 +11,9 @@ namespace Custom.Namespace
     #line default
     #line hidden
     [global::Custom.Namespace.TestComponent.__PrivateComponentRenderModeAttribute]
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

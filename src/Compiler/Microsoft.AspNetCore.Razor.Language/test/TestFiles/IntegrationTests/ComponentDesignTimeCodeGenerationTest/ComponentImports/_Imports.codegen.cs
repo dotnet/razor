@@ -21,7 +21,9 @@ using System.Reflection;
 #line hidden
 #nullable disable
     [global::Microsoft.AspNetCore.Components.LayoutAttribute(typeof(MainLayout))]
+    #nullable restore
     public partial class _Imports : System.Object
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
