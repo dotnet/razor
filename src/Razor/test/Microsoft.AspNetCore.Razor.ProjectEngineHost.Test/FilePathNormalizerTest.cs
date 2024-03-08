@@ -243,8 +243,8 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
     }
 
     [OSSkipConditionTheory(["OSX", "Linux"])]
-    [InlineData("C:\\path\\to\\document.cshtml")]
-    [InlineData("c:\\path\\to\\document.cshtml")]
+    [InlineData(@"C:\path\to\document.cshtml")]
+    [InlineData(@"c:\path\to\document.cshtml")]
     [InlineData("C:/path/to/document.cshtml")]
     [InlineData("c:/path/to/document.cshtml")]
     public void Comparer_CaseInsensitiveDictionary(string fileName)
