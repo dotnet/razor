@@ -249,48 +249,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         using (context.CodeWriter.BuildAsyncLambda(ValueWriterName))
         {
             BeginWriterScope(context, ValueWriterName);
-
-            for (var i = 0; i < node.Children.Count; i++)
-            {
-                if (node.Children[i] is IntermediateToken token && token.IsCSharp)
-                {
-                    var isWhitespaceStatement = string.IsNullOrWhiteSpace(token.Content);
-                    IDisposable linePragmaScope = null;
-                    if (token.Source != null)
-                    {
-                        if (!isWhitespaceStatement)
-                        {
-                            // TODO: fix this
-                            linePragmaScope = context.CodeWriter.BuildLinePragma(token.Source.Value, context);
-                        }
-
-                        context.CodeWriter.WritePadding(0, token.Source.Value, context);
-                    }
-                    else if (isWhitespaceStatement)
-                    {
-                        // Don't write whitespace if there is no line mapping for it.
-                        continue;
-                    }
-
-                    context.AddSourceMappingFor(token);
-                    context.CodeWriter.Write(token.Content);
-
-                    if (linePragmaScope != null)
-                    {
-                        linePragmaScope.Dispose();
-                    }
-                    else
-                    {
-                        context.CodeWriter.WriteLine();
-                    }
-                }
-                else
-                {
-                    // There may be something else inside the statement like an extension node.
-                    context.RenderNode(node.Children[i]);
-                }
-            }
-
+            WriteCSharpChildren(node.Children, context);
             EndWriterScope(context);
         }
 
