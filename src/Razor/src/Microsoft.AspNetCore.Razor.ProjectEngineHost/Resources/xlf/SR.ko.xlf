@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
-        <target state="new">Unsupported Razor extension: '{0}'.</target>
+        <target state="translated">지원되지 않는 Razor 확장: '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_argument_kind">
