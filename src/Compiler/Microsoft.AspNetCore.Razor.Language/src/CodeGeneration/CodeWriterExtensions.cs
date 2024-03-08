@@ -377,7 +377,6 @@ internal static class CodeWriterExtensions
         {
             if (span is not null && context?.Options.DesignTime == false)
             {
-                writer.WriteLine();
                 using (writer.BuildEnhancedLinePragma(span, context))
                 {
                     writer.Write(content);
