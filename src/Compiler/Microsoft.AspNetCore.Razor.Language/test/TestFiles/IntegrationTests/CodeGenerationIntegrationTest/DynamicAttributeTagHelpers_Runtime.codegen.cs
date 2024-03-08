@@ -65,8 +65,8 @@ AddHtmlAttributeValue(" ", 57, DateTime.Now, 58, 13, false);
             AddHtmlAttributeValue("", 95, new Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_attribute_value_writer) => {
                 PushWriter(__razor_attribute_value_writer);
 #nullable restore
-#line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                 if (true) { 
+#line (5,18)-(5,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+if (true) { 
 
 #line default
 #line hidden
@@ -81,8 +81,8 @@ string.Empty
 #nullable disable
                 );
 #nullable restore
-#line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                                           } else { 
+#line (5,43)-(5,53) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+ } else { 
 
 #line default
 #line hidden
@@ -97,8 +97,8 @@ false
 #nullable disable
                 );
 #nullable restore
-#line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                                                           }
+#line (5,59)-(5,61) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+ }
 
 #line default
 #line hidden
@@ -237,8 +237,8 @@ AddHtmlAttributeValue("", 347, long.MinValue, 347, 14, false);
             AddHtmlAttributeValue(" ", 361, new Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_attribute_value_writer) => {
                 PushWriter(__razor_attribute_value_writer);
 #nullable restore
-#line 10 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                                if (true) { 
+#line (10,33)-(10,45) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+if (true) { 
 
 #line default
 #line hidden
@@ -253,8 +253,8 @@ string.Empty
 #nullable disable
                 );
 #nullable restore
-#line 10 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                                                          } else { 
+#line (10,58)-(10,68) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+ } else { 
 
 #line default
 #line hidden
@@ -269,8 +269,8 @@ false
 #nullable disable
                 );
 #nullable restore
-#line 10 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                                                                          }
+#line (10,74)-(10,76) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+ }
 
 #line default
 #line hidden
@@ -341,8 +341,8 @@ AddHtmlAttributeValue(" ", 490, int.MaxValue, 491, 13, false);
             AddHtmlAttributeValue("", 528, new Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_attribute_value_writer) => {
                 PushWriter(__razor_attribute_value_writer);
 #nullable restore
-#line 14 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                 if (true) { 
+#line (14,18)-(14,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+if (true) { 
 
 #line default
 #line hidden
@@ -357,8 +357,8 @@ string.Empty
 #nullable disable
                 );
 #nullable restore
-#line 14 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                                           } else { 
+#line (14,43)-(14,53) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+ } else { 
 
 #line default
 #line hidden
@@ -373,8 +373,8 @@ false
 #nullable disable
                 );
 #nullable restore
-#line 14 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
-                                                           }
+#line (14,59)-(14,61) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml"
+ }
 
 #line default
 #line hidden

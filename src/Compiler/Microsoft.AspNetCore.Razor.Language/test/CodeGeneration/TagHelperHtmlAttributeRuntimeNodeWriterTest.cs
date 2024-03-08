@@ -91,8 +91,8 @@ AddHtmlAttributeValue("" "", 27, false, 28, 6, false);
 @"AddHtmlAttributeValue("" "", 27, new Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_attribute_value_writer) => {
     PushWriter(__razor_attribute_value_writer);
 #nullable restore
-#line 1 ""test.cshtml""
-                             if(@true){ }
+#line (1,30)-(1,42) ""test.cshtml""
+if(@true){ }
 
 #line default
 #line hidden

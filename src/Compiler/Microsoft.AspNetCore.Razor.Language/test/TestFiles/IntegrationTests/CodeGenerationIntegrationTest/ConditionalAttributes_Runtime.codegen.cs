@@ -79,8 +79,8 @@ WriteAttributeValue(" ", 232, ch, 233, 3, false);
             WriteAttributeValue("", 256, new Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_attribute_value_writer) => {
                 PushWriter(__razor_attribute_value_writer);
 #nullable restore
-#line 10 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
-               if(cls != null) { 
+#line (10,16)-(10,34) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
+if(cls != null) { 
 
 #line default
 #line hidden
@@ -95,8 +95,8 @@ cls
 #nullable disable
                 );
 #nullable restore
-#line 10 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
-                                      }
+#line (10,38)-(10,40) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
+ }
 
 #line default
 #line hidden

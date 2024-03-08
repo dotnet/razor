@@ -803,14 +803,15 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.St
         // Assert
         var csharp = context.CodeWriter.GenerateCode();
         Assert.Equal(
-@"
+@"__InputTagHelper.IntProp = 
 #nullable restore
-#line 3 ""test.cshtml""
-__InputTagHelper.IntProp = 32;
+#line (3,6)-(3,1) ""test.cshtml""
+32
 
 #line default
 #line hidden
 #nullable disable
+;
 __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.IntProp, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
 ",
             csharp,
@@ -941,13 +942,15 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
 {
     throw new InvalidOperationException(InvalidTagHelperIndexerAssignment(""foo-bound"", ""InputTagHelper"", ""IntIndexer""));
 }
+__InputTagHelper.IntIndexer[""bound""] = 
 #nullable restore
-#line 3 ""test.cshtml""
-__InputTagHelper.IntIndexer[""bound""] = 32;
+#line (3,6)-(3,1) ""test.cshtml""
+32
 
 #line default
 #line hidden
 #nullable disable
+;
 __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelper.IntIndexer[""bound""], global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
 ",
             csharp,
@@ -1008,14 +1011,15 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
         // Assert
         var csharp = context.CodeWriter.GenerateCode();
         Assert.Equal(
-@"
+@"__InputTagHelper.IntIndexer[""bound""] = 
 #nullable restore
-#line 3 ""test.cshtml""
-__InputTagHelper.IntIndexer[""bound""] = 32;
+#line (3,6)-(3,1) ""test.cshtml""
+32
 
 #line default
 #line hidden
 #nullable disable
+;
 __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelper.IntIndexer[""bound""], global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
 ",
             csharp,

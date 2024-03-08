@@ -60,13 +60,49 @@ if (true)
             );
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
+            __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line 8 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_PTagHelper.Age = @@(1+2);
+#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+@
 
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+@
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+(
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+1+2
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+)
+
+#line default
+#line hidden
+#nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             BeginWriteTagHelperAttribute();
             WriteLiteral("@");
@@ -161,13 +197,15 @@ checkbox
                     __TestNamespace_InputTagHelper.Type = __tagHelperStringValueBuffer;
                     __tagHelperExecutionContext.AddTagHelperAttribute("type", __TestNamespace_InputTagHelper.Type, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                     __TestNamespace_InputTagHelper2.Type = __TestNamespace_InputTagHelper.Type;
+                    __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line 17 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_InputTagHelper2.Checked = true;
+#line (17,64)-(17,68) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+true
 
 #line default
 #line hidden
 #nullable disable
+                    ;
                     __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                     await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                     if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -313,13 +351,29 @@ AddHtmlAttributeValue(" ", 210, DateTime.Now, 211, 13, false);
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper);
                 __TestNamespace_InputTagHelper2 = CreateTagHelper<global::TestNamespace.InputTagHelper2>();
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
+                __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line 24 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_InputTagHelper2.Checked = (@object);
+#line (24,29)-(24,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+(
 
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line (24,29)-(24,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+@object
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (24,29)-(24,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+)
+
+#line default
+#line hidden
+#nullable disable
+                ;
                 __tagHelperExecutionContext.AddTagHelperAttribute("ChecKED", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                 if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -334,13 +388,29 @@ __TestNamespace_InputTagHelper2.Checked = (@object);
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_3);
+            __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line 22 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_PTagHelper.Age = DateTimeOffset.Now.Year - 1970;
+#line (22,39)-(22,70) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+DateTimeOffset.Now.Year
 
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line (22,39)-(22,70) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ -
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (22,39)-(22,70) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ 1970
+
+#line default
+#line hidden
+#nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_4);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
@@ -362,13 +432,29 @@ __TestNamespace_PTagHelper.Age = DateTimeOffset.Now.Year - 1970;
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                 __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_5);
                 __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_6);
+                __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line 27 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_InputTagHelper2.Checked = (DateTimeOffset.Now.Year > 2014);
+#line (27,61)-(27,94) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+(
 
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line (27,61)-(27,94) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+DateTimeOffset.Now.Year > 2014
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (27,61)-(27,94) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+)
+
+#line default
+#line hidden
+#nullable disable
+                ;
                 __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                 if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -382,13 +468,43 @@ __TestNamespace_InputTagHelper2.Checked = (DateTimeOffset.Now.Year > 2014);
             );
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
+            __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line 26 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_PTagHelper.Age = -1970 + @DateTimeOffset.Now.Year;
+#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+-1970
 
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ +
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ 
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+@
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+DateTimeOffset.Now.Year
+
+#line default
+#line hidden
+#nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
             if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -407,13 +523,15 @@ __TestNamespace_PTagHelper.Age = -1970 + @DateTimeOffset.Now.Year;
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper);
                 __TestNamespace_InputTagHelper2 = CreateTagHelper<global::TestNamespace.InputTagHelper2>();
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
+                __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line 30 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_InputTagHelper2.Checked = DateTimeOffset.Now.Year > 2014;
+#line (30,29)-(30,59) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+DateTimeOffset.Now.Year > 2014
 
 #line default
 #line hidden
 #nullable disable
+                ;
                 __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                 if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -427,13 +545,15 @@ __TestNamespace_InputTagHelper2.Checked = DateTimeOffset.Now.Year > 2014;
             );
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
+            __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line 29 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_PTagHelper.Age = DateTimeOffset.Now.Year - 1970;
+#line (29,17)-(29,47) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+DateTimeOffset.Now.Year - 1970
 
 #line default
 #line hidden
 #nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
             if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -452,13 +572,64 @@ __TestNamespace_PTagHelper.Age = DateTimeOffset.Now.Year - 1970;
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper);
                 __TestNamespace_InputTagHelper2 = CreateTagHelper<global::TestNamespace.InputTagHelper2>();
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
+                __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line 33 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_InputTagHelper2.Checked =    @(  DateTimeOffset.Now.Year  ) > 2014   ;
+#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+   
 
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+@
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+(
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+  DateTimeOffset.Now.Year  
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+)
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ >
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+ 2014
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+   
+
+#line default
+#line hidden
+#nullable disable
+                ;
                 __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                 if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -472,13 +643,29 @@ __TestNamespace_InputTagHelper2.Checked =    @(  DateTimeOffset.Now.Year  ) > 20
             );
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
+            __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line 32 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_PTagHelper.Age = ("My age is this long.".Length);
+#line (32,17)-(32,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+(
 
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line (32,17)-(32,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+"My age is this long.".Length
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (32,17)-(32,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+)
+
+#line default
+#line hidden
+#nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
             if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -506,13 +693,15 @@ someMethod(
                     __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper);
                     __TestNamespace_InputTagHelper2 = CreateTagHelper<global::TestNamespace.InputTagHelper2>();
                     __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
+                    __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line 35 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_InputTagHelper2.Checked = checked;
+#line (35,64)-(35,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+checked
 
 #line default
 #line hidden
 #nullable disable
+                    ;
                     __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                     await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                     if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -525,13 +714,15 @@ __TestNamespace_InputTagHelper2.Checked = checked;
                 );
                 __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
                 __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
+                __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line 35 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_PTagHelper.Age = 123;
+#line (35,30)-(35,33) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+123
 
 #line default
 #line hidden
 #nullable disable
+                ;
                 __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_7);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
@@ -558,13 +749,7 @@ __TestNamespace_PTagHelper.Age = 123;
             );
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
-#nullable restore
-#line 36 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
-__TestNamespace_PTagHelper.Age = ;
-
-#line default
-#line hidden
-#nullable disable
+            __TestNamespace_PTagHelper.Age = ;
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
             if (!__tagHelperExecutionContext.Output.IsContentModified)
