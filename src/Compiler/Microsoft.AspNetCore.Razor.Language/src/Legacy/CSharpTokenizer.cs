@@ -159,31 +159,6 @@ internal class CSharpTokenizer : Tokenizer
         {
             switch (type)
             {
-                case SyntaxKind.NumericLiteral:
-                    switch (Buffer[0])
-                    {
-                        case '0':
-                            return "0";
-                        case '1':
-                            return "1";
-                        case '2':
-                            return "2";
-                        case '3':
-                            return "3";
-                        case '4':
-                            return "4";
-                        case '5':
-                            return "5";
-                        case '6':
-                            return "6";
-                        case '7':
-                            return "7";
-                        case '8':
-                            return "8";
-                        case '9':
-                            return "9";
-                    }
-                    break;
                 case SyntaxKind.NewLine:
                     if (Buffer[0] == '\n')
                     {
@@ -200,6 +175,9 @@ internal class CSharpTokenizer : Tokenizer
                         return "\t";
                     }
                     break;
+                case SyntaxKind.NumericLiteral:
+                    Debug.Fail("This should be handled by using the C# lexer's interned string in NumericLiteral()");
+                    return base.GetTokenContent(type);
                 case SyntaxKind.Not:
                 case SyntaxKind.LeftParenthesis:
                 case SyntaxKind.RightParenthesis:
@@ -489,7 +467,8 @@ internal class CSharpTokenizer : Tokenizer
             TakeCurrent();
         }
 
-        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.NumericLiteral));
+        Buffer.Clear();
+        return Transition(CSharpTokenizerState.Data, EndToken(csharpToken.Text, SyntaxKind.NumericLiteral));
     }
 
     // CSharp Spec §2.4.2
