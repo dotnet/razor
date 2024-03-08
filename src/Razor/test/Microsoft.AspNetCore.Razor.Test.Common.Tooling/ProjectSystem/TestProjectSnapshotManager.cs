@@ -18,21 +18,28 @@ internal class TestProjectSnapshotManager(
     IErrorReporter errorReporter)
     : DefaultProjectSnapshotManager(triggers, projectEngineFactoryProvider, dispatcher, errorReporter)
 {
+    private IProjectSnapshotManagerAccessor? _accessor;
+
     public bool AllowNotifyListeners { get; set; }
     public ProjectChangeKind? ListenersNotifiedOf { get; private set; }
 
     public IProjectSnapshotManagerAccessor GetAccessor()
     {
-        var mock = new StrictMock<IProjectSnapshotManagerAccessor>();
+        return _accessor ?? InterlockedOperations.Initialize(ref _accessor, CreateAccessor(this));
 
-        mock.SetupGet(x => x.Instance)
-            .Returns(this);
+        static IProjectSnapshotManagerAccessor CreateAccessor(ProjectSnapshotManagerBase @this)
+        {
+            var mock = new StrictMock<IProjectSnapshotManagerAccessor>();
 
-        ProjectSnapshotManagerBase? @this = this;
-        mock.Setup(x => x.TryGetInstance(out @this))
-            .Returns(true);
+            mock.SetupGet(x => x.Instance)
+                .Returns(@this);
 
-        return mock.Object;
+            var instance = @this;
+            mock.Setup(x => x.TryGetInstance(out instance))
+                .Returns(true);
+
+            return mock.Object;
+        }
     }
 
     public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
