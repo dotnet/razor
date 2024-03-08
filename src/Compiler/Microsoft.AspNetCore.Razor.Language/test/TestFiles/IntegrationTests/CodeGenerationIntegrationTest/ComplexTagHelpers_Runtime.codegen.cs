@@ -62,41 +62,41 @@ if (true)
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (8,17)-(8,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 @
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (8,19)-(8,19) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (8,19)-(8,20) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 @
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (8,20)-(8,21) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 (
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (8,21)-(8,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 1+2
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (8,17)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (8,24)-(8,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 )
 
 #line default
@@ -355,21 +355,21 @@ DateTime.Now
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                 __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line (24,29)-(24,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (24,30)-(24,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 (
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (24,29)-(24,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (24,31)-(24,38) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 @object
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (24,29)-(24,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (24,38)-(24,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 )
 
 #line default
@@ -392,21 +392,21 @@ DateTime.Now
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_3);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line (22,39)-(22,70) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (22,40)-(22,63) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 DateTimeOffset.Now.Year
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (22,39)-(22,70) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (22,63)-(22,65) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
  -
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (22,39)-(22,70) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (22,65)-(22,70) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
  1970
 
 #line default
@@ -436,21 +436,21 @@ DateTimeOffset.Now.Year
                 __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_6);
                 __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line (27,61)-(27,94) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (27,62)-(27,63) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 (
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (27,61)-(27,94) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (27,63)-(27,93) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 DateTimeOffset.Now.Year > 2014
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (27,61)-(27,94) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (27,93)-(27,94) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 )
 
 #line default
@@ -472,35 +472,35 @@ DateTimeOffset.Now.Year > 2014
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (26,17)-(26,22) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 -1970
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (26,22)-(26,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
  +
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (26,24)-(26,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
  
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (26,25)-(26,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 @
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (26,17)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (26,26)-(26,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 DateTimeOffset.Now.Year
 
 #line default
@@ -576,56 +576,56 @@ DateTimeOffset.Now.Year - 1970
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                 __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (33,29)-(33,32) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
    
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (33,32)-(33,33) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 @
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (33,33)-(33,34) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 (
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (33,34)-(33,61) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
   DateTimeOffset.Now.Year  
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (33,61)-(33,62) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 )
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (33,62)-(33,64) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
  >
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (33,64)-(33,69) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
  2014
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (33,29)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (33,69)-(33,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
    
 
 #line default
@@ -647,21 +647,21 @@ DateTimeOffset.Now.Year - 1970
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line (32,17)-(32,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (32,18)-(32,19) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 (
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (32,17)-(32,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (32,19)-(32,48) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 "My age is this long.".Length
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (32,17)-(32,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (32,48)-(32,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 )
 
 #line default
@@ -697,7 +697,7 @@ someMethod(
                     __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                     __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line (35,64)-(35,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
+#line (35,65)-(35,72) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml"
 checked
 
 #line default

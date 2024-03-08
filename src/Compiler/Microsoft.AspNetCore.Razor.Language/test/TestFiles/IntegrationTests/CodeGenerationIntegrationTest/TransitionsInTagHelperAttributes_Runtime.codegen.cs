@@ -117,35 +117,35 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_0);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line (9,22)-(9,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (9,22)-(9,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 42
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (9,22)-(9,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (9,24)-(9,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
  +
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (9,22)-(9,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (9,26)-(9,27) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
  
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (9,22)-(9,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (9,27)-(9,28) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 @
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (9,22)-(9,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (9,28)-(9,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 int
 
 #line default
@@ -169,7 +169,7 @@ int
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_0);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line (10,22)-(10,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (10,23)-(10,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 int
 
 #line default
@@ -193,21 +193,21 @@ int
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_0);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line (11,22)-(11,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (11,23)-(11,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 (
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (11,22)-(11,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (11,24)-(11,28) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 @int
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (11,22)-(11,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (11,28)-(11,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 )
 
 #line default
@@ -242,49 +242,49 @@ int
             EndAddHtmlAttributeValues(__tagHelperExecutionContext);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line (12,34)-(12,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (12,34)-(12,35) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 4
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (12,34)-(12,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (12,35)-(12,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
  *
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (12,34)-(12,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (12,37)-(12,38) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
  
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (12,34)-(12,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (12,38)-(12,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 @
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (12,34)-(12,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (12,39)-(12,40) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 (
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (12,34)-(12,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (12,40)-(12,48) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 @int + 2
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line (12,34)-(12,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+#line (12,48)-(12,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
 )
 
 #line default

@@ -50,21 +50,7 @@ namespace AspNetCore
             );
             __InputTestTagHelper = CreateTagHelper<global::InputTestTagHelper>();
             __tagHelperExecutionContext.Add(__InputTestTagHelper);
-            __InputTestTagHelper.For = 
-#nullable restore
-#line (5,18)-(5,22) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ModelExpressionTagHelper.cshtml"
-ModelExpressionProvider.CreateModelExpression(ViewData, __model => 
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (5,18)-(5,22) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ModelExpressionTagHelper.cshtml"
-__model.
-
-#line default
-#line hidden
-#nullable disable
+            __InputTestTagHelper.For = ModelExpressionProvider.CreateModelExpression(ViewData, __model => __model.
 #nullable restore
 #line (5,18)-(5,22) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ModelExpressionTagHelper.cshtml"
 Date
@@ -72,14 +58,7 @@ Date
 #line default
 #line hidden
 #nullable disable
-#nullable restore
-#line (5,18)-(5,22) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ModelExpressionTagHelper.cshtml"
-)
-
-#line default
-#line hidden
-#nullable disable
-            ;
+            );
             __tagHelperExecutionContext.AddTagHelperAttribute("for", __InputTestTagHelper.For, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
             if (!__tagHelperExecutionContext.Output.IsContentModified)
@@ -94,29 +73,15 @@ Date
             );
             __InputTestTagHelper = CreateTagHelper<global::InputTestTagHelper>();
             __tagHelperExecutionContext.Add(__InputTestTagHelper);
-            __InputTestTagHelper.For = 
+            __InputTestTagHelper.For = ModelExpressionProvider.CreateModelExpression(ViewData, __model => 
 #nullable restore
-#line (6,18)-(6,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ModelExpressionTagHelper.cshtml"
-ModelExpressionProvider.CreateModelExpression(ViewData, __model => 
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (6,18)-(6,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ModelExpressionTagHelper.cshtml"
+#line (6,19)-(6,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ModelExpressionTagHelper.cshtml"
 Model
 
 #line default
 #line hidden
 #nullable disable
-#nullable restore
-#line (6,18)-(6,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ModelExpressionTagHelper.cshtml"
-)
-
-#line default
-#line hidden
-#nullable disable
-            ;
+            );
             __tagHelperExecutionContext.AddTagHelperAttribute("for", __InputTestTagHelper.For, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
             if (!__tagHelperExecutionContext.Output.IsContentModified)

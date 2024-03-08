@@ -64,7 +64,7 @@ namespace AspNetCoreGeneratedDocument
             __tagHelperExecutionContext.AddTagHelperAttribute("text", __TestViewComponentTagHelper.text, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __TestViewComponentTagHelper.number = 
 #nullable restore
-#line (6,31)-(6,35) "Views/Home/Index.cshtml"
+#line (6,32)-(6,35) "Views/Home/Index.cshtml"
 num
 
 #line default

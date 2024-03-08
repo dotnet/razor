@@ -66,28 +66,13 @@ namespace AspNetCore
                 );
                 __InputTestTagHelper = CreateTagHelper<global::InputTestTagHelper>();
                 __tagHelperExecutionContext.Add(__InputTestTagHelper);
-                __InputTestTagHelper.For = 
-#line (13,22)-(13,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
-ModelExpressionProvider.CreateModelExpression(ViewData, __model => 
-
-#line default
-#line hidden
-#line (13,22)-(13,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
-__model.
-
-#line default
-#line hidden
+                __InputTestTagHelper.For = ModelExpressionProvider.CreateModelExpression(ViewData, __model => __model.
 #line (13,22)-(13,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 Date
 
 #line default
 #line hidden
-#line (13,22)-(13,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
-)
-
-#line default
-#line hidden
-                ;
+                );
                 __tagHelperExecutionContext.AddTagHelperAttribute("for", __InputTestTagHelper.For, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                 if (!__tagHelperExecutionContext.Output.IsContentModified)

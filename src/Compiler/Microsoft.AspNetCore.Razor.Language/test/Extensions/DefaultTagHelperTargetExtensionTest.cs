@@ -785,12 +785,11 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.St
             IsIndexerNameMatch = false,
             PropertyName = "IntProp",
             TagHelper = IntPropertyTagHelper,
-            Source = Span,
             Children =
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
                     }
                 },
         };
@@ -920,12 +919,11 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
             TagHelper = IntIndexerTagHelper,
-            Source = Span,
             Children =
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
                     }
                 }
         };
@@ -974,12 +972,11 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
             TagHelper = IntIndexerTagHelper,
-            Source = Span,
             Children =
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "17", } },
+                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "17", Source = Span } },
                     }
                 }
         };
@@ -992,12 +989,11 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
             TagHelper = IntIndexerTagHelper,
-            Source = Span,
             Children =
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
                     }
                 }
         };

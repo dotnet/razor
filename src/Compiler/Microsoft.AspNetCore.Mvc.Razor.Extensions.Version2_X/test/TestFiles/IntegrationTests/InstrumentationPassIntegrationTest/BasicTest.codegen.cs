@@ -83,7 +83,7 @@ namespace AspNetCore
                 __InputTagHelper.FooProp = (string)__tagHelperAttribute_0.Value;
                 __tagHelperExecutionContext.AddTagHelperAttribute(__tagHelperAttribute_0);
                 __InputTagHelper.BarProp = 
-#line (5,29)-(5,42) "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
+#line (5,30)-(5,42) "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
 DateTime.Now
 
 #line default

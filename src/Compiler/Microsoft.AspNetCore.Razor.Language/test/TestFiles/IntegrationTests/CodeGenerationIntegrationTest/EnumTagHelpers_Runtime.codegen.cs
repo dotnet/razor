@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             __tagHelperExecutionContext.Add(__TestNamespace_CatchAllTagHelper);
             __TestNamespace_InputTagHelper.Value = 
 #nullable restore
-#line (7,15)-(7,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
+#line (7,16)-(7,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
 MyEnum.MyValue
 
 #line default
@@ -164,7 +164,7 @@ MyValue
             __tagHelperExecutionContext.Add(__TestNamespace_CatchAllTagHelper);
             __TestNamespace_InputTagHelper.Value = 
 #nullable restore
-#line (11,15)-(11,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
+#line (11,16)-(11,25) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
 enumValue
 
 #line default
@@ -174,7 +174,7 @@ enumValue
             __tagHelperExecutionContext.AddTagHelperAttribute("value", __TestNamespace_InputTagHelper.Value, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __TestNamespace_CatchAllTagHelper.CatchAll = 
 #nullable restore
-#line (11,38)-(11,48) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
+#line (11,39)-(11,48) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
 enumValue
 
 #line default

@@ -66,7 +66,7 @@ namespace AspNetCore
             __tagHelperExecutionContext.Add(__OptionalTestViewComponentTagHelper);
             __OptionalTestViewComponentTagHelper.showSecret = 
 #nullable restore
-#line (4,32)-(4,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelperOptionalParam.cshtml"
+#line (4,33)-(4,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelperOptionalParam.cshtml"
 true
 
 #line default
@@ -112,7 +112,7 @@ true
             __tagHelperExecutionContext.AddTagHelperAttribute("secret", __OptionalTestWithParamViewComponentTagHelper.secret, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __OptionalTestWithParamViewComponentTagHelper.showSecret = 
 #nullable restore
-#line (7,61)-(7,66) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelperOptionalParam.cshtml"
+#line (7,62)-(7,66) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelperOptionalParam.cshtml"
 true
 
 #line default
