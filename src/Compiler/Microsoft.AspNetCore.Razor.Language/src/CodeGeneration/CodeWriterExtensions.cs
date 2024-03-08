@@ -786,13 +786,14 @@ internal static class CodeWriterExtensions
             _writer.CurrentIndent = 0;
             _span = span;
 
+            var endsWithNewline = _writer.LastChar is '\n';
+            if (!endsWithNewline)
+            {
+                _writer.WriteLine();
+            }
+
             if (!_context.Options.SuppressNullabilityEnforcement)
             {
-                var endsWithNewline = _writer.LastChar is '\n';
-                if (!endsWithNewline)
-                {
-                    _writer.WriteLine();
-                }
                 _writer.WriteLine("#nullable restore");
             }
 
