@@ -23,8 +23,7 @@
                 Keyword;[case];
                 Whitespace;[ ];
                 LeftBracket;[[];
-                Dot;[.];
-                Dot;[.];
+                CSharpOperator;[..];
                 Comma;[,];
                 Whitespace;[ ];
                 NumericLiteral;[3];

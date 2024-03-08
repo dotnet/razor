@@ -108,33 +108,6 @@ internal class CSharpTokenizer : Tokenizer
     {
         base.CurrentState = StartState;
 
-        // _operatorHandlers = new Dictionary<char, Func<SyntaxKind>>()
-        //     {
-        //         { '-', MinusOperator },
-        //         { '<', LessThanOperator },
-        //         { '>', GreaterThanOperator },
-        //         { '&', CreateTwoCharOperatorHandler(SyntaxKind.And, '=', SyntaxKind.AndAssign, '&', SyntaxKind.DoubleAnd) },
-        //         { '|', CreateTwoCharOperatorHandler(SyntaxKind.Or, '=', SyntaxKind.OrAssign, '|', SyntaxKind.DoubleOr) },
-        //         { '+', CreateTwoCharOperatorHandler(SyntaxKind.Plus, '=', SyntaxKind.PlusAssign, '+', SyntaxKind.Increment) },
-        //         { '=', CreateTwoCharOperatorHandler(SyntaxKind.Assign, '=', SyntaxKind.Equals, '>', SyntaxKind.GreaterThanEqual) },
-        //         { '!', CreateTwoCharOperatorHandler(SyntaxKind.Not, '=', SyntaxKind.NotEqual) },
-        //         { '%', CreateTwoCharOperatorHandler(SyntaxKind.Modulo, '=', SyntaxKind.ModuloAssign) },
-        //         { '*', CreateTwoCharOperatorHandler(SyntaxKind.Star, '=', SyntaxKind.MultiplyAssign) },
-        //         { ':', CreateTwoCharOperatorHandler(SyntaxKind.Colon, ':', SyntaxKind.DoubleColon) },
-        //         { '?', CreateTwoCharOperatorHandler(SyntaxKind.QuestionMark, '?', SyntaxKind.NullCoalesce) },
-        //         { '^', CreateTwoCharOperatorHandler(SyntaxKind.Xor, '=', SyntaxKind.XorAssign) },
-        //         { '(', () => SyntaxKind.LeftParenthesis },
-        //         { ')', () => SyntaxKind.RightParenthesis },
-        //         { '{', () => SyntaxKind.LeftBrace },
-        //         { '}', () => SyntaxKind.RightBrace },
-        //         { '[', () => SyntaxKind.LeftBracket },
-        //         { ']', () => SyntaxKind.RightBracket },
-        //         { ',', () => SyntaxKind.Comma },
-        //         { ';', () => SyntaxKind.Semicolon },
-        //         { '~', () => SyntaxKind.Tilde },
-        //         { '#', () => SyntaxKind.Hash }
-        //     };
-
         _lexer = CodeAnalysis.CSharp.SyntaxFactory.CreateLexer(source.SourceText);
     }
 
@@ -155,11 +128,11 @@ internal class CSharpTokenizer : Tokenizer
             case CSharpTokenizerState.Data:
                 return Data();
             case CSharpTokenizerState.QuotedCharacterLiteral:
-                return TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteral, "\'", "\'");
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteral, "\'", "\'");
             case CSharpTokenizerState.QuotedStringLiteral:
-                return TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, "\"", "\"");
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, "\"", "\"");
             case CSharpTokenizerState.VerbatimStringLiteral:
-                return TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, "@\"", "\"");
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, "@\"", "\"");
             case CSharpTokenizerState.AfterRazorCommentTransition:
                 return AfterRazorCommentTransition();
             case CSharpTokenizerState.EscapedRazorCommentTransition:
@@ -179,6 +152,7 @@ internal class CSharpTokenizer : Tokenizer
     // Optimize memory allocation by returning constants for the most frequent cases
     protected override string GetTokenContent(SyntaxKind type)
     {
+        Debug.Assert(type != SyntaxKind.CSharpOperator, "CSharpOperator should be handled by getting the interned text from C#");
         var tokenLength = Buffer.Length;
 
         if (tokenLength == 1)
@@ -226,56 +200,23 @@ internal class CSharpTokenizer : Tokenizer
                         return "\t";
                     }
                     break;
-                // case SyntaxKind.Minus:
-                //     return "-";
                 case SyntaxKind.Not:
-                    return "!";
-                // case SyntaxKind.Modulo:
-                //     return "%";
-                // case SyntaxKind.And:
-                //     return "&";
                 case SyntaxKind.LeftParenthesis:
-                    return "(";
                 case SyntaxKind.RightParenthesis:
-                    return ")";
-                // case SyntaxKind.Star:
-                //     return "*";
                 case SyntaxKind.Comma:
-                    return ",";
                 case SyntaxKind.Dot:
-                    return ".";
-                // case SyntaxKind.Slash:
-                //     return "/";
                 case SyntaxKind.Colon:
-                    return ":";
                 case SyntaxKind.Semicolon:
-                    return ";";
                 case SyntaxKind.QuestionMark:
-                    return "?";
                 case SyntaxKind.RightBracket:
-                    return "]";
                 case SyntaxKind.LeftBracket:
-                    return "[";
-                // case SyntaxKind.Xor:
-                //     return "^";
                 case SyntaxKind.LeftBrace:
-                    return "{";
-                // case SyntaxKind.Or:
-                //     return "|";
                 case SyntaxKind.RightBrace:
-                    return "}";
-                // case SyntaxKind.Tilde:
-                //     return "~";
-                // case SyntaxKind.Plus:
-                //     return "+";
                 case SyntaxKind.LessThan:
-                    return "<";
                 case SyntaxKind.Assign:
-                    return "=";
                 case SyntaxKind.GreaterThan:
-                    return ">";
-                // case SyntaxKind.Hash:
-                //     return "#";
+                    Debug.Fail("This should be handled by using the C# lexer's interned string in Operator()");
+                    return base.GetTokenContent(type);
                 case SyntaxKind.Transition:
                     return "@";
 
@@ -287,65 +228,11 @@ internal class CSharpTokenizer : Tokenizer
             {
                 case SyntaxKind.NewLine:
                     return "\r\n";
-                // case SyntaxKind.Arrow:
-                //     return "->";
-                // case SyntaxKind.Decrement:
-                //     return "--";
-                // case SyntaxKind.MinusAssign:
-                //     return "-=";
-                // case SyntaxKind.NotEqual:
-                //     return "!=";
-                // case SyntaxKind.ModuloAssign:
-                //     return "%=";
-                // case SyntaxKind.AndAssign:
-                //     return "&=";
-                // case SyntaxKind.DoubleAnd:
-                //     return "&&";
-                // case SyntaxKind.MultiplyAssign:
-                //     return "*=";
-                // case SyntaxKind.DivideAssign:
-                //     return "/=";
                 case SyntaxKind.DoubleColon:
-                    return "::";
-                // case SyntaxKind.NullCoalesce:
-                //     return "??";
-                // case SyntaxKind.XorAssign:
-                //     return "^=";
-                // case SyntaxKind.OrAssign:
-                //     return "|=";
-                // case SyntaxKind.DoubleOr:
-                //     return "||";
-                // case SyntaxKind.PlusAssign:
-                //     return "+=";
-                // case SyntaxKind.Increment:
-                //     return "++";
-                // case SyntaxKind.LessThanEqual:
-                //     return "<=";
-                // case SyntaxKind.LeftShift:
-                //     return "<<";
                 case SyntaxKind.Equals:
-                    return "==";
-                    // case SyntaxKind.GreaterThanEqual:
-                    //     if (Buffer[0] == '=')
-                    //     {
-                    //         return "=>";
-                    //     }
-                    //     return ">=";
-                    // case SyntaxKind.RightShift:
-                    //     return ">>";
-
-
+                    Debug.Fail("This should be handled by using the C# lexer's interned string in Operator()");
+                    return base.GetTokenContent(type);
             }
-        }
-        else if (tokenLength == 3)
-        {
-            // switch (type)
-            // {
-            //     case SyntaxKind.LeftShiftAssign:
-            //         return "<<=";
-            //     case SyntaxKind.RightShiftAssign:
-            //         return ">>=";
-            // }
         }
 
         return base.GetTokenContent(type);
@@ -396,7 +283,7 @@ internal class CSharpTokenizer : Tokenizer
                 {
                     return NumericLiteral();
                 }
-                return Stay(Single(SyntaxKind.Dot));
+                return Stay(Operator());
             case '/' when Peek() is '/' or '*':
                 return Stay(Comment());
             default:
@@ -539,7 +426,7 @@ internal class CSharpTokenizer : Tokenizer
         }
     }
 
-    private StateResult TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind expectedCSharpTokenKind, SyntaxKind razorTokenKind, string expectedPrefix, string expectedPostFix)
+    private StateResult TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind expectedCSharpTokenKind, SyntaxKind razorTokenKind, string expectedPrefix, string expectedPostFix)
     {
         var curPosition = Source.Position;
         var csharpToken = _lexer.LexSyntax(curPosition);
