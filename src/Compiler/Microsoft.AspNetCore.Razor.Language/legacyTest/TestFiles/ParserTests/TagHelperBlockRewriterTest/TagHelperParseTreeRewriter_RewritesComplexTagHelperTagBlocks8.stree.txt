@@ -16,7 +16,7 @@
                     Whitespace;[ ];
                     LeftBrace;[{];
                     Whitespace;[ ];
-                    Identifier;[var];
+                    Keyword;[var];
                     Whitespace;[ ];
                     Identifier;[foo];
                     Whitespace;[ ];
@@ -75,7 +75,7 @@
                         Whitespace;[ ];
                         LeftBrace;[{];
                         Whitespace;[ ];
-                        Identifier;[var];
+                        Keyword;[var];
                         Whitespace;[ ];
                         Identifier;[foo];
                         Whitespace;[ ];

@@ -22,7 +22,7 @@
                 Whitespace;[    ];
                 Keyword;[case];
                 Whitespace;[ ];
-                Identifier;[global];
+                Keyword;[global];
                 DoubleColon;[::];
                 Identifier;[Test];
                 Colon;[:];

@@ -20,7 +20,7 @@
                             Whitespace;[ ];
                             LeftBrace;[{];
                             Whitespace;[ ];
-                            Identifier;[var];
+                            Keyword;[var];
                             Whitespace;[ ];
                             Identifier;[val];
                             Whitespace;[ ];

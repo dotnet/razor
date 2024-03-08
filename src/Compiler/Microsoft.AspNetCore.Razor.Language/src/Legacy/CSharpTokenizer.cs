@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,96 +18,12 @@ internal class CSharpTokenizer : Tokenizer
 {
     private readonly SourceTextLexer _lexer;
 
-    private static readonly Dictionary<string, CSharpKeyword> _keywords = new Dictionary<string, CSharpKeyword>(StringComparer.Ordinal)
-        {
-            { "await", CSharpKeyword.Await },
-            { "abstract", CSharpKeyword.Abstract },
-            { "byte", CSharpKeyword.Byte },
-            { "class", CSharpKeyword.Class },
-            { "delegate", CSharpKeyword.Delegate },
-            { "event", CSharpKeyword.Event },
-            { "fixed", CSharpKeyword.Fixed },
-            { "if", CSharpKeyword.If },
-            { "internal", CSharpKeyword.Internal },
-            { "new", CSharpKeyword.New },
-            { "override", CSharpKeyword.Override },
-            { "readonly", CSharpKeyword.Readonly },
-            { "short", CSharpKeyword.Short },
-            { "struct", CSharpKeyword.Struct },
-            { "try", CSharpKeyword.Try },
-            { "unsafe", CSharpKeyword.Unsafe },
-            { "volatile", CSharpKeyword.Volatile },
-            { "as", CSharpKeyword.As },
-            { "do", CSharpKeyword.Do },
-            { "is", CSharpKeyword.Is },
-            { "params", CSharpKeyword.Params },
-            { "ref", CSharpKeyword.Ref },
-            { "switch", CSharpKeyword.Switch },
-            { "ushort", CSharpKeyword.Ushort },
-            { "while", CSharpKeyword.While },
-            { "case", CSharpKeyword.Case },
-            { "const", CSharpKeyword.Const },
-            { "explicit", CSharpKeyword.Explicit },
-            { "float", CSharpKeyword.Float },
-            { "null", CSharpKeyword.Null },
-            { "sizeof", CSharpKeyword.Sizeof },
-            { "typeof", CSharpKeyword.Typeof },
-            { "implicit", CSharpKeyword.Implicit },
-            { "private", CSharpKeyword.Private },
-            { "this", CSharpKeyword.This },
-            { "using", CSharpKeyword.Using },
-            { "extern", CSharpKeyword.Extern },
-            { "return", CSharpKeyword.Return },
-            { "stackalloc", CSharpKeyword.Stackalloc },
-            { "uint", CSharpKeyword.Uint },
-            { "base", CSharpKeyword.Base },
-            { "catch", CSharpKeyword.Catch },
-            { "continue", CSharpKeyword.Continue },
-            { "double", CSharpKeyword.Double },
-            { "for", CSharpKeyword.For },
-            { "in", CSharpKeyword.In },
-            { "lock", CSharpKeyword.Lock },
-            { "object", CSharpKeyword.Object },
-            { "protected", CSharpKeyword.Protected },
-            { "static", CSharpKeyword.Static },
-            { "false", CSharpKeyword.False },
-            { "public", CSharpKeyword.Public },
-            { "sbyte", CSharpKeyword.Sbyte },
-            { "throw", CSharpKeyword.Throw },
-            { "virtual", CSharpKeyword.Virtual },
-            { "decimal", CSharpKeyword.Decimal },
-            { "else", CSharpKeyword.Else },
-            { "operator", CSharpKeyword.Operator },
-            { "string", CSharpKeyword.String },
-            { "ulong", CSharpKeyword.Ulong },
-            { "bool", CSharpKeyword.Bool },
-            { "char", CSharpKeyword.Char },
-            { "default", CSharpKeyword.Default },
-            { "foreach", CSharpKeyword.Foreach },
-            { "long", CSharpKeyword.Long },
-            { "void", CSharpKeyword.Void },
-            { "enum", CSharpKeyword.Enum },
-            { "finally", CSharpKeyword.Finally },
-            { "int", CSharpKeyword.Int },
-            { "out", CSharpKeyword.Out },
-            { "sealed", CSharpKeyword.Sealed },
-            { "true", CSharpKeyword.True },
-            { "goto", CSharpKeyword.Goto },
-            { "unchecked", CSharpKeyword.Unchecked },
-            { "interface", CSharpKeyword.Interface },
-            { "break", CSharpKeyword.Break },
-            { "checked", CSharpKeyword.Checked },
-            { "namespace", CSharpKeyword.Namespace },
-            { "when", CSharpKeyword.When },
-            { "where", CSharpKeyword.Where }
-        };
-
     public CSharpTokenizer(SeekableTextReader source)
         : base(source)
     {
         base.CurrentState = StartState;
 
-        _lexer = CodeAnalysis.CSharp.SyntaxFactory.CreateLexer(source.SourceText);
+        _lexer = CodeAnalysis.CSharp.SyntaxFactory.CreateLexer(source.SourceText, null);
     }
 
     protected override int StartState => (int)CSharpTokenizerState.Data;
@@ -471,30 +386,28 @@ internal class CSharpTokenizer : Tokenizer
         return Transition(CSharpTokenizerState.Data, EndToken(csharpToken.Text, SyntaxKind.NumericLiteral));
     }
 
-    // CSharp Spec §2.4.2
     private StateResult Identifier()
     {
-        Debug.Assert(SyntaxFacts.IsIdentifierStartCharacter(CurrentCharacter));
-        TakeCurrent();
-        TakeUntil(c => !SyntaxFacts.IsIdentifierPartCharacter(c));
-        SyntaxToken token = null;
-        if (HaveContent)
+        var curPosition = Source.Position;
+        var csharpToken = _lexer.LexSyntax(curPosition);
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + csharpToken.Span.Length;
+
+        for (; curPosition < finalPosition; curPosition++)
         {
-            CSharpKeyword keyword;
-            var type = SyntaxKind.Identifier;
-            var tokenContent = Buffer.ToString();
-            if (_keywords.TryGetValue(tokenContent, out keyword))
-            {
-                type = SyntaxKind.Keyword;
-            }
-
-            token = SyntaxFactory.Token(type, tokenContent);
-
-            Buffer.Clear();
-            CurrentErrors.Clear();
+            TakeCurrent();
         }
 
-        return Stay(token);
+        var type = SyntaxKind.Identifier;
+        if (!csharpToken.IsKind(CSharpSyntaxKind.IdentifierToken) || SourceTextLexer.GetContextualKind(csharpToken) != CSharpSyntaxKind.IdentifierToken)
+        {
+            type = SyntaxKind.Keyword;
+        }
+
+        var token = EndToken(csharpToken.Text, type);
+
+        Buffer.Clear();
+        return Transition(CSharpTokenizerState.Data, token);
     }
 
     private StateResult Transition(CSharpTokenizerState state)
@@ -507,14 +420,17 @@ internal class CSharpTokenizer : Tokenizer
         return Transition((int)state, result);
     }
 
-    internal static CSharpKeyword? GetTokenKeyword(SyntaxToken token)
+    internal static CSharpSyntaxKind GetTokenKeywordKind(SyntaxToken token)
     {
-        if (token != null && _keywords.TryGetValue(token.Content, out var keyword))
+        if (token is null)
         {
-            return keyword;
+            return CSharpSyntaxKind.None;
         }
 
-        return null;
+        var content = token.Content;
+        return SyntaxFacts.GetKeywordKind(content) is var kind and not CSharpSyntaxKind.None
+            ? kind
+            : SyntaxFacts.GetContextualKeywordKind(content);
     }
 
     private enum CSharpTokenizerState

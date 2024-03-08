@@ -42,7 +42,7 @@
                             Keyword;[foreach];
                             Whitespace;[ ];
                             LeftParenthesis;[(];
-                            Identifier;[var];
+                            Keyword;[var];
                             Whitespace;[ ];
                             Identifier;[p];
                             Whitespace;[ ];

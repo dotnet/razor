@@ -13,7 +13,7 @@
                         CSharpStatementLiteral - [2..68)::66 - [LF    var time = DateTime.Now;LF    if (time.ToBinary() % 2 == 0) ] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
                             NewLine;[LF];
                             Whitespace;[    ];
-                            Identifier;[var];
+                            Keyword;[var];
                             Whitespace;[ ];
                             Identifier;[time];
                             Whitespace;[ ];
