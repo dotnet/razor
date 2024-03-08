@@ -8,7 +8,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Razor;
+#if !NET
 using Microsoft.Extensions.Internal;
+#endif
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
@@ -147,6 +149,9 @@ internal static class FilePathNormalizer
         using var _ = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array1);
         var normalizedSpan = NormalizeCoreAndGetSpan(filePathSpan, array1);
 
+#if NET
+        return string.GetHashCode(normalizedSpan, FilePathComparison.Instance);
+#else
         var hashCombiner = HashCodeCombiner.Start();
 
         foreach (var ch in normalizedSpan)
@@ -155,6 +160,7 @@ internal static class FilePathNormalizer
         }
 
         return hashCombiner.CombinedHash;
+#endif
     }
 
     private static ReadOnlySpan<char> NormalizeCoreAndGetSpan(ReadOnlySpan<char> source, Span<char> destination)
