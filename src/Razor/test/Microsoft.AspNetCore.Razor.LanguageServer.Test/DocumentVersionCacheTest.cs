@@ -59,7 +59,6 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         // Arrange
         var cache = new DocumentVersionCache();
         var projectSnapshotManager = CreateProjectSnapshotManager();
-        projectSnapshotManager.AllowNotifyListeners = true;
         cache.Initialize(projectSnapshotManager);
 
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -95,7 +94,6 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         // Arrange
         var cache = new DocumentVersionCache();
         var projectSnapshotManager = CreateProjectSnapshotManager();
-        projectSnapshotManager.AllowNotifyListeners = true;
         cache.Initialize(projectSnapshotManager);
 
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -133,7 +131,6 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         // Arrange
         var cache = new DocumentVersionCache();
         var projectSnapshotManager = CreateProjectSnapshotManager();
-        projectSnapshotManager.AllowNotifyListeners = true;
         cache.Initialize(projectSnapshotManager);
 
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -262,7 +259,6 @@ public class DocumentVersionCacheTest(ITestOutputHelper testOutput) : LanguageSe
         var cache = new DocumentVersionCache();
         var cacheAccessor = cache.GetTestAccessor();
         var projectSnapshotManager = CreateProjectSnapshotManager();
-        projectSnapshotManager.AllowNotifyListeners = true;
         cache.Initialize(projectSnapshotManager);
 
         var project1 = TestProjectSnapshot.Create(

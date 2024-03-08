@@ -27,7 +27,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -75,7 +74,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var attemptedToSerialize = false;
@@ -112,7 +110,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var attemptedToSerialize = false;
@@ -150,7 +147,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -196,7 +192,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -247,7 +242,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -284,7 +278,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -337,7 +330,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var attemptedToSerialize = false;
@@ -371,7 +363,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -409,7 +400,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -447,7 +437,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -493,7 +482,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var publisher = new TestRazorProjectInfoPublisher(
@@ -514,7 +502,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -547,7 +534,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -586,7 +572,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;
@@ -622,7 +607,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var publisher = new TestRazorProjectInfoPublisher(
@@ -648,7 +632,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
         var projectConfigurationFilePathStore = new DefaultProjectConfigurationFilePathStore();
 
         var serializationSuccessful = false;

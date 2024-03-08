@@ -53,7 +53,6 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         var workspaceEditorSettings = new WorkspaceEditorSettings(StrictMock.Of<IClientSettingsManager>());
 
         _projectManager = CreateProjectSnapshotManager();
-        _projectManager.AllowNotifyListeners = true;
 
         _hostProject = new HostProject(projectPath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_1, rootNamespace);
         _updatedHostProject = new HostProject(projectPath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, rootNamespace);

@@ -154,7 +154,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
     public async Task SolutionClosing_CancelsActiveWork()
     {
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         var expectedProjectPath = s_someProject.FilePath;
 
@@ -208,7 +207,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         var expectedProjectPath = s_someProject.FilePath;
 

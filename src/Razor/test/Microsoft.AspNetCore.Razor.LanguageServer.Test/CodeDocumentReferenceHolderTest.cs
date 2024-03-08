@@ -28,7 +28,6 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         : base(testOutput)
     {
         _projectManager = CreateProjectSnapshotManager();
-        _projectManager.AllowNotifyListeners = true;
         _referenceHolder = new CodeDocumentReferenceHolder();
         _referenceHolder.Initialize(_projectManager);
 

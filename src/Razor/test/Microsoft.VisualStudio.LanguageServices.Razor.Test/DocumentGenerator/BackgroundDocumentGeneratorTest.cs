@@ -73,7 +73,6 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         queue.Initialize(projectManager);
 
         // We trigger enqueued notifications via adding/opening to the project manager
-        projectManager.AllowNotifyListeners = true;
 
         // Act & Assert
         await RunOnDispatcherAsync(() =>
@@ -311,7 +310,6 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         var documents = new[]
         {
@@ -380,7 +378,6 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         await RunOnDispatcherAsync(() =>
         {

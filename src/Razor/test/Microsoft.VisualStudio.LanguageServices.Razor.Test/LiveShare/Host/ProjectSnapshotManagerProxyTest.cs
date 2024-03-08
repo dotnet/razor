@@ -41,7 +41,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         await RunOnDispatcherAsync(() =>
         {
@@ -76,7 +75,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         await RunOnDispatcherAsync(() =>
         {
@@ -126,7 +124,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         await RunOnDispatcherAsync(() =>
         {
@@ -167,7 +164,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         await RunOnDispatcherAsync(() =>
         {
@@ -201,7 +197,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         await RunOnDispatcherAsync(() =>
         {
@@ -236,7 +231,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        projectManager.AllowNotifyListeners = true;
 
         await RunOnDispatcherAsync(() =>
         {

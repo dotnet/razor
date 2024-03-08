@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +37,6 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         : base(testOutput)
     {
         _projectManager = CreateProjectSnapshotManager();
-        _projectManager.AllowNotifyListeners = true;
         _snapshotResolver = new SnapshotResolver(_projectManager.GetAccessor(), LoggerFactory);
         _documentVersionCache = new DocumentVersionCache();
 
@@ -231,6 +229,13 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var hostProject = new HostProject("path/to/project.csproj", "path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
         var document = new HostDocument("path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
 
+        // Note: We acquire the miscellaneous project here to avoid a spurious 'ProjectAdded'
+        // notification when it would get created by UpdateProject(...) below.
+        await RunOnDispatcherAsync(() =>
+        {
+            _ = _snapshotResolver.GetMiscellaneousProject();
+        });
+
         await RunOnDispatcherAsync(() =>
         {
             _projectManager.ProjectAdded(hostProject);
@@ -239,16 +244,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var newDocument = new DocumentSnapshotHandle(document.FilePath, document.TargetPath, document.FileKind);
 
-        _projectManager.AllowNotifyListeners = true;
-        _projectManager.Changed += (sender, args) =>
-        {
-            if (args.Kind == ProjectChangeKind.DocumentRemoved ||
-                args.Kind == ProjectChangeKind.DocumentChanged ||
-                args.Kind == ProjectChangeKind.DocumentAdded)
-            {
-                throw new XunitException("Should have nooped");
-            }
-        };
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
         await RunOnDispatcherAsync(() =>
@@ -259,6 +255,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
                 hostProject.DisplayName,
                 ProjectWorkspaceState.Default,
                 [newDocument]));
+
+        listener.AssertNoNotifications();
     }
 
     [Fact]
@@ -308,8 +306,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -321,7 +318,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
                 ProjectWorkspaceState.Default,
                 documents: []));
 
-        var notification = Assert.Single(notifications);
+        var notification = Assert.Single(listener);
         Assert.NotNull(notification.Older);
         Assert.Null(notification.Older.RootNamespace);
         Assert.NotNull(notification.Newer);
@@ -343,8 +340,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
         await RunOnDispatcherAsync(() =>
@@ -356,7 +352,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
                 ProjectWorkspaceState.Default,
                 documents: []));
 
-        Assert.Empty(notifications);
+        listener.AssertNoNotifications();
     }
 
     [Fact]
@@ -374,8 +370,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -388,7 +383,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
                 documents: []));
 
         // Assert
-        var notification = Assert.Single(notifications);
+        var notification = Assert.Single(listener);
         Assert.NotNull(notification.Newer);
         Assert.Same(FallbackRazorConfiguration.Latest, notification.Newer.Configuration);
     }
@@ -408,8 +403,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -422,7 +416,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
                 documents: []));
 
         // Assert
-        var notification = Assert.Single(notifications);
+        var notification = Assert.Single(listener);
         Assert.NotNull(notification.Newer);
         Assert.Same(FallbackRazorConfiguration.MVC_1_1, notification.Newer.Configuration);
     }
@@ -431,8 +425,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
     public async Task UpdateProject_UntrackedProjectNoops()
     {
         // Arrange
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
         await RunOnDispatcherAsync(() =>
@@ -444,7 +437,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
                 ProjectWorkspaceState.Default,
                 documents: []));
 
-        Assert.Empty(notifications);
+        listener.AssertNoNotifications();
     }
 
     [Fact]
@@ -469,8 +462,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -479,8 +471,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentChanged(notification, DocumentFilePath, ownerProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
+
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -509,8 +502,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -519,9 +511,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Collection(notifications,
-            AssertDocumentChanged(DocumentFilePath, ownerProject1.Key),
-            AssertDocumentChanged(DocumentFilePath, ownerProject2.Key));
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, ownerProject1.Key),
+            x => x.DocumentChanged(DocumentFilePath, ownerProject2.Key));
 
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
@@ -542,8 +534,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -552,8 +543,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentChanged(notification, DocumentFilePath, miscProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, miscProject.Key));
+
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -578,8 +570,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -588,8 +579,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentChanged(notification, DocumentFilePath, ownerProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
+
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -617,8 +609,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -627,9 +618,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Collection(notifications,
-            AssertDocumentChanged(DocumentFilePath, ownerProject1.Key),
-            AssertDocumentChanged(DocumentFilePath, ownerProject2.Key));
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, ownerProject1.Key),
+            x => x.DocumentChanged(DocumentFilePath, ownerProject2.Key));
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
@@ -649,8 +640,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -659,8 +649,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentChanged(notification, DocumentFilePath, miscProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, miscProject.Key));
+
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -680,8 +671,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -690,9 +680,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Collection(notifications,
-            AssertDocumentAdded(DocumentFilePath, ownerProject.Key),
-            AssertDocumentChanged(DocumentFilePath, ownerProject.Key));
+        listener.AssertNotifications(
+            x => x.DocumentAdded(DocumentFilePath, ownerProject.Key),
+            x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
@@ -710,8 +700,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var miscProject = await RunOnDispatcherAsync(_snapshotResolver.GetMiscellaneousProject);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -720,7 +709,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Empty(notifications);
+        listener.AssertNoNotifications();
     }
 
     [Fact]
@@ -739,8 +728,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -749,8 +737,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentAdded(notification, DocumentFilePath, ownerProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentAdded(DocumentFilePath, ownerProject.Key));
+
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -762,8 +751,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var miscProject = await RunOnDispatcherAsync(_snapshotResolver.GetMiscellaneousProject);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -772,8 +760,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentAdded(DocumentFilePath, miscProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentAdded(DocumentFilePath, miscProject.Key));
+
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -796,8 +785,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -806,8 +794,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentRemoved(DocumentFilePath, ownerProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentRemoved(DocumentFilePath, ownerProject.Key));
+
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -833,8 +822,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var ownerProject1 = _projectManager.GetLoadedProject(ownerProjectKey1);
         var ownerProject2 = _projectManager.GetLoadedProject(ownerProjectKey2);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -843,9 +831,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Collection(notifications,
-            AssertDocumentRemoved(DocumentFilePath, ownerProject1.Key),
-            AssertDocumentRemoved(DocumentFilePath, ownerProject2.Key));
+        listener.AssertNotifications(
+            x => x.DocumentRemoved(DocumentFilePath, ownerProject1.Key),
+            x => x.DocumentRemoved(DocumentFilePath, ownerProject2.Key));
 
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
@@ -873,8 +861,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -883,9 +870,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Collection(notifications,
-            AssertDocumentRemoved(DocumentFilePath, ownerProject.Key),
-            AssertDocumentAdded(DocumentFilePath, miscProject.Key));
+        listener.AssertNotifications(
+            x => x.DocumentRemoved(DocumentFilePath, ownerProject.Key),
+            x => x.DocumentAdded(DocumentFilePath, miscProject.Key));
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
@@ -905,8 +892,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -915,8 +901,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentRemoved(notification, DocumentFilePath, miscProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentRemoved(DocumentFilePath, miscProject.Key));
     }
 
     [Fact]
@@ -935,8 +921,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -945,7 +930,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Empty(notifications);
+        listener.AssertNoNotifications();
     }
 
     [Fact]
@@ -958,8 +943,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -968,7 +952,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Empty(notifications);
+        listener.AssertNoNotifications();
     }
 
     [Fact]
@@ -993,8 +977,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -1003,8 +986,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentChanged(DocumentFilePath, ownerProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
+
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -1033,8 +1017,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -1043,9 +1026,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Collection(notifications,
-            AssertDocumentChanged(DocumentFilePath, ownerProject1.Key),
-            AssertDocumentChanged(DocumentFilePath, ownerProject2.Key));
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, ownerProject1.Key),
+            x => x.DocumentChanged(DocumentFilePath, ownerProject2.Key));
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
@@ -1066,8 +1049,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -1076,8 +1058,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentChanged(notification, DocumentFilePath, miscProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, miscProject.Key));
+
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
 
@@ -1100,8 +1083,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -1110,8 +1092,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertDocumentChanged(notification, DocumentFilePath, ownerProject.Key);
+        listener.AssertNotifications(
+            x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
 
         var latestVersion = _documentVersionCache.GetLatestDocumentVersion(DocumentFilePath);
         Assert.Equal(43, latestVersion);
@@ -1205,8 +1187,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
                 new HostDocument(DocumentFilePath2, "document2.cshtml"), CreateEmptyTextLoader());
         });
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         var newProjectKey = await RunOnDispatcherAsync(() =>
@@ -1215,8 +1196,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        var notification = Assert.Single(notifications);
-        AssertProjectAdded(notification, ProjectFilePath, newProjectKey);
+        listener.AssertNotifications(
+            x => x.ProjectAdded(ProjectFilePath, newProjectKey));
     }
 
     [Fact]
@@ -1238,8 +1219,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
                 new HostDocument(DocumentFilePath2, "document2.cshtml"), CreateEmptyTextLoader());
         });
 
-        var notifications = new List<ProjectChangeEventArgs>();
-        _projectManager.Changed += (_, e) => notifications.Add(e);
+        using var listener = _projectManager.ListenToNotifications();
 
         // Act
         var newProjectKey = await RunOnDispatcherAsync(() =>
@@ -1248,54 +1228,12 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         });
 
         // Assert
-        Assert.Collection(notifications,
-            AssertProjectAdded(ProjectFilePath, newProjectKey),
-            AssertDocumentRemoved(DocumentFilePath2, miscProject.Key),
-            AssertDocumentAdded(DocumentFilePath2, newProjectKey),
-            AssertDocumentRemoved(DocumentFilePath1, miscProject.Key),
-            AssertDocumentAdded(DocumentFilePath1, newProjectKey));
-    }
-
-    private static Action<ProjectChangeEventArgs> AssertProjectAdded(string projectFilePath, ProjectKey projectKey)
-        => n => AssertProjectAdded(n, projectFilePath, projectKey);
-
-    private static void AssertProjectAdded(ProjectChangeEventArgs notification, string projectFilePath, ProjectKey projectKey)
-    {
-        AssertNotification(notification, ProjectChangeKind.ProjectAdded, projectKey);
-        Assert.Equal(projectFilePath, notification.ProjectFilePath);
-    }
-
-    private static Action<ProjectChangeEventArgs> AssertDocumentAdded(string documentFilePath, ProjectKey projectKey)
-        => n => AssertDocumentAdded(n, documentFilePath, projectKey);
-
-    private static void AssertDocumentAdded(ProjectChangeEventArgs notification, string documentFilePath, ProjectKey projectKey)
-    {
-        AssertNotification(notification, ProjectChangeKind.DocumentAdded, projectKey);
-        Assert.Equal(documentFilePath, notification.DocumentFilePath);
-    }
-
-    private static Action<ProjectChangeEventArgs> AssertDocumentRemoved(string documentFilePath, ProjectKey projectKey)
-        => n => AssertDocumentRemoved(n, documentFilePath, projectKey);
-
-    private static void AssertDocumentRemoved(ProjectChangeEventArgs notification, string documentFilePath, ProjectKey projectKey)
-    {
-        AssertNotification(notification, ProjectChangeKind.DocumentRemoved, projectKey);
-        Assert.Equal(documentFilePath, notification.DocumentFilePath);
-    }
-
-    private static Action<ProjectChangeEventArgs> AssertDocumentChanged(string documentFilePath, ProjectKey projectKey)
-        => n => AssertDocumentChanged(n, documentFilePath, projectKey);
-
-    private static void AssertDocumentChanged(ProjectChangeEventArgs notification, string documentFilePath, ProjectKey projectKey)
-    {
-        AssertNotification(notification, ProjectChangeKind.DocumentChanged, projectKey);
-        Assert.Equal(documentFilePath, notification.DocumentFilePath);
-    }
-
-    private static void AssertNotification(ProjectChangeEventArgs notification, ProjectChangeKind kind, ProjectKey projectKey)
-    {
-        Assert.Equal(kind, notification.Kind);
-        Assert.Equal(projectKey, notification.ProjectKey);
+        listener.AssertNotifications(
+            x => x.ProjectAdded(ProjectFilePath, newProjectKey),
+            x => x.DocumentRemoved(DocumentFilePath2, miscProject.Key),
+            x => x.DocumentAdded(DocumentFilePath2, newProjectKey),
+            x => x.DocumentRemoved(DocumentFilePath1, miscProject.Key),
+            x => x.DocumentAdded(DocumentFilePath1, newProjectKey));
     }
 
     private static TextLoader CreateEmptyTextLoader()

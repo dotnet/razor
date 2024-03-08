@@ -23,7 +23,6 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
         : base(testOutput)
     {
         _projectManager = CreateProjectSnapshotManager();
-        _projectManager.AllowNotifyListeners = true;
     }
 
     protected override async Task InitializeAsync()

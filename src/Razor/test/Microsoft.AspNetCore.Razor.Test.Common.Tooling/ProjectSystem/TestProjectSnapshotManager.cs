@@ -3,14 +3,13 @@
 
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
-internal class TestProjectSnapshotManager(
+internal partial class TestProjectSnapshotManager(
     IProjectSnapshotChangeTrigger[] triggers,
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
     ProjectSnapshotManagerDispatcher dispatcher,
@@ -18,9 +17,6 @@ internal class TestProjectSnapshotManager(
     : DefaultProjectSnapshotManager(triggers, projectEngineFactoryProvider, dispatcher, errorReporter)
 {
     private IProjectSnapshotManagerAccessor? _accessor;
-
-    public bool AllowNotifyListeners { get; set; }
-    public ProjectChangeKind? ListenersNotifiedOf { get; private set; }
 
     public IProjectSnapshotManagerAccessor GetAccessor()
     {
@@ -57,23 +53,5 @@ internal class TestProjectSnapshotManager(
         return projectSnapshot;
     }
 
-    public void Reset()
-    {
-        ListenersNotifiedOf = null;
-    }
-
-    protected override void NotifyListeners(ProjectChangeEventArgs e)
-    {
-        ListenersNotifiedOf = e.Kind;
-
-        if (AllowNotifyListeners)
-        {
-            base.NotifyListeners(e);
-        }
-    }
-
-    private sealed class TestWorkspaceProvider(Workspace workspace) : IWorkspaceProvider
-    {
-        public Workspace GetWorkspace() => workspace;
-    }
+    public Listener ListenToNotifications() => new(this);
 }

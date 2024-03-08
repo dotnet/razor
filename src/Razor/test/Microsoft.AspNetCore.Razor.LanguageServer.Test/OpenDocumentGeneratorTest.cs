@@ -50,7 +50,6 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.AllowNotifyListeners = true;
 
             queue.Initialize(projectManager);
 
@@ -74,7 +73,6 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.AllowNotifyListeners = true;
             projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
 
             queue.Initialize(projectManager);
@@ -99,7 +97,6 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.AllowNotifyListeners = true;
             projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
             projectManager.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
@@ -127,7 +124,6 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.AllowNotifyListeners = true;
             projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
 
             queue.Initialize(projectManager);
@@ -153,7 +149,6 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.AllowNotifyListeners = true;
             projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
             projectManager.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 

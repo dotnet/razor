@@ -45,7 +45,6 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         var editorFeatureDetector = StrictMock.Of<LSPEditorFeatureDetector>();
 
         _projectManager = CreateProjectSnapshotManager();
-        _projectManager.AllowNotifyListeners = true;
 
         var hostProject = new HostProject(@"C:\project.csproj", @"C:\obj", RazorConfiguration.Default, rootNamespace: "TestNamespace");
         var hostDocument1 = new HostDocument(@"C:\document1.razor", "document1.razor", FileKinds.Component);
