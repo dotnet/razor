@@ -6,9 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxToken;
 using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxFactory;
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
@@ -153,8 +154,6 @@ internal class CSharpTokenizer : Tokenizer
         {
             case CSharpTokenizerState.Data:
                 return Data();
-            case CSharpTokenizerState.BlockComment:
-                return BlockComment();
             case CSharpTokenizerState.QuotedCharacterLiteral:
                 return TokenizedExpectedStringOrCharacterLiteral(CodeAnalysis.CSharp.SyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteral, "\'", "\'");
             case CSharpTokenizerState.QuotedStringLiteral:
@@ -398,27 +397,8 @@ internal class CSharpTokenizer : Tokenizer
                     return NumericLiteral();
                 }
                 return Stay(Single(SyntaxKind.Dot));
-            case '/':
-                TakeCurrent();
-                if (CurrentCharacter == '/')
-                {
-                    TakeCurrent();
-                    return SingleLineComment();
-                }
-                else if (CurrentCharacter == '*')
-                {
-                    TakeCurrent();
-                    return Transition(CSharpTokenizerState.BlockComment);
-                }
-                else if (CurrentCharacter == '=')
-                {
-                    TakeCurrent();
-                    return Stay(EndToken(SyntaxKind.CSharpOperator));
-                }
-                else
-                {
-                    return Stay(EndToken(SyntaxKind.CSharpOperator));
-                }
+            case '/' when Peek() is '/' or '*':
+                return Stay(Comment());
             default:
                 return Stay(Operator());
         }
@@ -585,35 +565,35 @@ internal class CSharpTokenizer : Tokenizer
         return Transition(CSharpTokenizerState.Data, EndToken(razorTokenKind));
     }
 
-    // CSharp Spec §2.3.2
-    private StateResult BlockComment()
+    private SyntaxToken Comment()
     {
-        TakeUntil(c => c == '*');
-        if (EndOfFile)
+        Debug.Assert(CurrentCharacter == '/' && Peek() is '*' or '/');
+        var curPosition = Source.Position;
+        var nextToken = _lexer.LexSyntax(curPosition);
+        Debug.Assert(nextToken.HasLeadingTrivia);
+        var commentTrivia = nextToken.LeadingTrivia[0];
+        Debug.Assert(commentTrivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia
+                                                     or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia
+                                                     or CSharpSyntaxKind.SingleLineDocumentationCommentTrivia
+                                                     or CSharpSyntaxKind.SingleLineCommentTrivia);
+
+        // Use FullSpan here because doc comment trivias exclude the leading `///` or `/**` and the trailing `*/`
+        var finalPosition = curPosition + commentTrivia.FullSpan.Length;
+
+        for (; curPosition < finalPosition; curPosition++)
+        {
+            TakeCurrent();
+        }
+
+        if (nextToken.IsKind(CSharpSyntaxKind.EndOfFileToken) && commentTrivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia &&
+            !commentTrivia.ToFullString().EndsWith("*/", StringComparison.Ordinal))
         {
             CurrentErrors.Add(
                 RazorDiagnosticFactory.CreateParsing_BlockCommentNotTerminated(
                     new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
-
-            return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.CSharpComment));
         }
-        if (CurrentCharacter == '*')
-        {
-            TakeCurrent();
-            if (CurrentCharacter == '/')
-            {
-                TakeCurrent();
-                return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.CSharpComment));
-            }
-        }
-        return Stay();
-    }
 
-    // CSharp Spec §2.3.2
-    private StateResult SingleLineComment()
-    {
-        TakeUntil(c => SyntaxFacts.IsNewLine(c));
-        return Stay(EndToken(SyntaxKind.CSharpComment));
+        return EndToken(SyntaxKind.CSharpComment);
     }
 
     // CSharp Spec §2.4.4
@@ -681,7 +661,6 @@ internal class CSharpTokenizer : Tokenizer
     private enum CSharpTokenizerState
     {
         Data,
-        BlockComment,
         QuotedCharacterLiteral,
         QuotedStringLiteral,
         VerbatimStringLiteral,
