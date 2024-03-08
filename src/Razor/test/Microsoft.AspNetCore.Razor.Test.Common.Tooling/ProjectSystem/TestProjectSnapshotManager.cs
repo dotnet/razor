@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis;
@@ -56,11 +55,6 @@ internal class TestProjectSnapshotManager(
         ProjectAdded(projectSnapshot.HostProject);
 
         return projectSnapshot;
-    }
-
-    public IProjectSnapshot? FindProject(HostProject hostProject)
-    {
-        return GetProjects().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
     }
 
     public void Reset()
