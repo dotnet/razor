@@ -82,11 +82,13 @@ namespace AspNetCore
                 __tagHelperExecutionContext.Add(__InputTagHelper);
                 __InputTagHelper.FooProp = (string)__tagHelperAttribute_0.Value;
                 __tagHelperExecutionContext.AddTagHelperAttribute(__tagHelperAttribute_0);
-#line 5 "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
-__InputTagHelper.BarProp = DateTime.Now;
+                __InputTagHelper.BarProp = 
+#line (5,29)-(5,42) "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
+DateTime.Now
 
 #line default
 #line hidden
+                ;
                 __tagHelperExecutionContext.AddTagHelperAttribute("date", __InputTagHelper.BarProp, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_1);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
@@ -144,7 +146,8 @@ Foo(
                 EndContext();
                 PopWriter();
             }
-            )#line (9,31)-(9,32) "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
+            )
+#line (9,31)-(9,32) "TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml"
 )
 
 #line default
