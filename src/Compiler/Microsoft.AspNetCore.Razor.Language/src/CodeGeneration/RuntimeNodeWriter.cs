@@ -180,54 +180,25 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
     public override void WriteCSharpExpressionAttributeValue(CodeRenderingContext context, CSharpExpressionAttributeValueIntermediateNode node)
     {
         var prefixLocation = node.Source.Value.AbsoluteIndex.ToString(CultureInfo.InvariantCulture);
-        var methodInvocationParenLength = 1;
-        var stringLiteralQuoteLength = 2;
-        var parameterSepLength = 2;
-        // Offset accounts for the length of the method, its arguments, and any
-        // additional characters like open parens and quoted strings
-        var offsetLength = WriteAttributeValueMethod.Length
-            + methodInvocationParenLength
-            + node.Prefix.Length
-            + stringLiteralQuoteLength
-            + parameterSepLength
-            + prefixLocation.Length
-            + parameterSepLength;
-        // TODO: fix this
-        using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context, offsetLength))
-        {
+        context.CodeWriter
+            .WriteStartMethodInvocation(WriteAttributeValueMethod)
+            .WriteStringLiteral(node.Prefix)
+            .WriteParameterSeparator()
+            .Write(prefixLocation)
+            .WriteParameterSeparator();
 
-            context.CodeWriter
-                .WriteStartMethodInvocation(WriteAttributeValueMethod)
-                .WriteStringLiteral(node.Prefix)
-                .WriteParameterSeparator()
-                .Write(prefixLocation)
-                .WriteParameterSeparator();
+        WriteCSharpChildren(node.Children, context);
 
-            for (var i = 0; i < node.Children.Count; i++)
-            {
-                if (node.Children[i] is IntermediateToken token && token.IsCSharp)
-                {
-                    context.AddSourceMappingFor(token);
-                    context.CodeWriter.Write(token.Content);
-                }
-                else
-                {
-                    // There may be something else inside the expression like an extension node.
-                    context.RenderNode(node.Children[i]);
-                }
-            }
-
-            var valueLocation = node.Source.Value.AbsoluteIndex + node.Prefix.Length;
-            var valueLength = node.Source.Value.Length - node.Prefix.Length;
-            context.CodeWriter
-                .WriteParameterSeparator()
-                .Write(valueLocation.ToString(CultureInfo.InvariantCulture))
-                .WriteParameterSeparator()
-                .Write(valueLength.ToString(CultureInfo.InvariantCulture))
-                .WriteParameterSeparator()
-                .WriteBooleanLiteral(false)
-                .WriteEndMethodInvocation();
-        }
+        var valueLocation = node.Source.Value.AbsoluteIndex + node.Prefix.Length;
+        var valueLength = node.Source.Value.Length - node.Prefix.Length;
+        context.CodeWriter
+            .WriteParameterSeparator()
+            .Write(valueLocation.ToString(CultureInfo.InvariantCulture))
+            .WriteParameterSeparator()
+            .Write(valueLength.ToString(CultureInfo.InvariantCulture))
+            .WriteParameterSeparator()
+            .WriteBooleanLiteral(false)
+            .WriteEndMethodInvocation();
     }
 
     public override void WriteCSharpCodeAttributeValue(CodeRenderingContext context, CSharpCodeAttributeValueIntermediateNode node)
