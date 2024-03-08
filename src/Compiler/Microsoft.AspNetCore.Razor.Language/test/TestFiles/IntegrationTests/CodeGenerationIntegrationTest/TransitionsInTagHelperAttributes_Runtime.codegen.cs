@@ -81,13 +81,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
             BeginAddHtmlAttributeValues(__tagHelperExecutionContext, "class", 1, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+            AddHtmlAttributeValue("", 155, 
 #nullable restore
-#line (8,11)-(8,20) 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
-AddHtmlAttributeValue("", 155, @class, 155, 9, false);
+#line (8,13)-(8,19) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+@class
 
 #line default
 #line hidden
 #nullable disable
+            , 155, 9, false);
             EndAddHtmlAttributeValues(__tagHelperExecutionContext);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore
@@ -228,13 +230,15 @@ int
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
             BeginAddHtmlAttributeValues(__tagHelperExecutionContext, "class", 2, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             AddHtmlAttributeValue("", 298, "custom-", 298, 7, true);
+            AddHtmlAttributeValue("", 305, 
 #nullable restore
-#line (12,18)-(12,27) 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
-AddHtmlAttributeValue("", 305, @class, 305, 9, false);
+#line (12,20)-(12,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml"
+@class
 
 #line default
 #line hidden
 #nullable disable
+            , 305, 9, false);
             EndAddHtmlAttributeValues(__tagHelperExecutionContext);
             __TestNamespace_PTagHelper.Age = 
 #nullable restore

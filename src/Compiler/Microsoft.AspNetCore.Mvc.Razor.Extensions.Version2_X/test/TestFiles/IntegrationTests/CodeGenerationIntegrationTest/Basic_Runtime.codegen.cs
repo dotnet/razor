@@ -23,11 +23,13 @@ namespace AspNetCore
             WriteLiteral("<div");
             EndContext();
             BeginWriteAttribute("class", " class=\"", 4, "\"", 28, 1);
-#line (1,13)-(1,29) 28 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-WriteAttributeValue("", 12, this.ToString(), 12, 16, false);
+            WriteAttributeValue("", 12, 
+#line (1,14)-(1,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+this.ToString()
 
 #line default
 #line hidden
+            , 12, 16, false);
             EndWriteAttribute();
             BeginContext(29, 24, true);
             WriteLiteral(">\r\n    Hello world\r\n    ");

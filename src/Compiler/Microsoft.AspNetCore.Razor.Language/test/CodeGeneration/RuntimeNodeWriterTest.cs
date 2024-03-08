@@ -579,14 +579,15 @@ EndWriteAttribute();
         // Assert
         var csharp = context.CodeWriter.GenerateCode();
         Assert.Equal(
-@"
+@"WriteAttributeValue("" "", 27, 
 #nullable restore
-#line (1,28)-(1,35) 29 ""test.cshtml""
-WriteAttributeValue("" "", 27, false, 28, 6, false);
+#line (1,30)-(1,35) ""test.cshtml""
+false
 
 #line default
 #line hidden
 #nullable disable
+, 28, 6, false);
 ",
             csharp,
             ignoreLineEndingDifferences: true);

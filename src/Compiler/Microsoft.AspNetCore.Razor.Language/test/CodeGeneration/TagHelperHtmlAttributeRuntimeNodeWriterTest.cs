@@ -56,14 +56,15 @@ public class TagHelperHtmlAttributeRuntimeNodeWriterTest : RazorProjectEngineTes
         // Assert
         var csharp = context.CodeWriter.GenerateCode();
         Assert.Equal(
-@"
+@"AddHtmlAttributeValue("" "", 27, 
 #nullable restore
-#line (1,28)-(1,35) 31 ""test.cshtml""
-AddHtmlAttributeValue("" "", 27, false, 28, 6, false);
+#line (1,30)-(1,35) ""test.cshtml""
+false
 
 #line default
 #line hidden
 #nullable disable
+, 28, 6, false);
 ",
             csharp,
             ignoreLineEndingDifferences: true);

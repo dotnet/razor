@@ -92,13 +92,15 @@ DateTime.Now
                 BeginAddHtmlAttributeValues(__tagHelperExecutionContext, "unboundproperty", 3, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 AddHtmlAttributeValue("", 188, "Current", 188, 7, true);
                 AddHtmlAttributeValue(" ", 195, "Time:", 196, 6, true);
+                AddHtmlAttributeValue(" ", 201, 
 #nullable restore
-#line (9,96)-(9,110) 32 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
-AddHtmlAttributeValue(" ", 201, DateTime.Now, 202, 13, false);
+#line (9,98)-(9,110) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersInSection.cshtml"
+DateTime.Now
 
 #line default
 #line hidden
 #nullable disable
+                , 202, 13, false);
                 EndAddHtmlAttributeValues(__tagHelperExecutionContext);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                 if (!__tagHelperExecutionContext.Output.IsContentModified)
