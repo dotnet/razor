@@ -245,22 +245,9 @@ internal class CSharpTokenizer : Tokenizer
 
     private StateResult Data()
     {
-        if (SyntaxFacts.IsNewLine(CurrentCharacter))
+        if (SyntaxFacts.IsNewLine(CurrentCharacter) || SyntaxFacts.IsWhitespace(CurrentCharacter))
         {
-            // CSharp Spec §2.3.1
-            var checkTwoCharNewline = CurrentCharacter == '\r';
-            TakeCurrent();
-            if (checkTwoCharNewline && CurrentCharacter == '\n')
-            {
-                TakeCurrent();
-            }
-            return Stay(EndToken(SyntaxKind.NewLine));
-        }
-        else if (SyntaxFacts.IsWhitespace(CurrentCharacter))
-        {
-            // CSharp Spec §2.3.3
-            TakeUntil(c => !SyntaxFacts.IsWhitespace(c));
-            return Stay(EndToken(SyntaxKind.Whitespace));
+            return Stay(Trivia());
         }
         else if (SyntaxFacts.IsIdentifierStartCharacter(CurrentCharacter))
         {
@@ -285,7 +272,7 @@ internal class CSharpTokenizer : Tokenizer
                 }
                 return Stay(Operator());
             case '/' when Peek() is '/' or '*':
-                return Stay(Comment());
+                return Stay(Trivia());
             default:
                 return Stay(Operator());
         }
@@ -452,35 +439,41 @@ internal class CSharpTokenizer : Tokenizer
         return Transition(CSharpTokenizerState.Data, EndToken(razorTokenKind));
     }
 
-    private SyntaxToken Comment()
+    private SyntaxToken Trivia()
     {
-        Debug.Assert(CurrentCharacter == '/' && Peek() is '*' or '/');
+        Debug.Assert((CurrentCharacter == '/' && Peek() is '*' or '/')
+                     || SyntaxFacts.IsWhitespace(CurrentCharacter)
+                     || SyntaxFacts.IsNewLine(CurrentCharacter));
         var curPosition = Source.Position;
         var nextToken = _lexer.LexSyntax(curPosition);
         Debug.Assert(nextToken.HasLeadingTrivia);
-        var commentTrivia = nextToken.LeadingTrivia[0];
-        Debug.Assert(commentTrivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia
-                                                     or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia
-                                                     or CSharpSyntaxKind.SingleLineDocumentationCommentTrivia
-                                                     or CSharpSyntaxKind.SingleLineCommentTrivia);
+        var leadingTrivia = nextToken.LeadingTrivia[0];
 
         // Use FullSpan here because doc comment trivias exclude the leading `///` or `/**` and the trailing `*/`
-        var finalPosition = curPosition + commentTrivia.FullSpan.Length;
+        var finalPosition = curPosition + leadingTrivia.FullSpan.Length;
 
         for (; curPosition < finalPosition; curPosition++)
         {
             TakeCurrent();
         }
 
-        if (nextToken.IsKind(CSharpSyntaxKind.EndOfFileToken) && commentTrivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia &&
-            !commentTrivia.ToFullString().EndsWith("*/", StringComparison.Ordinal))
+        if (nextToken.IsKind(CSharpSyntaxKind.EndOfFileToken) && leadingTrivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia &&
+            !leadingTrivia.ToFullString().EndsWith("*/", StringComparison.Ordinal))
         {
             CurrentErrors.Add(
                 RazorDiagnosticFactory.CreateParsing_BlockCommentNotTerminated(
                     new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
         }
 
-        return EndToken(SyntaxKind.CSharpComment);
+        var tokenType = leadingTrivia.Kind() switch
+        {
+            CSharpSyntaxKind.WhitespaceTrivia => SyntaxKind.Whitespace,
+            CSharpSyntaxKind.EndOfLineTrivia => SyntaxKind.NewLine,
+            CSharpSyntaxKind.SingleLineCommentTrivia or CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or CSharpSyntaxKind.SingleLineDocumentationCommentTrivia => SyntaxKind.CSharpComment,
+            _ => throw new InvalidOperationException("Unexpected trivia kind."),
+        };
+
+        return EndToken(tokenType);
     }
 
     // CSharp Spec §2.4.4
