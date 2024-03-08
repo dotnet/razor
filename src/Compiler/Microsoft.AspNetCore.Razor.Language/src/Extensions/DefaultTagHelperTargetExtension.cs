@@ -575,7 +575,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             }
             else
             {
-                using (context.CodeWriter.BuildEnhancedLinePragma(span, context))
+                using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
                 {
                     context.CodeWriter.Write(token.Content);
                 }
