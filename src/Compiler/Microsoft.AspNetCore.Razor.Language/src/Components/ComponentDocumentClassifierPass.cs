@@ -62,7 +62,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         ClassDeclarationIntermediateNode @class,
         MethodDeclarationIntermediateNode method)
     {
-        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var computedNamespace) ||
+        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var computedNamespace, out var computedNamespaceSpan) ||
             !TryComputeClassName(codeDocument, out var computedClass))
         {
             // If we can't compute a nice namespace (no relative path) then just generate something
@@ -86,6 +86,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         }
 
         @namespace.Content = computedNamespace;
+        @namespace.Source = computedNamespaceSpan;
         @class.ClassName = computedClass;
         @class.Modifiers.Clear();
         @class.Modifiers.Add("public");
