@@ -551,7 +551,10 @@ internal class CSharpTokenizer : Tokenizer
 
         void TakeTokenContent(CodeAnalysis.SyntaxToken token, out string content)
         {
+            // Use the already-interned string from the C# lexer, rather than realizing the buffer, to ensure that
+            // we don't allocate a new string for every operator token.
             content = token.ValueText;
+            Debug.Assert(content == Buffer.ToString());
             Buffer.Clear();
         }
     }
@@ -663,16 +666,6 @@ internal class CSharpTokenizer : Tokenizer
     private StateResult Transition(CSharpTokenizerState state, SyntaxToken result)
     {
         return Transition((int)state, result);
-    }
-
-    private static bool IsRealLiteralSuffix(char character)
-    {
-        return character == 'F' ||
-               character == 'f' ||
-               character == 'D' ||
-               character == 'd' ||
-               character == 'M' ||
-               character == 'm';
     }
 
     internal static CSharpKeyword? GetTokenKeyword(SyntaxToken token)
