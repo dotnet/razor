@@ -19,9 +19,13 @@ internal static class FilePathNormalizer
 
     private class FilePathNormalizingComparer : IEqualityComparer<string>
     {
+        private Func<char, char> _charConverter = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            ? c => c
+            : char.ToLowerInvariant;
+
         public bool Equals(string? x, string? y) => FilePathNormalizer.FilePathsEquivalent(x, y);
 
-        public int GetHashCode([DisallowNull] string obj) => FilePathNormalizer.GetHashCode(obj);
+        public int GetHashCode([DisallowNull] string obj) => FilePathNormalizer.GetHashCode(obj, _charConverter);
     }
 
     public static string NormalizeDirectory(string? directoryFilePath)
@@ -131,7 +135,7 @@ internal static class FilePathNormalizer
         return normalizedSpan1.Equals(normalizedSpan2, FilePathComparison.Instance);
     }
 
-    public static int GetHashCode(string filePath)
+    public static int GetHashCode(string filePath, Func<char, char> charConverter)
     {
         if (filePath.Length == 0)
         {
@@ -147,7 +151,7 @@ internal static class FilePathNormalizer
 
         foreach (var ch in normalizedSpan)
         {
-            hashCombiner.Add(ch);
+            hashCombiner.Add(charConverter(ch));
         }
 
         return hashCombiner.CombinedHash;
