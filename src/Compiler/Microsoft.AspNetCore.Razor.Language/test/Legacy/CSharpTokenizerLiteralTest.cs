@@ -355,4 +355,183 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
             SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
             SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
     }
+
+    [Fact]
+    public void Interpolated_String_Is_Recognized()
+    {
+        TestTokenizer("""
+            $"Hello, {name}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name}!"
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Allows_Nested_Strings()
+    {
+        TestTokenizer("""
+            $"Hello, {"world!"}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {"world!"}!"
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Allows_Escaped_Curly_Braces()
+    {
+        TestTokenizer("""
+            $"Hello, {{name}}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {{name}}!"
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Allows_Newlines_In_Interpolation_Hole()
+    {
+        TestTokenizer("""
+            $"Hello, {name
+                + 1}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name
+                + 1}!"
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Newlines_Terminate_Content()
+    {
+        TestTokenizer("""
+            $"Hello, {name + 1}
+            !"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name + 1}
+            """), IgnoreRemaining);
+    }
+
+    [Fact]
+    public void Interpolated_String_EndOfFile_In_Interpolation_Hole_Ends_String()
+    {
+        TestTokenizer("""
+            $"Hello, {name + 1
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name + 1
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Allows_Comment_In_Interpolation_Hole()
+    {
+        TestTokenizer("""
+            $"Hello, {name + 1 // Test!
+              }!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name + 1 // Test!
+              }!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Is_Recognized(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name}!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Nested_Strings(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {"world!"}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {"world!"}!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Escaped_Curly_Braces(string prefix)
+    {
+        TestTokenizer($$$"""
+            {{{prefix}}}"Hello, {{name}}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$$"""
+            {{{prefix}}}"Hello, {{name}}!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Newlines_In_Interpolation_Hole(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name
+                + 1}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name
+                + 1}!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Newlines_In_Content(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name + 1}
+            !"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name + 1}
+            !"
+            """), IgnoreRemaining);
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_EndOfFile_In_Interpolation_Hole_Ends_String(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name + 1
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name + 1
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Comment_In_Interpolation_Hole(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name + 1 // Test!
+              }!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name + 1 // Test!
+              }!"
+            """));
+    }
 }

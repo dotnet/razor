@@ -271,13 +271,14 @@ internal abstract class Tokenizer : ITokenizer
         return Lookahead(expected, takeIfMatch: true, caseSensitive: caseSensitive);
     }
 
-    protected char Peek()
+    protected char Peek(int charactersAhead = 1)
     {
-        using (var lookahead = BeginLookahead(Source))
+        using var lookahead = BeginLookahead(Source);
+        for (var i = 0; i < charactersAhead; i++)
         {
             MoveNext();
-            return CurrentCharacter;
         }
+        return CurrentCharacter;
     }
 
     protected StateResult AfterRazorCommentTransition()

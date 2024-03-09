@@ -42,12 +42,6 @@ internal class CSharpTokenizer : Tokenizer
         {
             case CSharpTokenizerState.Data:
                 return Data();
-            case CSharpTokenizerState.QuotedCharacterLiteral:
-                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteral, "\'", "\'");
-            case CSharpTokenizerState.QuotedStringLiteral:
-                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, "\"", "\"");
-            case CSharpTokenizerState.VerbatimStringLiteral:
-                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, "@\"", "\"");
             case CSharpTokenizerState.AfterRazorCommentTransition:
                 return AfterRazorCommentTransition();
             case CSharpTokenizerState.EscapedRazorCommentTransition:
@@ -155,9 +149,18 @@ internal class CSharpTokenizer : Tokenizer
             case '@':
                 return AtToken();
             case '\'':
-                return Transition(CSharpTokenizerState.QuotedCharacterLiteral);
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteral, expectedPrefix: "\'", expectedPostfix: "\'");
             case '"':
-                return Transition(CSharpTokenizerState.QuotedStringLiteral);
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, expectedPrefix: "\"", expectedPostfix: "\"");
+            case '$':
+                switch (Peek())
+                {
+                    case '"':
+                        return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "$\"", expectedPostfix: "\"");
+                    case '@' when Peek(2) == '"':
+                        return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedVerbatimStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "$@\"", expectedPostfix: "\"");
+                }
+                goto default;
             case '.':
                 if (char.IsDigit(Peek()))
                 {
@@ -173,9 +176,12 @@ internal class CSharpTokenizer : Tokenizer
 
     private StateResult AtToken()
     {
-        if (Peek() == '"')
+        switch (Peek())
         {
-            return Transition(CSharpTokenizerState.VerbatimStringLiteral);
+            case '"':
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, expectedPrefix: "@\"", expectedPostfix: "\"");
+            case '$' when Peek(2) == '"':
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "@$\"", expectedPostfix: "\"");
         }
 
         TakeCurrent();
@@ -306,7 +312,7 @@ internal class CSharpTokenizer : Tokenizer
         }
     }
 
-    private StateResult TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind expectedCSharpTokenKind, SyntaxKind razorTokenKind, string expectedPrefix, string expectedPostFix)
+    private StateResult TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind expectedCSharpTokenKind, SyntaxKind razorTokenKind, string expectedPrefix, string expectedPostfix)
     {
         var curPosition = Source.Position;
         var csharpToken = _lexer.LexSyntax(curPosition);
@@ -322,7 +328,7 @@ internal class CSharpTokenizer : Tokenizer
         // This is a case like `"test` (which doesn't end in the expected postfix), or `"` (which ends in the expected postfix, but
         // exactly matches the expected prefix).
         if (CodeAnalysis.CSharpExtensions.IsKind(csharpToken, expectedCSharpTokenKind)
-            && (csharpToken.Text == expectedPrefix || !csharpToken.Text.EndsWith(expectedPostFix, StringComparison.Ordinal)))
+            && (csharpToken.Text == expectedPrefix || !csharpToken.Text.EndsWith(expectedPostfix, StringComparison.Ordinal)))
         {
             CurrentErrors.Add(
                 RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
@@ -410,11 +416,6 @@ internal class CSharpTokenizer : Tokenizer
         return Transition(CSharpTokenizerState.Data, token);
     }
 
-    private StateResult Transition(CSharpTokenizerState state)
-    {
-        return Transition((int)state, result: null);
-    }
-
     private StateResult Transition(CSharpTokenizerState state, SyntaxToken result)
     {
         return Transition((int)state, result);
@@ -436,9 +437,6 @@ internal class CSharpTokenizer : Tokenizer
     private enum CSharpTokenizerState
     {
         Data,
-        QuotedCharacterLiteral,
-        QuotedStringLiteral,
-        VerbatimStringLiteral,
 
         // Razor Comments - need to be the same for HTML and CSharp
         AfterRazorCommentTransition = RazorCommentTokenizerState.AfterRazorCommentTransition,
