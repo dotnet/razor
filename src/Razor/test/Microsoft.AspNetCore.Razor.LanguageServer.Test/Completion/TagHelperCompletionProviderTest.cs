@@ -261,16 +261,25 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
         AssertTest1Test2Completions(completions);
     }
 
-    [Fact]
-    public void GetCompletionAt_AtAttributeEdge_IntAttribute_ReturnsCompletions()
+    [Theory]
+    [InlineData(
+    """
+    @addTagHelper *, TestAssembly
+    <test1 $$/>
+    """
+    )]
+    [InlineData(
+    """
+    @addTagHelper *, TestAssembly
+    <test1 int-val$$="1"/>
+    """
+    )]
+    public void GetCompletionAt_AtAttributeEdge_IntAttribute_ReturnsCompletions(string documentText)
     {
         // Arrange
         var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, TestRazorLSPOptionsMonitor.Create());
         var context = CreateRazorCompletionContext(
-            """
-                @addTagHelper *, TestAssembly
-                <test1 $$/>
-                """,
+            documentText,
             isRazorFile: false,
             tagHelpers: DefaultTagHelpers);
 
