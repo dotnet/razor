@@ -38,8 +38,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
     {
         _projectManager = CreateProjectSnapshotManager();
         _snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
-        _documentVersionCache = new DocumentVersionCache();
-        _documentVersionCache.Initialize(_projectManager);
+        _documentVersionCache = new DocumentVersionCache(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
         remoteTextLoaderFactoryMock

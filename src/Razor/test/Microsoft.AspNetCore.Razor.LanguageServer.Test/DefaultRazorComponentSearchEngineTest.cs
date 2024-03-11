@@ -43,7 +43,7 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
         _projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
-        var documentVersionCache = new DocumentVersionCache();
+        var documentVersionCache = new DocumentVersionCache(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
         remoteTextLoaderFactoryMock

@@ -135,7 +135,7 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<RazorSemanticTokensRefreshEndpoint>();
 
         services.AddSingleton<IWorkspaceSemanticTokensRefreshPublisher, WorkspaceSemanticTokensRefreshPublisher>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger, WorkspaceSemanticTokensRefreshTrigger>();
+        services.AddSingleton<IRazorStartupService, WorkspaceSemanticTokensRefreshTrigger>();
     }
 
     public static void AddCodeActionsServices(this IServiceCollection services)
@@ -198,7 +198,7 @@ internal static class IServiceCollectionExtensions
     public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
         services.AddSingleton<IGeneratedDocumentPublisher, GeneratedDocumentPublisher>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
+        services.AddSingleton<IRazorStartupService>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
         services.AddSingleton<IDocumentContextFactory, DocumentContextFactory>();
         services.AddSingleton(sp => new Lazy<IDocumentContextFactory>(sp.GetRequiredService<IDocumentContextFactory>));
 
@@ -208,7 +208,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
         services.AddSingleton<ISnapshotResolver, SnapshotResolver>();
         services.AddSingleton<IRazorProjectService, RazorProjectService>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger, OpenDocumentGenerator>();
+        services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
 
@@ -243,20 +243,15 @@ internal static class IServiceCollectionExtensions
         // Add project snapshot manager
         services.AddSingleton<ProjectSnapshotManagerBase>(services =>
         {
-            var changeTriggers = services.GetServices<IProjectSnapshotChangeTrigger>();
             var optionsManager = services.GetRequiredService<IOptionsMonitor<RazorLSPOptions>>();
             var dispatcher = services.GetRequiredService<ProjectSnapshotManagerDispatcher>();
             var errorReporter = services.GetRequiredService<IErrorReporter>();
             var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsManager);
 
-            var projectManager = new DefaultProjectSnapshotManager(
+            return new DefaultProjectSnapshotManager(
                 projectEngineFactoryProvider,
                 dispatcher,
                 errorReporter);
-
-            projectManager.InitializeChangeTriggers(changeTriggers);
-
-            return projectManager;
         });
 
         services.AddSingleton<IProjectSnapshotManager>(services => services.GetRequiredService<ProjectSnapshotManagerBase>());

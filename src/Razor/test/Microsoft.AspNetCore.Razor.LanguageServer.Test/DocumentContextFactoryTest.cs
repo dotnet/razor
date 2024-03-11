@@ -23,15 +23,14 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 {
     private static readonly string s_baseDirectory = PathUtilities.CreateRootedPath("path", "to");
 
-    private readonly IDocumentVersionCache _documentVersionCache;
     private readonly TestProjectSnapshotManager _projectManager;
+    private readonly IDocumentVersionCache _documentVersionCache;
 
     public DocumentContextFactoryTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentVersionCache = new DocumentVersionCache();
-
         _projectManager = CreateProjectSnapshotManager();
+        _documentVersionCache = new DocumentVersionCache(_projectManager);
     }
 
     [Fact]
