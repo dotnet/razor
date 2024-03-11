@@ -248,11 +248,15 @@ internal static class IServiceCollectionExtensions
             var dispatcher = services.GetRequiredService<ProjectSnapshotManagerDispatcher>();
             var errorReporter = services.GetRequiredService<IErrorReporter>();
             var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsManager);
-            return new DefaultProjectSnapshotManager(
-                changeTriggers,
+
+            var projectManager = new DefaultProjectSnapshotManager(
                 projectEngineFactoryProvider,
                 dispatcher,
                 errorReporter);
+
+            projectManager.InitializeChangeTriggers(changeTriggers);
+
+            return projectManager;
         });
 
         services.AddSingleton<IProjectSnapshotManager>(services => services.GetRequiredService<ProjectSnapshotManagerBase>());

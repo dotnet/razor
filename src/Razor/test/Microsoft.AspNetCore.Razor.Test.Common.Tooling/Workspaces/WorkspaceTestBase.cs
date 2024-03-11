@@ -59,16 +59,26 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
     }
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
-        => CreateProjectSnapshotManager(triggers: [], ProjectEngineFactoryProvider);
+        => CreateProjectSnapshotManager(ProjectEngineFactoryProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers)
-        => CreateProjectSnapshotManager(triggers, ProjectEngineFactoryProvider);
+    {
+        var projectManager = CreateProjectSnapshotManager(ProjectEngineFactoryProvider);
+        projectManager.InitializeChangeTriggers(triggers);
+
+        return projectManager;
+    }
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
         => CreateProjectSnapshotManager(triggers: [], projectEngineFactoryProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers, IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(triggers, projectEngineFactoryProvider, Dispatcher, ErrorReporter);
+    {
+        var projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
+        projectManager.InitializeChangeTriggers(triggers);
+
+        return projectManager;
+    }
 
     protected virtual void ConfigureWorkspaceServices(List<IWorkspaceService> services)
     {

@@ -10,11 +10,10 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
 internal partial class TestProjectSnapshotManager(
-    IProjectSnapshotChangeTrigger[] triggers,
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
     ProjectSnapshotManagerDispatcher dispatcher,
     IErrorReporter errorReporter)
-    : DefaultProjectSnapshotManager(triggers, projectEngineFactoryProvider, dispatcher, errorReporter)
+    : DefaultProjectSnapshotManager(projectEngineFactoryProvider, dispatcher, errorReporter)
 {
     private IProjectSnapshotManagerAccessor? _accessor;
 

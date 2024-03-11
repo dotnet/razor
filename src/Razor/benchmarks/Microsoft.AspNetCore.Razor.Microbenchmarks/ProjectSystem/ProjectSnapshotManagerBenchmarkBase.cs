@@ -75,7 +75,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()
     {
         return new DefaultProjectSnapshotManager(
-            triggers: [],
             projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
             dispatcher: Dispatcher,
             errorReporter: ErrorReporter);

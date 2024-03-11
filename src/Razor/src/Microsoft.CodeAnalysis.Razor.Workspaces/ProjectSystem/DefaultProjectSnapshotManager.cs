@@ -40,7 +40,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
 
     public DefaultProjectSnapshotManager(
-        IEnumerable<IProjectSnapshotChangeTrigger> triggers,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter)
@@ -48,7 +47,13 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
         _dispatcher = dispatcher;
         _errorReporter = errorReporter;
+    }
 
+    // internal for testing
+    internal bool IsSolutionClosing { get; private set; }
+
+    internal void InitializeChangeTriggers(IEnumerable<IProjectSnapshotChangeTrigger> triggers)
+    {
         using (_rwLocker.EnterReadLock())
         {
             foreach (var trigger in triggers)
@@ -68,9 +73,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             }
         }
     }
-
-    // internal for testing
-    internal bool IsSolutionClosing { get; private set; }
 
     public override ImmutableArray<IProjectSnapshot> GetProjects()
     {

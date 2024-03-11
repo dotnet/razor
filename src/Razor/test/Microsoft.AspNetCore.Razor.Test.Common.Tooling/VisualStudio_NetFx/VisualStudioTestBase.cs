@@ -22,14 +22,24 @@ public abstract class VisualStudioTestBase(ITestOutputHelper testOutput) : Tooli
     }
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
-        => CreateProjectSnapshotManager(triggers: [], ProjectEngineFactories.DefaultProvider);
+        => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers)
-        => CreateProjectSnapshotManager(triggers, ProjectEngineFactories.DefaultProvider);
+    {
+        var projectManager = CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
+        projectManager.InitializeChangeTriggers(triggers);
+
+        return projectManager;
+    }
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
         => CreateProjectSnapshotManager(triggers: [], projectEngineFactoryProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers, IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(triggers, projectEngineFactoryProvider, Dispatcher, ErrorReporter);
+    {
+        var projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
+        projectManager.InitializeChangeTriggers(triggers);
+
+        return projectManager;
+    }
 }

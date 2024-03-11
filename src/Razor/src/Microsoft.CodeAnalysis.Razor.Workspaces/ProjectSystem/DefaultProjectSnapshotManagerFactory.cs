@@ -19,9 +19,10 @@ internal class DefaultProjectSnapshotManagerFactory(
     IErrorReporter errorReporter) : ILanguageServiceFactory
 {
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        => new DefaultProjectSnapshotManager(
-            triggers,
-            projectEngineFactoryProvider,
-            dispatcher,
-            errorReporter);
+    {
+        var projectManager = new DefaultProjectSnapshotManager(projectEngineFactoryProvider, dispatcher, errorReporter);
+        projectManager.InitializeChangeTriggers(triggers);
+
+        return projectManager;
+    }
 }
