@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -236,9 +237,25 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
         services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
 
-        services.AddSingleton<IProjectSnapshotManagerAccessor, LspProjectSnapshotManagerAccessor>();
         services.AddSingleton<LSPTagHelperTooltipFactory, DefaultLSPTagHelperTooltipFactory>();
         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
+
+        // Add project snapshot manager
+        services.AddSingleton<ProjectSnapshotManagerBase>(services =>
+        {
+            var changeTriggers = services.GetServices<IProjectSnapshotChangeTrigger>();
+            var optionsManager = services.GetRequiredService<IOptionsMonitor<RazorLSPOptions>>();
+            var dispatcher = services.GetRequiredService<ProjectSnapshotManagerDispatcher>();
+            var errorReporter = services.GetRequiredService<IErrorReporter>();
+            var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsManager);
+            return new DefaultProjectSnapshotManager(
+                changeTriggers,
+                projectEngineFactoryProvider,
+                dispatcher,
+                errorReporter);
+        });
+
+        services.AddSingleton<IProjectSnapshotManager>(services => services.GetRequiredService<ProjectSnapshotManagerBase>());
     }
 
     public static void AddHandlerWithCapabilities<T>(this IServiceCollection services)

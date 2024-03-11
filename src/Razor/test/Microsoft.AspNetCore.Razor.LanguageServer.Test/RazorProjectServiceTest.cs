@@ -30,15 +30,16 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
     private readonly TestProjectSnapshotManager _projectManager;
     private readonly ISnapshotResolver _snapshotResolver;
-    private readonly IDocumentVersionCache _documentVersionCache;
+    private readonly DocumentVersionCache _documentVersionCache;
     private readonly IRazorProjectService _projectService;
 
     public RazorProjectServiceTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _projectManager = CreateProjectSnapshotManager();
-        _snapshotResolver = new SnapshotResolver(_projectManager.GetAccessor(), LoggerFactory);
+        _snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
         _documentVersionCache = new DocumentVersionCache();
+        _documentVersionCache.Initialize(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
         remoteTextLoaderFactoryMock
@@ -50,7 +51,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
             remoteTextLoaderFactoryMock.Object,
             _snapshotResolver,
             _documentVersionCache,
-            _projectManager.GetAccessor(),
+            _projectManager,
             LoggerFactory);
     }
 
@@ -301,7 +302,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         });
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -335,7 +336,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
         });
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -365,7 +366,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
         });
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -398,7 +399,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
         });
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -451,7 +452,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
             _projectService.OpenDocument(DocumentFilePath, s_emptyText, version: 42);
 
@@ -489,8 +490,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var (ownerProjectKey1, ownerProjectKey2) = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey1 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace, displayName: "");
-            var ownerProjectKey2 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey1 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace);
+            var ownerProjectKey2 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
             _projectService.OpenDocument(DocumentFilePath, s_emptyText, version: 42);
 
@@ -560,7 +561,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
 
             return ownerProjectKey;
@@ -597,8 +598,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var (ownerProjectKey1, ownerProjectKey2) = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey1 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace, displayName: "");
-            var ownerProjectKey2 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey1 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace);
+            var ownerProjectKey2 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
 
             return (ownerProjectKey1, ownerProjectKey2);
@@ -666,7 +667,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
         });
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -723,7 +724,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
         });
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -777,7 +778,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
 
             return ownerProjectKey;
@@ -812,8 +813,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var (ownerProjectKey1, ownerProjectKey2) = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey1 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace, displayName: "");
-            var ownerProjectKey2 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey1 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace);
+            var ownerProjectKey2 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
 
             return (ownerProjectKey1, ownerProjectKey2);
@@ -849,7 +850,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
             _projectService.OpenDocument(DocumentFilePath, s_emptyText, version: 42);
 
@@ -916,7 +917,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
         });
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -966,7 +967,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
             _projectService.OpenDocument(DocumentFilePath, s_emptyText, version: 42);
 
@@ -1004,8 +1005,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var (ownerProjectKey1, ownerProjectKey2) = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey1 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace, displayName: "");
-            var ownerProjectKey2 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey1 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace);
+            var ownerProjectKey2 = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
             _projectService.OpenDocument(DocumentFilePath, s_emptyText, version: 42);
 
@@ -1075,7 +1076,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         var ownerProjectKey = await RunOnDispatcherAsync(() =>
         {
-            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            var ownerProjectKey = _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
             _projectService.AddDocument(DocumentFilePath);
 
             return ownerProjectKey;
@@ -1110,7 +1111,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
         });
 
         // Act
@@ -1133,7 +1134,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         // Act
         var projectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, configuration: null, rootNamespace: null, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, configuration: null, rootNamespace: null);
         });
 
         var project = _projectManager.GetLoadedProject(projectKey);
@@ -1157,7 +1158,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         // Act
         var projectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, configuration, RootNamespace, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, configuration, RootNamespace);
         });
 
         var project = _projectManager.GetLoadedProject(projectKey);
@@ -1192,7 +1193,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         // Act
         var newProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         });
 
         // Assert
@@ -1224,7 +1225,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         // Act
         var newProjectKey = await RunOnDispatcherAsync(() =>
         {
-            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: "");
+            return _projectService.AddProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         });
 
         // Assert
