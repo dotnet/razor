@@ -27,7 +27,7 @@ namespace AspNetCore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
 #nullable restore
-#line (3,27)-(3,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
+#line (3,9)-(3,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
 MyService<MyModel>
 
 #line default
@@ -46,7 +46,7 @@ Html
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
 #nullable restore
-#line (2,15)-(2,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
+#line (2,9)-(2,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
 MyApp
 
 #line default

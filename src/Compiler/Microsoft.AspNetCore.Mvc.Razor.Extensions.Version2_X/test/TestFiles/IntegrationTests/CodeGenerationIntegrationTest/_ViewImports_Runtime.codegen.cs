@@ -23,7 +23,7 @@ namespace AspNetCore
         #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
-#line (1,29)-(1,35) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/_ViewImports.cshtml"
+#line (1,9)-(1,20) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/_ViewImports.cshtml"
 IHtmlHelper<dynamic>
 
 #line default

@@ -23,7 +23,7 @@ namespace AspNetCore
         #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
-#line (3,27)-(3,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
+#line (3,9)-(3,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
 MyService<MyModel>
 
 #line default
@@ -37,7 +37,7 @@ Html
          { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
-#line (2,15)-(2,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
+#line (2,9)-(2,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithModel.cshtml"
 MyApp
 
 #line default

@@ -23,7 +23,7 @@ namespace AspNetCore
         #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
-#line (5,27)-(5,32) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml"
+#line (5,9)-(5,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml"
 MyService<MyModel>
 
 #line default
@@ -37,7 +37,7 @@ Html2
          { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
-#line (4,15)-(4,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml"
+#line (4,9)-(4,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml"
 MyApp
 
 #line default
@@ -51,7 +51,7 @@ MyPropertyName2
          { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
-#line (3,27)-(3,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml"
+#line (3,9)-(3,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml"
 MyService<MyModel>
 
 #line default
@@ -65,7 +65,7 @@ Html
          { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
-#line (2,15)-(2,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml"
+#line (2,9)-(2,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml"
 MyApp
 
 #line default
