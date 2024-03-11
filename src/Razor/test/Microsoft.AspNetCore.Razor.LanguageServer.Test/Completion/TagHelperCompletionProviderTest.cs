@@ -274,6 +274,12 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
     <test1 int-val$$="1"/>
     """
     )]
+    [InlineData(
+    """
+    @addTagHelper*, TestAssembly
+    <test1 int-val$$/>
+    """
+    )]
     public void GetCompletionAt_AtAttributeEdge_IntAttribute_ReturnsCompletions(string documentText)
     {
         // Arrange
