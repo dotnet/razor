@@ -62,7 +62,7 @@ public static class InjectDirective
                 }
 
                 var typeName = tokens[0].Content;
-                var typeSpan = tokens[1].Source;
+                var typeSpan = tokens[0].Source;
                 var memberName = tokens[1].Content;
                 var memberSpan = tokens[1].Source;
 
@@ -71,8 +71,14 @@ public static class InjectDirective
                     continue;
                 }
 
-                typeName = typeName.Replace("<TModel>", "<" + modelType + ">");
-
+                if (typeName.EndsWith("<TModel>", StringComparison.Ordinal))
+                {
+                    typeName = typeName.Replace("<TModel>", "<" + modelType + ">");
+                    if (typeSpan.HasValue)
+                    {
+                        typeSpan = new SourceSpan(typeSpan.Value.FilePath, typeSpan.Value.AbsoluteIndex, typeSpan.Value.LineIndex, typeSpan.Value.CharacterIndex, typeSpan.Value.Length - 8, typeSpan.Value.LineCount, typeSpan.Value.EndCharacterIndex - 8);
+                    }
+                }
                 var injectNode = new InjectIntermediateNode()
                 {
                     TypeName = typeName,
