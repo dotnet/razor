@@ -25,7 +25,9 @@
   <PropertyGroup Condition="'$(DotNetBuild)' == 'true'">
     <RuntimeIdentifiers>$(TargetRid)</RuntimeIdentifiers>
     <RuntimeIdentifier>$(TargetRid)</RuntimeIdentifier>
-    <RidSpecificPublishNoBuildProperty>NoBuild=true;AppendRuntimeIdentifierToOutputPath=false</RidSpecificPublishNoBuildProperty>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <RidSpecificPublishNoBuildProperty>NoBuild=true</RidSpecificPublishNoBuildProperty>
   </PropertyGroup>
 
   <ItemGroup>
