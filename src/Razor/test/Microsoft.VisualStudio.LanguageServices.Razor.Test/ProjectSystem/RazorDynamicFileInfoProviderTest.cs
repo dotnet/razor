@@ -68,15 +68,14 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         var fallbackProjectManager = new FallbackProjectManager(
             StrictMock.Of<ProjectConfigurationFilePathStore>(),
             languageServerFeatureOptions,
-            _projectManager.GetAccessor(),
+            _projectManager,
             Dispatcher,
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);
 
         _provider = new RazorDynamicFileInfoProvider(
-            documentServiceFactory, editorFeatureDetector, filePathService, WorkspaceProvider, fallbackProjectManager);
+            documentServiceFactory, editorFeatureDetector, filePathService, WorkspaceProvider, _projectManager, fallbackProjectManager);
         _testAccessor = _provider.GetTestAccessor();
-        _provider.Initialize(_projectManager);
 
         var lspDocumentContainerMock = new StrictMock<IDynamicDocumentContainer>();
         lspDocumentContainerMock

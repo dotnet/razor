@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal sealed class FallbackProjectManager(
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IProjectSnapshotManagerAccessor projectManagerAccessor,
+    ProjectSnapshotManagerBase projectManager,
     ProjectSnapshotManagerDispatcher dispatcher,
     IWorkspaceProvider workspaceProvider,
     ITelemetryReporter telemetryReporter)
 {
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor = projectManagerAccessor;
+    private readonly ProjectSnapshotManagerBase _projectManager = projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
@@ -44,8 +44,7 @@ internal sealed class FallbackProjectManager(
     {
         try
         {
-            if (_projectManagerAccessor.TryGetInstance(out var projectSnapshotManager) &&
-                projectSnapshotManager.TryGetLoadedProject(razorProjectKey, out var project))
+            if (_projectManager.TryGetLoadedProject(razorProjectKey, out var project))
             {
                 if (project is ProjectSnapshot { HostProject: FallbackHostProject })
                 {
@@ -77,8 +76,7 @@ internal sealed class FallbackProjectManager(
     {
         try
         {
-            if (_projectManagerAccessor.TryGetInstance(out var projectSnapshotManager) &&
-                projectSnapshotManager.TryGetLoadedProject(razorProjectKey, out var project) &&
+            if (_projectManager.TryGetLoadedProject(razorProjectKey, out var project) &&
                 project is ProjectSnapshot { HostProject: FallbackHostProject })
             {
                 // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
@@ -116,7 +114,7 @@ internal sealed class FallbackProjectManager(
 
         await _dispatcher
             .RunAsync(
-                () => _projectManagerAccessor.Instance.ProjectAdded(hostProject),
+                () => _projectManager.ProjectAdded(hostProject),
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -139,7 +137,7 @@ internal sealed class FallbackProjectManager(
 
         await _dispatcher
             .RunAsync(
-                () => _projectManagerAccessor.Instance.DocumentAdded(projectKey, hostDocument, textLoader),
+                () => _projectManager.DocumentAdded(projectKey, hostDocument, textLoader),
                 cancellationToken)
             .ConfigureAwait(false);
     }
@@ -182,7 +180,7 @@ internal sealed class FallbackProjectManager(
 
         await _dispatcher
             .RunAsync(
-                () => _projectManagerAccessor.Instance.DocumentRemoved(razorProjectKey, hostDocument),
+                () => _projectManager.DocumentRemoved(razorProjectKey, hostDocument),
                 cancellationToken)
             .ConfigureAwait(false);
     }

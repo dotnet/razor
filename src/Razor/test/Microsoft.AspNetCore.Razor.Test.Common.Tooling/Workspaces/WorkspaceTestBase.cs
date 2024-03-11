@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Xunit.Abstractions;
 
@@ -61,24 +60,8 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
         => CreateProjectSnapshotManager(ProjectEngineFactoryProvider);
 
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers)
-    {
-        var projectManager = CreateProjectSnapshotManager(ProjectEngineFactoryProvider);
-        projectManager.InitializeChangeTriggers(triggers);
-
-        return projectManager;
-    }
-
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => CreateProjectSnapshotManager(triggers: [], projectEngineFactoryProvider);
-
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers, IProjectEngineFactoryProvider projectEngineFactoryProvider)
-    {
-        var projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
-        projectManager.InitializeChangeTriggers(triggers);
-
-        return projectManager;
-    }
+        => new(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
 
     protected virtual void ConfigureWorkspaceServices(List<IWorkspaceService> services)
     {

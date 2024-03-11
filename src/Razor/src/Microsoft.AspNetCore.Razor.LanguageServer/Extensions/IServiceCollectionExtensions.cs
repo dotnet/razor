@@ -203,7 +203,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton(sp => new Lazy<IDocumentContextFactory>(sp.GetRequiredService<IDocumentContextFactory>));
 
         services.AddSingleton<IDocumentVersionCache, DocumentVersionCache>();
-        services.AddSingleton((services) => (IProjectSnapshotChangeTrigger)services.GetRequiredService<IDocumentVersionCache>());
+        services.AddSingleton((services) => (IRazorStartupService)services.GetRequiredService<IDocumentVersionCache>());
 
         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
         services.AddSingleton<ISnapshotResolver, SnapshotResolver>();
@@ -248,7 +248,7 @@ internal static class IServiceCollectionExtensions
             var errorReporter = services.GetRequiredService<IErrorReporter>();
             var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsManager);
 
-            return new DefaultProjectSnapshotManager(
+            return new ProjectSnapshotManager(
                 projectEngineFactoryProvider,
                 dispatcher,
                 errorReporter);

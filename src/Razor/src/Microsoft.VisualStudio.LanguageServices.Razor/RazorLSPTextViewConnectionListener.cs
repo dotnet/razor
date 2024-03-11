@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
@@ -16,6 +18,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using IServiceProvider = System.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
@@ -37,11 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
 internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
     private readonly LSPEditorFeatureDetector _editorFeatureDetector;
     private readonly IEditorOptionsFactoryService _editorOptionsFactory;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly IVsTextManager4 _textManager;
+
+    private RazorStartupInitializer? _startupInitializer;
 
     /// <summary>
     /// Protects concurrent modifications to _activeTextViews and _textBuffer's
@@ -57,37 +63,13 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 
     [ImportingConstructor]
     public RazorLSPTextViewConnectionListener(
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
         LSPEditorFeatureDetector editorFeatureDetector,
         IEditorOptionsFactoryService editorOptionsFactory,
-        IClientSettingsManager editorSettingsManager,
-        SVsServiceProvider serviceProvider)
+        IClientSettingsManager editorSettingsManager)
     {
-        if (editorAdaptersFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorAdaptersFactory));
-        }
-
-        if (editorFeatureDetector is null)
-        {
-            throw new ArgumentNullException(nameof(editorFeatureDetector));
-        }
-
-        if (editorOptionsFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorOptionsFactory));
-        }
-
-        if (editorSettingsManager is null)
-        {
-            throw new ArgumentNullException(nameof(editorSettingsManager));
-        }
-
-        if (serviceProvider is null)
-        {
-            throw new ArgumentNullException(nameof(serviceProvider));
-        }
-
+        _serviceProvider = serviceProvider;
         _editorAdaptersFactory = editorAdaptersFactory;
         _editorFeatureDetector = editorFeatureDetector;
         _editorOptionsFactory = editorOptionsFactory;
@@ -104,12 +86,14 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
             throw new ArgumentNullException(nameof(textView));
         }
 
+        InitializeStartupServices();
+
         var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
 
         Assumes.NotNull(vsTextView);
 
         // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.
-        // Because of this we don't want to break that experience so we ensure not to "set" a langauge service for remote clients.
+        // Because of this we don't want to break that experience so we ensure not to "set" a language service for remote clients.
         if (!_editorFeatureDetector.IsRemoteClient())
         {
             vsTextView.GetBuffer(out var vsBuffer);
@@ -206,6 +190,23 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
                     newViewOptions.OptionChanged += RazorOptions_OptionChanged;
                 }
             }
+        }
+    }
+
+    /// <summary>
+    ///  Ensures that Razor startup services are instantiated and running.
+    /// </summary>
+    private void InitializeStartupServices()
+    {
+        if (_startupInitializer is null)
+        {
+            Interlocked.CompareExchange(ref _startupInitializer, GetStartupInitializer(_serviceProvider), null);
+        }
+
+        static RazorStartupInitializer GetStartupInitializer(IServiceProvider serviceProvider)
+        {
+            var componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
+            return componentModel.DefaultExportProvider.GetExportedValue<RazorStartupInitializer>();
         }
     }
 

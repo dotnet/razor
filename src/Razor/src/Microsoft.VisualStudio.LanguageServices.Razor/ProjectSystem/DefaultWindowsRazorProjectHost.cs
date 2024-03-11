@@ -40,11 +40,11 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     [ImportingConstructor]
     public DefaultWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
-        IProjectSnapshotManagerAccessor projectManagerAccessor,
+        ProjectSnapshotManagerBase projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         LanguageServerFeatureOptions? languageServerFeatureOptions)
-        : base(commonServices, projectManagerAccessor, dispatcher, projectConfigurationFilePathStore)
+        : base(commonServices, projectManager, dispatcher, projectConfigurationFilePathStore)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
@@ -113,8 +113,9 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
             await UpdateAsync(() =>
             {
-                var projectManager = GetProjectManager();
-                var projectKeys = projectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                Dispatcher.AssertRunningOnDispatcher();
+
+                var projectKeys = ProjectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
                 foreach (var projectKey in projectKeys)
                 {
                     UninitializeProjectUnsafe(projectKey);

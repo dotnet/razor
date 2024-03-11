@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Razor;
 using Xunit.Abstractions;
 
@@ -24,22 +23,6 @@ public abstract class VisualStudioTestBase(ITestOutputHelper testOutput) : Tooli
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers)
-    {
-        var projectManager = CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
-        projectManager.InitializeChangeTriggers(triggers);
-
-        return projectManager;
-    }
-
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => CreateProjectSnapshotManager(triggers: [], projectEngineFactoryProvider);
-
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers, IProjectEngineFactoryProvider projectEngineFactoryProvider)
-    {
-        var projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
-        projectManager.InitializeChangeTriggers(triggers);
-
-        return projectManager;
-    }
+        => new(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
 }

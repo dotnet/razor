@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal interface IProjectSnapshotManager
 {
+    event EventHandler<ProjectChangeEventArgs> PriorityChanged;
     event EventHandler<ProjectChangeEventArgs> Changed;
 
     ImmutableArray<IProjectSnapshot> GetProjects();

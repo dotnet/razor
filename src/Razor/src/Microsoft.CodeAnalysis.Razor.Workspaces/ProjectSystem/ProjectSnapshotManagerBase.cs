@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal abstract class ProjectSnapshotManagerBase : IProjectSnapshotManager
 {
+    public abstract event EventHandler<ProjectChangeEventArgs> PriorityChanged;
     public abstract event EventHandler<ProjectChangeEventArgs> Changed;
 
     public abstract ImmutableArray<IProjectSnapshot> GetProjects();

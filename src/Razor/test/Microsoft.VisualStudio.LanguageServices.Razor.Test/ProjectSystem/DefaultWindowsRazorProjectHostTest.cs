@@ -621,7 +621,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
 
         // Act & Assert
         await host.LoadAsync();
@@ -636,7 +636,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
 
         // Act & Assert
         await Task.Run(async () => await host.LoadAsync());
@@ -655,7 +655,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
 
         // Act & Assert
         await Task.Run(async () => await host.LoadAsync());
@@ -699,7 +699,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
 
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
         host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
@@ -752,7 +752,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
     public void IntermediateOutputPathCalculationHandlesRelativePaths(string baseIntermediateOutputPath, string intermediateOutputPath, string expectedCombinedIOP)
     {
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
 
         var state = TestProjectRuleSnapshot.CreateProperties(
              WindowsRazorProjectHostBase.ConfigurationGeneralSchemaName,
@@ -795,7 +795,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
 
         await Task.Run(async () => await host.LoadAsync());
         Assert.Empty(_projectManager.GetProjects());
@@ -846,7 +846,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
         host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
@@ -897,7 +897,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
         host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
@@ -1053,7 +1053,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
         host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
@@ -1128,7 +1128,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
         host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
@@ -1208,7 +1208,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
 
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
         host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
@@ -1305,7 +1305,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         };
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-        var host = new DefaultWindowsRazorProjectHost(services, _projectManager.GetAccessor(), Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
+        var host = new DefaultWindowsRazorProjectHost(services, _projectManager, Dispatcher, _projectConfigurationFilePathStore, languageServerFeatureOptions: null);
         host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());

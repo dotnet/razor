@@ -57,24 +57,8 @@ public abstract class LanguageServerTestBase : ToolingTestBase
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers)
-    {
-        var projectManager = CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
-        projectManager.InitializeChangeTriggers(triggers);
-
-        return projectManager;
-    }
-
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => CreateProjectSnapshotManager(triggers: [], projectEngineFactoryProvider);
-
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers, IProjectEngineFactoryProvider projectEngineFactoryProvider)
-    {
-        var projectManager = new TestProjectSnapshotManager(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
-        projectManager.InitializeChangeTriggers(triggers);
-
-        return projectManager;
-    }
+        => new(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
 
     internal RazorRequestContext CreateRazorRequestContext(VersionedDocumentContext? documentContext, ILspServices? lspServices = null)
     {

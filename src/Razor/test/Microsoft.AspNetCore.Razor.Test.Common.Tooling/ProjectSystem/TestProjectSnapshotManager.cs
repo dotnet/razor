@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
@@ -13,29 +12,8 @@ internal partial class TestProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
     ProjectSnapshotManagerDispatcher dispatcher,
     IErrorReporter errorReporter)
-    : DefaultProjectSnapshotManager(projectEngineFactoryProvider, dispatcher, errorReporter)
+    : ProjectSnapshotManager(projectEngineFactoryProvider, dispatcher, errorReporter)
 {
-    private IProjectSnapshotManagerAccessor? _accessor;
-
-    public IProjectSnapshotManagerAccessor GetAccessor()
-    {
-        return _accessor ?? InterlockedOperations.Initialize(ref _accessor, CreateAccessor(this));
-
-        static IProjectSnapshotManagerAccessor CreateAccessor(ProjectSnapshotManagerBase @this)
-        {
-            var mock = new StrictMock<IProjectSnapshotManagerAccessor>();
-
-            mock.SetupGet(x => x.Instance)
-                .Returns(@this);
-
-            var instance = @this;
-            mock.Setup(x => x.TryGetInstance(out instance))
-                .Returns(true);
-
-            return mock.Object;
-        }
-    }
-
     public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
     {
         var documentSnapshot = TestDocumentSnapshot.Create(projectSnapshot, filePath);
