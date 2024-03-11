@@ -249,7 +249,7 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
     [InlineData("c:/path/to/document.cshtml")]
     public void Comparer_CaseInsensitiveDictionary(string fileName)
     {
-        var dictionary = new Dictionary<string, bool>(FilePathNormalizer.Comparer)
+        var dictionary = new Dictionary<string, bool>(FilePathNormalizingComparer.Instance)
         {
             { "C:/path/to/document.cshtml", true },
             { "C:/path/to/document1.cshtml", true },
