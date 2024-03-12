@@ -75,7 +75,7 @@ internal class OutOfProcTagHelperResolver(
 
         var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(
             workspace.Services,
-            RazorServiceDescriptors.TagHelperProviderServiceDescriptors,
+            RazorServices.Descriptors,
             RazorRemoteServiceCallbackDispatcherRegistry.Empty,
             cancellationToken);
 
