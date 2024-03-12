@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -241,19 +241,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
 
         // Add project snapshot manager
-        services.AddSingleton<ProjectSnapshotManagerBase>(services =>
-        {
-            var optionsManager = services.GetRequiredService<IOptionsMonitor<RazorLSPOptions>>();
-            var dispatcher = services.GetRequiredService<ProjectSnapshotManagerDispatcher>();
-            var errorReporter = services.GetRequiredService<IErrorReporter>();
-            var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsManager);
-
-            return new ProjectSnapshotManager(
-                projectEngineFactoryProvider,
-                dispatcher,
-                errorReporter);
-        });
-
+        services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();
+        services.AddSingleton<ProjectSnapshotManagerBase, ProjectSnapshotManager>();
         services.AddSingleton<IProjectSnapshotManager>(services => services.GetRequiredService<ProjectSnapshotManagerBase>());
     }
 
