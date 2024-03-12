@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
@@ -23,18 +25,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
 public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private const string ProjectFilePath1 = "c:/First/First.csproj";
-    private const string ProjectFilePath2 = "c:/Second/Second.csproj";
+    private static readonly string s_project1BasePath = PathUtilities.CreateRootedPath("First");
+    private static readonly string s_project2BasePath = PathUtilities.CreateRootedPath("Second");
 
-    private const string IntermediateOutputPath1 = "c:/First/obj";
-    private const string IntermediateOutputPath2 = "c:/Second/obj";
+    private static readonly string s_projectFilePath1 = Path.Combine(s_project1BasePath, "First.csproj");
+    private static readonly string s_projectFilePath2 = Path.Combine(s_project2BasePath, "Second.csproj");
+
+    private static readonly string s_intermediateOutputPath1 = Path.Combine(s_project1BasePath, "obj");
+    private static readonly string s_intermediateOutputPath2 = Path.Combine(s_project2BasePath, "obj");
 
     private const string RootNamespace1 = "First.Components";
     private const string RootNamespace2 = "Second.Components";
 
-    private const string ComponentFilePath1 = "c:/First/Component1.razor";
-    private const string ComponentFilePath2 = "c:/First/Component2.razor";
-    private const string ComponentFilePath3 = "c:/Second/Component3.razor";
+    private static readonly string s_componentFilePath1 = Path.Combine(s_project1BasePath, "Component1.razor");
+    private static readonly string s_componentFilePath2 = Path.Combine(s_project1BasePath, "Component2.razor");
+    private static readonly string s_componentFilePath3 = Path.Combine(s_project2BasePath, "Component3.razor");
 
     private TestProjectSnapshotManager _projectManager;
 
@@ -69,27 +74,27 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
         await RunOnDispatcherAsync(() =>
         {
             projectService.AddProject(
-                ProjectFilePath1,
-                IntermediateOutputPath1,
+                s_projectFilePath1,
+                s_intermediateOutputPath1,
                 RazorConfiguration.Default,
                 RootNamespace1,
                 displayName: "");
 
-            projectService.AddDocument(ComponentFilePath1);
-            projectService.UpdateDocument(ComponentFilePath1, SourceText.From(""), version: 1);
+            projectService.AddDocument(s_componentFilePath1);
+            projectService.UpdateDocument(s_componentFilePath1, SourceText.From(""), version: 1);
 
-            projectService.AddDocument(ComponentFilePath2);
-            projectService.UpdateDocument(ComponentFilePath2, SourceText.From("@namespace Test"), version: 1);
+            projectService.AddDocument(s_componentFilePath2);
+            projectService.UpdateDocument(s_componentFilePath2, SourceText.From("@namespace Test"), version: 1);
 
             projectService.AddProject(
-                ProjectFilePath2,
-                IntermediateOutputPath2,
+                s_projectFilePath2,
+                s_intermediateOutputPath2,
                 RazorConfiguration.Default,
                 RootNamespace2,
                 displayName: "");
 
-            projectService.AddDocument(ComponentFilePath3);
-            projectService.UpdateDocument(ComponentFilePath3, SourceText.From(""), version: 1);
+            projectService.AddDocument(s_componentFilePath3);
+            projectService.UpdateDocument(s_componentFilePath3, SourceText.From(""), version: 1);
         });
     }
 
@@ -107,9 +112,9 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
 
         // Assert
         Assert.NotNull(documentSnapshot1);
-        Assert.Equal(ComponentFilePath1, documentSnapshot1.FilePath);
+        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath1, documentSnapshot1.FilePath));
         Assert.NotNull(documentSnapshot2);
-        Assert.Equal(ComponentFilePath3, documentSnapshot2.FilePath);
+        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath3, documentSnapshot2.FilePath));
     }
 
     [Fact]
@@ -126,9 +131,9 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
 
         // Assert
         Assert.NotNull(documentSnapshot1);
-        Assert.Equal(ComponentFilePath1, documentSnapshot1.FilePath);
+        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath1, documentSnapshot1.FilePath));
         Assert.NotNull(documentSnapshot2);
-        Assert.Equal(ComponentFilePath3, documentSnapshot2.FilePath);
+        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath3, documentSnapshot2.FilePath));
     }
 
     [Fact]
@@ -143,7 +148,7 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
 
         // Assert
         Assert.NotNull(documentSnapshot);
-        Assert.Equal(ComponentFilePath2, documentSnapshot.FilePath);
+        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath2, documentSnapshot.FilePath));
     }
 
     [Fact]
@@ -200,7 +205,7 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
 
         // Assert
         Assert.NotNull(documentSnapshot);
-        Assert.Equal(ComponentFilePath2, documentSnapshot.FilePath);
+        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath2, documentSnapshot.FilePath));
     }
 
     internal static TagHelperDescriptor CreateRazorComponentTagHelperDescriptor(string assemblyName, string namespaceName, string tagName, string typeName = null)
