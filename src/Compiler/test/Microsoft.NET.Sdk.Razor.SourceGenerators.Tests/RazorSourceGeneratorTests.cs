@@ -1392,12 +1392,12 @@ namespace AspNetCoreGeneratedDocument
 
             // Act
             var result = RunGenerator(compilation!, ref driver,
-                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(66,167): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(68,167): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(66, 167),
-                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(82,171): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(68, 167),
+                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(84,171): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(82, 171)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(84, 171)
             );
 
             // Assert
