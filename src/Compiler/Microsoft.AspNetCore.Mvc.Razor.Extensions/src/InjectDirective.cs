@@ -78,12 +78,13 @@ public static class InjectDirective
                     continue;
                 }
 
-                if (typeName.EndsWith("<TModel>", StringComparison.Ordinal))
+                const string tModel = "<TModel>";
+                if (typeName.EndsWith(tModel, StringComparison.Ordinal))
                 {
-                    typeName = typeName.Replace("<TModel>", "<" + modelType + ">");
+                    typeName = typeName[..^tModel.Length] + "<" + modelType + ">";
                     if (typeSpan.HasValue)
                     {
-                        typeSpan = new SourceSpan(typeSpan.Value.FilePath, typeSpan.Value.AbsoluteIndex, typeSpan.Value.LineIndex, typeSpan.Value.CharacterIndex, typeSpan.Value.Length - 8, typeSpan.Value.LineCount, typeSpan.Value.EndCharacterIndex - 8);
+                        typeSpan = new SourceSpan(typeSpan.Value.FilePath, typeSpan.Value.AbsoluteIndex, typeSpan.Value.LineIndex, typeSpan.Value.CharacterIndex, typeSpan.Value.Length - tModel.Length, typeSpan.Value.LineCount, typeSpan.Value.EndCharacterIndex - tModel.Length);
                     }
                 }
 
