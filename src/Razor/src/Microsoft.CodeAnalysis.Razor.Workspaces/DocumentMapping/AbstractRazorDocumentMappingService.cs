@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
 [Export(typeof(IRazorDocumentMappingService)), Shared]
 [method: ImportingConstructor]
 internal abstract class AbstractRazorDocumentMappingService(
-        FilePathService filePathService,
-        IDocumentContextFactory documentContextFactory,
-        ILogger logger)
-         : IRazorDocumentMappingService
+    FilePathService filePathService,
+    IDocumentContextFactory documentContextFactory,
+    ILogger logger)
+    : IRazorDocumentMappingService
 {
     private readonly FilePathService _documentFilePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
