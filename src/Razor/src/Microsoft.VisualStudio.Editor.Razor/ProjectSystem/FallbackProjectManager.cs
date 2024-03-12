@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 /// use the Razor or Web SDK, or otherwise don't get picked up by our CPS bits, but have
 /// .razor or .cshtml files regardless.
 /// </summary>
-[Shared]
 [Export(typeof(FallbackProjectManager))]
 [method: ImportingConstructor]
 internal sealed class FallbackProjectManager(
