@@ -35,7 +35,6 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         {
             using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context))
             {
-                context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
             }
             if (!node.HasExplicitSemicolon)
@@ -97,7 +96,6 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
             {
                 using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
                 {
-                    context.AddSourceMappingFor(token);
                     context.CodeWriter.Write(token.Content);
                 }
             }
@@ -182,53 +180,25 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
     public override void WriteCSharpExpressionAttributeValue(CodeRenderingContext context, CSharpExpressionAttributeValueIntermediateNode node)
     {
         var prefixLocation = node.Source.Value.AbsoluteIndex.ToString(CultureInfo.InvariantCulture);
-        var methodInvocationParenLength = 1;
-        var stringLiteralQuoteLength = 2;
-        var parameterSepLength = 2;
-        // Offset accounts for the length of the method, its arguments, and any
-        // additional characters like open parens and quoted strings
-        var offsetLength = WriteAttributeValueMethod.Length
-            + methodInvocationParenLength
-            + node.Prefix.Length
-            + stringLiteralQuoteLength
-            + parameterSepLength
-            + prefixLocation.Length
-            + parameterSepLength;
-        using (context.CodeWriter.BuildEnhancedLinePragma(node.Source.Value, context, offsetLength))
-        {
+        context.CodeWriter
+            .WriteStartMethodInvocation(WriteAttributeValueMethod)
+            .WriteStringLiteral(node.Prefix)
+            .WriteParameterSeparator()
+            .Write(prefixLocation)
+            .WriteParameterSeparator();
 
-            context.CodeWriter
-                .WriteStartMethodInvocation(WriteAttributeValueMethod)
-                .WriteStringLiteral(node.Prefix)
-                .WriteParameterSeparator()
-                .Write(prefixLocation)
-                .WriteParameterSeparator();
+        WriteCSharpChildren(node.Children, context);
 
-            for (var i = 0; i < node.Children.Count; i++)
-            {
-                if (node.Children[i] is IntermediateToken token && token.IsCSharp)
-                {
-                    context.AddSourceMappingFor(token);
-                    context.CodeWriter.Write(token.Content);
-                }
-                else
-                {
-                    // There may be something else inside the expression like an extension node.
-                    context.RenderNode(node.Children[i]);
-                }
-            }
-
-            var valueLocation = node.Source.Value.AbsoluteIndex + node.Prefix.Length;
-            var valueLength = node.Source.Value.Length - node.Prefix.Length;
-            context.CodeWriter
-                .WriteParameterSeparator()
-                .Write(valueLocation.ToString(CultureInfo.InvariantCulture))
-                .WriteParameterSeparator()
-                .Write(valueLength.ToString(CultureInfo.InvariantCulture))
-                .WriteParameterSeparator()
-                .WriteBooleanLiteral(false)
-                .WriteEndMethodInvocation();
-        }
+        var valueLocation = node.Source.Value.AbsoluteIndex + node.Prefix.Length;
+        var valueLength = node.Source.Value.Length - node.Prefix.Length;
+        context.CodeWriter
+            .WriteParameterSeparator()
+            .Write(valueLocation.ToString(CultureInfo.InvariantCulture))
+            .WriteParameterSeparator()
+            .Write(valueLength.ToString(CultureInfo.InvariantCulture))
+            .WriteParameterSeparator()
+            .WriteBooleanLiteral(false)
+            .WriteEndMethodInvocation();
     }
 
     public override void WriteCSharpCodeAttributeValue(CodeRenderingContext context, CSharpCodeAttributeValueIntermediateNode node)
@@ -250,47 +220,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         using (context.CodeWriter.BuildAsyncLambda(ValueWriterName))
         {
             BeginWriterScope(context, ValueWriterName);
-
-            for (var i = 0; i < node.Children.Count; i++)
-            {
-                if (node.Children[i] is IntermediateToken token && token.IsCSharp)
-                {
-                    var isWhitespaceStatement = string.IsNullOrWhiteSpace(token.Content);
-                    IDisposable linePragmaScope = null;
-                    if (token.Source != null)
-                    {
-                        if (!isWhitespaceStatement)
-                        {
-                            linePragmaScope = context.CodeWriter.BuildLinePragma(token.Source.Value, context);
-                        }
-
-                        context.CodeWriter.WritePadding(0, token.Source.Value, context);
-                    }
-                    else if (isWhitespaceStatement)
-                    {
-                        // Don't write whitespace if there is no line mapping for it.
-                        continue;
-                    }
-
-                    context.AddSourceMappingFor(token);
-                    context.CodeWriter.Write(token.Content);
-
-                    if (linePragmaScope != null)
-                    {
-                        linePragmaScope.Dispose();
-                    }
-                    else
-                    {
-                        context.CodeWriter.WriteLine();
-                    }
-                }
-                else
-                {
-                    // There may be something else inside the statement like an extension node.
-                    context.RenderNode(node.Children[i]);
-                }
-            }
-
+            WriteCSharpChildren(node.Children, context);
             EndWriterScope(context);
         }
 

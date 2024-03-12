@@ -69,13 +69,15 @@ foo("")
                 PushWriter(__razor_template_writer);
                 WriteLiteral("<p");
                 BeginWriteAttribute("class", " class=\"", 411, "\"", 424, 1);
+                WriteAttributeValue("", 419, 
 #nullable restore
-#line (17,44)-(17,49) 29 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml"
-WriteAttributeValue("", 419, item, 419, 5, false);
+#line (17,45)-(17,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml"
+item
 
 #line default
 #line hidden
 #nullable disable
+                , 419, 5, false);
                 EndWriteAttribute();
                 WriteLiteral(">Hello</p>");
                 PopWriter();

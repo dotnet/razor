@@ -7,38 +7,38 @@ Generated Location: (318:11,0 [40] )
 
 Source Location: (52:1,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |TItem|
-Generated Location: (519:19,0 [5] )
+Generated Location: (531:19,0 [5] )
 |TItem|
 
 Source Location: (82:5,4 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |ChildContent(Items1)|
-Generated Location: (1055:34,0 [20] )
+Generated Location: (1067:34,0 [20] )
 |ChildContent(Items1)|
 
 Source Location: (111:7,1 [33] x:\dir\subdir\Test\TestComponent.cshtml)
 |foreach (var item in Items2)
 {
 |
-Generated Location: (1263:43,0 [33] )
+Generated Location: (1275:43,0 [33] )
 |foreach (var item in Items2)
 {
 |
 
 Source Location: (152:9,8 [18] x:\dir\subdir\Test\TestComponent.cshtml)
 |ChildContent(item)|
-Generated Location: (1513:54,0 [18] )
+Generated Location: (1525:54,0 [18] )
 |ChildContent(item)|
 
 Source Location: (176:10,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |}
 |
-Generated Location: (1720:63,0 [3] )
+Generated Location: (1732:63,0 [3] )
 |}
 |
 
 Source Location: (185:12,4 [22] x:\dir\subdir\Test\TestComponent.cshtml)
 |ChildContent(Items3())|
-Generated Location: (1940:73,0 [22] )
+Generated Location: (1952:73,0 [22] )
 |ChildContent(Items3())|
 
 Source Location: (222:14,7 [248] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -48,7 +48,7 @@ Source Location: (222:14,7 [248] x:\dir\subdir\Test\TestComponent.cshtml)
     [Parameter] public Func<TItem[]> Items3 { get; set; }
     [Parameter] public RenderFragment<TItem[]> ChildContent { get; set; }
 |
-Generated Location: (2200:84,0 [248] )
+Generated Location: (2212:84,0 [248] )
 |
     [Parameter] public TItem[] Items1 { get; set; }
     [Parameter] public List<TItem[]> Items2 { get; set; }

@@ -7,11 +7,11 @@ Generated Location: (370:12,0 [12] )
 
 Source Location: (11:0,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |TChild|
-Generated Location: (550:21,0 [6] )
+Generated Location: (562:21,0 [6] )
 |TChild|
 
 Source Location: (69:2,37 [16] x:\dir\subdir\Test\TestComponent.cshtml)
 |(TChild x) => {}|
-Generated Location: (1300:35,0 [16] )
+Generated Location: (1312:35,0 [16] )
 |(TChild x) => {}|
 

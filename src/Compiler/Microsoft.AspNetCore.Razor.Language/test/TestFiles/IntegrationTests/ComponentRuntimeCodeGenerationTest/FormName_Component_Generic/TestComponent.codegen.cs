@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Components.Web
     ;
     public partial class TestComponent<
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,12)-(2,13) "x:\dir\subdir\Test\TestComponent.cshtml"
 T
 
 #line default

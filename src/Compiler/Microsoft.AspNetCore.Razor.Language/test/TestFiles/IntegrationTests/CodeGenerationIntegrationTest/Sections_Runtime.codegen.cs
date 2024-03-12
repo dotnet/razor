@@ -25,13 +25,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
                 WriteLiteral("\r\n    <div");
                 BeginWriteAttribute("class", " class=\"", 109, "\"", 128, 2);
                 WriteAttributeValue("", 117, "some", 117, 4, true);
+                WriteAttributeValue(" ", 121, 
 #nullable restore
-#line (8,21)-(8,28) 30 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
-WriteAttributeValue(" ", 121, thing, 122, 6, false);
+#line (8,23)-(8,28) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
+thing
 
 #line default
 #line hidden
 #nullable disable
+                , 122, 6, false);
                 EndWriteAttribute();
                 WriteLiteral(">This is in Section 2</div>\r\n");
             }

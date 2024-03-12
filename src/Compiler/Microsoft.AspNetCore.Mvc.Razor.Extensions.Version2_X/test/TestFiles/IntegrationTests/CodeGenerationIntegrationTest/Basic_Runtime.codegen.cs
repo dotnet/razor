@@ -23,11 +23,13 @@ namespace AspNetCore
             WriteLiteral("<div");
             EndContext();
             BeginWriteAttribute("class", " class=\"", 4, "\"", 28, 1);
-#line (1,13)-(1,29) 28 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-WriteAttributeValue("", 12, this.ToString(), 12, 16, false);
+            WriteAttributeValue("", 12, 
+#line (1,14)-(1,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+this.ToString()
 
 #line default
 #line hidden
+            , 12, 16, false);
             EndWriteAttribute();
             BeginContext(29, 24, true);
             WriteLiteral(">\r\n    Hello world\r\n    ");
@@ -57,8 +59,8 @@ string.Format("{0}", "Hello")
             BeginWriteAttribute("class", " class=\"", 125, "\"", 158, 1);
             WriteAttributeValue("", 133, new Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_attribute_value_writer) => {
                 PushWriter(__razor_attribute_value_writer);
-#line 8 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-           if(cls != null) { 
+#line (8,12)-(8,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+if(cls != null) { 
 
 #line default
 #line hidden
@@ -71,8 +73,8 @@ cls
 #line hidden
                 );
                 EndContext();
-#line 8 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-                                  }
+#line (8,34)-(8,36) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
+ }
 
 #line default
 #line hidden

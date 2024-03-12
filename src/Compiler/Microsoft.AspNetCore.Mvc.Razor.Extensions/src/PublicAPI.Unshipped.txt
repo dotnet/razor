@@ -1,2 +1,6 @@
 ﻿#nullable enable
+Microsoft.AspNetCore.Mvc.Razor.Extensions.InjectIntermediateNode.MemberSource.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?
+Microsoft.AspNetCore.Mvc.Razor.Extensions.InjectIntermediateNode.MemberSource.set -> void
+Microsoft.AspNetCore.Mvc.Razor.Extensions.InjectIntermediateNode.TypeSource.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?
+Microsoft.AspNetCore.Mvc.Razor.Extensions.InjectIntermediateNode.TypeSource.set -> void
 Microsoft.AspNetCore.Mvc.Razor.Extensions.PageDirective.Source.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?
