@@ -316,31 +316,60 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         Assert.Equal(PathUtilities.GetUri(s_componentFilePath3), renameFile.OldUri);
         Assert.Equal(PathUtilities.GetUri(s_componentFilePath5), renameFile.NewUri);
 
-        var editChange1 = documentChanges.ElementAt(1);
-        Assert.True(editChange1.TryGetFirst(out var textDocumentEdit1));
-        Assert.Equal(PathUtilities.GetUri(s_componentFilePath4), textDocumentEdit1.TextDocument.Uri);
-        Assert.Equal(2, textDocumentEdit1.Edits.Length);
+        Assert.Collection(GetTextDocumentEdits(result, startIndex: 1, endIndex: 4),
+            textDocumentEdit =>
+            {
+                Assert.Equal(PathUtilities.GetUri(s_componentFilePath4), textDocumentEdit.TextDocument.Uri);
+                Assert.Collection(
+                    textDocumentEdit.Edits,
+                    AssertTextEdit("Component5", startLine: 1, startCharacter: 1, endLine: 1, endCharacter: 11),
+                    AssertTextEdit("Component5", startLine: 1, startCharacter: 14, endLine: 1, endCharacter: 24));
+            },
+            textDocumentEdit =>
+            {
+                Assert.Equal(PathUtilities.GetUri(s_componentFilePath4), textDocumentEdit.TextDocument.Uri);
+                Assert.Collection(
+                    textDocumentEdit.Edits,
+                    AssertTextEdit("Component5", startLine: 2, startCharacter: 1, endLine: 2, endCharacter: 11),
+                    AssertTextEdit("Component5", startLine: 2, startCharacter: 14, endLine: 2, endCharacter: 24));
+            },
+            textDocumentEdit =>
+            {
+                Assert.Equal(PathUtilities.GetUri(s_componentFilePath5), textDocumentEdit.TextDocument.Uri);
+                Assert.Collection(
+                    textDocumentEdit.Edits,
+                    AssertTextEdit("Component5", startLine: 1, startCharacter: 1, endLine: 1, endCharacter: 11),
+                    AssertTextEdit("Component5", startLine: 1, startCharacter: 14, endLine: 1, endCharacter: 24));
+            },
+            textDocumentEdit =>
+            {
+                Assert.Equal(PathUtilities.GetUri(s_componentWithParamFilePath), textDocumentEdit.TextDocument.Uri);
+                Assert.Collection(
+                    textDocumentEdit.Edits,
+                    AssertTextEdit("Component5", startLine: 1, startCharacter: 1, endLine: 1, endCharacter: 11),
+                    AssertTextEdit("Component5", startLine: 1, startCharacter: 32, endLine: 1, endCharacter: 42));
+            });
 
-        var editChange2 = documentChanges.ElementAt(2);
-        Assert.True(editChange2.TryGetFirst(out var textDocumentEdit2));
-        Assert.Equal(PathUtilities.GetUri(s_componentFilePath4), textDocumentEdit2.TextDocument.Uri);
-        Assert.Equal(2, textDocumentEdit2.Edits.Length);
+        static IEnumerable<TextDocumentEdit> GetTextDocumentEdits(WorkspaceEdit workspaceEdit, int startIndex, int endIndex)
+        {
+            var documentChanges = workspaceEdit.DocumentChanges.AssumeNotNull();
 
-        var editChange3 = documentChanges.ElementAt(3);
-        Assert.True(editChange3.TryGetFirst(out var textDocumentEdit3));
-        Assert.Equal(PathUtilities.GetUri(s_componentFilePath5), textDocumentEdit3.TextDocument.Uri);
-        Assert.Collection(
-            textDocumentEdit3.Edits,
-            AssertTextEdit("Component5", startLine: 1, startCharacter: 1, endLine: 1, endCharacter: 11),
-            AssertTextEdit("Component5", startLine: 1, startCharacter: 14, endLine: 1, endCharacter: 24));
+            using var builder = new PooledArrayBuilder<TextDocumentEdit>();
 
-        var editChange4 = documentChanges.ElementAt(4);
-        Assert.True(editChange4.TryGetFirst(out var textDocumentEdit4));
-        Assert.Equal(PathUtilities.GetUri(s_componentWithParamFilePath), textDocumentEdit4.TextDocument.Uri);
-        Assert.Collection(
-            textDocumentEdit4.Edits,
-            AssertTextEdit("Component5", startLine: 1, startCharacter: 1, endLine: 1, endCharacter: 11),
-            AssertTextEdit("Component5", startLine: 1, startCharacter: 32, endLine: 1, endCharacter: 42));
+            for (var i = startIndex; i <= endIndex; i++)
+            {
+                var change = documentChanges.ElementAt(i);
+                Assert.True(change.TryGetFirst(out var textDocumentEdit));
+
+                builder.Add(textDocumentEdit);
+            }
+
+            return builder
+                .ToArray()
+                .OrderBy(x => x.TextDocument.Uri.ToString())
+                .ThenBy(x => x.Edits.First().Range.Start.Line)
+                .ThenBy(x => x.Edits.First().Range.Start.Character);
+        }
     }
 
     [Fact]
