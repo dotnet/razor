@@ -7,11 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal static class IRazorDocumentMappingServiceExtensions
 {
@@ -26,7 +27,7 @@ internal static class IRazorDocumentMappingServiceExtensions
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
-        return GetPositionInfo(service, codeDocument, sourceText, hostDocumentIndex);
+        return service.GetPositionInfo(codeDocument, sourceText, hostDocumentIndex);
     }
 
     public static DocumentPositionInfo GetPositionInfo(

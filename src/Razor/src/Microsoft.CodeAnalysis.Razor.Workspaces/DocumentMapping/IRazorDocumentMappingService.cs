@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal interface IRazorDocumentMappingService
 {

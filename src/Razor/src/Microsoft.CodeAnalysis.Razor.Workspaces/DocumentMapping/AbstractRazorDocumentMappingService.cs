@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
@@ -19,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 [Export(typeof(IRazorDocumentMappingService)), Shared]
 [method: ImportingConstructor]
@@ -235,9 +236,9 @@ internal abstract class AbstractRazorDocumentMappingService(
 
         generatedDocumentRange = default;
 
-        if ((hostDocumentRange.End.Line < hostDocumentRange.Start.Line) ||
-            (hostDocumentRange.End.Line == hostDocumentRange.Start.Line &&
-             hostDocumentRange.End.Character < hostDocumentRange.Start.Character))
+        if (hostDocumentRange.End.Line < hostDocumentRange.Start.Line ||
+            hostDocumentRange.End.Line == hostDocumentRange.Start.Line &&
+             hostDocumentRange.End.Character < hostDocumentRange.Start.Character)
         {
             _logger.LogWarning("RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{originalRange}'", hostDocumentRange);
             Debug.Fail($"RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{hostDocumentRange}'");
