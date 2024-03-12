@@ -280,7 +280,25 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
     <test1 int-val$$/>
     """
     )]
-    public void GetCompletionAt_AtAttributeEdge_IntAttribute_ReturnsCompletions(string documentText)
+    [InlineData(
+    """
+    @addTagHelper *, TestAssembly
+    <test1 bool-val$$="1"/>
+    """
+    )]
+    [InlineData(
+    """
+    @addTagHelper*, TestAssembly
+    <test1 bool-val$$/>
+    """
+    )]
+    [InlineData(
+    """
+    @addTagHelper*, TestAssembly
+    <test1 @bind-$$/>
+    """
+    )]
+    public void GetCompletionAt_AtAttributeEdge_BothAttribute_ReturnsCompletions(string documentText)
     {
         // Arrange
         var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, TestRazorLSPOptionsMonitor.Create());
