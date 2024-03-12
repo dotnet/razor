@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Moq;
 using Xunit;
@@ -65,7 +66,15 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
         var filePathService = new FilePathService(languageServerFeatureOptions);
 
+        var serviceProvider = VsMocks.CreateServiceProvider(static b =>
+            b.AddComponentModel(static b =>
+            {
+                var startupInitializer = new RazorStartupInitializer([]);
+                b.AddExport(startupInitializer);
+            }));
+
         var fallbackProjectManager = new FallbackProjectManager(
+            serviceProvider,
             StrictMock.Of<ProjectConfigurationFilePathStore>(),
             languageServerFeatureOptions,
             _projectManager,

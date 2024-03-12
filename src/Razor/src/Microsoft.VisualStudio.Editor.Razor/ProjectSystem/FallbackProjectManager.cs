@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 [Export(typeof(FallbackProjectManager))]
 [method: ImportingConstructor]
 internal sealed class FallbackProjectManager(
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     ProjectSnapshotManagerBase projectManager,
@@ -27,6 +30,7 @@ internal sealed class FallbackProjectManager(
     IWorkspaceProvider workspaceProvider,
     ITelemetryReporter telemetryReporter)
 {
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly ProjectSnapshotManagerBase _projectManager = projectManager;
@@ -111,8 +115,7 @@ internal sealed class FallbackProjectManager(
         // the project will be updated, and it will no longer be a fallback project.
         var hostProject = new FallbackHostProject(project.FilePath, intermediateOutputPath, FallbackRazorConfiguration.Latest, rootNamespace, project.Name);
 
-        await _dispatcher
-            .RunAsync(
+        await UpdateProjectManagerAsync(
                 () => _projectManager.ProjectAdded(hostProject),
                 cancellationToken)
             .ConfigureAwait(false);
@@ -134,8 +137,7 @@ internal sealed class FallbackProjectManager(
 
         var textLoader = new FileTextLoader(filePath, defaultEncoding: null);
 
-        await _dispatcher
-            .RunAsync(
+        await UpdateProjectManagerAsync(
                 () => _projectManager.DocumentAdded(projectKey, hostDocument, textLoader),
                 cancellationToken)
             .ConfigureAwait(false);
@@ -177,11 +179,22 @@ internal sealed class FallbackProjectManager(
             return;
         }
 
-        await _dispatcher
-            .RunAsync(
+        await UpdateProjectManagerAsync(
                 () => _projectManager.DocumentRemoved(razorProjectKey, hostDocument),
                 cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    private Task UpdateProjectManagerAsync(Action action, CancellationToken cancellationToken)
+    {
+        return _dispatcher
+            .RunAsync(() =>
+            {
+                RazorStartupInitializer.Initialize(_serviceProvider);
+
+                action();
+            },
+            cancellationToken);
     }
 
     private Project? TryFindProjectForProjectId(ProjectId projectId)
