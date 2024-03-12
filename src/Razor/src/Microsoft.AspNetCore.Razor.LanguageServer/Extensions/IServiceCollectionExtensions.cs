@@ -130,7 +130,7 @@ internal static class IServiceCollectionExtensions
         services.TryAddSingleton<IRazorSemanticTokensInfoService, RazorSemanticTokensInfoService>();
         services.AddSingleton<ICSharpSemanticTokensProvider, LSPCSharpSemanticTokensProvider>();
 
-        services.AddSingleton<RazorSemanticTokensLegendService>();
+        services.AddSingleton<ISemanticTokensLegendService, RazorSemanticTokensLegendService>();
 
         services.AddHandler<RazorSemanticTokensRefreshEndpoint>();
 
