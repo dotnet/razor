@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -31,13 +29,13 @@ internal sealed class LegacyTextViewConnectionListener(
     private readonly IRazorDocumentManager _documentManager = documentManager;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
 
-    private RazorStartupInitializer? _startupInitializer;
-
     public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
     {
         _joinableTaskContext.AssertUIThread();
 
-        InitializeStartupServices();
+        // This is a potential entry point for Razor start up, if the legacy editor is enabled.
+        // So, we need to ensure that any Razor start up services are initialized.
+        RazorStartupInitializer.Initialize(_serviceProvider);
 
         _ = HandleAsync();
 
@@ -54,24 +52,6 @@ internal sealed class LegacyTextViewConnectionListener(
         async Task HandleAsync()
         {
             await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
-        }
-    }
-
-    /// <summary>
-    ///  Ensures that Razor startup services are instantiated and running.
-    /// </summary>
-    private void InitializeStartupServices()
-    {
-        if (_startupInitializer is null)
-        {
-            Interlocked.CompareExchange(ref _startupInitializer, GetStartupInitializer(_serviceProvider), null);
-        }
-
-        static RazorStartupInitializer GetStartupInitializer(IServiceProvider serviceProvider)
-        {
-            var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            Assumes.Present(componentModel);
-            return componentModel.DefaultExportProvider.GetExportedValue<RazorStartupInitializer>();
         }
     }
 }

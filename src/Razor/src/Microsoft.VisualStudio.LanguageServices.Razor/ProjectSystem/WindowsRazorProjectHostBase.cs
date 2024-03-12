@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Threading;
@@ -20,8 +21,9 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 {
     private static readonly DataflowLinkOptions s_dataflowLinkOptions = new DataflowLinkOptions() { PropagateCompletion = true };
 
-    protected readonly ProjectSnapshotManagerBase ProjectManager;
-    protected readonly ProjectSnapshotManagerDispatcher Dispatcher;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ProjectSnapshotManagerBase _projectManager;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly AsyncSemaphore _lock;
 
     private readonly Dictionary<ProjectConfigurationSlice, IDisposable> _projectSubscriptions = new();
@@ -40,14 +42,16 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
+        IServiceProvider serviceProvider,
         ProjectSnapshotManagerBase projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
         : base(commonServices.ThreadingService.JoinableTaskContext)
     {
         CommonServices = commonServices;
-        ProjectManager = projectManager;
-        Dispatcher = dispatcher;
+        _serviceProvider = serviceProvider;
+        _projectManager = projectManager;
+        _dispatcher = dispatcher;
 
         _lock = new AsyncSemaphore(initialCount: 1);
         ProjectConfigurationFilePathStore = projectConfigurationFilePathStore;
@@ -174,15 +178,15 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
             CommonServices.UnconfiguredProject.ProjectRenaming -= UnconfiguredProject_ProjectRenamingAsync;
 
             // If we haven't been initialized, lets not start now
-            if (ProjectManager is not null)
+            if (_projectManager is not null)
             {
                 await ExecuteWithLockAsync(() => UpdateAsync(() =>
                     {
                         // The Projects property creates a copy, so its okay to iterate through this
-                        var projects = ProjectManager.GetProjects();
+                        var projects = _projectManager.GetProjects();
                         foreach (var project in projects)
                         {
-                            UninitializeProjectUnsafe(project.Key);
+                            RemoveProjectUnsafe(project.Key);
                         }
                     }, CancellationToken.None)).ConfigureAwait(false);
             }
@@ -209,14 +213,14 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         // FilePath.
         return ExecuteWithLockAsync(() => UpdateAsync(() =>
         {
-            Dispatcher.AssertRunningOnDispatcher();
+            _dispatcher.AssertRunningOnDispatcher();
 
-            var projectKeys = ProjectManager.GetAllProjectKeys(oldProjectFilePath);
+            var projectKeys = _projectManager.GetAllProjectKeys(oldProjectFilePath);
             foreach (var projectKey in projectKeys)
             {
-                if (ProjectManager.TryGetLoadedProject(projectKey, out var current))
+                if (_projectManager.TryGetLoadedProject(projectKey, out var current))
                 {
-                    UninitializeProjectUnsafe(projectKey);
+                    RemoveProjectUnsafe(projectKey);
 
                     var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
                     UpdateProjectUnsafe(hostProject);
@@ -235,49 +239,77 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }, CancellationToken.None));
     }
 
-    protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
-        => Dispatcher.RunAsync(action, cancellationToken);
-
-    protected void UninitializeProjectUnsafe(ProjectKey projectKey)
+    protected ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFilePath)
     {
-        Dispatcher.AssertRunningOnDispatcher();
+        return _projectManager.GetAllProjectKeys(projectFilePath);
+    }
 
-        if (ProjectManager.TryGetLoadedProject(projectKey, out _))
+    /// <summary>
+    ///  Must be called in order to use <see cref="RemoveProjectUnsafe(ProjectKey)"/>,
+    ///  <see cref="UpdateProjectUnsafe(HostProject)"/>, <see cref="AddDocumentUnsafe(ProjectKey, HostDocument)"/>,
+    ///  or <see cref="RemoveDocumentUnsafe(ProjectKey, HostDocument)"/>.
+    /// </summary>
+    protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(action, cancellationToken);
+    }
+
+    /// <summary>
+    ///  Needs to be called before <see cref="_projectManager"/> is updated.
+    /// </summary>
+    private void EnsureRazorStartupInitialized()
+    {
+        // This is a potential entry point for Razor start up when a project is opened with no open editors.
+        // We need to ensure that any Razor start up services are initialized before the project manager is updated.
+        RazorStartupInitializer.Initialize(_serviceProvider);
+    }
+
+    protected void RemoveProjectUnsafe(ProjectKey projectKey)
+    {
+        _dispatcher.AssertRunningOnDispatcher();
+
+        if (_projectManager.TryGetLoadedProject(projectKey, out _))
         {
-            ProjectManager.ProjectRemoved(projectKey);
+            EnsureRazorStartupInitialized();
+            _projectManager.ProjectRemoved(projectKey);
             ProjectConfigurationFilePathStore.Remove(projectKey);
         }
     }
 
     protected void UpdateProjectUnsafe(HostProject project)
     {
-        Dispatcher.AssertRunningOnDispatcher();
+        _dispatcher.AssertRunningOnDispatcher();
 
-        if (!ProjectManager.TryGetLoadedProject(project.Key, out _))
+        EnsureRazorStartupInitialized();
+
+        if (!_projectManager.TryGetLoadedProject(project.Key, out _))
         {
+
             // Just in case we somehow got in a state where VS didn't tell us that solution close was finished, lets just
             // ensure we're going to actually do something with the new project that we've just been told about.
             // If VS did tell us, then this is a no-op.
-            ProjectManager.SolutionOpened();
+            _projectManager.SolutionOpened();
 
-            ProjectManager.ProjectAdded(project);
+            _projectManager.ProjectAdded(project);
         }
         else
         {
-            ProjectManager.ProjectConfigurationChanged(project);
+            _projectManager.ProjectConfigurationChanged(project);
         }
     }
 
     protected void AddDocumentUnsafe(ProjectKey projectKey, HostDocument document)
     {
-        Dispatcher.AssertRunningOnDispatcher();
-        ProjectManager.DocumentAdded(projectKey, document, new FileTextLoader(document.FilePath, null));
+        _dispatcher.AssertRunningOnDispatcher();
+        EnsureRazorStartupInitialized();
+        _projectManager.DocumentAdded(projectKey, document, new FileTextLoader(document.FilePath, null));
     }
 
     protected void RemoveDocumentUnsafe(ProjectKey projectKey, HostDocument document)
     {
-        Dispatcher.AssertRunningOnDispatcher();
-        ProjectManager.DocumentRemoved(projectKey, document);
+        _dispatcher.AssertRunningOnDispatcher();
+        EnsureRazorStartupInitialized();
+        _projectManager.DocumentRemoved(projectKey, document);
     }
 
     private async Task ExecuteWithLockAsync(Func<Task> func)

@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
@@ -47,8 +45,6 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly IVsTextManager4 _textManager;
 
-    private RazorStartupInitializer? _startupInitializer;
-
     /// <summary>
     /// Protects concurrent modifications to _activeTextViews and _textBuffer's
     /// property bag.
@@ -86,7 +82,9 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
             throw new ArgumentNullException(nameof(textView));
         }
 
-        InitializeStartupServices();
+        // This is a potential entry point for Razor start up, if a project is loaded with an editor already opened.
+        // So, we need to ensure that any Razor start up services are initialized.
+        RazorStartupInitializer.Initialize(_serviceProvider);
 
         var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
 
@@ -190,23 +188,6 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
                     newViewOptions.OptionChanged += RazorOptions_OptionChanged;
                 }
             }
-        }
-    }
-
-    /// <summary>
-    ///  Ensures that Razor startup services are instantiated and running.
-    /// </summary>
-    private void InitializeStartupServices()
-    {
-        if (_startupInitializer is null)
-        {
-            Interlocked.CompareExchange(ref _startupInitializer, GetStartupInitializer(_serviceProvider), null);
-        }
-
-        static RazorStartupInitializer GetStartupInitializer(IServiceProvider serviceProvider)
-        {
-            var componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
-            return componentModel.DefaultExportProvider.GetExportedValue<RazorStartupInitializer>();
         }
     }
 

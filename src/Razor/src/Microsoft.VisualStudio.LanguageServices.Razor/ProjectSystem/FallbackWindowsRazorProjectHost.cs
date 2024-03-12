@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using ContentItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ContentItem;
 using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ItemReference;
 using NoneItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.NoneItem;
@@ -41,11 +42,12 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     [ImportingConstructor]
     public FallbackWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         ProjectSnapshotManagerBase projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         LanguageServerFeatureOptions? languageServerFeatureOptions)
-        : base(commonServices, projectManager, dispatcher, projectConfigurationFilePathStore)
+        : base(commonServices, serviceProvider, projectManager, dispatcher, projectConfigurationFilePathStore)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
@@ -73,12 +75,10 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
             await UpdateAsync(() =>
             {
-                Dispatcher.AssertRunningOnDispatcher();
-
-                var projectKeys = ProjectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
                 foreach (var projectKey in projectKeys)
                 {
-                    UninitializeProjectUnsafe(projectKey);
+                    RemoveProjectUnsafe(projectKey);
                 }
             }, CancellationToken.None).ConfigureAwait(false);
             return;
@@ -90,12 +90,10 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
             await UpdateAsync(() =>
             {
-                Dispatcher.AssertRunningOnDispatcher();
-
-                var projectKeys = ProjectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
                 foreach (var projectKey in projectKeys)
                 {
-                    UninitializeProjectUnsafe(projectKey);
+                    RemoveProjectUnsafe(projectKey);
                 }
             }, CancellationToken.None).ConfigureAwait(false);
             return;
@@ -115,7 +113,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             await UpdateAsync(() =>
             {
                 var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
-                UninitializeProjectUnsafe(beforeProjectKey);
+                RemoveProjectUnsafe(beforeProjectKey);
             }, CancellationToken.None).ConfigureAwait(false);
         }
 

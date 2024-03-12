@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
+using Microsoft.VisualStudio.Shell;
 using Item = System.Collections.Generic.KeyValuePair<string, System.Collections.Immutable.IImmutableDictionary<string, string>>;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -40,11 +41,12 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     [ImportingConstructor]
     public DefaultWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         ProjectSnapshotManagerBase projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         LanguageServerFeatureOptions? languageServerFeatureOptions)
-        : base(commonServices, projectManager, dispatcher, projectConfigurationFilePathStore)
+        : base(commonServices, serviceProvider, projectManager, dispatcher, projectConfigurationFilePathStore)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
@@ -66,7 +68,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
                 await UpdateAsync(() =>
                 {
                     var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
-                    UninitializeProjectUnsafe(beforeProjectKey);
+                    RemoveProjectUnsafe(beforeProjectKey);
                 }, CancellationToken.None).ConfigureAwait(false);
             }
 
@@ -113,12 +115,10 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
             await UpdateAsync(() =>
             {
-                Dispatcher.AssertRunningOnDispatcher();
-
-                var projectKeys = ProjectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
                 foreach (var projectKey in projectKeys)
                 {
-                    UninitializeProjectUnsafe(projectKey);
+                    RemoveProjectUnsafe(projectKey);
                 }
             }, CancellationToken.None).ConfigureAwait(false);
         }
