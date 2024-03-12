@@ -35,6 +35,7 @@
     <!-- Enable roll-forward to latest patch.  This allows one restore operation
         to apply to all of the self-contained publish operations. -->
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <RollForward>LatestMajor</RollForward>
     <RidsPublishDir>$(ArtifactsDir)LanguageServer\$(Configuration)\</RidsPublishDir>
   </PropertyGroup>
 
