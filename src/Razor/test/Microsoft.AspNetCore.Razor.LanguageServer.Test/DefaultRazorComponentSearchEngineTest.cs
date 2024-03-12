@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
@@ -41,7 +38,9 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
     private static readonly string s_componentFilePath2 = Path.Combine(s_project1BasePath, "Component2.razor");
     private static readonly string s_componentFilePath3 = Path.Combine(s_project2BasePath, "Component3.razor");
 
+#nullable disable
     private TestProjectSnapshotManager _projectManager;
+#nullable enable
 
     protected override async Task InitializeAsync()
     {
@@ -112,9 +111,9 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
 
         // Assert
         Assert.NotNull(documentSnapshot1);
-        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath1, documentSnapshot1.FilePath));
+        PathUtilities.AssertEquivalent(s_componentFilePath1, documentSnapshot1.FilePath);
         Assert.NotNull(documentSnapshot2);
-        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath3, documentSnapshot2.FilePath));
+        PathUtilities.AssertEquivalent(s_componentFilePath3, documentSnapshot2.FilePath);
     }
 
     [Fact]
@@ -131,9 +130,9 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
 
         // Assert
         Assert.NotNull(documentSnapshot1);
-        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath1, documentSnapshot1.FilePath));
+        PathUtilities.AssertEquivalent(s_componentFilePath1, documentSnapshot1.FilePath);
         Assert.NotNull(documentSnapshot2);
-        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath3, documentSnapshot2.FilePath));
+        PathUtilities.AssertEquivalent(s_componentFilePath3, documentSnapshot2.FilePath);
     }
 
     [Fact]
@@ -148,7 +147,7 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
 
         // Assert
         Assert.NotNull(documentSnapshot);
-        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath2, documentSnapshot.FilePath));
+        PathUtilities.AssertEquivalent(s_componentFilePath2, documentSnapshot.FilePath);
     }
 
     [Fact]
@@ -205,10 +204,10 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
 
         // Assert
         Assert.NotNull(documentSnapshot);
-        Assert.True(FilePathNormalizer.FilePathsEquivalent(s_componentFilePath2, documentSnapshot.FilePath));
+        PathUtilities.AssertEquivalent(s_componentFilePath2, documentSnapshot.FilePath);
     }
 
-    internal static TagHelperDescriptor CreateRazorComponentTagHelperDescriptor(string assemblyName, string namespaceName, string tagName, string typeName = null)
+    internal static TagHelperDescriptor CreateRazorComponentTagHelperDescriptor(string assemblyName, string namespaceName, string tagName, string? typeName = null)
     {
         typeName ??= tagName;
         var fullyQualifiedName = $"{namespaceName}.{typeName}";
