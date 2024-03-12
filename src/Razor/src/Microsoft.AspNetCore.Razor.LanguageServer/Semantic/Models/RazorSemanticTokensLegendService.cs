@@ -3,17 +3,13 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Reflection;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-[Export(typeof(RazorSemanticTokensLegendService))]
-[method: ImportingConstructor]
-internal sealed partial class RazorSemanticTokensLegendService(IClientCapabilitiesService clientCapabilitiesService)
+internal sealed partial class RazorSemanticTokensLegendService(IClientCapabilitiesService clientCapabilitiesService) : ISemanticTokensLegendService
 {
     private static readonly SemanticTokenModifiers s_modifiers = ConstructTokenModifiers();
 
@@ -23,11 +19,6 @@ internal sealed partial class RazorSemanticTokensLegendService(IClientCapabiliti
 
     public SemanticTokenTypes TokenTypes => _typesLazy.Value;
     public SemanticTokenModifiers TokenModifiers { get; } = s_modifiers;
-    public SemanticTokensLegend Legend => new SemanticTokensLegend()
-    {
-        TokenModifiers = s_modifiers.TokenModifiers,
-        TokenTypes = _typesLazy.Value.TokenTypes
-    };
 
     private static SemanticTokenTypes ConstructTokenTypes(bool supportsVsExtensions)
     {
