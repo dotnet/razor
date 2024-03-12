@@ -4,7 +4,7 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal interface IDocumentContextFactory
 {

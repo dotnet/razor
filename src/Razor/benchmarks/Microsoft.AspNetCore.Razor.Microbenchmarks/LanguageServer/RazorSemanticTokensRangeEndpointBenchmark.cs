@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;

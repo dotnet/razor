@@ -3,7 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;

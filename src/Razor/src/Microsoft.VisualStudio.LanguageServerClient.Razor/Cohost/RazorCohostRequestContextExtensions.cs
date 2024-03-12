@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 

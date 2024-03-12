@@ -5,7 +5,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;

@@ -5,7 +5,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
 
