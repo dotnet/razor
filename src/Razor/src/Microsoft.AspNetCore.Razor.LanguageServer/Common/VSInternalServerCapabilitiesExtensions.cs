@@ -29,8 +29,8 @@ internal static class VSInternalServerCapabilitiesExtensions
             Full = false,
             Legend = new SemanticTokensLegend
             {
-                TokenModifiers = legend.TokenModifiers.TokenModifiers,
-                TokenTypes = legend.TokenTypes.TokenTypes
+                TokenModifiers = legend.TokenModifiers.All,
+                TokenTypes = legend.TokenTypes.All
             },
             Range = true,
         };

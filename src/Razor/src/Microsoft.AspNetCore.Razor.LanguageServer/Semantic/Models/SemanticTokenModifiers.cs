@@ -12,7 +12,7 @@ internal sealed class SemanticTokenModifiers
 
     public int RazorCodeModifier => _modifierMap[s_razorCode];
 
-    public string[] TokenModifiers { get; }
+    public string[] All { get; }
 
     private readonly Dictionary<string, int> _modifierMap;
 
@@ -27,6 +27,6 @@ internal sealed class SemanticTokenModifiers
 
         _modifierMap = modifierMap;
 
-        TokenModifiers = tokenModifiers;
+        All = tokenModifiers;
     }
 }

@@ -51,7 +51,7 @@ internal sealed class SemanticTokenTypes
     public int RazorTagHelperElement => _tokenTypeMap[s_razorTagHelperElementType];
     public int RazorTransition => _tokenTypeMap[s_razorTransitionType];
 
-    public string[] TokenTypes { get; }
+    public string[] All { get; }
 
     private readonly Dictionary<string, int> _tokenTypeMap;
 
@@ -65,6 +65,6 @@ internal sealed class SemanticTokenTypes
 
         _tokenTypeMap = tokenTypeMap;
 
-        TokenTypes = tokenTypes;
+        All = tokenTypes;
     }
 }
