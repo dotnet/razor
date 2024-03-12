@@ -10,9 +10,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
 internal partial class TestProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
-    ProjectSnapshotManagerDispatcher dispatcher,
-    IErrorReporter errorReporter)
-    : ProjectSnapshotManager(projectEngineFactoryProvider, dispatcher, errorReporter)
+    ProjectSnapshotManagerDispatcher dispatcher)
+    : ProjectSnapshotManager(projectEngineFactoryProvider, dispatcher)
 {
     public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
     {

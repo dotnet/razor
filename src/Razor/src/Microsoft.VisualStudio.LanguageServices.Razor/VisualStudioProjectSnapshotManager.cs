@@ -13,8 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 [method: ImportingConstructor]
 internal sealed class VisualStudioProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
-    ProjectSnapshotManagerDispatcher dispatcher,
-    IErrorReporter errorReporter)
-    : ProjectSnapshotManager(projectEngineFactoryProvider, dispatcher, errorReporter)
+    ProjectSnapshotManagerDispatcher dispatcher)
+    : ProjectSnapshotManager(projectEngineFactoryProvider, dispatcher)
 {
 }

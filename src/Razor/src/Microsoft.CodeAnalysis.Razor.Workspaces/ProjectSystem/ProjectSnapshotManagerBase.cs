@@ -46,12 +46,6 @@ internal abstract class ProjectSnapshotManagerBase : IProjectSnapshotManager
 
     internal abstract void ProjectRemoved(ProjectKey projectKey);
 
-    internal abstract void ReportError(Exception exception);
-
-    internal abstract void ReportError(Exception exception, IProjectSnapshot project);
-
-    internal abstract void ReportError(Exception exception, ProjectKey projectKey);
-
     internal abstract void SolutionOpened();
 
     internal abstract void SolutionClosed();

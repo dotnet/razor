@@ -63,7 +63,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         var hostDocument = s_documents[0];
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider)
+        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
             Delay = TimeSpan.FromMilliseconds(1),
             NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
@@ -120,7 +120,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider)
+        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
             Delay = TimeSpan.FromMilliseconds(1),
             NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
@@ -161,7 +161,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider)
+        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
             Delay = TimeSpan.FromMilliseconds(1),
             NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
@@ -195,7 +195,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider)
+        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
             Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -239,7 +239,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider)
+        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
             Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -316,7 +316,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             }
         });
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider)
+        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
             Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -375,7 +375,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             projectManager.DocumentAdded(s_hostProject1.Key, TestProjectData.SomeProjectImportFile, null!);
         });
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider)
+        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
             Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),

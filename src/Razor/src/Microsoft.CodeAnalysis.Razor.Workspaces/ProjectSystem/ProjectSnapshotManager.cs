@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // The implementation will create a ProjectSnapshot for each HostProject.
 internal class ProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
-    ProjectSnapshotManagerDispatcher dispatcher,
-    IErrorReporter errorReporter) : ProjectSnapshotManagerBase
+    ProjectSnapshotManagerDispatcher dispatcher)
+    : ProjectSnapshotManagerBase
 {
     public override event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
     public override event EventHandler<ProjectChangeEventArgs>? Changed;
@@ -40,7 +40,6 @@ internal class ProjectSnapshotManager(
     // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider = projectEngineFactoryProvider;
-    private readonly IErrorReporter _errorReporter = errorReporter;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
 
     // internal for testing
@@ -328,28 +327,6 @@ internal class ProjectSnapshotManager(
     internal override void SolutionClosed()
     {
         IsSolutionClosing = true;
-    }
-
-    internal override void ReportError(Exception exception)
-    {
-        _errorReporter.ReportError(exception);
-    }
-
-    internal override void ReportError(Exception exception, IProjectSnapshot project)
-    {
-        _errorReporter.ReportError(exception, project);
-    }
-
-    internal override void ReportError(Exception exception, ProjectKey projectKey)
-    {
-        if (TryGetLoadedProject(projectKey, out var project))
-        {
-            _errorReporter.ReportError(exception, project);
-        }
-        else
-        {
-            _errorReporter.ReportError(exception);
-        }
     }
 
     private void NotifyListeners(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)

@@ -61,7 +61,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
         => CreateProjectSnapshotManager(ProjectEngineFactoryProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(projectEngineFactoryProvider, Dispatcher, ErrorReporter);
+        => new(projectEngineFactoryProvider, Dispatcher);
 
     protected virtual void ConfigureWorkspaceServices(List<IWorkspaceService> services)
     {

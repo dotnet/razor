@@ -76,7 +76,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     {
         return new ProjectSnapshotManager(
             projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
-            dispatcher: Dispatcher,
-            errorReporter: ErrorReporter);
+            dispatcher: Dispatcher);
     }
 }

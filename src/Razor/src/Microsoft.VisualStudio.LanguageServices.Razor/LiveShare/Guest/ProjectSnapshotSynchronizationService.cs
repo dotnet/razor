@@ -53,7 +53,7 @@ internal class ProjectSnapshotSynchronizationService(
             }
             catch (Exception ex)
             {
-                _projectManager.ReportError(ex, project);
+                _errorReporter.ReportError(ex, project);
             }
         }
     }

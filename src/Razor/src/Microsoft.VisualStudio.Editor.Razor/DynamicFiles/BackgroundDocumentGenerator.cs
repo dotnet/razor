@@ -23,9 +23,10 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
     // Internal for testing
     internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work = [];
 
-    private readonly ProjectSnapshotManagerBase _projectManager;
+    private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
+    private readonly IErrorReporter _errorReporter;
     private readonly HashSet<string> _suppressedDocuments = new(FilePathComparer.Instance);
 
     private Timer? _timer;
@@ -33,13 +34,15 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
 
     [ImportingConstructor]
     public BackgroundDocumentGenerator(
-        ProjectSnapshotManagerBase projectManager,
+        IProjectSnapshotManager projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
-        IRazorDynamicFileInfoProviderInternal infoProvider)
+        IRazorDynamicFileInfoProviderInternal infoProvider,
+        IErrorReporter errorReporter)
     {
         _projectManager = projectManager;
         _dispatcher = dispatcher;
         _infoProvider = infoProvider;
+        _errorReporter = errorReporter;
 
         _projectManager.Changed += ProjectManager_Changed;
     }
@@ -235,14 +238,7 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
         }
         catch (Exception ex)
         {
-            Assumes.NotNull(_projectManager);
-
-            // This is something totally unexpected, let's just send it over to the workspace.
-            await _dispatcher
-                .RunAsync(
-                    () => _projectManager.ReportError(ex),
-                    CancellationToken.None)
-                .ConfigureAwait(false);
+            _errorReporter.ReportError(ex);
         }
     }
 
@@ -250,17 +246,11 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
     {
         OnErrorBeingReported();
 
-        Assumes.NotNull(_projectManager);
-
-        _dispatcher.RunAsync(
-            () => _projectManager.ReportError(ex, project),
-            CancellationToken.None).Forget();
+        _errorReporter.ReportError(ex, project);
     }
 
     private bool Suppressed(IProjectSnapshot project, IDocumentSnapshot document)
     {
-        Assumes.NotNull(_projectManager);
-
         lock (_suppressedDocuments)
         {
             var filePath = document.FilePath.AssumeNotNull();
