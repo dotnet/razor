@@ -1,18 +1,18 @@
 ﻿Source Location: (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
 |using Microsoft.AspNetCore.Components.Web
 |
-Generated Location: (370:12,0 [43] )
+Generated Location: (371:12,0 [43] )
 |using Microsoft.AspNetCore.Components.Web
 |
 
 Source Location: (61:1,17 [16] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnComponentHover|
-Generated Location: (1066:27,0 [16] )
+Generated Location: (1113:29,0 [16] )
 |OnComponentHover|
 
 Source Location: (99:1,55 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentBgColor|
-Generated Location: (1305:36,0 [13] )
+Generated Location: (1352:38,0 [13] )
 |ParentBgColor|
 
 Source Location: (126:2,7 [130] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -23,7 +23,7 @@ Source Location: (126:2,7 [130] x:\dir\subdir\Test\TestComponent.cshtml)
     {
     }
 |
-Generated Location: (1561:47,0 [130] )
+Generated Location: (1608:49,0 [130] )
 |
     public string ParentBgColor { get; set; } = "#FFFFFF";
 

@@ -11,8 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
@@ -554,6 +553,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             // Open brace is a child of the C# code block that is the directive itself
             if (owner is RazorMetaCodeSyntax &&
                 owner.Parent is CSharpCodeBlockSyntax codeBlock &&
+                codeBlock.Children.Count > 3 &&
                 owner == codeBlock.Children[3] &&
                 // CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
                 codeBlock.Parent?.Parent is RazorDirectiveSyntax directive2 &&

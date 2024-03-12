@@ -8,18 +8,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 
-[LanguageServerEndpoint(Methods.TextDocumentReferencesName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentReferencesName)]
 internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParams, VSInternalReferenceItem[]>, ICapabilitiesProvider
 {
     private readonly FilePathService _filePathService;

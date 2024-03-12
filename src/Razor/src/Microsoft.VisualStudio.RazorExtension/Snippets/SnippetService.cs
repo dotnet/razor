@@ -9,9 +9,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Editor.Razor.Snippets;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Shell;
@@ -61,16 +62,16 @@ internal class SnippetService
         _serviceProvider = serviceProvider;
         _snippetCache = snippetCache;
         _advancedSettingsStorage = advancedSettingsStorage;
-        _advancedSettingsStorage.Changed += (s, e) =>
-        {
-            _joinableTaskFactory.RunAsync(PopulateAsync).FileAndForget("SnippetService_Populate");
-        };
-
         _joinableTaskFactory.RunAsync(InitializeAsync).FileAndForget("SnippetService_Initialize");
     }
 
     private async Task InitializeAsync()
     {
+        await _advancedSettingsStorage.OnChangedAsync(_ =>
+        {
+            PopulateAsync().FileAndForget("SnippetService_Populate");
+        }).ConfigureAwait(false);
+
         await _joinableTaskFactory.SwitchToMainThreadAsync();
         var textManager = (IVsTextManager2?)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
         if (textManager is null)

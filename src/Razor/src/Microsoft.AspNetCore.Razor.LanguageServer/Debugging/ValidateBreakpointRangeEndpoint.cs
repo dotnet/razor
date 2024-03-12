@@ -1,35 +1,32 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
-[LanguageServerEndpoint(VSInternalMethods.TextDocumentValidateBreakableRangeName)]
-internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint<ValidateBreakpointRangeParams, Range?>, ICapabilitiesProvider
+[RazorLanguageServerEndpoint(VSInternalMethods.TextDocumentValidateBreakableRangeName)]
+internal class ValidateBreakpointRangeEndpoint(
+    IRazorDocumentMappingService documentMappingService,
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IClientConnection clientConnection,
+    IRazorLoggerFactory loggerFactory)
+    : AbstractRazorDelegatingEndpoint<ValidateBreakpointRangeParams, Range?>(
+        languageServerFeatureOptions,
+        documentMappingService,
+        clientConnection,
+        loggerFactory.CreateLogger<ValidateBreakpointRangeEndpoint>()), ICapabilitiesProvider
 {
-    private readonly IRazorDocumentMappingService _documentMappingService;
-
-    public ValidateBreakpointRangeEndpoint(
-        IRazorDocumentMappingService documentMappingService,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<ValidateBreakpointRangeEndpoint>())
-    {
-        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-    }
+    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
 
     protected override bool OnlySingleServer => false;
 
@@ -37,7 +34,7 @@ internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        serverCapabilities.BreakableRangeProvider = true;
+        serverCapabilities.EnableValidateBreakpointRange();
     }
 
     protected override Task<Range?> TryHandleAsync(ValidateBreakpointRangeParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
@@ -79,7 +76,7 @@ internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), delegatedResponse, out var projectedRange))
+        if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), delegatedResponse, MappingBehavior.Inclusive, out var projectedRange))
         {
             return projectedRange;
         }

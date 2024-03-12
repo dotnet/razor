@@ -4,10 +4,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -347,7 +346,7 @@ public partial class OnAutoInsertEndpointTest
     {
         var lspServices = new Mock<ILspServices>(MockBehavior.Strict);
         lspServices
-            .Setup(l => l.GetRequiredService<AdhocWorkspaceFactory>()).Returns(TestAdhocWorkspaceFactory.Instance);
+            .Setup(l => l.GetRequiredService<IAdhocWorkspaceFactory>()).Returns(TestAdhocWorkspaceFactory.Instance);
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher);
         lspServices
             .Setup(l => l.GetRequiredService<IRazorFormattingService>())
@@ -363,7 +362,7 @@ public partial class OnAutoInsertEndpointTest
         TestFileMarkupParser.GetPosition(input, out input, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(input);
-        var razorFilePath = "file://path/test.razor";
+        var razorFilePath = "C:/path/test.razor";
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
         var optionsMonitor = GetOptionsMonitor();

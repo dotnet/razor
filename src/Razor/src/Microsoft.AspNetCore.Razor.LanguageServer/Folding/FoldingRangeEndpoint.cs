@@ -10,17 +10,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
-[LanguageServerEndpoint(Methods.TextDocumentFoldingRangeName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentFoldingRangeName)]
 internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangeParams, IEnumerable<FoldingRange>?>, ICapabilitiesProvider
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
@@ -156,14 +154,6 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
     {
         Debug.Assert(range.StartLine < range.EndLine);
 
-        // If the range has collapsed text set, we don't need
-        // to adjust anything. Just take that value as what
-        // should be shown
-        if (!string.IsNullOrEmpty(range.CollapsedText))
-        {
-            return range;
-        }
-
         var sourceText = codeDocument.GetSourceText();
         var startLine = range.StartLine;
 
@@ -186,7 +176,9 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
             // +1 to the offset value because the helper goes to the character position
             // that we want to be after. Make sure we don't exceed the line end
             var newCharacter = Math.Min(offset.Value + 1, lineSpan.Length);
+
             range.StartCharacter = newCharacter;
+            range.CollapsedText = null; // Let the client deside what to show
             return range;
         }
 

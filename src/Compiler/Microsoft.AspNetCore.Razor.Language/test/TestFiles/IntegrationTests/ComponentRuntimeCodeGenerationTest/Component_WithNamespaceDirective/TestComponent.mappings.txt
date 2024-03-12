@@ -6,7 +6,7 @@ Generated Location: (146:5,0 [11] )
 Source Location: (1:0,1 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |using Test
 |
-Generated Location: (511:19,0 [12] )
+Generated Location: (512:19,0 [12] )
 |using Test
 |
 

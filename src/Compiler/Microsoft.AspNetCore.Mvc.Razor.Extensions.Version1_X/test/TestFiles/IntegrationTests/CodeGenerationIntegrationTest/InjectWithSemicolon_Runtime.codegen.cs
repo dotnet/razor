@@ -4,7 +4,7 @@
 [assembly: global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute(typeof(AspNetCore.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InjectWithSemicolon), @"mvc.1.0.view", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml")]
 namespace AspNetCore
 {
-    #line hidden
+    #line default
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -12,6 +12,8 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line default
+    #line hidden
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"771acb56660727ab6e4ca50e95bde0cf2a72af8de3e9ec1cd4b72969645cb9af", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithSemicolon.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InjectWithSemicolon : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<MyModel>
     {

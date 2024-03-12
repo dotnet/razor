@@ -59,7 +59,7 @@ internal class RazorCompletionFactsService : IRazorCompletionFactsService
 
     // Internal for testing
     [return: NotNullIfNotNull(nameof(originalNode))]
-    internal static SyntaxNode? AdjustSyntaxNodeForWordBoundary(SyntaxNode? originalNode, int requestIndex, HtmlFactsService htmlFactsService)
+    internal static SyntaxNode? AdjustSyntaxNodeForWordBoundary(SyntaxNode? originalNode, int requestIndex)
     {
         if (originalNode == null)
         {
@@ -71,8 +71,11 @@ internal class RazorCompletionFactsService : IRazorCompletionFactsService
         // node that FindInnermostNode will return is not the request index, so we won't end up walking that back.
         // If we ever move to roslyn-style trivia, where whitespace is attached to the token, we can remove this, and simply check
         // to see whether the absolute index is in the Span of the node in the relevant providers.
+        // Note - this also addresses directives, including with cursor at EOF, e.g. @fun|
         if (originalNode.SpanStart == requestIndex
-            && originalNode.GetFirstToken() is { } startToken
+            // allow zero-length tokens for cases when cursor is at EOF,
+            // e.g. see https://github.com/dotnet/razor/issues/9955
+            && originalNode.GetFirstToken(includeZeroWidth: true) is { } startToken
             && startToken.GetPreviousToken() is { } previousToken)
         {
             Debug.Assert(previousToken.Span.End == requestIndex);
@@ -82,7 +85,7 @@ internal class RazorCompletionFactsService : IRazorCompletionFactsService
 
         // We also want to walk back for cases like <a hr|/>, which do not involve whitespace at all. For this case, we want
         // to see if we're on the closing slash or angle bracket of a start or end tag
-        if (htmlFactsService.TryGetElementInfo(originalNode, containingTagNameToken: out _, attributeNodes: out _, closingForwardSlashOrCloseAngleToken: out var closingForwardSlashOrCloseAngleToken)
+        if (HtmlFacts.TryGetElementInfo(originalNode, containingTagNameToken: out _, attributeNodes: out _, closingForwardSlashOrCloseAngleToken: out var closingForwardSlashOrCloseAngleToken)
             && closingForwardSlashOrCloseAngleToken.SpanStart == requestIndex
             && closingForwardSlashOrCloseAngleToken.GetPreviousToken() is { } previousToken2)
         {

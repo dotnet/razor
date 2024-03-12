@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -24,7 +26,7 @@ internal class ProjectSnapshot : IProjectSnapshot
         State = state ?? throw new ArgumentNullException(nameof(state));
 
         _lock = new object();
-        _documents = new Dictionary<string, DocumentSnapshot>(FilePathNormalizer.Comparer);
+        _documents = new Dictionary<string, DocumentSnapshot>(FilePathNormalizingComparer.Instance);
     }
 
     public ProjectKey Key => State.HostProject.Key;
@@ -51,7 +53,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public virtual VersionStamp Version => State.Version;
 
-    public ImmutableArray<TagHelperDescriptor> TagHelpers => State.TagHelpers;
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => new(State.TagHelpers);
 
     public ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
 

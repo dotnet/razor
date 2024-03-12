@@ -11,8 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Item = System.Collections.Generic.KeyValuePair<string, System.Collections.Immutable.IImmutableDictionary<string, string>>;
@@ -40,24 +40,11 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     [ImportingConstructor]
     public DefaultWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
-        [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerAccessor projectManagerAccessor,
+        ProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
-    {
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-    }
-
-    // Internal for testing
-    internal DefaultWindowsRazorProjectHost(
-        IUnconfiguredProjectCommonServices commonServices,
-        Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        ProjectSnapshotManagerBase projectManager,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
+        : base(commonServices, projectManagerAccessor, dispatcher, projectConfigurationFilePathStore)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
@@ -70,6 +57,18 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
+
+            if (TryGetBeforeIntermediateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath) &&
+                beforeIntermediateOutputPath != intermediatePath)
+            {
+                // If the intermediate output path is in the ProjectChanges, then we know that it has changed, so we want to ensure we remove the old one,
+                // otherwise this would be seen as an Add, and we'd end up with two active projects
+                await UpdateAsync(() =>
+                {
+                    var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                    UninitializeProjectUnsafe(beforeProjectKey);
+                }, CancellationToken.None).ConfigureAwait(false);
+            }
 
             // We need to deal with the case where the project was uninitialized, but now
             // is valid for Razor. In that case we might have previously seen all of the documents
@@ -125,7 +124,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     // Internal for testing
     internal static bool TryGetConfiguration(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
-        bool suppressDesignTime,
+        bool forceRuntimeCodeGeneration,
         [NotNullWhen(returnValue: true)] out RazorConfiguration? configuration)
     {
         if (!TryGetDefaultConfiguration(state, out var defaultConfiguration))
@@ -153,7 +152,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             return false;
         }
 
-        configuration = new ProjectSystemRazorConfiguration(languageVersion, configurationItem.Key, extensions, suppressDesignTime);
+        configuration = new(languageVersion, configurationItem.Key, extensions, forceRuntimeCodeGeneration);
         return true;
     }
 
@@ -257,23 +256,24 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     internal static bool TryGetExtensions(
         string[] extensionNames,
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
-        out ProjectSystemRazorExtension[] extensions)
+        out ImmutableArray<RazorExtension> extensions)
     {
         // The list of extensions might not be present, because the configuration may not have any.
         state.TryGetValue(Rules.RazorExtension.PrimaryDataSourceItemType, out var rule);
 
         var items = rule?.Items ?? ImmutableDictionary<string, IImmutableDictionary<string, string>>.Empty;
-        var extensionList = new List<ProjectSystemRazorExtension>();
+
+        using var builder = new PooledArrayBuilder<RazorExtension>();
         foreach (var item in items)
         {
             var extensionName = item.Key;
             if (extensionNames.Contains(extensionName))
             {
-                extensionList.Add(new ProjectSystemRazorExtension(extensionName));
+                builder.Add(new(extensionName));
             }
         }
 
-        extensions = extensionList.ToArray();
+        extensions = builder.DrainToImmutable();
         return true;
     }
 

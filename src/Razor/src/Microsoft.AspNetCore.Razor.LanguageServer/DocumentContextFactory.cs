@@ -5,13 +5,12 @@ using System;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -20,13 +19,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 [Export(typeof(IDocumentContextFactory)), Shared]
 [method: ImportingConstructor]
 internal sealed class DocumentContextFactory(
-    ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+    IProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
     ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
     IRazorLoggerFactory loggerFactory)
     : IDocumentContextFactory
 {
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+    private readonly IProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
     private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly ILogger _logger = loggerFactory.CreateLogger<DocumentContextFactory>();
@@ -97,8 +96,8 @@ internal sealed class DocumentContextFactory(
             return _snapshotResolver.TryResolveDocumentInAnyProject(filePath, out documentSnapshot);
         }
 
-        var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectContext.ToProjectKey());
-        if (project?.GetDocument(filePath) is { } document)
+        if (_projectSnapshotManagerAccessor.Instance.TryGetLoadedProject(projectContext.ToProjectKey(), out var project) &&
+            project.GetDocument(filePath) is { } document)
         {
             documentSnapshot = document;
             return true;

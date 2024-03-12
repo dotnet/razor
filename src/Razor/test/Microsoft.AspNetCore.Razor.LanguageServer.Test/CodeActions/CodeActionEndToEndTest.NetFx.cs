@@ -13,16 +13,15 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -140,7 +139,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/71335")]
+    [Fact]
     public async Task Handle_IntroduceLocal_All()
     {
         var input = """
@@ -357,6 +356,83 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             """;
 
         await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
+    }
+
+    [Fact]
+    public async Task Handle_AddUsing()
+    {
+        var input = """
+            @functions
+            {
+                private [||]StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        var expected = """
+            @using System.Text
+            @functions
+            {
+                private StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
+    }
+
+    [Fact]
+    public async Task Handle_AddDebuggerDisplay()
+    {
+        var input = """
+            @functions {
+                class Goo[||]
+                {
+                    
+                }
+            }
+            """;
+
+        var expected = """
+            @using System.Diagnostics
+            @functions {
+                [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
+                class Goo
+                {
+                    private string GetDebuggerDisplay()
+                    {
+                        return ToString();
+                    }
+                }
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
+    }
+
+    [Fact]
+    public async Task Handle_AddUsing_WithExisting()
+    {
+        var input = """
+            @using System
+            @using System.Collections.Generic
+
+            @functions
+            {
+                private [||]StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        var expected = """
+            @using System
+            @using System.Collections.Generic
+            @using System.Text
+
+            @functions
+            {
+                private StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
     }
     #endregion
 
@@ -625,7 +701,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri:null);
+        var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
 
         var result = await GetCodeActionsAsync(
             uri,
@@ -720,6 +796,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             FormatOnType: true,
             AutoInsertAttributeQuotes: true,
             ColorBackground: false,
+            CodeBlockBraceOnNextLine: false,
             CommitElementsWithSpace: true);
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         await optionsMonitor.UpdateAsync(razorLSPOptions, CancellationToken.None);
@@ -1026,7 +1103,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     {
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
 
-        var razorFilePath = "file://C:/path/test.razor";
+        var razorFilePath = "C:/path/test.razor";
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
         var sourceText = codeDocument.GetSourceText();
         var uri = new Uri(razorFilePath);
@@ -1094,7 +1171,11 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var endpoint = new CodeActionEndpoint(
             DocumentMappingService.AssumeNotNull(),
             razorCodeActionProviders: razorProviders ?? [],
-            csharpCodeActionProviders: [new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance)],
+            csharpCodeActionProviders:
+            [
+                new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
+                new TypeAccessibilityCodeActionProvider()
+            ],
             htmlCodeActionProviders: [],
             clientConnection,
             LanguageServerFeatureOptions.AssumeNotNull(),

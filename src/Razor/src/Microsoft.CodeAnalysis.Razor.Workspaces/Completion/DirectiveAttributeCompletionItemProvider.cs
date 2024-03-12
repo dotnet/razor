@@ -19,19 +19,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 [Export(typeof(IRazorCompletionItemProvider))]
 internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
-    private readonly ITagHelperFactsService _tagHelperFactsService;
-
-    [ImportingConstructor]
-    public DirectiveAttributeCompletionItemProvider(ITagHelperFactsService tagHelperFactsService)
-    {
-        if (tagHelperFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(tagHelperFactsService));
-        }
-
-        _tagHelperFactsService = tagHelperFactsService;
-    }
-
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
@@ -96,7 +83,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         IEnumerable<string> attributes,
         TagHelperDocumentContext tagHelperDocumentContext)
     {
-        var descriptorsForTag = _tagHelperFactsService.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
+        var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
         if (descriptorsForTag.Length == 0)
         {
             // If the current tag has no possible descriptors then we can't have any directive attributes.
@@ -123,7 +110,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
                     foreach (var parameterDescriptor in attributeDescriptor.Parameters)
                     {
-                        if (!attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(name, attributeDescriptor, parameterDescriptor)))
+                        if (!attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                         {
                             // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
                             AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor);

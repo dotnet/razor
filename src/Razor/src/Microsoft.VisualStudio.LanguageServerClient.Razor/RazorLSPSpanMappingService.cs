@@ -7,14 +7,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -22,33 +22,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 internal sealed class RazorLSPSpanMappingService : IRazorSpanMappingService
 {
     private readonly LSPDocumentMappingProvider _lspDocumentMappingProvider;
-
-    private readonly ITextSnapshot _textSnapshot;
     private readonly LSPDocumentSnapshot _documentSnapshot;
+    private readonly ITextSnapshot _textSnapshot;
 
     public RazorLSPSpanMappingService(
         LSPDocumentMappingProvider lspDocumentMappingProvider,
         LSPDocumentSnapshot documentSnapshot,
         ITextSnapshot textSnapshot)
     {
-        if (lspDocumentMappingProvider is null)
-        {
-            throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
-        }
-
-        if (textSnapshot is null)
-        {
-            throw new ArgumentNullException(nameof(textSnapshot));
-        }
-
-        if (documentSnapshot is null)
-        {
-            throw new ArgumentNullException(nameof(documentSnapshot));
-        }
-
-        _lspDocumentMappingProvider = lspDocumentMappingProvider;
-        _textSnapshot = textSnapshot;
-        _documentSnapshot = documentSnapshot;
+        _lspDocumentMappingProvider = lspDocumentMappingProvider ?? throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
+        _documentSnapshot = documentSnapshot ?? throw new ArgumentNullException(nameof(documentSnapshot));
+        _textSnapshot = textSnapshot ?? throw new ArgumentNullException(nameof(textSnapshot));
     }
 
     public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
@@ -70,7 +54,7 @@ internal sealed class RazorLSPSpanMappingService : IRazorSpanMappingService
             throw new ArgumentNullException(nameof(spans));
         }
 
-        var projectedRanges = spans.Select(span => span.AsRange(sourceTextGenerated)).ToArray();
+        var projectedRanges = spans.Select(span => span.ToRange(sourceTextGenerated)).ToArray();
 
         var mappedResult = await _lspDocumentMappingProvider.MapToDocumentRangesAsync(
             RazorLanguageKind.CSharp,
@@ -90,12 +74,12 @@ internal sealed class RazorLSPSpanMappingService : IRazorSpanMappingService
         SourceText sourceTextRazor,
         RazorMapToDocumentRangesResponse? mappedResult)
     {
-        var results = ImmutableArray.CreateBuilder<RazorMappedSpanResult>();
-
         if (mappedResult is null)
         {
-            return results.ToImmutable();
+            return ImmutableArray<RazorMappedSpanResult>.Empty;
         }
+
+        using var results = new PooledArrayBuilder<RazorMappedSpanResult>();
 
         foreach (var mappedRange in mappedResult.Ranges)
         {
@@ -111,7 +95,7 @@ internal sealed class RazorLSPSpanMappingService : IRazorSpanMappingService
             results.Add(new RazorMappedSpanResult(localFilePath, linePositionSpan, mappedSpan));
         }
 
-        return results.ToImmutable();
+        return results.DrainToImmutable();
     }
 
     // Internal for testing use only

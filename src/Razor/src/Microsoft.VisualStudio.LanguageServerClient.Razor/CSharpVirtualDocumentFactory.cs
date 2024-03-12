@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -33,7 +34,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     private static IContentType? s_csharpContentType;
     private readonly FileUriProvider _fileUriProvider;
     private readonly FilePathService _filePathService;
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly IProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ILogger _logger;
     private readonly ITelemetryReporter _telemetryReporter;
@@ -45,7 +46,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         ITextDocumentFactoryService textDocumentFactory,
         FileUriProvider fileUriProvider,
         FilePathService filePathService,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        IProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorLoggerFactory loggerFactory,
         ITelemetryReporter telemetryReporter)
@@ -192,7 +193,9 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
             yield break;
         }
 
-        var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
+        var projects = _projectSnapshotManagerAccessor.TryGetInstance(out var projectSnapshotManager)
+            ? projectSnapshotManager.GetProjects()
+            : ImmutableArray<IProjectSnapshot>.Empty;
 
         var inAny = false;
         var normalizedDocumentPath = FilePathService.GetProjectSystemFilePath(hostDocumentUri);

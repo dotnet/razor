@@ -4,13 +4,13 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 
-[LanguageServerEndpoint(Methods.TextDocumentDocumentColorName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentDocumentColorName)]
 internal sealed class DocumentColorEndpoint(IDocumentColorService documentColorService, IClientConnection clientConnection) : IRazorRequestHandler<DocumentColorParams, ColorInformation[]>, ICapabilitiesProvider
 {
     private readonly IDocumentColorService _documentColorService = documentColorService ?? throw new ArgumentNullException(nameof(documentColorService));
@@ -19,7 +19,7 @@ internal sealed class DocumentColorEndpoint(IDocumentColorService documentColorS
     public bool MutatesSolutionState => false;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
-        => _documentColorService.ApplyCapabilities(serverCapabilities, clientCapabilities);
+        => serverCapabilities.EnableDocumentColorProvider();
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentColorParams request)
         => request.TextDocument;

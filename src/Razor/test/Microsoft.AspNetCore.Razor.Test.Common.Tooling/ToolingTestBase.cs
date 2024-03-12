@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 ///  Base class for all test classes that provides the following support:
 ///
 ///  <list type="bullet">
-///   <item>A <see cref="VisualStudio.Threading.JoinableTaskFactory"/> that uses the xUnit
+///   <item>A <see cref="Microsoft.VisualStudio.Threading.JoinableTaskFactory"/> that uses the xUnit
 ///   test thread as the main thread.</item>
 ///   <item>A <see cref="CancellationToken"/> that signals when the test has finished running
 ///   and xUnit disposes the test class.</item>
@@ -48,6 +48,7 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     private List<IDisposable>? _disposables;
     private List<IAsyncDisposable>? _asyncDisposables;
     private IErrorReporter? _errorReporter;
+    private ProjectSnapshotManagerDispatcher? _dispatcher;
 
     /// <summary>
     ///  A common context within which joinable tasks may be created and interact to avoid
@@ -82,6 +83,8 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
 
     private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 
+    private protected ProjectSnapshotManagerDispatcher Dispatcher => _dispatcher ??= CreateDispatcher();
+
     protected ToolingTestBase(ITestOutputHelper testOutput)
     {
         JoinableTaskContext = new();
@@ -95,8 +98,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
 
         // Give this thread a name, so it's easier to find in the VS Threads window.
         Thread.CurrentThread.Name ??= "Main Thread";
-
-        ThrowingTraceListener.AddToListeners();
     }
 
     Task IAsyncLifetime.InitializeAsync() => InitializeAsync();
@@ -158,12 +159,21 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     /// </summary>
     protected virtual Task DisposeAsync() => Task.CompletedTask;
 
+    private protected virtual ProjectSnapshotManagerDispatcher CreateDispatcher()
+        => throw new NotSupportedException($"Override {nameof(CreateDispatcher)} in order to use the {nameof(Dispatcher)} property in this test.");
+
+    protected Task RunOnDispatcherAsync(Action action)
+        => Dispatcher.RunAsync(action, DisposalToken);
+
+    protected Task<T> RunOnDispatcherAsync<T>(Func<T> func)
+        => Dispatcher.RunAsync(func, DisposalToken);
+
     /// <summary>
     ///  Register an <see cref="IDisposable"/> instance to be disposed when the test completes.
     /// </summary>
     protected void AddDisposable(IDisposable disposable)
     {
-        _disposables ??= new();
+        _disposables ??= [];
         _disposables.Add(disposable);
     }
 
@@ -172,7 +182,7 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     /// </summary>
     protected void AddDisposables(IEnumerable<IDisposable> disposables)
     {
-        _disposables ??= new();
+        _disposables ??= [];
         _disposables.AddRange(disposables);
     }
 
@@ -187,7 +197,7 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     /// </summary>
     protected void AddDisposable(IAsyncDisposable disposable)
     {
-        _asyncDisposables ??= new();
+        _asyncDisposables ??= [];
         _asyncDisposables.Add(disposable);
     }
 
@@ -196,7 +206,7 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     /// </summary>
     protected void AddDisposables(IEnumerable<IAsyncDisposable> disposables)
     {
-        _asyncDisposables ??= new();
+        _asyncDisposables ??= [];
         _asyncDisposables.AddRange(disposables);
     }
 

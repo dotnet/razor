@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
 using ContentItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ContentItem;
 using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ItemReference;
@@ -37,31 +36,18 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             NoneItem.SchemaName,
             ConfigurationGeneralSchemaName,
         });
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly LanguageServerFeatureOptions? _languageServerFeatureOptions;
 
     [ImportingConstructor]
     public FallbackWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
-        [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerAccessor projectManagerAccessor,
+        ProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
+        LanguageServerFeatureOptions? languageServerFeatureOptions)
+        : base(commonServices, projectManagerAccessor, dispatcher, projectConfigurationFilePathStore)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
-    }
-
-    // Internal for testing
-#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
-    internal FallbackWindowsRazorProjectHost(
-#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
-        IUnconfiguredProjectCommonServices commonServices,
-        Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        ProjectSnapshotManagerBase projectManager)
-        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
-    {
     }
 
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
@@ -117,6 +103,18 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         {
             // Can't find an IntermediateOutputPath, so don't know what to do with this project
             return;
+        }
+
+        if (TryGetBeforeIntermediateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath) &&
+            beforeIntermediateOutputPath != intermediatePath)
+        {
+            // If the intermediate output path is in the ProjectChanges, then we know that it has changed, so we want to ensure we remove the old one,
+            // otherwise this would be seen as an Add, and we'd end up with two active projects
+            await UpdateAsync(() =>
+            {
+                var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                UninitializeProjectUnsafe(beforeProjectKey);
+            }, CancellationToken.None).ConfigureAwait(false);
         }
 
         // We need to deal with the case where the project was uninitialized, but now

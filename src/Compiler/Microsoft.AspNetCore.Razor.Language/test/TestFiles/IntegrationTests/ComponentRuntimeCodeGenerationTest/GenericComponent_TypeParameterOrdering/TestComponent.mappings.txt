@@ -1,18 +1,18 @@
 ﻿Source Location: (70:0,70 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |_componentValue|
-Generated Location: (895:19,0 [15] )
+Generated Location: (979:23,0 [15] )
 |_componentValue|
 
 Source Location: (161:1,70 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |_componentValue|
-Generated Location: (1854:32,0 [15] )
+Generated Location: (1938:36,0 [15] )
 |_componentValue|
 
 Source Location: (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     string _componentValue = string.Empty;
 |
-Generated Location: (2565:44,0 [46] )
+Generated Location: (2649:48,0 [46] )
 |
     string _componentValue = string.Empty;
 |

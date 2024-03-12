@@ -16,12 +16,9 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     private static readonly CSharpCompilation DefaultBaseCompilation = MvcShim.BaseCompilation.WithAssemblyName("AppCode");
 
     public CodeGenerationIntegrationTest()
-        : base(layer: TestProject.Layer.Compiler, generateBaselines: null, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X")
+        : base(layer: TestProject.Layer.Compiler, generateBaselines: true, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X")
     {
-        Configuration = RazorConfiguration.Create(
-            RazorLanguageVersion.Version_1_1,
-            "MVC-1.1",
-            new[] { new AssemblyExtension("MVC-1.1", typeof(ExtensionInitializer).Assembly) });
+        Configuration = new(RazorLanguageVersion.Version_1_1, "MVC-1.1", Extensions: []);
     }
 
     protected override CSharpCompilation BaseCompilation => DefaultBaseCompilation;

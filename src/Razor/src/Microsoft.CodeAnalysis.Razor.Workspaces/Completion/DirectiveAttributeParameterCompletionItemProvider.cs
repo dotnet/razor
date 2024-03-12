@@ -19,19 +19,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 [Export(typeof(IRazorCompletionItemProvider))]
 internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
-    private readonly ITagHelperFactsService _tagHelperFactsService;
-
-    [ImportingConstructor]
-    public DirectiveAttributeParameterCompletionItemProvider(ITagHelperFactsService tagHelperFactsService)
-    {
-        if (tagHelperFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(tagHelperFactsService));
-        }
-
-        _tagHelperFactsService = tagHelperFactsService;
-    }
-
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
@@ -85,7 +72,7 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
         IEnumerable<string> attributes,
         TagHelperDocumentContext tagHelperDocumentContext)
     {
-        var descriptorsForTag = _tagHelperFactsService.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
+        var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
         if (descriptorsForTag.Length == 0)
         {
             // If the current tag has no possible descriptors then we can't have any additional attributes.
@@ -110,7 +97,7 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
                 {
                     foreach (var parameterDescriptor in boundAttributeParameters)
                     {
-                        if (attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(name, attributeDescriptor, parameterDescriptor)))
+                        if (attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                         {
                             // There's already an existing attribute that satisfies this parameter, don't show it in the completion list.
                             continue;

@@ -2,37 +2,23 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
-internal abstract class ProjectEngineFactory : IProjectEngineFactory
+internal sealed partial class ProjectEngineFactory(string configurationName) : IProjectEngineFactory
 {
-    protected abstract string AssemblyName { get; }
+    public string ConfigurationName => configurationName;
 
     public RazorProjectEngine Create(
         RazorConfiguration configuration,
         RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure)
-    {
-        // Rewrite the assembly name into a full name just like this one, but with the name of the MVC design time assembly.
-        var assemblyFullName = typeof(RazorProjectEngine).Assembly.FullName.AssumeNotNull();
-
-        var assemblyName = new AssemblyName(assemblyFullName)
-        {
-            Name = AssemblyName
-        };
-
-        var extension = new AssemblyExtension(configuration.ConfigurationName, Assembly.Load(assemblyName));
-        var initializer = extension.CreateInitializer();
-
-        return RazorProjectEngine.Create(configuration, fileSystem, builder =>
+        Action<RazorProjectEngineBuilder>? configure)
+        => RazorProjectEngine.Create(configuration, fileSystem, builder =>
         {
             CompilerFeatures.Register(builder);
-            initializer.Initialize(builder);
+            builder.RegisterExtensions();
             configure?.Invoke(builder);
         });
-    }
 }

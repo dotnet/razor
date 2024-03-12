@@ -19,14 +19,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 [Export(typeof(ISnapshotResolver)), Shared]
 internal sealed class SnapshotResolver : ISnapshotResolver
 {
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly IProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
     private readonly ILogger _logger;
 
     // Internal for testing
     internal readonly HostProject MiscellaneousHostProject;
 
     [ImportingConstructor]
-    public SnapshotResolver(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor, IRazorLoggerFactory loggerFactory)
+    public SnapshotResolver(IProjectSnapshotManagerAccessor projectSnapshotManagerAccessor, IRazorLoggerFactory loggerFactory)
     {
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
         _logger = loggerFactory.CreateLogger<SnapshotResolver>();
@@ -64,11 +64,10 @@ internal sealed class SnapshotResolver : ISnapshotResolver
 
     public IProjectSnapshot GetMiscellaneousProject()
     {
-        var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.Key);
-        if (miscellaneousProject is null)
+        if (!_projectSnapshotManagerAccessor.Instance.TryGetLoadedProject(MiscellaneousHostProject.Key, out var miscellaneousProject))
         {
             _projectSnapshotManagerAccessor.Instance.ProjectAdded(MiscellaneousHostProject);
-            miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.Key).AssumeNotNull();
+            miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.Key);
         }
 
         return miscellaneousProject;

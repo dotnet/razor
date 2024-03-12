@@ -8,22 +8,15 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-public class MarkupTransitionCompletionItemProviderTest : ToolingTestBase
+public class MarkupTransitionCompletionItemProviderTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private readonly MarkupTransitionCompletionItemProvider _provider;
-
-    public MarkupTransitionCompletionItemProviderTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _provider = new MarkupTransitionCompletionItemProvider(new DefaultHtmlFactsService());
-    }
+    private readonly MarkupTransitionCompletionItemProvider _provider = new();
 
     [Fact]
     public void GetCompletionItems_ReturnsEmptyCompletionItemInUnopenedMarkupContext()
@@ -335,10 +328,10 @@ public class MarkupTransitionCompletionItemProviderTest : ToolingTestBase
 
     private static RazorCompletionContext CreateRazorCompletionContext(int absoluteIndex, RazorSyntaxTree syntaxTree)
     {
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Array.Empty<TagHelperDescriptor>());
+        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, tagHelpers: []);
 
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
-        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex, new DefaultHtmlFactsService());
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
         return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
     }
 

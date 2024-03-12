@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -17,17 +17,17 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-[LanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
 internal class DocumentDidChangeEndpoint(
     ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-    RazorProjectService razorProjectService,
+    IRazorProjectService razorProjectService,
     IRazorLoggerFactory loggerFactory)
     : IRazorNotificationHandler<DidChangeTextDocumentParams>, ITextDocumentIdentifierHandler<DidChangeTextDocumentParams, TextDocumentIdentifier>, ICapabilitiesProvider
 {
     public bool MutatesSolutionState => true;
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-    private readonly RazorProjectService _projectService = razorProjectService;
+    private readonly IRazorProjectService _projectService = razorProjectService;
     private readonly ILogger _logger = loggerFactory.CreateLogger<DocumentDidChangeEndpoint>();
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
@@ -57,7 +57,7 @@ internal class DocumentDidChangeEndpoint(
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         sourceText = ApplyContentChanges(request.ContentChanges, sourceText);
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _projectSnapshotManagerDispatcher.RunAsync(
             () => _projectService.UpdateDocument(documentContext.FilePath, sourceText, request.TextDocument.Version),
             cancellationToken).ConfigureAwait(false);
     }

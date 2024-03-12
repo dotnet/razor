@@ -4,45 +4,35 @@
 [assembly: global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute(typeof(Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Usings_Runtime), @"default", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml")]
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
-    #line hidden
+    #line default
 #nullable restore
 #line (1,2)-(2,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using System.IO
 
-#line default
-#line hidden
 #nullable disable
     ;
 #nullable restore
 #line (2,2)-(3,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using Foo = System.Text.Encoding
 
-#line default
-#line hidden
 #nullable disable
     ;
 #nullable restore
 #line (3,2)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using System
 
-#line default
-#line hidden
 #nullable disable
     ;
 #nullable restore
 #line (5,2)-(6,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using static System
 
-#line default
-#line hidden
 #nullable disable
     ;
 #nullable restore
 #line (6,2)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings.cshtml"
 using static System.Console
 
-#line default
-#line hidden
 #nullable disable
     ;
 #nullable restore

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -18,8 +17,9 @@ using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Editor.Razor.Snippets;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -42,7 +42,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         : base(testOutput)
     {
         _textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
-        _editorSettingsManager = new ClientSettingsManager(Array.Empty<ClientSettingsChangedTrigger>());
+        _editorSettingsManager = new ClientSettingsManager(Array.Empty<IClientSettingsChangedTrigger>());
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
             new SnippetCache(),
             LoggerFactory);
         var request = new UpdateBufferRequest()
@@ -106,7 +106,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
             new SnippetCache(),
             LoggerFactory);
         var request = new UpdateBufferRequest()
@@ -157,7 +157,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true),
-            Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
             new SnippetCache(),
             LoggerFactory);
         var request = new UpdateBufferRequest()
@@ -196,7 +196,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
             new SnippetCache(),
             LoggerFactory);
         var request = new DelegatedCodeActionParams()
@@ -267,7 +267,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
 
         var target = new RazorCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
 
         var request = new DelegatedCodeActionParams()
         {
@@ -343,7 +343,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
 
         var target = new RazorCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
 
         var codeAction = new VSInternalCodeAction()
         {
@@ -381,7 +381,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
             new SnippetCache(),
             LoggerFactory);
         var request = new ProvideSemanticTokensRangesParams(
@@ -427,7 +427,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict),
+            Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict),
             new SnippetCache(),
             LoggerFactory);
         var request = new ProvideSemanticTokensRangesParams(
@@ -494,7 +494,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
         var request = new ProvideSemanticTokensRangesParams(
             textDocument: new TextDocumentIdentifier()
             {
@@ -560,7 +560,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<IProjectSnapshotManagerAccessor>(MockBehavior.Strict), new SnippetCache(), LoggerFactory);
         var request = new ProvideSemanticTokensRangesParams(
             textDocument: new TextDocumentIdentifier()
             {
