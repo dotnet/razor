@@ -54,7 +54,7 @@ internal static partial class ObjectReaders
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions, forceRuntimeCodeGeneration);
+        return new(languageVersion, configurationName, extensions, ForceRuntimeCodeGeneration: forceRuntimeCodeGeneration);
     }
 
     public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)

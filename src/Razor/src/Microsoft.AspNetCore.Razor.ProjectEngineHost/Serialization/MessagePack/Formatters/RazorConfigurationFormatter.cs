@@ -21,7 +21,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
         var configurationName = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
         var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
-        var forceRuntimeGeneration = reader.ReadBoolean();
+        var forceRuntimeCodeGeneration = reader.ReadBoolean();
 
         count -= 3;
 
@@ -39,7 +39,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions, forceRuntimeGeneration);
+        return new(languageVersion, configurationName, extensions, ForceRuntimeCodeGeneration: forceRuntimeCodeGeneration);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
