@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 

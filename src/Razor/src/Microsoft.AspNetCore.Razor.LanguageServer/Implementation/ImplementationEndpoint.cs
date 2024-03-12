@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
+using Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 

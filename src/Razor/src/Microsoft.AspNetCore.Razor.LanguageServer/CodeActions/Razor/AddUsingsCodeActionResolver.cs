@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 

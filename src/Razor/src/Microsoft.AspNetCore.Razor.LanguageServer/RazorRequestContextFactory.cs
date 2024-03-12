@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 

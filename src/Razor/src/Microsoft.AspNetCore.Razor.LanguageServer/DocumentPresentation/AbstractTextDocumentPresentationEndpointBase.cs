@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 

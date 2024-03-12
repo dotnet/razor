@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
