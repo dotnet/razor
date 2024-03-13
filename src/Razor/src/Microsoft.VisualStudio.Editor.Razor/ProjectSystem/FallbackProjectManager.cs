@@ -2,13 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -17,20 +19,21 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 /// use the Razor or Web SDK, or otherwise don't get picked up by our CPS bits, but have
 /// .razor or .cshtml files regardless.
 /// </summary>
-[Shared]
 [Export(typeof(FallbackProjectManager))]
 [method: ImportingConstructor]
 internal sealed class FallbackProjectManager(
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IProjectSnapshotManagerAccessor projectManagerAccessor,
+    ProjectSnapshotManagerBase projectManager,
     ProjectSnapshotManagerDispatcher dispatcher,
     IWorkspaceProvider workspaceProvider,
     ITelemetryReporter telemetryReporter)
 {
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor = projectManagerAccessor;
+    private readonly ProjectSnapshotManagerBase _projectManager = projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
@@ -44,8 +47,7 @@ internal sealed class FallbackProjectManager(
     {
         try
         {
-            if (_projectManagerAccessor.TryGetInstance(out var projectSnapshotManager) &&
-                projectSnapshotManager.TryGetLoadedProject(razorProjectKey, out var project))
+            if (_projectManager.TryGetLoadedProject(razorProjectKey, out var project))
             {
                 if (project is ProjectSnapshot { HostProject: FallbackHostProject })
                 {
@@ -77,8 +79,7 @@ internal sealed class FallbackProjectManager(
     {
         try
         {
-            if (_projectManagerAccessor.TryGetInstance(out var projectSnapshotManager) &&
-                projectSnapshotManager.TryGetLoadedProject(razorProjectKey, out var project) &&
+            if (_projectManager.TryGetLoadedProject(razorProjectKey, out var project) &&
                 project is ProjectSnapshot { HostProject: FallbackHostProject })
             {
                 // If this is a fallback project, then Roslyn may not track documents in the project, so these dynamic file notifications
@@ -114,9 +115,8 @@ internal sealed class FallbackProjectManager(
         // the project will be updated, and it will no longer be a fallback project.
         var hostProject = new FallbackHostProject(project.FilePath, intermediateOutputPath, FallbackRazorConfiguration.Latest, rootNamespace, project.Name);
 
-        await _dispatcher
-            .RunAsync(
-                () => _projectManagerAccessor.Instance.ProjectAdded(hostProject),
+        await UpdateProjectManagerAsync(
+                () => _projectManager.ProjectAdded(hostProject),
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -137,9 +137,8 @@ internal sealed class FallbackProjectManager(
 
         var textLoader = new FileTextLoader(filePath, defaultEncoding: null);
 
-        await _dispatcher
-            .RunAsync(
-                () => _projectManagerAccessor.Instance.DocumentAdded(projectKey, hostDocument, textLoader),
+        await UpdateProjectManagerAsync(
+                () => _projectManager.DocumentAdded(projectKey, hostDocument, textLoader),
                 cancellationToken)
             .ConfigureAwait(false);
     }
@@ -180,11 +179,22 @@ internal sealed class FallbackProjectManager(
             return;
         }
 
-        await _dispatcher
-            .RunAsync(
-                () => _projectManagerAccessor.Instance.DocumentRemoved(razorProjectKey, hostDocument),
+        await UpdateProjectManagerAsync(
+                () => _projectManager.DocumentRemoved(razorProjectKey, hostDocument),
                 cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    private Task UpdateProjectManagerAsync(Action action, CancellationToken cancellationToken)
+    {
+        return _dispatcher
+            .RunAsync(() =>
+            {
+                RazorStartupInitializer.Initialize(_serviceProvider);
+
+                action();
+            },
+            cancellationToken);
     }
 
     private Project? TryFindProjectForProjectId(ProjectId projectId)
