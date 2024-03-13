@@ -23,7 +23,7 @@ internal sealed class FilePathService
     }
 
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
-        => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+        => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix, _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath);
 
     public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
@@ -71,16 +71,16 @@ internal sealed class FilePathService
         return filePath;
     }
 
-    private string GetGeneratedFilePath(ProjectKey projectKey, string razorFilePath, string suffix)
+    public static string GetGeneratedFilePath(ProjectKey projectKey, string razorFilePath, string suffix, bool includeProjectKeyInGeneratedFilePath)
     {
-        var projectSuffix = GetProjectSuffix(projectKey);
+        var projectSuffix = GetProjectSuffix(projectKey, includeProjectKeyInGeneratedFilePath);
 
         return razorFilePath + projectSuffix + suffix;
     }
 
-    private string GetProjectSuffix(ProjectKey projectKey)
+    private static string GetProjectSuffix(ProjectKey projectKey, bool includeProjectKeyInGeneratedFilePath)
     {
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        if (!includeProjectKeyInGeneratedFilePath)
         {
             return string.Empty;
         }
