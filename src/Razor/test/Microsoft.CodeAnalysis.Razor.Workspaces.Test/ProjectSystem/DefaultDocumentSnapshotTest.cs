@@ -1,16 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -42,7 +38,7 @@ public class DefaultDocumentSnapshotTest : WorkspaceTestBase
         _legacyHostDocument = new HostDocument(TestProjectData.SomeProjectFile1);
         _nestedComponentHostDocument = new HostDocument(TestProjectData.SomeProjectNestedComponentFile3);
 
-        var projectState = ProjectState.Create(ProjectEngineFactory, TestProjectData.SomeProject, ProjectWorkspaceState.Default);
+        var projectState = ProjectState.Create(ProjectEngineFactoryProvider, TestProjectData.SomeProject, ProjectWorkspaceState.Default);
         var project = new ProjectSnapshot(projectState);
 
         var textAndVersion = TextAndVersion.Create(_sourceText, _version);
@@ -58,11 +54,6 @@ public class DefaultDocumentSnapshotTest : WorkspaceTestBase
 
         documentState = DocumentState.Create(_nestedComponentHostDocument, () => Task.FromResult(textAndVersion));
         _nestedComponentDocument = new DocumentSnapshot(project, documentState);
-    }
-
-    protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
-    {
-        services.Add(new TestTagHelperResolver());
     }
 
     [Fact]

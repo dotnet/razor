@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -33,7 +34,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     private readonly IClientConnection _clientConnection;
     private readonly Dictionary<string, IDocumentSnapshot> _work;
     private readonly ILogger _logger;
-    private ProjectSnapshotManager? _projectManager;
+    private IProjectSnapshotManager? _projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly Lazy<RazorTranslateDiagnosticsService> _razorTranslateDiagnosticsService;
     private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
@@ -93,7 +94,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     // Used in tests to ensure we can control when background work completes.
     public ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
 
-    public override void Initialize(ProjectSnapshotManager projectManager)
+    public override void Initialize(IProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {
@@ -110,7 +111,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             throw new ArgumentNullException(nameof(document));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         lock (_work)
         {
@@ -140,7 +141,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
     private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
     {
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _projectSnapshotManagerDispatcher.RunAsync(
             ClearClosedDocuments,
             cancellationToken).ConfigureAwait(false);
     }
@@ -234,7 +235,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
                 fullDiagnostics.Items is not null &&
                 _documentContextFactory.Value.TryCreate(delegatedParams.TextDocument.Uri, projectContext: null) is { } documentContext)
             {
-                csharpDiagnostics = await _razorTranslateDiagnosticsService.Value.TranslateAsync(Protocol.RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None).ConfigureAwait(false);
+                csharpDiagnostics = await _razorTranslateDiagnosticsService.Value.TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None).ConfigureAwait(false);
             }
         }
 

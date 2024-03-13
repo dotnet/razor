@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -28,18 +30,14 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 public abstract class LanguageServerTestBase : ToolingTestBase
 {
-    private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
     private protected IRazorSpanMappingService SpanMappingService { get; }
     private protected FilePathService FilePathService { get; }
 
     protected JsonSerializer Serializer { get; }
 
-    public LanguageServerTestBase(ITestOutputHelper testOutput)
+    protected LanguageServerTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-        AddDisposable((IDisposable)Dispatcher);
-
         SpanMappingService = new ThrowingRazorSpanMappingService();
 
         Serializer = new JsonSerializer();
@@ -48,6 +46,26 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
         FilePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
     }
+
+    private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
+    {
+        var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
+        AddDisposable(dispatcher);
+
+        return dispatcher;
+    }
+
+    private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
+        => CreateProjectSnapshotManager(triggers: [], ProjectEngineFactories.DefaultProvider);
+
+    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers)
+        => CreateProjectSnapshotManager(triggers, ProjectEngineFactories.DefaultProvider);
+
+    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
+        => CreateProjectSnapshotManager(triggers: [], projectEngineFactoryProvider);
+
+    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers, IProjectEngineFactoryProvider projectEngineFactoryProvider)
+        => new(triggers, projectEngineFactoryProvider, Dispatcher, ErrorReporter);
 
     internal RazorRequestContext CreateRazorRequestContext(VersionedDocumentContext? documentContext, ILspServices? lspServices = null)
     {
@@ -117,15 +135,12 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return new VersionedDocumentContext(uri, snapshot, projectContext: null, version: 0);
     }
 
-    internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting = true, bool autoShowCompletion = true, bool autoListParams = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false, bool commitElementsWithSpace = true)
+    internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting = true, bool autoShowCompletion = true, bool autoListParams = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false, bool codeBlockBraceOnNextLine = false, bool commitElementsWithSpace = true)
     {
         var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
-        monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(enableFormatting, true, InsertSpaces: true, TabSize: 4, autoShowCompletion, autoListParams, formatOnType, autoInsertAttributeQuotes, colorBackground, commitElementsWithSpace));
+        monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(enableFormatting, true, InsertSpaces: true, TabSize: 4, autoShowCompletion, autoListParams, formatOnType, autoInsertAttributeQuotes, colorBackground, codeBlockBraceOnNextLine, commitElementsWithSpace));
         return monitor.Object;
     }
-
-    protected Task RunOnDispatcherThreadAsync(Action action)
-        => Dispatcher.RunOnDispatcherThreadAsync(action, DisposalToken);
 
     private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
     {

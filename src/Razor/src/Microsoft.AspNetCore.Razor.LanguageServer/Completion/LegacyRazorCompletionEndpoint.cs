@@ -10,13 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -27,13 +25,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 internal class LegacyRazorCompletionEndpoint(
     IRazorCompletionFactsService completionFactsService,
     CompletionListCache completionListCache,
-    HtmlFactsService htmlFactsService,
     IRazorLoggerFactory loggerFactory)
     : IVSCompletionEndpoint
 {
-    private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
-    private readonly CompletionListCache _completionListCache = completionListCache ?? throw new ArgumentNullException(nameof(completionListCache));
-    private readonly HtmlFactsService _htmlFactsService = htmlFactsService ?? throw new ArgumentNullException(nameof(htmlFactsService));
+    private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
+    private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly ILogger _logger = loggerFactory.CreateLogger<LegacyRazorCompletionEndpoint>();
 
     private static readonly Command s_retriggerCompletionCommand = new()
@@ -95,7 +91,7 @@ internal class LegacyRazorCompletionEndpoint(
         };
         var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
         var owner = syntaxTree.Root.FindInnermostNode(hostDocumentIndex, includeWhitespace: true, walkMarkersBack: true);
-        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, hostDocumentIndex, _htmlFactsService);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, hostDocumentIndex);
         var completionContext = new RazorCompletionContext(hostDocumentIndex, owner, syntaxTree, tagHelperDocumentContext, reason, completionOptions);
 
         var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext);

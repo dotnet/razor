@@ -110,9 +110,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'NoExist' does not exist in the current context
+            // x:\dir\subdir\Test\TestComponent.cshtml(25,101): error CS0103: The name 'NoExist' does not exist in the current context
             //             NoExist
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(21, 101)
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(25, 101)
             );
     }
 
@@ -121,7 +121,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     {
         var compilationResult = CompileToCSharp("""
             @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
-            """, configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+            """, configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 });
 
         Assert.Empty(compilationResult.Diagnostics);
 
@@ -143,7 +143,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             {
                 string rendermode = "Something";
             }
-            """, configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+            """, configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 });
 
         Assert.Empty(compilationResult.Diagnostics);
 
@@ -161,15 +161,15 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             {
                 string rendermode = "Something";
             }
-            """, configuration: Configuration.WithVersion(RazorLanguageVersion.Version_8_0));
+            """, configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_8_0 });
 
         Assert.Empty(compilationResult.Diagnostics);
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'Foo' does not exist in the current context
+            // x:\dir\subdir\Test\TestComponent.cshtml(34,101): error CS0103: The name 'Foo' does not exist in the current context
             //             Foo
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(30, 101),
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(34, 101),
             // x:\dir\subdir\Test\TestComponent.cshtml(5,12): warning CS0414: The field 'TestComponent.rendermode' is assigned but its value is never used
             //     string rendermode = "Something";
             Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "rendermode").WithArguments("Test.TestComponent.rendermode").WithLocation(5, 12)
@@ -192,9 +192,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0120: An object reference is required for the non-static field, method, or property 'TestComponent.myRenderMode'
+            // x:\dir\subdir\Test\TestComponent.cshtml(34, 101): error CS0120: An object reference is required for the non-static field, method, or property 'TestComponent.myRenderMode'
             //             myRenderMode
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "myRenderMode").WithArguments("Test.TestComponent.myRenderMode").WithLocation(30, 101)
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "myRenderMode").WithArguments("Test.TestComponent.myRenderMode").WithLocation(34, 101)
             );
     }
 

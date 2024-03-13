@@ -8,16 +8,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
-[LanguageServerEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
 internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>, ICapabilitiesProvider
 {
     // The regex below excludes characters that can never be valid in a TagHelper name.
@@ -71,7 +69,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
 
         var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-        var location = await GetSourceLocation(request, documentContext, cancellationToken).ConfigureAwait(false);
+        var location = await GetSourceLocationAsync(request, documentContext, cancellationToken).ConfigureAwait(false);
         if (location is not SourceLocation validLocation)
         {
             return null;
@@ -96,7 +94,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
         _logger.LogInformation("LinkedEditingRange request was null at {location} for {uri}", location, request.TextDocument.Uri);
         return null;
 
-        async Task<SourceLocation?> GetSourceLocation(
+        async Task<SourceLocation?> GetSourceLocationAsync(
             LinkedEditingRangeParams request,
             DocumentContext documentContext,
             CancellationToken cancellationToken)

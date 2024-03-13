@@ -4,26 +4,25 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
+internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
 {
     private static readonly DataflowLinkOptions s_dataflowLinkOptions = new DataflowLinkOptions() { PropagateCompletion = true };
 
-    private readonly Workspace _workspace;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManagerAccessor _projectManagerAccessor;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly AsyncSemaphore _lock;
 
     private ProjectSnapshotManagerBase? _projectManager;
@@ -41,10 +40,10 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
     internal int EnqueueDelay { get; set; } = 250;
 
-    public WindowsRazorProjectHostBase(
+    protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
-        [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManagerAccessor projectManagerAccessor,
+        ProjectSnapshotManagerDispatcher dispatcher,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
         : base(commonServices.ThreadingService.JoinableTaskContext)
     {
@@ -53,14 +52,9 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             throw new ArgumentNullException(nameof(commonServices));
         }
 
-        if (workspace is null)
+        if (dispatcher is null)
         {
-            throw new ArgumentNullException(nameof(workspace));
-        }
-
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
         if (projectConfigurationFilePathStore is null)
@@ -69,28 +63,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         }
 
         CommonServices = commonServices;
-        _workspace = workspace;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _projectManagerAccessor = projectManagerAccessor;
+        _dispatcher = dispatcher;
 
         _lock = new AsyncSemaphore(initialCount: 1);
         ProjectConfigurationFilePathStore = projectConfigurationFilePathStore;
-    }
-
-    // Internal for testing
-    protected WindowsRazorProjectHostBase(
-        IUnconfiguredProjectCommonServices commonServices,
-        Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        ProjectSnapshotManagerBase projectManager)
-        : this(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
-    {
-        if (projectManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectManager));
-        }
-
-        _projectManager = projectManager;
     }
 
     protected abstract ImmutableHashSet<string> GetRuleNames();
@@ -254,12 +231,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             var projectKeys = projectManager.GetAllProjectKeys(oldProjectFilePath);
             foreach (var projectKey in projectKeys)
             {
-                var current = projectManager.GetLoadedProject(projectKey);
-                if (current?.Configuration is not null)
+                if (projectManager.TryGetLoadedProject(projectKey, out var current))
                 {
                     UninitializeProjectUnsafe(projectKey);
 
-                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace, current.DisplayName);
+                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
                     UpdateProjectUnsafe(hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.
@@ -277,23 +253,21 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     }
 
     // Should only be called from the project snapshot manager's specialized thread.
+    [MemberNotNull(nameof(_projectManager))]
     protected ProjectSnapshotManagerBase GetProjectManager()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnDispatcher();
 
-        _projectManager ??= (ProjectSnapshotManagerBase)_workspace.Services.GetLanguageServices(RazorLanguage.Name).GetRequiredService<ProjectSnapshotManager>();
-
-        return _projectManager;
+        return _projectManager ??= _projectManagerAccessor.Instance;
     }
 
     protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
-        => _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
+        => _dispatcher.RunAsync(action, cancellationToken);
 
     protected void UninitializeProjectUnsafe(ProjectKey projectKey)
     {
         var projectManager = GetProjectManager();
-        var current = projectManager.GetLoadedProject(projectKey);
-        if (current is not null)
+        if (projectManager.TryGetLoadedProject(projectKey, out _))
         {
             projectManager.ProjectRemoved(projectKey);
             ProjectConfigurationFilePathStore.Remove(projectKey);
@@ -304,8 +278,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     {
         var projectManager = GetProjectManager();
 
-        var current = projectManager.GetLoadedProject(project.Key);
-        if (current is null)
+        if (!projectManager.TryGetLoadedProject(project.Key, out _))
         {
             // Just in case we somehow got in a state where VS didn't tell us that solution close was finished, lets just
             // ensure we're going to actually do something with the new project that we've just been told about.
@@ -357,6 +330,20 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     private Task UnconfiguredProject_ProjectRenamingAsync(object? sender, ProjectRenamedEventArgs args)
         => OnProjectRenamingAsync(args.OldFullPath, args.NewFullPath);
 
+    protected bool TryGetBeforeIntermediateOutputPath(IImmutableDictionary<string, IProjectChangeDescription> state,
+        [NotNullWhen(returnValue: true)] out string? path)
+    {
+        if (!state.TryGetValue(ConfigurationGeneralSchemaName, out var rule))
+        {
+            path = null;
+            return false;
+        }
+
+        var beforeValues = rule.Before;
+
+        return TryGetIntermediateOutputPathFromProjectRuleSnapshot(beforeValues, out path);
+    }
+
     // virtual for testing
     protected virtual bool TryGetIntermediateOutputPath(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
@@ -368,6 +355,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             return false;
         }
 
+        return TryGetIntermediateOutputPathFromProjectRuleSnapshot(rule, out path);
+    }
+
+    private bool TryGetIntermediateOutputPathFromProjectRuleSnapshot(IProjectRuleSnapshot rule, out string? path)
+    {
         if (!rule.Properties.TryGetValue(BaseIntermediateOutputPathPropertyName, out var baseIntermediateOutputPathValue))
         {
             path = null;
@@ -409,7 +401,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             }
         }
 
-        path = joinedPath;
+        path = Path.GetFullPath(joinedPath);
         return true;
     }
 

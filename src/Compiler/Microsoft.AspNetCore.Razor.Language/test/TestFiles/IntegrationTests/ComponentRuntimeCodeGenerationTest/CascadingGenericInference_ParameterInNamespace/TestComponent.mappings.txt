@@ -5,6 +5,6 @@ Generated Location: (146:5,0 [16] )
 
 Source Location: (59:2,28 [21] x:\dir\subdir\Test\TestComponent.cshtml)
 |new MyClass<string>()|
-Generated Location: (935:26,0 [21] )
+Generated Location: (1019:30,0 [21] )
 |new MyClass<string>()|
 

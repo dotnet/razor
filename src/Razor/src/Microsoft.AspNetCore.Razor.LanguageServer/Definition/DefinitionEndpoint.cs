@@ -9,15 +9,12 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
@@ -28,7 +25,7 @@ using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-[LanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
+[RazorLanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
 internal sealed class DefinitionEndpoint(
     RazorComponentSearchEngine componentSearchEngine,
     IRazorDocumentMappingService documentMappingService,
@@ -207,7 +204,13 @@ internal sealed class DefinitionEndpoint(
             return (null, null);
         }
 
-        var originTagDescriptor = tagHelperElement.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(d => !d.IsAttributeDescriptor());
+        if (tagHelperElement.TagHelperInfo?.BindingResult is not TagHelperBinding binding)
+        {
+            logger.LogInformation("MarkupTagHelperElement does not contain TagHelperInfo.");
+            return (null, null);
+        }
+
+        var originTagDescriptor = binding.Descriptors.FirstOrDefault(static d => !d.IsAttributeDescriptor());
         if (originTagDescriptor is null)
         {
             logger.LogInformation("Origin TagHelper descriptor is null.");

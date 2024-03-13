@@ -26,7 +26,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
         _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
     }
 
-    public override Task<VSInternalCompletionItem?> ResolveAsync(
+    public override async Task<VSInternalCompletionItem?> ResolveAsync(
         VSInternalCompletionItem completionItem,
         VSInternalCompletionList containingCompletionList,
         object? originalRequestContext,
@@ -36,13 +36,35 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
         if (originalRequestContext is not RazorCompletionResolveContext razorCompletionResolveContext)
         {
             // Can't recognize the original request context, bail.
-            return Task.FromResult<VSInternalCompletionItem?>(null);
+            return null;
         }
 
-        var associatedRazorCompletion = razorCompletionResolveContext.CompletionItems.FirstOrDefault(completion => string.Equals(completion.DisplayText, completionItem.Label, StringComparison.Ordinal));
+        var associatedRazorCompletion = razorCompletionResolveContext.CompletionItems.FirstOrDefault(completion =>
+        {
+            if (completion.DisplayText != completionItem.Label)
+            {
+                return false;
+            }
+
+            // We may have items of different types with the same label (e.g. snippet and keyword)
+            if (clientCapabilities is not null)
+            {
+                // CompletionItem.Kind and RazorCompletionItem.Kind are not compatible/comparable, so we need to convert
+                // Razor completion item to VS completion item (as logic to convert just the kind is not easy to separate from
+                // the rest of the conversion logic) prior to comparing them
+                if (RazorCompletionListProvider.TryConvert(completion, clientCapabilities, out var convertedRazorCompletionItem))
+                {
+                    return completionItem.Kind == convertedRazorCompletionItem.Kind;
+                }
+            }
+
+            // If display text matches but we couldn't convert razor completion item to VS completion item for some reason,
+            // do what previous version of the code did and return true.
+            return true;
+        });
         if (associatedRazorCompletion is null)
         {
-            return Task.FromResult<VSInternalCompletionItem?>(null);
+            return null;
         }
 
         // If the client is VS, also fill in the Description property.
@@ -106,11 +128,11 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
 
                     if (useDescriptionProperty)
                     {
-                        _vsLspTagHelperTooltipFactory.TryCreateTooltip(razorCompletionResolveContext.FilePath, descriptionInfo, out tagHelperClassifiedTextTooltip);
+                        tagHelperClassifiedTextTooltip = await _vsLspTagHelperTooltipFactory.TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        _lspTagHelperTooltipFactory.TryCreateTooltip(razorCompletionResolveContext.FilePath, descriptionInfo, documentationKind, out tagHelperMarkupTooltip);
+                        tagHelperMarkupTooltip = await _lspTagHelperTooltipFactory.TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, documentationKind, cancellationToken).ConfigureAwait(false);
                     }
 
                     break;
@@ -127,6 +149,6 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
             completionItem.Description = tagHelperClassifiedTextTooltip;
         }
 
-        return Task.FromResult<VSInternalCompletionItem?>(completionItem);
+        return completionItem;
     }
 }

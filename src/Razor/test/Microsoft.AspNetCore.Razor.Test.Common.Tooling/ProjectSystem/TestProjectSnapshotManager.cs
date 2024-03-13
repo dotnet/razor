@@ -1,39 +1,57 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Moq;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
-internal class TestProjectSnapshotManager(Workspace workspace, ProjectSnapshotManagerDispatcher dispatcher)
-    : DefaultProjectSnapshotManager(
-        Mock.Of<IErrorReporter>(MockBehavior.Strict),
-        Array.Empty<IProjectSnapshotChangeTrigger>(),
-        workspace,
-        dispatcher)
+internal partial class TestProjectSnapshotManager(
+    IProjectSnapshotChangeTrigger[] triggers,
+    IProjectEngineFactoryProvider projectEngineFactoryProvider,
+    ProjectSnapshotManagerDispatcher dispatcher,
+    IErrorReporter errorReporter)
+    : DefaultProjectSnapshotManager(triggers, projectEngineFactoryProvider, dispatcher, errorReporter)
 {
-    public bool AllowNotifyListeners { get; set; }
+    private IProjectSnapshotManagerAccessor? _accessor;
 
-    public ProjectSnapshot? GetSnapshot(HostProject hostProject)
+    public IProjectSnapshotManagerAccessor GetAccessor()
     {
-        return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
-    }
+        return _accessor ?? InterlockedOperations.Initialize(ref _accessor, CreateAccessor(this));
 
-    public ProjectSnapshot? GetSnapshot(Project workspaceProject)
-    {
-        return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
-    }
-
-    protected override void NotifyListeners(ProjectChangeEventArgs e)
-    {
-        if (AllowNotifyListeners)
+        static IProjectSnapshotManagerAccessor CreateAccessor(ProjectSnapshotManagerBase @this)
         {
-            base.NotifyListeners(e);
+            var mock = new StrictMock<IProjectSnapshotManagerAccessor>();
+
+            mock.SetupGet(x => x.Instance)
+                .Returns(@this);
+
+            var instance = @this;
+            mock.Setup(x => x.TryGetInstance(out instance))
+                .Returns(true);
+
+            return mock.Object;
         }
     }
+
+    public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
+    {
+        var documentSnapshot = TestDocumentSnapshot.Create(projectSnapshot, filePath);
+        DocumentAdded(projectSnapshot.Key, documentSnapshot.HostDocument, new DocumentSnapshotTextLoader(documentSnapshot));
+
+        return documentSnapshot;
+    }
+
+    internal TestProjectSnapshot CreateAndAddProject(string filePath)
+    {
+        var projectSnapshot = TestProjectSnapshot.Create(filePath);
+        ProjectAdded(projectSnapshot.HostProject);
+
+        return projectSnapshot;
+    }
+
+    public Listener ListenToNotifications() => new(this);
 }

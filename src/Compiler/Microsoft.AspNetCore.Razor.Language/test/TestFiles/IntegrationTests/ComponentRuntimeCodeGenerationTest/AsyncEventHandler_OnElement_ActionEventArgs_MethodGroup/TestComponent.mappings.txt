@@ -1,20 +1,20 @@
 ﻿Source Location: (1:0,1 [30] x:\dir\subdir\Test\TestComponent.cshtml)
 |using System.Threading.Tasks
 |
-Generated Location: (327:11,0 [30] )
+Generated Location: (328:11,0 [30] )
 |using System.Threading.Tasks
 |
 
 Source Location: (32:1,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
 |using Microsoft.AspNetCore.Components.Web
 |
-Generated Location: (494:19,0 [43] )
+Generated Location: (466:17,0 [43] )
 |using Microsoft.AspNetCore.Components.Web
 |
 
 Source Location: (92:2,17 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnClick|
-Generated Location: (1190:34,0 [7] )
+Generated Location: (1208:34,0 [7] )
 |OnClick|
 
 Source Location: (112:3,7 [88] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -24,7 +24,7 @@ Source Location: (112:3,7 [88] x:\dir\subdir\Test\TestComponent.cshtml)
         return Task.CompletedTask;
     }
 |
-Generated Location: (1434:45,0 [88] )
+Generated Location: (1452:45,0 [88] )
 |
     Task OnClick(MouseEventArgs e)
     {

@@ -19,9 +19,9 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
     {
         var count = reader.ReadArrayHeader();
 
-        var configurationName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var suppressDesignTime = reader.ReadBoolean();
+        var configurationName = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
+        var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
+        var forceRuntimeCodeGeneration = reader.ReadBoolean();
 
         count -= 3;
 
@@ -30,23 +30,23 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         for (var i = 0; i < count; i++)
         {
             var extensionName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
-            builder.Add(new SerializedRazorExtension(extensionName));
+            builder.Add(new RazorExtension(extensionName));
         }
 
-        var extensions = builder.ToArray();
+        var extensions = builder.DrainToImmutable();
 
         var languageVersion = RazorLanguageVersion.TryParse(languageVersionText, out var version)
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return RazorConfiguration.Create(languageVersion, configurationName, extensions, suppressDesignTime: suppressDesignTime);
+        return new(languageVersion, configurationName, extensions, ForceRuntimeCodeGeneration: forceRuntimeCodeGeneration);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
     {
         // Write two values + one value per extension.
         var extensions = value.Extensions;
-        var count = extensions.Count + 3;
+        var count = extensions.Length + 3;
 
         writer.WriteArrayHeader(count);
 

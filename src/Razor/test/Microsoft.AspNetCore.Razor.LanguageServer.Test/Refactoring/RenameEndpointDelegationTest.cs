@@ -7,11 +7,10 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -61,7 +60,6 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
 
         var endpoint = new RenameEndpoint(
             Dispatcher,
-            DocumentContextFactory,
             searchEngine,
             projectSnapshotManagerAccessor,
             LanguageServerFeatureOptions,
