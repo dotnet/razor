@@ -4,10 +4,9 @@
 using System;
 using System.Composition;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
+namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 [Export(typeof(DocumentSnapshotFactory)), Shared]
 [method: ImportingConstructor]
@@ -19,13 +18,16 @@ internal class DocumentSnapshotFactory(Lazy<ProjectSnapshotFactory> projectSnaps
 
     public IDocumentSnapshot GetOrCreate(TextDocument textDocument)
     {
-        if (!_documentSnapshots.TryGetValue(textDocument, out var documentSnapshot))
+        lock (_documentSnapshots)
         {
-            var projectSnapshot = _projectSnapshotFactory.Value.GetOrCreate(textDocument.Project);
-            documentSnapshot = new CohostDocumentSnapshot(textDocument, projectSnapshot);
-            _documentSnapshots.Add(textDocument, documentSnapshot);
-        }
+            if (!_documentSnapshots.TryGetValue(textDocument, out var documentSnapshot))
+            {
+                var projectSnapshot = _projectSnapshotFactory.Value.GetOrCreate(textDocument.Project);
+                documentSnapshot = new RemoteDocumentSnapshot(textDocument, projectSnapshot);
+                _documentSnapshots.Add(textDocument, documentSnapshot);
+            }
 
-        return documentSnapshot;
+            return documentSnapshot;
+        }
     }
 }

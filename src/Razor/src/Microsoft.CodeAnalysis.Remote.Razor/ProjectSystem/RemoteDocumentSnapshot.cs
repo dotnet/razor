@@ -4,17 +4,17 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
+namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal class CohostDocumentSnapshot(TextDocument textDocument, CohostProjectSnapshot projectSnapshot) : IDocumentSnapshot
+internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot) : IDocumentSnapshot
 {
     private readonly TextDocument _textDocument = textDocument;
-    private readonly CohostProjectSnapshot _projectSnapshot = projectSnapshot;
+    private readonly RemoteProjectSnapshot _projectSnapshot = projectSnapshot;
 
     private RazorCodeDocument? _codeDocument;
 
@@ -73,6 +73,6 @@ internal class CohostDocumentSnapshot(TextDocument textDocument, CohostProjectSn
         var id = _textDocument.Id;
         var newDocument = _textDocument.Project.Solution.WithAdditionalDocumentText(id, text).GetAdditionalDocument(id).AssumeNotNull();
 
-        return new CohostDocumentSnapshot(newDocument, _projectSnapshot);
+        return new RemoteDocumentSnapshot(newDocument, _projectSnapshot);
     }
 }

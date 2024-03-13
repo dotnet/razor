@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
@@ -19,9 +20,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Cohost;
+namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal class CohostProjectSnapshot : IProjectSnapshot
+internal class RemoteProjectSnapshot : IProjectSnapshot
 {
     private readonly Project _project;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory;
@@ -33,7 +34,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
 
     private ImmutableArray<TagHelperDescriptor>? _tagHelpers;
 
-    public CohostProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter)
+    public RemoteProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter)
     {
         _project = project;
         _documentSnapshotFactory = documentSnapshotFactory;
