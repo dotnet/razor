@@ -303,12 +303,15 @@ public static class RazorCodeDocumentExtensions
     }
 #nullable disable
 
+    public static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace)
+        => TryComputeNamespace(document, fallbackToRootNamespace: fallbackToRootNamespace, allowEmptyRootNamespace: false, out @namespace);
+
     // In general documents will have a relative path (relative to the project root).
     // We can only really compute a nice namespace when we know a relative path.
     //
     // However all kinds of thing are possible in tools. We shouldn't barf here if the document isn't
     // set up correctly.
-    public static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace)
+    internal static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, bool allowEmptyRootNamespace, out string @namespace)
     {
         if (document == null)
         {
@@ -318,7 +321,7 @@ public static class RazorCodeDocumentExtensions
         @namespace = (string)document.Items[NamespaceKey];
         if (@namespace is null)
         {
-            var result = TryComputeNamespaceCore(document, fallbackToRootNamespace, out @namespace);
+            var result = TryComputeNamespaceCore(document, fallbackToRootNamespace: fallbackToRootNamespace, allowEmptyRootNamespace: allowEmptyRootNamespace, out @namespace);
             document.Items[NamespaceKey] = @namespace;
             return result;
         }
@@ -326,14 +329,14 @@ public static class RazorCodeDocumentExtensions
 #if DEBUG
         // In debug mode, even if we're cached, lets take the hit to run this again and make sure the cached value is correct.
         // This is to help us find issues with caching logic during development.
-        var validateResult = TryComputeNamespaceCore(document, fallbackToRootNamespace, out var validateNamespace);
+        var validateResult = TryComputeNamespaceCore(document, fallbackToRootNamespace: fallbackToRootNamespace, allowEmptyRootNamespace: allowEmptyRootNamespace, out var validateNamespace);
         Debug.Assert(validateResult, "We couldn't compute the namespace, but have a cached value, so something has gone wrong");
         Debug.Assert(validateNamespace == @namespace, $"We cached a namespace of {@namespace} but calculated that it should be {validateNamespace}");
 #endif
 
         return true;
 
-        bool TryComputeNamespaceCore(RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace)
+        bool TryComputeNamespaceCore(RazorCodeDocument document, bool fallbackToRootNamespace, bool allowEmptyRootNamespace, out string @namespace)
         {
             var filePath = document.Source.FilePath;
             if (filePath == null || document.Source.RelativePath == null || filePath.Length < document.Source.RelativePath.Length)
@@ -397,11 +400,18 @@ public static class RazorCodeDocumentExtensions
                 var options = document.GetCodeGenerationOptions() ?? document.GetDocumentIntermediateNode()?.Options;
                 baseNamespace = options?.RootNamespace;
                 appendSuffix = true;
-            }
 
-            if (string.IsNullOrEmpty(baseNamespace))
+                // null means RootNamespace wasn't set yet, so we fail for now, tooling seems to rely on this
+                if (baseNamespace is null ||
+                    (!allowEmptyRootNamespace && string.IsNullOrEmpty(baseNamespace)))
+                {
+                    @namespace = null;
+                    return false;
+                }
+            }
+            else
             {
-                // There was no valid @namespace directive and we couldn't compute the RootNamespace.
+                // There was no valid @namespace directive.
                 @namespace = null;
                 return false;
             }
@@ -444,7 +454,11 @@ public static class RazorCodeDocumentExtensions
 
                     previousLength = builder.Length;
 
-                    builder.Append('.');
+                    if (previousLength != 0)
+                    {
+                        builder.Append('.');
+                    }
+
                     CSharpIdentifier.AppendSanitized(builder, token);
                 }
 

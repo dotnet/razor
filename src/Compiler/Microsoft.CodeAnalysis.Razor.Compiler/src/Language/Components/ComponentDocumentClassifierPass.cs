@@ -62,12 +62,13 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         ClassDeclarationIntermediateNode @class,
         MethodDeclarationIntermediateNode method)
     {
-        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var computedNamespace) ||
-            !TryComputeClassName(codeDocument, out var computedClass))
+        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, allowEmptyRootNamespace: true, out var computedNamespace))
         {
-            // If we can't compute a nice namespace (no relative path) then just generate something
-            // mangled.
             computedNamespace = FallbackRootNamespace;
+        }
+
+        if (!TryComputeClassName(codeDocument, out var computedClass))
+        {
             var checksum = ChecksumUtilities.BytesToString(codeDocument.Source.Text.GetChecksum());
             computedClass = $"AspNetCore_{checksum}";
         }
