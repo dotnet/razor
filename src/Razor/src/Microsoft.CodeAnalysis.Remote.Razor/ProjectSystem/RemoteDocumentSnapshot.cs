@@ -18,6 +18,8 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
 
     private RazorCodeDocument? _codeDocument;
 
+    public TextDocument TextDocument => _textDocument;
+
     public string? FileKind => FileKinds.GetFileKindFromFilePath(FilePath);
 
     public string? FilePath => _textDocument.FilePath;
