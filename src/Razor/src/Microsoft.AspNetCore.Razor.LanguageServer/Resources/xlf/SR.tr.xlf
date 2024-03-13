@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
         <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="new">Attempted to visit a RazorMetaCode other than '{' or '}'.</target>
+        <target state="translated">'{' veya '} dışında bir RazorMetaCode ziyaret edilmeye çalışıldı.</target>
         <note />
       </trans-unit>
       <trans-unit id="Version_Should_Not_Be_Null">
