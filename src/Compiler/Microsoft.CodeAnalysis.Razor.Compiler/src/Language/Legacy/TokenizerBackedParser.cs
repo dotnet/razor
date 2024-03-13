@@ -205,7 +205,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     /// that is the correct format for providing to this method. The caller of this method would,
     /// in that case, want to put c, b and a back into the stream, so "a, b, c" is the CORRECT order
     /// </remarks>
-    protected void PutBack(List<SyntaxToken> tokens)
+    protected void PutBack(in PooledArrayBuilder<SyntaxToken> tokens)
     {
         for (int i = tokens.Count - 1; i >= 0; i--)
         {
@@ -272,16 +272,16 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     protected bool TokenExistsAfterWhitespace(SyntaxKind kind, bool includeNewLines = true)
     {
         var tokenFound = false;
-        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var whitespace);
+        using var whitespace = new PooledArrayBuilder<SyntaxToken>();
         ReadWhile(
             static (token, includeNewLines) =>
                 token.Kind == SyntaxKind.Whitespace || (includeNewLines && token.Kind == SyntaxKind.NewLine),
             includeNewLines,
-            whitespace);
+            ref whitespace.AsRef());
         tokenFound = At(kind);
 
         PutCurrentBack();
-        PutBack(whitespace);
+        PutBack(in whitespace);
         EnsureCurrent();
 
         return tokenFound;
@@ -300,7 +300,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     protected void ReadWhile<TArg>(
         Func<SyntaxToken, TArg, bool> predicate,
         TArg arg,
-        List<SyntaxToken> result)
+        ref PooledArrayBuilder<SyntaxToken> result)
     {
         if (!EnsureCurrent() || !predicate(CurrentToken, arg))
         {
@@ -317,7 +317,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
 
     protected void ReadWhile(
         Func<SyntaxToken, bool> predicate,
-        List<SyntaxToken> result)
+        ref PooledArrayBuilder<SyntaxToken> result)
     {
         if (!EnsureCurrent() || !predicate(CurrentToken))
         {
@@ -496,19 +496,19 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
 
     protected void AcceptWhile(Func<SyntaxToken, bool> condition)
     {
-        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var tokens);
-        ReadWhile(condition, tokens);
-        Accept(tokens);
+        using var tokens = new PooledArrayBuilder<SyntaxToken>();
+        ReadWhile(condition, ref tokens.AsRef());
+        Accept(in tokens);
     }
 
     protected void AcceptWhile<TArg>(Func<SyntaxToken, TArg, bool> condition, TArg arg)
     {
-        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var tokens);
-        ReadWhile(condition, arg, tokens);
-        Accept(tokens);
+        using var tokens = new PooledArrayBuilder<SyntaxToken>();
+        ReadWhile(condition, arg, ref tokens.AsRef());
+        Accept(in tokens);
     }
 
-    protected void Accept(List<SyntaxToken> tokens)
+    protected void Accept(in PooledArrayBuilder<SyntaxToken> tokens)
     {
         foreach (var token in tokens)
         {
