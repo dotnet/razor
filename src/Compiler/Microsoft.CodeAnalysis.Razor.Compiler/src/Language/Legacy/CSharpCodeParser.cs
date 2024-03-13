@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -228,7 +229,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             {
                 NextToken();
 
-                var precedingWhitespace = ReadWhile(IsSpacingTokenIncludingNewLinesAndComments);
+                using var _ = ListPool<SyntaxToken>.GetPooledObject(out var precedingWhitespace);
+                ReadWhile(IsSpacingTokenIncludingNewLinesAndComments, precedingWhitespace);
 
                 // We are usually called when the other parser sees a transition '@'. Look for it.
                 SyntaxToken? transitionToken = null;
@@ -911,14 +913,17 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         while (!EndOfFile)
         {
             var bookmark = CurrentStart.AbsoluteIndex;
-            var read = ReadWhile(static token =>
-                token.Kind != SyntaxKind.Semicolon &&
-                token.Kind != SyntaxKind.RazorCommentTransition &&
-                token.Kind != SyntaxKind.Transition &&
-                token.Kind != SyntaxKind.LeftBrace &&
-                token.Kind != SyntaxKind.LeftParenthesis &&
-                token.Kind != SyntaxKind.LeftBracket &&
-                token.Kind != SyntaxKind.RightBrace);
+            using var _ = ListPool<SyntaxToken>.GetPooledObject(out var read);
+            ReadWhile(
+                static token =>
+                    token.Kind != SyntaxKind.Semicolon &&
+                    token.Kind != SyntaxKind.RazorCommentTransition &&
+                    token.Kind != SyntaxKind.Transition &&
+                    token.Kind != SyntaxKind.LeftBrace &&
+                    token.Kind != SyntaxKind.LeftParenthesis &&
+                    token.Kind != SyntaxKind.LeftBracket &&
+                    token.Kind != SyntaxKind.RightBrace,
+                read);
 
             if ((!Context.FeatureFlags.AllowRazorInAllCodeBlocks && At(SyntaxKind.LeftBrace)) ||
                 At(SyntaxKind.LeftParenthesis) ||
@@ -1006,7 +1011,11 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         }
     }
 
-    protected bool TryParseDirective(in SyntaxListBuilder<RazorSyntaxNode> builder, IReadOnlyList<SyntaxToken> whitespace, CSharpTransitionSyntax transition, string directive)
+    private bool TryParseDirective(
+        in SyntaxListBuilder<RazorSyntaxNode> builder,
+        List<SyntaxToken> whitespace,
+        CSharpTransitionSyntax transition,
+        string directive)
     {
         if (_directiveParserMap.TryGetValue(directive, out var handler))
         {
@@ -1785,27 +1794,31 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     //      qualified-identifier . identifier
     protected bool TryParseQualifiedIdentifier(out int identifierLength)
     {
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var tokens);
+
         var currentIdentifierLength = 0;
         var expectingDot = false;
-        var tokens = ReadWhile(token =>
-        {
-            var type = token.Kind;
-            if ((expectingDot && type == SyntaxKind.Dot) ||
-                (!expectingDot && type == SyntaxKind.Identifier))
+        ReadWhile(
+            token =>
             {
-                expectingDot = !expectingDot;
-                return true;
-            }
+                var type = token.Kind;
+                if ((expectingDot && type == SyntaxKind.Dot) ||
+                    (!expectingDot && type == SyntaxKind.Identifier))
+                {
+                    expectingDot = !expectingDot;
+                    return true;
+                }
 
-            if (type != SyntaxKind.Whitespace &&
-                type != SyntaxKind.NewLine)
-            {
-                expectingDot = false;
-                currentIdentifierLength += token.Content.Length;
-            }
+                if (type != SyntaxKind.Whitespace &&
+                    type != SyntaxKind.NewLine)
+                {
+                    expectingDot = false;
+                    currentIdentifierLength += token.Content.Length;
+                }
 
-            return false;
-        });
+                return false;
+            },
+            tokens);
 
         identifierLength = currentIdentifierLength;
         var validQualifiedIdentifier = expectingDot;
@@ -1896,7 +1909,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         }
     }
 
-    private bool TryParseKeyword(in SyntaxListBuilder<RazorSyntaxNode> builder, IReadOnlyList<SyntaxToken>? whitespace, CSharpTransitionSyntax? transition)
+    private bool TryParseKeyword(
+        in SyntaxListBuilder<RazorSyntaxNode> builder,
+        List<SyntaxToken>? whitespace,
+        CSharpTransitionSyntax? transition)
     {
         var result = CSharpTokenizer.GetTokenKeyword(CurrentToken);
         Debug.Assert(CurrentToken.Kind == SyntaxKind.Keyword && result.HasValue);
@@ -2103,7 +2119,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     private void ParseAfterIfClause(SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         // Grab whitespace and razor comments
-        var whitespace = SkipToNextImportantToken(builder);
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var whitespace);
+        SkipToNextImportantToken(builder, whitespace);
 
         // Check for an else part
         if (At(CSharpKeyword.Else))
@@ -2165,7 +2182,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     private void ParseAfterTryClause(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         // Grab whitespace
-        var whitespace = SkipToNextImportantToken(builder);
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var whitespace);
+        SkipToNextImportantToken(builder, whitespace);
 
         // Check for a catch or finally part
         if (At(CSharpKeyword.Catch))
@@ -2245,7 +2263,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     private void ParseWhileClause(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         SetAcceptedCharacters(AcceptedCharactersInternal.Any);
-        var whitespace = SkipToNextImportantToken(builder);
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var whitespace);
+        SkipToNextImportantToken(builder, whitespace);
 
         if (At(CSharpKeyword.While))
         {
@@ -2271,7 +2290,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         var topLevel = transition != null;
         var block = new Block(CurrentToken, CurrentStart);
         var usingToken = EatCurrentToken();
-        var whitespaceOrComments = ReadWhile(IsSpacingTokenIncludingComments);
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var whitespaceOrComments);
+        ReadWhile(IsSpacingTokenIncludingComments, whitespaceOrComments);
         var atLeftParen = At(SyntaxKind.LeftParenthesis);
         var atIdentifier = At(SyntaxKind.Identifier);
         var atStatic = At(CSharpKeyword.Static);
@@ -2374,7 +2394,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 // non-static using
                 nonNamespaceTokenCount = TokenBuilder.Count;
                 TryParseNamespaceOrTypeName(directiveBuilder);
-                var whitespace = ReadWhile(IsSpacingTokenIncludingNewLinesAndComments);
+                using var _ = ListPool<SyntaxToken>.GetPooledObject(out var whitespace);
+                ReadWhile(IsSpacingTokenIncludingNewLinesAndComments, whitespace);
                 if (At(SyntaxKind.Assign))
                 {
                     // Alias
@@ -2561,7 +2582,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             !Context.DesignTimeMode &&
             !IsNested)
         {
-            var whitespace = ReadWhile(static token => token.Kind == SyntaxKind.Whitespace);
+            using var _ = ListPool<SyntaxToken>.GetPooledObject(out var whitespace);
+            ReadWhile(static token => token.Kind == SyntaxKind.Whitespace, whitespace);
             if (At(SyntaxKind.NewLine))
             {
                 Accept(whitespace);
@@ -2580,11 +2602,13 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         }
     }
 
-    private IReadOnlyList<SyntaxToken> SkipToNextImportantToken(in SyntaxListBuilder<RazorSyntaxNode> builder)
+    private void SkipToNextImportantToken(
+        in SyntaxListBuilder<RazorSyntaxNode> builder,
+        List<SyntaxToken> whitespace)
     {
         while (!EndOfFile)
         {
-            var whitespace = ReadWhile(IsSpacingTokenIncludingNewLinesAndComments);
+            ReadWhile(IsSpacingTokenIncludingNewLinesAndComments, whitespace);
             if (At(SyntaxKind.RazorCommentTransition))
             {
                 Accept(whitespace);
@@ -2596,10 +2620,11 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             }
             else
             {
-                return whitespace;
+                return;
             }
+
+            whitespace.Clear();
         }
-        return Array.Empty<SyntaxToken>();
     }
 
     private void DefaultSpanContextConfig(SpanEditHandlerBuilder? editHandlerBuilder, ref ISpanChunkGenerator? generator)

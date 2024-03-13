@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -204,15 +205,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     /// that is the correct format for providing to this method. The caller of this method would,
     /// in that case, want to put c, b and a back into the stream, so "a, b, c" is the CORRECT order
     /// </remarks>
-    protected internal void PutBack(IEnumerable<SyntaxToken> tokens)
-    {
-        foreach (var token in tokens.Reverse())
-        {
-            PutBack(token);
-        }
-    }
-
-    protected internal void PutBack(IReadOnlyList<SyntaxToken> tokens)
+    protected void PutBack(List<SyntaxToken> tokens)
     {
         for (int i = tokens.Count - 1; i >= 0; i--)
         {
@@ -279,10 +272,12 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     protected bool TokenExistsAfterWhitespace(SyntaxKind kind, bool includeNewLines = true)
     {
         var tokenFound = false;
-        var whitespace = ReadWhile(
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var whitespace);
+        ReadWhile(
             static (token, includeNewLines) =>
                 token.Kind == SyntaxKind.Whitespace || (includeNewLines && token.Kind == SyntaxKind.NewLine),
-            includeNewLines);
+            includeNewLines,
+            whitespace);
         tokenFound = At(kind);
 
         PutCurrentBack();
@@ -302,25 +297,53 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
         return true;
     }
 
-    protected internal IReadOnlyList<SyntaxToken> ReadWhile(Func<SyntaxToken, bool> condition)
-        => ReadWhile(static (token, condition) => condition(token), condition);
-
-    protected internal IReadOnlyList<SyntaxToken> ReadWhile<TArg>(Func<SyntaxToken, TArg, bool> condition, TArg arg)
+    protected void ReadWhile<TArg>(
+        Func<SyntaxToken, TArg, bool> predicate,
+        TArg arg,
+        List<SyntaxToken> result)
     {
-        if (!EnsureCurrent() || !condition(CurrentToken, arg))
+        if (!EnsureCurrent() || !predicate(CurrentToken, arg))
         {
-            return Array.Empty<SyntaxToken>();
+            return;
         }
 
-        var result = new List<SyntaxToken>();
         do
         {
             result.Add(CurrentToken);
             NextToken();
         }
-        while (EnsureCurrent() && condition(CurrentToken, arg));
+        while (EnsureCurrent() && predicate(CurrentToken, arg));
+    }
 
-        return result;
+    protected void ReadWhile(
+        Func<SyntaxToken, bool> predicate,
+        List<SyntaxToken> result)
+    {
+        if (!EnsureCurrent() || !predicate(CurrentToken))
+        {
+            return;
+        }
+
+        do
+        {
+            result.Add(CurrentToken);
+            NextToken();
+        }
+        while (EnsureCurrent() && predicate(CurrentToken));
+    }
+
+    protected void SkipWhile(Func<SyntaxToken, bool> predicate)
+    {
+        if (!EnsureCurrent() || !predicate(CurrentToken))
+        {
+            return;
+        }
+
+        do
+        {
+            NextToken();
+        }
+        while (EnsureCurrent() && predicate(CurrentToken));
     }
 
     protected bool AtIdentifier(bool allowKeywords)
@@ -471,21 +494,24 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
         AcceptWhile(static (token, types) => types.All(expected => expected != token.Kind), types);
     }
 
-    protected internal void AcceptWhile(Func<SyntaxToken, bool> condition)
+    protected void AcceptWhile(Func<SyntaxToken, bool> condition)
     {
-        Accept(ReadWhile(condition));
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var tokens);
+        ReadWhile(condition, tokens);
+        Accept(tokens);
     }
 
-    protected internal void AcceptWhile<TArg>(Func<SyntaxToken, TArg, bool> condition, TArg arg)
+    protected void AcceptWhile<TArg>(Func<SyntaxToken, TArg, bool> condition, TArg arg)
     {
-        Accept(ReadWhile(condition, arg));
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var tokens);
+        ReadWhile(condition, arg, tokens);
+        Accept(tokens);
     }
 
-    protected internal void Accept(IReadOnlyList<SyntaxToken> tokens)
+    protected void Accept(List<SyntaxToken> tokens)
     {
-        for (int i = 0; i < tokens.Count; i++)
+        foreach (var token in tokens)
         {
-            var token = tokens[i];
             Accept(token);
         }
     }
