@@ -15,5 +15,7 @@ internal interface IRemoteSemanticTokensService
         DocumentId razorDocumentId,
         LinePositionSpan span,
         bool colorBackground,
+        string[] tokenTypes,
+        string[] tokenModifiers,
         CancellationToken cancellationToken);
 }

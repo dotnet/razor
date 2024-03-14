@@ -19,7 +19,8 @@ internal sealed class RemoteSemanticTokensServiceFactory : RazorServiceFactoryBa
     protected override IRemoteSemanticTokensService CreateService(IServiceBroker serviceBroker, ExportProvider exportProvider)
     {
         var infoService = exportProvider.GetExportedValue<IRazorSemanticTokensInfoService>();
+        var semanticTokensLegendService = exportProvider.GetExportedValue<ISemanticTokensLegendService>();
         var documentSnapshotFactory = exportProvider.GetExportedValue<DocumentSnapshotFactory>();
-        return new RemoteSemanticTokensService(serviceBroker, infoService, documentSnapshotFactory);
+        return new RemoteSemanticTokensService(serviceBroker, infoService, semanticTokensLegendService, documentSnapshotFactory);
     }
 }

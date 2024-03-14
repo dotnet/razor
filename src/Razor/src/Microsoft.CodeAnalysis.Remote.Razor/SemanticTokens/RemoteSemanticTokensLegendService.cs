@@ -9,8 +9,17 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 [Export(typeof(ISemanticTokensLegendService)), Shared]
 internal sealed class RemoteSemanticTokensLegendService : ISemanticTokensLegendService
 {
-    // TODO: Get some tokens
-    public SemanticTokenModifiers TokenModifiers => new SemanticTokenModifiers([]);
+    public SemanticTokenModifiers TokenModifiers { get; private set; } = null!;
 
-    public SemanticTokenTypes TokenTypes => new SemanticTokenTypes([]);
+    public SemanticTokenTypes TokenTypes { get; private set; } = null!;
+
+    // TODO: This is dodgy! Need some way to initialize data
+    internal void Set(string[] tokenTypes, string[] tokenModifiers)
+    {
+        if (TokenTypes is null)
+        {
+            TokenTypes = new SemanticTokenTypes(tokenTypes);
+            TokenModifiers = new SemanticTokenModifiers(tokenModifiers);
+        }
+    }
 }
