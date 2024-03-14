@@ -122,15 +122,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>Grammars\</VSIXSubPath>
     </Content>
-
-    <None Remove="Microsoft.VisualStudio.Razor.SemanticTokens64.servicehub.service.json" />
-
-    <None Remove="Microsoft.VisualStudio.Razor.SemanticTokens64S.servicehub.service.json" />
-
-    <None Remove="ServiceHubCore\Microsoft.VisualStudio.Razor.SemanticTokensCore64.servicehub.service.json" />
-
-    <None Remove="ServiceHubCore\Microsoft.VisualStudio.Razor.SemanticTokensCore64S.servicehub.service.json" />
-
+    
     <!-- Language configurations -->
 
     <Content Include="language-configuration.json">
