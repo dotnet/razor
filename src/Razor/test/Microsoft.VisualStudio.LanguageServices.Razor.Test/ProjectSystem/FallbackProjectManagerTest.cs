@@ -45,7 +45,6 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             _projectConfigurationFilePathStore,
             languageServerFeatureOptions,
             _projectManager,
-            Dispatcher,
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);
     }

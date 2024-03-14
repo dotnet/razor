@@ -78,7 +78,6 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
             StrictMock.Of<ProjectConfigurationFilePathStore>(),
             languageServerFeatureOptions,
             _projectManager,
-            Dispatcher,
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);
 
