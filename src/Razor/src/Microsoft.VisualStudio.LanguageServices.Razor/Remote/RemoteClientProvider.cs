@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Remote.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Remote;
 
-[Export(typeof(IRemoteClientProvider)), Shared]
+[Export(typeof(IRemoteClientProvider))]
 [method: ImportingConstructor]
 internal sealed class RemoteClientProvider(
     IWorkspaceProvider workspaceProvider,
@@ -24,7 +24,7 @@ internal sealed class RemoteClientProvider(
 
     public async Task<RazorRemoteHostClient?> TryGetClientAsync(CancellationToken cancellationToken)
     {
-        var workspace = _workspaceProvider.GetWorkspace();
+       var workspace = _workspaceProvider.GetWorkspace();
 
         var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(
             workspace.Services,
