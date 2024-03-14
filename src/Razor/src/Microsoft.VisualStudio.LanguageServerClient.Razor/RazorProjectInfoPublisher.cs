@@ -11,14 +11,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Shared = System.Composition.SharedAttribute;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 /// <summary>
 /// Publishes project.razor.bin files.
 /// </summary>
-[Shared]
 [Export(typeof(IRazorStartupService))]
 internal class RazorProjectInfoPublisher : IRazorStartupService
 {
