@@ -55,7 +55,6 @@ trigger:
       - main-vs-deps
       - release/*
       - internal/release/3.*
-      - features/fuse
 
 pr:
   autoCancel: true
