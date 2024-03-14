@@ -33,11 +33,12 @@ internal partial class ProjectSnapshotManager(
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
     // created lazily.
     private readonly ReadWriterLocker _rwLocker = new();
-    private readonly Dictionary<ProjectKey, Entry> _projects_needsLock = new();
+    private readonly Dictionary<ProjectKey, Entry> _projects_needsLock = [];
     private readonly HashSet<string> _openDocuments_needsLock = new(FilePathComparer.Instance);
-    private static readonly LoadTextOptions LoadTextOptions = new LoadTextOptions(SourceHashAlgorithm.Sha256);
+    private static readonly LoadTextOptions s_loadTextOptions = new(SourceHashAlgorithm.Sha256);
 
-    // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
+    // We have a queue for changes because if one change results in another change aka, add -> open
+    // we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider = projectEngineFactoryProvider;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
@@ -343,15 +344,19 @@ internal partial class ProjectSnapshotManager(
 
         if (_notificationWork.Count == 1)
         {
-            // Only one notification, go ahead and start notifying. In the situation where Count > 1 it means an event was triggered as a response to another event.
-            // To ensure order we wont immediately re-invoke Changed here, we'll wait for the stack to unwind to notify others. This process still happens synchronously
-            // it just ensures that events happen in the correct order. For instance lets take the situation where a document is added to a project. That document will be
-            // added and then opened. However, if the result of "adding" causes an "open" to triger we want to ensure that "add" finishes prior to "open" being notified.
+            // Only one notification, go ahead and start notifying. In the situation where Count > 1
+            // it means an event was triggered as a response to another event. To ensure order we won't
+            // immediately re-invoke Changed here, we'll wait for the stack to unwind to notify others.
+            // This process still happens synchronously it just ensures that events happen in the correct
+            // order. For instance lets take the situation where a document is added to a project.
+            // That document will be added and then opened. However, if the result of "adding" causes an
+            // "open" to trigger we want to ensure that "add" finishes prior to "open" being notified.
 
             // Start unwinding the notification queue
             do
             {
-                // Don't dequeue yet, we want the notification to sit in the queue until we've finished notifying to ensure other calls to NotifyListeners know there's a currently running event loop.
+                // Don't dequeue yet, we want the notification to sit in the queue until we've finished
+                // notifying to ensure other calls to NotifyListeners know there's a currently running event loop.
                 var args = _notificationWork.Peek();
                 PriorityChanged?.Invoke(this, args);
                 Changed?.Invoke(this, args);
@@ -365,7 +370,7 @@ internal partial class ProjectSnapshotManager(
     private static Func<Task<TextAndVersion>> CreateTextAndVersionFunc(TextLoader textLoader)
         => textLoader is null
             ? DocumentState.EmptyLoader
-            : (() => textLoader.LoadTextAndVersionAsync(LoadTextOptions, CancellationToken.None));
+            : (() => textLoader.LoadTextAndVersionAsync(s_loadTextOptions, CancellationToken.None));
 
     private bool TryChangeEntry_UsesLock(
         ProjectKey projectKey,
@@ -477,7 +482,7 @@ internal partial class ProjectSnapshotManager(
 
                     var state = originalEntry.State.WithChangedHostDocument(
                         documentState.HostDocument,
-                        async () => await closeAction.TextLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default).ConfigureAwait(false));
+                        () => closeAction.TextLoader.LoadTextAndVersionAsync(s_loadTextOptions, cancellationToken: default));
                     return new Entry(state);
                 }
 
@@ -641,15 +646,10 @@ internal partial class ProjectSnapshotManager(
             cancellationToken).Unwrap();
     }
 
-    private class Entry
+    private class Entry(ProjectState state)
     {
+        public readonly ProjectState State = state;
         private IProjectSnapshot? _snapshotUnsafe;
-        public readonly ProjectState State;
-
-        public Entry(ProjectState state)
-        {
-            State = state;
-        }
 
         public IProjectSnapshot GetSnapshot()
         {
