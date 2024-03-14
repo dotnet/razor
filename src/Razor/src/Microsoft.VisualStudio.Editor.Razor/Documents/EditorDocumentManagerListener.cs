@@ -28,8 +28,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 internal class EditorDocumentManagerListener : IRazorStartupService
 {
     private readonly IEditorDocumentManager _documentManager;
-    private readonly ProjectSnapshotManagerBase _projectManager;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IProjectSnapshotManager _projectManager;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly EventHandler? _onChangedOnDisk;
@@ -40,14 +39,12 @@ internal class EditorDocumentManagerListener : IRazorStartupService
     [ImportingConstructor]
     public EditorDocumentManagerListener(
         IEditorDocumentManager documentManager,
-        ProjectSnapshotManagerBase projectManager,
-        ProjectSnapshotManagerDispatcher dispatcher,
+        IProjectSnapshotManager projectManager,
         JoinableTaskContext joinableTaskContext,
         ITelemetryReporter telemetryReporter)
     {
         _documentManager = documentManager;
         _projectManager = projectManager;
-        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _telemetryReporter = telemetryReporter;
 
@@ -62,7 +59,6 @@ internal class EditorDocumentManagerListener : IRazorStartupService
     // For testing purposes only.
     internal EditorDocumentManagerListener(
         IEditorDocumentManager documentManager,
-        ProjectSnapshotManagerDispatcher dispatcher,
         JoinableTaskContext joinableTaskContext,
         EventHandler? onChangedOnDisk,
         EventHandler? onChangedInEditor,
@@ -70,7 +66,6 @@ internal class EditorDocumentManagerListener : IRazorStartupService
         EventHandler? onClosed)
     {
         _projectManager = null!;
-        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _documentManager = documentManager;
         _onChangedOnDisk = onChangedOnDisk;
@@ -163,20 +158,16 @@ internal class EditorDocumentManagerListener : IRazorStartupService
         Document_ChangedOnDiskAsync((EditorDocument)sender, CancellationToken.None).Forget();
     }
 
-    private async Task Document_ChangedOnDiskAsync(EditorDocument document, CancellationToken cancellationToken)
+    private Task Document_ChangedOnDiskAsync(EditorDocument document, CancellationToken cancellationToken)
     {
         try
         {
-            // This event is called by the EditorDocumentManager, which runs on the UI thread.
-            // However, due to accessing the project snapshot manager, we need to switch to
-            // running on the project snapshot manager's specialized thread.
-            await _dispatcher
-                .RunAsync(() =>
-                    {
-                        _projectManager.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.TextLoader);
-                    },
-                    cancellationToken)
-                .ConfigureAwait(false);
+            return _projectManager.UpdateAsync(
+                updater =>
+                {
+                    updater.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.TextLoader);
+                },
+                cancellationToken);
         }
         catch (Exception ex)
         {
@@ -187,28 +178,29 @@ internal class EditorDocumentManagerListener : IRazorStartupService
                 {ex.StackTrace}
                 """);
         }
+
+        return Task.CompletedTask;
     }
 
     private void Document_ChangedInEditor(object sender, EventArgs e)
     {
-        _ = Document_ChangedInEditorAsync(sender, CancellationToken.None);
+        Document_ChangedInEditorAsync(sender, CancellationToken.None).Forget();
     }
 
-    private async Task Document_ChangedInEditorAsync(object sender, CancellationToken cancellationToken)
+    private Task Document_ChangedInEditorAsync(object sender, CancellationToken cancellationToken)
     {
         try
         {
             // This event is called by the EditorDocumentManager, which runs on the UI thread.
             // However, due to accessing the project snapshot manager, we need to switch to
             // running on the project snapshot manager's specialized thread.
-            await _dispatcher
-                .RunAsync(() =>
-                    {
-                        var document = (EditorDocument)sender;
-                        _projectManager.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
-                    },
-                    cancellationToken)
-                .ConfigureAwait(false);
+            return _projectManager.UpdateAsync(
+                updater =>
+                {
+                    var document = (EditorDocument)sender;
+                    updater.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
+                }
+                , cancellationToken);
         }
         catch (Exception ex)
         {
@@ -219,44 +211,41 @@ internal class EditorDocumentManagerListener : IRazorStartupService
                 {ex.StackTrace}
                 """);
         }
+
+        return Task.CompletedTask;
     }
 
     private void Document_Opened(object sender, EventArgs e)
     {
-        // Don't use JoinableTaskFactory here, the double Thread-switching causes a hang.
-        _ = Document_OpenedAsync(sender, CancellationToken.None);
+        Document_OpenedAsync(sender, CancellationToken.None).Forget();
     }
 
-    private async Task Document_OpenedAsync(object sender, CancellationToken cancellationToken)
+    private Task Document_OpenedAsync(object sender, CancellationToken cancellationToken)
     {
         try
         {
-            // This event is called by the EditorDocumentManager, which runs on the UI thread.
-            // However, due to accessing the project snapshot manager, we need to switch to
-            // running on the project snapshot manager's specialized thread.
-            await _dispatcher
-                .RunAsync(async () =>
+            return _projectManager.UpdateAsync(
+                async updater =>
+                {
+                    var document = (EditorDocument)sender;
+
+                    if (_projectManager.TryGetLoadedProject(document.ProjectKey, out var project) &&
+                        project is ProjectSnapshot { HostProject: FallbackHostProject } projectSnapshot)
                     {
-                        var document = (EditorDocument)sender;
+                        // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
+                        // so fire some telemetry. We can't log details about the project, for PII reasons, but we can use document count and tag helper count
+                        // as some kind of measure of complexity.
+                        var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+                        _telemetryReporter.ReportEvent(
+                            "fallbackproject/documentopen",
+                            Severity.Normal,
+                            new Property("document.count", projectSnapshot.DocumentCount),
+                            new Property("taghelper.count", tagHelpers.Length));
+                    }
 
-                        if (_projectManager.TryGetLoadedProject(document.ProjectKey, out var project) &&
-                            project is ProjectSnapshot { HostProject: FallbackHostProject } projectSnapshot)
-                        {
-                            // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
-                            // so fire some telemetry. We can't log details about the project, for PII reasons, but we can use document count and tag helper count
-                            // as some kind of measure of complexity.
-                            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-                            _telemetryReporter.ReportEvent(
-                                "fallbackproject/documentopen",
-                                Severity.Normal,
-                                new Property("document.count", projectSnapshot.DocumentCount),
-                                new Property("taghelper.count", tagHelpers.Length));
-                        }
-
-                        _projectManager.DocumentOpened(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
-                    },
-                    cancellationToken)
-                .ConfigureAwait(false);
+                    updater.DocumentOpened(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
+                },
+                cancellationToken);
         }
         catch (Exception ex)
         {
@@ -267,28 +256,26 @@ internal class EditorDocumentManagerListener : IRazorStartupService
                 {ex.StackTrace}
                 """);
         }
+
+        return Task.CompletedTask;
     }
 
     private void Document_Closed(object sender, EventArgs e)
     {
-        _ = Document_ClosedAsync(sender, CancellationToken.None);
+        Document_ClosedAsync(sender, CancellationToken.None).Forget();
     }
 
-    private async Task Document_ClosedAsync(object sender, CancellationToken cancellationToken)
+    private Task Document_ClosedAsync(object sender, CancellationToken cancellationToken)
     {
         try
         {
-            // This event is called by the EditorDocumentManager, which runs on the UI thread.
-            // However, due to accessing the project snapshot manager, we need to switch to
-            // running on the project snapshot manager's specialized thread.
-            await _dispatcher
-                    .RunAsync(() =>
-                    {
-                        var document = (EditorDocument)sender;
-                        _projectManager.DocumentClosed(document.ProjectKey, document.DocumentFilePath, document.TextLoader);
-                    },
-                    cancellationToken)
-                .ConfigureAwait(false);
+            return _projectManager.UpdateAsync(
+                updater =>
+                {
+                    var document = (EditorDocument)sender;
+                    updater.DocumentClosed(document.ProjectKey, document.DocumentFilePath, document.TextLoader);
+                },
+                cancellationToken);
         }
         catch (Exception ex)
         {
@@ -299,5 +286,7 @@ internal class EditorDocumentManagerListener : IRazorStartupService
                 {ex.StackTrace}
                 """);
         }
+
+        return Task.CompletedTask;
     }
 }

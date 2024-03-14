@@ -58,7 +58,7 @@ public class EditorDocumentManagerListenerTest : VisualStudioTestBase
             .Callback<EditorDocument>(doc => Assert.Same(document, doc));
 
         var listener = new EditorDocumentManagerListener(
-            editorDocumentManger.Object, Dispatcher, JoinableTaskContext, changedOnDisk, changedInEditor, opened, closed);
+            editorDocumentManger.Object, JoinableTaskContext, changedOnDisk, changedInEditor, opened, closed);
 
         var projectFilePath = "/Path/to/project.csproj";
         var project = Mock.Of<IProjectSnapshot>(p => p.Key == TestProjectKey.Create("/Path/to/obj") && p.FilePath == projectFilePath, MockBehavior.Strict);
@@ -86,7 +86,7 @@ public class EditorDocumentManagerListenerTest : VisualStudioTestBase
             .Callback<EditorDocument>(doc => Assert.Same(document, doc));
 
         var listener = new EditorDocumentManagerListener(
-            editorDocumentManger.Object, Dispatcher, JoinableTaskContext, changedOnDisk, changedInEditor, opened, closed);
+            editorDocumentManger.Object, JoinableTaskContext, changedOnDisk, changedInEditor, opened, closed);
 
         var projectFilePath = "/Path/to/project.csproj";
         var project = Mock.Of<IProjectSnapshot>(p =>
@@ -120,7 +120,7 @@ public class EditorDocumentManagerListenerTest : VisualStudioTestBase
             });
 
         var listener = new EditorDocumentManagerListener(
-            editorDocumentManger.Object, Dispatcher, JoinableTaskContext, changedOnDisk, changedInEditor, opened, closed);
+            editorDocumentManger.Object, JoinableTaskContext, changedOnDisk, changedInEditor, opened, closed);
 
         var projectFilePath = "/Path/to/project.csproj";
         var project = Mock.Of<IProjectSnapshot>(p => p.Key == TestProjectKey.Create("/Path/to/obj") && p.FilePath == projectFilePath, MockBehavior.Strict);
@@ -142,7 +142,7 @@ public class EditorDocumentManagerListenerTest : VisualStudioTestBase
             .Returns(GetEditorDocument(isOpen: true));
 
         var listener = new EditorDocumentManagerListener(
-            editorDocumentManger.Object, Dispatcher, JoinableTaskContext, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
+            editorDocumentManger.Object, JoinableTaskContext, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
 
         var projectFilePath = "/Path/to/project.csproj";
         var project = Mock.Of<IProjectSnapshot>(p => p.Key == TestProjectKey.Create("/Path/to/obj") && p.FilePath == projectFilePath, MockBehavior.Strict);
