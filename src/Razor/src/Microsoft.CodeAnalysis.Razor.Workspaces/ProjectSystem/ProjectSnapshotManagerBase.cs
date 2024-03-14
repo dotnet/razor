@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -49,4 +51,17 @@ internal abstract class ProjectSnapshotManagerBase : IProjectSnapshotManager
     internal abstract void SolutionOpened();
 
     internal abstract void SolutionClosed();
+
+    public abstract void Update(Action<ProjectSnapshotManager.Updater> updater);
+    public abstract void Update<TState>(Action<ProjectSnapshotManager.Updater, TState> updater, TState state);
+    public abstract TResult Update<TResult>(Func<ProjectSnapshotManager.Updater, TResult> updater);
+    public abstract TResult Update<TState, TResult>(Func<ProjectSnapshotManager.Updater, TState, TResult> updater, TState state);
+    public abstract Task UpdateAsync(Action<ProjectSnapshotManager.Updater> updater, CancellationToken cancellationToken);
+    public abstract Task UpdateAsync<TState>(Action<ProjectSnapshotManager.Updater, TState> updater, TState state, CancellationToken cancellationToken);
+    public abstract Task<TResult> UpdateAsync<TResult>(Func<ProjectSnapshotManager.Updater, TResult> updater, CancellationToken cancellationToken);
+    public abstract Task<TResult> UpdateAsync<TState, TResult>(Func<ProjectSnapshotManager.Updater, TState, TResult> updater, TState state, CancellationToken cancellationToken);
+    public abstract Task UpdateAsync(Func<ProjectSnapshotManager.Updater, Task> updater, CancellationToken cancellationToken);
+    public abstract Task UpdateAsync<TState>(Func<ProjectSnapshotManager.Updater, TState, Task> updater, TState state, CancellationToken cancellationToken);
+    public abstract Task<TResult> UpdateAsync<TResult>(Func<ProjectSnapshotManager.Updater, Task<TResult>> updater, CancellationToken cancellationToken);
+    public abstract Task<TResult> UpdateAsync<TState, TResult>(Func<ProjectSnapshotManager.Updater, TState, Task<TResult>> updater, TState state, CancellationToken cancellationToken);
 }

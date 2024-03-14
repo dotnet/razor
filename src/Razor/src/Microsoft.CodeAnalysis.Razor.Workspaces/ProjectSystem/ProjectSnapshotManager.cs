@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // (language version, extensions, named configuration).
 //
 // The implementation will create a ProjectSnapshot for each HostProject.
-internal class ProjectSnapshotManager(
+internal partial class ProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
     ProjectSnapshotManagerDispatcher dispatcher)
     : ProjectSnapshotManagerBase
@@ -551,6 +551,94 @@ internal class ProjectSnapshotManager(
             default:
                 throw new InvalidOperationException($"Unexpected action type {action.GetType()}");
         }
+    }
+
+    public override void Update(Action<Updater> updater)
+    {
+        _dispatcher.AssertRunningOnDispatcher();
+        updater(new(this));
+    }
+
+    public override void Update<TState>(Action<Updater, TState> updater, TState state)
+    {
+        _dispatcher.AssertRunningOnDispatcher();
+        updater(new(this), state);
+    }
+
+    public override TResult Update<TResult>(Func<Updater, TResult> updater)
+    {
+        _dispatcher.AssertRunningOnDispatcher();
+        return updater(new(this));
+    }
+
+    public override TResult Update<TState, TResult>(Func<Updater, TState, TResult> updater, TState state)
+    {
+        _dispatcher.AssertRunningOnDispatcher();
+        return updater(new(this), state);
+    }
+
+    public override Task UpdateAsync(Action<Updater> updater, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(
+            static x => x.updater(new(x.instance)),
+            (updater, instance: this),
+            cancellationToken);
+    }
+
+    public override Task UpdateAsync<TState>(Action<Updater, TState> updater, TState state, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(
+            static x => x.updater(new(x.instance), x.state),
+            (updater, state, instance: this),
+            cancellationToken);
+    }
+
+    public override Task<TResult> UpdateAsync<TResult>(Func<Updater, TResult> updater, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(
+            static x => x.updater(new(x.instance)),
+            (updater, instance: this),
+            cancellationToken);
+    }
+
+    public override Task<TResult> UpdateAsync<TState, TResult>(Func<Updater, TState, TResult> updater, TState state, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(
+            static x => x.updater(new(x.instance), x.state),
+            (updater, state, instance: this),
+            cancellationToken);
+    }
+
+    public override Task UpdateAsync(Func<Updater, Task> updater, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(
+            static x => x.updater(new(x.instance)),
+            (updater, instance: this),
+            cancellationToken).Unwrap();
+    }
+
+    public override Task UpdateAsync<TState>(Func<Updater, TState, Task> updater, TState state, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(
+            static x => x.updater(new(x.instance), x.state),
+            (updater, state, instance: this),
+            cancellationToken).Unwrap();
+    }
+
+    public override Task<TResult> UpdateAsync<TResult>(Func<Updater, Task<TResult>> updater, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(
+            static x => x.updater(new(x.instance)),
+            (updater, instance: this),
+            cancellationToken).Unwrap();
+    }
+
+    public override Task<TResult> UpdateAsync<TState, TResult>(Func<Updater, TState, Task<TResult>> updater, TState state, CancellationToken cancellationToken)
+    {
+        return _dispatcher.RunAsync(
+            static x => x.updater(new(x.instance), x.state),
+            (updater, state, instance: this),
+            cancellationToken).Unwrap();
     }
 
     private class Entry
