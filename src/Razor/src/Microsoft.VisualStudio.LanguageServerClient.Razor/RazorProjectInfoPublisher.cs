@@ -30,7 +30,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
     private const string TempFileExt = ".temp";
     private readonly RazorLogger _logger;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-    private readonly ProjectSnapshotManagerBase _projectManager;
+    private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
     private readonly Dictionary<ProjectKey, IProjectSnapshot> _pendingProjectPublishes;
     private readonly object _pendingProjectPublishesLock;
@@ -41,7 +41,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
     [ImportingConstructor]
     public RazorProjectInfoPublisher(
         LSPEditorFeatureDetector lSPEditorFeatureDetector,
-        ProjectSnapshotManagerBase projectManager,
+        IProjectSnapshotManager projectManager,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         RazorLogger logger)
     {

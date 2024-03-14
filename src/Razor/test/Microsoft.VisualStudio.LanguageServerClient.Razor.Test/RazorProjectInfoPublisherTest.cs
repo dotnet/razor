@@ -676,7 +676,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
     }
 
     private class TestRazorProjectInfoPublisher(
-        ProjectSnapshotManagerBase projectManager,
+        IProjectSnapshotManager projectManager,
         ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
         Action<IProjectSnapshot, string>? onSerializeToFile = null,
         bool shouldSerialize = true,
