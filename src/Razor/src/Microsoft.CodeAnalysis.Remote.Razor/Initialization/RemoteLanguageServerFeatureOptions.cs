@@ -46,4 +46,6 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool UseRazorCohostServer => s_options.UseRazorCohostServer;
 
     public override bool DisableRazorLanguageServer => throw new InvalidOperationException("This option has not been synced to OOP.");
+
+    public override bool ForceRuntimeCodeGeneration => throw new InvalidOperationException("This option has not been synced to OOP.");
 }
