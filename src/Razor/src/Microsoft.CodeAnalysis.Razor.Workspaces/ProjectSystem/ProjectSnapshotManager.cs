@@ -49,14 +49,14 @@ internal partial class ProjectSnapshotManager(
     public ImmutableArray<IProjectSnapshot> GetProjects()
     {
         using var _ = _rwLocker.EnterReadLock();
-        using var _1 = ListPool<IProjectSnapshot>.GetPooledObject(out var builder);
+        using var builder = new PooledArrayBuilder<IProjectSnapshot>(_projects_needsLock.Count);
 
         foreach (var (_, entry) in _projects_needsLock)
         {
             builder.Add(entry.GetSnapshot());
         }
 
-        return builder.ToImmutableArray();
+        return builder.DrainToImmutable();
     }
 
     public ImmutableArray<string> GetOpenDocuments()
@@ -101,7 +101,7 @@ internal partial class ProjectSnapshotManager(
         }
 
         using var _ = _rwLocker.EnterReadLock();
-        using var _1 = ArrayBuilderPool<ProjectKey>.GetPooledObject(out var projects);
+        using var projects = new PooledArrayBuilder<ProjectKey>(capacity: _projects_needsLock.Count);
 
         foreach (var (key, entry) in _projects_needsLock)
         {
