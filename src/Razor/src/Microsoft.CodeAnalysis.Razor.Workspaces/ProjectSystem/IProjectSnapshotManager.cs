@@ -14,15 +14,13 @@ internal interface IProjectSnapshotManager
     event EventHandler<ProjectChangeEventArgs> PriorityChanged;
     event EventHandler<ProjectChangeEventArgs> Changed;
 
+    ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
     ImmutableArray<IProjectSnapshot> GetProjects();
-
-    bool IsDocumentOpen(string documentFilePath);
-    ImmutableArray<string> GetOpenDocuments();
-
     IProjectSnapshot GetLoadedProject(ProjectKey projectKey);
     bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project);
 
-    ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
+    bool IsDocumentOpen(string documentFilePath);
+    ImmutableArray<string> GetOpenDocuments();
 
     void Update(Action<ProjectSnapshotManager.Updater> updater);
     void Update<TState>(Action<ProjectSnapshotManager.Updater, TState> updater, TState state);
