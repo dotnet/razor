@@ -58,7 +58,7 @@ internal partial class ProjectSnapshotManager(
         return builder.ToImmutableArray();
     }
 
-    internal override ImmutableArray<string> GetOpenDocuments()
+    public override ImmutableArray<string> GetOpenDocuments()
     {
         using var _ = _rwLocker.EnterReadLock();
         return _openDocuments_needsLock.ToImmutableArray();
