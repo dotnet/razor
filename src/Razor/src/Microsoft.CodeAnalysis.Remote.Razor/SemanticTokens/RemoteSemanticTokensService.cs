@@ -46,7 +46,7 @@ internal sealed class RemoteSemanticTokensService(
         var documentContext = Create(razorDocument);
 
         // TODO: Telemetry?
-        return await _razorSemanticTokensInfoService.GetSemanticTokensAsync(documentContext, span, colorBackground: true, Guid.Empty, cancellationToken);
+        return await _razorSemanticTokensInfoService.GetSemanticTokensAsync(documentContext, span, colorBackground, Guid.Empty, cancellationToken);
     }
 
     public VersionedDocumentContext Create(TextDocument textDocument)
