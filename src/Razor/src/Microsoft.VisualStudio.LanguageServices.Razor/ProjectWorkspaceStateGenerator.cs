@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 [Export(typeof(IProjectWorkspaceStateGenerator))]
 [method: ImportingConstructor]
 internal sealed class ProjectWorkspaceStateGenerator(
-    ProjectSnapshotManagerBase projectManager,
+    IProjectSnapshotManager projectManager,
     ITagHelperResolver tagHelperResolver,
     ProjectSnapshotManagerDispatcher dispatcher,
     IErrorReporter errorReporter,
@@ -31,7 +31,7 @@ internal sealed class ProjectWorkspaceStateGenerator(
     // Internal for testing
     internal readonly Dictionary<ProjectKey, UpdateItem> Updates = new();
 
-    private readonly ProjectSnapshotManagerBase _projectManager = projectManager;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IErrorReporter _errorReporter = errorReporter;
@@ -208,17 +208,19 @@ internal sealed class ProjectWorkspaceStateGenerator(
                 return;
             }
 
-            await _dispatcher.RunAsync(
-                () =>
-                {
-                    if (cancellationToken.IsCancellationRequested)
+            await _projectManager
+                .UpdateAsync(
+                    updater =>
                     {
-                        return;
-                    }
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            return;
+                        }
 
-                    ReportWorkspaceStateChange(projectSnapshot.Key, workspaceState);
-                },
-                cancellationToken).ConfigureAwait(false);
+                        updater.ProjectWorkspaceStateChanged(projectSnapshot.Key, workspaceState);
+                    },
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -251,13 +253,6 @@ internal sealed class ProjectWorkspaceStateGenerator(
         }
 
         OnBackgroundWorkCompleted();
-    }
-
-    private void ReportWorkspaceStateChange(ProjectKey projectKey, ProjectWorkspaceState workspaceStateChange)
-    {
-        _dispatcher.AssertRunningOnDispatcher();
-
-        _projectManager.ProjectWorkspaceStateChanged(projectKey, workspaceStateChange);
     }
 
     private void OnStartingBackgroundWork()
