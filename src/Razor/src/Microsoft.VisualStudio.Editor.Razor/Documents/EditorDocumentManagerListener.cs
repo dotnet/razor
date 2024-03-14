@@ -25,16 +25,19 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 // open/close state of documents. If other triggers depend on a document being open/closed (some do) then we need to ensure we
 // can mark open/closed prior to them running.
 [Export(typeof(IRazorStartupService))]
-internal class EditorDocumentManagerListener : IRazorStartupService
+internal partial class EditorDocumentManagerListener : IRazorStartupService
 {
     private readonly IEditorDocumentManager _documentManager;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITelemetryReporter _telemetryReporter;
-    private readonly EventHandler? _onChangedOnDisk;
-    private readonly EventHandler? _onChangedInEditor;
-    private readonly EventHandler _onOpened;
-    private readonly EventHandler? _onClosed;
+
+    private EventHandler? _onChangedOnDisk;
+    private EventHandler? _onChangedInEditor;
+    private EventHandler? _onOpened;
+    private EventHandler? _onClosed;
+
+    private Task _projectChangedTask = Task.CompletedTask;
 
     [ImportingConstructor]
     public EditorDocumentManagerListener(
@@ -56,33 +59,12 @@ internal class EditorDocumentManagerListener : IRazorStartupService
         _projectManager.PriorityChanged += ProjectManager_Changed;
     }
 
-    // For testing purposes only.
-    internal EditorDocumentManagerListener(
-        IEditorDocumentManager documentManager,
-        JoinableTaskContext joinableTaskContext,
-        EventHandler? onChangedOnDisk,
-        EventHandler? onChangedInEditor,
-        EventHandler onOpened,
-        EventHandler? onClosed)
-    {
-        _projectManager = null!;
-        _joinableTaskContext = joinableTaskContext;
-        _documentManager = documentManager;
-        _onChangedOnDisk = onChangedOnDisk;
-        _onChangedInEditor = onChangedInEditor;
-        _onOpened = onOpened;
-        _onClosed = onClosed;
-
-        _telemetryReporter = null!;
-    }
-
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs e)
     {
-        ProjectManager_ChangedAsync(e, CancellationToken.None).Forget();
+        _projectChangedTask = ProjectManager_ChangedAsync(e, CancellationToken.None);
     }
 
-    // Internal for testing.
-    internal async Task ProjectManager_ChangedAsync(ProjectChangeEventArgs e, CancellationToken cancellationToken)
+    private async Task ProjectManager_ChangedAsync(ProjectChangeEventArgs e, CancellationToken cancellationToken)
     {
         try
         {
@@ -105,7 +87,7 @@ internal class EditorDocumentManagerListener : IRazorStartupService
                             key, e.ProjectFilePath, e.ProjectKey, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
                         if (document.IsOpenInEditor)
                         {
-                            _onOpened(document, EventArgs.Empty);
+                            _onOpened?.Invoke(document, EventArgs.Empty);
                         }
 
                         break;
