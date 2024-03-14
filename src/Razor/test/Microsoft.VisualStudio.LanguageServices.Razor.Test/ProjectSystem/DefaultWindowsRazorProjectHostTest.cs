@@ -865,7 +865,10 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        _projectManager.SolutionClosed();
+        await _projectManager.UpdateAsync(updater =>
+        {
+            updater.SolutionClosed();
+        });
 
         await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 

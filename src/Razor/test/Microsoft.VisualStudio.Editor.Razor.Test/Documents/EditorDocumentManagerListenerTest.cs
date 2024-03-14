@@ -61,7 +61,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            projectManager.DocumentRemoved(s_hostProject.Key, s_hostDocument);
+            updater.DocumentRemoved(s_hostProject.Key, s_hostDocument);
         });
 
         await listenerAccessor.ProjectChangedTask;
@@ -100,7 +100,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            projectManager.ProjectRemoved(s_hostProject.Key);
+            updater.ProjectRemoved(s_hostProject.Key);
         });
 
         await listenerAccessor.ProjectChangedTask;
@@ -140,7 +140,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            projectManager.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         await listenerAccessor.ProjectChangedTask;
@@ -181,7 +181,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            projectManager.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         await listenerAccessor.ProjectChangedTask;

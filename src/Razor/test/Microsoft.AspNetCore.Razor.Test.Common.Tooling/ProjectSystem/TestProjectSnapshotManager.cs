@@ -19,20 +19,17 @@ internal partial class TestProjectSnapshotManager(
 {
     private readonly CancellationToken _disposalToken = disposalToken;
 
-    public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
+    public Task<TestDocumentSnapshot> CreateAndAddDocumentAsync(ProjectSnapshot projectSnapshot, string filePath)
     {
-        var documentSnapshot = TestDocumentSnapshot.Create(projectSnapshot, filePath);
-        DocumentAdded(projectSnapshot.Key, documentSnapshot.HostDocument, new DocumentSnapshotTextLoader(documentSnapshot));
+        return UpdateAsync(
+            updater =>
+            {
+                var documentSnapshot = TestDocumentSnapshot.Create(projectSnapshot, filePath);
+                updater.DocumentAdded(projectSnapshot.Key, documentSnapshot.HostDocument, new DocumentSnapshotTextLoader(documentSnapshot));
 
-        return documentSnapshot;
-    }
-
-    internal TestProjectSnapshot CreateAndAddProject(string filePath)
-    {
-        var projectSnapshot = TestProjectSnapshot.Create(filePath);
-        ProjectAdded(projectSnapshot.HostProject);
-
-        return projectSnapshot;
+                return documentSnapshot;
+            },
+            _disposalToken);
     }
 
     public Listener ListenToNotifications() => new(this);

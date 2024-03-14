@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal partial class ProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
     ProjectSnapshotManagerDispatcher dispatcher)
-    : ProjectSnapshotManagerBase
+    : IProjectSnapshotManager
 {
-    public override event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
-    public override event EventHandler<ProjectChangeEventArgs>? Changed;
+    public event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
+    public event EventHandler<ProjectChangeEventArgs>? Changed;
 
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
     // created lazily.
@@ -45,7 +45,7 @@ internal partial class ProjectSnapshotManager(
     // internal for testing
     internal bool IsSolutionClosing { get; private set; }
 
-    public override ImmutableArray<IProjectSnapshot> GetProjects()
+    public ImmutableArray<IProjectSnapshot> GetProjects()
     {
         using var _ = _rwLocker.EnterReadLock();
         using var _1 = ListPool<IProjectSnapshot>.GetPooledObject(out var builder);
@@ -58,13 +58,13 @@ internal partial class ProjectSnapshotManager(
         return builder.ToImmutableArray();
     }
 
-    public override ImmutableArray<string> GetOpenDocuments()
+    public ImmutableArray<string> GetOpenDocuments()
     {
         using var _ = _rwLocker.EnterReadLock();
         return _openDocuments_needsLock.ToImmutableArray();
     }
 
-    public override IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
+    public IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
     {
         using (_rwLocker.EnterReadLock())
         {
@@ -77,7 +77,7 @@ internal partial class ProjectSnapshotManager(
         throw new InvalidOperationException($"No project snapshot exists with the key, '{projectKey}'");
     }
 
-    public override bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
+    public bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
     {
         using (_rwLocker.EnterReadLock())
         {
@@ -92,7 +92,7 @@ internal partial class ProjectSnapshotManager(
         return false;
     }
 
-    public override ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
+    public ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
     {
         if (projectFileName is null)
         {
@@ -113,7 +113,7 @@ internal partial class ProjectSnapshotManager(
         return projects.DrainToImmutable();
     }
 
-    public override bool IsDocumentOpen(string documentFilePath)
+    public bool IsDocumentOpen(string documentFilePath)
     {
         if (documentFilePath is null)
         {
@@ -124,7 +124,7 @@ internal partial class ProjectSnapshotManager(
         return _openDocuments_needsLock.Contains(documentFilePath);
     }
 
-    internal override void DocumentAdded(ProjectKey projectKey, HostDocument document, TextLoader textLoader)
+    private void DocumentAdded(ProjectKey projectKey, HostDocument document, TextLoader textLoader)
     {
         if (document is null)
         {
@@ -142,7 +142,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void DocumentRemoved(ProjectKey projectKey, HostDocument document)
+    private void DocumentRemoved(ProjectKey projectKey, HostDocument document)
     {
         if (document is null)
         {
@@ -160,7 +160,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void DocumentOpened(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
+    private void DocumentOpened(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
     {
         if (documentFilePath is null)
         {
@@ -183,7 +183,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void DocumentClosed(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
+    private void DocumentClosed(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
     {
         if (documentFilePath is null)
         {
@@ -206,7 +206,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void DocumentChanged(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
+    private void DocumentChanged(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
     {
         if (documentFilePath is null)
         {
@@ -229,7 +229,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void DocumentChanged(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
+    private void DocumentChanged(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
     {
         if (documentFilePath is null)
         {
@@ -252,7 +252,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void ProjectAdded(HostProject hostProject)
+    private void ProjectAdded(HostProject hostProject)
     {
         if (hostProject is null)
         {
@@ -270,7 +270,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void ProjectConfigurationChanged(HostProject hostProject)
+    private void ProjectConfigurationChanged(HostProject hostProject)
     {
         if (hostProject is null)
         {
@@ -288,7 +288,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void ProjectWorkspaceStateChanged(ProjectKey projectKey, ProjectWorkspaceState? projectWorkspaceState)
+    private void ProjectWorkspaceStateChanged(ProjectKey projectKey, ProjectWorkspaceState? projectWorkspaceState)
     {
         if (projectWorkspaceState is null)
         {
@@ -306,7 +306,7 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void ProjectRemoved(ProjectKey projectKey)
+    private void ProjectRemoved(ProjectKey projectKey)
     {
         if (TryChangeEntry_UsesLock(
             projectKey,
@@ -319,12 +319,12 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    internal override void SolutionOpened()
+    private void SolutionOpened()
     {
         IsSolutionClosing = false;
     }
 
-    internal override void SolutionClosed()
+    private void SolutionClosed()
     {
         IsSolutionClosing = true;
     }
@@ -553,31 +553,31 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    public override void Update(Action<Updater> updater)
+    public void Update(Action<Updater> updater)
     {
         _dispatcher.AssertRunningOnDispatcher();
         updater(new(this));
     }
 
-    public override void Update<TState>(Action<Updater, TState> updater, TState state)
+    public void Update<TState>(Action<Updater, TState> updater, TState state)
     {
         _dispatcher.AssertRunningOnDispatcher();
         updater(new(this), state);
     }
 
-    public override TResult Update<TResult>(Func<Updater, TResult> updater)
+    public TResult Update<TResult>(Func<Updater, TResult> updater)
     {
         _dispatcher.AssertRunningOnDispatcher();
         return updater(new(this));
     }
 
-    public override TResult Update<TState, TResult>(Func<Updater, TState, TResult> updater, TState state)
+    public TResult Update<TState, TResult>(Func<Updater, TState, TResult> updater, TState state)
     {
         _dispatcher.AssertRunningOnDispatcher();
         return updater(new(this), state);
     }
 
-    public override Task UpdateAsync(Action<Updater> updater, CancellationToken cancellationToken)
+    public Task UpdateAsync(Action<Updater> updater, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
             static x => x.updater(new(x.instance)),
@@ -585,7 +585,7 @@ internal partial class ProjectSnapshotManager(
             cancellationToken);
     }
 
-    public override Task UpdateAsync<TState>(Action<Updater, TState> updater, TState state, CancellationToken cancellationToken)
+    public Task UpdateAsync<TState>(Action<Updater, TState> updater, TState state, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
             static x => x.updater(new(x.instance), x.state),
@@ -593,7 +593,7 @@ internal partial class ProjectSnapshotManager(
             cancellationToken);
     }
 
-    public override Task<TResult> UpdateAsync<TResult>(Func<Updater, TResult> updater, CancellationToken cancellationToken)
+    public Task<TResult> UpdateAsync<TResult>(Func<Updater, TResult> updater, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
             static x => x.updater(new(x.instance)),
@@ -601,7 +601,7 @@ internal partial class ProjectSnapshotManager(
             cancellationToken);
     }
 
-    public override Task<TResult> UpdateAsync<TState, TResult>(Func<Updater, TState, TResult> updater, TState state, CancellationToken cancellationToken)
+    public Task<TResult> UpdateAsync<TState, TResult>(Func<Updater, TState, TResult> updater, TState state, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
             static x => x.updater(new(x.instance), x.state),
@@ -609,7 +609,7 @@ internal partial class ProjectSnapshotManager(
             cancellationToken);
     }
 
-    public override Task UpdateAsync(Func<Updater, Task> updater, CancellationToken cancellationToken)
+    public Task UpdateAsync(Func<Updater, Task> updater, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
             static x => x.updater(new(x.instance)),
@@ -617,7 +617,7 @@ internal partial class ProjectSnapshotManager(
             cancellationToken).Unwrap();
     }
 
-    public override Task UpdateAsync<TState>(Func<Updater, TState, Task> updater, TState state, CancellationToken cancellationToken)
+    public Task UpdateAsync<TState>(Func<Updater, TState, Task> updater, TState state, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
             static x => x.updater(new(x.instance), x.state),
@@ -625,7 +625,7 @@ internal partial class ProjectSnapshotManager(
             cancellationToken).Unwrap();
     }
 
-    public override Task<TResult> UpdateAsync<TResult>(Func<Updater, Task<TResult>> updater, CancellationToken cancellationToken)
+    public Task<TResult> UpdateAsync<TResult>(Func<Updater, Task<TResult>> updater, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
             static x => x.updater(new(x.instance)),
@@ -633,7 +633,7 @@ internal partial class ProjectSnapshotManager(
             cancellationToken).Unwrap();
     }
 
-    public override Task<TResult> UpdateAsync<TState, TResult>(Func<Updater, TState, Task<TResult>> updater, TState state, CancellationToken cancellationToken)
+    public Task<TResult> UpdateAsync<TState, TResult>(Func<Updater, TState, Task<TResult>> updater, TState state, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
             static x => x.updater(new(x.instance), x.state),
