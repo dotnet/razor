@@ -467,13 +467,13 @@ internal partial class ProjectSnapshotManager(
     {
         switch (action)
         {
-            case AddDocumentAction addAction:
-                return new Entry(originalEntry.State.WithAddedHostDocument(addAction.NewDocument, CreateTextAndVersionFunc(addAction.TextLoader)));
+            case AddDocumentAction(var newDocument, var textLoader):
+                return new Entry(originalEntry.State.WithAddedHostDocument(newDocument, CreateTextAndVersionFunc(textLoader)));
 
-            case RemoveDocumentAction removeAction:
-                return new Entry(originalEntry.State.WithRemovedHostDocument(removeAction.OriginalDocument));
+            case RemoveDocumentAction(var originalDocument):
+                return new Entry(originalEntry.State.WithRemovedHostDocument(originalDocument));
 
-            case CloseDocumentAction closeAction:
+            case CloseDocumentAction(var textLoader):
                 {
                     if (documentState is null)
                     {
@@ -482,22 +482,22 @@ internal partial class ProjectSnapshotManager(
 
                     var state = originalEntry.State.WithChangedHostDocument(
                         documentState.HostDocument,
-                        () => closeAction.TextLoader.LoadTextAndVersionAsync(s_loadTextOptions, cancellationToken: default));
+                        () => textLoader.LoadTextAndVersionAsync(s_loadTextOptions, cancellationToken: default));
                     return new Entry(state);
                 }
 
-            case OpenDocumentAction openAction:
-                if (documentState is null)
+            case OpenDocumentAction(var sourceText):
                 {
-                    throw new ArgumentNullException(nameof(documentState));
-                }
+                    if (documentState is null)
+                    {
+                        throw new ArgumentNullException(nameof(documentState));
+                    }
 
-                {
                     if (documentState.TryGetText(out var olderText) &&
                         documentState.TryGetTextVersion(out var olderVersion))
                     {
-                        var version = openAction.SourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                        var newState = originalEntry.State.WithChangedHostDocument(documentState.HostDocument, openAction.SourceText, version);
+                        var version = sourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
+                        var newState = originalEntry.State.WithChangedHostDocument(documentState.HostDocument, sourceText, version);
                         return new Entry(newState);
                     }
                     else
@@ -507,25 +507,31 @@ internal partial class ProjectSnapshotManager(
                             olderText = await documentState.GetTextAsync().ConfigureAwait(false);
                             olderVersion = await documentState.GetTextVersionAsync().ConfigureAwait(false);
 
-                            var version = openAction.SourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                            return TextAndVersion.Create(openAction.SourceText, version, documentState.HostDocument.FilePath);
+                            var version = sourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
+                            return TextAndVersion.Create(sourceText, version, documentState.HostDocument.FilePath);
                         });
 
                         return new Entry(newState);
                     }
                 }
 
-            case DocumentTextLoaderChangedAction textLoaderChangedAction:
-                return new Entry(originalEntry.State.WithChangedHostDocument(documentState.AssumeNotNull().HostDocument, CreateTextAndVersionFunc(textLoaderChangedAction.TextLoader)));
+            case DocumentTextLoaderChangedAction(var textLoader):
+                {
+                    var newState = originalEntry.State.WithChangedHostDocument(
+                        documentState.AssumeNotNull().HostDocument,
+                        CreateTextAndVersionFunc(textLoader));
 
-            case DocumentTextChangedAction textChangedAction:
+                    return new Entry(newState);
+                }
+
+            case DocumentTextChangedAction(var sourceText):
                 {
                     documentState.AssumeNotNull();
                     if (documentState.TryGetText(out var olderText) &&
                         documentState.TryGetTextVersion(out var olderVersion))
                     {
-                        var version = textChangedAction.SourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                        var state = originalEntry.State.WithChangedHostDocument(documentState.HostDocument, textChangedAction.SourceText, version);
+                        var version = sourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
+                        var state = originalEntry.State.WithChangedHostDocument(documentState.HostDocument, sourceText, version);
 
                         return new Entry(state);
                     }
@@ -536,8 +542,8 @@ internal partial class ProjectSnapshotManager(
                             olderText = await documentState.GetTextAsync().ConfigureAwait(false);
                             olderVersion = await documentState.GetTextVersionAsync().ConfigureAwait(false);
 
-                            var version = textChangedAction.SourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                            return TextAndVersion.Create(textChangedAction.SourceText, version, documentState.HostDocument.FilePath);
+                            var version = sourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
+                            return TextAndVersion.Create(sourceText, version, documentState.HostDocument.FilePath);
                         });
 
                         return new Entry(state);
@@ -547,11 +553,11 @@ internal partial class ProjectSnapshotManager(
             case ProjectRemovedAction:
                 return null;
 
-            case ProjectWorkspaceStateChangedAction workspaceStateChangedAction:
-                return new Entry(originalEntry.State.WithProjectWorkspaceState(workspaceStateChangedAction.WorkspaceState));
+            case ProjectWorkspaceStateChangedAction(var workspaceState):
+                return new Entry(originalEntry.State.WithProjectWorkspaceState(workspaceState));
 
-            case HostProjectUpdatedAction hostProjectUpdatedAction:
-                return new Entry(originalEntry.State.WithHostProject(hostProjectUpdatedAction.HostProject));
+            case HostProjectUpdatedAction(var hostProject):
+                return new Entry(originalEntry.State.WithHostProject(hostProject));
 
             default:
                 throw new InvalidOperationException($"Unexpected action type {action.GetType()}");
