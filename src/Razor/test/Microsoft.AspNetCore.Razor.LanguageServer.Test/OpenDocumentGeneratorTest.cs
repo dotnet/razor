@@ -156,7 +156,7 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     }
 
     private class TestOpenDocumentGenerator(
-        ProjectSnapshotManagerBase projectManager,
+        IProjectSnapshotManager projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter,
         params DocumentProcessedListener[] listeners)
