@@ -1,13 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.InlayHints;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
@@ -16,8 +17,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 
-[Export(typeof(IInlayHintService))]
-[method: ImportingConstructor]
 internal sealed class InlayHintService(IRazorDocumentMappingService documentMappingService) : IInlayHintService
 {
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;

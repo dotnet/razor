@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -23,8 +22,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // (language version, extensions, named configuration).
 //
 // The implementation will create a ProjectSnapshot for each HostProject.
-internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
+internal class ProjectSnapshotManager(
+    IProjectEngineFactoryProvider projectEngineFactoryProvider,
+    ProjectSnapshotManagerDispatcher dispatcher)
+    : ProjectSnapshotManagerBase
 {
+    public override event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
     public override event EventHandler<ProjectChangeEventArgs>? Changed;
 
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
@@ -36,39 +39,8 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
-    private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
-    private readonly IErrorReporter _errorReporter;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-
-    public DefaultProjectSnapshotManager(
-        IEnumerable<IProjectSnapshotChangeTrigger> triggers,
-        IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        ProjectSnapshotManagerDispatcher dispatcher,
-        IErrorReporter errorReporter)
-    {
-        _projectEngineFactoryProvider = projectEngineFactoryProvider;
-        _dispatcher = dispatcher;
-        _errorReporter = errorReporter;
-
-        using (_rwLocker.EnterReadLock())
-        {
-            foreach (var trigger in triggers)
-            {
-                if (trigger is IPriorityProjectSnapshotChangeTrigger)
-                {
-                    trigger.Initialize(this);
-                }
-            }
-
-            foreach (var trigger in triggers)
-            {
-                if (trigger is not IPriorityProjectSnapshotChangeTrigger)
-                {
-                    trigger.Initialize(this);
-                }
-            }
-        }
-    }
+    private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider = projectEngineFactoryProvider;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
 
     // internal for testing
     internal bool IsSolutionClosing { get; private set; }
@@ -357,28 +329,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         IsSolutionClosing = true;
     }
 
-    internal override void ReportError(Exception exception)
-    {
-        _errorReporter.ReportError(exception);
-    }
-
-    internal override void ReportError(Exception exception, IProjectSnapshot project)
-    {
-        _errorReporter.ReportError(exception, project);
-    }
-
-    internal override void ReportError(Exception exception, ProjectKey projectKey)
-    {
-        if (TryGetLoadedProject(projectKey, out var project))
-        {
-            _errorReporter.ReportError(exception, project);
-        }
-        else
-        {
-            _errorReporter.ReportError(exception);
-        }
-    }
-
     private void NotifyListeners(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
     {
         // Change notifications should always be sent on the dispatcher.
@@ -403,6 +353,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             {
                 // Don't dequeue yet, we want the notification to sit in the queue until we've finished notifying to ensure other calls to NotifyListeners know there's a currently running event loop.
                 var args = _notificationWork.Peek();
+                PriorityChanged?.Invoke(this, args);
                 Changed?.Invoke(this, args);
 
                 _notificationWork.Dequeue();

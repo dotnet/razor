@@ -19,7 +19,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -128,12 +130,12 @@ internal static class IServiceCollectionExtensions
         services.TryAddSingleton<IRazorSemanticTokensInfoService, RazorSemanticTokensInfoService>();
         services.AddSingleton<ICSharpSemanticTokensProvider, LSPCSharpSemanticTokensProvider>();
 
-        services.AddSingleton<RazorSemanticTokensLegendService>();
+        services.AddSingleton<ISemanticTokensLegendService, RazorSemanticTokensLegendService>();
 
         services.AddHandler<RazorSemanticTokensRefreshEndpoint>();
 
         services.AddSingleton<IWorkspaceSemanticTokensRefreshPublisher, WorkspaceSemanticTokensRefreshPublisher>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger, WorkspaceSemanticTokensRefreshTrigger>();
+        services.AddSingleton<IRazorStartupService, WorkspaceSemanticTokensRefreshTrigger>();
     }
 
     public static void AddCodeActionsServices(this IServiceCollection services)
@@ -196,17 +198,17 @@ internal static class IServiceCollectionExtensions
     public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
         services.AddSingleton<IGeneratedDocumentPublisher, GeneratedDocumentPublisher>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
+        services.AddSingleton<IRazorStartupService>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
         services.AddSingleton<IDocumentContextFactory, DocumentContextFactory>();
         services.AddSingleton(sp => new Lazy<IDocumentContextFactory>(sp.GetRequiredService<IDocumentContextFactory>));
 
         services.AddSingleton<IDocumentVersionCache, DocumentVersionCache>();
-        services.AddSingleton((services) => (IProjectSnapshotChangeTrigger)services.GetRequiredService<IDocumentVersionCache>());
+        services.AddSingleton((services) => (IRazorStartupService)services.GetRequiredService<IDocumentVersionCache>());
 
         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
         services.AddSingleton<ISnapshotResolver, SnapshotResolver>();
         services.AddSingleton<IRazorProjectService, RazorProjectService>();
-        services.AddSingleton<IProjectSnapshotChangeTrigger, OpenDocumentGenerator>();
+        services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
 
@@ -235,9 +237,13 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
         services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
 
-        services.AddSingleton<IProjectSnapshotManagerAccessor, LspProjectSnapshotManagerAccessor>();
         services.AddSingleton<LSPTagHelperTooltipFactory, DefaultLSPTagHelperTooltipFactory>();
         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
+
+        // Add project snapshot manager
+        services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();
+        services.AddSingleton<ProjectSnapshotManagerBase, ProjectSnapshotManager>();
+        services.AddSingleton<IProjectSnapshotManager>(services => services.GetRequiredService<ProjectSnapshotManagerBase>());
     }
 
     public static void AddHandlerWithCapabilities<T>(this IServiceCollection services)
