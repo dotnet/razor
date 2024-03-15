@@ -16,14 +16,11 @@ internal sealed class RemoteClientInitializationService : RazorServiceBase, IRem
     {
     }
 
-    public async ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
-    {
-        await RazorBrokeredServiceImplementation.RunServiceAsync(
-            _ =>
+    public ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
+        => RazorBrokeredServiceImplementation.RunServiceAsync(_ =>
             {
                 RemoteLanguageServerFeatureOptions.SetOptions(options);
                 return default;
             },
             cancellationToken);
-    }
 }

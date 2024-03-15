@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
@@ -46,7 +47,7 @@ internal sealed class RemoteSemanticTokensService(
         var documentContext = Create(razorDocument);
 
         // TODO: Telemetry?
-        return await _razorSemanticTokensInfoService.GetSemanticTokensAsync(documentContext, span, colorBackground, Guid.Empty, cancellationToken);
+        return await _razorSemanticTokensInfoService.GetSemanticTokensAsync(documentContext, span, colorBackground, Guid.Empty, cancellationToken).ConfigureAwait(false);
     }
 
     public VersionedDocumentContext Create(TextDocument textDocument)
