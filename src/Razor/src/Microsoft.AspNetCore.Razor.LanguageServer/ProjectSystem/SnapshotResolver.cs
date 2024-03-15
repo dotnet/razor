@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -15,7 +14,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-[Export(typeof(ISnapshotResolver)), Shared]
 internal sealed class SnapshotResolver : ISnapshotResolver
 {
     private readonly IProjectSnapshotManager _projectManager;
@@ -24,7 +22,6 @@ internal sealed class SnapshotResolver : ISnapshotResolver
     // Internal for testing
     internal readonly HostProject MiscellaneousHostProject;
 
-    [ImportingConstructor]
     public SnapshotResolver(IProjectSnapshotManager projectManager, IRazorLoggerFactory loggerFactory)
     {
         _projectManager = projectManager;
