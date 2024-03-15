@@ -3,8 +3,6 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Razor;
@@ -14,15 +12,9 @@ namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal static class FilePathNormalizer
 {
-    private static Lazy<IEqualityComparer<string>> _lazyComparer = new Lazy<IEqualityComparer<string>>(() => new FilePathNormalizingComparer());
-    public static IEqualityComparer<string> Comparer => _lazyComparer.Value;
-
-    private class FilePathNormalizingComparer : IEqualityComparer<string>
-    {
-        public bool Equals(string? x, string? y) => FilePathNormalizer.FilePathsEquivalent(x, y);
-
-        public int GetHashCode([DisallowNull] string obj) => FilePathNormalizer.GetHashCode(obj);
-    }
+    private static readonly Func<char, char> s_charConverter = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+        ? c => c
+        : char.ToLowerInvariant;
 
     public static string NormalizeDirectory(string? directoryFilePath)
     {
@@ -147,7 +139,7 @@ internal static class FilePathNormalizer
 
         foreach (var ch in normalizedSpan)
         {
-            hashCombiner.Add(ch);
+            hashCombiner.Add(s_charConverter(ch));
         }
 
         return hashCombiner.CombinedHash;
