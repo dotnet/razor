@@ -207,15 +207,18 @@ internal sealed class ProjectWorkspaceStateGenerator(
 
             await _projectManager
                 .UpdateAsync(
-                    updater =>
+                    static (updater, state) =>
                     {
+                        var (projectKey, workspaceState, cancellationToken) = state;
+
                         if (cancellationToken.IsCancellationRequested)
                         {
                             return;
                         }
 
-                        updater.ProjectWorkspaceStateChanged(projectSnapshot.Key, workspaceState);
+                        updater.ProjectWorkspaceStateChanged(projectKey, workspaceState);
                     },
+                    state: (projectSnapshot.Key, workspaceState, cancellationToken),
                     cancellationToken)
                 .ConfigureAwait(false);
         }

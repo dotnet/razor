@@ -65,10 +65,9 @@ internal sealed class SnapshotResolver : ISnapshotResolver
     {
         if (!_projectManager.TryGetLoadedProject(MiscellaneousHostProject.Key, out var miscellaneousProject))
         {
-            _projectManager.Update(updater =>
-            {
-                updater.ProjectAdded(MiscellaneousHostProject);
-            });
+            _projectManager.Update(
+                static (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
+                state: MiscellaneousHostProject);
 
             miscellaneousProject = _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
         }

@@ -85,10 +85,9 @@ internal class RazorProjectService(
 
             _logger.LogInformation("Adding document '{filePath}' to project '{projectKey}'.", filePath, projectSnapshot.Key);
 
-            _projectManager.Update(updater =>
-            {
-                updater.DocumentAdded(projectSnapshot.Key, hostDocument, textLoader);
-            });
+            _projectManager.Update(
+                static (updater, state) => updater.DocumentAdded(state.key, state.hostDocument, state.textLoader),
+                state: (key: projectSnapshot.Key, hostDocument, textLoader));
 
             // Adding a document to a project could also happen because a target was added to a project, or we're moving a document
             // from Misc Project to a real one, and means the newly added document could actually already be open.
@@ -122,10 +121,9 @@ internal class RazorProjectService(
         {
             _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
 
-            _projectManager.Update(updater =>
-            {
-                updater.DocumentOpened(projectSnapshot.Key, textDocumentPath, sourceText);
-            });
+            _projectManager.Update(
+                static (updater, state) => updater.DocumentOpened(state.key, state.textDocumentPath, state.sourceText),
+                state: (key: projectSnapshot.Key, textDocumentPath, sourceText));
         });
 
         // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
@@ -144,10 +142,9 @@ internal class RazorProjectService(
             var textLoader = _remoteTextLoaderFactory.Create(filePath);
             _logger.LogInformation("Closing document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
 
-            _projectManager.Update(updater =>
-            {
-                updater.DocumentClosed(projectSnapshot.Key, textDocumentPath, textLoader);
-            });
+            _projectManager.Update(
+                static (updater, state) => updater.DocumentClosed(state.key, state.textDocumentPath, state.textLoader),
+                state: (key: projectSnapshot.Key, textDocumentPath, textLoader));
         });
     }
 
@@ -185,10 +182,9 @@ internal class RazorProjectService(
             {
                 _logger.LogInformation("Removing document '{textDocumentPath}' from project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
 
-                _projectManager.Update(updater =>
-                {
-                    updater.DocumentRemoved(projectSnapshot.Key, documentSnapshot.State.HostDocument);
-                });
+                _projectManager.Update(
+                    static (updater, state) => updater.DocumentRemoved(state.Key, state.HostDocument),
+                    state: (projectSnapshot.Key, documentSnapshot.State.HostDocument));
             }
         });
     }
@@ -201,10 +197,9 @@ internal class RazorProjectService(
         {
             _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
 
-            _projectManager.Update(updater =>
-            {
-                updater.DocumentChanged(project.Key, textDocumentPath, sourceText);
-            });
+            _projectManager.Update(
+                static (updater, state) => updater.DocumentChanged(state.key, state.textDocumentPath, state.sourceText),
+                state: (key: project.Key, textDocumentPath, sourceText));
         });
 
         // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
@@ -234,11 +229,11 @@ internal class RazorProjectService(
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
         var hostProject = new HostProject(normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
-        _projectManager.Update(updater =>
-        {
-            // ProjectAdded will no-op if the project already exists
-            updater.ProjectAdded(hostProject);
-        });
+
+        // ProjectAdded will no-op if the project already exists
+        _projectManager.Update(
+            static (updater, hostProject) => updater.ProjectAdded(hostProject),
+            state: hostProject);
 
         _logger.LogInformation("Added project '{filePath}' with key {key} to project system.", filePath, hostProject.Key);
 
@@ -272,10 +267,9 @@ internal class RazorProjectService(
                 project.Key, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
         }
 
-        _projectManager.Update(updater =>
-        {
-            updater.ProjectWorkspaceStateChanged(project.Key, projectWorkspaceState);
-        });
+        _projectManager.Update(
+            static (updater, state) => updater.ProjectWorkspaceStateChanged(state.key, state.projectWorkspaceState),
+            state: (key: project.Key, projectWorkspaceState));
 
         var currentConfiguration = project.Configuration;
         var currentRootNamespace = project.RootNamespace;
@@ -304,10 +298,9 @@ internal class RazorProjectService(
         }
 
         var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
-        _projectManager.Update(updater =>
-        {
-            updater.ProjectConfigurationChanged(hostProject);
-        });
+        _projectManager.Update(
+            static (updater, hostProject) => updater.ProjectConfigurationChanged(hostProject),
+            state: hostProject);
     }
 
     private void UpdateProjectDocuments(ImmutableArray<DocumentSnapshotHandle> documents, ProjectKey projectKey)
@@ -364,13 +357,15 @@ internal class RazorProjectService(
             _logger.LogTrace("Updating document '{newHostDocument.FilePath}''s file kind to '{newHostDocument.FileKind}' and target path to '{newHostDocument.TargetPath}'.",
                 newHostDocument.FilePath, newHostDocument.FileKind, newHostDocument.TargetPath);
 
-            _projectManager.Update(updater =>
-            {
-                updater.DocumentRemoved(currentProjectKey, currentHostDocument);
+            var remoteTextLoader = _remoteTextLoaderFactory.Create(newFilePath);
 
-                var remoteTextLoader = _remoteTextLoaderFactory.Create(newFilePath);
-                updater.DocumentAdded(currentProjectKey, newHostDocument, remoteTextLoader);
-            });
+            _projectManager.Update(
+                static (updater, state) =>
+                {
+                    updater.DocumentRemoved(state.currentProjectKey, state.currentHostDocument);
+                    updater.DocumentAdded(state.currentProjectKey, state.newHostDocument, state.remoteTextLoader);
+                },
+                state: (currentProjectKey, currentHostDocument, newHostDocument, remoteTextLoader));
         }
 
         project = _projectManager.GetLoadedProject(project.Key);
@@ -398,10 +393,9 @@ internal class RazorProjectService(
 
                 _logger.LogInformation("Adding new document '{documentFilePath}' to project '{key}'.", documentFilePath, currentProjectKey);
 
-                _projectManager.Update(updater =>
-                {
-                    updater.DocumentAdded(currentProjectKey, newHostDocument, remoteTextLoader);
-                });
+                _projectManager.Update(
+                    static (updater, state) => updater.DocumentAdded(state.currentProjectKey, state.newHostDocument, state.remoteTextLoader),
+                    state: (currentProjectKey, newHostDocument, remoteTextLoader));
             }
         }
     }
@@ -424,11 +418,13 @@ internal class RazorProjectService(
         _logger.LogInformation("Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.",
             documentFilePath, fromProject.Key, toProject.Key);
 
-        _projectManager.Update(updater =>
-        {
-            updater.DocumentRemoved(fromProject.Key, currentHostDocument);
-            updater.DocumentAdded(toProject.Key, newHostDocument, textLoader);
-        });
+        _projectManager.Update(
+            static (updater, state) =>
+            {
+                updater.DocumentRemoved(state.fromProject.Key, state.currentHostDocument);
+                updater.DocumentAdded(state.toProject.Key, state.newHostDocument, state.textLoader);
+            },
+            state: (fromProject, currentHostDocument, toProject, newHostDocument, textLoader));
     }
 
     private static string EnsureFullPath(string filePath, string projectDirectory)
@@ -464,10 +460,9 @@ internal class RazorProjectService(
 
             // Remove from miscellaneous project
             var defaultMiscProject = miscellaneousProject;
-            _projectManager.Update(updater =>
-            {
-                updater.DocumentRemoved(defaultMiscProject.Key, documentSnapshot.State.HostDocument);
-            });
+            _projectManager.Update(
+                static (updater, state) => updater.DocumentRemoved(state.Key, state.HostDocument),
+                state: (defaultMiscProject.Key, documentSnapshot.State.HostDocument));
 
             // Add to new project
 
@@ -477,10 +472,9 @@ internal class RazorProjectService(
             _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.",
                 documentFilePath, miscellaneousProject.Key, projectSnapshot.Key);
 
-            _projectManager.Update(updater =>
-            {
-                updater.DocumentAdded(defaultProject.Key, newHostDocument, textLoader);
-            });
+            _projectManager.Update(
+                static (updater, state) => updater.DocumentAdded(state.key, state.newHostDocument, state.textLoader),
+                state: (key: defaultProject.Key, newHostDocument, textLoader));
         }
     }
 

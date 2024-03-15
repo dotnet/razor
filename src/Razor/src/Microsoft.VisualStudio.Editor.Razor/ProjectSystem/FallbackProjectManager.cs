@@ -186,13 +186,16 @@ internal sealed class FallbackProjectManager(
     private Task UpdateProjectManagerAsync(Action<ProjectSnapshotManager.Updater> action, CancellationToken cancellationToken)
     {
         return _projectManager
-            .UpdateAsync(updater =>
-            {
-                RazorStartupInitializer.Initialize(_serviceProvider);
+            .UpdateAsync(
+                static (updater, state) =>
+                {
+                    var (serviceProvider, action) = state;
+                    RazorStartupInitializer.Initialize(serviceProvider);
 
-                action(updater);
-            },
-            cancellationToken);
+                    action(updater);
+                },
+                state: (_serviceProvider, action),
+                cancellationToken);
     }
 
     private Project? TryFindProjectForProjectId(ProjectId projectId)

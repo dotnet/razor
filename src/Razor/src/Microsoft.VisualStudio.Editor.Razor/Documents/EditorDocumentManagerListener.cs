@@ -145,10 +145,8 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService
         try
         {
             return _projectManager.UpdateAsync(
-                updater =>
-                {
-                    updater.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.TextLoader);
-                },
+                static (updater, document) => updater.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.TextLoader),
+                state: document,
                 cancellationToken);
         }
         catch (Exception ex)
@@ -177,12 +175,9 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService
             // However, due to accessing the project snapshot manager, we need to switch to
             // running on the project snapshot manager's specialized thread.
             return _projectManager.UpdateAsync(
-                updater =>
-                {
-                    var document = (EditorDocument)sender;
-                    updater.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
-                }
-                , cancellationToken);
+                static (updater, document) => updater.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText),
+                state: (EditorDocument)sender,
+                cancellationToken);
         }
         catch (Exception ex)
         {
@@ -207,18 +202,18 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService
         try
         {
             return _projectManager.UpdateAsync(
-                async updater =>
+                static async (updater, state) =>
                 {
-                    var document = (EditorDocument)sender;
+                    var (document, telemetryReporter, cancellationToken) = state;
 
-                    if (_projectManager.TryGetLoadedProject(document.ProjectKey, out var project) &&
+                    if (updater.TryGetLoadedProject(document.ProjectKey, out var project) &&
                         project is ProjectSnapshot { HostProject: FallbackHostProject } projectSnapshot)
                     {
                         // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
                         // so fire some telemetry. We can't log details about the project, for PII reasons, but we can use document count and tag helper count
                         // as some kind of measure of complexity.
                         var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-                        _telemetryReporter.ReportEvent(
+                        telemetryReporter.ReportEvent(
                             "fallbackproject/documentopen",
                             Severity.Normal,
                             new Property("document.count", projectSnapshot.DocumentCount),
@@ -227,6 +222,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService
 
                     updater.DocumentOpened(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
                 },
+                state: (document: (EditorDocument)sender, _telemetryReporter, cancellationToken),
                 cancellationToken);
         }
         catch (Exception ex)
@@ -252,11 +248,8 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService
         try
         {
             return _projectManager.UpdateAsync(
-                updater =>
-                {
-                    var document = (EditorDocument)sender;
-                    updater.DocumentClosed(document.ProjectKey, document.DocumentFilePath, document.TextLoader);
-                },
+                static (updater, document) => updater.DocumentClosed(document.ProjectKey, document.DocumentFilePath, document.TextLoader),
+                state: (EditorDocument)sender,
                 cancellationToken);
         }
         catch (Exception ex)

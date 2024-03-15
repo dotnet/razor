@@ -248,22 +248,18 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     protected Task UpdateAsync(Action<ProjectSnapshotManager.Updater> action, CancellationToken cancellationToken)
     {
         return _projectManager.UpdateAsync(
-            updater =>
+            static (updater, state) =>
             {
-                EnsureRazorStartupInitialized();
+                var (action, serviceProvider) = state;
+
+                // This is a potential entry point for Razor start up when a project is opened with no open editors.
+                // We need to ensure that any Razor start up services are initialized before the project manager is updated.
+                RazorStartupInitializer.Initialize(serviceProvider);
+
                 action(updater);
             },
+            state: (action, _serviceProvider),
             cancellationToken);
-    }
-
-    /// <summary>
-    ///  Needs to be called before <see cref="_projectManager"/> is updated.
-    /// </summary>
-    private void EnsureRazorStartupInitialized()
-    {
-        // This is a potential entry point for Razor start up when a project is opened with no open editors.
-        // We need to ensure that any Razor start up services are initialized before the project manager is updated.
-        RazorStartupInitializer.Initialize(_serviceProvider);
     }
 
     protected static void UpdateProject(ProjectSnapshotManager.Updater updater, HostProject project)

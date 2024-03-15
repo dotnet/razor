@@ -52,19 +52,19 @@ internal class VisualStudioSolutionCloseChangeTrigger : IRazorStartupService, IV
 
     public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
     {
-        _projectManager.UpdateAsync(updater => updater.SolutionOpened(), CancellationToken.None).Forget();
+        _projectManager.UpdateAsync(static updater => updater.SolutionOpened(), CancellationToken.None).Forget();
         return VSConstants.S_OK;
     }
 
     public int OnBeforeCloseSolution(object pUnkReserved)
     {
-        _projectManager.UpdateAsync(updater => updater.SolutionClosed(), CancellationToken.None).Forget();
+        _projectManager.UpdateAsync(static updater => updater.SolutionClosed(), CancellationToken.None).Forget();
         return VSConstants.S_OK;
     }
 
     public int OnAfterCloseSolution(object pUnkReserved)
     {
-        _projectManager.UpdateAsync(updater => updater.SolutionOpened(), CancellationToken.None).Forget();
+        _projectManager.UpdateAsync(static updater => updater.SolutionOpened(), CancellationToken.None).Forget();
         return VSConstants.S_OK;
     }
 
