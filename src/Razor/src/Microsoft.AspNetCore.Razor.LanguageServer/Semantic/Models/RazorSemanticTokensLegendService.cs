@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Reflection;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -11,9 +10,7 @@ using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-[Export(typeof(ISemanticTokensLegendService)), Shared]
-[method: ImportingConstructor]
-internal sealed partial class RazorSemanticTokensLegendService(IClientCapabilitiesService clientCapabilitiesService) : ISemanticTokensLegendService
+internal class RazorSemanticTokensLegendService(IClientCapabilitiesService clientCapabilitiesService) : ISemanticTokensLegendService
 {
     private static readonly SemanticTokenModifiers s_modifiers = ConstructTokenModifiers();
 
