@@ -24,7 +24,7 @@ internal sealed class RemoteClientProvider(
 
     public async Task<RazorRemoteHostClient?> TryGetClientAsync(CancellationToken cancellationToken)
     {
-       var workspace = _workspaceProvider.GetWorkspace();
+        var workspace = _workspaceProvider.GetWorkspace();
 
         var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(
             workspace.Services,
@@ -53,6 +53,9 @@ internal sealed class RemoteClientProvider(
         {
             UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
             UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
+            CSharpVirtualDocumentSuffix = _languageServerFeatureOptions.CSharpVirtualDocumentSuffix,
+            HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
+            IncludeProjectKeyInGeneratedFilePath = _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath,
         };
 
         await remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
