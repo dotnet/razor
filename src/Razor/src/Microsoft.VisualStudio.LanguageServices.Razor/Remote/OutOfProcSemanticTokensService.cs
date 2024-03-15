@@ -5,8 +5,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Export(typeof(IOutOfProcSemanticTokensService))]
 [method: ImportingConstructor]
-internal class OutOfProcSemanticTokensService(IWorkspaceProvider workspaceProvider, IClientSettingsManager clientSettingsManager, ISemanticTokensLegendService semanticTokensLegendService, IRazorLoggerFactory loggerFactory) : IOutOfProcSemanticTokensService
+internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClientProvider, IClientSettingsManager clientSettingsManager, ISemanticTokensLegendService semanticTokensLegendService, IRazorLoggerFactory loggerFactory) : IOutOfProcSemanticTokensService
 {
-    private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
+    private readonly IRemoteClientProvider _remoteClientProvider = remoteClientProvider;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly ILogger _logger = loggerFactory.CreateLogger<OutOfProcSemanticTokensService>();
@@ -30,13 +30,7 @@ internal class OutOfProcSemanticTokensService(IWorkspaceProvider workspaceProvid
         // when it's disconnected (user stops the process).
         //
         // This will change in the future to an easier to consume API but for VS RTM this is what we have.
-        var workspace = _workspaceProvider.GetWorkspace();
-
-        var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(
-            workspace.Services,
-            RazorServices.Descriptors,
-            RazorRemoteServiceCallbackDispatcherRegistry.Empty,
-            cancellationToken);
+        var remoteClient = await _remoteClientProvider.TryGetClientAsync(cancellationToken).ConfigureAwait(false);
 
         if (remoteClient is null)
         {
@@ -52,7 +46,7 @@ internal class OutOfProcSemanticTokensService(IWorkspaceProvider workspaceProvid
             var data = await remoteClient.TryInvokeAsync<IRemoteSemanticTokensService, int[]?>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken) => service.GetSemanticTokensDataAsync(solutionInfo, razorDocument.Id, span, colorBackground, _semanticTokensLegendService.TokenTypes.All, _semanticTokensLegendService.TokenModifiers.All, cancellationToken),
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (!data.HasValue)
             {
