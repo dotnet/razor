@@ -22,8 +22,8 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
 {
     [Fact]
     public Task InlayHints()
-      => VerifyInlayHintsAsync(
-          input: """
+        => VerifyInlayHintsAsync(
+            input: """
 
                 <div></div>
 
