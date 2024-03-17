@@ -92,6 +92,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
                 @using System;
                 @using Microsoft.AspNetCore.Components
                 @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Forms
                 @using Microsoft.AspNetCore.Components.Routing
                 @using Microsoft.AspNetCore.Components.Web
                 """,
