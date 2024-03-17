@@ -39,13 +39,13 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
                 }
 
                 """,
-          toolTipMap: new Dictionary<string, string>
-              {
+            toolTipMap: new Dictionary<string, string>
+                {
                     { "int",            "struct System.Int32"            },
                     { "string",         "class System.String"            },
                     { "thisIsMyString", "(parameter) string thisIsMyStr" }
-              },
-          output: """
+                },
+            output: """
 
                 <div></div>
 
