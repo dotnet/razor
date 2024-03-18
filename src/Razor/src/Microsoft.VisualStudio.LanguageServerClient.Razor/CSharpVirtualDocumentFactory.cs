@@ -33,7 +33,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
     private static IContentType? s_csharpContentType;
     private readonly FileUriProvider _fileUriProvider;
-    private readonly FilePathService _filePathService;
+    private readonly IFilePathService _filePathService;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ILogger _logger;
@@ -45,7 +45,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         ITextBufferFactoryService textBufferFactory,
         ITextDocumentFactoryService textDocumentFactory,
         FileUriProvider fileUriProvider,
-        FilePathService filePathService,
+        IFilePathService filePathService,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorLoggerFactory loggerFactory,
@@ -196,7 +196,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         var projects = _projectManager.GetProjects();
 
         var inAny = false;
-        var normalizedDocumentPath = FilePathService.GetProjectSystemFilePath(hostDocumentUri);
+        var normalizedDocumentPath = AbstractFilePathService.GetProjectSystemFilePath(hostDocumentUri);
         foreach (var projectSnapshot in projects)
         {
             if (projectSnapshot.GetDocument(normalizedDocumentPath) is not null)
