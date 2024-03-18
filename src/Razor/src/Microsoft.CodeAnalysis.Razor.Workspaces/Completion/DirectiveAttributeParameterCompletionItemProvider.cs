@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -67,9 +65,9 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
     // Internal for testing
     internal ImmutableArray<RazorCompletionItem> GetAttributeParameterCompletions(
         string attributeName,
-        string parameterName,
+        string? parameterName,
         string containingTagName,
-        IEnumerable<string> attributes,
+        ImmutableArray<string> attributes,
         TagHelperDocumentContext tagHelperDocumentContext)
     {
         var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
