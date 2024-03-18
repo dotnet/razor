@@ -224,7 +224,7 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
     public void TryConvert_DirectiveAttribute_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
+        var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.CreateArray(new[] { "=", ":" }));
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);

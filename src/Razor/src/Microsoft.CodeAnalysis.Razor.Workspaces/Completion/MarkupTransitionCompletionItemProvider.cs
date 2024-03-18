@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProvider
 {
-    private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { ">" });
+    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.CreateArray([">"]);
 
     private static RazorCompletionItem? s_markupTransitionCompletionItem;
     public static RazorCompletionItem MarkupTransitionCompletionItem

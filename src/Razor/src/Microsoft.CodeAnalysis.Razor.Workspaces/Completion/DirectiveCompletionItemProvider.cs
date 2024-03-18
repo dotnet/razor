@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 [Export(typeof(IRazorCompletionItemProvider))]
 internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
 {
-    internal static readonly IReadOnlyList<RazorCommitCharacter> SingleLineDirectiveCommitCharacters = RazorCommitCharacter.FromArray(new[] { " " });
-    internal static readonly IReadOnlyList<RazorCommitCharacter> BlockDirectiveCommitCharacters = RazorCommitCharacter.FromArray(new[] { " ", "{" });
+    internal static readonly ImmutableArray<RazorCommitCharacter> SingleLineDirectiveCommitCharacters = RazorCommitCharacter.CreateArray([" "]);
+    internal static readonly ImmutableArray<RazorCommitCharacter> BlockDirectiveCommitCharacters = RazorCommitCharacter.CreateArray([" ", "{"]);
 
     private static readonly IEnumerable<DirectiveDescriptor> s_defaultDirectives = new[]
     {
@@ -183,7 +183,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
         return completionItems.DrainToImmutable();
     }
 
-    private static IReadOnlyList<RazorCommitCharacter> GetDirectiveCommitCharacters(DirectiveKind directiveKind)
+    private static ImmutableArray<RazorCommitCharacter> GetDirectiveCommitCharacters(DirectiveKind directiveKind)
     {
         return directiveKind switch
         {

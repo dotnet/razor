@@ -124,7 +124,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             }
         }
 
-        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
+        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
         foreach (var completion in attributeCompletions)
         {
@@ -144,13 +144,19 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             }
 
             var (attributeDescriptionInfos, commitCharacters) = completion.Value;
-            var razorCommitCharacters = commitCharacters.Select(static c => new RazorCommitCharacter(c)).ToList();
+
+            using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
+
+            foreach (var c in commitCharacters)
+            {
+                razorCommitCharacters.Add(new(c));
+            }
 
             var razorCompletionItem = new RazorCompletionItem(
                 completion.Key,
                 insertText,
                 RazorCompletionItemKind.DirectiveAttribute,
-                commitCharacters: razorCommitCharacters);
+                commitCharacters: razorCommitCharacters.DrainToImmutable());
             var completionDescription = new AggregateBoundAttributeDescription(attributeDescriptionInfos.ToImmutableArray());
             razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 
