@@ -6,7 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Remote;
 
@@ -14,12 +16,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Remote;
 [method: ImportingConstructor]
 internal sealed class RemoteClientProvider(
     IWorkspaceProvider workspaceProvider,
-    LanguageServerFeatureOptions languageServerFeatureOptions)
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IClientCapabilitiesService clientCapabilitiesService,
+    ISemanticTokensLegendService semanticTokensLegendService)
     : IRemoteClientProvider
 {
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
+    private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private bool _isInitialized;
+    private bool _isLSPInitialized;
 
     public async Task<RazorRemoteHostClient?> TryGetClientAsync(CancellationToken cancellationToken)
     {
@@ -43,24 +50,37 @@ internal sealed class RemoteClientProvider(
 
     private async Task InitializeRemoteClientAsync(RazorRemoteHostClient remoteClient, CancellationToken cancellationToken)
     {
-        if (_isInitialized)
+        if (!_isInitialized)
         {
-            return;
+            var initParams = new RemoteClientInitializationOptions
+            {
+                UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
+                UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
+                CSharpVirtualDocumentSuffix = _languageServerFeatureOptions.CSharpVirtualDocumentSuffix,
+                HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
+                IncludeProjectKeyInGeneratedFilePath = _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath,
+            };
+
+            await remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
+                (s, ct) => s.InitializeAsync(initParams, ct),
+                cancellationToken).ConfigureAwait(false);
+
+            _isInitialized = true;
         }
 
-        var initParams = new RemoteClientInitializationOptions
+        if (!_isLSPInitialized && _clientCapabilitiesService.CanGetClientCapabilities)
         {
-            UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
-            UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
-            CSharpVirtualDocumentSuffix = _languageServerFeatureOptions.CSharpVirtualDocumentSuffix,
-            HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
-            IncludeProjectKeyInGeneratedFilePath = _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath,
-        };
+            var initParams = new RemoteClientLSPInitializationOptions
+            {
+                TokenTypes = _semanticTokensLegendService.TokenTypes.All,
+                TokenModifiers = _semanticTokensLegendService.TokenModifiers.All,
+            };
 
-        await remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
-            (s, ct) => s.InitializeAsync(initParams, ct),
-            cancellationToken).ConfigureAwait(false);
+            await remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
+                (s, ct) => s.InitializeLSPAsync(initParams, ct),
+                cancellationToken).ConfigureAwait(false);
 
-        _isInitialized = true;
+            _isLSPInitialized = true;
+        }
     }
 }
