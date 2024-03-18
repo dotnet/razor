@@ -10,5 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
 internal class BenchmarkClientCapabilitiesService(VSInternalClientCapabilities capabilities) : IClientCapabilitiesService
 {
+    public bool CanGetClientCapabilities => true;
+
     public VSInternalClientCapabilities ClientCapabilities => capabilities;
 }

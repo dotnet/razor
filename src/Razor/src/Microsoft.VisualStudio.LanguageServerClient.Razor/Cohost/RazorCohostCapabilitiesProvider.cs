@@ -23,6 +23,8 @@ internal class RazorCohostCapabilitiesProvider([ImportMany(typeof(ICapabilitiesP
 
     private VSInternalClientCapabilities? _clientCapabilities;
 
+    public bool CanGetClientCapabilities => _clientCapabilities is not null;
+
     public VSInternalClientCapabilities ClientCapabilities => _clientCapabilities.AssumeNotNull();
 
     public string GetCapabilities(string clientCapabilities)

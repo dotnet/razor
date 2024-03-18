@@ -16,6 +16,8 @@ internal class CapabilitiesManager : IInitializeManager<InitializeParams, Initia
 
     public bool HasInitialized => _initializeParams is not null;
 
+    public bool CanGetClientCapabilities => HasInitialized;
+
     public VSInternalClientCapabilities ClientCapabilities => GetInitializeParams().Capabilities.ToVSInternalClientCapabilities();
 
     public CapabilitiesManager(ILspServices lspServices)
