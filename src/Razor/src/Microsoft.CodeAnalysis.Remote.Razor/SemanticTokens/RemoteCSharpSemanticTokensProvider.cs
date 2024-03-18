@@ -18,14 +18,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 [Export(typeof(ICSharpSemanticTokensProvider)), Shared]
+[method: ImportingConstructor]
 internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathService) : ICSharpSemanticTokensProvider
 {
     private readonly IFilePathService _filePathService = filePathService;
 
-    public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(VersionedDocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, bool usePreciseSemanticTokenRanges, Guid correlationId, CancellationToken cancellationToken)
+    public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(VersionedDocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
     {
-        // TODO: Logic for usePreciseSemanticTokenRanges
-
         // We have a razor document, lets find the generated C# document
         var generatedDocument = GetGeneratedDocument(documentContext);
 
