@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -10,20 +9,12 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-[Shared]
-[Export(typeof(FilePathService))]
-internal sealed class FilePathService
+internal abstract class AbstractFilePathService(LanguageServerFeatureOptions languageServerFeatureOptions) : IFilePathService
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-
-    [ImportingConstructor]
-    public FilePathService(LanguageServerFeatureOptions languageServerFeatureOptions)
-    {
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-    }
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
-        => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix, _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath);
+        => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
     public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
@@ -71,16 +62,16 @@ internal sealed class FilePathService
         return filePath;
     }
 
-    public static string GetGeneratedFilePath(ProjectKey projectKey, string razorFilePath, string suffix, bool includeProjectKeyInGeneratedFilePath)
+    private string GetGeneratedFilePath(ProjectKey projectKey, string razorFilePath, string suffix)
     {
-        var projectSuffix = GetProjectSuffix(projectKey, includeProjectKeyInGeneratedFilePath);
+        var projectSuffix = GetProjectSuffix(projectKey);
 
         return razorFilePath + projectSuffix + suffix;
     }
 
-    private static string GetProjectSuffix(ProjectKey projectKey, bool includeProjectKeyInGeneratedFilePath)
+    private string GetProjectSuffix(ProjectKey projectKey)
     {
-        if (!includeProjectKeyInGeneratedFilePath)
+        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
         {
             return string.Empty;
         }
