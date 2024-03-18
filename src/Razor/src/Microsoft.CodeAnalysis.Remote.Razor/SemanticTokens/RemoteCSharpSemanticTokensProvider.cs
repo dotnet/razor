@@ -18,8 +18,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 [Export(typeof(ICSharpSemanticTokensProvider)), Shared]
-internal class RemoteCSharpSemanticTokensProvider : ICSharpSemanticTokensProvider
+internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathService) : ICSharpSemanticTokensProvider
 {
+    private readonly IFilePathService _filePathService = filePathService;
+
     public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(VersionedDocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, bool usePreciseSemanticTokenRanges, Guid correlationId, CancellationToken cancellationToken)
     {
         // TODO: Logic for usePreciseSemanticTokenRanges
@@ -36,7 +38,7 @@ internal class RemoteCSharpSemanticTokensProvider : ICSharpSemanticTokensProvide
         return data;
     }
 
-    private static Document GetGeneratedDocument(VersionedDocumentContext documentContext)
+    private Document GetGeneratedDocument(VersionedDocumentContext documentContext)
     {
         var snapshot = (RemoteDocumentSnapshot)documentContext.Snapshot;
         var razorDocument = snapshot.TextDocument;
@@ -45,7 +47,7 @@ internal class RemoteCSharpSemanticTokensProvider : ICSharpSemanticTokensProvide
         // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
 
         var projectKey = ProjectKey.From(razorDocument.Project).AssumeNotNull();
-        var generatedFilePath = FilePathService.GetGeneratedFilePath(projectKey, razorDocument.FilePath.AssumeNotNull(), suffix: ".ide.g.cs", includeProjectKeyInGeneratedFilePath: true);
+        var generatedFilePath = _filePathService.GetRazorCSharpFilePath(projectKey, razorDocument.FilePath.AssumeNotNull());
         var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == razorDocument.Project.Id);
         var generatedDocument = solution.GetDocument(generatedDocumentId).AssumeNotNull();
         return generatedDocument;
