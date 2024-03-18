@@ -1782,6 +1782,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     private void FastReadWhitespaceAndNewLines(ref PooledArrayBuilder<SyntaxToken> whitespaceTokens)
     {
+        Debug.Assert(whitespaceTokens.Count == 0, "Expected empty builder.");
+
         if (EnsureCurrent() && (CurrentToken.Kind == SyntaxKind.Whitespace || CurrentToken.Kind == SyntaxKind.NewLine))
         {
             whitespaceTokens.Add(CurrentToken);

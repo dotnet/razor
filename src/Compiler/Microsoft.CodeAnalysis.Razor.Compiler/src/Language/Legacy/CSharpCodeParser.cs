@@ -2616,6 +2616,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         in SyntaxListBuilder<RazorSyntaxNode> builder,
         ref PooledArrayBuilder<SyntaxToken> whitespace)
     {
+        Debug.Assert(whitespace.Count == 0, "Expected empty builder.");
+
         while (!EndOfFile)
         {
             ReadWhile(IsSpacingTokenIncludingNewLinesAndComments, ref whitespace);

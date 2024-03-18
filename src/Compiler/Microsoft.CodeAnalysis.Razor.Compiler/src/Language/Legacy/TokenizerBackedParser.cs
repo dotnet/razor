@@ -302,6 +302,8 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
         TArg arg,
         ref PooledArrayBuilder<SyntaxToken> result)
     {
+        Debug.Assert(result.Count == 0, "Expected empty builder.");
+
         if (!EnsureCurrent() || !predicate(CurrentToken, arg))
         {
             return;
@@ -319,6 +321,8 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
         Func<SyntaxToken, bool> predicate,
         ref PooledArrayBuilder<SyntaxToken> result)
     {
+        Debug.Assert(result.Count == 0, "Expected empty builder.");
+
         if (!EnsureCurrent() || !predicate(CurrentToken))
         {
             return;
