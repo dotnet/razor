@@ -50,7 +50,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     protected override async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
         var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, RazorLSPConstants.CohostLanguageServerName, correlationId);
+        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, RazorLSPConstants.CohostLanguageServerName, correlationId);
 
         var data = await _semanticTokensInfoService.GetSemanticTokensDataAsync(context.TextDocument.AssumeNotNull(), request.Range.ToLinePositionSpan(), correlationId, cancellationToken);
 
