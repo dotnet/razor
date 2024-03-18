@@ -101,17 +101,19 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
             return CurrentToken;
         }
 
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var tokens);
+
         // We add 1 in order to store the current token.
-        var tokens = new SyntaxToken[count + 1];
+        tokens.SetCapacityIfLarger(count + 1);
         var currentToken = CurrentToken;
 
-        tokens[0] = currentToken;
+        tokens.Add(currentToken);
 
         // We need to look forward "count" many times.
         for (var i = 1; i <= count; i++)
         {
             NextToken();
-            tokens[i] = CurrentToken;
+            tokens.Add(CurrentToken);
         }
 
         // Restore Tokenizer's location to where it was pointing before the look-ahead.
@@ -142,7 +144,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
 
         var matchFound = false;
 
-        var tokens = new List<SyntaxToken>();
+        using var _ = ListPool<SyntaxToken>.GetPooledObject(out var tokens);
         tokens.Add(CurrentToken);
 
         while (true)
