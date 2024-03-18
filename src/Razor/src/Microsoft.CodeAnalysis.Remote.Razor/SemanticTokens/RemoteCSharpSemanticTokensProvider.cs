@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 [Export(typeof(ICSharpSemanticTokensProvider)), Shared]
+[method: ImportingConstructor]
 internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathService) : ICSharpSemanticTokensProvider
 {
     private readonly IFilePathService _filePathService = filePathService;
