@@ -3,7 +3,7 @@
 
 #nullable disable
 
-using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
