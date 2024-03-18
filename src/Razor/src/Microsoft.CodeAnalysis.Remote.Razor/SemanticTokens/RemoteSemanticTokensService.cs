@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.ServiceHub.Framework;
 
@@ -19,25 +18,21 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal sealed class RemoteSemanticTokensService(
     IServiceBroker serviceBroker,
     IRazorSemanticTokensInfoService razorSemanticTokensInfoService,
-    ISemanticTokensLegendService semanticTokensLegendService,
     DocumentSnapshotFactory documentSnapshotFactory)
     : RazorServiceBase(serviceBroker), IRemoteSemanticTokensService
 {
     private readonly IRazorSemanticTokensInfoService _razorSemanticTokensInfoService = razorSemanticTokensInfoService;
-    private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
 
-    public ValueTask<int[]?> GetSemanticTokensDataAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan span, bool colorBackground, string[] tokenTypes, string[] tokenModifiers, CancellationToken cancellationToken)
+    public ValueTask<int[]?> GetSemanticTokensDataAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan span, bool colorBackground, CancellationToken cancellationToken)
         => RazorBrokeredServiceImplementation.RunServiceAsync(
             solutionInfo,
             ServiceBrokerClient,
-            solution => GetSemanticTokensDataAsync(solution, razorDocumentId, span, colorBackground, tokenTypes, tokenModifiers, cancellationToken),
+            solution => GetSemanticTokensDataAsync(solution, razorDocumentId, span, colorBackground, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<int[]?> GetSemanticTokensDataAsync(Solution solution, DocumentId razorDocumentId, LinePositionSpan span, bool colorBackground, string[] tokenTypes, string[] tokenModifiers, CancellationToken cancellationToken)
+    private async ValueTask<int[]?> GetSemanticTokensDataAsync(Solution solution, DocumentId razorDocumentId, LinePositionSpan span, bool colorBackground, CancellationToken cancellationToken)
     {
-        ((RemoteSemanticTokensLegendService)_semanticTokensLegendService).Set(tokenTypes, tokenModifiers);
-
         var razorDocument = solution.GetAdditionalDocument(razorDocumentId);
         if (razorDocument is null)
         {
