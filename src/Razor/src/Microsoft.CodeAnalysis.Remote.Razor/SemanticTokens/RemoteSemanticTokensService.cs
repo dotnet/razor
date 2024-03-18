@@ -24,14 +24,14 @@ internal sealed class RemoteSemanticTokensService(
     private readonly IRazorSemanticTokensInfoService _razorSemanticTokensInfoService = razorSemanticTokensInfoService;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
 
-    public ValueTask<int[]?> GetSemanticTokensDataAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan span, bool colorBackground, CancellationToken cancellationToken)
+    public ValueTask<int[]?> GetSemanticTokensDataAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan span, bool colorBackground, Guid correlationId, CancellationToken cancellationToken)
         => RazorBrokeredServiceImplementation.RunServiceAsync(
             solutionInfo,
             ServiceBrokerClient,
-            solution => GetSemanticTokensDataAsync(solution, razorDocumentId, span, colorBackground, cancellationToken),
+            solution => GetSemanticTokensDataAsync(solution, razorDocumentId, span, colorBackground, correlationId, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<int[]?> GetSemanticTokensDataAsync(Solution solution, DocumentId razorDocumentId, LinePositionSpan span, bool colorBackground, CancellationToken cancellationToken)
+    private async ValueTask<int[]?> GetSemanticTokensDataAsync(Solution solution, DocumentId razorDocumentId, LinePositionSpan span, bool colorBackground, Guid correlationId, CancellationToken cancellationToken)
     {
         var razorDocument = solution.GetAdditionalDocument(razorDocumentId);
         if (razorDocument is null)
@@ -42,7 +42,7 @@ internal sealed class RemoteSemanticTokensService(
         var documentContext = Create(razorDocument);
 
         // TODO: Telemetry?
-        return await _razorSemanticTokensInfoService.GetSemanticTokensAsync(documentContext, span, colorBackground, Guid.Empty, cancellationToken).ConfigureAwait(false);
+        return await _razorSemanticTokensInfoService.GetSemanticTokensAsync(documentContext, span, colorBackground, correlationId, cancellationToken).ConfigureAwait(false);
     }
 
     public VersionedDocumentContext Create(TextDocument textDocument)
