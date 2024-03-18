@@ -41,7 +41,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
             new TagHelperCompletionProvider(tagHelperCompletionService, TestRazorLSPOptionsMonitor.Create())
         };
 
-        _completionFactsService = new RazorCompletionFactsService(completionProviders);
+        _completionFactsService = new LspRazorCompletionFactsService(completionProviders);
         _completionListCache = new CompletionListCache();
         _clientCapabilities = new VSInternalClientCapabilities()
         {
@@ -597,12 +597,5 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, tagHelpers: []);
         codeDocument.SetTagHelperContext(tagHelperDocumentContext);
         return codeDocument;
-    }
-
-    private static void AssertDirectiveSnippet(CompletionItem completionItem, string directive)
-    {
-        Assert.StartsWith(directive, completionItem.InsertText);
-        Assert.Equal(DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive].InsertText, completionItem.InsertText);
-        Assert.Equal(CompletionItemKind.Snippet, completionItem.Kind);
     }
 }

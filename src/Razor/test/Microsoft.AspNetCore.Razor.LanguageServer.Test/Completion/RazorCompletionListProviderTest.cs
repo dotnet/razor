@@ -23,17 +23,17 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-public class RazorCompletionListProvierTest : LanguageServerTestBase
+public class RazorCompletionListProviderTest : LanguageServerTestBase
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
     private readonly VSInternalClientCapabilities _clientCapabilities;
     private readonly VSInternalCompletionContext _defaultCompletionContext;
 
-    public RazorCompletionListProvierTest(ITestOutputHelper testOutput)
+    public RazorCompletionListProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _completionFactsService = new RazorCompletionFactsService(GetCompletionProviders());
+        _completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders());
         _completionListCache = new CompletionListCache();
         _clientCapabilities = new VSInternalClientCapabilities()
         {
@@ -571,7 +571,7 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         await optionsMonitor.UpdateAsync(optionsMonitor.CurrentValue with { AutoInsertAttributeQuotes = false }, DisposalToken);
 
-        var completionFactsService = new RazorCompletionFactsService(GetCompletionProviders(optionsMonitor));
+        var completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders(optionsMonitor));
         var provider = new RazorCompletionListProvider(completionFactsService, _completionListCache, LoggerFactory);
 
         // Act
