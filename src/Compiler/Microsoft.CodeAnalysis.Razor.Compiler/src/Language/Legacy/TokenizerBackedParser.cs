@@ -207,7 +207,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     /// that is the correct format for providing to this method. The caller of this method would,
     /// in that case, want to put c, b and a back into the stream, so "a, b, c" is the CORRECT order
     /// </remarks>
-    protected void PutBack(in PooledArrayBuilder<SyntaxToken> tokens)
+    protected void PutBack(ref readonly PooledArrayBuilder<SyntaxToken> tokens)
     {
         for (int i = tokens.Count - 1; i >= 0; i--)
         {
@@ -514,7 +514,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
         Accept(in tokens);
     }
 
-    protected void Accept(in PooledArrayBuilder<SyntaxToken> tokens)
+    protected void Accept(ref readonly PooledArrayBuilder<SyntaxToken> tokens)
     {
         foreach (var token in tokens)
         {
