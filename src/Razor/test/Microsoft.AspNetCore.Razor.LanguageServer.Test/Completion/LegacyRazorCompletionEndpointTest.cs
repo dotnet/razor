@@ -51,7 +51,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
                 {
                     CompletionItemKind = new CompletionItemKindSetting()
                     {
-                        ValueSet = new[] { CompletionItemKind.TagHelper }
+                        ValueSet = [CompletionItemKind.TagHelper]
                     },
                     CompletionList = new VSInternalCompletionListSetting()
                     {
@@ -212,7 +212,11 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
     public void TryConvert_DirectiveAttribute_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.CreateArray(new[] { "=", ":" }));
+        var completionItem = new RazorCompletionItem(
+            "@testDisplay",
+            "testInsert",
+            RazorCompletionItemKind.DirectiveAttribute,
+            commitCharacters: RazorCommitCharacter.CreateArray(["=", ":"]));
 
         // Act
         var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
