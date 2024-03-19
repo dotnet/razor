@@ -62,7 +62,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         ClassDeclarationIntermediateNode @class,
         MethodDeclarationIntermediateNode method)
     {
-        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, allowEmptyRootNamespace: true, out var computedNamespace))
+        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, allowEmptyRootNamespace: true, out var computedNamespace, out var computedNamespaceSpan))
         {
             computedNamespace = FallbackRootNamespace;
         }
@@ -89,6 +89,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         @class.Annotations[CommonAnnotations.NullableContext] = CommonAnnotations.NullableContext;
 
         @namespace.Content = computedNamespace;
+        @namespace.Source = computedNamespaceSpan;
         @class.ClassName = computedClass;
         @class.Modifiers.Clear();
         @class.Modifiers.Add("public");

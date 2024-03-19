@@ -25,12 +25,12 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
         _projectManager = CreateProjectSnapshotManager();
     }
 
-    protected override async Task InitializeAsync()
+    protected override Task InitializeAsync()
     {
-        await RunOnDispatcherAsync(() =>
+        return _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectAdded(s_hostProject);
-            _projectManager.DocumentAdded(s_hostProject.Key, s_hostDocument, new EmptyTextLoader(s_hostDocument.FilePath));
+            updater.ProjectAdded(s_hostProject);
+            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, new EmptyTextLoader(s_hostDocument.FilePath));
         });
     }
 
@@ -43,21 +43,20 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
             .Setup(w => w.EnqueueWorkspaceSemanticTokensRefresh())
             .Verifiable();
 
-        var refreshTrigger = new TestWorkspaceSemanticTokensRefreshTrigger(publisher.Object);
-        refreshTrigger.Initialize(_projectManager);
+        var refreshTrigger = new TestWorkspaceSemanticTokensRefreshTrigger(publisher.Object, _projectManager);
 
         // Act
         var newDocument = new HostDocument("/path/to/newFile.razor", "newFile.razor");
 
-        await RunOnDispatcherAsync(() =>
-            _projectManager.DocumentAdded(s_hostProject.Key, newDocument, new EmptyTextLoader(newDocument.FilePath)));
+        await _projectManager.UpdateAsync(updater =>
+            updater.DocumentAdded(s_hostProject.Key, newDocument, new EmptyTextLoader(newDocument.FilePath)));
 
         // Assert
         publisher.VerifyAll();
     }
 
-    private class TestWorkspaceSemanticTokensRefreshTrigger(IWorkspaceSemanticTokensRefreshPublisher publisher)
-        : WorkspaceSemanticTokensRefreshTrigger(publisher)
-    {
-    }
+    private class TestWorkspaceSemanticTokensRefreshTrigger(
+        IWorkspaceSemanticTokensRefreshPublisher publisher,
+        IProjectSnapshotManager projectManager)
+        : WorkspaceSemanticTokensRefreshTrigger(publisher, projectManager);
 }

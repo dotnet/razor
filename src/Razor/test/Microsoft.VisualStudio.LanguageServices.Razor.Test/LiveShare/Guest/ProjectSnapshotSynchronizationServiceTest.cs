@@ -53,7 +53,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
             hostProjectManagerProxyMock.Object,
-            _projectManager.GetAccessor(),
+            _projectManager,
             Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
@@ -88,7 +88,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
             StrictMock.Of<IProjectSnapshotManagerProxy>(),
-            _projectManager.GetAccessor(),
+            _projectManager,
             Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
@@ -124,15 +124,15 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
             StrictMock.Of<IProjectSnapshotManagerProxy>(),
-            _projectManager.GetAccessor(),
+            _projectManager,
             Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
 
-        await RunOnDispatcherAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectAdded(hostProject);
+            updater.ProjectAdded(hostProject);
         });
 
         var args = new ProjectChangeEventProxyArgs(olderHandle, newer: null, ProjectProxyChangeKind.ProjectRemoved);
@@ -165,16 +165,16 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
             StrictMock.Of<IProjectSnapshotManagerProxy>(),
-            _projectManager.GetAccessor(),
+            _projectManager,
             Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
 
-        await RunOnDispatcherAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectAdded(hostProject);
-            _projectManager.ProjectConfigurationChanged(hostProject);
+            updater.ProjectAdded(hostProject);
+            updater.ProjectConfigurationChanged(hostProject);
         });
 
         var args = new ProjectChangeEventProxyArgs(oldHandle, newHandle, ProjectProxyChangeKind.ProjectChanged);
@@ -210,16 +210,16 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
             StrictMock.Of<IProjectSnapshotManagerProxy>(),
-            _projectManager.GetAccessor(),
+            _projectManager,
             Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
 
-        await RunOnDispatcherAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectAdded(hostProject);
-            _projectManager.ProjectWorkspaceStateChanged(hostProject.Key, oldHandle.ProjectWorkspaceState);
+            updater.ProjectAdded(hostProject);
+            updater.ProjectWorkspaceStateChanged(hostProject.Key, oldHandle.ProjectWorkspaceState);
         });
 
         var args = new ProjectChangeEventProxyArgs(oldHandle, newHandle, ProjectProxyChangeKind.ProjectChanged);

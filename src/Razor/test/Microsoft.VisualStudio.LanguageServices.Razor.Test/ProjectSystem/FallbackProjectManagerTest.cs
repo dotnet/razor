@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Test.Common.TestProjectData;
@@ -30,13 +31,20 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         var languageServerFeatureOptions = TestLanguageServerFeatureOptions.Instance;
         _projectConfigurationFilePathStore = new TestProjectConfigurationFilePathStore();
 
+        var serviceProvider = VsMocks.CreateServiceProvider(static b =>
+            b.AddComponentModel(static b =>
+            {
+                var startupInitializer = new RazorStartupInitializer([]);
+                b.AddExport(startupInitializer);
+            }));
+
         _projectManager = CreateProjectSnapshotManager();
 
         _fallbackProjectManger = new FallbackProjectManager(
+            serviceProvider,
             _projectConfigurationFilePathStore,
             languageServerFeatureOptions,
-            _projectManager.GetAccessor(),
-            Dispatcher,
+            _projectManager,
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);
     }
@@ -51,9 +59,9 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             "RootNamespace",
             "DisplayName");
 
-        await RunOnDispatcherAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectAdded(hostProject);
+            updater.ProjectAdded(hostProject);
         });
 
         var projectId = ProjectId.CreateNewId();
@@ -131,9 +139,9 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             "RootNamespace",
             "DisplayName");
 
-        await RunOnDispatcherAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectConfigurationChanged(hostProject);
+            updater.ProjectConfigurationChanged(hostProject);
         });
 
         project = Assert.Single(_projectManager.GetProjects());

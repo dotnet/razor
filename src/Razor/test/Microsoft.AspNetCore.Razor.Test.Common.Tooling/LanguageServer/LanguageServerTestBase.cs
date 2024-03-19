@@ -54,18 +54,11 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
         return dispatcher;
     }
-
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
-        => CreateProjectSnapshotManager(triggers: [], ProjectEngineFactories.DefaultProvider);
-
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers)
-        => CreateProjectSnapshotManager(triggers, ProjectEngineFactories.DefaultProvider);
+        => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => CreateProjectSnapshotManager(triggers: [], projectEngineFactoryProvider);
-
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectSnapshotChangeTrigger[] triggers, IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(triggers, projectEngineFactoryProvider, Dispatcher, ErrorReporter);
+        => new(projectEngineFactoryProvider, Dispatcher, DisposalToken);
 
     internal RazorRequestContext CreateRazorRequestContext(VersionedDocumentContext? documentContext, ILspServices? lspServices = null)
     {
@@ -99,6 +92,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
                 @using System;
                 @using Microsoft.AspNetCore.Components
                 @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Forms
                 @using Microsoft.AspNetCore.Components.Routing
                 @using Microsoft.AspNetCore.Components.Web
                 """,
