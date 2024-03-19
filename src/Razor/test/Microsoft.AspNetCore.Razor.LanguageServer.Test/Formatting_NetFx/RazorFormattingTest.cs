@@ -77,8 +77,8 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
                     """);
     }
 
-    [Fact]
-    public async Task CodeBlock_IndentedBlock_MaintainsIndent()
+    [Theory, CombinatorialData]
+    public async Task CodeBlock_IndentedBlock_MaintainsIndent(bool inGlobalNamespace)
     {
         await RunFormattingTestAsync(
             input: """
@@ -106,7 +106,8 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
                             }
                         }
                     </boo>
-                    """);
+                    """,
+            inGlobalNamespace: inGlobalNamespace);
     }
 
     [Fact]
