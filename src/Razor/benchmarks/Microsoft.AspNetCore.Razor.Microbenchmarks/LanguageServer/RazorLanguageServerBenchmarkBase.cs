@@ -30,13 +30,19 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     {
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
-        var razorLoggerFactory = new RazorLoggerFactory([new NoopLoggerProvider()]);
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLoggerFactory, NoOpTelemetryReporter.Instance, configure: (collection) =>
-        {
-            collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
-            collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
-            Builder(collection);
-        }, featureOptions: BuildFeatureOptions());
+        var razorLoggerFactory = new NoopLoggerFactory();
+        RazorLanguageServer = RazorLanguageServerWrapper.Create(
+            serverStream,
+            serverStream,
+            razorLoggerFactory,
+            NoOpTelemetryReporter.Instance,
+            configure: (collection) =>
+            {
+                collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
+                collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
+                Builder(collection);
+            },
+            featureOptions: BuildFeatureOptions());
     }
 
     protected internal virtual void Builder(IServiceCollection collection)
@@ -101,6 +107,8 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
             throw new NotImplementedException();
         }
     }
+
+    internal class NoopLoggerFactory() : AbstractRazorLoggerFactory([new NoopLoggerProvider()]);
 
     internal class NoopLoggerProvider : IRazorLoggerProvider
     {
