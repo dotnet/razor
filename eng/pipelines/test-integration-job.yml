@@ -22,6 +22,12 @@ steps:
       -devenvExepath C:\\Test\\VisualStudio\\Common7\\IDE\\devenv.exe
     displayName: Create and Verify hive
 
+  - powershell: featurflag.ps1
+      -enable
+      -flag ${{ parameters.FeatureFlag }}
+    displayName: Set Feature Flags
+    condition: and(succeeded, neq(variables.FeatureFlag, ''))
+
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
