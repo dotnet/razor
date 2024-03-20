@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -17,14 +16,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Export(typeof(IOutOfProcSemanticTokensService))]
 [method: ImportingConstructor]
-internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClientProvider, IClientSettingsManager clientSettingsManager, ISemanticTokensLegendService semanticTokensLegendService, IRazorLoggerFactory loggerFactory) : IOutOfProcSemanticTokensService
+internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClientProvider, IClientSettingsManager clientSettingsManager, IRazorLoggerFactory loggerFactory) : IOutOfProcSemanticTokensService
 {
     private readonly IRemoteClientProvider _remoteClientProvider = remoteClientProvider;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
-    private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly ILogger _logger = loggerFactory.CreateLogger<OutOfProcSemanticTokensService>();
 
-    public async ValueTask<int[]?> GetSemanticTokensDataAsync(TextDocument razorDocument, LinePositionSpan span, CancellationToken cancellationToken)
+    public async ValueTask<int[]?> GetSemanticTokensDataAsync(TextDocument razorDocument, LinePositionSpan span, Guid correlationId, CancellationToken cancellationToken)
     {
         // We're being overly defensive here because the OOP host can return null for the client/session/operation
         // when it's disconnected (user stops the process).
@@ -45,7 +43,7 @@ internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClient
 
             var data = await remoteClient.TryInvokeAsync<IRemoteSemanticTokensService, int[]?>(
                 razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.GetSemanticTokensDataAsync(solutionInfo, razorDocument.Id, span, colorBackground, _semanticTokensLegendService.TokenTypes.All, _semanticTokensLegendService.TokenModifiers.All, cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.GetSemanticTokensDataAsync(solutionInfo, razorDocument.Id, span, colorBackground, correlationId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!data.HasValue)

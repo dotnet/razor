@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
@@ -18,11 +19,15 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 [Export(typeof(ICSharpSemanticTokensProvider)), Shared]
-internal class RemoteCSharpSemanticTokensProvider : ICSharpSemanticTokensProvider
+[method: ImportingConstructor]
+internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathService, ITelemetryReporter telemetryReporter) : ICSharpSemanticTokensProvider
 {
-    public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(VersionedDocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, bool usePreciseSemanticTokenRanges, Guid correlationId, CancellationToken cancellationToken)
+    private readonly IFilePathService _filePathService = filePathService;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+
+    public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(VersionedDocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
     {
-        // TODO: Logic for usePreciseSemanticTokenRanges
+        using var _ = _telemetryReporter.TrackLspRequest(nameof(SemanticTokensRange.GetSemanticTokensAsync), Constants.ExternalAccessServerName, correlationId);
 
         // We have a razor document, lets find the generated C# document
         var generatedDocument = GetGeneratedDocument(documentContext);
@@ -36,7 +41,7 @@ internal class RemoteCSharpSemanticTokensProvider : ICSharpSemanticTokensProvide
         return data;
     }
 
-    private static Document GetGeneratedDocument(VersionedDocumentContext documentContext)
+    private Document GetGeneratedDocument(VersionedDocumentContext documentContext)
     {
         var snapshot = (RemoteDocumentSnapshot)documentContext.Snapshot;
         var razorDocument = snapshot.TextDocument;
@@ -45,7 +50,7 @@ internal class RemoteCSharpSemanticTokensProvider : ICSharpSemanticTokensProvide
         // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
 
         var projectKey = ProjectKey.From(razorDocument.Project).AssumeNotNull();
-        var generatedFilePath = FilePathService.GetGeneratedFilePath(projectKey, razorDocument.FilePath.AssumeNotNull(), suffix: ".ide.g.cs", includeProjectKeyInGeneratedFilePath: true);
+        var generatedFilePath = _filePathService.GetRazorCSharpFilePath(projectKey, razorDocument.FilePath.AssumeNotNull());
         var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == razorDocument.Project.Id);
         var generatedDocument = solution.GetDocument(generatedDocumentId).AssumeNotNull();
         return generatedDocument;

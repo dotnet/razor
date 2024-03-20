@@ -12,16 +12,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 [Export(typeof(IRazorDocumentMappingService)), Shared]
 [method: ImportingConstructor]
 internal sealed class RemoteDocumentMappingService(
-    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory)
     : AbstractRazorDocumentMappingService(
-        ConstructFilePathService(languageServerFeatureOptions), // TODO: Fix FilePathService
+        filePathService,
         documentContextFactory,
         NullLogger.Instance) // TODO: Logging
 {
-    private static FilePathService ConstructFilePathService(LanguageServerFeatureOptions languageServerFeatureOptions)
-    {
-        // Can't put FilePathService in the MEF catalog because its in Workspaces
-        return new FilePathService(languageServerFeatureOptions);
-    }
 }
