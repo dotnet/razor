@@ -304,14 +304,14 @@ public static class RazorCodeDocumentExtensions
 #nullable disable
 
     public static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace)
-        => TryComputeNamespace(document, fallbackToRootNamespace: fallbackToRootNamespace, allowEmptyRootNamespace: false, out @namespace, out _);
+        => TryComputeNamespace(document, fallbackToRootNamespace, out @namespace, out _);
 
     // In general documents will have a relative path (relative to the project root).
     // We can only really compute a nice namespace when we know a relative path.
     //
     // However all kinds of thing are possible in tools. We shouldn't barf here if the document isn't
     // set up correctly.
-    internal static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, bool allowEmptyRootNamespace, out string @namespace, out SourceSpan? namespaceSpan)
+    public static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace, out SourceSpan? namespaceSpan)
     {
         if (document == null)
         {
@@ -325,7 +325,7 @@ public static class RazorCodeDocumentExtensions
         }
         else
         {
-            var result = TryComputeNamespaceCore(document, fallbackToRootNamespace: fallbackToRootNamespace, allowEmptyRootNamespace: allowEmptyRootNamespace, out @namespace, out namespaceSpan);
+            var result = TryComputeNamespaceCore(document, fallbackToRootNamespace, out @namespace, out namespaceSpan);
             if (result)
             {
                 document.Items[NamespaceKey] = (@namespace, namespaceSpan);
@@ -336,14 +336,14 @@ public static class RazorCodeDocumentExtensions
 #if DEBUG
         // In debug mode, even if we're cached, lets take the hit to run this again and make sure the cached value is correct.
         // This is to help us find issues with caching logic during development.
-        var validateResult = TryComputeNamespaceCore(document, fallbackToRootNamespace: fallbackToRootNamespace, allowEmptyRootNamespace: allowEmptyRootNamespace, out var validateNamespace, out _);
+        var validateResult = TryComputeNamespaceCore(document, fallbackToRootNamespace, out var validateNamespace, out _);
         Debug.Assert(validateResult, "We couldn't compute the namespace, but have a cached value, so something has gone wrong");
         Debug.Assert(validateNamespace == @namespace, $"We cached a namespace of {@namespace} but calculated that it should be {validateNamespace}");
 #endif
 
         return true;
 
-        bool TryComputeNamespaceCore(RazorCodeDocument document, bool fallbackToRootNamespace, bool allowEmptyRootNamespace, out string @namespace, out SourceSpan? namespaceSpan)
+        bool TryComputeNamespaceCore(RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace, out SourceSpan? namespaceSpan)
         {
             var filePath = document.Source.FilePath;
             if (filePath == null || document.Source.RelativePath == null || filePath.Length < document.Source.RelativePath.Length)
@@ -409,9 +409,8 @@ public static class RazorCodeDocumentExtensions
                 baseNamespace = options?.RootNamespace;
                 appendSuffix = true;
 
-                // null means RootNamespace wasn't set yet, so we fail for now, tooling seems to rely on this
-                if (baseNamespace is null ||
-                    (!allowEmptyRootNamespace && string.IsNullOrEmpty(baseNamespace)))
+                // Empty RootNamespace is allowed only in components.
+                if (!FileKinds.IsComponent(document.GetFileKind()) && string.IsNullOrEmpty(baseNamespace))
                 {
                     @namespace = null;
                     return false;

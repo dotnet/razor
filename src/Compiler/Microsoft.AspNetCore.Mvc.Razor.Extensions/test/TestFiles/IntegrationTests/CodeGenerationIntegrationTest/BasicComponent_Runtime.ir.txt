@@ -1,5 +1,5 @@
 ﻿Document - 
-    NamespaceDeclaration -  - __GeneratedComponent
+    NamespaceDeclaration -  - TestFiles.IntegrationTests.CodeGenerationIntegrationTest
         UsingDirective - (1:0,1 [22] ) - global::System
         UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
         UsingDirective - (67:2,1 [27] ) - global::System.Linq
