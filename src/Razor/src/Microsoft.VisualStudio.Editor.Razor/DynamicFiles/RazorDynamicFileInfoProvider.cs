@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,7 +74,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         documentContainer.SetSupportsDiagnostics(true);
 
         // TODO: This needs to use the project key somehow, rather than assuming all generated content is the same
-        var filePath = AbstractFilePathService.GetProjectSystemFilePath(documentUri);
+        var filePath = GetProjectSystemFilePath(documentUri);
 
         var foundAny = false;
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
@@ -143,7 +144,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
             throw new ArgumentNullException(nameof(propertiesService));
         }
 
-        var filePath = AbstractFilePathService.GetProjectSystemFilePath(documentUri);
+        var filePath = GetProjectSystemFilePath(documentUri);
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
         {
             var associatedKey = associatedKvp.Key;
@@ -295,6 +296,22 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         var key = new Key(projectId, filePath);
         _entries.TryRemove(key, out _);
+    }
+
+    public static string GetProjectSystemFilePath(Uri uri)
+    {
+        // In VS Windows project system file paths always utilize `\`. In VSMac they don't. This is a bit of a hack
+        // however, it's the only way to get the correct file path for a document to map to a corresponding project
+        // system.
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // VSWin
+            return uri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+        }
+
+        // VSMac
+        return uri.AbsolutePath;
     }
 
     public TestAccessor GetTestAccessor() => new(this);

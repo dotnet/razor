@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
@@ -196,7 +197,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         var projects = _projectManager.GetProjects();
 
         var inAny = false;
-        var normalizedDocumentPath = AbstractFilePathService.GetProjectSystemFilePath(hostDocumentUri);
+        var normalizedDocumentPath = RazorDynamicFileInfoProvider.GetProjectSystemFilePath(hostDocumentUri);
         foreach (var projectSnapshot in projects)
         {
             if (projectSnapshot.GetDocument(normalizedDocumentPath) is not null)
