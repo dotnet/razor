@@ -6,8 +6,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -20,16 +18,15 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
 [Shared]
-[RazorLanguageServerEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
-[ExportRazorStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint))]
-[Export(typeof(ICapabilitiesProvider))]
+[CohostEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
+[ExportCohostStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint))]
 [method: ImportingConstructor]
 internal sealed class CohostSemanticTokensRangeEndpoint(
     IOutOfProcSemanticTokensService semanticTokensInfoService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ITelemetryReporter telemetryReporter,
     IRazorLoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, ICapabilitiesProvider
+    : AbstractRazorCohostDocumentRequestHandler<SemanticTokensRangeParams, SemanticTokens?>
 {
     private readonly IOutOfProcSemanticTokensService _semanticTokensInfoService = semanticTokensInfoService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
@@ -41,11 +38,6 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SemanticTokensRangeParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
-
-    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
-    {
-        serverCapabilities.EnableSemanticTokens(_semanticTokensLegendService);
-    }
 
     protected override async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
