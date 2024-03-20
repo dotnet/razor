@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
@@ -19,12 +20,15 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 [Export(typeof(ICSharpSemanticTokensProvider)), Shared]
 [method: ImportingConstructor]
-internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathService) : ICSharpSemanticTokensProvider
+internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathService, ITelemetryReporter telemetryReporter) : ICSharpSemanticTokensProvider
 {
     private readonly IFilePathService _filePathService = filePathService;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(VersionedDocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
     {
+        using var _ = _telemetryReporter.TrackLspRequest(nameof(SemanticTokensRange.GetSemanticTokensAsync), Constants.ExternalAccessServerName, correlationId);
+
         // We have a razor document, lets find the generated C# document
         var generatedDocument = GetGeneratedDocument(documentContext);
 

@@ -22,7 +22,7 @@ internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClient
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILogger _logger = loggerFactory.CreateLogger<OutOfProcSemanticTokensService>();
 
-    public async ValueTask<int[]?> GetSemanticTokensDataAsync(TextDocument razorDocument, LinePositionSpan span, CancellationToken cancellationToken)
+    public async ValueTask<int[]?> GetSemanticTokensDataAsync(TextDocument razorDocument, LinePositionSpan span, Guid correlationId, CancellationToken cancellationToken)
     {
         // We're being overly defensive here because the OOP host can return null for the client/session/operation
         // when it's disconnected (user stops the process).
@@ -43,7 +43,7 @@ internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClient
 
             var data = await remoteClient.TryInvokeAsync<IRemoteSemanticTokensService, int[]?>(
                 razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.GetSemanticTokensDataAsync(solutionInfo, razorDocument.Id, span, colorBackground, cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.GetSemanticTokensDataAsync(solutionInfo, razorDocument.Id, span, colorBackground, correlationId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!data.HasValue)
