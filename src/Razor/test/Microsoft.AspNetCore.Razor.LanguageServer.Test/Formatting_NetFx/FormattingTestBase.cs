@@ -96,7 +96,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         bool insertSpaces = true,
         string? fileKind = null,
         int? expectedChangedLines = null,
-        RazorLSPOptions? razorLSPOptions = null)
+        RazorLSPOptions? razorLSPOptions = null,
+        bool inGlobalNamespace = false)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
@@ -106,7 +107,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var razorSourceText = SourceText.From(input);
         var path = "file:///path/to/Document.razor";
         var uri = new Uri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
+        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
 
         var filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new RazorDocumentMappingService(
@@ -153,7 +154,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         string expected,
         int tabSize = 4,
         bool insertSpaces = true,
-        string? fileKind = null)
+        string? fileKind = null,
+        bool inGlobalNamespace = false)
     {
         if (codeActionEdits is null)
         {
@@ -168,7 +170,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var razorSourceText = SourceText.From(input);
         var path = "file:///path/to/Document.razor";
         var uri = new Uri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
+        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
 
         var filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new RazorDocumentMappingService(filePathService, new TestDocumentContextFactory(), LoggerFactory);

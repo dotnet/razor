@@ -49,8 +49,8 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
-    public async Task CodeBlock_SpansMultipleLines()
+    [Theory, CombinatorialData]
+    public async Task CodeBlock_SpansMultipleLines(bool inGlobalNamespace)
     {
         await RunFormattingTestAsync(
             input: """
@@ -74,7 +74,8 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
                             currentCount++;
                         }
                     }
-                    """);
+                    """,
+            inGlobalNamespace: inGlobalNamespace);
     }
 
     [Theory, CombinatorialData]
