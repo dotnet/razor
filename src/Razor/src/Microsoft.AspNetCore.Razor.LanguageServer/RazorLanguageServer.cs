@@ -128,7 +128,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
-        services.AddSemanticTokensServices();
+        services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
         services.AddCompletionServices(featureOptions);
         services.AddFormattingServices();

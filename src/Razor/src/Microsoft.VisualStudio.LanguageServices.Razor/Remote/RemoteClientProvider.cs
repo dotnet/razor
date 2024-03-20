@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Remote.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Remote;
 
@@ -24,20 +23,20 @@ internal sealed class RemoteClientProvider(
 
     public async Task<RazorRemoteHostClient?> TryGetClientAsync(CancellationToken cancellationToken)
     {
-       var workspace = _workspaceProvider.GetWorkspace();
+        var workspace = _workspaceProvider.GetWorkspace();
 
         var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(
             workspace.Services,
             RazorServices.Descriptors,
             RazorRemoteServiceCallbackDispatcherRegistry.Empty,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         if (remoteClient is null)
         {
             return null;
         }
 
-        await InitializeRemoteClientAsync(remoteClient, cancellationToken);
+        await InitializeRemoteClientAsync(remoteClient, cancellationToken).ConfigureAwait(false);
 
         return remoteClient;
     }
@@ -53,11 +52,14 @@ internal sealed class RemoteClientProvider(
         {
             UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
             UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
+            CSharpVirtualDocumentSuffix = _languageServerFeatureOptions.CSharpVirtualDocumentSuffix,
+            HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
+            IncludeProjectKeyInGeneratedFilePath = _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath,
         };
 
         await remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
             (s, ct) => s.InitializeAsync(initParams, ct),
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         _isInitialized = true;
     }
