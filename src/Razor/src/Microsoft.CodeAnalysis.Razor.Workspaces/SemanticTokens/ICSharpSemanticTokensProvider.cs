@@ -15,7 +15,6 @@ internal interface ICSharpSemanticTokensProvider
     Task<int[]?> GetCSharpSemanticTokensResponseAsync(
         VersionedDocumentContext documentContext,
         ImmutableArray<LinePositionSpan> csharpSpans,
-        bool usePreciseSemanticTokenRanges,
         Guid correlationId,
         CancellationToken cancellationToken);
 }

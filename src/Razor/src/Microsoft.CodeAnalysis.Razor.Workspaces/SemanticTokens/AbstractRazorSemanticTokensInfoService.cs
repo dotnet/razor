@@ -170,7 +170,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
             csharpRanges = [csharpRange];
         }
 
-        var csharpResponse = await _csharpSemanticTokensProvider.GetCSharpSemanticTokensResponseAsync(documentContext, csharpRanges, _languageServerFeatureOptions.UsePreciseSemanticTokenRanges, correlationId, cancellationToken).ConfigureAwait(false);
+        var csharpResponse = await _csharpSemanticTokensProvider.GetCSharpSemanticTokensResponseAsync(documentContext, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
         // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
