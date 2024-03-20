@@ -26,7 +26,7 @@ steps:
       -enable
       -flag ${{ parameters.FeatureFlag }}
     displayName: Set Feature Flags
-    condition: and(succeeded, neq(variables.FeatureFlag, ''))
+    condition: and(succeeded, neq(parameters.FeatureFlag, ''))
 
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
