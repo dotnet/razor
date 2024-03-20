@@ -275,12 +275,12 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
         var imports = ImmutableArray.Create(importsSnapshot.Object);
         var importsDocuments = ImmutableArray.Create(importsDocument);
-        var documentSnapshot = CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument);
+        var documentSnapshot = CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
 
         return (codeDocument, documentSnapshot);
     }
 
-    internal static IDocumentSnapshot CreateDocumentSnapshot(string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind, ImmutableArray<RazorSourceDocument> importsDocuments, ImmutableArray<IDocumentSnapshot> imports, RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
+    internal static IDocumentSnapshot CreateDocumentSnapshot(string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind, ImmutableArray<RazorSourceDocument> importsDocuments, ImmutableArray<IDocumentSnapshot> imports, RazorProjectEngine projectEngine, RazorCodeDocument codeDocument, bool inGlobalNamespace = false)
     {
         var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
@@ -305,9 +305,11 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.WithText(It.IsAny<SourceText>()))
             .Returns<SourceText>(text =>
             {
-                var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
+                var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(
+                    filePath: path,
+                    relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
                 var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importsDocuments, tagHelpers);
-                return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument);
+                return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
             });
         return documentSnapshot.Object;
     }
