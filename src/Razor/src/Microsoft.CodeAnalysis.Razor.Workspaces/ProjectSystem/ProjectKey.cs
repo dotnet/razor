@@ -47,11 +47,18 @@ internal readonly record struct ProjectKey
     }
 
     /// <summary>
-    /// Returns <see langword="true"/> if this <see cref="ProjectKey"/> matches the given
-    /// <see cref="Project"/>.
+    /// Returns <see langword="true"/> if this <see cref="ProjectKey"/> matches the given <see cref="Project"/>.
     /// </summary>
     public bool Matches(Project project)
     {
+        // In order to perform this check, we are relying on the fact that Id will always end with a '/',
+        // because it is guaranteed to be normalized. However, CompilationOutputInfo.AssemblyPath will
+        // contain the assembly file name, which AreDirectoryPathsEquivalent will shave off before comparing.
+        // So, AreDirectoryPathsEquivalent will return true when Id is "C:/my/project/path/"
+        // and the assembly path is "C:\my\project\path\assembly.dll"
+
+        Debug.Assert(Id.EndsWith('/'), $"This method can't be called if {nameof(Id)} is not a normalized directory path.");
+
         return FilePathNormalizer.AreDirectoryPathsEquivalent(Id, project.CompilationOutputInfo.AssemblyPath);
     }
 }
