@@ -1013,7 +1013,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
     private bool TryParseDirective(
         in SyntaxListBuilder<RazorSyntaxNode> builder,
-        in PooledArrayBuilder<SyntaxToken> whitespace,
+        ref readonly PooledArrayBuilder<SyntaxToken> whitespace,
         CSharpTransitionSyntax transition,
         string directive)
     {
@@ -1911,7 +1911,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
     private bool TryParseKeyword(
         in SyntaxListBuilder<RazorSyntaxNode> builder,
-        in PooledArrayBuilder<SyntaxToken> whitespace,
+        ref readonly PooledArrayBuilder<SyntaxToken> whitespace,
         CSharpTransitionSyntax? transition)
     {
         var result = CSharpTokenizer.GetTokenKeyword(CurrentToken);
