@@ -354,7 +354,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         foreach (var project in workspace.CurrentSolution.Projects)
         {
-            if (key.Equals(ProjectKey.From(project)))
+            if (key.Matches(project))
             {
                 return project.Id;
             }
@@ -363,20 +363,13 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         return null;
     }
 
-    public ProjectKey? TryFindProjectKeyForProjectId(ProjectId projectId)
+    private ProjectKey? TryFindProjectKeyForProjectId(ProjectId projectId)
     {
         var workspace = _workspaceProvider.GetWorkspace();
 
-        var project = workspace.CurrentSolution.GetProject(projectId);
-        if (project is null ||
-            project.Language != LanguageNames.CSharp)
-        {
-            return null;
-        }
-
-        var projectKey = ProjectKey.From(project);
-
-        return projectKey;
+        return workspace.CurrentSolution.GetProject(projectId) is { Language: LanguageNames.CSharp } project
+            ? ProjectKey.From(project)
+            : null;
     }
 
     private RazorDynamicFileInfo CreateEmptyInfo(Key key)
