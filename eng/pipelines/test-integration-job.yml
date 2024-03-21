@@ -24,9 +24,9 @@ steps:
 
   - powershell: featurflag.ps1
       -enable
-      -flag ${{ parameters.FeatureFlag }}
+      -flag ${{ variables.FeatureFlag }}
     displayName: Set Feature Flags
-    condition: and(succeeded, neq(parameters.FeatureFlag, ''))
+    condition: and(succeeded, neq(variables.FeatureFlag, ''))
 
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
