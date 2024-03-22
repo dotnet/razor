@@ -5,23 +5,26 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 
 [Export(typeof(IRazorLoggerProvider))]
 internal sealed class RazorLogHubLoggerProvider : IRazorLoggerProvider
 {
-    private readonly RazorLogHubTraceProvider _traceProvider;
+    private readonly IRazorLogHubTraceProvider _traceProvider;
+    private readonly IClientSettingsManager _clientSettingsManager;
 
     [ImportingConstructor]
-    public RazorLogHubLoggerProvider(RazorLogHubTraceProvider traceProvider)
+    public RazorLogHubLoggerProvider(IRazorLogHubTraceProvider traceProvider, IClientSettingsManager clientSettingsManager)
     {
         _traceProvider = traceProvider;
+        _clientSettingsManager = clientSettingsManager;
     }
 
     public ILogger CreateLogger(string categoryName)
     {
-        return new RazorLogHubLogger(categoryName, _traceProvider);
+        return new RazorLogHubLogger(categoryName, _traceProvider, _clientSettingsManager);
     }
 
     public void Dispose()

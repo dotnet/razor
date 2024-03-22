@@ -6,26 +6,27 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 
 internal sealed class RazorLogHubLogger : ILogger
 {
     private string _categoryName;
-    private RazorLogHubTraceProvider _traceProvider;
+    private IRazorLogHubTraceProvider _traceProvider;
+    private readonly IClientSettingsManager _clientSettingsManager;
 
-    public RazorLogHubLogger(string categoryName, RazorLogHubTraceProvider traceProvider)
+    public RazorLogHubLogger(string categoryName, IRazorLogHubTraceProvider traceProvider, IClientSettingsManager clientSettingsManager)
     {
         _categoryName = categoryName;
         _traceProvider = traceProvider;
+        _clientSettingsManager = clientSettingsManager;
     }
 
     public IDisposable BeginScope<TState>(TState state) => Scope.Instance;
 
     public bool IsEnabled(LogLevel logLevel)
-    {
-        return true;
-    }
+        => _clientSettingsManager.IsLogLevelEnabled(logLevel);
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {

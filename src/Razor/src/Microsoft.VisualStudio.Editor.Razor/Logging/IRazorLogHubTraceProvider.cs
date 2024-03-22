@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Logging;
 
-internal abstract class RazorLogHubTraceProvider
+internal interface IRazorLogHubTraceProvider
 {
-    public abstract Task InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken);
-    public abstract TraceSource? TryGetTraceSource();
+    Task InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken);
+    TraceSource? TryGetTraceSource();
 }
