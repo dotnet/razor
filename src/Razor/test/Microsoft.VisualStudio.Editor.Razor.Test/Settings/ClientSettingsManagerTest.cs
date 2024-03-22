@@ -38,7 +38,7 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
         var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
 
         // Assert
-        Assert.Equal(ClientSettings.Default, manager.GetClientSettings());
+        Assert.Equal(ClientSettings.Default, manager.ClientSettings);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
 
         // Assert
         Assert.True(called);
-        Assert.Equal(settings, manager.GetClientSettings().ClientSpaceSettings);
+        Assert.Equal(settings, manager.ClientSettings.ClientSpaceSettings);
     }
 
     [Fact]
@@ -65,14 +65,14 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
         var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
         var called = false;
         manager.ClientSettingsChanged += (caller, args) => called = true;
-        var originalSettings = manager.GetClientSettings();
+        var originalSettings = manager.ClientSettings;
 
         // Act
         manager.Update(ClientSpaceSettings.Default);
 
         // Assert
         Assert.False(called);
-        Assert.Same(originalSettings, manager.GetClientSettings());
+        Assert.Same(originalSettings, manager.ClientSettings);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
 
         // Assert
         Assert.True(called);
-        Assert.Equal(settings, manager.GetClientSettings().AdvancedSettings);
+        Assert.Equal(settings, manager.ClientSettings.AdvancedSettings);
     }
 
     [Fact]
@@ -99,14 +99,14 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
         var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
         var called = false;
         manager.ClientSettingsChanged += (caller, args) => called = true;
-        var originalSettings = manager.GetClientSettings();
+        var originalSettings = manager.ClientSettings;
 
         // Act
         manager.Update(ClientAdvancedSettings.Default);
 
         // Assert
         Assert.False(called);
-        Assert.Same(originalSettings, manager.GetClientSettings());
+        Assert.Same(originalSettings, manager.ClientSettings);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
 
         var manager = new ClientSettingsManager(_clientSettingsChangeTriggers, new AdvancedSettingsStorage(expectedSettings));
 
-        Assert.Same(expectedSettings, manager.GetClientSettings().AdvancedSettings);
+        Assert.Same(expectedSettings, manager.ClientSettings.AdvancedSettings);
     }
 
     private class TestChangeTrigger : IClientSettingsChangedTrigger

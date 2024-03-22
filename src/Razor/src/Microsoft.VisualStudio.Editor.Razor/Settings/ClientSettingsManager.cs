@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Settings;
 
@@ -30,6 +29,7 @@ internal class ClientSettingsManager : IClientSettingsManager, IDisposable
     private readonly DateTime _vsProcessStartTime;
     private FileSystemWatcher? _vsFeedbackSemaphoreFileWatcher;
     private int _isFeedbackBeingRecorded;
+
     private const string VSFeedbackSemaphoreDir = @"Microsoft\VSFeedbackCollector";
     private const string VSFeedbackSemaphoreFileName = "feedback.recording.json";
 
@@ -187,12 +187,33 @@ internal class ClientSettingsManager : IClientSettingsManager, IDisposable
                 return false;
             }
 
-            // Check the contents of the semaphore file to see if it's for this instance of VS
-            var content = File.ReadAllText(semaphoreFilePath);
+            // Check the contents of the semaphore file to see if it's for this instance of VS.
+            // Reading can hit contention so attempt a few times before bailing
+            string? content = null;
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    content = File.ReadAllText(semaphoreFilePath);
+                }
+                catch (IOException)
+                {
+                }
+
+                if (content is not null)
+                {
+                    break;
+                }
+            }
+
+            if (content is null)
+            {
+                return false;
+            }
+
             var node = JsonNode.Parse(content);
-            return node?["processIds"] is JsonNode pidNode
-                && pidNode.GetValueKind() == System.Text.Json.JsonValueKind.Array
-                && pidNode.GetValue<int[]>().Contains(_vsProcessId);
+            return node?["processIds"] is JsonArray pids
+                && pids.Any(n => n?.GetValue<int>() == _vsProcessId);
         }
         catch
         {

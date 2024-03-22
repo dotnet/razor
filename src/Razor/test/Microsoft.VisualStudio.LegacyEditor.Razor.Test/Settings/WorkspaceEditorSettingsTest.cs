@@ -26,8 +26,7 @@ public class WorkspaceEditorSettingsTest(ITestOutputHelper testOutput) : VisualS
 
         var settingsManagerMock = new StrictMock<IClientSettingsManager>();
         settingsManagerMock
-            .Setup(x => x.GetClientSettings())
-            .Returns(expectedSettings);
+            .SetupGet(x => x.ClientSettings == expectedSettings);
 
         // Act
         var editorSettings = new WorkspaceEditorSettings(settingsManagerMock.Object);
@@ -42,8 +41,7 @@ public class WorkspaceEditorSettingsTest(ITestOutputHelper testOutput) : VisualS
         // Arrange
         var settingsManagerMock = new StrictMock<IClientSettingsManager>();
         settingsManagerMock
-            .Setup(x => x.GetClientSettings())
-            .Returns(ClientSettings.Default);
+            .SetupGet(x => x.ClientSettings == ClientSettings.Default);
 
         var editorSettings = new WorkspaceEditorSettings(settingsManagerMock.Object);
         var settingsAccessor = new TestAccessor(editorSettings);

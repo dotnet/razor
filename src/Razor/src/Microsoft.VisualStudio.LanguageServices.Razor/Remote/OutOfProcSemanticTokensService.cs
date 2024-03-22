@@ -39,7 +39,7 @@ internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClient
 
         try
         {
-            var colorBackground = _clientSettingsManager.GetClientSettings().AdvancedSettings.ColorBackground;
+            var colorBackground = _clientSettingsManager.ClientSettings.AdvancedSettings.ColorBackground;
 
             var data = await remoteClient.TryInvokeAsync<IRemoteSemanticTokensService, int[]?>(
                 razorDocument.Project.Solution,

@@ -98,7 +98,7 @@ internal sealed class RazorPackage : AsyncPackage
         // LogHub can be initialized off the UI thread
         await TaskScheduler.Default;
 
-        var traceProvider = componentModel.GetService<RazorLogHubTraceProvider>();
+        var traceProvider = componentModel.GetService<IRazorLogHubTraceProvider>();
         await traceProvider.InitializeTraceAsync("Razor", 1, cancellationToken);
     }
 
