@@ -30,7 +30,7 @@ internal partial class RazorCustomMessageTarget
             // we want to support Razor and HTML settings as well.
             var setting = item.Section switch
             {
-                "vs.editor.razor" => _editorSettingsManager.GetClientSettings(),
+                "vs.editor.razor" => _editorSettingsManager.ClientSettings,
                 _ => new object()
             };
 

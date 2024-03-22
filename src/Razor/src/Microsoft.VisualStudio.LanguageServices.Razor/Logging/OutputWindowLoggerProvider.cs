@@ -56,9 +56,7 @@ internal class OutputWindowLoggerProvider(
         }
 
         public bool IsEnabled(LogLevel logLevel)
-        {
-            return logLevel >= _clientSettingsManager.GetClientSettings().AdvancedSettings.LogLevel;
-        }
+            => _clientSettingsManager.IsLogLevelEnabled(logLevel);
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {

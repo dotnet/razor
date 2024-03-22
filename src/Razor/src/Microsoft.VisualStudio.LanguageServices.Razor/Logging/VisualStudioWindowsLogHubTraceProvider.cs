@@ -12,11 +12,11 @@ using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 
-[Export(typeof(RazorLogHubTraceProvider))]
-internal class VisualStudioWindowsLogHubTraceProvider : RazorLogHubTraceProvider
+[Export(typeof(IRazorLogHubTraceProvider))]
+internal class VisualStudioWindowsLogHubTraceProvider : IRazorLogHubTraceProvider
 {
     private static readonly LoggerOptions s_logOptions = new(
-        requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.Information | SourceLevels.ActivityTracing),
+        requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.All),
         privacySetting: PrivacyFlags.MayContainPersonallyIdentifibleInformation | PrivacyFlags.MayContainPrivateInformation);
 
     private readonly SemaphoreSlim _initializationSemaphore;
@@ -28,7 +28,7 @@ internal class VisualStudioWindowsLogHubTraceProvider : RazorLogHubTraceProvider
         _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
     }
 
-    public override async Task InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
+    public async Task InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
     {
         if ((await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false)) is false)
         {
@@ -43,7 +43,7 @@ internal class VisualStudioWindowsLogHubTraceProvider : RazorLogHubTraceProvider
         _traceSource = await traceConfig.RegisterLogSourceAsync(logId, s_logOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    public override TraceSource? TryGetTraceSource()
+    public TraceSource? TryGetTraceSource()
     {
         return _traceSource;
     }

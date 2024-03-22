@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Settings;
@@ -18,7 +19,6 @@ internal class ClientSettingsManager : IClientSettingsManager
     private readonly object _settingsUpdateLock = new();
     private readonly IAdvancedSettingsStorage? _advancedSettingsStorage;
     private readonly RazorGlobalOptions? _globalOptions;
-    private ClientSettings _settings;
 
     [ImportingConstructor]
     public ClientSettingsManager(
@@ -26,13 +26,13 @@ internal class ClientSettingsManager : IClientSettingsManager
         [Import(AllowDefault = true)] IAdvancedSettingsStorage? advancedSettingsStorage = null,
         RazorGlobalOptions? globalOptions = null)
     {
-        _settings = ClientSettings.Default;
+        ClientSettings = ClientSettings.Default;
 
         // update Roslyn's global options (null in tests):
         if (globalOptions is not null)
         {
-            globalOptions.TabSize = _settings.ClientSpaceSettings.IndentSize;
-            globalOptions.UseTabs = _settings.ClientSpaceSettings.IndentWithTabs;
+            globalOptions.TabSize = ClientSettings.ClientSpaceSettings.IndentSize;
+            globalOptions.UseTabs = ClientSettings.ClientSpaceSettings.IndentWithTabs;
         }
 
         foreach (var changeTrigger in changeTriggers)
@@ -50,7 +50,10 @@ internal class ClientSettingsManager : IClientSettingsManager
         }
     }
 
-    public ClientSettings GetClientSettings() => _settings;
+    public ClientSettings ClientSettings { get; private set; }
+
+    public bool IsLogLevelEnabled(LogLevel logLevel)
+        => logLevel >= ClientSettings.AdvancedSettings.LogLevel;
 
     public void Update(ClientSpaceSettings updatedSettings)
     {
@@ -68,7 +71,7 @@ internal class ClientSettingsManager : IClientSettingsManager
 
         lock (_settingsUpdateLock)
         {
-            UpdateSettings_NoLock(_settings with { ClientSpaceSettings = updatedSettings });
+            UpdateSettings_NoLock(ClientSettings with { ClientSpaceSettings = updatedSettings });
         }
     }
 
@@ -81,7 +84,7 @@ internal class ClientSettingsManager : IClientSettingsManager
 
         lock (_settingsUpdateLock)
         {
-            UpdateSettings_NoLock(_settings with { ClientCompletionSettings = updatedSettings });
+            UpdateSettings_NoLock(ClientSettings with { ClientCompletionSettings = updatedSettings });
         }
     }
 
@@ -94,17 +97,17 @@ internal class ClientSettingsManager : IClientSettingsManager
 
         lock (_settingsUpdateLock)
         {
-            UpdateSettings_NoLock(_settings with { AdvancedSettings = advancedSettings });
+            UpdateSettings_NoLock(ClientSettings with { AdvancedSettings = advancedSettings });
         }
     }
 
     private void UpdateSettings_NoLock(ClientSettings settings)
     {
-        if (!_settings.Equals(settings))
+        if (!ClientSettings.Equals(settings))
         {
-            _settings = settings;
+            ClientSettings = settings;
 
-            var args = new ClientSettingsChangedEventArgs(_settings);
+            var args = new ClientSettingsChangedEventArgs(ClientSettings);
             ClientSettingsChanged?.Invoke(this, args);
         }
     }

@@ -24,7 +24,7 @@ internal sealed class WorkspaceEditorSettings : IWorkspaceEditorSettings
         _onClientSettingsChanged = OnClientSettingsChanged;
     }
 
-    public ClientSettings Current => _clientSettingsManager.GetClientSettings();
+    public ClientSettings Current => _clientSettingsManager.ClientSettings;
 
     private void OnClientSettingsChanged(object sender, ClientSettingsChangedEventArgs e)
     {

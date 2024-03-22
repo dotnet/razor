@@ -39,7 +39,7 @@ internal sealed class RazorDocumentOptionsService : IRazorDocumentOptionsService
         }
 
         // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
-        var editorSettings = _editorSettingsManager.GetClientSettings().ClientSpaceSettings;
+        var editorSettings = _editorSettingsManager.ClientSettings.ClientSpaceSettings;
         return Task.FromResult<IRazorDocumentOptions>(new RazorDocumentOptions(document, editorSettings));
     }
 

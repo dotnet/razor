@@ -38,7 +38,7 @@ internal class RazorLanguageServerClient(
     LSPRequestInvoker requestInvoker,
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
     IRazorLoggerFactory razorLoggerFactory,
-    RazorLogHubTraceProvider traceProvider,
+    IRazorLogHubTraceProvider traceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
     ILanguageClientBroker languageClientBroker,
@@ -62,7 +62,7 @@ internal class RazorLanguageServerClient(
     private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider ?? throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
     private readonly IRazorLoggerFactory _razorLoggerFactory = razorLoggerFactory ?? throw new ArgumentNullException(nameof(razorLoggerFactory));
-    private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
+    private readonly IRazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
 
     private RazorLanguageServerWrapper? _server;
 
@@ -103,7 +103,7 @@ internal class RazorLanguageServerClient(
 
         var traceSource = _traceProvider.TryGetTraceSource();
 
-        var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
+        var lspOptions = RazorLSPOptions.From(_clientSettingsManager.ClientSettings);
 
         _server = RazorLanguageServerWrapper.Create(
             serverStream,

@@ -3,16 +3,18 @@
 
 using System;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Settings;
 
 internal interface IClientSettingsManager
 {
-    ClientSettings GetClientSettings();
+    ClientSettings ClientSettings { get; }
+    event EventHandler<ClientSettingsChangedEventArgs> ClientSettingsChanged;
 
     void Update(ClientSpaceSettings updateSettings);
     void Update(ClientCompletionSettings updateSettings);
     void Update(ClientAdvancedSettings updateSettings);
+    bool IsLogLevelEnabled(LogLevel logLevel);
 
-    event EventHandler<ClientSettingsChangedEventArgs> ClientSettingsChanged;
 }
