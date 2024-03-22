@@ -17,6 +17,8 @@ public class PagesPropertyInjectionPass : IntermediateNodePassBase, IRazorOptimi
             return;
         }
 
+        var nullableEnabled = codeDocument.GetCodeGenerationOptions()?.SuppressNullabilityEnforcement == false;
+
         var modelType = ModelDirective.GetModelType(documentNode);
         var visitor = new Visitor();
         visitor.Visit(documentNode);
@@ -28,7 +30,7 @@ public class PagesPropertyInjectionPass : IntermediateNodePassBase, IRazorOptimi
         vddProperty.Children.Add(new IntermediateToken()
         {
             Kind = TokenKind.CSharp,
-            Content = $"public {viewDataType} ViewData => ({viewDataType})PageContext?.ViewData;",
+            Content = nullableEnable(nullableEnabled, $"public {viewDataType} ViewData => ({viewDataType})PageContext?.ViewData"),
         });
         @class.Children.Add(vddProperty);
 
@@ -36,9 +38,23 @@ public class PagesPropertyInjectionPass : IntermediateNodePassBase, IRazorOptimi
         modelProperty.Children.Add(new IntermediateToken()
         {
             Kind = TokenKind.CSharp,
-            Content = $"public {modelType} Model => ViewData.Model;",
+            Content = nullableEnable(nullableEnabled, $"public {modelType} Model => ViewData.Model"),
         });
         @class.Children.Add(modelProperty);
+
+        static string nullableEnable(bool nullableEnabled, string code)
+        {
+            if (!nullableEnabled)
+            {
+                return code + ";";
+            }
+
+            return $"""
+                #nullable restore
+                {code}!;
+                #nullable disable
+                """;
+        }
     }
 
     private class Visitor : IntermediateNodeWalker
