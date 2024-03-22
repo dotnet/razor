@@ -11,9 +11,6 @@ namespace Microsoft.AspNetCore.Razor.Threading;
 //
 // However, it was originally derived from an implementation in dotnet/project-system:
 // https://github.com/dotnet/project-system/blob/bdf69d5420ec8d894f5bf4c3d4692900b7f2479c/src/Microsoft.VisualStudio.ProjectSystem.Managed/Threading/Tasks/CancellationSeries.cs
-//
-// See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
-// reference implementation.
 
 /// <summary>
 /// Produces a series of <see cref="CancellationToken"/> objects such that requesting a new token
@@ -92,7 +89,7 @@ internal sealed class CancellationSeries : IDisposable
             }
         }
 
-        if (priorSource == null)
+        if (priorSource is null)
         {
             nextSource.Dispose();
 
@@ -117,7 +114,7 @@ internal sealed class CancellationSeries : IDisposable
     {
         var source = Interlocked.Exchange(ref _cts, null);
 
-        if (source == null)
+        if (source is null)
         {
             // Already disposed
             return;
