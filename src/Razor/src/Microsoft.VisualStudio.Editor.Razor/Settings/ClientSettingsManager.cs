@@ -4,11 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text.Json.Nodes;
-using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.Extensions.Logging;
@@ -24,9 +19,9 @@ internal class ClientSettingsManager : IClientSettingsManager, IDisposable
 
     private readonly object _settingsUpdateLock = new();
 
-    private readonly FeedbackRecordingWatcher _feedbackRecordingWatcher = new();
     private readonly IAdvancedSettingsStorage? _advancedSettingsStorage;
     private readonly RazorGlobalOptions? _globalOptions;
+    private FeedbackRecordingWatcher? _feedbackRecordingWatcher = new();
 
     [ImportingConstructor]
     public ClientSettingsManager(
@@ -56,11 +51,13 @@ internal class ClientSettingsManager : IClientSettingsManager, IDisposable
             Update(_advancedSettingsStorage.GetAdvancedSettings());
             _advancedSettingsStorage.OnChangedAsync(Update).Forget();
         }
+
+        _feedbackRecordingWatcher.FeedbackRecordingChanged += FeedbackRecordingWatcher_FeedbackRecordingChanged;
     }
 
     public ClientSettings ClientSettings { get; private set; }
 
-    public bool IsFeedbackBeingRecorded => _feedbackRecordingWatcher.IsFeedbackBeingRecorded;
+    public bool IsFeedbackBeingRecorded => _feedbackRecordingWatcher?.IsFeedbackBeingRecorded ?? false;
 
     public bool ShouldLog(LogLevel logLevel)
         => IsFeedbackBeingRecorded
@@ -123,8 +120,19 @@ internal class ClientSettingsManager : IClientSettingsManager, IDisposable
         }
     }
 
+    private void FeedbackRecordingWatcher_FeedbackRecordingChanged(object sender, bool e)
+    {
+        FeedbackRecordingChanged?.Invoke(this, e);
+    }
+
     public void Dispose()
     {
-        _feedbackRecordingWatcher.Dispose();
+        (var watcher, _feedbackRecordingWatcher) = (_feedbackRecordingWatcher, null);
+
+        if (watcher is not null)
+        {
+            watcher.FeedbackRecordingChanged -= FeedbackRecordingWatcher_FeedbackRecordingChanged;
+            watcher.Dispose();
+        }
     }
 }
