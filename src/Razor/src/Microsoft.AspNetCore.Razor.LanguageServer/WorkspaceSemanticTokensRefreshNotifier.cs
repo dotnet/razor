@@ -16,10 +16,11 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
 
     private readonly IClientCapabilitiesService _clientCapabilitiesService;
     private readonly IClientConnection _clientConnection;
-    private readonly CancellationTokenSource _disposeCancellationSource;
+    private readonly CancellationTokenSource _disposeTokenSource;
     private readonly IDisposable _optionsChangeListener;
 
     private readonly object _gate = new();
+    private bool? _supportsRefresh;
     private bool _waitingToRefresh;
     private Task _refreshTask = Task.CompletedTask;
 
@@ -33,7 +34,7 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
         _clientCapabilitiesService = clientCapabilitiesService;
         _clientConnection = clientConnection;
 
-        _disposeCancellationSource = new();
+        _disposeTokenSource = new();
 
         _isColoringBackground = optionsMonitor.CurrentValue.ColorBackground;
         _optionsChangeListener = optionsMonitor.OnChange(HandleOptionsChange);
@@ -43,8 +44,8 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
     {
         _optionsChangeListener.Dispose();
 
-        _disposeCancellationSource.Cancel();
-        _disposeCancellationSource.Dispose();
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
     }
 
     private void HandleOptionsChange(RazorLSPOptions options, string _)
@@ -58,7 +59,7 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
 
     public void NotifyWorkspaceSemanticTokensRefresh()
     {
-        if (_disposeCancellationSource.IsCancellationRequested)
+        if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
@@ -71,14 +72,15 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
                 return;
             }
 
-            var capabilities = _clientCapabilitiesService.ClientCapabilities;
-            var useWorkspaceRefresh = capabilities?.Workspace?.SemanticTokens?.RefreshSupport ?? false;
+            _supportsRefresh ??= _clientCapabilitiesService.ClientCapabilities.Workspace?.SemanticTokens?.RefreshSupport ?? false;
 
-            if (useWorkspaceRefresh)
+            if (_supportsRefresh is false)
             {
-                _refreshTask = RefreshAfterDelayAsync();
-                _waitingToRefresh = true;
+                return;
             }
+
+            _refreshTask = RefreshAfterDelayAsync();
+            _waitingToRefresh = true;
         }
 
         async Task RefreshAfterDelayAsync()
@@ -86,7 +88,7 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
             await Task.Delay(s_delay).ConfigureAwait(false);
 
             _clientConnection
-                .SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, _disposeCancellationSource.Token)
+                .SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, _disposeTokenSource.Token)
                 .Forget();
 
             _waitingToRefresh = false;
