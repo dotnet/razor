@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
@@ -15,7 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class OpenDocumentGenerator : IRazorStartupService, IDisposable
+internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 {
     // Using 10 milliseconds for the delay here because we want document synchronization to be very fast,
     // so that features like completion are not delayed, but at the same time we don't want to do more work
@@ -35,7 +33,6 @@ internal class OpenDocumentGenerator : IRazorStartupService, IDisposable
     private readonly LanguageServerFeatureOptions _options;
 
     private readonly AsyncBatchingWorkQueue<IDocumentSnapshot> _workQueue;
-    private readonly HashSet<string> _processedFilePaths;
     private readonly CancellationTokenSource _disposeTokenSource;
 
     public OpenDocumentGenerator(
@@ -49,9 +46,13 @@ internal class OpenDocumentGenerator : IRazorStartupService, IDisposable
         _dispatcher = dispatcher;
         _options = options;
 
-        _processedFilePaths = new(FilePathComparer.Instance);
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<IDocumentSnapshot>(s_delay, ProcessBatchAsync, _disposeTokenSource.Token);
+        _workQueue = new AsyncBatchingWorkQueue<IDocumentSnapshot>(
+            s_delay,
+            ProcessBatchAsync,
+            Comparer.Instance,
+            preferMostRecentItems: true,
+            _disposeTokenSource.Token);
 
         _projectManager.Changed += ProjectManager_Changed;
 
@@ -69,30 +70,13 @@ internal class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
     private async ValueTask ProcessBatchAsync(ImmutableArray<IDocumentSnapshot> items, CancellationToken token)
     {
-        Debug.Assert(_processedFilePaths.Count == 0);
-
-        using var itemsToProcess = new PooledArrayBuilder<IDocumentSnapshot>(capacity: items.Length);
-
-        // Walk items in reverse to ensure that we only process the most recent document snapshots.
-        for (var i = items.Length - 1; i >= 0; i--)
-        {
-            var document = items[i];
-            var filePath = document.FilePath.AssumeNotNull();
-
-            if (_processedFilePaths.Add(filePath))
-            {
-                itemsToProcess.Push(document);
-            }
-        }
-
-        while (itemsToProcess.Count > 0)
+        foreach (var document in items)
         {
             if (token.IsCancellationRequested)
             {
                 return;
             }
 
-            var document = itemsToProcess.Pop();
             var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
             await _dispatcher
@@ -115,8 +99,6 @@ internal class OpenDocumentGenerator : IRazorStartupService, IDisposable
                     token)
                 .ConfigureAwait(false);
         }
-
-        _processedFilePaths.Clear();
     }
 
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)

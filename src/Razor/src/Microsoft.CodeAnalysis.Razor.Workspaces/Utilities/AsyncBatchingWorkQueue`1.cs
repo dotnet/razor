@@ -18,7 +18,8 @@ internal class AsyncBatchingWorkQueue<TItem>(
     TimeSpan delay,
     Func<ImmutableArray<TItem>, CancellationToken, ValueTask> processBatchAsync,
     IEqualityComparer<TItem>? equalityComparer,
-    CancellationToken cancellationToken) : AsyncBatchingWorkQueue<TItem, VoidResult>(delay, Convert(processBatchAsync), equalityComparer, cancellationToken)
+    bool preferMostRecentItems,
+    CancellationToken cancellationToken) : AsyncBatchingWorkQueue<TItem, VoidResult>(delay, Convert(processBatchAsync), equalityComparer, preferMostRecentItems, cancellationToken)
 {
     public AsyncBatchingWorkQueue(
         TimeSpan delay,
@@ -27,6 +28,7 @@ internal class AsyncBatchingWorkQueue<TItem>(
         : this(delay,
                processBatchAsync,
                equalityComparer: null,
+               preferMostRecentItems: false,
                cancellationToken)
     {
     }

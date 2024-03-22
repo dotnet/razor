@@ -2,17 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
@@ -25,7 +22,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
 [Export(typeof(IRazorStartupService))]
-internal class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisposable
+internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
 
@@ -38,7 +35,6 @@ internal class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisp
 
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)> _workQueue;
-    private readonly HashSet<string> _processedIds;
 
     private WorkspaceChangedListener? _workspaceChangedListener;
 
@@ -58,8 +54,12 @@ internal class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisp
         _logger = loggerFactory.CreateLogger<WorkspaceProjectStateChangeDetector>();
 
         _disposeTokenSource = new();
-        _processedIds = new(FilePathComparer.Instance);
-        _workQueue = new AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)>(s_delay, ProcessBatchAsync, _disposeTokenSource.Token);
+        _workQueue = new AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)>(
+            s_delay,
+            ProcessBatchAsync,
+            Comparer.Instance,
+            preferMostRecentItems: true,
+            _disposeTokenSource.Token);
 
         _projectManager.Changed += ProjectManager_Changed;
 
@@ -82,27 +82,12 @@ internal class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisp
 
     private async ValueTask ProcessBatchAsync(ImmutableArray<(Project? Project, IProjectSnapshot ProjectSnapshot)> items, CancellationToken token)
     {
-        Debug.Assert(_processedIds.Count == 0);
-
-        using var itemsToProcess = new PooledArrayBuilder<(Project?, IProjectSnapshot)>(capacity: items.Length);
-
-        // We loop through the items in reverse order to de-dupe them and only handle the
-        // most recent items. So, we push them onto a stack so that we process items
-        // in the original order.
-        for (var i = items.Length - 1; i >= 0; i--)
+        foreach (var (project, projectSnapshot) in items)
         {
-            var (project, projectSnapshot) = items[i];
-            var key = projectSnapshot.Key.Id;
-
-            if (_processedIds.Add(key))
+            if (token.IsCancellationRequested)
             {
-                itemsToProcess.Push((project, projectSnapshot));
+                return;
             }
-        }
-
-        while (itemsToProcess.Count > 0)
-        {
-            var (project, projectSnapshot) = itemsToProcess.Pop();
 
             _logger.LogTrace("Process update: {DisplayName}", projectSnapshot.DisplayName);
 
@@ -115,8 +100,6 @@ internal class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisp
                state: (_generator, project, projectSnapshot, token),
                token);
         }
-
-        _processedIds.Clear();
     }
 
     private void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
