@@ -3,9 +3,11 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
@@ -15,12 +17,13 @@ internal class RazorSemanticTokensInfoService(
     IRazorDocumentMappingService documentMappingService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
-    LanguageServerFeatureOptions languageServerFeatureOptions)
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IRazorLoggerFactory loggerFactory)
     : AbstractRazorSemanticTokensInfoService(
         documentMappingService,
         semanticTokensLegendService,
-        csharpSemanticTokensProvider,
+csharpSemanticTokensProvider,
         languageServerFeatureOptions,
-        NullLogger.Instance) // TODO: Logging
+        loggerFactory.CreateLogger<RemoteDocumentMappingService>())
 {
 }

@@ -3,9 +3,9 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
@@ -13,10 +13,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 [method: ImportingConstructor]
 internal sealed class RemoteDocumentMappingService(
     IFilePathService filePathService,
-    IDocumentContextFactory documentContextFactory)
+    IDocumentContextFactory documentContextFactory,
+    IRazorLoggerFactory loggerFactory)
     : AbstractRazorDocumentMappingService(
         filePathService,
         documentContextFactory,
-        NullLogger.Instance) // TODO: Logging
+        loggerFactory.CreateLogger<RemoteDocumentMappingService>())
 {
 }
