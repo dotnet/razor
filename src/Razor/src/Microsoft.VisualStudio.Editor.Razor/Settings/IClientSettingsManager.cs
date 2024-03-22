@@ -10,6 +10,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Settings;
 internal interface IClientSettingsManager
 {
     bool IsFeedbackBeingRecorded { get; }
+    event EventHandler<bool> FeedbackRecordingChanged;
+
     ClientSettings ClientSettings { get; }
     event EventHandler<ClientSettingsChangedEventArgs> ClientSettingsChanged;
 

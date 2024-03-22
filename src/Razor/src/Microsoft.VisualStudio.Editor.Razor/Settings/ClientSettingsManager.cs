@@ -99,6 +99,7 @@ internal class ClientSettingsManager : IClientSettingsManager, IDisposable
     public ClientSettings ClientSettings { get; private set; }
 
     public bool IsFeedbackBeingRecorded => _isFeedbackBeingRecorded == 1;
+    public event EventHandler<bool>? FeedbackRecordingChanged;
 
     public bool ShouldLog(LogLevel logLevel)
         => IsFeedbackBeingRecorded
@@ -164,6 +165,7 @@ internal class ClientSettingsManager : IClientSettingsManager, IDisposable
     private void OnFeedbackSemaphoreDeleted()
     {
         Interlocked.Exchange(ref _isFeedbackBeingRecorded, 0);
+        FeedbackRecordingChanged?.Invoke(this, false);
     }
 
     private void OnFeedbackSemaphoreCreatedOrChanged()
@@ -175,6 +177,8 @@ internal class ClientSettingsManager : IClientSettingsManager, IDisposable
         }
 
         Interlocked.Exchange(ref _isFeedbackBeingRecorded, 1);
+        FeedbackRecordingChanged?.Invoke(this, true);
+        
     }
 
     private bool IsLoggingEnabledForCurrentVisualStudioInstance(string semaphoreFilePath)
