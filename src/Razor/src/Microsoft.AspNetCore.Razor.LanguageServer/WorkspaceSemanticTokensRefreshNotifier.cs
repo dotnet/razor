@@ -85,7 +85,7 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
 
         async Task RefreshAfterDelayAsync()
         {
-            await Task.Delay(s_delay).ConfigureAwait(false);
+            await Task.Delay(s_delay, _disposeTokenSource.Token).ConfigureAwait(false);
 
             _clientConnection
                 .SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, _disposeTokenSource.Token)
