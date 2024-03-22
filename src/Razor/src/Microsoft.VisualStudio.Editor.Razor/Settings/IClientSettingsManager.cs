@@ -9,12 +9,16 @@ namespace Microsoft.VisualStudio.Editor.Razor.Settings;
 
 internal interface IClientSettingsManager
 {
+    bool IsFeedbackBeingRecorded { get; }
     ClientSettings ClientSettings { get; }
     event EventHandler<ClientSettingsChangedEventArgs> ClientSettingsChanged;
 
     void Update(ClientSpaceSettings updateSettings);
     void Update(ClientCompletionSettings updateSettings);
     void Update(ClientAdvancedSettings updateSettings);
-    bool IsLogLevelEnabled(LogLevel logLevel);
 
+    /// <summary>
+    /// Returns true if <see cref="IsFeedbackBeingRecorded"/> or if the level is >= <see cref="ClientAdvancedSettings.LogLevel"/>
+    /// </summary>
+    bool ShouldLog(LogLevel logLevel);
 }
