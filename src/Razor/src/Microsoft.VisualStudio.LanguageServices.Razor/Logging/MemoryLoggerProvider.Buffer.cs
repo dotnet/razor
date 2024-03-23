@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
@@ -19,7 +20,7 @@ internal partial class MemoryLoggerProvider
 
         public void Append(string s)
         {
-            var position = Interlocked.Increment(ref _head) % _memory.Length;
+            var position = Math.Abs(Interlocked.Increment(ref _head) % _memory.Length);
             _memory[position] = s;
         }
     }
