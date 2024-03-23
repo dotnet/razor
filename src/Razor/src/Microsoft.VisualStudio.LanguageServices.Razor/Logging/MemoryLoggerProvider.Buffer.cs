@@ -8,8 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 internal partial class MemoryLoggerProvider
 {
     /// <summary>
-    /// A circular in memory buffer to store logs in memory. Lazily allocated until
-    /// logging is actually done
+    /// A circular in memory buffer to store logs in memory.
     /// </summary>
     private class Buffer(int bufferSize)
     {
