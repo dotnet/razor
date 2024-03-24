@@ -2,9 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Editor.Razor.Settings;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 
