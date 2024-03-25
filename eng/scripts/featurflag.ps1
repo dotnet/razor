@@ -53,7 +53,12 @@ if ($null -eq $vsInfo) {
 $vsDir = $vsInfo.installationPath.TrimEnd("\")
 $vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'
 
-$value = $enable ? 1 : 0
+$value = 0
+
+if ($enable)
+{
+  $value = 1
+}
 
 if ($set) {
   &$vsRegEdit set "$vsDir" $hive HKCU $flagBase $flag dword $value
