@@ -41,18 +41,23 @@ internal class RazorCohostDynamicRegistrationService(LanguageServerFeatureOption
 
     public VSInternalClientCapabilities ClientCapabilities => _clientCapabilities.AssumeNotNull();
 
-    public async Task RegisterAsync(string clientCapabilities, IRazorCohostClientLanguageServerManager razorCohostClientLanguageServerManager, CancellationToken cancellationToken)
+    public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (!_languageServerFeatureOptions.UseRazorCohostServer)
         {
             return;
         }
 
-        _clientCapabilities = JsonConvert.DeserializeObject<VSInternalClientCapabilities>(clientCapabilities) ?? new();
+        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IRazorCohostClientLanguageServerManager>();
+        var semanticTokensRefreshQueue = requestContext.GetRequiredService<IRazorSemanticTokensRefreshQueue>();
+
+        _clientCapabilities = JsonConvert.DeserializeObject<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
 
         // TODO: Get the options from the from the endpoints somehow
         if (_clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
         {
+            semanticTokensRefreshQueue.Initialize(clientCapabilitiesString);
+
             await razorCohostClientLanguageServerManager.SendRequestAsync(
                 Methods.ClientRegisterCapabilityName,
                 new RegistrationParams()
