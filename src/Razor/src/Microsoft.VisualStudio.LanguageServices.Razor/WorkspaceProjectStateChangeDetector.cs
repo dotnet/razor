@@ -57,8 +57,6 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         _workQueue = new AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)>(
             s_delay,
             ProcessBatchAsync,
-            Comparer.Instance,
-            preferMostRecentItems: true,
             _disposeTokenSource.Token);
 
         _projectManager.Changed += ProjectManager_Changed;
@@ -82,7 +80,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
 
     private async ValueTask ProcessBatchAsync(ImmutableArray<(Project? Project, IProjectSnapshot ProjectSnapshot)> items, CancellationToken token)
     {
-        foreach (var (project, projectSnapshot) in items)
+        foreach (var (project, projectSnapshot) in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (token.IsCancellationRequested)
             {

@@ -70,7 +70,6 @@ public class AsyncBatchingWorkQueueTest(ITestOutputHelper output) : ToolingTestB
                 return default;
             },
             equalityComparer: EqualityComparer<int>.Default,
-            preferMostRecentItems: false,
             DisposalToken);
 
         for (var i = 0; i < 1000; i++)

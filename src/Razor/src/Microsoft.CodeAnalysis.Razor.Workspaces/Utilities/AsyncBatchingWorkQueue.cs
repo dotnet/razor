@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Razor.Utilities;
 internal class AsyncBatchingWorkQueue(
     TimeSpan delay,
     Func<CancellationToken, ValueTask> processBatchAsync,
-    CancellationToken cancellationToken) : AsyncBatchingWorkQueue<VoidResult>(delay, Convert(processBatchAsync), EqualityComparer<VoidResult>.Default, false, cancellationToken)
+    CancellationToken cancellationToken) : AsyncBatchingWorkQueue<VoidResult>(delay, Convert(processBatchAsync), EqualityComparer<VoidResult>.Default, cancellationToken)
 {
     private static Func<ImmutableArray<VoidResult>, CancellationToken, ValueTask> Convert(Func<CancellationToken, ValueTask> processBatchAsync)
         => (items, ct) => processBatchAsync(ct);

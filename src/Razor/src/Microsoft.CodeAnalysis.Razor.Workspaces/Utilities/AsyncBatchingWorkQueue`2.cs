@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -42,11 +41,6 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
     /// Equality comparer uses to dedupe items if present.
     /// </summary>
     private readonly IEqualityComparer<TItem>? _equalityComparer;
-
-    /// <summary>
-    /// Determines whether the most recent items are preferred when deduping.
-    /// </summary>
-    private readonly bool _preferMostRecentItems;
 
     /// <summary>
     /// Callback to actually perform the processing of the next batch of work.
@@ -113,13 +107,11 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
         TimeSpan delay,
         Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
         IEqualityComparer<TItem>? equalityComparer,
-        bool preferMostRecentItems,
         CancellationToken cancellationToken)
     {
         _delay = delay;
         _processBatchAsync = processBatchAsync;
         _equalityComparer = equalityComparer;
-        _preferMostRecentItems = preferMostRecentItems;
         _entireQueueCancellationToken = cancellationToken;
 
         _uniqueItems = new HashSet<TItem>(equalityComparer);
@@ -189,14 +181,6 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
         {
             // no equality comparer.  We want to process all items.
             if (_equalityComparer == null)
-            {
-                _nextBatch.AddRange(items);
-                return;
-            }
-
-            // In the case that we want to dedupe and prefer the most recent
-            // items, we add everything to the batch now and will remove them later.
-            if (_preferMostRecentItems)
             {
                 _nextBatch.AddRange(items);
                 return;
@@ -297,38 +281,6 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
     {
         lock (_gate)
         {
-            // If we're deduping and preferring the most recent items, we need
-            // to compare items and adjust the next batch here.
-            if (_nextBatch.Count > 0 && _equalityComparer is not null && _preferMostRecentItems)
-            {
-                Debug.Assert(_uniqueItems.Count == 0, "Deduping should not have already occurred.");
-
-                using var stack = new PooledArrayBuilder<TItem>(capacity: _nextBatch.Count);
-
-                // Walk the next batch in reverse and to identify unique items.
-                // We push them on a stack so that we can pop them in order later
-                for (var i = _nextBatch.Count - 1; i >= 0; i--)
-                {
-                    var item = _nextBatch[i];
-
-                    if (_uniqueItems.Add(item))
-                    {
-                        stack.Push(item);
-                    }
-                }
-
-                // Did we actually dedupe anything? If so, adjust the next batch.
-                if (stack.Count < _nextBatch.Count)
-                {
-                    _nextBatch.Clear();
-
-                    while (stack.Count > 0)
-                    {
-                        _nextBatch.Add(stack.Pop());
-                    }
-                }
-            }
-
             var nextBatch = _nextBatch.ToImmutable();
 
             // mark there being no existing update task so that the next OOP notification will

@@ -50,8 +50,6 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
         _workQueue = new AsyncBatchingWorkQueue<IDocumentSnapshot>(
             s_delay,
             ProcessBatchAsync,
-            Comparer.Instance,
-            preferMostRecentItems: true,
             _disposeTokenSource.Token);
 
         _projectManager.Changed += ProjectManager_Changed;
@@ -70,7 +68,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
     private async ValueTask ProcessBatchAsync(ImmutableArray<IDocumentSnapshot> items, CancellationToken token)
     {
-        foreach (var document in items)
+        foreach (var document in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (token.IsCancellationRequested)
             {
