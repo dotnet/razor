@@ -2,16 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
@@ -20,11 +18,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
 [Shared]
 [Export(typeof(IRazorCohostDynamicRegistrationService))]
-[Export(typeof(IClientCapabilitiesService))]
 [method: ImportingConstructor]
+<<<<<<< HEAD:src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/LanguageClient/Cohost/RazorCohostDynamicRegistrationService.cs
 internal class RazorCohostDynamicRegistrationService(LanguageServerFeatureOptions languageServerFeatureOptions, Lazy<ISemanticTokensLegendService> semanticTokensLegendService, ILoggerFactory loggerFactory) : IRazorCohostDynamicRegistrationService, IClientCapabilitiesService
+=======
+internal class RazorCohostDynamicRegistrationService(
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    [ImportMany] IEnumerable<IDynamicRegistrationProvider> registrationProviders,
+    RazorCohostClientCapabilitiesService razorCohostClientCapabilitiesService,
+    IRazorLoggerFactory loggerFactory)
+    : IRazorCohostDynamicRegistrationService
+>>>>>>> dfe6ec440 (Move capabilities logic back into the endpoint):src/Razor/src/Microsoft.VisualStudio.LanguageServerClient.Razor/Cohost/RazorCohostDynamicRegistrationService.cs
 {
-    private readonly string _id = Guid.NewGuid().ToString();
     private readonly DocumentFilter[] _filter = [new DocumentFilter()
     {
         Language = Constants.RazorLanguageName,
@@ -32,14 +37,9 @@ internal class RazorCohostDynamicRegistrationService(LanguageServerFeatureOption
     }];
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly Lazy<ISemanticTokensLegendService> _semanticTokensLegendService = semanticTokensLegendService;
+    private readonly IEnumerable<IDynamicRegistrationProvider> _registrationProviders = registrationProviders;
+    private readonly RazorCohostClientCapabilitiesService _razorCohostClientCapabilitiesService = razorCohostClientCapabilitiesService;
     private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCohostDynamicRegistrationService>();
-
-    private VSInternalClientCapabilities? _clientCapabilities;
-
-    public bool CanGetClientCapabilities => _clientCapabilities is not null;
-
-    public VSInternalClientCapabilities ClientCapabilities => _clientCapabilities.AssumeNotNull();
 
     public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
@@ -48,33 +48,33 @@ internal class RazorCohostDynamicRegistrationService(LanguageServerFeatureOption
             return;
         }
 
-        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IRazorCohostClientLanguageServerManager>();
-        var semanticTokensRefreshQueue = requestContext.GetRequiredService<IRazorSemanticTokensRefreshQueue>();
+        var clientCapabilities = JsonConvert.DeserializeObject<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
 
-        _clientCapabilities = JsonConvert.DeserializeObject<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
+        _razorCohostClientCapabilitiesService.SetCapabilities(clientCapabilities);
 
-        // TODO: Get the options from the from the endpoints somehow
-        if (_clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
+        _registrationProviders.TryGetCount(out var providerCount);
+        using var registrations = new PooledArrayBuilder<Registration>(providerCount);
+
+        foreach (var provider in _registrationProviders)
         {
-            semanticTokensRefreshQueue.Initialize(clientCapabilitiesString);
+            var registration = provider.GetRegistration(clientCapabilities, _filter, requestContext);
 
-            await razorCohostClientLanguageServerManager.SendRequestAsync(
-                Methods.ClientRegisterCapabilityName,
-                new RegistrationParams()
-                {
-                    Registrations = [
-                        new Registration()
-                        {
-                            Id = _id,
-                            Method = Methods.TextDocumentSemanticTokensRangeName,
-                            RegisterOptions = new SemanticTokensRegistrationOptions()
-                            {
-                                DocumentSelector = _filter,
-                            }.EnableSemanticTokens(_semanticTokensLegendService.Value)
-                        }
-                    ]
-                },
-                cancellationToken).ConfigureAwait(false);
+            if (registration is not null)
+            {
+                // We don't unregister anything, so we don't need to do anything interesting with Ids
+                registration.Id = Guid.NewGuid().ToString();
+                registrations.Add(registration);
+            }
         }
+
+        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IRazorCohostClientLanguageServerManager>();
+
+        await razorCohostClientLanguageServerManager.SendRequestAsync(
+            Methods.ClientRegisterCapabilityName,
+            new RegistrationParams()
+            {
+                Registrations = registrations.ToArray()
+            },
+            cancellationToken).ConfigureAwait(false);
     }
 }
