@@ -16,7 +16,7 @@ internal static class ImmutableArrayExtensions
     /// </summary>
     public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T> array)
     {
-        return array.IsDefault ? ImmutableArray<T>.Empty : array;
+        return array.IsDefault ? [] : array;
     }
 
     public static void SetCapacityIfLarger<T>(this ImmutableArray<T>.Builder builder, int newCapacity)
@@ -46,7 +46,7 @@ internal static class ImmutableArrayExtensions
 #else
         if (builder.Count == 0)
         {
-            return ImmutableArray<T>.Empty;
+            return [];
         }
 
         if (builder.Count == builder.Capacity)
@@ -64,11 +64,11 @@ internal static class ImmutableArrayExtensions
     {
         return source switch
         {
-        [] => ImmutableArray<TResult>.Empty,
-        [var item] => ImmutableArray.Create(selector(item)),
-        [var item1, var item2] => ImmutableArray.Create(selector(item1), selector(item2)),
-        [var item1, var item2, var item3] => ImmutableArray.Create(selector(item1), selector(item2), selector(item3)),
-        [var item1, var item2, var item3, var item4] => ImmutableArray.Create(selector(item1), selector(item2), selector(item3), selector(item4)),
+        [] => [],
+        [var item] => [selector(item)],
+        [var item1, var item2] => [selector(item1), selector(item2)],
+        [var item1, var item2, var item3] => [selector(item1), selector(item2), selector(item3)],
+        [var item1, var item2, var item3, var item4] => [selector(item1), selector(item2), selector(item3), selector(item4)],
             var items => BuildResult(items, selector)
         };
 
@@ -89,7 +89,7 @@ internal static class ImmutableArrayExtensions
     {
         if (source is null || source.Count == 0)
         {
-            return ImmutableArray<TResult>.Empty;
+            return [];
         }
 
         using var builder = new PooledArrayBuilder<TResult>(capacity: source.Count);
@@ -105,7 +105,7 @@ internal static class ImmutableArrayExtensions
     {
         if (source is [])
         {
-            return ImmutableArray<T>.Empty;
+            return [];
         }
 
         using var builder = new PooledArrayBuilder<T>();
@@ -127,6 +127,11 @@ internal static class ImmutableArrayExtensions
     /// </summary>
     public static ImmutableArray<T> GetMostRecentUniqueItems<T>(this ImmutableArray<T> source, IEqualityComparer<T> comparer)
     {
+        if (source.IsEmpty)
+        {
+            return [];
+        }
+
 #if !NETSTANDARD2_0
         var uniqueItems = new HashSet<T>(capacity: source.Length, comparer);
 #else
