@@ -43,7 +43,7 @@ if ($set)
   }
 }
 
-. (Join-Path $PSScriptRoot "eng" "common" "tools.ps1")
+. (Join-Path $PSScriptRoot ".." "common" "tools.ps1")
 
 $vsInfo = LocateVisualStudio
 if ($null -eq $vsInfo) {
@@ -61,4 +61,3 @@ if ($set) {
 else {
   &$vsRegEdit read "$vsDir" $hive HKCU $flagBase $flag dword
 }
- 

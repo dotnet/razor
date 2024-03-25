@@ -23,8 +23,10 @@ steps:
     displayName: Create and Verify hive
 
   - powershell: eng\scripts\featurflag.ps1
+      -set
       -enable
-      -flag ${{ variables.FeatureFlag }}
+      -flag "${{ variables.FeatureFlag }}"
+      -hive RoslynDev
     displayName: Set Feature Flags
     condition: and(succeeded(), ne(variables.FeatureFlag, ''))
 
