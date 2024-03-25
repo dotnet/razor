@@ -28,7 +28,7 @@ public class ImmutableArrayExtensionsTests
 
         Assert.Collection(mostRecent,
             s => Assert.Equal("HeLlO", s),
-            s => Assert.Equal(", ", s),
+            s => Assert.Same(items[4], s), // make sure it's the most recent ", "
             s => Assert.Equal("WoRlD", s));
     }
 }
