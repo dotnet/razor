@@ -128,6 +128,16 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         Assert.Equal<TagHelperDescriptor>(originalTagHelpers, actualTagHelpers);
     }
 
+
+    /// <summary>
+    /// Verifies that a previous generated file is able to be serialized. If this
+    /// fails make sure to do ONE of the following:
+    ///
+    /// 1. Update the deserializer to be lenient on the previous version
+    /// 2. Bump the Microsoft.AspNetCore.Razor.Serialization.MessagePack.SerializationFormat.Version
+    ///     a. Generate a new file to replace project.razor.bin with the new format. As of writing this was made from the base blazorserver template
+    ///     b. This will require a dual insertion with Roslyn do use the correct version number
+    /// </summary>
     [Theory]
     [InlineData("project.razor.bin")]
     public void VerifyMessagePack_DeserializeMessagepack(string resourceName)
