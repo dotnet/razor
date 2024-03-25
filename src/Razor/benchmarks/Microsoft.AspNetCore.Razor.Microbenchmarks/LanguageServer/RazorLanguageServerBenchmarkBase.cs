@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 #nullable disable
@@ -30,13 +30,19 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     {
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
-        var razorLoggerFactory = new RazorLoggerFactory([new NoopLoggerProvider()]);
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLoggerFactory, NoOpTelemetryReporter.Instance, configure: (collection) =>
-        {
-            collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
-            collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
-            Builder(collection);
-        }, featureOptions: BuildFeatureOptions());
+        var razorLoggerFactory = new NoopLoggerFactory();
+        RazorLanguageServer = RazorLanguageServerWrapper.Create(
+            serverStream,
+            serverStream,
+            razorLoggerFactory,
+            NoOpTelemetryReporter.Instance,
+            configure: (collection) =>
+            {
+                collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
+                collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
+                Builder(collection);
+            },
+            featureOptions: BuildFeatureOptions());
     }
 
     protected internal virtual void Builder(IServiceCollection collection)
@@ -52,7 +58,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     private protected NoopLogger Logger { get; }
 
-    internal IDocumentSnapshot GetDocumentSnapshot(string projectFilePath, string filePath, string targetPath)
+    internal async Task<IDocumentSnapshot> GetDocumentSnapshotAsync(string projectFilePath, string filePath, string targetPath)
     {
         var intermediateOutputPath = Path.Combine(Path.GetDirectoryName(projectFilePath), "obj");
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
@@ -61,16 +67,22 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
         var hostDocument = new HostDocument(filePath, targetPath, FileKinds.Component);
 
-        var projectSnapshotManager = CreateProjectSnapshotManager();
-        projectSnapshotManager.ProjectAdded(hostProject);
-        var tagHelpers = CommonResources.LegacyTagHelpers;
-        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
-        projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
-        projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, textLoader);
-        var projectSnapshot = projectSnapshotManager.GetLoadedProject(hostProject.Key);
+        var projectManager = CreateProjectSnapshotManager();
 
-        var documentSnapshot = projectSnapshot.GetDocument(filePath);
-        return documentSnapshot;
+        await projectManager.UpdateAsync(
+            updater =>
+            {
+                updater.ProjectAdded(hostProject);
+                var tagHelpers = CommonResources.LegacyTagHelpers;
+                var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
+                updater.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
+                updater.DocumentAdded(hostProject.Key, hostDocument, textLoader);
+            },
+            CancellationToken.None);
+
+        var projectSnapshot = projectManager.GetLoadedProject(hostProject.Key);
+
+        return projectSnapshot.GetDocument(filePath);
     }
 
     private class NoopClientNotifierService : IClientConnection, IOnInitialized
@@ -95,6 +107,8 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
             throw new NotImplementedException();
         }
     }
+
+    internal class NoopLoggerFactory() : AbstractRazorLoggerFactory([new NoopLoggerProvider()]);
 
     internal class NoopLoggerProvider : IRazorLoggerProvider
     {

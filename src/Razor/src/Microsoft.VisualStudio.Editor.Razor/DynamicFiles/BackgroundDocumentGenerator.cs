@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -11,26 +12,42 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-[Export(typeof(IProjectSnapshotChangeTrigger))]
-[method: ImportingConstructor]
-internal class BackgroundDocumentGenerator(
-    ProjectSnapshotManagerDispatcher dispatcher,
-    IRazorDynamicFileInfoProviderInternal infoProvider) : IProjectSnapshotChangeTrigger
+[Export(typeof(IRazorStartupService))]
+internal class BackgroundDocumentGenerator : IRazorStartupService
 {
     // Internal for testing
     internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work = [];
 
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
-    private readonly IRazorDynamicFileInfoProviderInternal _infoProvider = infoProvider;
-    private readonly HashSet<string> _suppressedDocuments = new(FilePathComparer.Instance);
-    private ProjectSnapshotManagerBase? _projectManager;
+    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
+    private readonly IErrorReporter _errorReporter;
+    private ImmutableHashSet<string> _suppressedDocuments;
+
     private Timer? _timer;
     private bool _solutionIsClosing;
+
+    [ImportingConstructor]
+    public BackgroundDocumentGenerator(
+        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IRazorDynamicFileInfoProviderInternal infoProvider,
+        IErrorReporter errorReporter)
+    {
+        _projectManager = projectManager;
+        _dispatcher = dispatcher;
+        _infoProvider = infoProvider;
+        _errorReporter = errorReporter;
+
+        _suppressedDocuments = ImmutableHashSet<string>.Empty.WithComparer(FilePathComparer.Instance);
+        _projectManager.Changed += ProjectManager_Changed;
+    }
 
     public bool HasPendingNotifications
     {
@@ -101,12 +118,6 @@ internal class BackgroundDocumentGenerator(
         NotifyErrorBeingReported?.Set();
     }
 
-    public void Initialize(ProjectSnapshotManagerBase projectManager)
-    {
-        _projectManager = projectManager;
-        _projectManager.Changed += ProjectManager_Changed;
-    }
-
     protected virtual async Task ProcessDocumentAsync(IProjectSnapshot project, IDocumentSnapshot document)
     {
         await document.GetGeneratedOutputAsync().ConfigureAwait(false);
@@ -132,7 +143,7 @@ internal class BackgroundDocumentGenerator(
             return;
         }
 
-        _dispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnDispatcher();
 
         lock (Work)
         {
@@ -229,14 +240,7 @@ internal class BackgroundDocumentGenerator(
         }
         catch (Exception ex)
         {
-            Assumes.NotNull(_projectManager);
-
-            // This is something totally unexpected, let's just send it over to the workspace.
-            await _dispatcher
-                .RunOnDispatcherThreadAsync(
-                    () => _projectManager.ReportError(ex),
-                    CancellationToken.None)
-                .ConfigureAwait(false);
+            _errorReporter.ReportError(ex);
         }
     }
 
@@ -244,44 +248,32 @@ internal class BackgroundDocumentGenerator(
     {
         OnErrorBeingReported();
 
-        Assumes.NotNull(_projectManager);
-
-        _dispatcher.RunOnDispatcherThreadAsync(
-            () => _projectManager.ReportError(ex, project),
-            CancellationToken.None).Forget();
+        _errorReporter.ReportError(ex, project);
     }
 
     private bool Suppressed(IProjectSnapshot project, IDocumentSnapshot document)
     {
-        Assumes.NotNull(_projectManager);
+        var filePath = document.FilePath.AssumeNotNull();
 
-        lock (_suppressedDocuments)
+        if (_projectManager.IsDocumentOpen(filePath))
         {
-            var filePath = document.FilePath.AssumeNotNull();
-
-            if (_projectManager.IsDocumentOpen(filePath))
-            {
-                _suppressedDocuments.Add(filePath);
-                _infoProvider.SuppressDocument(project.Key, filePath);
-                return true;
-            }
-
-            _suppressedDocuments.Remove(filePath);
-            return false;
+            ImmutableInterlocked.Update(ref _suppressedDocuments, static (set, filePath) => set.Add(filePath), filePath);
+            _infoProvider.SuppressDocument(project.Key, filePath);
+            return true;
         }
+
+        ImmutableInterlocked.Update(ref _suppressedDocuments, static (set, filePath) => set.Remove(filePath), filePath);
+        return false;
     }
 
     private void UpdateFileInfo(IProjectSnapshot project, IDocumentSnapshot document)
     {
-        lock (_suppressedDocuments)
-        {
-            var filePath = document.FilePath.AssumeNotNull();
+        var filePath = document.FilePath.AssumeNotNull();
 
-            if (!_suppressedDocuments.Contains(filePath))
-            {
-                var container = new DefaultDynamicDocumentContainer(document);
-                _infoProvider.UpdateFileInfo(project.Key, container);
-            }
+        if (!_suppressedDocuments.Contains(filePath))
+        {
+            var container = new DefaultDynamicDocumentContainer(document);
+            _infoProvider.UpdateFileInfo(project.Key, container);
         }
     }
 
