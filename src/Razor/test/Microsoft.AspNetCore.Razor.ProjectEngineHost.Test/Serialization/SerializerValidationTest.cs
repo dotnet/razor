@@ -128,6 +128,25 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         Assert.Equal<TagHelperDescriptor>(originalTagHelpers, actualTagHelpers);
     }
 
+    [Theory]
+    [InlineData("project.razor.bin")]
+    public void VerifyMessagePack_DeserializeMessagepack(string resourceName)
+    {
+        // Arrange
+        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
+        var options = MessagePackSerializerOptions.Standard
+            .WithResolver(CompositeResolver.Create(
+                RazorProjectInfoResolver.Instance,
+                StandardResolver.Instance));
+
+        // Act
+        var actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(resourceBytes, options);
+
+        // Assert
+        Assert.NotNull(actualProjectInfo);
+        Assert.NotNull(actualProjectInfo.DisplayName);
+    }
+
     private static RazorProjectInfo DeserializeProjectInfoFromJsonBytes(byte[] resourceBytes)
     {
         using var stream = new MemoryStream(resourceBytes);
