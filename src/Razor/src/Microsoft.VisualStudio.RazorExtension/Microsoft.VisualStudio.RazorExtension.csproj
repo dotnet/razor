@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
 
@@ -288,4 +288,13 @@ using Microsoft.VisualStudio.Shell;
       <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'System.Text.Json'" />
     </ItemGroup>
   </Target>
+
+  <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
+    <ItemGroup>
+      <!-- Add registrations for 64-bit and 64-bit Server GC on .Net Core host -->
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" />
+    </ItemGroup>
+  </Target>
+  <Import Project="$(RepositoryEngineeringDir)targets\ReplaceServiceHubAssetsInVsixManifest.targets" />
 </Project>
