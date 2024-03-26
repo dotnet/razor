@@ -552,7 +552,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
             <br />
             </p>
             """;
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "br" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["br"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -563,7 +563,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><br></p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -574,7 +574,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p>Hello</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -585,7 +585,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><hr /></p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "br", "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["br", "strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -596,7 +596,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><br>Hello</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -607,7 +607,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><strong>Title:</strong><br />Something</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -618,7 +618,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><strong>Title:</strong><br />Something</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "strong", "br" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong", "br"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -629,7 +629,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p>  <strong>Title:</strong>  <br />  Something</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "strong", "br" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong", "br"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -640,7 +640,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><strong>Title:<br><em>A Very Cool</em></strong><br />Something</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -651,7 +651,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><custom>Title:<br><em>A Very Cool</em></custom><br />Something</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "custom" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["custom"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -662,7 +662,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p></</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "custom" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["custom"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -673,7 +673,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><</p>";
-        var descriptors = TagHelperParseTreeRewriterTest.GetAllowedChildrenTagHelperDescriptors(new[] { "custom" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["custom"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);

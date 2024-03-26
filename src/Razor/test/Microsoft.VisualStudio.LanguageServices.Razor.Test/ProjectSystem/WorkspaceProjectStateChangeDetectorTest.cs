@@ -3,33 +3,23 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Razor;
 using Microsoft.VisualStudio.LanguageServices.Razor.Test;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
+public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTestBase
 {
-    private static readonly ProjectSnapshotManagerDispatcher s_dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(
-        new VisualStudioErrorReporter(new TestSVsServiceProvider()));
-
-    private readonly BatchingWorkQueue _workQueue;
-    private readonly BatchingWorkQueue.TestAccessor _workQueueTestAccessor;
     private readonly HostProject _hostProjectOne;
     private readonly HostProject _hostProjectTwo;
     private readonly HostProject _hostProjectThree;
@@ -72,7 +62,7 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
                 "One",
                 LanguageNames.CSharp,
                 filePath: "One.csproj",
-                documents: new[] { cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo }).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
+                documents: [cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
             .AddProject(ProjectInfo.Create(
                 projectId2,
                 VersionStamp.Default,
@@ -100,8 +90,8 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
                 "One",
                 LanguageNames.CSharp,
                 filePath: "One.csproj",
-                documents: new[] { cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo },
-                projectReferences: new[] { project2Reference }).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
+                documents: [cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo],
+                projectReferences: [project2Reference]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
             .AddProject(ProjectInfo.Create(
                 projectId2,
                 VersionStamp.Default,
@@ -109,7 +99,7 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
                 "Two",
                 LanguageNames.CSharp,
                 filePath: "Two.csproj",
-                projectReferences: new[] { project3Reference }).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj2\\Two.dll")))
+                projectReferences: [project3Reference]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj2\\Two.dll")))
             .AddProject(ProjectInfo.Create(
                 projectId3,
                 VersionStamp.Default,
@@ -117,7 +107,7 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
                 "Three",
                 LanguageNames.CSharp,
                 filePath: "Three.csproj",
-                documents: new[] { razorDocumentInfo }).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj3\\Three.dll")));
+                documents: [razorDocumentInfo]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj3\\Three.dll")));
 
         _projectNumberOne = _solutionWithTwoProjects.GetProject(projectId1);
         _projectNumberTwo = _solutionWithTwoProjects.GetProject(projectId2);
@@ -126,48 +116,45 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
         _hostProjectOne = new HostProject("One.csproj", "obj1", FallbackRazorConfiguration.MVC_1_1, "One");
         _hostProjectTwo = new HostProject("Two.csproj", "obj2", FallbackRazorConfiguration.MVC_1_1, "Two");
         _hostProjectThree = new HostProject("Three.csproj", "obj3", FallbackRazorConfiguration.MVC_1_1, "Three");
-
-        _workQueue = new BatchingWorkQueue(TimeSpan.FromMilliseconds(1), StringComparer.Ordinal, ErrorReporter);
-        AddDisposable(_workQueue);
-
-        _workQueueTestAccessor = _workQueue.GetTestAccessor();
-        _workQueue.GetTestAccessor().NotifyBackgroundWorkCompleted = null;
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
     }
 
     [UIFact]
     public async Task SolutionClosing_StopsActiveWork()
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue);
-        _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
-        _workQueueTestAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        using var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
+
+        var workspaceChangedTask = detectorAccessor.ListenForWorkspaceChangesAsync(
+            WorkspaceChangeKind.ProjectAdded,
+            WorkspaceChangeKind.ProjectAdded);
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(_hostProjectOne), DisposalToken);
-        workspaceStateGenerator.ClearQueue();
-        _workQueueTestAccessor.NotifyBackgroundWorkStarting.Wait();
+
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(_hostProjectOne);
+        });
+
+        await workspaceChangedTask;
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
+
+        generator.Clear();
 
         // Act
-        await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        await projectManager.UpdateAsync(updater =>
         {
-            projectManager.SolutionClosed();
+            updater.SolutionClosed();
 
             // Trigger a project removed event while solution is closing to clear state.
-            projectManager.ProjectRemoved(_hostProjectOne.Key);
-        }, DisposalToken);
+            updater.ProjectRemoved(_hostProjectOne.Key);
+        });
 
         // Assert
-        //
-        // The change hasn't come through yet.
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
 
-        _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
+        Assert.Empty(generator.Updates);
     }
 
     [UITheory]
@@ -177,27 +164,21 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_DocumentEvents_EnqueuesUpdatesForDependentProjects(WorkspaceChangeKind kind)
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue)
-        {
-            NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
-        };
-        _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        using var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-
-        await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        await projectManager.UpdateAsync(updater =>
         {
-            projectManager.ProjectAdded(_hostProjectOne);
-            projectManager.ProjectAdded(_hostProjectTwo);
-            projectManager.ProjectAdded(_hostProjectThree);
-        }, DisposalToken);
+            updater.ProjectAdded(_hostProjectOne);
+            updater.ProjectAdded(_hostProjectTwo);
+            updater.ProjectAdded(_hostProjectThree);
+        });
 
         // Initialize with a project. This will get removed.
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: _emptySolution, newSolution: _solutionWithOneProject);
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        detector.NotifyWorkspaceChangedEventComplete.Wait();
-        detector.NotifyWorkspaceChangedEventComplete.Reset();
+        detectorAccessor.WorkspaceChanged(e);
 
         e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithOneProject, newSolution: _solutionWithDependentProject);
 
@@ -206,18 +187,15 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
         e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithDependentProject, newSolution: solution, projectId: _projectNumberThree.Id, documentId: _razorDocumentId);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        detector.NotifyWorkspaceChangedEventComplete.Wait();
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        Assert.Equal(3, _workQueueTestAccessor.Work.Count);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberOne).Value.Id);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberTwo).Value.Id);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberThree).Value.Id);
-
-        _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-        Assert.Empty(_workQueueTestAccessor.Work);
+        Assert.Equal(3, generator.Updates.Count);
+        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == ProjectKey.From(_projectNumberOne));
+        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == ProjectKey.From(_projectNumberTwo));
+        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == ProjectKey.From(_projectNumberThree));
     }
 
     [UITheory]
@@ -227,27 +205,21 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects(WorkspaceChangeKind kind)
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue)
-        {
-            NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
-        };
-        _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-
-        await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        await projectManager.UpdateAsync(updater =>
         {
-            projectManager.ProjectAdded(_hostProjectOne);
-            projectManager.ProjectAdded(_hostProjectTwo);
-            projectManager.ProjectAdded(_hostProjectThree);
-        }, DisposalToken);
+            updater.ProjectAdded(_hostProjectOne);
+            updater.ProjectAdded(_hostProjectTwo);
+            updater.ProjectAdded(_hostProjectThree);
+        });
 
         // Initialize with a project. This will get removed.
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: _emptySolution, newSolution: _solutionWithOneProject);
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        detector.NotifyWorkspaceChangedEventComplete.Wait();
-        detector.NotifyWorkspaceChangedEventComplete.Reset();
+        detectorAccessor.WorkspaceChanged(e);
 
         e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithOneProject, newSolution: _solutionWithDependentProject);
 
@@ -256,18 +228,15 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
         e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithDependentProject, newSolution: solution, projectId: _projectNumberThree.Id);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        detector.NotifyWorkspaceChangedEventComplete.Wait();
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        Assert.Equal(3, _workQueueTestAccessor.Work.Count);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberOne).Value.Id);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberTwo).Value.Id);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberThree).Value.Id);
-
-        _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-        Assert.Empty(_workQueueTestAccessor.Work);
+        Assert.Equal(3, generator.Updates.Count);
+        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == ProjectKey.From(_projectNumberOne));
+        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == ProjectKey.From(_projectNumberTwo));
+        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == ProjectKey.From(_projectNumberThree));
     }
 
     [UITheory]
@@ -279,28 +248,27 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_SolutionEvents_EnqueuesUpdatesForProjectsInSolution(WorkspaceChangeKind kind)
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue)
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
+
+        await projectManager.UpdateAsync(updater =>
         {
-            NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
-        };
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            projectManager.ProjectAdded(_hostProjectOne);
-            projectManager.ProjectAdded(_hostProjectTwo);
-        }, DisposalToken);
+            updater.ProjectAdded(_hostProjectOne);
+            updater.ProjectAdded(_hostProjectTwo);
+        });
 
         var e = new WorkspaceChangeEventArgs(kind, oldSolution: _emptySolution, newSolution: _solutionWithTwoProjects);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        detector.NotifyWorkspaceChangedEventComplete.Wait();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         Assert.Collection(
-            workspaceStateGenerator.UpdateQueue,
+            generator.Updates,
             p => Assert.Equal(_projectNumberOne.Id, p.WorkspaceProject.Id),
             p => Assert.Equal(_projectNumberTwo.Id, p.WorkspaceProject.Id));
     }
@@ -314,39 +282,34 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_SolutionEvents_EnqueuesStateClear_EnqueuesSolutionProjectUpdates(WorkspaceChangeKind kind)
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue)
-        {
-            NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
-        };
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-
-        await s_dispatcher.RunOnDispatcherThreadAsync(() =>
+        await projectManager.UpdateAsync(updater =>
         {
-            projectManager.ProjectAdded(_hostProjectOne);
-            projectManager.ProjectAdded(_hostProjectTwo);
-            projectManager.ProjectAdded(_hostProjectThree);
-        }, DisposalToken);
+            updater.ProjectAdded(_hostProjectOne);
+            updater.ProjectAdded(_hostProjectTwo);
+            updater.ProjectAdded(_hostProjectThree);
+        });
 
         // Initialize with a project. This will get removed.
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: _emptySolution, newSolution: _solutionWithOneProject);
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        detector.NotifyWorkspaceChangedEventComplete.Wait();
-        detector.NotifyWorkspaceChangedEventComplete.Reset();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Reset();
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithOneProject, newSolution: _solutionWithTwoProjects);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        detector.NotifyWorkspaceChangedEventComplete.Wait();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         Assert.Collection(
-            workspaceStateGenerator.UpdateQueue,
+            generator.Updates,
             p => Assert.Equal(_projectNumberThree.Id, p.WorkspaceProject.Id),
             p => Assert.Null(p.WorkspaceProject),
             p => Assert.Equal(_projectNumberOne.Id, p.WorkspaceProject.Id),
@@ -359,28 +322,34 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_ProjectChangeEvents_UpdatesProjectState_AfterDelay(WorkspaceChangeKind kind)
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue);
-        _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
 
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(_hostProjectOne), DisposalToken);
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(_hostProjectOne);
+        });
+
+        // Stop any existing work and clear out any updates that we might have received.
+        detectorAccessor.CancelExistingWork();
+        generator.Clear();
+
+        // Create a listener for the workspace change we're about to send.
+        var listenerTask = detectorAccessor.ListenForWorkspaceChangesAsync(kind);
 
         var solution = _solutionWithTwoProjects.WithProjectAssemblyName(_projectNumberOne.Id, "Changed");
         var e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithTwoProjects, newSolution: solution, projectId: _projectNumberOne.Id);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
+        detectorAccessor.WorkspaceChanged(e);
+
+        await listenerTask;
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        //
-        // The change hasn't come through yet.
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
-
-        _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-
-        var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+        var update = Assert.Single(generator.Updates);
         Assert.Equal(update.WorkspaceProject.Id, _projectNumberOne.Id);
         Assert.Equal(update.ProjectSnapshot.FilePath, _hostProjectOne.FilePath);
     }
@@ -389,30 +358,30 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_DocumentChanged_BackgroundVirtualCS_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue);
-        _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(_hostProjectOne), DisposalToken);
-        workspaceStateGenerator.ClearQueue();
+
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(_hostProjectOne);
+        });
+
+        generator.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_backgroundVirtualCSharpDocumentId, SourceText.From("public class Foo{}"));
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged, oldSolution: _solutionWithTwoProjects, newSolution: solution, projectId: _projectNumberOne.Id, _backgroundVirtualCSharpDocumentId);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        //
-        // The change hasn't come through yet.
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
-
-        _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-
-        var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+        var update = Assert.Single(generator.Updates);
         Assert.Equal(update.WorkspaceProject.Id, _projectNumberOne.Id);
         Assert.Equal(update.ProjectSnapshot.FilePath, _hostProjectOne.FilePath);
     }
@@ -421,30 +390,30 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_DocumentChanged_CSHTML_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue);
-        _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(_hostProjectOne), DisposalToken);
-        workspaceStateGenerator.ClearQueue();
+
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(_hostProjectOne);
+        });
+
+        generator.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_cshtmlDocumentId, SourceText.From("Hello World"));
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged, oldSolution: _solutionWithTwoProjects, newSolution: solution, projectId: _projectNumberOne.Id, _cshtmlDocumentId);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        //
-        // The change hasn't come through yet.
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
-
-        _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-
-        var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+        var update = Assert.Single(generator.Updates);
         Assert.Equal(update.WorkspaceProject.Id, _projectNumberOne.Id);
         Assert.Equal(update.ProjectSnapshot.FilePath, _hostProjectOne.FilePath);
     }
@@ -453,30 +422,30 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_DocumentChanged_Razor_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue);
-        _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(_hostProjectOne), DisposalToken);
-        workspaceStateGenerator.ClearQueue();
+
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(_hostProjectOne);
+        });
+
+        generator.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_razorDocumentId, SourceText.From("Hello World"));
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged, oldSolution: _solutionWithTwoProjects, newSolution: solution, projectId: _projectNumberOne.Id, _razorDocumentId);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        //
-        // The change hasn't come through yet.
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
-
-        _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-
-        var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+        var update = Assert.Single(generator.Updates);
         Assert.Equal(update.WorkspaceProject.Id, _projectNumberOne.Id);
         Assert.Equal(update.ProjectSnapshot.FilePath, _hostProjectOne.FilePath);
     }
@@ -485,14 +454,20 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_DocumentChanged_PartialComponent_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue);
-        _workQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(_hostProjectOne), DisposalToken);
-        workspaceStateGenerator.ClearQueue();
+
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(_hostProjectOne);
+        });
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
+        generator.Clear();
 
         var sourceText = SourceText.From($$"""
             public partial class TestComponent : {{ComponentsApi.IComponent.MetadataName}} {}
@@ -514,18 +489,12 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged, oldSolution: solution, newSolution: solution, projectId: _projectNumberOne.Id, _partialComponentClassDocumentId);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
+        detectorAccessor.WorkspaceChanged(e);
+
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        //
-        // The change hasn't come through yet.
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
-
-        _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
-
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
-
-        var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+        var update = Assert.Single(generator.Updates);
         Assert.Equal(update.WorkspaceProject.Id, _projectNumberOne.Id);
         Assert.Equal(update.ProjectSnapshot.FilePath, _hostProjectOne.FilePath);
     }
@@ -534,55 +503,57 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     public async Task WorkspaceChanged_ProjectRemovedEvent_QueuesProjectStateRemoval()
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue)
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
+
+        await projectManager.UpdateAsync(updater =>
         {
-            NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
-        };
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            projectManager.ProjectAdded(_hostProjectOne);
-            projectManager.ProjectAdded(_hostProjectTwo);
-        }, DisposalToken);
+            updater.ProjectAdded(_hostProjectOne);
+            updater.ProjectAdded(_hostProjectTwo);
+        });
 
         var solution = _solutionWithTwoProjects.RemoveProject(_projectNumberOne.Id);
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.ProjectRemoved, oldSolution: _solutionWithTwoProjects, newSolution: solution, projectId: _projectNumberOne.Id);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
+        detectorAccessor.WorkspaceChanged(e);
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        Assert.Collection(
-            workspaceStateGenerator.UpdateQueue,
-            p => Assert.Null(p.WorkspaceProject));
+        Assert.Single(
+            generator.Updates,
+            p => p.WorkspaceProject is null);
     }
 
     [UIFact]
     public async Task WorkspaceChanged_ProjectAddedEvent_AddsProject()
     {
         // Arrange
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-        var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, ErrorReporter, s_dispatcher, _workQueue)
+        var generator = new TestProjectWorkspaceStateGenerator();
+        var projectManager = CreateProjectSnapshotManager();
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher, LoggerFactory);
+        var detectorAccessor = detector.GetTestAccessor();
+
+        await projectManager.UpdateAsync(updater =>
         {
-            NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
-        };
-        var projectManager = new TestProjectSnapshotManager(new[] { detector }, ProjectEngineFactoryProvider);
-        await s_dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(_hostProjectThree), DisposalToken);
+            updater.ProjectAdded(_hostProjectThree);
+        });
 
         var solution = _solutionWithOneProject;
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.ProjectAdded, oldSolution: _emptySolution, newSolution: solution, projectId: _projectNumberThree.Id);
 
         // Act
-        detector.Workspace_WorkspaceChanged(Workspace, e);
-        detector.NotifyWorkspaceChangedEventComplete.Wait();
-        _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
+        var listenerTask = detectorAccessor.ListenForWorkspaceChangesAsync(WorkspaceChangeKind.ProjectAdded);
+        detectorAccessor.WorkspaceChanged(e);
+        await listenerTask;
+        await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        Assert.Collection(
-            workspaceStateGenerator.UpdateQueue,
-            p => Assert.Equal(_projectNumberThree.Id, p.WorkspaceProject.Id));
+        Assert.Single(
+            generator.Updates,
+            p => p.WorkspaceProject.Id == _projectNumberThree.Id);
     }
 
     [Fact]
@@ -772,21 +743,5 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
 
         // Assert
         Assert.False(result);
-    }
-
-    private class TestProjectSnapshotManager(
-        IEnumerable<IProjectSnapshotChangeTrigger> triggers,
-        IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        : DefaultProjectSnapshotManager(
-            triggers,
-            projectEngineFactoryProvider,
-            s_dispatcher,
-            Mock.Of<IErrorReporter>(MockBehavior.Strict))
-    {
-    }
-
-    private class TestSVsServiceProvider : SVsServiceProvider
-    {
-        public object GetService(Type serviceType) => null;
     }
 }

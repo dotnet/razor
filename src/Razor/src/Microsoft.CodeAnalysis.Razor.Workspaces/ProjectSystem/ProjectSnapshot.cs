@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -26,7 +27,7 @@ internal class ProjectSnapshot : IProjectSnapshot
         State = state ?? throw new ArgumentNullException(nameof(state));
 
         _lock = new object();
-        _documents = new Dictionary<string, DocumentSnapshot>(FilePathNormalizer.Comparer);
+        _documents = new Dictionary<string, DocumentSnapshot>(FilePathNormalizingComparer.Instance);
     }
 
     public ProjectKey Key => State.HostProject.Key;
@@ -70,6 +71,12 @@ internal class ProjectSnapshot : IProjectSnapshot
 
             return result;
         }
+    }
+
+    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    {
+        document = GetDocument(filePath);
+        return document is not null;
     }
 
     public bool IsImportDocument(IDocumentSnapshot document)

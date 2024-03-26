@@ -41,7 +41,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
             new TagHelperCompletionProvider(tagHelperCompletionService, TestRazorLSPOptionsMonitor.Create())
         };
 
-        _completionFactsService = new RazorCompletionFactsService(completionProviders);
+        _completionFactsService = new LspRazorCompletionFactsService(completionProviders);
         _completionListCache = new CompletionListCache();
         _clientCapabilities = new VSInternalClientCapabilities()
         {
@@ -51,7 +51,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
                 {
                     CompletionItemKind = new CompletionItemKindSetting()
                     {
-                        ValueSet = new[] { CompletionItemKind.TagHelper }
+                        ValueSet = [CompletionItemKind.TagHelper]
                     },
                     CompletionList = new VSInternalCompletionListSetting()
                     {
@@ -212,7 +212,11 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
     public void TryConvert_DirectiveAttribute_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
+        var completionItem = new RazorCompletionItem(
+            "@testDisplay",
+            "testInsert",
+            RazorCompletionItemKind.DirectiveAttribute,
+            commitCharacters: RazorCommitCharacter.CreateArray(["=", ":"]));
 
         // Act
         var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -396,12 +400,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
 
         // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
         Assert.Collection(completionList.Items,
-            item => Assert.Equal("addTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "addTagHelper"),
-            item => Assert.Equal("removeTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "removeTagHelper"),
-            item => Assert.Equal("tagHelperPrefix", item.InsertText),
-            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            DirectiveVerifier.DefaultDirectiveCollectionVerifiers
         );
     }
 
@@ -440,12 +439,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.Collection(completionList.Items,
-            item => Assert.Equal("addTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "addTagHelper"),
-            item => Assert.Equal("removeTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "removeTagHelper"),
-            item => Assert.Equal("tagHelperPrefix", item.InsertText),
-            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            DirectiveVerifier.DefaultDirectiveCollectionVerifiers
         );
     }
 
@@ -520,12 +514,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.Collection(completionList.Items,
-            item => Assert.Equal("addTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "addTagHelper"),
-            item => Assert.Equal("removeTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "removeTagHelper"),
-            item => Assert.Equal("tagHelperPrefix", item.InsertText),
-            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            DirectiveVerifier.DefaultDirectiveCollectionVerifiers
         );
     }
 
@@ -612,12 +601,5 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, tagHelpers: []);
         codeDocument.SetTagHelperContext(tagHelperDocumentContext);
         return codeDocument;
-    }
-
-    private static void AssertDirectiveSnippet(CompletionItem completionItem, string directive)
-    {
-        Assert.StartsWith(directive, completionItem.InsertText);
-        Assert.Equal(DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive].InsertText, completionItem.InsertText);
-        Assert.Equal(CompletionItemKind.Snippet, completionItem.Kind);
     }
 }

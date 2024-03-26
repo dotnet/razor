@@ -1,41 +1,60 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Linq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Moq;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
-internal class TestProjectSnapshotManager(
+internal partial class TestProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
-    ProjectSnapshotManagerDispatcher dispatcher)
-    : DefaultProjectSnapshotManager(
-        triggers: [],
-        projectEngineFactoryProvider,
-        dispatcher,
-        Mock.Of<IErrorReporter>(MockBehavior.Strict))
+    ProjectSnapshotManagerDispatcher dispatcher,
+    CancellationToken disposalToken)
+    : ProjectSnapshotManager(projectEngineFactoryProvider, dispatcher)
 {
-    public bool AllowNotifyListeners { get; set; }
+    private readonly CancellationToken _disposalToken = disposalToken;
 
-    public ProjectSnapshot? GetSnapshot(HostProject hostProject)
+    public Task<TestDocumentSnapshot> CreateAndAddDocumentAsync(ProjectSnapshot projectSnapshot, string filePath)
     {
-        return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
+        return UpdateAsync(
+            updater =>
+            {
+                var documentSnapshot = TestDocumentSnapshot.Create(projectSnapshot, filePath);
+                updater.DocumentAdded(projectSnapshot.Key, documentSnapshot.HostDocument, new DocumentSnapshotTextLoader(documentSnapshot));
+
+                return documentSnapshot;
+            },
+            _disposalToken);
     }
 
-    public ProjectSnapshot? GetSnapshot(Project workspaceProject)
-    {
-        return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
-    }
+    public Listener ListenToNotifications() => new(this);
 
-    protected override void NotifyListeners(ProjectChangeEventArgs e)
-    {
-        if (AllowNotifyListeners)
-        {
-            base.NotifyListeners(e);
-        }
-    }
+    public Task UpdateAsync(Action<Updater> updater)
+        => UpdateAsync(updater, _disposalToken);
+
+    public Task UpdateAsync<TState>(Action<Updater, TState> updater, TState state)
+        => UpdateAsync(updater, state, _disposalToken);
+
+    public Task<TResult> UpdateAsync<TResult>(Func<Updater, TResult> updater)
+        => UpdateAsync(updater, _disposalToken);
+
+    public Task<TResult> UpdateAsync<TState, TResult>(Func<Updater, TState, TResult> updater, TState state)
+        => UpdateAsync(updater, state, _disposalToken);
+
+    public Task UpdateAsync(Func<Updater, Task> updater)
+        => UpdateAsync(updater, _disposalToken);
+
+    public Task UpdateAsync<TState>(Func<Updater, TState, Task> updater, TState state)
+        => UpdateAsync(updater, state, _disposalToken);
+
+    public Task<TResult> UpdateAsync<TResult>(Func<Updater, Task<TResult>> updater)
+        => UpdateAsync(updater, _disposalToken);
+
+    public Task<TResult> UpdateAsync<TState, TResult>(Func<Updater, TState, Task<TResult>> updater, TState state)
+        => UpdateAsync(updater, state, _disposalToken);
 }
