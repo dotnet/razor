@@ -140,7 +140,7 @@ internal static class ImmutableArrayExtensions
 
         using var stack = new PooledArrayBuilder<T>(capacity: source.Length);
 
-        // Walk the next batch in reverse and to identify unique items.
+        // Walk the next batch in reverse to identify unique items.
         // We push them on a stack so that we can pop them in order later
         for (var i = source.Length - 1; i >= 0; i--)
         {
