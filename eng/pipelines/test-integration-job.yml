@@ -22,7 +22,8 @@ steps:
       -devenvExepath C:\\Test\\VisualStudio\\Common7\\IDE\\devenv.exe
     displayName: Create and Verify hive
 
-  - powershell: eng\scripts\featurflag.ps1
+  - pwsh: echo "${{ variables.FeatureFlag }}";
+      eng\scripts\featurflag.ps1
       -set
       -enable
       -flag "${{ variables.FeatureFlag }}"
