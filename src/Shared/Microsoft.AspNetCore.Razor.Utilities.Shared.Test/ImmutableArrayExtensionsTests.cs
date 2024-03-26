@@ -17,8 +17,8 @@ public class ImmutableArrayExtensionsTests
             "Hello",
             "HELLO",
             "HeLlO",
-            ", ",
-            ", ",
+            new string([',', ' ']),
+            new string([',', ' ']),
             "World",
             "WORLD",
             "WoRlD"
@@ -28,7 +28,12 @@ public class ImmutableArrayExtensionsTests
 
         Assert.Collection(mostRecent,
             s => Assert.Equal("HeLlO", s),
-            s => Assert.Same(items[4], s), // make sure it's the most recent ", "
+            s =>
+            {
+                // make sure it's the most recent ", "
+                Assert.NotSame(items[3], s);
+                Assert.Same(items[4], s);
+            },
             s => Assert.Equal("WoRlD", s));
     }
 }
