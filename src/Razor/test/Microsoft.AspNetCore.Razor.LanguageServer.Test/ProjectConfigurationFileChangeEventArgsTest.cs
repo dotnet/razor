@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,7 +39,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
             projectInfoDeserializer: deserializerMock.Object);
 
         // Act
-        var result = args.TryDeserialize(out var handle);
+        var result = args.TryDeserialize(new TestLanguageServerFeatureOptions(), out var handle);
 
         // Assert
         Assert.False(result);
@@ -70,7 +71,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
             projectInfoDeserializer: deserializerMock.Object);
 
         // Act
-        var result = args.TryDeserialize(out var deserializedProjectInfo);
+        var result = args.TryDeserialize(new TestLanguageServerFeatureOptions(), out var deserializedProjectInfo);
 
         // Assert
         Assert.False(result);
@@ -101,8 +102,8 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
             projectInfoDeserializer: deserializerMock.Object);
 
         // Act
-        var result1 = args.TryDeserialize(out var projectInfo1);
-        var result2 = args.TryDeserialize(out var projectInfo2);
+        var result1 = args.TryDeserialize(new TestLanguageServerFeatureOptions(), out var projectInfo1);
+        var result2 = args.TryDeserialize(new TestLanguageServerFeatureOptions(), out var projectInfo2);
 
         // Assert
         Assert.True(result1);
@@ -125,8 +126,8 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
         var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Changed, deserializerMock.Object);
 
         // Act
-        var result1 = args.TryDeserialize(out var handle1);
-        var result2 = args.TryDeserialize(out var handle2);
+        var result1 = args.TryDeserialize(new TestLanguageServerFeatureOptions(), out var handle1);
+        var result2 = args.TryDeserialize(new TestLanguageServerFeatureOptions(), out var handle2);
 
         // Assert
         Assert.False(result1);

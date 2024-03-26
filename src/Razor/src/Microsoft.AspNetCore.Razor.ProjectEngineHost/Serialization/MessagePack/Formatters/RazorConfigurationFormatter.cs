@@ -25,6 +25,14 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
         count -= 2;
 
+        var forceRuntimeCodeGeneration = false;
+
+        if (reader.NextMessagePackType is MessagePackType.Boolean)
+        {
+            forceRuntimeCodeGeneration = reader.ReadBoolean();
+            count -= 1;
+        }
+
         using var builder = new PooledArrayBuilder<RazorExtension>();
 
         for (var i = 0; i < count; i++)
@@ -61,7 +69,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             CachedStringFormatter.Instance.Serialize(ref writer, value.LanguageVersion.ToString(), options);
         }
 
-        count -= 3;
+        count -= 2;
 
         for (var i = 0; i < count; i++)
         {

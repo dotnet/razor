@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Moq;
@@ -527,7 +528,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
     private ProjectConfigurationStateSynchronizer GetSynchronizer(IRazorProjectService razorProjectService)
     {
-        var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, LoggerFactory);
+        var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, LoggerFactory, new TestLanguageServerFeatureOptions());
         synchronizer.EnqueueDelay = 5;
 
         return synchronizer;
