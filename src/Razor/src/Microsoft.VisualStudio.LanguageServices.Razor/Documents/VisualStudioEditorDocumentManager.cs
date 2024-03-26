@@ -226,6 +226,8 @@ internal sealed class VisualStudioEditorDocumentManager(
     {
         JoinableTaskContext.AssertUIThread();
 
+        // Note: Because it is a COM interface, we defer retrieving IVsRunningDocumentTable until
+        // now to avoid implicitly marshalling to the UI thread, which can deadlock.
         _runningDocumentTable ??= _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(throwOnFailure: true).AssumeNotNull();
 
         if (!_advised)
