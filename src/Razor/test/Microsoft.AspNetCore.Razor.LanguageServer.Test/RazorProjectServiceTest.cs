@@ -1152,7 +1152,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         const string IntermediateOutputPath = "C:/path/to/obj";
         const string RootNamespace = "My.Root.Namespace";
 
-        var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "TestName", Extensions: [], RazorLanguageFeatureFlags.Default);
+        var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "TestName", Extensions: []);
 
         // Act
         var projectKey = await RunOnDispatcherAsync(() =>

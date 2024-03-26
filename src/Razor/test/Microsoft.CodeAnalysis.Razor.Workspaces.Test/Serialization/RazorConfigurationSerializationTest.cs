@@ -18,8 +18,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
         var configuration = new RazorConfiguration(
             RazorLanguageVersion.Version_1_1,
             "Test",
-            [new("Test-Extension1"), new("Test-Extension2")],
-            RazorLanguageFeatureFlags.Default);
+            [new("Test-Extension1"), new("Test-Extension2")]);
 
         // Act
         var json = JsonDataConvert.SerializeObject(configuration, ObjectWriters.WriteProperties);

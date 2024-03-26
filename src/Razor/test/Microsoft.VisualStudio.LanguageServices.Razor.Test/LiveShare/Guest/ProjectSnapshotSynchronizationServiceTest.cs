@@ -155,7 +155,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             RazorConfiguration.Default,
             "project",
             ProjectWorkspaceState.Default);
-        var newConfiguration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "Custom-1.0", Extensions: [], RazorLanguageFeatureFlags.Default);
+        var newConfiguration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "Custom-1.0", Extensions: []);
         var newHandle = new ProjectSnapshotHandleProxy(
             oldHandle.FilePath,
             oldHandle.IntermediateOutputPath,

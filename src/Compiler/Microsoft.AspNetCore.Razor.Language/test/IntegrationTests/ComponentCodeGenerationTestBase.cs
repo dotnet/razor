@@ -995,7 +995,7 @@ namespace Test
             RazorLanguageVersion.Version_3_0,
             base.Configuration.ConfigurationName,
             base.Configuration.Extensions,
-            base.Configuration.RazorLanguageFeatureFlags);
+            base.Configuration.LanguageServerFlags);
 
         // Act
         var generated = CompileToCSharp(@"
@@ -3931,7 +3931,6 @@ namespace Test
             RazorLanguageVersion.Version_6_0,
             "unnamed",
             Extensions: [],
-            RazorLanguageFeatureFlags.Default,
             UseConsolidatedMvcViews: false);
 
         // Arrange

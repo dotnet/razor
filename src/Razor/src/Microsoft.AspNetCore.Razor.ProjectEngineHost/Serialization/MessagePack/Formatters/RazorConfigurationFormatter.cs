@@ -47,7 +47,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions, RazorLanguageFeatureFlags.Default);
+        return new(languageVersion, configurationName, extensions);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)

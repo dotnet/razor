@@ -65,7 +65,7 @@ internal sealed class ProjectConfigurationFileChangeEventArgs : EventArgs
                     {
                         Configuration = deserializedProjectInfo.Configuration with
                         {
-                            RazorLanguageFeatureFlags = new(ForceRuntimeCodeGeneration: languageServerFeatureOptions.ForceRuntimeCodeGeneration)
+                            LanguageServerFlags = new(ForceRuntimeCodeGeneration: languageServerFeatureOptions.ForceRuntimeCodeGeneration)
                         }
                     };
 

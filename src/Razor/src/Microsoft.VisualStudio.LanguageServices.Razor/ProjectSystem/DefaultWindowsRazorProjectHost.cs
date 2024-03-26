@@ -94,8 +94,8 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
                     var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
 
-                var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
+                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                    ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
 
                     UpdateProject(updater, hostProject);
 
@@ -162,7 +162,12 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             return false;
         }
 
-        configuration = new(languageVersion, configurationItem.Key, extensions, RazorLanguageFeatureFlags.Default with { ForceRuntimeCodeGeneration = forceRuntimeCodeGeneration });
+        configuration = new(
+            languageVersion,
+            configurationItem.Key,
+            extensions,
+            new LanguageServerFlags(forceRuntimeCodeGeneration));
+
         return true;
     }
 

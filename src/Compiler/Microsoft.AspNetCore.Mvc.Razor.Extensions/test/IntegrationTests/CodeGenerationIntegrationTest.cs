@@ -20,7 +20,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public CodeGenerationIntegrationTest()
         : base(layer: TestProject.Layer.Compiler, generateBaselines: null, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions")
     {
-        Configuration = new(RazorLanguageVersion.Latest, "MVC-3.0", Extensions: [], RazorLanguageFeatureFlags.Default);
+        Configuration = new(RazorLanguageVersion.Latest, "MVC-3.0", Extensions: []);
     }
 
     protected override CSharpCompilation BaseCompilation { get; set; } = DefaultBaseCompilation;

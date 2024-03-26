@@ -42,7 +42,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 razorLanguageVersion = RazorLanguageVersion.Latest;
             }
 
-            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], RazorLanguageFeatureFlags.Default, UseConsolidatedMvcViews: true);
+            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true);
 
             var razorSourceGenerationOptions = new RazorSourceGenerationOptions()
             {
