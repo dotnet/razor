@@ -26,13 +26,13 @@ public abstract class RazorToolingProjectEngineTestBase : ToolingTestBase
 
     protected RazorProjectEngine CreateProjectEngine()
     {
-        var configuration = new RazorConfiguration(Version, "test", Extensions: []);
+        var configuration = new RazorConfiguration(Version, "test", Extensions: [], RazorLanguageFeatureFlags.Default);
         return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, ConfigureProjectEngine);
     }
 
     protected RazorProjectEngine CreateProjectEngine(Action<RazorProjectEngineBuilder> configure)
     {
-        var configuration = new RazorConfiguration(Version, "test", Extensions: []);
+        var configuration = new RazorConfiguration(Version, "test", Extensions: [], RazorLanguageFeatureFlags.Default);
         return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, b =>
         {
             ConfigureProjectEngine(b);

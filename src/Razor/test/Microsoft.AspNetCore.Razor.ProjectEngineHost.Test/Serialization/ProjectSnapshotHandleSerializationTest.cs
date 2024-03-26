@@ -31,7 +31,7 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
             new(RazorLanguageVersion.Version_1_1,
                 "Test",
                 [new("Test-Extension1"), new("Test-Extension2")],
-                ForceRuntimeCodeGeneration: false),
+                RazorLanguageFeatureFlags.Default),
             "Test");
 
         // Act

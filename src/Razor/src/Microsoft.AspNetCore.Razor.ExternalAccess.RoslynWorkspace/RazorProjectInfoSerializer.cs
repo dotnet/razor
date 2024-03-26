@@ -114,7 +114,7 @@ internal static class RazorProjectInfoSerializer
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true);
+        var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName, Extensions: [], RazorLanguageFeatureFlags.Default, UseConsolidatedMvcViews: true);
 
         defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
 

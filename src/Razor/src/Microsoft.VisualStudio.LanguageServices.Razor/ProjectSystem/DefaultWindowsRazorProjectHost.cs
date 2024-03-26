@@ -162,7 +162,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             return false;
         }
 
-        configuration = new(languageVersion, configurationItem.Key, extensions, ForceRuntimeCodeGeneration: forceRuntimeCodeGeneration);
+        configuration = new(languageVersion, configurationItem.Key, extensions, RazorLanguageFeatureFlags.Default with { ForceRuntimeCodeGeneration = forceRuntimeCodeGeneration });
         return true;
     }
 

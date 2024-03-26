@@ -25,7 +25,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
     }
 
     private static readonly RazorProjectEngine LeadingDirectiveParsingEngine = RazorProjectEngine.Create(
-        new(RazorLanguageVersion.Version_3_0, "leading-directive-parser", []),
+        new(RazorLanguageVersion.Version_3_0, "leading-directive-parser", [], RazorLanguageFeatureFlags.Default),
         RazorProjectFileSystem.Create("/"),
         builder =>
         {

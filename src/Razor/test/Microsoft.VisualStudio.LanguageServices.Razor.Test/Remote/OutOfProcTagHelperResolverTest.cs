@@ -33,7 +33,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
     private static readonly HostProject s_hostProject_For_NonSerializableConfiguration = new(
         projectFilePath: "Test.csproj",
         intermediateOutputPath: "/obj",
-        razorConfiguration: new(RazorLanguageVersion.Version_2_1, "Random-0.1", Extensions: []),
+        razorConfiguration: new(RazorLanguageVersion.Version_2_1, "Random-0.1", Extensions: [], RazorLanguageFeatureFlags.Default),
         rootNamespace: null);
 
     private readonly Project _workspaceProject;
