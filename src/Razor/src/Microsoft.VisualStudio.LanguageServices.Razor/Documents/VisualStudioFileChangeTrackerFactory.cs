@@ -20,7 +20,7 @@ internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
 
     [ImportingConstructor]
     public VisualStudioFileChangeTrackerFactory(
-        SVsServiceProvider serviceProvider,
+        [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
         JoinableTaskContext joinableTaskContext,
         ProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter)
@@ -30,12 +30,7 @@ internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
         _errorReporter = errorReporter;
 
         var jtf = _joinableTaskContext.Factory;
-        _getFileChangeServiceTask = jtf.RunAsync(async () =>
-        {
-            await jtf.SwitchToMainThreadAsync();
-
-            return (IVsAsyncFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-        });
+        _getFileChangeServiceTask = jtf.RunAsync(serviceProvider.GetServiceAsync<SVsFileChangeEx, IVsAsyncFileChangeEx>);
     }
 
     public IFileChangeTracker Create(string filePath)
