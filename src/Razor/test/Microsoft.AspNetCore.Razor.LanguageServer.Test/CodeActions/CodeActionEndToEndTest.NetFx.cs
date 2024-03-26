@@ -1017,11 +1017,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
 
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
-        {
-            o.RootNamespace = "Test";
-        }));
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, rootNamespace: "Test");
         var razorSourceText = codeDocument.GetSourceText();
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);

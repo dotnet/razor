@@ -84,7 +84,7 @@ public class RazorIntegrationTestBase
 
     internal virtual RazorConfiguration Configuration { get; }
 
-    internal virtual string DefaultRootNamespace { get; }
+    internal string DefaultRootNamespace { get; set; }
 
     internal virtual string DefaultFileName { get; }
 
