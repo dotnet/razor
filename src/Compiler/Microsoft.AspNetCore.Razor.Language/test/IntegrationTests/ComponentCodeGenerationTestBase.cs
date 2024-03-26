@@ -991,11 +991,7 @@ namespace Test
     public void IncludesMinimizedAttributeValueParameterBeforeLanguageVersion5()
     {
         // Arrange
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions,
-            base.Configuration.LanguageServerFlags);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         // Act
         var generated = CompileToCSharp(@"
