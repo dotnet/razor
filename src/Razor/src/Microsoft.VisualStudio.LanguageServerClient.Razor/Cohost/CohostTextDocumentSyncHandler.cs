@@ -52,11 +52,11 @@ internal class CohostTextDocumentSyncHandler(
             return;
         }
 
-        var htmlText = await client.TryInvokeAsync<IRemoteHtmlDocumentService, string>(textDocument.Project.Solution,
+        var htmlText = await client.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(textDocument.Project.Solution,
             (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, textDocument.Id, ct),
             cancellationToken).ConfigureAwait(false);
 
-        if (!htmlText.HasValue)
+        if (!htmlText.HasValue || htmlText.Value is null)
         {
             _logger.LogError("[Cohost] Couldn't get Html text for {method} of '{document}'. Html document contents will be stale", context.Method, textDocumentPath);
             return;
