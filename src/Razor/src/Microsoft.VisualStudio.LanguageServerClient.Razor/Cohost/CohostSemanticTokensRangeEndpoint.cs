@@ -6,7 +6,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
@@ -16,20 +15,21 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Newtonsoft.Json;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
 [Shared]
-[RazorLanguageServerEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
-[ExportRazorStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint))]
-[Export(typeof(ICapabilitiesProvider))]
+[CohostEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
+[Export(typeof(IDynamicRegistrationProvider))]
+[ExportCohostStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint))]
 [method: ImportingConstructor]
 internal sealed class CohostSemanticTokensRangeEndpoint(
     IOutOfProcSemanticTokensService semanticTokensInfoService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ITelemetryReporter telemetryReporter,
     IRazorLoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, ICapabilitiesProvider
+    : AbstractRazorCohostDocumentRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, IDynamicRegistrationProvider
 {
     private readonly IOutOfProcSemanticTokensService _semanticTokensInfoService = semanticTokensInfoService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
@@ -39,13 +39,29 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
 
+    public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    {
+        if (clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
+        {
+            var semanticTokensRefreshQueue = requestContext.GetRequiredService<IRazorSemanticTokensRefreshQueue>();
+            var clientCapabilitiesString = JsonConvert.SerializeObject(clientCapabilities);
+            semanticTokensRefreshQueue.Initialize(clientCapabilitiesString);
+
+            return new Registration()
+            {
+                Method = Methods.TextDocumentSemanticTokensRangeName,
+                RegisterOptions = new SemanticTokensRegistrationOptions()
+                {
+                    DocumentSelector = filter,
+                }.EnableSemanticTokens(_semanticTokensLegendService)
+            };
+        }
+
+        return null;
+    }
+
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SemanticTokensRangeParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
-
-    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
-    {
-        serverCapabilities.EnableSemanticTokens(_semanticTokensLegendService);
-    }
 
     protected override async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
