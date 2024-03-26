@@ -51,7 +51,7 @@ public class RazorIndentationFactsTest(ITestOutputHelper testOutput) : ToolingTe
     [Theory]
     [InlineData("if", SyntaxKind.Keyword)]
     [InlineData("}", SyntaxKind.RightBrace)]
-    [InlineData("++", SyntaxKind.Increment)]
+    [InlineData("++", SyntaxKind.CSharpOperator)]
     [InlineData("text", SyntaxKind.Identifier)]
     public void IsCSharpOpenCurlyBrace_SpanWithUnsupportedSymbolType_ReturnFalse(string content, object symbolTypeObject)
     {

@@ -417,7 +417,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
     public void IsDirectiveCompletableToken_ReturnsFalseForInvalidCSharpTokens()
     {
         // Arrange
-        var csharpToken = SyntaxFactory.Token(SyntaxKind.Tilde, "~");
+        var csharpToken = SyntaxFactory.Token(SyntaxKind.CSharpOperator, "~");
 
         // Act
         var result = DirectiveCompletionItemProvider.IsDirectiveCompletableToken(csharpToken);
