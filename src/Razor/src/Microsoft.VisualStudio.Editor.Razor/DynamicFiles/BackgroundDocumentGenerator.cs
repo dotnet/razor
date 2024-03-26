@@ -21,6 +21,8 @@ namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 [Export(typeof(IRazorStartupService))]
 internal class BackgroundDocumentGenerator : IRazorStartupService
 {
+    private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(2);
+
     // Internal for testing
     internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work = [];
 
@@ -30,6 +32,7 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
     private readonly IErrorReporter _errorReporter;
     private ImmutableHashSet<string> _suppressedDocuments;
 
+    private readonly TimeSpan _delay;
     private Timer? _timer;
     private bool _solutionIsClosing;
 
@@ -39,11 +42,23 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
         ProjectSnapshotManagerDispatcher dispatcher,
         IRazorDynamicFileInfoProviderInternal infoProvider,
         IErrorReporter errorReporter)
+        : this(projectManager, dispatcher, infoProvider, errorReporter, s_delay)
+    {
+    }
+
+    // Provided for tests to be able to modify the timer delay
+    protected BackgroundDocumentGenerator(
+        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IRazorDynamicFileInfoProviderInternal infoProvider,
+        IErrorReporter errorReporter,
+        TimeSpan delay)
     {
         _projectManager = projectManager;
         _dispatcher = dispatcher;
         _infoProvider = infoProvider;
         _errorReporter = errorReporter;
+        _delay = delay;
 
         _suppressedDocuments = ImmutableHashSet<string>.Empty.WithComparer(FilePathComparer.Instance);
         _projectManager.Changed += ProjectManager_Changed;
@@ -59,9 +74,6 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
             }
         }
     }
-
-    // Used in unit tests to control the timer delay.
-    public TimeSpan Delay { get; set; } = TimeSpan.FromSeconds(2);
 
     public bool IsScheduledOrRunning => _timer != null;
 
@@ -164,7 +176,7 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
     {
         // Access to the timer is protected by the lock in Enqueue and in Timer_Tick
         // Timer will fire after a fixed delay, but only once.
-        _timer ??= NonCapturingTimer.Create(state => ((BackgroundDocumentGenerator)state).Timer_Tick(), this, Delay, Timeout.InfiniteTimeSpan);
+        _timer ??= NonCapturingTimer.Create(state => ((BackgroundDocumentGenerator)state).Timer_Tick(), this, _delay, Timeout.InfiniteTimeSpan);
     }
 
     private void Timer_Tick()

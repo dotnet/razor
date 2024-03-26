@@ -63,9 +63,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         var hostDocument = s_documents[0];
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        var queue = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
-            Delay = TimeSpan.FromMilliseconds(1),
             NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
             NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false),
         };
@@ -120,9 +119,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        var queue = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
-            Delay = TimeSpan.FromMilliseconds(1),
             NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
             NotifyErrorBeingReported = new ManualResetEventSlim(initialState: false),
         };
@@ -161,9 +159,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        var queue = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
-            Delay = TimeSpan.FromMilliseconds(1),
             NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
             NotifyErrorBeingReported = new ManualResetEventSlim(initialState: false),
         };
@@ -195,9 +192,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        var queue = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
-            Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
             NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false),
             BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false),
@@ -239,9 +235,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        var queue = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
-            Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
             NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false),
             NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false),
@@ -316,9 +311,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             }
         });
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        var queue = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
-            Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
             NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false),
             NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false),
@@ -375,9 +369,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             updater.DocumentAdded(s_hostProject1.Key, TestProjectData.SomeProjectImportFile, null!);
         });
 
-        var queue = new BackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        var queue = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
         {
-            Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
             NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false),
             NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false),
@@ -415,6 +408,15 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         Assert.False(queue.HasPendingNotifications, "Queue should have processed all notifications");
         Assert.False(queue.IsScheduledOrRunning, "Queue should not have restarted");
+    }
+
+    private class TestBackgroundDocumentGenerator(
+        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IRazorDynamicFileInfoProviderInternal dynamicFileInfoProvider,
+        IErrorReporter errorReporter)
+        : BackgroundDocumentGenerator(projectManager, dispatcher, dynamicFileInfoProvider, errorReporter, delay: TimeSpan.FromMilliseconds(1))
+    {
     }
 
     private class TestDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInternal
