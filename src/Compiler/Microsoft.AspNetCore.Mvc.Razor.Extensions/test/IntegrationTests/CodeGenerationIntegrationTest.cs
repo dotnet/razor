@@ -18,15 +18,17 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 {
     private static readonly CSharpCompilation DefaultBaseCompilation = MvcShim.BaseCompilation.WithAssemblyName("AppCode");
 
+    private RazorConfiguration _configuration;
+
     public CodeGenerationIntegrationTest()
         : base(layer: TestProject.Layer.Compiler, generateBaselines: null, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions")
     {
-        Configuration = new(RazorLanguageVersion.Latest, "MVC-3.0", Extensions: []);
+        _configuration = new(RazorLanguageVersion.Latest, "MVC-3.0", Extensions: []);
     }
 
     protected override CSharpCompilation BaseCompilation { get; set; } = DefaultBaseCompilation;
 
-    protected override RazorConfiguration Configuration { get; }
+    protected override RazorConfiguration Configuration => _configuration;
 
     #region Runtime
 
@@ -1468,15 +1470,20 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     #endregion
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/razor/issues/7286")]
-    public void RazorPage_NullableModel(bool nullableModel, bool nullableContextEnabled, bool designTime)
+    public void RazorPage_NullableModel(bool nullableModel, bool nullableContextEnabled, bool designTime,
+        [CombinatorialValues("8.0", "9.0", "Latest")] string razorLangVersion)
     {
         // Arrange
+
+        // Construct "key" for baselines.
         var testName = "RazorPage_With" +
             (nullableModel ? "" : "Non") +
-            "NullableModel_NullableContext" +
-            (nullableContextEnabled ? "Enabled" : "Disabled") +
+            "NullableModel_Lang" +
+            (razorLangVersion == "8.0" ? "Old" : "New") +
             "_" +
             (designTime ? "DesignTime" : "Runtime");
+
+        _configuration = _configuration with { LanguageVersion = RazorLanguageVersion.Parse(razorLangVersion) };
 
         BaseCompilation = BaseCompilation.WithOptions(BaseCompilation.Options.WithNullableContextOptions(
             nullableContextEnabled ? NullableContextOptions.Enable: NullableContextOptions.Disable));
@@ -1516,7 +1523,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         if (nullableModel)
         {
-            if (nullableContextEnabled)
+            if (nullableContextEnabled && razorLangVersion != "8.0")
             {
                 if (designTime)
                 {
@@ -1537,38 +1544,117 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             {
                 if (designTime)
                 {
-                    diagnostics.Verify(
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(3,10): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        // TestModel? __typeHelper = default!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(3, 10),
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(81,80): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        //         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TestModel?> Html { get; private set; } = default!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(81, 80),
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(84,82): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        // public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(84, 82),
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(84,172): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        // public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(84, 172),
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(87,17): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        // public TestModel? Model => ViewData.Model!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(87, 17));
+                    if (razorLangVersion == "8.0")
+                    {
+                        if (nullableContextEnabled)
+                        {
+                            diagnostics.Verify(
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(5,7): warning CS8602: Dereference of a possibly null reference.
+                                // __o = Model.Name;
+                                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Model").WithLocation(5, 7),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(83,90): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(83, 90),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(83,180): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(83, 180),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(84,25): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public TestModel? Model => ViewData.Model;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(84, 25));
+                        }
+                        else
+                        {
+                            diagnostics.Verify(
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(3,10): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                // TestModel? __typeHelper = default!;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(3, 10),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(81,80): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TestModel?> Html { get; private set; } = default!;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(81, 80),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(83,90): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(83, 90),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(83,180): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(83, 180),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(84,25): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public TestModel? Model => ViewData.Model;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(84, 25));
+                        }
+                    }
+                    else
+                    {
+                        diagnostics.Verify(
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(3,10): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            // TestModel? __typeHelper = default!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(3, 10),
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(81,80): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            //         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TestModel?> Html { get; private set; } = default!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(81, 80),
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(84,82): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            // public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(84, 82),
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(84,172): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            // public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(84, 172),
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(87,17): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            // public TestModel? Model => ViewData.Model!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(87, 17));
+                    }
                 }
                 else
                 {
-                    diagnostics.Verify(
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(74,80): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        //         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TestModel?> Html { get; private set; } = default!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(74, 80),
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(77,82): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        // public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(77, 82),
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(77,172): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        // public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(77, 172),
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(80,17): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        // public TestModel? Model => ViewData.Model!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(80, 17));
+                    if (razorLangVersion == "8.0")
+                    {
+                        if (nullableContextEnabled)
+                        {
+                            diagnostics.Verify(
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(5,6): warning CS8602: Dereference of a possibly null reference.
+                                // Model.Name
+                                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Model").WithLocation(5, 6),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(76,90): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(76, 90),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(76,180): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(76, 180),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(77,25): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public TestModel? Model => ViewData.Model;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(77, 25));
+                        }
+                        else
+                        {
+                            diagnostics.Verify(
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(74,80): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TestModel?> Html { get; private set; } = default!;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(74, 80),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(76,90): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(76, 90),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(76,180): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(76, 180),
+                                // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(77,25): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                                //         public TestModel? Model => ViewData.Model;
+                                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(77, 25));
+                        }
+                    }
+                    else
+                    {
+                        diagnostics.Verify(
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(74,80): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            //         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TestModel?> Html { get; private set; } = default!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(74, 80),
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(77,82): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            // public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(77, 82),
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(77,172): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            // public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(77, 172),
+                            // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(80,17): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                            // public TestModel? Model => ViewData.Model!;
+                            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(80, 17));
+                    }
                 }
             }
         }
