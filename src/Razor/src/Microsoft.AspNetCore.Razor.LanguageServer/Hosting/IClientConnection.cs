@@ -4,7 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
 internal interface IClientConnection
 {

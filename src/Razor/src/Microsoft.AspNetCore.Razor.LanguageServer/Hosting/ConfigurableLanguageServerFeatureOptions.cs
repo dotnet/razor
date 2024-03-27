@@ -4,7 +4,7 @@
 using System;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
 internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {

@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Serialization;
 using StreamJsonRpc;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
 internal sealed class RazorLanguageServerWrapper : IDisposable
 {

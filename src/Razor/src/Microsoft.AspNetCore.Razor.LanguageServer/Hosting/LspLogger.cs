@@ -6,7 +6,7 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
 /// <summary>
 /// ILogger implementation that logs via the window/logMessage LSP method

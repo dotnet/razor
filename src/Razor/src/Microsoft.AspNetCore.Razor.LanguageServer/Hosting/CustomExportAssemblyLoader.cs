@@ -8,7 +8,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Exports;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
 internal class CustomExportAssemblyLoader(string baseDirectory) : IAssemblyLoader
 {

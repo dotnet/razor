@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Exports;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
 internal sealed class ExportProviderBuilder
 {
