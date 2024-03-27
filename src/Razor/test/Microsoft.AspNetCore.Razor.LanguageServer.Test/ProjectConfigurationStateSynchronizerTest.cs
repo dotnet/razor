@@ -64,14 +64,14 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Setup(x => x.AddProject(
                 projectInfo.FilePath,
                 intermediateOutputPath,
-                projectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName))
             .Returns(projectKey);
         projectService
             .Setup(x => x.UpdateProject(
                 projectKey,
-                projectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
@@ -157,14 +157,14 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Setup(service => service.AddProject(
                 projectInfo.FilePath,
                 intermediateOutputPath,
-                projectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName))
             .Returns(projectKey);
         projectService
             .Setup(service => service.UpdateProject(
                 projectKey,
-                projectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
@@ -205,14 +205,14 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Setup(service => service.AddProject(
                 projectInfo.FilePath,
                 intermediateOutputPath,
-                projectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName))
             .Returns(projectKey);
         projectService
             .Setup(service => service.UpdateProject(
                 projectKey,
-                projectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
@@ -273,14 +273,14 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Setup(service => service.AddProject(
                 initialProjectInfo.FilePath,
                 intermediateOutputPath,
-                initialProjectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 initialProjectInfo.RootNamespace,
                 initialProjectInfo.DisplayName))
             .Returns(projectKey);
         projectService
             .Setup(service => service.UpdateProject(
                 projectKey,
-                initialProjectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 initialProjectInfo.RootNamespace,
                 initialProjectInfo.DisplayName,
                 initialProjectInfo.ProjectWorkspaceState,
@@ -299,7 +299,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         projectService
             .Setup(service => service.UpdateProject(
                 projectKey,
-                changedProjectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 changedProjectInfo.RootNamespace,
                 changedProjectInfo.DisplayName,
                 changedProjectInfo.ProjectWorkspaceState,
@@ -356,14 +356,14 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Setup(service => service.AddProject(
                 initialProjectInfo.FilePath,
                 intermediateOutputPath,
-                initialProjectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 initialProjectInfo.RootNamespace,
                 initialProjectInfo.DisplayName))
             .Returns(projectKey);
         projectService
             .Setup(service => service.UpdateProject(
                 projectKey,
-                initialProjectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 initialProjectInfo.RootNamespace,
                 initialProjectInfo.DisplayName,
                 initialProjectInfo.ProjectWorkspaceState,
@@ -470,7 +470,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Setup(service => service.AddProject(
                 projectInfo.FilePath,
                 intermediateOutputPath,
-                projectInfo.Configuration,
+                It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName))
             .Returns(projectKey);
