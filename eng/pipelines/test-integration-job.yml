@@ -29,7 +29,7 @@ steps:
       -flag "$(FeatureFlag)"
       -hive RoslynDev
     displayName: Set Feature Flags
-    condition: and(succeeded(), ne([variables.FeatureFlag], ''))
+    condition: and(succeeded(), ne(variables[FeatureFlag], ''))
 
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
