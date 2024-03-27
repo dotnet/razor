@@ -8,7 +8,4 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// They should not be serialized as part of the configuration, as they instead change runtime behavior
 /// impacted by LSP configuration rather than any project configuration
 /// </summary>
-public sealed record class LanguageServerFlags
-    (bool ForceRuntimeCodeGeneration)
-{
-}
+public sealed record class LanguageServerFlags(bool ForceRuntimeCodeGeneration);
