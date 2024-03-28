@@ -660,6 +660,79 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index", suffix: suffix);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public async Task VoidTagNameComponent()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Link.razor"] = """
+                @using Microsoft.AspNetCore.Components
+
+                Inside Link: @ChildContent
+
+                @code {
+                    [Parameter] public RenderFragment? ChildContent { get; set; }
+                }
+                """,
+            ["Shared/Component1.razor"] = """
+                @{
+                    <h2>Components should not be recognized in transitions:</h2>
+
+                    @:<Link>single line transition</Link>
+
+                    @:<Link>
+                    @:multi line transition
+                    @:</Link>
+
+                    <h2>Components should be recognized everywhere else:</h2>
+
+                    <Link>plain</Link>
+
+                    {
+                        <Link>
+                        nested
+                        </Link>
+                    }
+
+                    <text><Link>single line text</Link></text>
+                
+                    @:@{
+                        <Link>
+                        nested2
+                        </Link>
+                    }
+
+                    <text>
+                        <Link>
+                        multi line
+                        text
+                        </Link>
+                    </text>
+
+                    <text>@{
+                        <Link>
+                        text and block
+                        </Link>
+                    }</text>
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        result.Diagnostics.Verify();
+        Assert.Equal(3, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/9051")]
     public async Task LineMapping()
     {

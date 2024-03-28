@@ -345,4 +345,74 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         ParseDocumentTest("""@{<input>var x = "<a></b>";}""");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_SingleLine()
+    {
+        ParseDocumentTest("""
+            @{
+                @:<Link>content</Link>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_MultipleLines()
+    {
+        ParseDocumentTest("""
+            @{
+                @:<Link>
+                @:content
+                @:</Link>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_SingleLineSpilled()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{
+                    <Link>
+                    content
+                    </Link>
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_Text_SingleLine()
+    {
+        ParseDocumentTest("""@{<text><Link>content</Link></text>}""");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_Text_MultipleLines()
+    {
+        ParseDocumentTest("""
+            @{
+                <text>
+                    <Link>
+                    content
+                    </Link>
+                </text>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_Text_Block()
+    {
+        ParseDocumentTest("""
+            @{
+                <text>@{
+                    <Link>
+                    content
+                    </Link>
+                }</text>
+            }
+            """);
+    }
 }
