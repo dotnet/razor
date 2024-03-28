@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;

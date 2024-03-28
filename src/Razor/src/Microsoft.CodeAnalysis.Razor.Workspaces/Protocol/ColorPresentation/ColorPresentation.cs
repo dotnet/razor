@@ -6,7 +6,7 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ColorPresentation;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.ColorPresentation;
 
 // VS doesn't support textDocument/colorPresentation but VSCode does. This class is a workaround until VS adds support.
 [DataContract]

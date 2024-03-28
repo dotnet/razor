@@ -4,7 +4,7 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.CodeActions;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 
 /// <summary>
 /// We can't use the CodeActionParams defined in MS.VS.LS.Protocol, so need our own version, because the platform only

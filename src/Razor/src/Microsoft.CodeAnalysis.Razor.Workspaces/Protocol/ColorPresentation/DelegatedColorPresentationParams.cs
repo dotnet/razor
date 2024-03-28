@@ -3,7 +3,7 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ColorPresentation;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.ColorPresentation;
 
 [DataContract]
 internal class DelegatedColorPresentationParams : ColorPresentationParams

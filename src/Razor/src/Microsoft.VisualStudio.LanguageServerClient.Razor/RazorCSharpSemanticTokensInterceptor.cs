@@ -5,7 +5,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;

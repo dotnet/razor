@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;

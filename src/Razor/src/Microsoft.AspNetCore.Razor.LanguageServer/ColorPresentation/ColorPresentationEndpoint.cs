@@ -6,13 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ColorPresentation;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.ColorPresentation;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 
-using ColorPresentation = CodeAnalysis.Razor.Workspaces.Protocol.ColorPresentation.ColorPresentation;
+using ColorPresentation = CodeAnalysis.Razor.Protocol.ColorPresentation.ColorPresentation;
 
 [RazorLanguageServerEndpoint(CustomMessageNames.ColorPresentationMethodName)]
 internal sealed class ColorPresentationEndpoint : IRazorRequestHandler<ColorPresentationParams, ColorPresentation[]>

@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Protocol.Diagnostics;
+using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.Diagnostics;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.Folding;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<

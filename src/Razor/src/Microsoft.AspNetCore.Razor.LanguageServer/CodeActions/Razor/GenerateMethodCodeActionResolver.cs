@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;

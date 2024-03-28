@@ -4,7 +4,7 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.CodeActions;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 
 [DataContract]
 internal record FormatNewFileParams

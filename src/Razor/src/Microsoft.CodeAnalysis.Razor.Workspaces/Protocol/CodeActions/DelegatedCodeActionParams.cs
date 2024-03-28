@@ -4,7 +4,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.CodeActions;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 
 [DataContract]
 internal class DelegatedCodeActionParams

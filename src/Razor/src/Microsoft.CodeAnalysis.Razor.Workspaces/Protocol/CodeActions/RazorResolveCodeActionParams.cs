@@ -3,6 +3,6 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.CodeActions;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 
 internal record RazorResolveCodeActionParams(TextDocumentIdentifier Identifier, int HostDocumentVersion, RazorLanguageKind LanguageKind, CodeAction CodeAction);

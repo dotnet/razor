@@ -3,7 +3,7 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.DocumentPresentation;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 
 internal interface IPresentationParams
 {

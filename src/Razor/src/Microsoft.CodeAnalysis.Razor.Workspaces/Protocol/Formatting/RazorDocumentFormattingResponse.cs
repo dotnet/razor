@@ -3,7 +3,7 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.Formatting;
 
 internal class RazorDocumentFormattingResponse
 {

@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;

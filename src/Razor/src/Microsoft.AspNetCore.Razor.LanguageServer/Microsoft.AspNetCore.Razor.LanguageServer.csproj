@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
-    <Using Alias="LanguageServerConstants" Include="Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.LanguageServerConstants" />
+    <Using Alias="LanguageServerConstants" Include="Microsoft.CodeAnalysis.Razor.Protocol.LanguageServerConstants" />
   </ItemGroup>
 
   <ItemGroup>

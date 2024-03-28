@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 
 internal class RazorInlineCompletionRequest : VSInternalInlineCompletionRequest
 {

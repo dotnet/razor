@@ -3,7 +3,7 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.DocumentPresentation;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 
 /// <summary>
 /// Class representing the parameters sent for a textDocument/_vs_uriPresentation request, plus

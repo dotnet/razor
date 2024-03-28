@@ -3,6 +3,6 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.Diagnostics;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.Diagnostics;
 
 internal record RazorPullDiagnosticResponse(VSInternalDiagnosticReport[] CSharpDiagnostics, VSInternalDiagnosticReport[] HtmlDiagnostics);

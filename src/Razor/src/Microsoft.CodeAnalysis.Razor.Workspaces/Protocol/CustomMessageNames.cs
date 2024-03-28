@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
 /// <summary>
 /// This lists all of the LSP methods that we support  that are not part of the LSP spec, or LSP++
