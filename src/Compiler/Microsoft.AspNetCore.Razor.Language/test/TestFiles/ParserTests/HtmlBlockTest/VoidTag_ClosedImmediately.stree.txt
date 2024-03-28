@@ -1,29 +1,29 @@
 ﻿RazorDocument - [0..31)::31 - [@{<col> </col>while (true) { }}]
     MarkupBlock - [0..31)::31
-        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
         CSharpCodeBlock - [0..31)::31
             CSharpStatement - [0..31)::31
-                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                CSharpTransition - [0..1)::1 - Gen<None>
                     Transition;[@];
                 CSharpStatementBody - [1..31)::30
-                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..30)::28
                         MarkupBlock - [2..14)::12
                             MarkupElement - [2..14)::12
-                                MarkupStartTag - [2..7)::5 - [<col>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                MarkupStartTag - [2..7)::5 - [<col>] - Gen<Markup>
                                     OpenAngle;[<];
                                     Text;[col];
                                     CloseAngle;[>];
-                                MarkupTextLiteral - [7..8)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                MarkupTextLiteral - [7..8)::1 - [ ] - Gen<Markup>
                                     Whitespace;[ ];
-                                MarkupEndTag - [8..14)::6 - [</col>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                MarkupEndTag - [8..14)::6 - [</col>] - Gen<Markup>
                                     OpenAngle;[<];
                                     ForwardSlash;[/];
                                     Text;[col];
                                     CloseAngle;[>];
-                        CSharpStatementLiteral - [14..30)::16 - [while (true) { }] - Gen<Stmt> - SpanEditHandler;Accepts:None
+                        CSharpStatementLiteral - [14..30)::16 - [while (true) { }] - Gen<Stmt>
                             Keyword;[while];
                             Whitespace;[ ];
                             LeftParenthesis;[(];
@@ -33,8 +33,8 @@
                             LeftBrace;[{];
                             Whitespace;[ ];
                             RightBrace;[}];
-                    RazorMetaCode - [30..31)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    RazorMetaCode - [30..31)::1 - Gen<None>
                         RightBrace;[}];
-        MarkupTextLiteral - [31..31)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [31..31)::0 - [] - Gen<Markup>
             Marker;[];
     EndOfFile;[];

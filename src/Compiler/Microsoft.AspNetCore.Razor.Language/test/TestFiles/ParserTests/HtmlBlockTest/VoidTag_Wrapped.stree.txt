@@ -1,50 +1,50 @@
 ﻿RazorDocument - [0..20)::20 - [@{<p>@{<input>}</p>}]
     MarkupBlock - [0..20)::20
-        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
         CSharpCodeBlock - [0..20)::20
             CSharpStatement - [0..20)::20
-                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                CSharpTransition - [0..1)::1 - Gen<None>
                     Transition;[@];
                 CSharpStatementBody - [1..20)::19
-                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..19)::17
                         MarkupBlock - [2..19)::17
                             MarkupElement - [2..19)::17
-                                MarkupStartTag - [2..5)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                MarkupStartTag - [2..5)::3 - [<p>] - Gen<Markup>
                                     OpenAngle;[<];
                                     Text;[p];
                                     CloseAngle;[>];
-                                MarkupTextLiteral - [5..5)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                MarkupTextLiteral - [5..5)::0 - [] - Gen<Markup>
                                     Marker;[];
                                 CSharpCodeBlock - [5..15)::10
                                     CSharpStatement - [5..15)::10
-                                        CSharpTransition - [5..6)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                                        CSharpTransition - [5..6)::1 - Gen<None>
                                             Transition;[@];
                                         CSharpStatementBody - [6..15)::9
-                                            RazorMetaCode - [6..7)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                                            RazorMetaCode - [6..7)::1 - Gen<None>
                                                 LeftBrace;[{];
                                             CSharpCodeBlock - [7..14)::7
                                                 MarkupBlock - [7..14)::7
                                                     MarkupElement - [7..14)::7
-                                                        MarkupStartTag - [7..14)::7 - [<input>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                                        MarkupStartTag - [7..14)::7 - [<input>] - Gen<Markup>
                                                             OpenAngle;[<];
                                                             Text;[input];
                                                             CloseAngle;[>];
-                                                CSharpStatementLiteral - [14..14)::0 - [] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                                                CSharpStatementLiteral - [14..14)::0 - [] - Gen<Stmt>
                                                     Marker;[];
-                                            RazorMetaCode - [14..15)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                                            RazorMetaCode - [14..15)::1 - Gen<None>
                                                 RightBrace;[}];
-                                MarkupEndTag - [15..19)::4 - [</p>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                MarkupEndTag - [15..19)::4 - [</p>] - Gen<Markup>
                                     OpenAngle;[<];
                                     ForwardSlash;[/];
                                     Text;[p];
                                     CloseAngle;[>];
-                        CSharpStatementLiteral - [19..19)::0 - [] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                        CSharpStatementLiteral - [19..19)::0 - [] - Gen<Stmt>
                             Marker;[];
-                    RazorMetaCode - [19..20)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    RazorMetaCode - [19..20)::1 - Gen<None>
                         RightBrace;[}];
-        MarkupTextLiteral - [20..20)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [20..20)::0 - [] - Gen<Markup>
             Marker;[];
     EndOfFile;[];

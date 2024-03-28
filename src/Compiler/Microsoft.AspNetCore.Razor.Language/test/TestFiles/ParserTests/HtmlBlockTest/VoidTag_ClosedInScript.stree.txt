@@ -1,22 +1,22 @@
 ﻿RazorDocument - [0..53)::53 - [@{<col>x = 1;<script>const text = '</col>';</script>}]
     MarkupBlock - [0..53)::53
-        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
         CSharpCodeBlock - [0..53)::53
             CSharpStatement - [0..53)::53
-                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                CSharpTransition - [0..1)::1 - Gen<None>
                     Transition;[@];
                 CSharpStatementBody - [1..53)::52
-                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..52)::50
                         MarkupBlock - [2..7)::5
                             MarkupElement - [2..7)::5
-                                MarkupStartTag - [2..7)::5 - [<col>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                MarkupStartTag - [2..7)::5 - [<col>] - Gen<Markup>
                                     OpenAngle;[<];
                                     Text;[col];
                                     CloseAngle;[>];
-                        CSharpStatementLiteral - [7..13)::6 - [x = 1;] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                        CSharpStatementLiteral - [7..13)::6 - [x = 1;] - Gen<Stmt>
                             Identifier;[x];
                             Whitespace;[ ];
                             Assign;[=];
@@ -25,11 +25,11 @@
                             Semicolon;[;];
                         MarkupBlock - [13..52)::39
                             MarkupElement - [13..52)::39
-                                MarkupStartTag - [13..21)::8 - [<script>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                MarkupStartTag - [13..21)::8 - [<script>] - Gen<Markup>
                                     OpenAngle;[<];
                                     Text;[script];
                                     CloseAngle;[>];
-                                MarkupTextLiteral - [21..43)::22 - [const text = '</col>';] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                MarkupTextLiteral - [21..43)::22 - [const text = '</col>';] - Gen<Markup>
                                     Text;[const];
                                     Whitespace;[ ];
                                     Text;[text];
@@ -43,15 +43,15 @@
                                     CloseAngle;[>];
                                     SingleQuote;['];
                                     Text;[;];
-                                MarkupEndTag - [43..52)::9 - [</script>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                MarkupEndTag - [43..52)::9 - [</script>] - Gen<Markup>
                                     OpenAngle;[<];
                                     ForwardSlash;[/];
                                     Text;[script];
                                     CloseAngle;[>];
-                        CSharpStatementLiteral - [52..52)::0 - [] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                        CSharpStatementLiteral - [52..52)::0 - [] - Gen<Stmt>
                             Marker;[];
-                    RazorMetaCode - [52..53)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    RazorMetaCode - [52..53)::1 - Gen<None>
                         RightBrace;[}];
-        MarkupTextLiteral - [53..53)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [53..53)::0 - [] - Gen<Markup>
             Marker;[];
     EndOfFile;[];

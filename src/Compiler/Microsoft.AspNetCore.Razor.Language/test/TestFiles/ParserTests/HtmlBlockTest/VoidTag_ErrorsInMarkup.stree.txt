@@ -1,22 +1,22 @@
 ﻿RazorDocument - [0..28)::28 - [@{<input>var x = "<a></b>";}]
     MarkupBlock - [0..28)::28
-        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
         CSharpCodeBlock - [0..28)::28
             CSharpStatement - [0..28)::28
-                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                CSharpTransition - [0..1)::1 - Gen<None>
                     Transition;[@];
                 CSharpStatementBody - [1..28)::27
-                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..27)::25
                         MarkupBlock - [2..9)::7
                             MarkupElement - [2..9)::7
-                                MarkupStartTag - [2..9)::7 - [<input>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                                MarkupStartTag - [2..9)::7 - [<input>] - Gen<Markup>
                                     OpenAngle;[<];
                                     Text;[input];
                                     CloseAngle;[>];
-                        CSharpStatementLiteral - [9..27)::18 - [var x = "<a></b>";] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                        CSharpStatementLiteral - [9..27)::18 - [var x = "<a></b>";] - Gen<Stmt>
                             Identifier;[var];
                             Whitespace;[ ];
                             Identifier;[x];
@@ -25,8 +25,8 @@
                             Whitespace;[ ];
                             StringLiteral;["<a></b>"];
                             Semicolon;[;];
-                    RazorMetaCode - [27..28)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    RazorMetaCode - [27..28)::1 - Gen<None>
                         RightBrace;[}];
-        MarkupTextLiteral - [28..28)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [28..28)::0 - [] - Gen<Markup>
             Marker;[];
     EndOfFile;[];
