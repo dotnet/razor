@@ -1651,15 +1651,24 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         {
             // Usually this is set to true when a Code block ends and there is whitespace left after it.
             // We don't want to write it to output.
-            Context.NullGenerateWhitespaceAndNewLine = false;
-            chunkGenerator = SpanChunkGenerator.Null;
-            AcceptWhile(IsSpacingToken);
-            if (At(SyntaxKind.NewLine))
-            {
-                AcceptAndMoveNext();
-            }
 
-            builder.Add(OutputAsMarkupEphemeralLiteral());
+            if (TokenBuilder.Count != 0)
+            {
+                // There should be no unprocessed tokens, only whitespace between the code block end and here.
+                Debug.Assert(false, "Unexpected tokens after NullGenerateWhitespaceAndNewLine");
+            }
+            else
+            {
+                Context.NullGenerateWhitespaceAndNewLine = false;
+                chunkGenerator = SpanChunkGenerator.Null;
+                AcceptWhile(IsSpacingToken);
+                if (At(SyntaxKind.NewLine))
+                {
+                    AcceptAndMoveNext();
+                }
+
+                builder.Add(OutputAsMarkupEphemeralLiteral());
+            }
         }
     }
 
