@@ -72,7 +72,8 @@ internal partial class ParserContext
             NullGenerateWhitespaceAndNewLine: NullGenerateWhitespaceAndNewLine,
             InTemplateContext: InTemplateContext,
             StartOfLine: StartOfLine,
-            LastAcceptedCharacters);
+            MakeMarkerNode: MakeMarkerNode,
+            CurrentAcceptedCharacters: CurrentAcceptedCharacters);
     }
 
     public void Restore(ParserContextState state)
@@ -85,7 +86,8 @@ internal partial class ParserContext
         NullGenerateWhitespaceAndNewLine = state.NullGenerateWhitespaceAndNewLine;
         InTemplateContext = state.InTemplateContext;
         StartOfLine = state.StartOfLine;
-        LastAcceptedCharacters = state.LastAcceptedCharacters;
+        MakeMarkerNode = state.MakeMarkerNode;
+        CurrentAcceptedCharacters = state.CurrentAcceptedCharacters;
     }
 }
 
@@ -97,7 +99,8 @@ internal sealed record ParserContextState(
     bool NullGenerateWhitespaceAndNewLine,
     bool InTemplateContext,
     bool StartOfLine,
-    AcceptedCharactersInternal LastAcceptedCharacters);
+    bool MakeMarkerNode,
+    AcceptedCharactersInternal CurrentAcceptedCharacters);
 
 // Debug Helpers
 
