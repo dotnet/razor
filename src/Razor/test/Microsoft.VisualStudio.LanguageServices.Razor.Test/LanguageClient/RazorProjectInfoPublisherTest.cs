@@ -682,7 +682,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         bool shouldSerialize = true,
         bool useRealShouldSerialize = false,
         bool configurationFileExists = true)
-        : RazorProjectInfoPublisher(s_lspEditorFeatureDetector.Object, projectManager, projectStatePublishFilePathStore, null!, TestRazorLogger.Instance)
+        : RazorProjectInfoPublisher(s_lspEditorFeatureDetector.Object, projectManager, projectStatePublishFilePathStore, null!, null!, TestRazorLogger.Instance)
     {
         private static readonly StrictMock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new();
 

@@ -214,7 +214,7 @@ internal class RazorLanguageServerClient(
 
     private async Task ProjectConfigurationFilePathStore_ChangedAsync(ProjectConfigurationFilePathChangedEventArgs args, CancellationToken cancellationToken)
     {
-        if (_languageServerFeatureOptions.DisableRazorLanguageServer)
+        if (_languageServerFeatureOptions.DisableRazorLanguageServer || _languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
         {
             return;
         }
@@ -284,7 +284,11 @@ internal class RazorLanguageServerClient(
     private void ServerStarted()
     {
         _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
-        _projectInfoEndpointPublisher.StopCachingRequests();
+
+        if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
+        {
+            _projectInfoEndpointPublisher.StopCachingRequests();
+        }
 
         var mappings = _projectConfigurationFilePathStore.GetMappings();
         foreach (var mapping in mappings)
@@ -292,11 +296,17 @@ internal class RazorLanguageServerClient(
             var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
             ProjectConfigurationFilePathStore_Changed(this, args);
 
-            _projectInfoEndpointPublisher.SerializeToEndpointUncached(mapping.Key, mapping.Value);
+            if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
+            {
+                _projectInfoEndpointPublisher.SerializeToEndpointUncached(mapping.Key, mapping.Value);
+            }
         }
 
 
-        _projectInfoEndpointPublisher.ClearCache();
+        if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
+        {
+            _projectInfoEndpointPublisher.ClearCache();
+        }
     }
 
     private sealed class HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider) : HostServicesProvider
