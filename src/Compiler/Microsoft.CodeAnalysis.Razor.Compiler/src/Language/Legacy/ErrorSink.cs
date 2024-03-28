@@ -22,6 +22,11 @@ internal class ErrorSink
         _errors = new List<RazorDiagnostic>();
     }
 
+    public ErrorSink(IEnumerable<RazorDiagnostic> errors)
+    {
+        _errors = new List<RazorDiagnostic>(errors);
+    }
+
     /// <summary>
     /// <see cref="RazorDiagnostic"/>s collected.
     /// </summary>

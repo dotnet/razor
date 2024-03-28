@@ -4558,6 +4558,104 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestTheory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    [InlineData("Row")]
+    [InlineData("Col")]
+    [InlineData("Input")]
+    public void VoidTagName_Component(string componentName)
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse($$"""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class {{componentName}} : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp($$"""
+            @using Microsoft.AspNetCore.Components
+
+            <{{componentName}}>in markup</{{componentName}}>
+            @{
+                <{{componentName}}>in code block</{{componentName}}>
+                RenderFragment template = @<{{componentName}}>in template</{{componentName}}>;
+            }
+            """);
+
+        // Assert
+        var generatedCSharp = generated.CodeDocument.GetCSharpDocument().GeneratedCode;
+        Assert.DoesNotContain($"<{componentName}>", generatedCSharp);
+        Assert.DoesNotContain($"</{componentName}>", generatedCSharp);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName_Component_Wrapped()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse($$"""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class Paragraph : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp($$"""
+            @using Microsoft.AspNetCore.Components
+            @{
+                <Paragraph>
+                @{
+                    <input>
+                }
+                </Paragraph>
+            }
+            """);
+
+        // Assert
+        var generatedCSharp = generated.CodeDocument.GetCSharpDocument().GeneratedCode;
+        Assert.DoesNotContain($"<Paragraph>", generatedCSharp);
+        Assert.DoesNotContain($"</Paragraph>", generatedCSharp);
+        if (!DesignTime)
+        {
+            Assert.Contains("<input>", generatedCSharp);
+        }
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestTheory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    [InlineData("col")]
+    [InlineData("input")]
+    public void VoidTagName_Element_ClosingInScript(string elementName)
+    {
+        // Arrange
+        var generated = CompileToCSharp($$"""
+            @{
+                <{{elementName}}>
+                x = 1;
+                <script suppress-error="BL9992">const text = '</{{elementName}}>';</script>
+            }
+            """);
+
+        // Act
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        // Assert: `x = 1;` should be considered code, not markup, and hence give us:
+        // error CS0103: The name 'x' does not exist in the current context
+        Assert.Equal("CS0103", result.Diagnostics.Single().Id);
+    }
+
     #endregion
 
     #region Directives
