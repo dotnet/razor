@@ -58,6 +58,7 @@ internal class RazorLanguageServerClient(
     private readonly RazorLanguageClientMiddleLayer _middleLayer = middleLayer ?? throw new ArgumentNullException(nameof(middleLayer));
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker ?? throw new ArgumentNullException(nameof(requestInvoker));
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+    private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher ?? throw new ArgumentNullException(nameof(projectInfoEndpointPublisher));
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
     private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider ?? throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
@@ -283,13 +284,19 @@ internal class RazorLanguageServerClient(
     private void ServerStarted()
     {
         _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
+        _projectInfoEndpointPublisher.StopCachingRequests();
 
         var mappings = _projectConfigurationFilePathStore.GetMappings();
         foreach (var mapping in mappings)
         {
             var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
             ProjectConfigurationFilePathStore_Changed(this, args);
+
+            _projectInfoEndpointPublisher.SerializeToEndpointUncached(mapping.Key, mapping.Value);
         }
+
+
+        _projectInfoEndpointPublisher.ClearCache();
     }
 
     private sealed class HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider) : HostServicesProvider

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
@@ -28,6 +29,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
     private const string TempFileExt = ".temp";
     private readonly RazorLogger _logger;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+    private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
     private readonly Dictionary<ProjectKey, IProjectSnapshot> _pendingProjectPublishes;
@@ -41,6 +43,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
         LSPEditorFeatureDetector lSPEditorFeatureDetector,
         IProjectSnapshotManager projectManager,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+        RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
         RazorLogger logger)
     {
         DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
@@ -50,6 +53,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
 
         _lspEditorFeatureDetector = lSPEditorFeatureDetector;
         _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+        _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
         _logger = logger;
 
         _projectManager = projectManager;
@@ -212,6 +216,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
                 // An exception is made for when there's no existing project configuration file because some flashing is preferable to having no TagHelper knowledge.
                 if (ShouldSerialize(projectSnapshot, configurationFilePath))
                 {
+                    _projectInfoEndpointPublisher.SendUpdate(projectSnapshot, configurationFilePath);
                     SerializeToFile(projectSnapshot, configurationFilePath);
                 }
             }
@@ -233,6 +238,8 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
                 // If we don't track the value in PublishFilePathMappings that means it's already been removed, do nothing.
                 return;
             }
+
+            _projectInfoEndpointPublisher.SendRemoval(projectSnapshot);
 
             lock (_pendingProjectPublishesLock)
             {
