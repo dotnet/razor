@@ -72,11 +72,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Microsoft.VisualStudio.Razor.ClientInitialization64.servicehub.service.json">
+    <Content Include="$(ServiceHubCoreSubPath)\Microsoft.VisualStudio.Razor.SemanticTokensCore64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Microsoft.VisualStudio.Razor.ClientInitialization64S.servicehub.service.json">
+    <Content Include="$(ServiceHubCoreSubPath)\Microsoft.VisualStudio.Razor.SemanticTokensCore64S.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -96,19 +96,35 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.SemanticTokensCore64.servicehub.service.json">
+    <Content Include="Microsoft.VisualStudio.Razor.ClientInitialization64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.SemanticTokensCore64S.servicehub.service.json">
+    <Content Include="Microsoft.VisualStudio.Razor.ClientInitialization64S.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.ClientInitializationCore64.servicehub.service.json">
+    <Content Include="$(ServiceHubCoreSubPath)\Microsoft.VisualStudio.Razor.ClientInitializationCore64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.ClientInitializationCore64S.servicehub.service.json">
+    <Content Include="$(ServiceHubCoreSubPath)\Microsoft.VisualStudio.Razor.ClientInitializationCore64S.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Microsoft.VisualStudio.Razor.HtmlDocument64.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Microsoft.VisualStudio.Razor.HtmlDocument64S.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.HtmlDocumentCore64.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.HtmlDocumentCore64S.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
