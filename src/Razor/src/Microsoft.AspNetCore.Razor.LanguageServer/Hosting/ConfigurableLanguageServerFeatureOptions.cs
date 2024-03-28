@@ -44,7 +44,6 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool UseRazorCohostServer => _useRazorCohostServer ?? _defaults.UseRazorCohostServer;
     public override bool DisableRazorLanguageServer => _disableRazorLanguageServer ?? _defaults.DisableRazorLanguageServer;
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration ?? _defaults.ForceRuntimeCodeGeneration;
-    public override bool UseProjectConfigurationEndpoint => _useProjectConfigurationEndpoint ?? _defaults.UseProjectConfigurationEndpoint;
 
     public ConfigurableLanguageServerFeatureOptions(string[] args)
     {
@@ -71,7 +70,6 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
             TryProcessBoolOption(nameof(UseRazorCohostServer), ref _useRazorCohostServer, option, args, i);
             TryProcessBoolOption(nameof(DisableRazorLanguageServer), ref _disableRazorLanguageServer, option, args, i);
             TryProcessBoolOption(nameof(ForceRuntimeCodeGeneration), ref _forceRuntimeCodeGeneration, option, args, i);
-            TryProcessBoolOption(nameof(UseProjectConfigurationEndpoint), ref _useProjectConfigurationEndpoint, option, args, i);
         }
     }
 
