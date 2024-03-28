@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [Export(typeof(RazorLanguageClientMiddleLayer))]
-internal class DefaultRazorLanguageClientMiddleLayer : RazorLanguageClientMiddleLayer
+internal class DefaultRazorLanguageClientMiddleLayer : RazorLanguageClientMiddleLayer //, ILanguageClientMiddleLayer2<JToken>
 {
     public override bool CanHandle(string methodName) => false;
 
