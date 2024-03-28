@@ -4558,7 +4558,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    [IntegrationTestTheory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
     [InlineData("Row")]
     [InlineData("Col")]
     [InlineData("Input")]
@@ -4595,7 +4595,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
     public void VoidTagName_Component_Wrapped()
     {
         // Arrange
@@ -4634,7 +4634,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    [IntegrationTestTheory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
     [InlineData("col")]
     [InlineData("input")]
     public void VoidTagName_Element_ClosingInScript(string elementName)
