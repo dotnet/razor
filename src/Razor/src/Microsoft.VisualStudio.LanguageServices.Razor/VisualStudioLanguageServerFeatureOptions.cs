@@ -18,6 +18,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private const string UseRazorCohostServerFeatureFlag = "Razor.LSP.UseRazorCohostServer";
     private const string DisableRazorLanguageServerFeatureFlag = "Razor.LSP.DisableRazorLanguageServer";
     private const string ForceRuntimeCodeGenerationFeatureFlag = "Razor.LSP.ForceRuntimeCodeGeneration";
+    private const string DoNotUseProjectConfigurationFileFeatureFlag = "Razor.LSP.DoNotUseProjectConfigurationFile";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
@@ -26,6 +27,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _useRazorCohostServer;
     private readonly Lazy<bool> _disableRazorLanguageServer;
     private readonly Lazy<bool> _forceRuntimeCodeGeneration;
+    private readonly Lazy<bool> _doNotUseProjectConfigurationFile;
 
     [ImportingConstructor]
     public VisualStudioLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -75,8 +77,15 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
         _forceRuntimeCodeGeneration = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var disableRazorLanguageServer = featureFlags.IsFeatureEnabled(ForceRuntimeCodeGenerationFeatureFlag, defaultValue: false);
-            return disableRazorLanguageServer;
+            var forceRuntimeCodeGeneration = featureFlags.IsFeatureEnabled(ForceRuntimeCodeGenerationFeatureFlag, defaultValue: false);
+            return forceRuntimeCodeGeneration;
+        });
+
+        _doNotUseProjectConfigurationFile = new Lazy<bool>(() =>
+        {
+            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
+            var doNotUseProjectConfigurationFile = featureFlags.IsFeatureEnabled(DoNotUseProjectConfigurationFileFeatureFlag, defaultValue: false);
+            return doNotUseProjectConfigurationFile;
         });
     }
 
@@ -116,4 +125,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     /// <inheritdoc />
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration.Value;
+
+    /// <inheritdoc />
+    public override bool DoNotUseProjectConfigurationFile => _doNotUseProjectConfigurationFile.Value;
 }
