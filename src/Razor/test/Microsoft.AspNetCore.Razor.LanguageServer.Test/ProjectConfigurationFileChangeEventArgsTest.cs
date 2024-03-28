@@ -86,7 +86,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
         var projectInfo = new RazorProjectInfo(
             "/path/to/obj/project.razor.bin",
             "c:/path/to/project.csproj",
-            configuration: RazorConfiguration.Default,
+            configuration: RazorConfiguration.Default with { LanguageServerFlags = TestLanguageServerFeatureOptions.Instance.ToLanguageServerFlags() },
             rootNamespace: null,
             displayName: "project",
             projectWorkspaceState: ProjectWorkspaceState.Default,
@@ -108,8 +108,11 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
         // Assert
         Assert.True(result1);
         Assert.True(result2);
-        Assert.Same(projectInfo, projectInfo1);
-        Assert.Same(projectInfo, projectInfo2);
+
+        // Deserialization will cause the LanguageServerFlags to be updated on the configuration, so reference equality will not hold.
+        // Test equality, and that retrieving same instance on repeat calls works by reference equality of projectInfo1 and projectInfo2.
+        Assert.Equal(projectInfo, projectInfo1);
+        Assert.Same(projectInfo1, projectInfo2);
     }
 
     [Fact]
