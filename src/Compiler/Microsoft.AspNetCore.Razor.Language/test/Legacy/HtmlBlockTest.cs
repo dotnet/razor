@@ -3,8 +3,7 @@
 
 #nullable disable
 
-using System;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
