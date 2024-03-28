@@ -284,21 +284,20 @@ internal class RazorLanguageServerClient(
 
     private void ServerStarted()
     {
-        if (_languageServerFeatureOptions.UseProjectConfigurationEndpoint)
-        {
-            _projectInfoEndpointPublisher.StartSending();
-        }
-        else
-        {
-            _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
+        _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
+        _projectInfoEndpointPublisher.StopCachingRequests();
 
-            var mappings = _projectConfigurationFilePathStore.GetMappings();
-            foreach (var mapping in mappings)
-            {
-                var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
-                ProjectConfigurationFilePathStore_Changed(this, args);
-            }
+        var mappings = _projectConfigurationFilePathStore.GetMappings();
+        foreach (var mapping in mappings)
+        {
+            var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
+            ProjectConfigurationFilePathStore_Changed(this, args);
+
+            _projectInfoEndpointPublisher.SerializeToEndpointUncached(mapping.Key, mapping.Value);
         }
+
+
+        _projectInfoEndpointPublisher.ClearCache();
     }
 
     private sealed class HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider) : HostServicesProvider

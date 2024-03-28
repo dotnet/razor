@@ -211,7 +211,15 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
-        services.AddSingleton<ProjectConfigurationStateManager>();
+
+        if (featureOptions.DoNotUseProjectConfigurationFile)
+        {
+            services.AddSingleton<ProjectConfigurationStateManager>();
+        }
+        else 
+        {
+            services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
+        }
 
         if (featureOptions.UseProjectConfigurationEndpoint)
         {

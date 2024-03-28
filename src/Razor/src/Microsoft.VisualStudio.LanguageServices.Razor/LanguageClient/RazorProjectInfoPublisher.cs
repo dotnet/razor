@@ -27,6 +27,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
     internal bool _active;
 
     private const string TempFileExt = ".temp";
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly RazorLogger _logger;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher;
@@ -44,6 +45,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
         IProjectSnapshotManager projectManager,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorLogger logger)
     {
         DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
@@ -54,6 +56,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
         _lspEditorFeatureDetector = lSPEditorFeatureDetector;
         _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
         _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
         _logger = logger;
 
         _projectManager = projectManager;
@@ -216,8 +219,14 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
                 // An exception is made for when there's no existing project configuration file because some flashing is preferable to having no TagHelper knowledge.
                 if (ShouldSerialize(projectSnapshot, configurationFilePath))
                 {
-                    _projectInfoEndpointPublisher.SendUpdate(projectSnapshot, configurationFilePath);
-                    SerializeToFile(projectSnapshot, configurationFilePath);
+                    if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
+                    {
+                        _projectInfoEndpointPublisher.SendUpdate(projectSnapshot, configurationFilePath);
+                    }
+                    else
+                    {
+                        SerializeToFile(projectSnapshot, configurationFilePath);
+                    }
                 }
             }
             catch (Exception ex)
@@ -239,7 +248,10 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
                 return;
             }
 
-            _projectInfoEndpointPublisher.SendRemoval(projectSnapshot);
+            if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
+            {
+                _projectInfoEndpointPublisher.SendRemoval(projectSnapshot);
+            }
 
             lock (_pendingProjectPublishesLock)
             {
