@@ -34,12 +34,10 @@
     <DeployExtension>true</DeployExtension>
 
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <!-- ServiceHub AssemblyPath -->
-    <!-- Path to our servicehub entry point dll in the vsix directory relative
-         to our servicehub.servicehub.json files in the same vsix directory -->
-    <ServiceHubAssemblyBasePath>.\</ServiceHubAssemblyBasePath>
-    <ServiceHubHostRuntime>desktop</ServiceHubHostRuntime>
   </PropertyGroup>
+
+  <!-- Import the list of service hub services we proffer, to generate various files to include in the VSIX -->
+  <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
 
   <!-- Include Razor SDK design time assets in the VSIX -->
   <ItemGroup>
@@ -295,6 +293,4 @@ using Microsoft.VisualStudio.Shell;
       <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'System.Text.Json'" />
     </ItemGroup>
   </Target>
-
-  <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
 </Project>
