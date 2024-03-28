@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;

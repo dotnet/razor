@@ -66,7 +66,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             delegatedParams.Identifier,
             item,
             delegatedParams.ProjectedKind);
-        var resolvedCompletionItem = await _clientConnection.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(Common.LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
+        var resolvedCompletionItem = await _clientConnection.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(CodeAnalysis.Razor.Workspaces.Protocol.LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
 
         if (resolvedCompletionItem is not null)
         {
@@ -106,7 +106,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return resolvedCompletionItem;
         }
 
-        var formattingOptions = await _clientConnection.SendRequestAsync<TextDocumentIdentifierAndVersion, FormattingOptions?>(Common.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await _clientConnection.SendRequestAsync<TextDocumentIdentifierAndVersion, FormattingOptions?>(CodeAnalysis.Razor.Workspaces.Protocol.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
         if (formattingOptions is null)
         {
             return resolvedCompletionItem;
