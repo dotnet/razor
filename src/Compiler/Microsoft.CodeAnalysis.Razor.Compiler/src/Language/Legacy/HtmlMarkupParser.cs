@@ -449,6 +449,10 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             }
         } while (!EndOfFile && CurrentToken.Kind != SyntaxKind.NewLine);
 
+        // Code block inside single-line markup transition (`@: @{ }`)
+        // does not swallow trailing whitespace.
+        Context.NullGenerateWhitespaceAndNewLine = false;
+
         if (!EndOfFile && CurrentToken.Kind == SyntaxKind.NewLine)
         {
             AcceptAndMoveNext();

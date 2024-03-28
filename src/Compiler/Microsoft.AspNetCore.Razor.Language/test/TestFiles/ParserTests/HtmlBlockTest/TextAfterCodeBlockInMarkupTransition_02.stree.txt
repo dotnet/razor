@@ -68,10 +68,9 @@
                                         OpenAngle;[<];
                                         Text;[b];
                                         CloseAngle;[>];
-                                    MarkupEphemeralTextLiteral - [43..45)::2 - [a ] - Gen<None>
+                                    MarkupTextLiteral - [43..48)::5 - [a b c] - Gen<Markup>
                                         Text;[a];
                                         Whitespace;[ ];
-                                    MarkupTextLiteral - [45..48)::3 - [b c] - Gen<Markup>
                                         Text;[b];
                                         Whitespace;[ ];
                                         Text;[c];
