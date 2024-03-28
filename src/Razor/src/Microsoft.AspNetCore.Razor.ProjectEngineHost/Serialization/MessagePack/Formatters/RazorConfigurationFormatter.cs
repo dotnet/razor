@@ -54,7 +54,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
     {
         // Write 3 values + 1 value per extension.
         var extensions = value.Extensions;
-        var count = extensions.Length + 3;
+        var count = extensions.Length + 2;
 
         writer.WriteArrayHeader(count);
 
