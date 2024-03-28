@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -31,6 +32,11 @@ internal partial class ProjectConfigurationStateManager : IDisposable
 
     private readonly AsyncBatchingWorkQueue<(ProjectKey ProjectKey, RazorProjectInfo? ProjectInfo)> _workQueue;
     private readonly CancellationTokenSource _disposalTokenSource;
+
+    /// <summary>
+    /// Used to throttle project system updates
+    /// </summary>
+    internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
 
     public ProjectConfigurationStateManager(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -114,9 +120,11 @@ internal partial class ProjectConfigurationStateManager : IDisposable
     private void AddProject(string intermediateOutputPath, RazorProjectInfo projectInfo)
     {
         var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
+        var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
         var rootNamespace = projectInfo.RootNamespace;
 
         var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
+        _projectSet.Add(projectKey);
 
         _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, intermediateOutputPath);
         EnqueueUpdateProject(projectKey, projectInfo);
@@ -141,6 +149,14 @@ internal partial class ProjectConfigurationStateManager : IDisposable
             projectInfo.DisplayName,
             projectWorkspaceState,
             documents);
+    }
+
+    private async Task UpdateAfterDelayAsync(ProjectKey projectKey)
+    {
+        await Task.Delay(EnqueueDelay).ConfigureAwait(true);
+
+        var delayedProjectInfo = ProjectInfoMap[projectKey];
+        UpdateProject(projectKey, delayedProjectInfo.ProjectInfo);
     }
 
     private void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)

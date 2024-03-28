@@ -30,6 +30,10 @@ internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams
 
     public Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
+    }
+
+    public async Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    {
         RazorProjectInfo? razorProjectInfo = null;
 
         // ProjectInfo will be null if project is being deleted and should be removed
