@@ -10,9 +10,13 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.ProjectSystem;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -682,7 +686,13 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         bool shouldSerialize = true,
         bool useRealShouldSerialize = false,
         bool configurationFileExists = true)
-        : RazorProjectInfoPublisher(s_lspEditorFeatureDetector.Object, projectManager, projectStatePublishFilePathStore, null!, null!, TestRazorLogger.Instance)
+        : RazorProjectInfoPublisher(
+            s_lspEditorFeatureDetector.Object,
+            projectManager,
+            projectStatePublishFilePathStore,
+            new RazorProjectInfoEndpointPublisher(Mock.Of<LSPRequestInvoker>(MockBehavior.Strict)),
+            TestLanguageServerFeatureOptions.Instance,
+            TestRazorLogger.Instance)
     {
         private static readonly StrictMock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new();
 
