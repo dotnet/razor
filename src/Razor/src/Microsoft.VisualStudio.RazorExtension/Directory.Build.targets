@@ -4,7 +4,8 @@
   <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GenerateBrokeredServicesPkgDef">
     <ItemGroup>
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)')" />
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)S')" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" />
     </ItemGroup>

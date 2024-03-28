@@ -44,6 +44,7 @@
 }
 ]]>
         </Content>
+        <VSIXSubPath>$(ServiceHubCoreSubPath)</VSIXSubPath>
       </ServiceHubServiceJsonFile>
     </ItemGroup>
   </Target>
@@ -58,7 +59,9 @@
 
     <ItemGroup>
       <FileWrites Include="@(ServiceHubServiceJsonFile->'%(Identity)')"/>
-      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" />
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')">
+        <VSIXSubPath Condition="'%(ServiceHubServiceJsonFile.VSIXSubPath)' != ''">%(ServiceHubServiceJsonFile.VSIXSubPath)</VSIXSubPath>
+      </VSIXSourceItem>
     </ItemGroup>
   </Target>
 </Project>
