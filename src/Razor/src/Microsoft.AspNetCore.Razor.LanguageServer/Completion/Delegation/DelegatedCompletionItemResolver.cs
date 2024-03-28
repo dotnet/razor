@@ -2,29 +2,31 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 internal class DelegatedCompletionItemResolver : CompletionItemResolver
 {
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly IRazorFormattingService _formattingService;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
 
     public DelegatedCompletionItemResolver(
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         IRazorFormattingService formattingService,
-        ClientNotifierServiceBase languageServer)
+        IClientConnection clientConnection)
     {
         _documentContextFactory = documentContextFactory;
         _formattingService = formattingService;
-        _languageServer = languageServer;
+        _clientConnection = clientConnection;
     }
 
     public override async Task<VSInternalCompletionItem?> ResolveAsync(
@@ -47,14 +49,23 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return null;
         }
 
-        item.Data = associatedDelegatedCompletion.Data ?? resolutionContext.OriginalCompletionListData;
+        // If the data was merged to combine resultId with original data, undo that merge and set the data back
+        // to what it originally was for the delegated request
+        if (CompletionListMerger.TrySplit(associatedDelegatedCompletion.Data, out var splitData) && splitData.Count == 2)
+        {
+            item.Data = splitData[1];
+        }
+        else
+        {
+            item.Data = associatedDelegatedCompletion.Data ?? resolutionContext.OriginalCompletionListData;
+        }
 
         var delegatedParams = resolutionContext.OriginalRequestParams;
         var delegatedResolveParams = new DelegatedCompletionItemResolveParams(
-            delegatedParams.HostDocument,
+            delegatedParams.Identifier,
             item,
             delegatedParams.ProjectedKind);
-        var resolvedCompletionItem = await _languageServer.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(Common.LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
+        var resolvedCompletionItem = await _clientConnection.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(Common.LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
 
         if (resolvedCompletionItem is not null)
         {
@@ -87,14 +98,14 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return resolvedCompletionItem;
         }
 
-        var hostDocumentUri = context.OriginalRequestParams.HostDocument.Uri;
-        var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(hostDocumentUri, cancellationToken).ConfigureAwait(false);
+        var identifier = context.OriginalRequestParams.Identifier.TextDocumentIdentifier;
+        var documentContext = _documentContextFactory.TryCreateForOpenDocument(identifier);
         if (documentContext is null)
         {
             return resolvedCompletionItem;
         }
 
-        var formattingOptions = await _languageServer.SendRequestAsync<VersionedTextDocumentIdentifier, FormattingOptions?>(Common.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await _clientConnection.SendRequestAsync<TextDocumentIdentifierAndVersion, FormattingOptions?>(Common.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
         if (formattingOptions is null)
         {
             return resolvedCompletionItem;
@@ -102,14 +113,23 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
 
         if (resolvedCompletionItem.TextEdit is not null)
         {
-            var formattedTextEdit = await _formattingService.FormatSnippetAsync(
-                documentContext,
-                RazorLanguageKind.CSharp,
-                new[] { resolvedCompletionItem.TextEdit },
-                formattingOptions,
-                cancellationToken).ConfigureAwait(false);
+            if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
+            {
+                var formattedTextEdit = await _formattingService.FormatSnippetAsync(
+                    documentContext,
+                    RazorLanguageKind.CSharp,
+                    new[] { textEdit },
+                    formattingOptions,
+                    cancellationToken).ConfigureAwait(false);
 
-            resolvedCompletionItem.TextEdit = formattedTextEdit.FirstOrDefault();
+                resolvedCompletionItem.TextEdit = formattedTextEdit.FirstOrDefault();
+            }
+            else
+            {
+                // TO-DO: Handle InsertReplaceEdit type
+                // https://github.com/dotnet/razor/issues/8829
+                Debug.Fail("Unsupported edit type.");
+            }
         }
 
         if (resolvedCompletionItem.AdditionalTextEdits is not null)

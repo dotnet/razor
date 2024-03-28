@@ -11,13 +11,14 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -33,11 +34,11 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public CSharpOnTypeFormattingPass(
-        RazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase server,
+        IRazorDocumentMappingService documentMappingService,
+        IClientConnection clientConnection,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-        ILoggerFactory loggerFactory)
-        : base(documentMappingService, server)
+        IRazorLoggerFactory loggerFactory)
+        : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)
         {
@@ -63,7 +64,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         var textEdits = result.Edits;
         if (textEdits.Length == 0)
         {
-            if (!DocumentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
+            if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning("Failed to map to projected position for document {context.Uri}.", context.Uri);
                 return result;
@@ -92,7 +93,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
                 return result;
             }
 
-            textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
+            textEdits = formattingChanges.Select(change => change.ToTextEdit(csharpText)).ToArray();
             _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
         }
 
@@ -122,26 +123,32 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
 
-            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken);
+            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
 
             return new FormattingResult(filteredEdits);
         }
 
         // Find the lines that were affected by these edits.
         var originalText = codeDocument.GetSourceText();
-        var changes = filteredEdits.Select(e => e.AsTextChange(originalText));
+        _logger.LogTestOnly("Original text:\r\n{originalText}", originalText);
+
+        var changes = filteredEdits.Select(e => e.ToTextChange(originalText));
 
         // Apply the format on type edits sent over by the client.
         var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
-        var changedContext = await context.WithTextAsync(formattedText);
-        var rangeAfterFormatting = spanAfterFormatting.AsRange(formattedText);
+        _logger.LogTestOnly("After C# changes:\r\n{formattedText}", formattedText);
+
+        var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
+        var rangeAfterFormatting = spanAfterFormatting.ToRange(formattedText);
 
         cancellationToken.ThrowIfCancellationRequested();
 
         // We make an optimistic attempt at fixing corner cases.
         var cleanupChanges = CleanupDocument(changedContext, rangeAfterFormatting);
         var cleanedText = formattedText.WithChanges(cleanupChanges);
-        changedContext = await changedContext.WithTextAsync(cleanedText);
+        _logger.LogTestOnly("After CleanupDocument:\r\n{cleanedText}", cleanedText);
+
+        changedContext = await changedContext.WithTextAsync(cleanedText).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -168,7 +175,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         //
         // We'll happy format lines 1 and 2, and ignore the closing brace altogether. So, by looking one line further
         // we won't have that problem.
-        if (rangeAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count)
+        if (rangeAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
         {
             lineDelta++;
         }
@@ -203,18 +210,20 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
         Debug.Assert(rangeToAdjust.End.IsValid(cleanedText), "Invalid range. This is unexpected.");
 
-        var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken, rangeToAdjust);
+        var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken, rangeToAdjust).ConfigureAwait(false);
         if (indentationChanges.Count > 0)
         {
             // Apply the edits that modify indentation.
             cleanedText = cleanedText.WithChanges(indentationChanges);
+
+            _logger.LogTestOnly("After AdjustIndentationAsync:\r\n{cleanedText}", cleanedText);
         }
 
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
         var finalChanges = cleanedText.GetTextChanges(originalText);
-        var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
+        var finalEdits = finalChanges.Select(f => f.ToTextEdit(originalText)).ToArray();
 
-        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken);
+        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
 
         return new FormattingResult(finalEdits);
     }
@@ -226,7 +235,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
             // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
             if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
             {
-                var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken);
+                var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
                 finalEdits = usingStatementEdits.Concat(finalEdits).ToArray();
             }
         }
@@ -250,7 +259,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     {
         var filteredEdits = edits.Where(e =>
         {
-            var span = e.Range.AsTextSpan(context.SourceText);
+            var span = e.Range.ToTextSpan(context.SourceText);
             return ShouldFormat(context, span, allowImplicitStatements: false);
         }).ToArray();
 
@@ -269,7 +278,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         {
             var newLineCount = change.NewText is null ? 0 : change.NewText.Split('\n').Length - 1;
 
-            var range = change.Span.AsRange(text);
+            var range = change.Span.ToRange(text);
             Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");
 
             // For convenience, since we're already iterating through things, we also find the extremes
@@ -295,14 +304,14 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
     {
         var text = context.SourceText;
-        range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
+        range ??= TextSpan.FromBounds(0, text.Length).ToRange(text);
         var csharpDocument = context.CodeDocument.GetCSharpDocument();
 
         var changes = new List<TextChange>();
         foreach (var mapping in csharpDocument.SourceMappings)
         {
             var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
-            var mappingRange = mappingSpan.AsRange(text);
+            var mappingRange = mappingSpan.ToRange(text);
             if (!range.LineOverlapsWith(mappingRange))
             {
                 // We don't care about this range. It didn't change.
@@ -338,7 +347,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         //
 
         var text = context.SourceText;
-        var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
+        var sourceMappingSpan = sourceMappingRange.ToTextSpan(text);
         if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false, out var owner))
         {
             // We don't want to run cleanup on this range.
@@ -346,12 +355,21 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         }
 
         if (owner is CSharpStatementLiteralSyntax &&
-            owner.PreviousSpan() is { } prevNode &&
-            prevNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            owner.TryGetPreviousSibling(out var prevNode) &&
+            prevNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
             owner.SpanStart == template.Span.End &&
             IsOnSingleLine(template, text))
         {
             // Special case, we don't want to add a line break after a single line template
+            return;
+        }
+
+        // Parent.Parent.Parent is because the tree is
+        //  ExplicitExpression -> ExplicitExpressionBody -> CSharpCodeBlock -> CSharpExpressionLiteral
+        if (owner is CSharpExpressionLiteralSyntax { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
+            IsOnSingleLine(explicitExpression, text))
+        {
+            // Special case, we don't want to add line breaks inside a single line explicit expression (ie @( ... ))
             return;
         }
 
@@ -457,7 +475,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         //
 
         var text = context.SourceText;
-        var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
+        var sourceMappingSpan = sourceMappingRange.ToTextSpan(text);
         var mappingEndLineIndex = sourceMappingRange.End.Line;
 
         var indentations = context.GetIndentations();
@@ -493,11 +511,21 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.NextSpan() is { } nextNode &&
-            nextNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            nextNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
             template.SpanStart == owner.Span.End &&
             IsOnSingleLine(template, text))
         {
             // Special case, we don't want to add a line break in front of a single line template
+            return;
+        }
+
+        if (owner is MarkupTagHelperAttributeSyntax { TagHelperAttributeInfo.Bound: true } or
+            MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo.Bound: true } or
+            MarkupMinimizedTagHelperAttributeSyntax { TagHelperAttributeInfo.Bound: true } or
+            MarkupMinimizedTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo.Bound: true })
+        {
+            // Special case, we don't want to add a line break at the end of a component attribute. They are technically
+            // C#, for features like GTD and FAR, but we consider them Html for formatting
             return;
         }
 
@@ -539,10 +567,10 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
     private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)
     {
-        var changes = edits.Select(e => e.AsTextChange(originalText));
+        var changes = edits.Select(e => e.ToTextChange(originalText));
         originalTextWithChanges = originalText.WithChanges(changes);
         var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, DiffKind.Char);
-        var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
+        var cleanEdits = cleanChanges.Select(c => c.ToTextEdit(originalText)).ToArray();
         return cleanEdits;
     }
 }

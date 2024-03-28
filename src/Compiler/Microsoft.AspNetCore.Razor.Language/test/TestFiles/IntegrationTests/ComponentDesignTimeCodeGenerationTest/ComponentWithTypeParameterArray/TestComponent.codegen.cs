@@ -2,11 +2,11 @@
 #pragma warning disable 1591
 namespace Test
 {
-    #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components;
@@ -14,18 +14,21 @@ using Microsoft.AspNetCore.Components;
 #line default
 #line hidden
 #nullable disable
-    public partial class TestComponent<TItem> : global::Microsoft.AspNetCore.Components.ComponentBase
-    {
-        #pragma warning disable 219
-        private void __RazorDirectiveTokenHelpers__() {
-        ((global::System.Action)(() => {
+    #nullable restore
+    public partial class TestComponent<
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-global::System.Object TItem = null!;
+TItem
 
 #line default
 #line hidden
 #nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
+        ((global::System.Action)(() => {
         }
         ))();
         }

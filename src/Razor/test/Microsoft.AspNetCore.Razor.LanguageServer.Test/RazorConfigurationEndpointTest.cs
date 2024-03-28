@@ -3,7 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -36,8 +36,8 @@ public class RazorConfigurationEndpointTest : LanguageServerTestBase
     public async Task Handle_UpdatesOptions()
     {
         // Arrange
-        var optionsMonitor = new TestRazorLSPOptionsMonitor(_configurationService, _cache);
-        var endpoint = new RazorConfigurationEndpoint(optionsMonitor);
+        var optionsMonitor = TestRazorLSPOptionsMonitor.Create(_configurationService, _cache);
+        var endpoint = new RazorConfigurationEndpoint(optionsMonitor, LoggerFactory);
         var request = new DidChangeConfigurationParams();
         var requestContext = CreateRazorRequestContext(documentContext: null);
 

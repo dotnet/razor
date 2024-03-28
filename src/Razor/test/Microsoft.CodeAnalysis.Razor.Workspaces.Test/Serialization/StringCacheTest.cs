@@ -5,13 +5,13 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Serialization.Internal;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class StringCacheTest : TestBase
+public class StringCacheTest : ToolingTestBase
 {
     public StringCacheTest(ITestOutputHelper testOutput)
         : base(testOutput)

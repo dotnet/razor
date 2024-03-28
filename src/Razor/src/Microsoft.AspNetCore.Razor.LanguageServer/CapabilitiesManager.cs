@@ -2,16 +2,23 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class CapabilitiesManager : IInitializeManager<InitializeParams, InitializeResult>
+internal class CapabilitiesManager : IInitializeManager<InitializeParams, InitializeResult>, IClientCapabilitiesService
 {
     private InitializeParams? _initializeParams;
     private readonly ILspServices _lspServices;
+
+    public bool HasInitialized => _initializeParams is not null;
+
+    public bool CanGetClientCapabilities => HasInitialized;
+
+    public VSInternalClientCapabilities ClientCapabilities => GetInitializeParams().Capabilities.ToVSInternalClientCapabilities();
 
     public CapabilitiesManager(ILspServices lspServices)
     {
@@ -36,14 +43,10 @@ internal class CapabilitiesManager : IInitializeManager<InitializeParams, Initia
 
         var serverCapabilities = new VSInternalServerCapabilities();
 
-        var registrationExtensions = _lspServices.GetRequiredServices<IRegistrationExtension>();
-        foreach (var registrationExtension in registrationExtensions)
+        var capabilitiesProviders = _lspServices.GetRequiredServices<ICapabilitiesProvider>();
+        foreach (var provider in capabilitiesProviders)
         {
-            var registrationResult = registrationExtension.GetRegistration(vsClientCapabilities);
-            if (registrationResult is not null)
-            {
-                serverCapabilities.ApplyRegistrationResult(registrationResult);
-            }
+            provider.ApplyCapabilities(serverCapabilities, vsClientCapabilities);
         }
 
         var initializeResult = new InitializeResult

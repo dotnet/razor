@@ -3,34 +3,23 @@
 
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Moq;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
+public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly DocumentContextFactory _emptyDocumentContextFactory;
-
-    public CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
-            r => r.TryCreateAsync(
-                It.IsAny<Uri>(),
-                It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null),
-            MockBehavior.Strict);
-    }
+    private readonly IDocumentContextFactory _emptyDocumentContextFactory = new TestDocumentContextFactory();
 
     [Fact]
     public async Task Handle_MissingFile()
@@ -129,7 +118,10 @@ public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:/Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@namespace Another.Namespace";
+        var contents = $"""
+            @page "/test"
+            @namespace Another.Namespace
+            """;
         var codeDocument = CreateCodeDocument(contents);
 
         var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);

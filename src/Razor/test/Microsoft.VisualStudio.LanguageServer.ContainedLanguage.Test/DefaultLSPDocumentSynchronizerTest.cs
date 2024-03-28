@@ -7,8 +7,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
-using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class DefaultLSPDocumentSynchronizerTest : TestBase
+public class DefaultLSPDocumentSynchronizerTest : ToolingTestBase
 {
     private readonly ITextSnapshot _virtualDocumentSnapshot;
     private readonly ITextBuffer _virtualDocumentTextBuffer;
@@ -102,6 +102,60 @@ public class DefaultLSPDocumentSynchronizerTest : TestBase
 
         // Assert
         Assert.True(result);
+    }
+
+    [Fact]
+    public async Task TrySynchronizeVirtualDocumentAsync_SpecificDocuments_SynchronizesAfterUpdate_ReturnsTrue()
+    {
+        // Arrange
+        var snapshot1 = new StringTextSnapshot("doc1");
+        var buffer1 = new TestTextBuffer(snapshot1);
+        snapshot1.TextBuffer = buffer1;
+        var snapshot2 = new StringTextSnapshot("doc2");
+        var buffer2 = new TestTextBuffer(snapshot2);
+        snapshot2.TextBuffer = buffer2;
+
+        var virtualDocumentUri1 = new Uri("C:/path/to/1/file.razor__virtual.cs");
+        var virtualDocument1 = new TestVirtualDocumentSnapshot(virtualDocumentUri1, 1, snapshot1, state: null);
+        var virtualDocumentUri2 = new Uri("C:/path/to/2/file.razor__virtual.cs");
+        var virtualDocument2 = new TestVirtualDocumentSnapshot(virtualDocumentUri2, 1, snapshot2, state: null);
+        var documentUri = new Uri("C:/path/to/file.razor");
+        LSPDocumentSnapshot lspDocument = new TestLSPDocumentSnapshot(documentUri, 2, virtualDocument1, virtualDocument2);
+
+        var fileUriProvider = Mock.Of<FileUriProvider>(provider => provider.TryGet(buffer1, out virtualDocumentUri1) == true &&
+            provider.TryGet(buffer2, out virtualDocumentUri2) == true, MockBehavior.Strict);
+        var documentManager = Mock.Of<LSPDocumentManager>(m => m.TryGetDocument(documentUri, out lspDocument) == true, MockBehavior.Strict);
+
+        var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, documentManager)
+        {
+            // Slow things down so even on slow CI machines, we still validate that updating doc 1 doesn't release the task for doc 2
+            _synchronizationTimeout = TimeSpan.FromSeconds(5)
+        };
+        NotifyLSPDocumentAdded(lspDocument, synchronizer);
+
+        // Act
+
+        // Start synchronization, this should block until we notify the buffer versions been updated for doc 1
+        var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync<TestVirtualDocumentSnapshot>(lspDocument.Version, documentUri, virtualDocumentUri1, rejectOnNewerParallelRequest: true, DisposalToken);
+
+        // Start synchronization for doc 2, this should block until we notify the buffer versions been updated for doc 2
+        var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync<TestVirtualDocumentSnapshot>(lspDocument.Version, documentUri, virtualDocumentUri2, rejectOnNewerParallelRequest: true, DisposalToken);
+
+        NotifyBufferVersionUpdated(buffer1, lspDocument.Version);
+
+        var result = await synchronizeTask1;
+
+        // Assert
+        Assert.True(result.Synchronized);
+        // Only virtual doc 1 should have been synchronized
+        Assert.False(synchronizeTask2.IsCompleted);
+
+        // Now update doc 2
+        NotifyBufferVersionUpdated(buffer2, lspDocument.Version);
+        result = await synchronizeTask2;
+
+        // Assert
+        Assert.True(result.Synchronized);
     }
 
     [Fact]

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
@@ -36,15 +35,12 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
     public Task<RazorCodeDocument> GetGeneratedOutputAsync()
         => throw new NotSupportedException();
 
-    public ImmutableArray<IDocumentSnapshot> GetImports()
-        => ImmutableArray<IDocumentSnapshot>.Empty;
-
     public async Task<SourceText> GetTextAsync()
     {
         using (var stream = _importItem.Read())
         using (var reader = new StreamReader(stream))
         {
-            var content = await reader.ReadToEndAsync();
+            var content = await reader.ReadToEndAsync().ConfigureAwait(false);
             _sourceText = SourceText.From(content);
         }
 
@@ -75,5 +71,8 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
     }
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+        => throw new NotSupportedException();
+
+    public IDocumentSnapshot WithText(SourceText text)
         => throw new NotSupportedException();
 }

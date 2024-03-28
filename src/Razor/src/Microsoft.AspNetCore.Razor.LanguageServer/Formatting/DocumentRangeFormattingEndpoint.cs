@@ -4,16 +4,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-[LanguageServerEndpoint(Methods.TextDocumentRangeFormattingName)]
-internal class DocumentRangeFormattingEndpoint : IRazorRequestHandler<DocumentRangeFormattingParams, TextEdit[]?>, IRegistrationExtension
+[RazorLanguageServerEndpoint(Methods.TextDocumentRangeFormattingName)]
+internal class DocumentRangeFormattingEndpoint : IRazorRequestHandler<DocumentRangeFormattingParams, TextEdit[]?>, ICapabilitiesProvider
 {
     private readonly IRazorFormattingService _razorFormattingService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
@@ -28,11 +27,9 @@ internal class DocumentRangeFormattingEndpoint : IRazorRequestHandler<DocumentRa
 
     public bool MutatesSolutionState => false;
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "documentRangeFormattingProvider";
-
-        return new RegistrationExtensionResult(ServerCapability, new SumType<bool, DocumentRangeFormattingOptions>(new DocumentRangeFormattingOptions()));
+        serverCapabilities.DocumentRangeFormattingProvider = new DocumentRangeFormattingOptions();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request)
@@ -53,13 +50,13 @@ internal class DocumentRangeFormattingEndpoint : IRazorRequestHandler<DocumentRa
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             return null;
         }
 
-        var edits = await _razorFormattingService.FormatAsync(documentContext, request.Range, request.Options, cancellationToken);
+        var edits = await _razorFormattingService.FormatAsync(documentContext, request.Range, request.Options, cancellationToken).ConfigureAwait(false);
 
         return edits;
     }

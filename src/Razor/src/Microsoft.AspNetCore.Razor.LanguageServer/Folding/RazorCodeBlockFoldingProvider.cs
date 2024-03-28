@@ -5,14 +5,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
-internal class RazorCodeBlockFoldingProvider : RazorFoldingRangeProvider
+internal sealed class RazorCodeBlockFoldingProvider : IRazorFoldingRangeProvider
 {
-    public override async Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
     {
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -32,7 +33,7 @@ internal class RazorCodeBlockFoldingProvider : RazorFoldingRangeProvider
 
                 // Directives remove the "@" but for collapsing we want to keep it for users.
                 // Shows "@code" instead of "code".
-                CollapsedText = "@" + codeBlock.DirectiveDescriptor.Directive 
+                CollapsedText = "@" + codeBlock.DirectiveDescriptor.Directive
             };
 
             builder.Add(foldingRange);

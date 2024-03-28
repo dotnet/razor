@@ -7,27 +7,37 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse;
+using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping.RazorMapToDocumentRangesResponse;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-public class RazorLSPSpanMappingServiceTest : TestBase
+public class RazorLSPSpanMappingServiceTest : ToolingTestBase
 {
     private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
-    private static readonly string s_mockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
-    private static readonly string s_mockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+    private static readonly string s_mockGeneratedContent = """
+            Hello
+             This is the source text in the generated C# file.
+             This is some more sample text for demo purposes.
+            """;
+    private static readonly string s_mockRazorContent = """
+            Hello
+             This is the
+             source text
+             in the generated C# file.
+             This is some more sample text for demo purposes.
+            """;
 
     private readonly SourceText _sourceTextGenerated;
     private readonly SourceText _sourceTextRazor;
@@ -53,7 +63,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
 
         var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
-        var textSpanAsRange = textSpan.AsRange(_sourceTextGenerated);
+        var textSpanAsRange = textSpan.ToRange(_sourceTextGenerated);
         var mappedRange = new Range()
         {
             Start = new Position(2, 1),
@@ -83,7 +93,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
         var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
         // Act
-        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
+        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
 
         // Assert
         Assert.True(called);
@@ -104,7 +114,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
 
         var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
-        var textSpanAsRange = textSpan.AsRange(_sourceTextGenerated);
+        var textSpanAsRange = textSpan.ToRange(_sourceTextGenerated);
 
         var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
         documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
@@ -120,7 +130,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
         var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
         // Act
-        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
+        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
 
         // Assert
         Assert.True(called);
@@ -132,7 +142,7 @@ public class RazorLSPSpanMappingServiceTest : TestBase
     {
         // Arrange
         var sourceTextRazor = SourceText.From("");
-        var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { Extensions.RangeExtensions.UndefinedRange } };
+        var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { RangeExtensions.UndefinedRange } };
 
         // Act
         var results = RazorLSPSpanMappingService.GetMappedSpanResults(_mockDocumentUri.LocalPath, sourceTextRazor, response);

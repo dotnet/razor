@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -72,7 +73,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
         var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+        await _projectSnapshotManagerDispatcher.RunAsync(() =>
         {
             foreach (var razorFilePath in existingRazorFiles)
             {
@@ -203,7 +204,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
         OnStartingDelayedNotificationWork();
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await _projectSnapshotManagerDispatcher.RunAsync(
             () => NotifyAfterDelay_ProjectSnapshotManagerDispatcher(physicalFilePath),
             CancellationToken.None).ConfigureAwait(false);
     }

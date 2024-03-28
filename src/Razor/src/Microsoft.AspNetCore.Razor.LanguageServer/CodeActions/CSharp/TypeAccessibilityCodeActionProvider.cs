@@ -9,19 +9,20 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
+internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
 {
+    private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult =
+        Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(Array.Empty<RazorVSInternalCodeAction>());
+
     private static readonly IEnumerable<string> s_supportedDiagnostics = new[]
     {
         // `The type or namespace name 'type/namespace' could not be found
@@ -37,7 +38,7 @@ internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
         "IDE1007"
     };
 
-    public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
         RazorCodeActionContext context,
         IEnumerable<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
@@ -54,12 +55,12 @@ internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
 
         if (context.Request?.Context?.Diagnostics is null)
         {
-            return EmptyResult;
+            return s_emptyResult;
         }
 
         if (codeActions is null || !codeActions.Any())
         {
-            return EmptyResult;
+            return s_emptyResult;
         }
 
         var results = context.SupportsCodeActionResolve
@@ -96,7 +97,7 @@ internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
                 continue;
             }
 
-            var diagnosticSpan = diagnostic.Range.AsTextSpan(context.SourceText);
+            var diagnosticSpan = diagnostic.Range.ToTextSpan(context.SourceText);
 
             // Based on how we compute `Range.AsTextSpan` it's possible to have a span
             // which goes beyond the end of the source text. Something likely changed
@@ -145,9 +146,9 @@ internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
                 var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
                 typeAccessibilityCodeActions.Add(fqnCodeAction);
 
-                if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument.Uri, out var @namespace, out var resolutionParams))
+                if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument.Uri, additionalEdit: null, out var @namespace, out var resolutionParams))
                 {
-                    var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, resolutionParams);
+                    var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName: null, resolutionParams);
                     typeAccessibilityCodeActions.Add(addUsingCodeAction);
                 }
             }
@@ -214,7 +215,6 @@ internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
 
         static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode? owner)
         {
-            var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
             if (syntaxTree?.Root is null)
             {
@@ -222,7 +222,7 @@ internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
                 return false;
             }
 
-            owner = syntaxTree.Root.LocateOwner(change);
+            owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex);
             if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");

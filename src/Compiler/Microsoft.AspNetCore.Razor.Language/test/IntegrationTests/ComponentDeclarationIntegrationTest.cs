@@ -8,9 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -117,13 +117,17 @@ public class ComponentDeclarationRazorIntegrationTest : RazorIntegrationTestBase
 
 namespace Test
 {
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -131,13 +135,14 @@ namespace Test
         }
         #pragma warning restore 1998
 #nullable restore
-#line 1 ""x:\dir\subdir\Test\TestComponent.cshtml""
-            
+#line (1,13)-(3,1) ""x:\dir\subdir\Test\TestComponent.cshtml""
+
     public StringBuilder Builder { get; set; }
 
 #line default
 #line hidden
 #nullable disable
+
     }
 }
 #pragma warning restore 1591

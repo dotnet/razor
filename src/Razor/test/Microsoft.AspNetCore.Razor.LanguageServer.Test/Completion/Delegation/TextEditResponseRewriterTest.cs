@@ -10,13 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
-public class TextEditResponseRewriterTest : ResponseRewriterTestBase
+public class TextEditResponseRewriterTest(ITestOutputHelper testOutput)
+    : ResponseRewriterTestBase(new TextEditResponseRewriter(), testOutput)
 {
-    public TextEditResponseRewriterTest(ITestOutputHelper testOutput)
-        : base(new TextEditResponseRewriter(), testOutput)
-    {
-    }
-
     [Fact]
     public async Task RewriteAsync_NotCSharp_Noops()
     {
@@ -35,7 +31,7 @@ public class TextEditResponseRewriterTest : ResponseRewriterTestBase
             getCompletionsAt, documentContent, delegatedCompletionList);
 
         // Assert
-        Assert.Equal(textEditRange, rewrittenCompletionList.Items[0].TextEdit.Range);
+        Assert.Equal(textEditRange, rewrittenCompletionList.Items[0].TextEdit.Value.First.Range);
     }
 
     [Fact]
@@ -62,7 +58,7 @@ public class TextEditResponseRewriterTest : ResponseRewriterTestBase
             getCompletionsAt, documentContent, delegatedCompletionList);
 
         // Assert
-        Assert.Equal(expectedRange, rewrittenCompletionList.Items[0].TextEdit.Range);
+        Assert.Equal(expectedRange, rewrittenCompletionList.Items[0].TextEdit.Value.First.Range);
     }
 
     [Fact]

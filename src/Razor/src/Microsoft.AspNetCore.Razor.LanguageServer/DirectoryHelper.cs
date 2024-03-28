@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -104,6 +104,11 @@ internal static class DirectoryHelper
         catch (PathTooLongException ex)
         {
             logger?.LogWarning("PathTooLong: {exception}", ex.Message);
+            yield break;
+        }
+        catch (IOException ex)
+        {
+            logger?.LogWarning("IOException: {exception}", ex.Message);
             yield break;
         }
 

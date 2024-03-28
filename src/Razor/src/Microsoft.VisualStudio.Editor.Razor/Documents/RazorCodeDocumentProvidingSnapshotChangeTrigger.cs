@@ -5,36 +5,28 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
 [Export(typeof(RazorCodeDocumentProvidingSnapshotChangeTrigger))]
-[Export(typeof(ProjectSnapshotChangeTrigger))]
-[System.Composition.Shared]
-internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : ProjectSnapshotChangeTrigger
+[Export(typeof(IRazorStartupService))]
+internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IRazorStartupService
 {
     private readonly HashSet<string> _openDocuments = new(FilePathComparer.Instance);
-    private readonly Dictionary<string, string> _documentProjectMap = new(FilePathComparer.Instance);
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private ProjectSnapshotManagerBase? _projectManager;
+    private readonly Dictionary<string, ProjectKey> _documentProjectMap = new(FilePathComparer.Instance);
+    private readonly IProjectSnapshotManager _projectManager;
 
     public event EventHandler<string>? DocumentReady;
 
     [ImportingConstructor]
-    public RazorCodeDocumentProvidingSnapshotChangeTrigger(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
-    {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-    }
-
-    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    public RazorCodeDocumentProvidingSnapshotChangeTrigger(IProjectSnapshotManager projectManager)
     {
         _projectManager = projectManager;
-
         _projectManager.Changed += ProjectManager_Changed;
     }
 
@@ -55,7 +47,7 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : ProjectSnapshot
         else if (e.Kind == ProjectChangeKind.DocumentAdded)
         {
             var documentFilePath = e.DocumentFilePath!;
-            _documentProjectMap[documentFilePath] = e.ProjectFilePath!;
+            _documentProjectMap[documentFilePath] = e.ProjectKey;
             if (_openDocuments.Contains(documentFilePath))
             {
                 _openDocuments.Remove(documentFilePath);
@@ -68,18 +60,15 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : ProjectSnapshot
         }
     }
 
-    public async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(string filePath, CancellationToken cancellationToken)
+    public async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(string filePath)
     {
-        if (!_documentProjectMap.TryGetValue(filePath, out var projectFilePath))
+        if (!_documentProjectMap.TryGetValue(filePath, out var projectKey))
         {
             _openDocuments.Add(filePath);
             return null;
         }
 
-        var project = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-            () => _projectManager?.GetLoadedProject(projectFilePath), cancellationToken);
-
-        if (project is null)
+        if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
         {
             return null;
         }

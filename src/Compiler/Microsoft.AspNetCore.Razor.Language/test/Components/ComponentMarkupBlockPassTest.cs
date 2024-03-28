@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
@@ -16,8 +16,8 @@ public class ComponentMarkupBlockPassTest
 {
     public ComponentMarkupBlockPassTest()
     {
-        Pass = new ComponentMarkupBlockPass();
-        ProjectEngine = (DefaultRazorProjectEngine)RazorProjectEngine.Create(
+        Pass = new ComponentMarkupBlockPass(RazorLanguageVersion.Latest);
+        ProjectEngine = RazorProjectEngine.Create(
             RazorConfiguration.Default,
             RazorProjectFileSystem.Create(Environment.CurrentDirectory),
             b =>
@@ -32,7 +32,7 @@ public class ComponentMarkupBlockPassTest
         Pass.Engine = Engine;
     }
 
-    private DefaultRazorProjectEngine ProjectEngine { get; }
+    private RazorProjectEngine ProjectEngine { get; }
 
     private RazorEngine Engine { get; }
 
@@ -303,7 +303,8 @@ public class ComponentMarkupBlockPassTest
         Pass.Execute(document, documentNode);
 
         // Assert
-        Assert.Empty(documentNode.FindDescendantNodes<MarkupBlockIntermediateNode>());
+        var block = documentNode.FindDescendantNodes<MarkupBlockIntermediateNode>().Single();
+        Assert.Equal("""<head cool="beans"><script>...</script></head>""", block.Content);
     }
 
     [Fact]
@@ -454,9 +455,8 @@ public class ComponentMarkupBlockPassTest
 
     private DocumentIntermediateNode Lower(RazorCodeDocument codeDocument)
     {
-        for (var i = 0; i < Engine.Phases.Count; i++)
+        foreach (var phase in Engine.Phases)
         {
-            var phase = Engine.Phases[i];
             if (phase is IRazorCSharpLoweringPhase)
             {
                 break;

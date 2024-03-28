@@ -10,22 +10,22 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
+internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionProvider
 {
     private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
-    private readonly ILogger<ExtractToCodeBehindCodeActionProvider> _logger;
+    private readonly ILogger _logger;
 
-    public ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory)
+    public ExtractToCodeBehindCodeActionProvider(IRazorLoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {
@@ -35,7 +35,7 @@ internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
         _logger = loggerFactory.CreateLogger<ExtractToCodeBehindCodeActionProvider>();
     }
 
-    public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         if (context is null)
         {
@@ -52,14 +52,13 @@ internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
             return s_emptyResult;
         }
 
-        var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
         if (syntaxTree?.Root is null)
         {
             return s_emptyResult;
         }
 
-        var owner = syntaxTree.Root.LocateOwner(change);
+        var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex);
         if (owner is null)
         {
             _logger.LogWarning("Owner should never be null.");
@@ -70,7 +69,7 @@ internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
         {
             // When the caret is '@code$$ {' or '@code$${' then tree is:
             // RazorDirective -> RazorDirectiveBody -> CSharpCodeBlock -> (MetaCode or TextLiteral)
-            CSharpCodeBlockSyntax { Parent: { Parent: RazorDirectiveSyntax d } } => d,
+            CSharpCodeBlockSyntax { Parent.Parent: RazorDirectiveSyntax d } => d,
             // When the caret is '@$$code' or '@c$$ode' or '@co$$de' or '@cod$$e' then tree is:
             // RazorDirective -> RazorDirectiveBody -> MetaCode
             RazorDirectiveBodySyntax { Parent: RazorDirectiveSyntax d } => d,
@@ -139,7 +138,7 @@ internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
         return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
     }
 
-    private bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
+    private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
         // If the compiler can't provide a computed namespace it will fallback to "__GeneratedComponent" or
         // similar for the NamespaceNode. This would end up with extracting to a wrong namespace
         // and causing compiler errors. Avoid offering this refactoring if we can't accurately get a

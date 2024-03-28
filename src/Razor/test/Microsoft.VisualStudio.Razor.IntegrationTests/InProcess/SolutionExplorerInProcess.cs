@@ -22,14 +22,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing;
 
 internal partial class SolutionExplorerInProcess
 {
-    public async Task CreateSolutionAsync(string solutionName, CancellationToken cancellationToken)
-    {
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var solutionPath = CreateTemporaryPath();
-        await CreateSolutionAsync(solutionPath, solutionName, cancellationToken);
-    }
-
     public Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
         => AddProjectAsync(projectName, projectTemplate, groupId: null, templateId: null, languageName, cancellationToken);
 
@@ -88,6 +80,15 @@ internal partial class SolutionExplorerInProcess
             cancellationToken);
     }
 
+    public async Task OpenSolutionAsync(string solutionFileName, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+
+        dte.Solution.Open(solutionFileName);
+    }
+
     public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -105,6 +106,12 @@ internal partial class SolutionExplorerInProcess
         ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
         ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
         ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
+
+        var fileExtension = Path.GetExtension(filePath);
+        if (fileExtension.Equals(".razor", StringComparison.OrdinalIgnoreCase) || fileExtension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase))
+        {
+            await TestServices.RazorProjectSystem.WaitForCSharpVirtualDocumentAsync(filePath, cancellationToken);
+        }
     }
 
     /// <summary>
@@ -136,6 +143,12 @@ internal partial class SolutionExplorerInProcess
 
         _ = project.ProjectItems.AddFromFile(filePath);
 
+        var fileExtension = Path.GetExtension(filePath);
+        if (fileExtension.Equals(".razor", StringComparison.OrdinalIgnoreCase) || fileExtension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase))
+        {
+            await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(project.FileName, filePath, cancellationToken);
+        }
+
         if (open)
         {
             await OpenFileAsync(projectName, fileName, cancellationToken);
@@ -150,9 +163,10 @@ internal partial class SolutionExplorerInProcess
         var style = "Debug";
         var framework = "net6.0";
 
-        var razorJsonPath = Path.Combine(localPath, "obj", style, framework, "project.razor.vs.json");
+        var razorJsonPath = Path.Combine(localPath, "obj", style, framework, "project.razor.vs.bin");
 
-        await Helper.RetryAsync(ct => {
+        await Helper.RetryAsync(ct =>
+        {
             var jsonContents = File.ReadAllText(razorJsonPath);
 
             return Task.FromResult(jsonContents.Contains($"TypeNameIdentifier\":\"{componentName}\""));
@@ -223,7 +237,7 @@ internal partial class SolutionExplorerInProcess
         return pane;
     }
 
-    private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
+    public async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -276,7 +290,7 @@ internal partial class SolutionExplorerInProcess
         };
     }
 
-    private async Task<string> GetAbsolutePathForProjectRelativeFilePathAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+    public async Task<string> GetAbsolutePathForProjectRelativeFilePathAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -287,7 +301,7 @@ internal partial class SolutionExplorerInProcess
         var project = solution.Projects.Cast<EnvDTE.Project>().FirstOrDefault(x => x.Name == projectName);
         if (project is null)
         {
-            Assert.True(false, $"{projectName} doesn't exist, had {string.Join(",", solution.Projects.Cast<EnvDTE.Project>().Select(p => p.Name))}");
+            Assert.Fail($"{projectName} doesn't exist, had {string.Join(",", solution.Projects.Cast<EnvDTE.Project>().Select(p => p.Name))}");
             throw new NotImplementedException("Prevent null fallthrough");
         }
 
@@ -296,7 +310,7 @@ internal partial class SolutionExplorerInProcess
         return Path.Combine(projectPath, relativeFilePath);
     }
 
-    private async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)
+    public async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -308,11 +322,6 @@ internal partial class SolutionExplorerInProcess
         }
 
         return Path.GetDirectoryName(solutionFileFullPath);
-    }
-
-    private static string CreateTemporaryPath()
-    {
-        return Path.Combine(Path.GetTempPath(), "razor-test", Path.GetRandomFileName());
     }
 
     private async Task<EnvDTE.Project> GetProjectAsync(string nameOrFileName, CancellationToken cancellationToken)

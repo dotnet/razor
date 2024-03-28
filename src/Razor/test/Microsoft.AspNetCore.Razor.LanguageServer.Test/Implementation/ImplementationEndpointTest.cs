@@ -7,8 +7,8 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,13 +17,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 
-public class ImplementationEndpointTest : SingleServerDelegatingEndpointTestBase
+public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public ImplementationEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_SingleServer_CSharp_Method()
     {
@@ -98,10 +93,10 @@ public class ImplementationEndpointTest : SingleServerDelegatingEndpointTestBase
         var codeDocument = CreateCodeDocument(output);
         var razorFilePath = "C:/path/to/file.razor";
 
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
         var endpoint = new ImplementationEndpoint(
-            LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory);
+            LanguageServerFeatureOptions, DocumentMappingService, languageServer, LoggerFactory);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
         var request = new TextDocumentPositionParams
@@ -112,7 +107,7 @@ public class ImplementationEndpointTest : SingleServerDelegatingEndpointTestBase
             },
             Position = new Position(line, offset)
         };
-        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument.Uri, DisposalToken);
+        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -129,7 +124,7 @@ public class ImplementationEndpointTest : SingleServerDelegatingEndpointTestBase
         {
             Assert.Equal(new Uri(razorFilePath), location.Uri);
 
-            var expectedRange = expectedSpans[i].AsRange(codeDocument.GetSourceText());
+            var expectedRange = expectedSpans[i].ToRange(codeDocument.GetSourceText());
             Assert.Equal(expectedRange, location.Range);
 
             i++;

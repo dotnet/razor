@@ -7,8 +7,9 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -18,9 +19,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 internal sealed class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-    private readonly ILogger<IOnAutoInsertProvider> _logger;
+    private readonly ILogger _logger;
 
-    public CloseTextTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
+    public CloseTextTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, IRazorLoggerFactory loggerFactory)
     {
         if (optionsMonitor is null)
         {
@@ -75,8 +76,7 @@ internal sealed class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
             return false;
         }
 
-        var change = new SourceChange(absoluteIndex - 1, 0, string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(change);
+        var owner = syntaxTree.Root.FindToken(absoluteIndex - 1);
         // Make sure the end </text> tag doesn't already exist
         if (owner?.Parent is MarkupStartTagSyntax
             {

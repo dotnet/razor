@@ -5,21 +5,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTestBase
+public class DirectiveAttributeCompletionItemProviderTest : RazorToolingIntegrationTestBase
 {
     private readonly DirectiveAttributeCompletionItemProvider _provider;
     private readonly TagHelperDocumentContext _defaultTagHelperDocumentContext;
-    private readonly IEnumerable<string> _emptyAttributes;
 
     internal override string FileKind => FileKinds.Component;
     internal override bool UseTwoPhaseCompilation => true;
@@ -27,8 +26,7 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
     public DirectiveAttributeCompletionItemProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _provider = new DirectiveAttributeCompletionItemProvider(new DefaultTagHelperFactsService());
-        _emptyAttributes = Enumerable.Empty<string>();
+        _provider = new DirectiveAttributeCompletionItemProvider();
 
         // Most of these completions rely on stuff in the web namespace.
         ImportItems.Add(CreateProjectItem(
@@ -43,19 +41,6 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
     {
         var result = CompileToCSharp(content, throwOnFailure: false);
         return result.CodeDocument;
-    }
-
-    [Fact]
-    public void GetCompletionItems_LocationHasNoOwner_ReturnsEmptyCollection()
-    {
-        // Arrange
-        var context = CreateRazorCompletionContext(absoluteIndex: 30, "<input @  />");
-
-        // Act
-        var completions = _provider.GetCompletionItems(context);
-
-        // Assert
-        Assert.Empty(completions);
     }
 
     [Fact]
@@ -94,7 +79,7 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
+        AssertContains(completions, "bind", "@bind", ["=", ":"]);
     }
 
     [Fact]
@@ -107,7 +92,7 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContains(completions, "attributes", "@attributes", new[] { "=" });
+        AssertContains(completions, "attributes", "@attributes", ["="]);
     }
 
     [Fact]
@@ -179,10 +164,10 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
     public void GetAttributeCompletions_NoDescriptorsForTag_ReturnsEmptyCollection()
     {
         // Arrange
-        var documentContext = TagHelperDocumentContext.Create(string.Empty, Enumerable.Empty<TagHelperDescriptor>());
+        var documentContext = TagHelperDocumentContext.Create(string.Empty, tagHelpers: []);
 
         // Act
-        var completions = _provider.GetAttributeCompletions("@bin", "foobarbaz", _emptyAttributes, documentContext);
+        var completions = _provider.GetAttributeCompletions("@bin", "foobarbaz", [], documentContext);
 
         // Assert
         Assert.Empty(completions);
@@ -195,10 +180,10 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
         var descriptor = TagHelperDescriptorBuilder.Create("CatchAll", "TestAssembly");
         descriptor.BoundAttributeDescriptor(boundAttribute => boundAttribute.Name = "Test");
         descriptor.TagMatchingRule(rule => rule.RequireTagName("*"));
-        var documentContext = TagHelperDocumentContext.Create(string.Empty, new[] { descriptor.Build() });
+        var documentContext = TagHelperDocumentContext.Create(string.Empty, [descriptor.Build()]);
 
         // Act
-        var completions = _provider.GetAttributeCompletions("@bin", "input", _emptyAttributes, documentContext);
+        var completions = _provider.GetAttributeCompletions("@bin", "input", [], documentContext);
 
         // Assert
         Assert.Empty(completions);
@@ -208,13 +193,13 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
     public void GetAttributeCompletions_SelectedDirectiveAttribute_IsIncludedInCompletions()
     {
         // Arrange
-        var attributeNames = new string[] { "@bind" };
+        var attributeNames = ImmutableArray.Create("@bind");
 
         // Act
         var completions = _provider.GetAttributeCompletions("@bind", "input", attributeNames, _defaultTagHelperDocumentContext);
 
         // Assert
-        AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
+        AssertContains(completions, "bind", "@bind", ["=", ":"]);
     }
 
     [Fact]
@@ -223,10 +208,10 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
         // Arrange
 
         // Act
-        var completions = _provider.GetAttributeCompletions("@", "input", _emptyAttributes, _defaultTagHelperDocumentContext);
+        var completions = _provider.GetAttributeCompletions("@", "input", [], _defaultTagHelperDocumentContext);
 
         // Assert
-        AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
+        AssertContains(completions, "bind", "@bind", ["=", ":"]);
     }
 
     [Fact]
@@ -235,31 +220,30 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
         // Arrange
 
         // Act
-        var completions = _provider.GetAttributeCompletions("@", "input", _emptyAttributes, _defaultTagHelperDocumentContext);
+        var completions = _provider.GetAttributeCompletions("@", "input", [], _defaultTagHelperDocumentContext);
 
         // Assert
-        AssertContains(completions, "bind-", "@bind-...", Array.Empty<string>());
+        AssertContains(completions, "bind-", "@bind-...", []);
     }
 
     [Fact]
     public void GetAttributeCompletions_BaseDirectiveAttributeAlreadyExists_IncludesBaseAttribute()
     {
         // Arrange
-        var attributeNames = new[] { "@bind", "@" };
+        var attributeNames = ImmutableArray.Create("@bind", "@");
 
         // Act
         var completions = _provider.GetAttributeCompletions("@", "input", attributeNames, _defaultTagHelperDocumentContext);
 
         // Assert
-        AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
+        AssertContains(completions, "bind", "@bind", ["=", ":"]);
     }
 
     [Fact]
     public void GetAttributeCompletions_BaseDirectiveAttributeAndParameterVariationsExist_ExcludesCompletion()
     {
         // Arrange
-        var attributeNames = new[]
-        {
+        var attributeNames = ImmutableArray.Create(
             "@bind",
             "@bind:format",
             "@bind:event",
@@ -267,8 +251,7 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
             "@bind:get",
             "@bind:set",
             "@bind:after",
-            "@",
-        };
+            "@");
 
         // Act
         var completions = _provider.GetAttributeCompletions("@", "input", attributeNames, _defaultTagHelperDocumentContext);
@@ -303,8 +286,8 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTest
         var syntaxTree = codeDocument.GetSyntaxTree();
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
-        var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(queryableChange);
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
+        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
         return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -15,10 +16,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 // which tracks the state at a point in time.
 internal sealed class EditorDocument : IDisposable
 {
-    private readonly EditorDocumentManager _documentManager;
+    private readonly IEditorDocumentManager _documentManager;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly FileChangeTracker _fileTracker;
+    private readonly IFileChangeTracker _fileTracker;
     private readonly SnapshotChangeTracker _snapshotTracker;
     private readonly EventHandler? _changedOnDisk;
     private readonly EventHandler? _changedInEditor;
@@ -28,13 +29,14 @@ internal sealed class EditorDocument : IDisposable
     private bool _disposed;
 
     public EditorDocument(
-        EditorDocumentManager documentManager,
+        IEditorDocumentManager documentManager,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         JoinableTaskContext joinableTaskContext,
         string projectFilePath,
         string documentFilePath,
+        ProjectKey projectKey,
         TextLoader textLoader,
-        FileChangeTracker fileTracker,
+        IFileChangeTracker fileTracker,
         ITextBuffer? textBuffer,
         EventHandler? changedOnDisk,
         EventHandler? changedInEditor,
@@ -81,6 +83,7 @@ internal sealed class EditorDocument : IDisposable
         _joinableTaskContext = joinableTaskContext;
         ProjectFilePath = projectFilePath;
         DocumentFilePath = documentFilePath;
+        ProjectKey = projectKey;
         TextLoader = textLoader;
         _fileTracker = fileTracker;
         _changedOnDisk = changedOnDisk;
@@ -94,7 +97,7 @@ internal sealed class EditorDocument : IDisposable
         // Only one of these should be active at a time.
         if (textBuffer is null)
         {
-            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunAsync(
                 _fileTracker.StartListening, CancellationToken.None).ConfigureAwait(false);
         }
         else
@@ -106,6 +109,8 @@ internal sealed class EditorDocument : IDisposable
             EditorTextContainer.TextChanged += TextContainer_Changed;
         }
     }
+
+    public ProjectKey ProjectKey { get; }
 
     public string ProjectFilePath { get; }
 
@@ -126,7 +131,7 @@ internal sealed class EditorDocument : IDisposable
             throw new ArgumentNullException(nameof(textBuffer));
         }
 
-        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        _ = _projectSnapshotManagerDispatcher.RunAsync(
             _fileTracker.StopListening, CancellationToken.None).ConfigureAwait(false);
 
         _snapshotTracker.StartTracking(textBuffer);
@@ -147,7 +152,7 @@ internal sealed class EditorDocument : IDisposable
         EditorTextContainer = null;
         EditorTextBuffer = null;
 
-        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        _ = _projectSnapshotManagerDispatcher.RunAsync(
             _fileTracker.StartListening, CancellationToken.None);
     }
 
@@ -172,7 +177,7 @@ internal sealed class EditorDocument : IDisposable
         {
             _fileTracker.Changed -= ChangeTracker_Changed;
 
-            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunAsync(
                 _fileTracker.StopListening, CancellationToken.None);
 
             if (EditorTextBuffer is not null)

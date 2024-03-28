@@ -4,14 +4,16 @@
 [assembly: global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute(typeof(AspNetCoreGeneratedDocument.Views_Home_Index), @"mvc.1.0.view", @"/Views/Home/Index.cshtml")]
 namespace AspNetCoreGeneratedDocument
 {
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line default
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/Views/Home/Index.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -43,15 +45,16 @@ namespace AspNetCoreGeneratedDocument
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 2 "Views/Home/Index.cshtml"
-  
+#line (2,3)-(4,1) "Views/Home/Index.cshtml"
+
     var num = 42;
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("\r\n");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:test", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "ae625dc7ef6db4af156601325d79196402a512422749", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:test", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
             }
             );
             __TestViewComponentTagHelper = CreateTagHelper<global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestViewComponentTagHelper>();
@@ -61,13 +64,15 @@ namespace AspNetCoreGeneratedDocument
             __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
             __TestViewComponentTagHelper.text = __tagHelperStringValueBuffer;
             __tagHelperExecutionContext.AddTagHelperAttribute("text", __TestViewComponentTagHelper.text, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+            __TestViewComponentTagHelper.number = 
 #nullable restore
-#line 6 "Views/Home/Index.cshtml"
-__TestViewComponentTagHelper.number = num;
+#line (6,32)-(6,35) "Views/Home/Index.cshtml"
+num
 
 #line default
 #line hidden
 #nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("number", __TestViewComponentTagHelper.number, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __TestViewComponentTagHelper.flag = true;
             __tagHelperExecutionContext.AddTagHelperAttribute("flag", __TestViewComponentTagHelper.flag, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.Minimized);

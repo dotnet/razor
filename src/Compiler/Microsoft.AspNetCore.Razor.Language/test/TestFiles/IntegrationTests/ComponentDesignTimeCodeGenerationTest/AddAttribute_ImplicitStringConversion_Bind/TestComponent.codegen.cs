@@ -2,13 +2,17 @@
 #pragma warning disable 1591
 namespace Test
 {
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -54,7 +58,8 @@ namespace Test
 #nullable disable
             , -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => c = __value, c)));
-            __o = __typeInference_CreateMyComponent_0.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
     BoolParameter
@@ -62,8 +67,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
-            __o = __typeInference_CreateMyComponent_0.
+             = default;
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
     StringParameter
@@ -71,8 +76,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
-            __o = __typeInference_CreateMyComponent_0.
+             = default;
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
     DelegateParameter
@@ -80,8 +85,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
-            __o = __typeInference_CreateMyComponent_0.
+             = default;
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
     ObjectParameter
@@ -89,8 +94,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
-            __o = __typeInference_CreateMyComponent_0.
+             = default;
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                    MyParameter
@@ -98,7 +103,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

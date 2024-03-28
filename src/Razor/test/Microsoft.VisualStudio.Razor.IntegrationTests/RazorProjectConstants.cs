@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public static class RazorProjectConstants
 {
+    internal const string BlazorSolutionName = "BlazorSolution";
     internal const string BlazorProjectName = "BlazorProject";
 
     private static readonly string s_pagesDir = Path.Combine("Pages");
@@ -22,6 +23,7 @@ public static class RazorProjectConstants
     internal static readonly string SurveyPromptFile = Path.Combine(s_sharedDir, "SurveyPrompt.razor");
     internal static readonly string ErrorCshtmlFile = Path.Combine(s_pagesDir, "Error.cshtml");
     internal static readonly string ImportsRazorFile = "_Imports.razor";
+    internal static readonly string ProjectFile = $"{BlazorProjectName}.csproj";
 
     internal static readonly string IndexPageContent = @"@page ""/""
 

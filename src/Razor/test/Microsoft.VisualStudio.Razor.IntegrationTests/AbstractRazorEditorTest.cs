@@ -3,57 +3,140 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-public abstract class AbstractRazorEditorTest : AbstractEditorTest
+[LogIntegrationTest]
+public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper) : AbstractIntegrationTest
 {
     private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
     private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
-    protected override string LanguageName => LanguageNames.Razor;
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+    private ILogger? _testLogger;
+
+    protected virtual bool ComponentClassificationExpected => true;
+
+    protected virtual string TargetFramework => "net8.0";
+
+    protected virtual string TargetFrameworkElement => $"""<TargetFramework>{TargetFramework}</TargetFramework>""";
 
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
+        _testLogger = await TestServices.Output.SetupIntegrationTestLoggerAsync(_testOutputHelper, ControlledHangMitigatingCancellationToken);
+
+        _testLogger.LogInformation("#### Razor integration test initialize.");
+
         VisualStudioLogging.AddCustomLoggers();
 
-        await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+        var projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
+
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForProjectFileAsync(projectFilePath, ControlledHangMitigatingCancellationToken);
+
+        var razorFilePath = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(projectFilePath, razorFilePath, ControlledHangMitigatingCancellationToken);
 
         // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
         // way we know the LSP server is up, running, and has processed both local and library-sourced Components
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
 
         // Razor extension doesn't launch until a razor file is opened, so wait for it to equalize
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
         EnsureLSPEditorEnabled();
         await EnsureTextViewRolesAsync(ControlledHangMitigatingCancellationToken);
         await EnsureExtensionInstalledAsync(ControlledHangMitigatingCancellationToken);
-        EnsureMEFCompositionSuccessForRazor();
 
         await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
+
+        if (ComponentClassificationExpected)
+        {
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
+        }
+
+        // Making a code change gets us flowing new generated code versions around the system
+        // which seems to have a positive effect on Web Tools in particular. Given the relatively
+        // fast pace of running integration tests, it's worth taking a slight delay at the start for a more reliable run.
+        TestServices.Input.Send("{ENTER}");
+
+        await Task.Delay(2500);
 
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
+
+        _testLogger.LogInformation("#### Razor integration test initialize finished.");
+    }
+
+    private async Task<string> CreateAndOpenBlazorProjectAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        await TestServices.SolutionExplorer.CloseSolutionAsync(ControlledHangMitigatingCancellationToken);
+
+        var solutionPath = CreateTemporaryPath();
+
+        var resourceName = "Microsoft.VisualStudio.Razor.IntegrationTests.TestFiles.BlazorProject.zip";
+        using var zipStream = typeof(AbstractRazorEditorTest).Assembly.GetManifestResourceStream(resourceName);
+        using var zip = new ZipArchive(zipStream);
+        zip.ExtractToDirectory(solutionPath);
+
+        var slnFile = Directory.EnumerateFiles(solutionPath, "*.sln").Single();
+        var projectFile = Directory.EnumerateFiles(solutionPath, "*.csproj", SearchOption.AllDirectories).Single();
+
+        PrepareProjectForFirstOpen(projectFile);
+
+        await TestServices.SolutionExplorer.OpenSolutionAsync(slnFile, cancellationToken);
+
+        return projectFile;
+    }
+
+    protected virtual void PrepareProjectForFirstOpen(string projectFileName)
+    {
+        var sb = new StringBuilder();
+        foreach (var line in File.ReadAllLines(projectFileName))
+        {
+            if (line.Contains("<TargetFramework"))
+            {
+                sb.AppendLine(TargetFrameworkElement);
+            }
+            else
+            {
+                sb.AppendLine(line);
+            }
+        }
+
+        File.WriteAllText(projectFileName, sb.ToString());
+    }
+
+    private static string CreateTemporaryPath()
+    {
+        return Path.Combine(Path.GetTempPath(), "razor-test", Path.GetRandomFileName());
+    }
+
+    public override async Task DisposeAsync()
+    {
+        _testLogger!.LogInformation("#### Razor integration test dispose.");
+
+        TestServices.Output.ClearIntegrationTestLogger();
+
+        await base.DisposeAsync();
     }
 
     private static void EnsureLSPEditorEnabled()
@@ -66,31 +149,6 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
 
         var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
         Assert.AreEqual(false, useLegacyEditor, "Expected the Legacy Razor Editor to be disabled, but it was enabled");
-    }
-
-    private static void EnsureMEFCompositionSuccessForRazor()
-    {
-        var hiveDirectory = VisualStudioLogging.GetHiveDirectory();
-        var cmcPath = Path.Combine(hiveDirectory, "ComponentModelCache");
-        if (!Directory.Exists(cmcPath))
-        {
-            throw new InvalidOperationException("ComponentModelCache directory doesn't exist");
-        }
-
-        var mefErrorFile = Path.Combine(cmcPath, "Microsoft.VisualStudio.Default.err");
-        if (!File.Exists(mefErrorFile))
-        {
-            throw new InvalidOperationException("Expected ComponentModelCache error file to exist");
-        }
-
-        var txt = File.ReadAllText(mefErrorFile);
-        const string Separator = "----------- Used assemblies -----------";
-        var content = txt.Split(new string[] { Separator }, StringSplitOptions.RemoveEmptyEntries);
-        var errors = content[0];
-        if (errors.Contains("Razor"))
-        {
-            throw new InvalidOperationException($"Razor errors detected in MEF cache: {errors}");
-        }
     }
 
     private async Task EnsureTextViewRolesAsync(CancellationToken cancellationToken)

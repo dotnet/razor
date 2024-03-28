@@ -6,20 +6,18 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
-[LanguageServerEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
-internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>, IRegistrationExtension
+[RazorLanguageServerEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
+internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>, ICapabilitiesProvider
 {
     // The regex below excludes characters that can never be valid in a TagHelper name.
     // This is loosely based off logic from the Razor compiler:
@@ -29,7 +27,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
 
     private readonly ILogger _logger;
 
-    public LinkedEditingRangeEndpoint(ILoggerFactory loggerFactory)
+    public LinkedEditingRangeEndpoint(IRazorLoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {
@@ -41,12 +39,9 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
 
     public bool MutatesSolutionState => false;
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "linkedEditingRangeProvider";
-        var option = new SumType<bool, LinkedEditingRangeOptions>(new LinkedEditingRangeOptions { });
-
-        return new RegistrationExtensionResult(ServerCapability, option);
+        serverCapabilities.LinkedEditingRangeProvider = new LinkedEditingRangeOptions();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(LinkedEditingRangeParams request)
@@ -66,25 +61,29 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             _logger.LogWarning("FileKind {FileKind} is unsupported", codeDocument.GetFileKind());
             return null;
         }
 
-        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken);
+        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-        var location = await GetSourceLocation(request, documentContext, cancellationToken).ConfigureAwait(false);
+        var location = await GetSourceLocationAsync(request, documentContext, cancellationToken).ConfigureAwait(false);
+        if (location is not SourceLocation validLocation)
+        {
+            return null;
+        }
 
         // We only care if the user is within a TagHelper or HTML tag with a valid start and end tag.
-        if (TryGetNearestMarkupNameTokens(syntaxTree, location, out var startTagNameToken, out var endTagNameToken) &&
-            (startTagNameToken.Span.Contains(location.AbsoluteIndex) || endTagNameToken.Span.Contains(location.AbsoluteIndex) ||
-            startTagNameToken.Span.End == location.AbsoluteIndex || endTagNameToken.Span.End == location.AbsoluteIndex))
+        if (TryGetNearestMarkupNameTokens(syntaxTree, validLocation, out var startTagNameToken, out var endTagNameToken) &&
+            (startTagNameToken.Span.Contains(validLocation.AbsoluteIndex) || endTagNameToken.Span.Contains(validLocation.AbsoluteIndex) ||
+            startTagNameToken.Span.End == validLocation.AbsoluteIndex || endTagNameToken.Span.End == validLocation.AbsoluteIndex))
         {
             var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
             var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
-            var ranges = new Range[2] { startSpan.AsRange(), endSpan.AsRange() };
+            var ranges = new Range[2] { startSpan.ToRange(), endSpan.ToRange() };
 
             return new LinkedEditingRanges
             {
@@ -96,17 +95,20 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
         _logger.LogInformation("LinkedEditingRange request was null at {location} for {uri}", location, request.TextDocument.Uri);
         return null;
 
-        static async Task<SourceLocation> GetSourceLocation(
+        async Task<SourceLocation?> GetSourceLocationAsync(
             LinkedEditingRangeParams request,
             DocumentContext documentContext,
             CancellationToken cancellationToken)
         {
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);
-
-            return location;
+            if (request.Position.TryGetSourceLocation(sourceText, _logger, out var location))
+            {
+                return location;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         static bool TryGetNearestMarkupNameTokens(
@@ -115,8 +117,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
             [NotNullWhen(true)] out SyntaxToken? startTagNameToken,
             [NotNullWhen(true)] out SyntaxToken? endTagNameToken)
         {
-            var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = syntaxTree.Root.FindInnermostNode(location.AbsoluteIndex);
             var element = owner?.FirstAncestorOrSelf<MarkupSyntaxNode>(
                 a => a.Kind is SyntaxKind.MarkupTagHelperElement || a.Kind is SyntaxKind.MarkupElement);
 

@@ -10,8 +10,10 @@ variables:
   value: AspNetCore
 - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
   value: true
-- name: Codeql.Enabled
-  value: true
+- name: LogLevel
+  value: 'All'
+- name: RunIntegrationTests
+  value: false
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
   - group: DotNetBuilds storage account read tokens
   - name: _InternalRuntimeDownloadArgs
@@ -35,9 +37,15 @@ variables:
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
     value: ''
+  - name: Codeql.Enabled
+    value: true
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - name: _InternalRuntimeDownloadArgs
     value: ''
+  - name: Codeql.Enabled
+    value: false
+  - name: Codeql.SkipTaskAutoInjection
+    value: true
 
 trigger:
   batch: true
@@ -70,6 +78,7 @@ stages:
       enablePublishBuildArtifacts: false
       enablePublishTestResults: false
       enablePublishUsingPipelines: false
+      enableSourcebuild: true
       jobs:
       # Code check
       - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
@@ -83,10 +92,6 @@ stages:
               name: $(DncEngInternalBuildPool)
               demands: ImageOverride -equals windows.vs2022preview.amd64
           steps:
-          - task: NodeTool@0
-            displayName: Install Node 10.x
-            inputs:
-              versionSpec: 10.x
           - task: NuGetCommand@2
             displayName: 'Clear NuGet caches'
             condition: succeeded()
@@ -104,13 +109,14 @@ stages:
           - powershell: ./restore.cmd -msbuildEngine dotnet -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
             displayName: Run eng/scripts/CodeCheck.ps1
 
-  # Three jobs for each of the three OSes we want to run on
+  # Windows based jobs. This needs to be separate from Unix based jobs because it generates
+  # TRX files. That can only be toggled at the top level template level, not at the individual
+  # job.
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
       enablePublishBuildArtifacts: false
       enablePublishTestResults: true
       enableTelemetry: true
-      enableSourcebuild: true
       helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
@@ -162,15 +168,6 @@ stages:
               /p:GenerateSbom=true
 
         steps:
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
-
-        - powershell: npm install -g yarn
-          displayName: Install yarn
-          condition: succeeded()
-
         - task: NuGetCommand@2
           displayName: 'Clear NuGet caches'
           condition: succeeded()
@@ -236,7 +233,7 @@ stages:
             -nobl
           name: Run_Unit_Tests
           displayName: Run Unit Tests
-          condition: succeeded()
+          condition: and(succeeded(), in(variables['Build.Reason'], 'PullRequest'))
 
         - script: eng\CIBuild.cmd
             -configuration $(_BuildConfig)
@@ -244,7 +241,7 @@ stages:
             -integrationTest
           name: Run_Integration_Tests
           displayName: Run Integration Tests
-          condition: succeeded()
+          condition: and(eq(variables['RunIntegrationTests'], true), succeeded(), in(variables['Build.Reason'], 'PullRequest'))
 
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
@@ -259,17 +256,12 @@ stages:
         - publish: artifacts/TestResults/$(_BuildConfig)
           artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Artifacts
-          condition: always()
+          condition: in(variables['Build.Reason'], 'PullRequest')
 
         # Publish an artifact that the RoslynInsertionTool is able to find by its name.
         - publish: artifacts\VSSetup\$(_BuildConfig)
           artifact: VSSetup
           displayName: Publish VSSetup
-          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
-
-        - publish: artifacts\MPack\$(_BuildConfig)
-          artifact: MPack_$(Agent.Os)_$(_BuildConfig)
-          displayName: Publish VS for Mac Artifacts
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
         - publish: artifacts\packages\$(_BuildConfig)
@@ -292,33 +284,35 @@ stages:
             continueOnError: true
             condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
+  # Unix jobs done as a group since they share the same test results format.
+  - template: /eng/common/templates/jobs/jobs.yml
+    parameters:
+      enablePublishBuildArtifacts: false
+      enablePublishTestResults: true
+      enableTelemetry: true
+      testResultsFormat: xunit
+      helixRepo: dotnet/razor
+      helixType: build.product/
+      jobs:
       - job: macOS
         pool:
           vmImage: macOS-12
         strategy:
-          ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            matrix:
-              debug:
-                _BuildConfig: Debug
-              release:
-                _BuildConfig: Release
-          ${{ if ne(variables['System.TeamProject'], 'public') }}:
             matrix:
               release:
                 _BuildConfig: Release
+              ${{ if eq(variables['System.TeamProject'], 'public') }}:
+                  debug:
+                    _BuildConfig: Debug
+
         variables:
         - _BuildArgs: ''
-
         # Variables for internal Official builds
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - _BuildArgs: /p:DotNetPublishUsingPipelines=true
               /p:OfficialBuildId=$(Build.BuildNumber)
 
         steps:
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
             displayName: Setup Private Feeds Credentials
@@ -349,26 +343,23 @@ stages:
 
       - job: Linux
         container:
-          image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
+          image: mcr.microsoft.com/dotnet-buildtools/prereqs:cbl-mariner-2.0
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            vmImage: ubuntu-latest
+            name: NetCore-Public
+            demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
           ${{ if eq(variables['System.TeamProject'], 'internal') }}:
             name: $(DncEngInternalBuildPool)
-            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+            demands: ImageOverride -equals Build.Ubuntu.2004.Amd64
 
         strategy:
-          ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            matrix:
-              debug:
-                _BuildConfig: Debug
-              release:
-                _BuildConfig: Release
-          ${{ if ne(variables['System.TeamProject'], 'public') }}:
-            matrix:
-              release:
-                _BuildConfig: Release
+          matrix:
+            release:
+              _BuildConfig: Release
+            ${{ if eq(variables['System.TeamProject'], 'public') }}:
+                debug:
+                  _BuildConfig: Debug
 
         variables:
         - LC_ALL: 'en_US.UTF-8'
@@ -382,10 +373,6 @@ stages:
               /p:OfficialBuildId=$(Build.BuildNumber)
 
         steps:
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
             displayName: Setup Private Feeds Credentials
@@ -424,6 +411,8 @@ stages:
         enable: true
         params: >-
           -SourceToolsList @("policheck","credscan")
+          -ArtifactToolsList @("binskim")
+          -BinskimAdditionalRunConfigParams @("IgnorePdbLoadError < True","Recurse < True")
           -TsaInstanceURL $(_TsaInstanceURL)
           -TsaProjectName $(_TsaProjectName)
           -TsaNotificationEmail $(_TsaNotificationEmail)

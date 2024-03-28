@@ -12,7 +12,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -47,12 +48,14 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
 
         CodeActionEndpoint = new CodeActionEndpoint(
-            documentMappingService: languageServer.GetRequiredService<RazorDocumentMappingService>(),
-            razorCodeActionProviders: languageServer.GetRequiredService<IEnumerable<RazorCodeActionProvider>>(),
-            csharpCodeActionProviders: languageServer.GetRequiredService<IEnumerable<CSharpCodeActionProvider>>(),
-            htmlCodeActionProviders: languageServer.GetRequiredService<IEnumerable<HtmlCodeActionProvider>>(),
-            languageServer: languageServer.GetRequiredService<ClientNotifierServiceBase>(),
-            languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>());
+            documentMappingService: languageServer.GetRequiredService<IRazorDocumentMappingService>(),
+            razorCodeActionProviders: languageServer.GetRequiredService<IEnumerable<IRazorCodeActionProvider>>(),
+            csharpCodeActionProviders: languageServer.GetRequiredService<IEnumerable<ICSharpCodeActionProvider>>(),
+            htmlCodeActionProviders: languageServer.GetRequiredService<IEnumerable<IHtmlCodeActionProvider>>(),
+            clientConnection: languageServer.GetRequiredService<IClientConnection>(),
+            languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
+            loggerFactory: languageServer.GetRequiredService<IRazorLoggerFactory>(),
+            telemetryReporter: null);
 
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
@@ -72,20 +75,20 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         var targetPath = "/Components/Pages/Generated.razor";
 
         DocumentUri = new Uri(_filePath);
-        DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
+        DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync();
 
         RazorCodeActionRange = ToRange(razorCodeActionIndex);
         CSharpCodeActionRange = ToRange(csharpCodeActionIndex);
         HtmlCodeActionRange = ToRange(htmlCodeActionIndex);
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, 1);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, 1);
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(CancellationToken.None);
         // Need a root namespace for the Extract to Code Behind light bulb to be happy
         codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(c => c.RootNamespace = "Root.Namespace"));
 
-        RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
+        RazorRequestContext = new RazorRequestContext(documentContext, languageServer.GetLspServices(), "lsp/method", uri: null);
 
         Range ToRange(int index)
         {

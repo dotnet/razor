@@ -1,12 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-public class RazorCodeActionsTests : AbstractRazorEditorTest
+public class RazorCodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
     [IdeFact]
     public async Task RazorCodeActions_AddUsing()
@@ -25,7 +27,11 @@ public class RazorCodeActionsTests : AbstractRazorEditorTest
         var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
 
         // Assert
-        var codeActionSet = Assert.Single(codeActions);
+
+        // We expect two groups, one for Razor, one for Html
+        Assert.Equal(2, codeActions.Count());
+        // Razor should be first
+        var codeActionSet = codeActions.First();
         var usingString = $"@using {RazorProjectConstants.BlazorProjectName}.Shared";
         var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals(usingString));
 

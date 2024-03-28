@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -23,10 +25,10 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
     private TestDelegatedCompletionListProvider(
         DelegatedCompletionResponseRewriter[] responseRewriters,
         CompletionRequestResponseFactory completionFactory,
-        ILoggerFactory loggerFactory)
+        IRazorLoggerFactory loggerFactory)
         : base(
             responseRewriters,
-            new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory),
+            new RazorDocumentMappingService(new LSPFilePathService(TestLanguageServerFeatureOptions.Instance), new TestDocumentContextFactory(), loggerFactory),
             new TestLanguageServer(new Dictionary<string, Func<object, Task<object>>>()
             {
                 [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegationAsync,
@@ -37,13 +39,13 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
     }
 
     public static TestDelegatedCompletionListProvider Create(
-        ILoggerFactory loggerFactory,
+        IRazorLoggerFactory loggerFactory,
         params DelegatedCompletionResponseRewriter[] responseRewriters) =>
         Create(delegatedCompletionList: null, loggerFactory, responseRewriters: responseRewriters);
 
     public static TestDelegatedCompletionListProvider Create(
         CSharpTestLspServer csharpServer,
-        ILoggerFactory loggerFactory,
+        IRazorLoggerFactory loggerFactory,
         CancellationToken cancellationToken,
         params DelegatedCompletionResponseRewriter[] responseRewriters)
     {
@@ -54,7 +56,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
 
     public static TestDelegatedCompletionListProvider Create(
         VSInternalCompletionList delegatedCompletionList,
-        ILoggerFactory loggerFactory,
+        IRazorLoggerFactory loggerFactory,
         params DelegatedCompletionResponseRewriter[] responseRewriters)
     {
         delegatedCompletionList ??= new VSInternalCompletionList()
@@ -62,6 +64,15 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
             Items = Array.Empty<CompletionItem>(),
         };
         var requestResponseFactory = new StaticCompletionRequestResponseFactory(delegatedCompletionList);
+        var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory, loggerFactory);
+        return provider;
+    }
+
+    public static TestDelegatedCompletionListProvider CreateWithNullResponse(
+        IRazorLoggerFactory loggerFactory,
+        params DelegatedCompletionResponseRewriter[] responseRewriters)
+    {
+        var requestResponseFactory = new StaticCompletionRequestResponseFactory(null);
         var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory, loggerFactory);
         return provider;
     }
@@ -109,7 +120,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
             var completionParams = (DelegatedCompletionParams)parameters;
             _delegatedParams = completionParams;
 
-            var csharpDocumentPath = completionParams.HostDocument.Uri.OriginalString + "__virtual.g.cs";
+            var csharpDocumentPath = completionParams.Identifier.TextDocumentIdentifier.Uri.OriginalString + "__virtual.g.cs";
             var csharpDocumentUri = new Uri(csharpDocumentPath);
             var csharpCompletionParams = new CompletionParams()
             {

@@ -6,6 +6,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
@@ -21,15 +22,15 @@ public class DefaultTagHelperOptimizationPassTest
 
         var tagHelpers = new[]
         {
-                TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
-                    .TypeName("TestTagHelper")
-                    .BoundAttributeDescriptor(attribute => attribute
-                        .Name("Foo")
-                        .TypeName("System.Int32")
-                        .PropertyName("FooProp"))
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .Build()
-            };
+            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
+                .Metadata(TypeName("TestTagHelper"))
+                .BoundAttributeDescriptor(attribute => attribute
+                    .Name("Foo")
+                    .TypeName("System.Int32")
+                    .Metadata(PropertyName("FooProp")))
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .Build()
+        };
 
         var engine = CreateEngine(tagHelpers);
         var pass = new DefaultTagHelperOptimizationPass()
@@ -62,16 +63,16 @@ public class DefaultTagHelperOptimizationPassTest
         var create = Assert.IsType<DefaultTagHelperCreateIntermediateNode>(tagHelper.Children[1]);
         Assert.Equal("__TestTagHelper", create.FieldName);
         Assert.Equal("TestTagHelper", create.TypeName);
-        Assert.Equal(tagHelpers[0], create.TagHelper, TagHelperDescriptorComparer.Default);
+        Assert.Equal(tagHelpers[0], create.TagHelper);
 
         var property = Assert.IsType<DefaultTagHelperPropertyIntermediateNode>(tagHelper.Children[2]);
         Assert.Equal("foo", property.AttributeName);
         Assert.Equal(AttributeStructure.DoubleQuotes, property.AttributeStructure);
-        Assert.Equal(tagHelpers[0].BoundAttributes[0], property.BoundAttribute, BoundAttributeDescriptorComparer.Default);
+        Assert.Equal(tagHelpers[0].BoundAttributes[0], property.BoundAttribute);
         Assert.Equal("__TestTagHelper", property.FieldName);
         Assert.False(property.IsIndexerNameMatch);
         Assert.Equal("FooProp", property.PropertyName);
-        Assert.Equal(tagHelpers[0], property.TagHelper, TagHelperDescriptorComparer.Default);
+        Assert.Equal(tagHelpers[0], property.TagHelper);
 
         var htmlAttribute = Assert.IsType<DefaultTagHelperHtmlAttributeIntermediateNode>(tagHelper.Children[3]);
         Assert.Equal("attr", htmlAttribute.AttributeName);
@@ -96,9 +97,8 @@ public class DefaultTagHelperOptimizationPassTest
 
     private DocumentIntermediateNode CreateIRDocument(RazorEngine engine, RazorCodeDocument codeDocument)
     {
-        for (var i = 0; i < engine.Phases.Count; i++)
+        foreach (var phase in engine.Phases)
         {
-            var phase = engine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorDirectiveClassifierPhase)

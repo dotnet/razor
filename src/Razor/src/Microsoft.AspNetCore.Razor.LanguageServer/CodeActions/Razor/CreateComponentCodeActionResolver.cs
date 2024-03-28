@@ -10,28 +10,27 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
+internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolver
 {
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
-    public CreateComponentCodeActionResolver(DocumentContextFactory documentContextFactory, LanguageServerFeatureOptions languageServerFeatureOptions)
+    public CreateComponentCodeActionResolver(IDocumentContextFactory documentContextFactory, LanguageServerFeatureOptions languageServerFeatureOptions)
     {
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentException(nameof(languageServerFeatureOptions));
     }
 
-    public override string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
+    public string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
 
-    public override async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
     {
         if (data is null)
         {
@@ -44,7 +43,7 @@ internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
             return null;
         }
 
-        var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
+        var documentContext = _documentContextFactory.TryCreate(actionParams.Uri);
         if (documentContext is null)
         {
             return null;
@@ -63,12 +62,12 @@ internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
 
         // VS Code in Windows expects path to start with '/'
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !actionParams.Path.StartsWith("/")
-			? '/' + actionParams.Path
-			: actionParams.Path;
+            ? '/' + actionParams.Path
+            : actionParams.Path;
         var newComponentUri = new UriBuilder()
         {
             Scheme = Uri.UriSchemeFile,
-			Path = updatedPath,
+            Path = updatedPath,
             Host = string.Empty,
         }.Uri;
 

@@ -4,14 +4,16 @@
 [assembly: global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute(typeof(AspNetCoreGeneratedDocument.Views_Home_Index), @"mvc.1.0.view", @"/Views/Home/Index.cshtml")]
 namespace AspNetCoreGeneratedDocument
 {
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line default
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/Views/Home/Index.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -43,9 +45,9 @@ namespace AspNetCoreGeneratedDocument
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "c7a5bfe3b24fca2a512de60cbc0070e782f08b7a2540", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 WriteLiteral("\r\n    custom tag helper\r\n    ");
-                __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "c7a5bfe3b24fca2a512de60cbc0070e782f08b7a2828", async() => {
+                __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                     WriteLiteral("nested tag helper");
                 }
                 );

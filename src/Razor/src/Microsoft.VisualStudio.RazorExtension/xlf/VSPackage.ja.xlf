@@ -22,9 +22,19 @@
         <target state="translated">ASP.NET Core Razor の言語サービスを提供します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">入力候補</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting">
         <source>Formatting</source>
         <target state="translated">書式設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other">
+        <source>Other</source>
+        <target state="translated">その他</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorSyntaxVisualizer">
@@ -42,6 +52,46 @@
         <target state="translated">終了タグを自動挿入する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDescription">
+        <source>If true, completion on attributes will add quotation marks</source>
+        <target state="translated">true の場合、属性を入力するとき引用符が追加されます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDisplayName">
+        <source>Auto Insert Attribute Quotes</source>
+        <target state="translated">属性引用符の自動挿入</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDescription">
+        <source>Forces the open brace after an @code or @functions directive to be on the following line</source>
+        <target state="translated">@code または @functions ディレクティブの後の始め中かっこを強制的に次の行にする</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDisplayName">
+        <source>Code/Functions block open brace on next line</source>
+        <target state="translated">コード/関数は、次の行で始め中かっこをブロックします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDescription">
+        <source>If true, gives C# code in Razor files a background color</source>
+        <target state="translated">true の場合、Razor ファイルの C# コードに背景色を表示します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDisplayName">
+        <source>Background for C# Code</source>
+        <target state="translated">C# コードの背景</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for Html elements and components</source>
+        <target state="translated">true の場合、スペースを押すと HTML 要素とコンポーネントの候補がコミットされます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit Elements with Space</source>
+        <target state="translated">スペースを含む要素のコミット</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">true の場合、入力中に書式設定が有効になります</target>
@@ -50,6 +100,76 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">入力時に書式設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelCritical">
+        <source>Critical</source>
+        <target state="translated">重大</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDebug">
+        <source>Debug</source>
+        <target state="translated">デバッグ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDescription">
+        <source>Sets the level of logging to show in the Razor Logger Output catregory of the Output Window.</source>
+        <target state="translated">出力ウィンドウの [Razor Logger 出力] カテゴリに表示するログ記録のレベルを設定します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDisplayName">
+        <source>Output Window Log Level</source>
+        <target state="translated">出力ウィンドウ ログ レベル</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelError">
+        <source>Error</source>
+        <target state="translated">エラー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelInformation">
+        <source>Information</source>
+        <target state="translated">情報</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelNone">
+        <source>None</source>
+        <target state="translated">なし</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelTrace">
+        <source>Trace</source>
+        <target state="translated">トレース</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelWarning">
+        <source>Warning</source>
+        <target state="translated">警告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsAll">
+        <source>All</source>
+        <target state="translated">すべて</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsCustom">
+        <source>Custom</source>
+        <target state="translated">カスタム</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">Razor ファイルに含めるスニペット。カスタムに設定すると、Visual Studioに含まれていないスニペットのみが表示されます。 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">含まれているスニペット</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsNone">
+        <source>None</source>
+        <target state="translated">なし</target>
         <note />
       </trans-unit>
       <trans-unit id="Typing">

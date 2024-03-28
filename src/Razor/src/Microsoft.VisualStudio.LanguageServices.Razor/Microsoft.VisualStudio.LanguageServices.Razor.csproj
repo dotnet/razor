@@ -11,13 +11,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AdditionalFiles Include="$(RepoRoot)eng\BannedSymbols.MEFv2.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Sdk.Razor" Version="$(MicrosoftNETSdkRazorPackageVersion)" IncludeAssets="None" PrivateAssets="All" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="$(MicrosoftVisualStudioProjectSystemSDKPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150PackageVersion)" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" Version="$(MicrosoftInternalVisualStudioInteropPackageVersion)" />
+
+    <PackageReference Include="Microsoft.VisualStudio.LiveShare" Version="$(MicrosoftVisualStudioLiveSharePackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150PackageVersion)" />
 
     <!--
       Pinning packages to avoid misaligned reference CI failures.
@@ -42,6 +47,12 @@
     </EmbeddedResource>
 
     <Using Include="$(ProjectName).Resources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
+    <AdditionalFiles Include="$(RepoRoot)src\Razor\vs-threading.MainThreadAssertingMethods.txt" Link="AnalyzerConfig\vs-threading.MainThreadAssertingMethods.txt" />
   </ItemGroup>
 
   <!--
@@ -152,4 +163,7 @@
       <Compile Remove="@(XamlPropertyRule->'$(IntermediateOutputPath)%(FileName)$(DefaultLanguageSourceExtension)')" />
     </ItemGroup>
   </Target>
+  
+  <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.Serialization.Json\Microsoft.AspNetCore.Razor.Serialization.Json.projitems" Label="Shared" />
+  
 </Project>

@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AdditionalFiles Include="$(RepoRoot)eng\BannedSymbols.MEFv2.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(MicrosoftCodeAnalysisCSharpFeaturesPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text" Version="$(MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisensePackageVersion)" />
@@ -20,10 +24,13 @@
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion)" />
+
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropPackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150PackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="String Resources">
@@ -33,6 +40,12 @@
     </EmbeddedResource>
 
     <Using Include="$(ProjectName).Resources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
+    <AdditionalFiles Include="$(RepoRoot)src\Razor\vs-threading.MainThreadAssertingMethods.txt" Link="AnalyzerConfig\vs-threading.MainThreadAssertingMethods.txt" />
   </ItemGroup>
 
 </Project>

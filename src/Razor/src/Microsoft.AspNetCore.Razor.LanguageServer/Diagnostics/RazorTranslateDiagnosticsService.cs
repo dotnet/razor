@@ -9,10 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
@@ -20,14 +23,13 @@ using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-using TextSpan = Microsoft.AspNetCore.Razor.Language.Syntax.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 internal class RazorTranslateDiagnosticsService
 {
     private readonly ILogger _logger;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     // Internal for testing
     internal static readonly IReadOnlyCollection<string> CSharpDiagnosticsToIgnore = new HashSet<string>()
@@ -36,7 +38,14 @@ internal class RazorTranslateDiagnosticsService
         "IDE0005_gen", // Using directive is unnecessary
     };
 
-    public RazorTranslateDiagnosticsService(RazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+    /// <summary>
+    /// Contains several methods for mapping and filtering Razor and C# diagnostics. It allows for
+    /// translating code diagnostics from one representation into another, such as from C# to Razor.
+    /// </summary>
+    /// <param name="documentMappingService">The <see cref="IRazorDocumentMappingService"/>.</param>
+    /// <param name="loggerFactory">The <see cref="IRazorLoggerFactory"/>.</param>
+    /// <exception cref="ArgumentNullException"/>
+    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, IRazorLoggerFactory loggerFactory)
     {
         if (documentMappingService is null)
         {
@@ -52,6 +61,14 @@ internal class RazorTranslateDiagnosticsService
         _logger = loggerFactory.CreateLogger<RazorTranslateDiagnosticsService>();
     }
 
+    /// <summary>
+    /// Translates code diagnostics from one representation into another.
+    /// </summary>
+    /// <param name="diagnosticKind">The `RazorLanguageKind` of the `Diagnostic` objects included in `diagnostics`.</param>
+    /// <param name="diagnostics">An array of `Diagnostic` objects to translate.</param>
+    /// <param name="documentContext">The `DocumentContext` for the code document associated with the diagnostics.</param>
+    /// <param name="cancellationToken">A `CancellationToken` to observe while waiting for the task to complete.</param>
+    /// <returns>An array of translated diagnostics</returns>
     internal async Task<Diagnostic[]> TranslateAsync(
         RazorLanguageKind diagnosticKind,
         Diagnostic[] diagnostics,
@@ -65,19 +82,19 @@ internal class RazorTranslateDiagnosticsService
             return Array.Empty<Diagnostic>();
         }
 
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
         var filteredDiagnostics = diagnosticKind == RazorLanguageKind.CSharp
         ? FilterCSharpDiagnostics(diagnostics, codeDocument, sourceText)
             : FilterHTMLDiagnostics(diagnostics, codeDocument, sourceText, _logger);
         if (!filteredDiagnostics.Any())
         {
-            _logger.LogInformation("No diagnostics remaining after filtering.");
+            _logger.LogDebug("No diagnostics remaining after filtering.");
 
             return Array.Empty<Diagnostic>();
         }
 
-        _logger.LogInformation("{filteredDiagnosticsLength}/{unmappedDiagnosticsLength} diagnostics remain after filtering.", filteredDiagnostics.Length, diagnostics.Length);
+        _logger.LogDebug("{filteredDiagnosticsLength}/{unmappedDiagnosticsLength} diagnostics remain after filtering.", filteredDiagnostics.Length, diagnostics.Length);
 
         var mappedDiagnostics = MapDiagnostics(
             diagnosticKind,
@@ -106,7 +123,7 @@ internal class RazorTranslateDiagnosticsService
 
         var filteredDiagnostics = unmappedDiagnostics
             .Where(d =>
-                !InCSharpLiteral(d, sourceText, syntaxTree, logger) &&
+                !InCSharpLiteral(d, sourceText, syntaxTree) &&
                 !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes, logger) &&
                 !AppliesToTagHelperTagName(d, sourceText, syntaxTree, logger) &&
                 !ShouldFilterHtmlDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree, logger))
@@ -148,23 +165,33 @@ internal class RazorTranslateDiagnosticsService
     private static bool InCSharpLiteral(
         Diagnostic d,
         SourceText sourceText,
-        RazorSyntaxTree syntaxTree,
-        ILogger logger)
+        RazorSyntaxTree syntaxTree)
     {
         if (d.Range is null)
         {
             return false;
         }
 
-        var owner = syntaxTree.GetOwner(sourceText, d.Range.End, logger);
-        if (owner is null)
+        var owner = syntaxTree.Root.FindNode(d.Range.ToTextSpan(sourceText), getInnermostNodeForTie: true);
+        if (IsCsharpKind(owner))
         {
-            return false;
+            return true;
         }
 
-        var isCSharp = owner.Kind is SyntaxKind.CSharpExpressionLiteral or SyntaxKind.CSharpStatementLiteral or SyntaxKind.CSharpEphemeralTextLiteral;
+        if (owner is CSharpImplicitExpressionSyntax implicitExpressionSyntax &&
+            implicitExpressionSyntax.Body is CSharpImplicitExpressionBodySyntax bodySyntax &&
+            bodySyntax.CSharpCode is CSharpCodeBlockSyntax codeBlock)
+        {
+            return codeBlock.Children.Count == 1
+                && IsCsharpKind(codeBlock.Children[0]);
+        }
 
-        return isCSharp;
+        return false;
+
+        static bool IsCsharpKind([NotNullWhen(true)] SyntaxNode? node)
+            => node?.Kind is SyntaxKind.CSharpExpressionLiteral
+                or SyntaxKind.CSharpStatementLiteral
+                or SyntaxKind.CSharpEphemeralTextLiteral;
     }
 
     private static bool AppliesToTagHelperTagName(
@@ -187,7 +214,7 @@ internal class RazorTranslateDiagnosticsService
             return false;
         }
 
-        var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.End, logger);
+        var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.End, logger);
 
         var startOrEndTag = owner?.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
         if (startOrEndTag is null)
@@ -232,7 +259,7 @@ internal class RazorTranslateDiagnosticsService
         static bool IsCSharpInStyleBlock(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
             // C# in a style block causes diagnostics because the HTML background document replaces C# with "~"
-            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -248,7 +275,7 @@ internal class RazorTranslateDiagnosticsService
         // but we don't currently have a system to accomplish that
         static bool IsAnyFilteredTooFewElementsError(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
-            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -277,7 +304,7 @@ internal class RazorTranslateDiagnosticsService
         // but we don't currently have a system to accomplish that
         static bool IsHtmlWithBangAndMatchingTags(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
-            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -305,7 +332,7 @@ internal class RazorTranslateDiagnosticsService
 
         static bool IsInvalidNestingWarningWithinComponent(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
-            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -320,7 +347,7 @@ internal class RazorTranslateDiagnosticsService
         // but we don't currently have a system to accomplish that
         static bool IsInvalidNestingFromBody(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
-            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -357,7 +384,7 @@ internal class RazorTranslateDiagnosticsService
             return false;
         }
 
-        var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.End, logger);
+        var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.End, logger);
         if (owner is null)
         {
             return false;
@@ -447,7 +474,7 @@ internal class RazorTranslateDiagnosticsService
             return false;
         }
 
-        if (!_documentMappingService.TryMapFromProjectedDocumentRange(
+        if (!_documentMappingService.TryMapToHostDocumentRange(
             codeDocument.GetCSharpDocument(),
             diagnostic.Range,
             MappingBehavior.Inferred,
@@ -483,7 +510,8 @@ internal class RazorTranslateDiagnosticsService
         // semi-intelligent way.
 
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var owner = syntaxTree.GetOwner(sourceText, diagnosticRange, logger: _logger);
+        var span = diagnosticRange.ToTextSpan(codeDocument.GetSourceText());
+        var owner = syntaxTree.Root.FindNode(span, getInnermostNodeForTie: true);
 
         switch (owner?.Kind)
         {

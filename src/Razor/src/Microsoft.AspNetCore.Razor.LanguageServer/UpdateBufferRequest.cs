@@ -6,11 +6,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class UpdateBufferRequest
+internal class UpdateBufferRequest
 {
     public int? HostDocumentVersion { get; set; }
+
+    public string? ProjectKeyId { get; set; }
 
     public required string HostDocumentFilePath { get; set; }
 
     public required IReadOnlyList<TextChange> Changes { get; set; }
+
+    public bool PreviousWasEmpty { get; set; }
 }

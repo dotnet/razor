@@ -2,18 +2,16 @@
 #pragma warning disable 1591
 namespace Test
 {
-    #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\_Imports.razor"
 using System.Text;
 
-#line default
-#line hidden
 #nullable disable
 #nullable restore
 #line 2 "x:\dir\subdir\Test\_Imports.razor"
@@ -23,7 +21,9 @@ using System.Reflection;
 #line hidden
 #nullable disable
     [global::Microsoft.AspNetCore.Components.LayoutAttribute(typeof(MainLayout))]
+    #nullable restore
     public partial class _Imports : System.Object
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

@@ -15,20 +15,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.NonCapturingTimer.Sources" Version="$(MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion)" PrivateAssets="all" />
-    <PackageReference Include="System.Composition.AttributedModel" Version="$(SystemCompositionPackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolPackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,6 +48,11 @@
     </EmbeddedResource>
 
     <Using Include="$(ProjectName).Resources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
 </Project>

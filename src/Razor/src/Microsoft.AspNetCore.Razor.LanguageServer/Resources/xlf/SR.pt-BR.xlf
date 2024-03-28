@@ -7,9 +7,24 @@
         <target state="translated">Atributos da diretiva Blazor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changes">
+        <source>Changes:</source>
+        <target state="translated">Alterações:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
         <target state="translated">Criar componente a partir da marca</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostics_after">
+        <source>Diagnostics after:</source>
+        <target state="translated">Diagnóstico após:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostics_before">
+        <source>Diagnostics before:</source>
+        <target state="translated">Diagnóstico antes:</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Not_Found">
@@ -17,24 +32,64 @@
         <target state="translated">O documento {0} não foi encontrado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit_at_adds">
+        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
+        <target state="translated">Editar em {0} adiciona o conteúdo que não é espaço em branco ''{1}''.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_deletes">
+        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
+        <target state="translated">Editar em {0} exclui o conteúdo que não é espaço em branco ''{1}''.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">Extrair o bloco para codificar atrás</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Deslocamento inválido.</target>
+      <trans-unit id="File_Externally_Modified">
+        <source>File was externally modified: {0}</source>
+        <target state="translated">O arquivo foi modificado externamente: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="PositionIndex_Outside_Range">
-        <source>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
-        <target state="translated">A linha '{0}' fora do intervalo {1} de '{2}' foi consultada. O documento pode não estar atualizado.</target>
+      <trans-unit id="Format_operation_changed_diagnostics">
+        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
+        <target state="translated">Uma operação de formato está sendo abandonada porque introduziria ou removeria um ou mais diagnósticos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_operation_changed_nonwhitespace">
+        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
+        <target state="translated">Uma operação de formato está sendo abandonada porque adicionaria ou excluiria conteúdo que não é espaço em branco.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Async_Event_Handler_Title">
+        <source>Generate Async Event Handler '{0}'</source>
+        <target state="translated">Gerar Manipulador de Eventos Assíncronos '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Handler_Title">
+        <source>Generate Event Handler '{0}'</source>
+        <target state="translated">Gerar manipulador de eventos '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Language_Services_Missing_Service">
+        <source>Razor language services not configured properly, missing language service '{0}'.</source>
+        <target state="translated">Serviços de Linguagem Razor não configurados corretamente, serviço de linguagem '{0}' ausente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_Available_In">
+        <source>Not available in</source>
+        <target state="translated">Não disponível em</target>
         <note />
       </trans-unit>
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">"Disparar conclusões novamente..."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="translated">instrução</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
@@ -47,14 +102,9 @@
         <target state="translated">Elemento Glyph Razor TagHelper</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Tentativa de visitar um RazorMetaCode diferente de '{' or '}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Comportamento de mapeamento desconhecido</target>
+      <trans-unit id="Unknown_ProjectChangeKind">
+        <source>Unknown ProjectChangeKind {0}</source>
+        <target state="translated">ProjectChangeKind desconhecido {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Version_Should_Not_Be_Null">

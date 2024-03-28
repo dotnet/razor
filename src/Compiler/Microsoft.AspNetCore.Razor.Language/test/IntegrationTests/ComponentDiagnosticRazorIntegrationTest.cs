@@ -48,29 +48,6 @@ public class ComponentDiagnosticRazorIntegrationTest : RazorIntegrationTestBase
     }
 
     [Fact]
-    public void RejectsScriptTag()
-    {
-        // Arrange/Act
-        var result = CompileToCSharp(@"Hello
-<div>
-    <script src='anything'>
-        something
-    </script>
-</div>
-Goodbye");
-
-        // Assert
-        Assert.Collection(result.Diagnostics,
-            item =>
-            {
-                Assert.Equal("RZ9992", item.Id);
-                Assert.Equal("Script tags should not be placed inside components because they cannot be updated dynamically. To fix this, move the script tag to the 'index.html' file or another static location. For more information, see https://aka.ms/AAe3qu3", item.GetMessage(CultureInfo.CurrentCulture));
-                Assert.Equal(2, item.Span.LineIndex);
-                Assert.Equal(4, item.Span.CharacterIndex);
-            });
-    }
-
-    [Fact]
     public void RejectsTagHelperDirectives()
     {
         // Arrange/Act
@@ -97,16 +74,18 @@ namespace Test
             item =>
             {
                 Assert.Equal("RZ9978", item.Id);
-                Assert.Equal("The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. " +
-            "Use '@using <namespace>' directive instead.", item.GetMessage(CultureInfo.CurrentCulture));
+                Assert.Equal("""
+            The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. Use '@using <namespace>' directive instead.
+            """, item.GetMessage(CultureInfo.CurrentCulture));
                 Assert.Equal(0, item.Span.LineIndex);
                 Assert.Equal(0, item.Span.CharacterIndex);
             },
             item =>
             {
                 Assert.Equal("RZ9978", item.Id);
-                Assert.Equal("The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. " +
-            "Use '@using <namespace>' directive instead.", item.GetMessage(CultureInfo.CurrentCulture));
+                Assert.Equal("""
+            The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. Use '@using <namespace>' directive instead.
+            """, item.GetMessage(CultureInfo.CurrentCulture));
                 Assert.Equal(1, item.Span.LineIndex);
                 Assert.Equal(0, item.Span.CharacterIndex);
             });

@@ -4,31 +4,26 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
-internal class TextDocumentTextPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>, ITextDocumentTextPresentationHandler
+internal class TextDocumentTextPresentationEndpoint(
+    IRazorDocumentMappingService razorDocumentMappingService,
+    IClientConnection clientConnection,
+    IFilePathService filePathService,
+    IRazorLoggerFactory loggerFactory)
+    : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.CreateLogger<TextDocumentTextPresentationEndpoint>()), ITextDocumentTextPresentationHandler
 {
-    public TextDocumentTextPresentationEndpoint(
-        RazorDocumentMappingService razorDocumentMappingService,
-        ClientNotifierServiceBase languageServer,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(razorDocumentMappingService,
-             languageServer,
-             languageServerFeatureOptions)
+    public override string EndpointName => CustomMessageNames.RazorTextPresentationEndpoint;
+
+    public override void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-    }
-
-    public override string EndpointName => RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint;
-
-    public override RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
-    {
-        const string AssociatedServerCapability = "_vs_textPresentationProvider";
-
-        return new RegistrationExtensionResult(AssociatedServerCapability, options: true);
+        serverCapabilities.TextPresentationProvider = true;
     }
 
     public override TextDocumentIdentifier GetTextDocumentIdentifier(TextPresentationParams request)

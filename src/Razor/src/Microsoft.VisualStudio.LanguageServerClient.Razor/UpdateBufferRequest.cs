@@ -10,7 +10,11 @@ internal class UpdateBufferRequest
 {
     public int? HostDocumentVersion { get; init; }
 
+    public string? ProjectKeyId { get; init; }
+
     public string? HostDocumentFilePath { get; init; }
 
     public required IReadOnlyList<TextChange> Changes { get; init; }
+
+    public bool PreviousWasEmpty { get; set; }
 }

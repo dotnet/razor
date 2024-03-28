@@ -8,13 +8,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
-using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -22,7 +20,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 
-public class DefaultRazorProximityExpressionResolverTest : TestBase
+public class DefaultRazorProximityExpressionResolverTest : ToolingTestBase
 {
     private readonly string _validProximityExpressionRoot;
     private readonly string _invalidProximityExpressionRoot;
@@ -39,20 +37,20 @@ public class DefaultRazorProximityExpressionResolverTest : TestBase
 
         _validProximityExpressionRoot = "var abc = 123;";
         _invalidProximityExpressionRoot = "private int bar;";
-        var csharpTextSnapshot = new StringTextSnapshot(
-$@"public class SomeRazorFile
-{{
-    {_invalidProximityExpressionRoot}
+        var csharpTextSnapshot = new StringTextSnapshot($$"""
+            public class SomeRazorFile
+            {
+                {{_invalidProximityExpressionRoot}}
 
-    public void Render()
-    {{
-        {_validProximityExpressionRoot}
-    }}
-}}
-");
+                public void Render()
+                {
+                    {{_validProximityExpressionRoot}}
+                }
+            }
+            """);
         _csharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
 
-        var textBufferSnapshot = new StringTextSnapshot($"@{{{_invalidProximityExpressionRoot}}} @code {{{_validProximityExpressionRoot}}}");
+        var textBufferSnapshot = new StringTextSnapshot($$"""@{{{_invalidProximityExpressionRoot}}} @code {{{_validProximityExpressionRoot}}}""");
         _hostTextbuffer = new TestTextBuffer(textBufferSnapshot);
     }
 
@@ -92,7 +90,7 @@ $@"public class SomeRazorFile
     {
         // Arrange
         var documentManager = new TestDocumentManager();
-        var testCSharpDocument = new CSharpVirtualDocumentSnapshot(_csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1);
+        var testCSharpDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, _csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1);
         var document = new TestLSPDocumentSnapshot(_documentUri, version: (int)(testCSharpDocument.HostDocumentSyncVersion.Value + 1), testCSharpDocument);
         documentManager.AddDocument(document.Uri, document);
         var resolver = CreateResolverWith(documentManager: documentManager);
@@ -110,7 +108,7 @@ $@"public class SomeRazorFile
     {
         var documentUri = _documentUri;
         uriProvider ??= Mock.Of<FileUriProvider>(provider => provider.TryGet(_hostTextbuffer, out documentUri) == true && provider.TryGet(It.IsNotIn(_hostTextbuffer), out It.Ref<Uri>.IsAny) == false, MockBehavior.Strict);
-        var csharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(_csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
+        var csharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(projectKey: default, _csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
         LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(_documentUri, 0, csharpVirtualDocumentSnapshot);
         documentManager ??= Mock.Of<LSPDocumentManager>(
             manager => manager.TryGetDocument(_documentUri, out documentSnapshot) == true,
@@ -122,21 +120,6 @@ $@"public class SomeRazorFile
             TestLSPProximityExpressionProvider.Instance);
 
         return razorProximityExpressionResolver;
-    }
-
-    private class TestWorkspaceAccessor : VisualStudioWorkspaceAccessor
-    {
-        public static readonly TestWorkspaceAccessor Instance = new TestWorkspaceAccessor();
-
-        private TestWorkspaceAccessor()
-        {
-        }
-
-        public override bool TryGetWorkspace(ITextBuffer textBuffer, out CodeAnalysis.Workspace workspace)
-        {
-            workspace = TestWorkspace.Create();
-            return true;
-        }
     }
 
     private class TestLSPProximityExpressionProvider : LSPProximityExpressionsProvider

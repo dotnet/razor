@@ -1,6 +1,48 @@
-﻿# Layers
+﻿# Product Layers
 
-## Product Layers
+## High Level Overview
+
+![Layers](./overview.svg)
+
+<details>
+Created with https://www.sankeymatic.com/build/
+
+Input:
+```
+RoslynWorkspace [1] ProjectEngineHost
+MS.AspNetCore.Razor.LanguageServer [1] MS.AspNetCore.Razor.LanguageServer.Common
+MS.AspNetCore.Razor.LanguageServer.Common [1] Compiler
+MS.AspNetCore.Razor.LanguageServer.Common [1] Workspaces
+ProjectEngineHost [1] Compiler
+Workspaces [1] Compiler
+Workspaces [1] ProjectEngineHost
+OOP Tag Helper Discovery [1] Workspaces
+MS.VS.Editor.Razor [1] Workspaces
+MS.VS.LanguageServerClient.Razor [1] MS.AspNetCore.Razor.LanguageServer
+MS.VS.LanguageServerClient.Razor [1] MS.AspNetCore.Razor.LanguageServer.Common
+MS.VS.LanguageServerClient.Razor [1] Workspaces
+MS.VS.LanguageServerClient.Razor [1] MS.VS.Editor.Razor
+MS.VS.LanguageServerClient.Razor [1] ContainedLanguage
+LanguageServices.VS [1] MS.VS.Editor.Razor
+LiveShare [1] MS.VS.Editor.Razor
+Mac.LanguageServices [1] MS.VS.Editor.Razor
+VS Mac [1] Compiler
+VS Mac [1] MS.VS.LanguageServerClient.Razor
+VS Mac [1] Mac.LanguageServices
+VS [1] MS.AspNetCore.Razor.LanguageServer
+VS [1] MS.AspNetCore.Razor.LanguageServer.Common
+VS [1] Workspaces
+VS [1] OOP Tag Helper Discovery
+VS [1] MS.VS.Editor.Razor
+VS [1] ContainedLanguage
+VS [1] MS.VS.LanguageServerClient.Razor
+VS [1] LanguageServices.VS
+VS [1] LiveShare
+rzls [1] MS.AspNetCore.Razor.LanguageServer
+```
+</details>
+
+## Details
 
 ### Shared
 
@@ -12,14 +54,9 @@ This project is shared between all layers (both compiler and tooling) to provide
 
 ### Compiler
 
-- Target Framework: `netstandard2.0`
+- Target Framework: `net8.0;netstandard2.0`
 - Projects:
-  - Microsoft.AspNetCore.Mvc.Razor.Extensions
-  - Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X
-  - Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X
-  - Microsoft.AspNetCore.Razor.Language
-  - Microsoft.CodeAnalysis.Razor
-  - Microsoft.NET.Sdk.Razor.SourceGenerators
+  - Microsoft.CodeAnalysis.Razor.Compiler
 
 ### Tooling Core
 
@@ -28,6 +65,7 @@ target the broadest set of frameworks.
 
 - Target Framework: `net8.0;netstandard2.0;net472`
 - Projects:
+  - Microsoft.AspNetCore.Razor.ProjectEngineHost
   - Microsoft.CodeAnalysis.Razor.Workspaces
 
 ### Razor Language Server
@@ -63,19 +101,11 @@ target the broadest set of frameworks.
   - Microsoft.VisualStudio.RazorExtension.Dependencies
   - RazorDeployment
 
-### Visual Studio (Mac)
+### Miscellaneous / Test hosting
 
-- Target Framework: `net472`
+- Target Framework: net7.0
 - Projects:
-  - Microsoft.VisualStudio.Mac.LanguageServices.Razor
-  - Microsoft.VisualStudio.Mac.RazorAddin
-
-### Visual Studio Code (OmniSharp Plug-in)
-
-- Target Framework: `net472`
-- Projects:
-  - Microsoft.AspNetCore.Razor.OmniSharpPlugin
-  - Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp
+  - Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace
 
 ## Testing Layers
 
@@ -116,11 +146,3 @@ target the broadest set of frameworks.
 - Microsoft.VisualStudio.LanguageServices.Razor.Test (`net472`)
 - Microsoft.VisualStudio.LiveShare.Razor.Test (`net472`)
 - Microsoft.VisualStudio.Razor.IntegrationTests (`net472`)
-
-### Visual Studio (Mac) Tests
-
-- Microsoft.VisualStudio.Mac.LanguageServices.Razor.Test (`net472`)
-
-### Visual Studio Code (OmniSharp Plug-in) Tests
-
-- Microsoft.AspNetCore.Razor.OmniSharpPlugin.Test (`net472`)

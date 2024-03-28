@@ -2,13 +2,17 @@
 #pragma warning disable 1591
 namespace Test
 {
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -29,7 +33,8 @@ namespace Test
 #line hidden
 #nullable disable
             );
-            __o = __typeInference_CreateMyComponent_0.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
              Item
@@ -37,7 +42,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -54,7 +60,8 @@ __o = typeof(global::Test.MyComponent<>);
 #line hidden
 #nullable disable
             );
-            __o = __typeInference_CreateMyComponent_1.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
              Item
@@ -62,7 +69,8 @@ __o = typeof(global::Test.MyComponent<>);
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -79,7 +87,8 @@ __o = typeof(global::Test.MyComponent<>);
 #line hidden
 #nullable disable
             );
-            __o = __typeInference_CreateMyComponent_2.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_2.
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
              Item
@@ -87,7 +96,8 @@ __o = typeof(global::Test.MyComponent<>);
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -107,21 +117,21 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.MyComponent<TItem> CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
-        __builder.AddComponentParameter(__seq0, "Item", __arg0);
+        __builder.AddAttribute(__seq0, "Item", (object)__arg0);
         __builder.CloseComponent();
         return default;
         }
         public static global::Test.MyComponent<TItem> CreateMyComponent_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
-        __builder.AddComponentParameter(__seq0, "Item", __arg0);
+        __builder.AddAttribute(__seq0, "Item", (object)__arg0);
         __builder.CloseComponent();
         return default;
         }
         public static global::Test.MyComponent<TItem> CreateMyComponent_2<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
-        __builder.AddComponentParameter(__seq0, "Item", __arg0);
+        __builder.AddAttribute(__seq0, "Item", (object)__arg0);
         __builder.CloseComponent();
         return default;
         }

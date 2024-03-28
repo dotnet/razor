@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.WebTools.Languages.Shared.VS.Test.LanguageServer.MiddleLayerProviders;
 
-public class InterceptionMiddleLayerTest : TestBase
+public class InterceptionMiddleLayerTest : ToolingTestBase
 {
     public InterceptionMiddleLayerTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -29,10 +29,10 @@ public class InterceptionMiddleLayerTest : TestBase
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Ctor_EmptyLanguageName_Throws(string languageName)
+    public void Ctor_EmptyLanguageName_Throws(string? languageName)
     {
         var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
-        Assert.Throws<ArgumentException>(() => new InterceptionMiddleLayer(fakeInterceptorManager, languageName));
+        Assert.Throws<ArgumentException>(() => new InterceptionMiddleLayer(fakeInterceptorManager, languageName!));
     }
 
     [Theory]

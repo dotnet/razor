@@ -2,19 +2,18 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
@@ -23,10 +22,11 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     internal HostProject HostProject { get; }
     internal ImmutableArray<HostDocument> Documents { get; }
     internal ImmutableArray<TextLoader> TextLoaders { get; }
-    internal TagHelperResolver TagHelperResolver { get; }
     protected string RepoRoot { get; }
+    private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
+    private protected IErrorReporter ErrorReporter { get; }
 
-    protected ProjectSnapshotManagerBenchmarkBase()
+    protected ProjectSnapshotManagerBenchmarkBase(int documentCount = 100)
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
         while (current is not null && !File.Exists(Path.Combine(current.FullName, "Razor.sln")))
@@ -37,7 +37,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         RepoRoot = current?.FullName ?? throw new InvalidOperationException("Could not find Razor.sln");
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "LargeProject");
 
-        HostProject = new HostProject(Path.Combine(projectRoot, "LargeProject.csproj"), FallbackRazorConfiguration.MVC_2_1, rootNamespace: null);
+        HostProject = new HostProject(Path.Combine(projectRoot, "LargeProject.csproj"), Path.Combine(projectRoot, "obj"), FallbackRazorConfiguration.MVC_2_1, rootNamespace: null);
 
         using var _1 = ArrayBuilderPool<TextLoader>.GetPooledObject(out var textLoaders);
 
@@ -54,7 +54,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
         using var _2 = ArrayBuilderPool<HostDocument>.GetPooledObject(out var documents);
 
-        for (var i = 0; i < 100; i++)
+        for (var i = 0; i < documentCount; i++)
         {
             var filePath = Path.Combine(projectRoot, "Views", "Home", $"View00{i % 4}.cshtml");
             documents.Add(
@@ -63,37 +63,19 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
         Documents = documents.ToImmutable();
 
-        TagHelperResolver = new StaticTagHelperResolver(GetTagHelperDescriptors(), NoOpTelemetryReporter.Instance);
+        var loggerFactoryMock = new Mock<IRazorLoggerFactory>(MockBehavior.Strict);
+        loggerFactoryMock
+            .Setup(x => x.CreateLogger(It.IsAny<string>()))
+            .Returns(Mock.Of<ILogger>(MockBehavior.Strict));
+
+        ErrorReporter = new TestErrorReporter();
+        Dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
     }
 
-    internal IReadOnlyList<TagHelperDescriptor> GetTagHelperDescriptors()
+    internal ProjectSnapshotManager CreateProjectSnapshotManager()
     {
-        var tagHelperBuffer = Resources.GetResourceBytes("taghelpers.json");
-
-        var serializer = new JsonSerializer();
-        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
-        using var stream = new MemoryStream(tagHelperBuffer);
-        using var reader = new JsonTextReader(new StreamReader(stream));
-
-        return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader) ?? Array.Empty<TagHelperDescriptor>();
-    }
-
-    internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()
-    {
-        var services = TestServices.Create(
-            new IWorkspaceService[]
-            {
-                TagHelperResolver,
-                new StaticProjectSnapshotProjectEngineFactory(),
-            },
-            Array.Empty<ILanguageService>());
-
-        return new DefaultProjectSnapshotManager(
-            new TestProjectSnapshotManagerDispatcher(),
-            new TestErrorReporter(),
-            Array.Empty<ProjectSnapshotChangeTrigger>(),
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            new AdhocWorkspace(services));
-#pragma warning restore CA2000 // Dispose objects before losing scope
+        return new ProjectSnapshotManager(
+            projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
+            dispatcher: Dispatcher);
     }
 }

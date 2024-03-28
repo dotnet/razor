@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>$(DefaultNetCoreTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>$(DefaultNetCoreTargetFramework)</TargetFramework>
     <PackageId>testSdkRSG</PackageId>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
@@ -26,28 +26,37 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
-    <PackageReference Include="xunit.assert" />
     <PackageReference Include="xunit.extensibility.execution" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.NET.Sdk.Razor.SourceGenerators\Microsoft.NET.Sdk.Razor.SourceGenerators.csproj" />
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.Compiler.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
   </ItemGroup>
-  
-  <!--
-    Include ASP.NET Core DLLs.
 
-    Even though we reference `win-x64` package, it doesn't matter, we don't use any native DLLs.
-    It's just to work around the fact that ASP.NET Core DLLs are not normally published to NuGet.
-    And we don't want to reference ASP.NET Core SDK as that would be tied to our target SDK version.
-  -->
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App.Runtime.win-x64" ExcludeAssets="all" GeneratePathProperty="true" />
-    <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net7.0\*.dll" />
+    <PackageReference Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" ExcludeAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
+
+  <Choose>
+    <When Condition="$(NetCoreSDKRuntimeIdentifier) == 'win-x64'">
+      <ItemGroup>
+        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net8.0\*.dll" />
+      </ItemGroup>
+    </When>
+    <When Condition="$(NetCoreSDKRuntimeIdentifier) == 'linux-x64'">
+      <ItemGroup>
+        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net8.0\*.dll" />
+      </ItemGroup>
+    </When>
+    <When Condition="$(NetCoreSDKRuntimeIdentifier) == 'osx-x64'">
+      <ItemGroup>
+        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net8.0\*.dll" />
+      </ItemGroup>
+    </When>
+  </Choose>
 
 </Project>

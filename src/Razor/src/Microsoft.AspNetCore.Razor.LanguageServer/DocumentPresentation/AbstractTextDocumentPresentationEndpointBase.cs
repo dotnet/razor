@@ -8,53 +8,43 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
-internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IRazorRequestHandler<TParams, WorkspaceEdit?>, IRegistrationExtension
+internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IRazorRequestHandler<TParams, WorkspaceEdit?>, ICapabilitiesProvider
     where TParams : IPresentationParams
 {
-    private readonly RazorDocumentMappingService _razorDocumentMappingService;
-    private readonly ClientNotifierServiceBase _languageServer;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly IRazorDocumentMappingService _razorDocumentMappingService;
+    private readonly IClientConnection _clientConnection;
+    private readonly IFilePathService _filePathService;
+    private readonly ILogger _logger;
 
     protected AbstractTextDocumentPresentationEndpointBase(
-        RazorDocumentMappingService razorDocumentMappingService,
-        ClientNotifierServiceBase languageServer,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
+        IRazorDocumentMappingService razorDocumentMappingService,
+        IClientConnection clientConnection,
+        IFilePathService filePathService,
+        ILogger logger)
     {
-        if (razorDocumentMappingService is null)
-        {
-            throw new ArgumentNullException(nameof(razorDocumentMappingService));
-        }
-
-        if (languageServer is null)
-        {
-            throw new ArgumentNullException(nameof(languageServer));
-        }
-
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
-
-        _razorDocumentMappingService = razorDocumentMappingService;
-        _languageServer = languageServer;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
+        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
+        _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public abstract string EndpointName { get; }
 
+    protected ILogger Logger => _logger;
+
     public bool MutatesSolutionState => false;
 
-    public abstract RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities);
+    public abstract void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities);
 
     protected abstract IRazorPresentationParams CreateRazorRequestParameters(TParams request);
 
@@ -75,12 +65,12 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
-            requestContext.Logger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
+            _logger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
             return null;
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (request.Range.Start.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex) != true)
+        if (request.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
         {
             return null;
         }
@@ -95,7 +85,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
 
         if (languageKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
         {
-            requestContext.Logger.LogInformation("Unsupported language {languageKind}.", languageKind);
+            _logger.LogInformation("Unsupported language {languageKind}.", languageKind);
             return null;
         }
 
@@ -107,7 +97,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         // For CSharp we need to map the range to the generated document
         if (languageKind == RazorLanguageKind.CSharp)
         {
-            if (!_razorDocumentMappingService.TryMapToProjectedDocumentRange(codeDocument.GetCSharpDocument(), request.Range, out var projectedRange))
+            if (!_razorDocumentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), request.Range, out var projectedRange))
             {
                 return null;
             }
@@ -115,7 +105,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
             requestParams.Range = projectedRange;
         }
 
-        var response = await _languageServer.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(EndpointName, requestParams, cancellationToken).ConfigureAwait(false);
+        var response = await _clientConnection.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(EndpointName, requestParams, cancellationToken).ConfigureAwait(false);
         if (response is null)
         {
             return null;
@@ -166,7 +156,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
             var uri = new Uri(entry.Key);
             var edits = entry.Value;
 
-            if (!_languageServerFeatureOptions.IsVirtualDocumentUri(uri))
+            if (!_filePathService.IsVirtualDocumentUri(uri))
             {
                 // This location doesn't point to a background razor file. No need to remap.
                 remappedChanges[entry.Key] = entry.Value;
@@ -180,7 +170,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
                 continue;
             }
 
-            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(uri);
+            var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
             remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
         }
 
@@ -193,7 +183,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         foreach (var entry in documentEdits)
         {
             var uri = entry.TextDocument.Uri;
-            if (!_languageServerFeatureOptions.IsVirtualDocumentUri(uri))
+            if (!_filePathService.IsVirtualDocumentUri(uri))
             {
                 // This location doesn't point to a background razor file. No need to remap.
                 remappedDocumentEdits.Add(entry);
@@ -209,7 +199,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
                 continue;
             }
 
-            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(uri);
+            var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
             remappedDocumentEdits.Add(new TextDocumentEdit()
             {
                 TextDocument = new OptionalVersionedTextDocumentIdentifier()
@@ -234,7 +224,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         var mappedEdits = new List<TextEdit>();
         foreach (var edit in edits)
         {
-            if (!_razorDocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
+            if (!_razorDocumentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
             {
                 return null;
             }

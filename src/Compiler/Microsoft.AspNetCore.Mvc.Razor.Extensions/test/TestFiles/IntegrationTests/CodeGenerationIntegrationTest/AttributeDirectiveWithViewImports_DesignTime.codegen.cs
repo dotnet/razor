@@ -2,14 +2,14 @@
 #pragma warning disable 1591
 namespace AspNetCore
 {
-    #line hidden
+    #line default
     using TModel = global::System.Object;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
 #nullable restore
 #line 1 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\_ViewImports.cshtml"
 using System;

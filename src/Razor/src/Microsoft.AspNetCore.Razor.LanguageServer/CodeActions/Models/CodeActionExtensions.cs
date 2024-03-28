@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
@@ -47,7 +46,8 @@ internal static class CodeActionExtensions
         this RazorVSInternalCodeAction razorCodeAction,
         RazorCodeActionContext context,
         string action = LanguageServerConstants.CodeActions.Default,
-        string language = LanguageServerConstants.CodeActions.Languages.CSharp)
+        string language = LanguageServerConstants.CodeActions.Languages.CSharp,
+        bool isOnAllowList = true)
     {
         if (razorCodeAction is null)
         {
@@ -62,7 +62,7 @@ internal static class CodeActionExtensions
         var resolveParams = new CodeActionResolveParams()
         {
             Data = razorCodeAction.Data,
-            RazorFileUri = context.Request.TextDocument.Uri
+            RazorFileIdentifier = context.Request.TextDocument
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()
@@ -73,11 +73,16 @@ internal static class CodeActionExtensions
         };
         razorCodeAction.Data = JToken.FromObject(resolutionParams);
 
+        if (!isOnAllowList)
+        {
+            razorCodeAction.Title = $"(Exp) {razorCodeAction.Title} ({razorCodeAction.Name})";
+        }
+
         if (razorCodeAction.Children != null)
         {
             for (var i = 0; i < razorCodeAction.Children.Length; i++)
             {
-                razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language);
+                razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language, isOnAllowList);
             }
         }
 
@@ -88,12 +93,13 @@ internal static class CodeActionExtensions
         this VSInternalCodeAction razorCodeAction,
         RazorCodeActionContext context,
         string action,
-        string language)
+        string language,
+        bool isOnAllowList)
     {
         var resolveParams = new CodeActionResolveParams()
         {
             Data = razorCodeAction.Data,
-            RazorFileUri = context.Request.TextDocument.Uri
+            RazorFileIdentifier = context.Request.TextDocument
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()
@@ -104,11 +110,16 @@ internal static class CodeActionExtensions
         };
         razorCodeAction.Data = JToken.FromObject(resolutionParams);
 
+        if (!isOnAllowList)
+        {
+            razorCodeAction.Title = "(Exp) " + razorCodeAction.Title;
+        }
+
         if (razorCodeAction.Children != null)
         {
             for (var i = 0; i < razorCodeAction.Children.Length; i++)
             {
-                razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language);
+                razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language, isOnAllowList);
             }
         }
 

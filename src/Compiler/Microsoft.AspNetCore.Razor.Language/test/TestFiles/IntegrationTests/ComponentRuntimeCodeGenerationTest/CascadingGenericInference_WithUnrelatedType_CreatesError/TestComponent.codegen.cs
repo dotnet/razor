@@ -2,13 +2,17 @@
 #pragma warning disable 1591
 namespace Test
 {
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -16,15 +20,14 @@ namespace Test
             {
                 global::__Blazor.Test.TestComponent.TypeInference.CreateGrid_0_CaptureParameters(
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-               new Dictionary<int, string>()
+#line (1,16)-(1,45) "x:\dir\subdir\Test\TestComponent.cshtml"
+new Dictionary<int, string>()
 
 #line default
 #line hidden
 #nullable disable
                 , out var __typeInferenceArg_0___arg0);
                 global::__Blazor.Test.TestComponent.TypeInference.CreateGrid_0(__builder, 0, 1, __typeInferenceArg_0___arg0, 2, (__builder2) => {
-                    global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_1(__builder2, 3);
                 }
                 );
                 __typeInferenceArg_0___arg0 = default;

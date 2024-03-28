@@ -9,12 +9,19 @@
 
   <ItemGroup>
     <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
+    <Using Alias="LanguageServerConstants" Include="Microsoft.AspNetCore.Razor.LanguageServer.Common.LanguageServerConstants"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Yes, all MEF is banned here -->
+    <AdditionalFiles Include="$(RepoRoot)eng\BannedSymbols.MEFv1.txt" />
+    <AdditionalFiles Include="$(RepoRoot)eng\BannedSymbols.MEFv2.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Need this reference to avoid 'The C# language is not supported' error during formatting. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion)" />
-    <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="$(MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion)" />
+    <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="$(MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)" />
@@ -29,8 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Common\Microsoft.AspNetCore.Razor.LanguageServer.Common.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Protocol\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="String Resources">
@@ -40,6 +48,11 @@
     </EmbeddedResource>
 
     <Using Include="$(ProjectName).Resources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
 </Project>

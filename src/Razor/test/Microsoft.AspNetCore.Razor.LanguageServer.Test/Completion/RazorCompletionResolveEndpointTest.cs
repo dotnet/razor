@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Xunit;
@@ -43,7 +43,7 @@ public class RazorCompletionResolveEndpointTest : LanguageServerTestBase
                 }
             }
         };
-        _endpoint.GetRegistration(_clientCapabilities);
+        _endpoint.ApplyCapabilities(new(), _clientCapabilities);
     }
 
     [Fact]

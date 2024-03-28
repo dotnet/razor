@@ -7,12 +7,13 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,7 +46,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         Assert.Collection(completionList.Items,
@@ -63,7 +64,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -71,7 +72,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
         Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
-        Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+        Assert.Equal(1337, delegatedParameters.Identifier.Version);
         Assert.Null(delegatedParameters.ProvisionalTextEdit);
     }
 
@@ -90,7 +91,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -99,7 +100,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
         Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
-        Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+        Assert.Equal(1337, delegatedParameters.Identifier.Version);
         Assert.Null(delegatedParameters.ProvisionalTextEdit);
     }
 
@@ -118,7 +119,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -127,8 +128,31 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
         Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
-        Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+        Assert.Equal(1337, delegatedParameters.Identifier.Version);
         Assert.Null(delegatedParameters.ProvisionalTextEdit);
+    }
+
+    [Fact]
+    public async Task Delegation_NullResult_ToIncompleteResult()
+    {
+        // Arrange
+        var completionContext = new VSInternalCompletionContext()
+        {
+            InvokeKind = VSInternalCompletionInvokeKind.Typing,
+            TriggerKind = CompletionTriggerKind.TriggerCharacter,
+            TriggerCharacter = "<",
+        };
+        var codeDocument = CreateCodeDocument("<");
+        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+        var provider = TestDelegatedCompletionListProvider.CreateWithNullResponse(LoggerFactory);
+
+        // Act
+        var delegatedCompletionList = await provider.GetCompletionListAsync(
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+
+        // Assert
+        Assert.NotNull(delegatedCompletionList);
+        Assert.True(delegatedCompletionList.IsIncomplete);
     }
 
     [Fact]
@@ -171,7 +195,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await _provider.GetCompletionListAsync(
-            absoluteIndex: 11, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 11, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         Assert.Null(completionList);
@@ -194,7 +218,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -205,7 +229,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
         Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
         Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
-        Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+        Assert.Equal(1337, delegatedParameters.Identifier.Version);
         Assert.NotNull(delegatedParameters.ProvisionalTextEdit);
     }
 
@@ -224,7 +248,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -235,8 +259,63 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
         Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
         Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
-        Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+        Assert.Equal(1337, delegatedParameters.Identifier.Version);
         Assert.Null(delegatedParameters.ProvisionalTextEdit);
+    }
+
+    [Theory]
+    [InlineData("$$", true)]
+    [InlineData("<$$", true)]
+    [InlineData(">$$", true)]
+    [InlineData("$$<", true)]
+    [InlineData("$$>", false)] // This is the only case that returns false but should return true. It's unlikely a user will type this, but it's complex to solve. Consider this a known and acceptable bug.
+    [InlineData("<div>$$</div>", true)]
+    [InlineData("$$<div></div>", true)]
+    [InlineData("<div></div>$$", true)]
+    [InlineData("<$$div></div>", false)]
+    [InlineData("<div$$></div>", false)]
+    [InlineData("<div class=\"$$\"></div>", false)]
+    [InlineData("<div><$$/div>", false)]
+    [InlineData("<div></div$$>", false)]
+    public async Task ShouldIncludeSnippets(string input, bool shouldIncludeSnippets)
+    {
+        var clientConnection = new TestClientConnection();
+
+        TestFileMarkupParser.GetPosition(input, out var code, out var cursorPosition);
+        var codeDocument = CreateCodeDocument(code);
+        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+
+        var documentMappingService = new TestDocumentMappingService()
+        {
+            LanguageKind = RazorLanguageKind.Html,
+            GeneratedPosition = new LinePosition(0, cursorPosition)
+        };
+
+        var completionProvider = new DelegatedCompletionListProvider(
+            Array.Empty<DelegatedCompletionResponseRewriter>(),
+            documentMappingService,
+            clientConnection,
+            new CompletionListCache());
+
+        var requestSent = false;
+        clientConnection.RequestSent += (s, o) =>
+        {
+            requestSent = true;
+
+            var @params = Assert.IsType<DelegatedCompletionParams>(o);
+            Assert.Equal(shouldIncludeSnippets, @params.ShouldIncludeSnippets);
+        };
+
+        var completionContext = new VSInternalCompletionContext()
+        {
+            InvokeKind = VSInternalCompletionInvokeKind.Typing,
+            TriggerKind = CompletionTriggerKind.TriggerCharacter,
+            TriggerCharacter = ".",
+        };
+
+        await completionProvider.GetCompletionListAsync(cursorPosition, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, DisposalToken);
+
+        Assert.True(requestSent);
     }
 
     private class TestResponseRewriter : DelegatedCompletionResponseRewriter
@@ -268,7 +347,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(output);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
-        var serverCapabilities =  new ServerCapabilities()
+        var serverCapabilities = new VSInternalServerCapabilities()
         {
             CompletionProvider = new CompletionOptions
             {
@@ -294,8 +373,33 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: cursorPosition, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: cursorPosition, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         return completionList;
+    }
+
+    private class TestClientConnection(object response = null) : IClientConnection
+    {
+        public event EventHandler<object> NotificationSent;
+        public event EventHandler<object> RequestSent;
+
+        private object _response = response;
+
+        public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        {
+            NotificationSent?.Invoke(this, @params);
+            return Task.CompletedTask;
+        }
+
+        public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        {
+            RequestSent?.Invoke(this, @params);
+            return Task.FromResult((TResponse)_response);
+        }
     }
 }

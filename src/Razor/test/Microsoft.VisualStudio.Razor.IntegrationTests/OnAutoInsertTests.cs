@@ -2,12 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-public class OnAutoInsertTests : AbstractRazorEditorTest
+public class OnAutoInsertTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
     [IdeFact]
     public async Task CSharp_DocumentationComments()

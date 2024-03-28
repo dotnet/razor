@@ -2,13 +2,17 @@
 #pragma warning disable 1591
 namespace Test
 {
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -16,8 +20,8 @@ namespace Test
             {
                 global::__Blazor.Test.TestComponent.TypeInference.CreateAncestor_0_CaptureParameters(
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                   Array.Empty<DateTime>()
+#line (1,20)-(1,43) "x:\dir\subdir\Test\TestComponent.cshtml"
+Array.Empty<DateTime>()
 
 #line default
 #line hidden
@@ -55,7 +59,7 @@ namespace __Blazor.Test.TestComponent
         {
             __arg0_out = __arg0;
         }
-        public static void CreateChild_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
+        public static void CreateChild_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
         {
         __builder.OpenComponent<global::Test.Child<TItem>>(seq);
         __builder.CloseComponent();

@@ -6,12 +6,11 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -49,7 +48,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         };
 
         var provider = CreateProvider();
-        var context = FormattingContext.Create(uri, Mock.Of<IDocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+        using var context = FormattingContext.Create(uri, Mock.Of<IDocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance);
 
         // Act
         if (!provider.TryResolveInsertion(position, context, out var edit, out _))
@@ -65,7 +64,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
 
     private static SourceText ApplyEdit(SourceText source, TextEdit edit)
     {
-        var change = edit.AsTextChange(source);
+        var change = edit.ToTextChange(source);
         return source.WithChanges(change);
     }
 
@@ -73,9 +72,9 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
     {
         fileKind ??= FileKinds.Component;
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
-        var sourceDocument = text.GetRazorSourceDocument(path, path);
+        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
         var projectEngine = RazorProjectEngine.Create(builder => { });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
         return codeDocument;
     }
 }

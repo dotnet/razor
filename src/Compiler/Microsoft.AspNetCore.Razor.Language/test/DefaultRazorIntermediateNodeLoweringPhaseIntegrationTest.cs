@@ -5,11 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Moq;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 using static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeAssert;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -320,7 +322,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                     {
                         builder => builder
                             .Name("bound")
-                            .PropertyName("FooProp")
+                            .Metadata(PropertyName("FooProp"))
                             .TypeName("System.String"),
                             })
             };
@@ -355,11 +357,9 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         // Arrange
         var source = TestRazorSourceDocument.Create(@"@using System.Threading.Tasks
 <p>Hi!</p>");
-        var imports = new[]
-        {
-                TestRazorSourceDocument.Create("@using System.Globalization"),
-                TestRazorSourceDocument.Create("@using System.Text"),
-            };
+        var imports = ImmutableArray.Create(
+            TestRazorSourceDocument.Create("@using System.Globalization"),
+            TestRazorSourceDocument.Create("@using System.Text"));
 
         var codeDocument = TestRazorCodeDocument.Create(source, imports);
 
@@ -381,10 +381,8 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         // Arrange
         var source = TestRazorSourceDocument.Create(@"@using System.Threading.Tasks
 @using System.Threading.Tasks");
-        var imports = new[]
-        {
-                TestRazorSourceDocument.Create("@using System.Threading.Tasks"),
-            };
+        var imports = ImmutableArray.Create(
+            TestRazorSourceDocument.Create("@using System.Threading.Tasks"));
 
         var codeDocument = TestRazorCodeDocument.Create(source, imports);
 
@@ -403,11 +401,9 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("<p>Hi!</p>");
-        var imports = new[]
-        {
-                TestRazorSourceDocument.Create("@test value1"),
-                TestRazorSourceDocument.Create("@test value2"),
-            };
+        var imports = ImmutableArray.Create(
+            TestRazorSourceDocument.Create("@test value1"),
+            TestRazorSourceDocument.Create("@test value2"));
 
         var codeDocument = TestRazorCodeDocument.Create(source, imports);
 
@@ -436,10 +432,8 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("<p>Hi!</p>");
-        var imports = new[]
-        {
-                TestRazorSourceDocument.Create("@block token { }"),
-            };
+        var imports = ImmutableArray.Create(
+            TestRazorSourceDocument.Create("@block token { }"));
 
         var codeDocument = TestRazorCodeDocument.Create(source, imports);
 
@@ -455,13 +449,13 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
             n => Html("<p>Hi!</p>", n));
     }
 
-    private DocumentIntermediateNode Lower(
+    private static DocumentIntermediateNode Lower(
         RazorCodeDocument codeDocument,
         Action<RazorProjectEngineBuilder> builder = null,
         IEnumerable<TagHelperDescriptor> tagHelpers = null,
         bool designTime = false)
     {
-        tagHelpers = tagHelpers ?? new TagHelperDescriptor[0];
+        tagHelpers ??= Array.Empty<TagHelperDescriptor>();
 
         Action<RazorProjectEngineBuilder> configureEngine = b =>
         {
@@ -475,9 +469,8 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
 
         var projectEngine = RazorProjectEngine.Create(configureEngine);
 
-        for (var i = 0; i < projectEngine.Phases.Count; i++)
+        foreach (var phase in projectEngine.Phases)
         {
-            var phase = projectEngine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorIntermediateNodeLoweringPhase)
@@ -499,7 +492,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null)
     {
         var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
-        builder.TypeName(typeName);
+        builder.Metadata(TypeName(typeName));
 
         if (attributes != null)
         {

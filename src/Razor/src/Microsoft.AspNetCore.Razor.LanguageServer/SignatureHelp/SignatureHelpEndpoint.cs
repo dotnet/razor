@@ -5,45 +5,54 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 
-internal class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParamsBridge, LS.SignatureHelp?>, ISignatureHelpEndpoint
-{
-    public SignatureHelpEndpoint(
+[RazorLanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
+internal sealed class SignatureHelpEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
-        ILoggerFactory loggerProvider)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerProvider.CreateLogger<SignatureHelpEndpoint>())
-    {
-    }
+        IRazorDocumentMappingService documentMappingService,
+        IClientConnection clientConnection,
+        IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+        IRazorLoggerFactory loggerProvider)
+    : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>(
+        languageServerFeatureOptions,
+        documentMappingService,
+        clientConnection,
+        loggerProvider.CreateLogger<SignatureHelpEndpoint>()),
+    ICapabilitiesProvider
+{
+    protected override string CustomMessageTarget => CustomMessageNames.RazorSignatureHelpEndpointName;
 
-    protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName;
-
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "signatureHelpProvider";
-        var option = new SignatureHelpOptions()
+        serverCapabilities.SignatureHelpProvider = new SignatureHelpOptions()
         {
             TriggerCharacters = new[] { "(", ",", "<" },
             RetriggerCharacters = new[] { ">", ")" }
         };
-
-        return new RegistrationExtensionResult(ServerCapability, option);
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
+        if (request.Context is not null && request.Context.TriggerKind != SignatureHelpTriggerKind.Invoked && !optionsMonitor.CurrentValue.AutoListParams)
+        {
+            // Return nothing if "Parameter Information" option is disabled unless signature help is invoked explicitly via command as opposed to typing or content change
+            return Task.FromResult<IDelegatedParams?>(null);
+        }
+
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind));
+                positionInfo.Position,
+                positionInfo.LanguageKind));
     }
 }

@@ -5,15 +5,14 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-[LanguageServerEndpoint(LanguageServerConstants.RazorTranslateDiagnosticsEndpoint)]
+[RazorLanguageServerEndpoint(LanguageServerConstants.RazorTranslateDiagnosticsEndpoint)]
 internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDiagnosticsParams, RazorDiagnosticsResponse>
 {
     private readonly ILogger _logger;
@@ -23,7 +22,7 @@ internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDia
 
     public RazorTranslateDiagnosticsEndpoint(
         RazorTranslateDiagnosticsService translateDiagnosticsService,
-        ILoggerFactory loggerFactory)
+        IRazorLoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {
@@ -59,7 +58,7 @@ internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDia
             };
         }
 
-        var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(request.Kind, request.Diagnostics, documentContext, cancellationToken);
+        var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(request.Kind, request.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation("Returning {mappedDiagnosticsLength} mapped diagnostics.", mappedDiagnostics.Length);
 

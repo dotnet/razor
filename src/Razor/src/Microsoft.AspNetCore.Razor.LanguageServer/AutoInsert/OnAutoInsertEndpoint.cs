@@ -6,50 +6,48 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-[LanguageServerEndpoint(VSInternalMethods.OnAutoInsertName)]
-internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IRegistrationExtension
+[RazorLanguageServerEndpoint(VSInternalMethods.OnAutoInsertName)]
+internal class OnAutoInsertEndpoint(
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IRazorDocumentMappingService documentMappingService,
+    IClientConnection clientConnection,
+    IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
+    IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+    IRazorLoggerFactory loggerFactory)
+    : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<OnAutoInsertEndpoint>()), ICapabilitiesProvider
 {
     private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new(StringComparer.Ordinal) { "=", };
     private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
 
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-    private readonly IReadOnlyList<IOnAutoInsertProvider> _onAutoInsertProviders;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
+    private readonly IReadOnlyList<IOnAutoInsertProvider> _onAutoInsertProviders = onAutoInsertProvider?.ToList() ?? throw new ArgumentNullException(nameof(onAutoInsertProvider));
 
-    public OnAutoInsertEndpoint(
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
-        IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-        ILoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<OnAutoInsertEndpoint>())
+    protected override string CustomMessageTarget => CustomMessageNames.RazorOnAutoInsertEndpointName;
+
+    /// <summary>
+    /// Used to to send request to Html even when it is in a Razor context, for example
+    /// for component attributes that are a Razor context, but we want to treat them as Html for auto-inserting quotes
+    /// after typing equals for attribute values.
+    /// </summary>
+    protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance;
+
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
-        _onAutoInsertProviders = onAutoInsertProvider?.ToList() ?? throw new ArgumentNullException(nameof(onAutoInsertProvider));
-    }
-
-    protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName;
-
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
-    {
-        const string AssociatedServerCapability = "_vs_onAutoInsertProvider";
-
         var triggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter);
 
         if (_languageServerFeatureOptions.SingleServerSupport)
@@ -57,15 +55,13 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
             triggerCharacters = triggerCharacters.Concat(s_htmlAllowedTriggerCharacters).Concat(s_cSharpAllowedTriggerCharacters);
         }
 
-        var registrationOptions = new VSInternalDocumentOnAutoInsertOptions()
+        serverCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
         {
             TriggerCharacters = triggerCharacters.Distinct().ToArray()
         };
-
-        return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -98,7 +94,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
         var uri = request.TextDocument.Uri;
         var position = request.Position;
 
-        var workspaceFactory = requestContext.GetRequiredService<AdhocWorkspaceFactory>();
+        var workspaceFactory = requestContext.GetRequiredService<IAdhocWorkspaceFactory>();
         using (var formattingContext = FormattingContext.Create(uri, documentContext.Snapshot, codeDocument, request.Options, workspaceFactory))
         {
             for (var i = 0; i < applicableProviders.Count; i++)
@@ -118,16 +114,26 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
         return null;
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
-        if (projection.LanguageKind == RazorLanguageKind.Html &&
-           !s_htmlAllowedTriggerCharacters.Contains(request.Character))
+        if (positionInfo.LanguageKind == RazorLanguageKind.Html)
         {
-            Logger.LogInformation("Inapplicable HTML trigger char {request.Character}.", request.Character);
-            return Task.FromResult<IDelegatedParams?>(null);
+            if (!s_htmlAllowedTriggerCharacters.Contains(request.Character))
+            {
+                Logger.LogInformation("Inapplicable HTML trigger char {request.Character}.", request.Character);
+                return Task.FromResult<IDelegatedParams?>(null);
+            }
+
+            if (!_optionsMonitor.CurrentValue.AutoInsertAttributeQuotes && request.Character == "=")
+            {
+                // Use Razor setting for autoinsert attribute quotes. HTML Server doesn't have a way to pass that
+                // information along so instead we just don't delegate the request.
+                Logger.LogTrace("Not delegating to HTML completion because AutoInsertAttributeQuotes is disabled");
+                return Task.FromResult<IDelegatedParams?>(null);
+            }
         }
-        else if (projection.LanguageKind == RazorLanguageKind.CSharp)
+        else if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
             if (!s_cSharpAllowedTriggerCharacters.Contains(request.Character))
             {
@@ -148,15 +154,15 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
             // having to restart VS. Not the worst compromise (hopefully!)
             if (!_optionsMonitor.CurrentValue.FormatOnType)
             {
-                requestContext.Logger.LogInformation("Formatting on type disabled, so auto insert is a no-op for C#.");
+                Logger.LogInformation("Formatting on type disabled, so auto insert is a no-op for C#.");
                 return Task.FromResult<IDelegatedParams?>(null);
             }
         }
 
         return Task.FromResult<IDelegatedParams?>(new DelegatedOnAutoInsertParams(
             documentContext.Identifier,
-            projection.Position,
-            projection.LanguageKind,
+            positionInfo.Position,
+            positionInfo.LanguageKind,
             request.Character,
             request.Options));
     }
@@ -165,7 +171,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
         VSInternalDocumentOnAutoInsertResponseItem? delegatedResponse,
         VSInternalDocumentOnAutoInsertParams originalRequest,
         RazorRequestContext requestContext,
-        Projection projection,
+        DocumentPositionInfo positionInfo,
         CancellationToken cancellationToken)
     {
         if (delegatedResponse is null)
@@ -176,7 +182,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
         var documentContext = requestContext.GetRequiredDocumentContext();
 
         // For Html we just return the edit as is
-        if (projection.LanguageKind == RazorLanguageKind.Html)
+        if (positionInfo.LanguageKind == RazorLanguageKind.Html)
         {
             return delegatedResponse;
         }
@@ -188,11 +194,11 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
         TextEdit[] mappedEdits;
         if (delegatedResponse.TextEditFormat == InsertTextFormat.Snippet)
         {
-            mappedEdits = await razorFormattingService.FormatSnippetAsync(documentContext, projection.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false);
+            mappedEdits = await razorFormattingService.FormatSnippetAsync(documentContext, positionInfo.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            mappedEdits = await razorFormattingService.FormatOnTypeAsync(documentContext, projection.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
+            mappedEdits = await razorFormattingService.FormatOnTypeAsync(documentContext, positionInfo.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
         }
 
         if (mappedEdits.Length != 1)

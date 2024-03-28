@@ -6,10 +6,12 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,12 +27,11 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     public CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
-        _projectManager.AllowNotifyListeners = true;
+        _projectManager = CreateProjectSnapshotManager();
         _referenceHolder = new CodeDocumentReferenceHolder();
         _referenceHolder.Initialize(_projectManager);
 
-        _hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, rootNamespace: "TestNamespace");
+        _hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, rootNamespace: "TestNamespace");
         _hostDocument = new HostDocument("C:/path/to/file.razor", "file.razor");
     }
 
@@ -38,7 +39,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     public async Task DocumentProcessed_ReferencesGeneratedCodeDocument()
     {
         // Arrange
-        var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+        var documentSnapshot = await CreateDocumentSnapshotAsync();
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
         // Act
@@ -52,16 +53,16 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     public async Task UnrelatedDocumentChanged_ReferencesGeneratedCodeDocument()
     {
         // Arrange
-        var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+        var documentSnapshot = await CreateDocumentSnapshotAsync();
         var unrelatedHostDocument = new HostDocument("C:/path/to/otherfile.razor", "otherfile.razor");
-        var unrelatedDocumentSnapshot = await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        var unrelatedDocumentSnapshot = await _projectManager.UpdateAsync(updater =>
         {
             var unrelatedTextLoader = new SourceTextLoader("<p>Unrelated</p>", unrelatedHostDocument.FilePath);
-            _projectManager.DocumentAdded(_hostProject, unrelatedHostDocument, unrelatedTextLoader);
-            var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
-            var document = project.GetDocument(unrelatedHostDocument.FilePath);
+            updater.DocumentAdded(_hostProject.Key, unrelatedHostDocument, unrelatedTextLoader);
+            var project = updater.GetLoadedProject(_hostProject.Key);
+            var document = project?.GetDocument(unrelatedHostDocument.FilePath);
             return document;
-        }, DisposalToken);
+        });
 
         Assert.NotNull(unrelatedDocumentSnapshot);
 
@@ -69,10 +70,10 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         var unrelatedCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(unrelatedDocumentSnapshot, DisposalToken);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.DocumentChanged(_hostProject.FilePath, unrelatedHostDocument.FilePath, SourceText.From(string.Empty));
-        }, DisposalToken);
+            updater.DocumentChanged(_hostProject.Key, unrelatedHostDocument.FilePath, SourceText.From(string.Empty));
+        });
 
         GC.Collect();
 
@@ -85,14 +86,15 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     public async Task DocumentChanged_DereferencesGeneratedCodeDocument()
     {
         // Arrange
-        var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+        var documentSnapshot = await CreateDocumentSnapshotAsync();
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.DocumentChanged(_hostProject.FilePath, _hostDocument.FilePath, SourceText.From(string.Empty));
-        }, DisposalToken);
+            updater.DocumentChanged(_hostProject.Key, _hostDocument.FilePath, SourceText.From(string.Empty));
+        });
 
         GC.Collect();
 
@@ -104,14 +106,14 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     public async Task DocumentRemoved_DereferencesGeneratedCodeDocument()
     {
         // Arrange
-        var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+        var documentSnapshot = await CreateDocumentSnapshotAsync();
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.DocumentRemoved(_hostProject, _hostDocument);
-        }, DisposalToken);
+            updater.DocumentRemoved(_hostProject.Key, _hostDocument);
+        });
 
         GC.Collect();
 
@@ -123,18 +125,25 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     public async Task ProjectChanged_DereferencesGeneratedCodeDocument()
     {
         // Arrange
-        var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+        var documentSnapshot = await CreateDocumentSnapshotAsync();
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
+        var asyncManualResetEvent = new AsyncManualResetEvent(false);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectConfigurationChanged(new HostProject(_hostProject.FilePath, RazorConfiguration.Default, rootNamespace: "NewRootNamespace"));
-        }, DisposalToken);
+            updater.ProjectConfigurationChanged(new HostProject(_hostProject.FilePath, _hostProject.IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: "NewRootNamespace"));
+            asyncManualResetEvent.Set();
+        });
 
         GC.Collect();
 
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(5));
+        await asyncManualResetEvent.WaitAsync(cts.Token);
+
         // Assert
+        Assert.False(cts.IsCancellationRequested);
         Assert.False(codeDocumentReference.TryGetTarget(out _));
     }
 
@@ -142,14 +151,14 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     public async Task ProjectRemoved_DereferencesGeneratedCodeDocument()
     {
         // Arrange
-        var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+        var documentSnapshot = await CreateDocumentSnapshotAsync();
         var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
         // Act
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectRemoved(_hostProject);
-        }, DisposalToken);
+            updater.ProjectRemoved(_hostProject.Key);
+        });
 
         GC.Collect();
 
@@ -157,23 +166,23 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         Assert.False(codeDocumentReference.TryGetTarget(out _));
     }
 
-    private Task<IDocumentSnapshot> CreateDocumentSnapshotAsync(CancellationToken cancellationToken)
+    private Task<IDocumentSnapshot> CreateDocumentSnapshotAsync()
     {
-        return Dispatcher.RunOnDispatcherThreadAsync(() =>
+        return _projectManager.UpdateAsync(updater =>
         {
-            _projectManager.ProjectAdded(_hostProject);
+            updater.ProjectAdded(_hostProject);
             var textLoader = new SourceTextLoader("<p>Hello World</p>", _hostDocument.FilePath);
-            _projectManager.DocumentAdded(_hostProject, _hostDocument, textLoader);
-            var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
+            updater.DocumentAdded(_hostProject.Key, _hostDocument, textLoader);
+            var project = updater.GetLoadedProject(_hostProject.Key);
             return project.GetDocument(_hostDocument.FilePath).AssumeNotNull();
-        }, cancellationToken);
+        });
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private async Task<WeakReference<RazorCodeDocument>> ProcessDocumentAndRetrieveOutputAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        await Dispatcher.RunAsync(() =>
         {
             _referenceHolder.DocumentProcessed(codeDocument, documentSnapshot);
         }, cancellationToken);

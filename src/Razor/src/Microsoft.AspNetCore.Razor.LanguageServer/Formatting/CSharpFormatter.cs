@@ -7,14 +7,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -24,25 +21,25 @@ internal class CSharpFormatter
 {
     private const string MarkerId = "RazorMarker";
 
-    private readonly RazorDocumentMappingService _documentMappingService;
-    private readonly ClientNotifierServiceBase _server;
+    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IClientConnection _clientConnection;
 
     public CSharpFormatter(
-        RazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer)
+        IRazorDocumentMappingService documentMappingService,
+        IClientConnection clientConnection)
     {
         if (documentMappingService is null)
         {
             throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        if (languageServer is null)
+        if (clientConnection is null)
         {
-            throw new ArgumentNullException(nameof(languageServer));
+            throw new ArgumentNullException(nameof(clientConnection));
         }
 
         _documentMappingService = documentMappingService;
-        _server = languageServer;
+        _clientConnection = clientConnection;
     }
 
     public async Task<TextEdit[]> FormatAsync(FormattingContext context, Range rangeToFormat, CancellationToken cancellationToken)
@@ -57,12 +54,12 @@ internal class CSharpFormatter
             throw new ArgumentNullException(nameof(rangeToFormat));
         }
 
-        if (!_documentMappingService.TryMapToProjectedDocumentRange(context.CodeDocument.GetCSharpDocument(), rangeToFormat, out var projectedRange))
+        if (!_documentMappingService.TryMapToGeneratedDocumentRange(context.CodeDocument.GetCSharpDocument(), rangeToFormat, out var projectedRange))
         {
             return Array.Empty<TextEdit>();
         }
 
-        var edits = await GetFormattingEditsAsync(context, projectedRange, cancellationToken);
+        var edits = await GetFormattingEditsAsync(context, projectedRange, cancellationToken).ConfigureAwait(false);
         var mappedEdits = MapEditsToHostDocument(context.CodeDocument, edits);
         return mappedEdits;
     }
@@ -86,13 +83,13 @@ internal class CSharpFormatter
         // We also want to ensure there are no duplicates to avoid duplicate markers.
         var filteredLocations = projectedDocumentLocations.Distinct().OrderBy(l => l).ToList();
 
-        var indentations = await GetCSharpIndentationCoreAsync(context, filteredLocations, cancellationToken);
+        var indentations = await GetCSharpIndentationCoreAsync(context, filteredLocations, cancellationToken).ConfigureAwait(false);
         return indentations;
     }
 
     private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
     {
-        var actualEdits = _documentMappingService.GetProjectedDocumentEdits(codeDocument.GetCSharpDocument(), csharpEdits);
+        var actualEdits = _documentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), csharpEdits);
 
         return actualEdits;
     }
@@ -100,8 +97,8 @@ internal class CSharpFormatter
     private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, Range projectedRange, CancellationToken cancellationToken)
     {
         var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
-        var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
-        var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken);
+        var spanToFormat = projectedRange.ToTextSpan(csharpSourceText);
+        var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         Assumes.NotNull(root);
 
         var workspace = context.CSharpWorkspace;
@@ -109,7 +106,7 @@ internal class CSharpFormatter
         // Formatting options will already be set in the workspace.
         var changes = CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(root, spanToFormat, workspace, cancellationToken: cancellationToken);
 
-        var edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
+        var edits = changes.Select(c => c.ToTextEdit(csharpSourceText)).ToArray();
         return edits;
     }
 
@@ -123,7 +120,7 @@ internal class CSharpFormatter
 
         var (indentationMap, syntaxTree) = InitializeIndentationData(context, projectedDocumentLocations, cancellationToken);
 
-        var root = await syntaxTree.GetRootAsync(cancellationToken);
+        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         root = AttachAnnotations(indentationMap, projectedDocumentLocations, root);
 
@@ -257,13 +254,16 @@ internal class CSharpFormatter
 
                 if (initializer.IsKind(CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression))
                 {
-                    // For array initializers we have don't want to ignore the open and close braces
+                    // For array initializers we don't want to ignore the open and close braces
                     // as the formatter does move them relative to the variable declaration they
                     // are part of, but doesn't otherwise touch them.
                     // This isn't true if they are part of other collection or object initializers, but
                     // fortunately we can ignore that because of the recursive nature of this method,
                     // I just wanted to mention it so you understood how annoying this is :)
-                    if (token == initializer.OpenBraceToken || token == initializer.CloseBraceToken)
+                    // This also isn't true for the close brace token of an _implicit_ array creation
+                    // expression, because Roslyn was designed to hurt me.
+                    if (token == initializer.OpenBraceToken ||
+                        (token == initializer.CloseBraceToken && initializer.Parent is not ImplicitArrayCreationExpressionSyntax))
                     {
                         return false;
                     }
@@ -284,7 +284,7 @@ internal class CSharpFormatter
 
         static bool SpansMultipleLines(SyntaxNode node, SourceText text)
         {
-            var range = node.Span.AsRange(text);
+            var range = node.Span.ToRange(text);
             return range.Start.Line != range.End.Line;
         }
     }

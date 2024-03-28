@@ -4,9 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -22,18 +27,26 @@ internal class ProjectSnapshot : IProjectSnapshot
         State = state ?? throw new ArgumentNullException(nameof(state));
 
         _lock = new object();
-        _documents = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
+        _documents = new Dictionary<string, DocumentSnapshot>(FilePathNormalizingComparer.Instance);
     }
+
+    public ProjectKey Key => State.HostProject.Key;
 
     public ProjectState State { get; }
 
-    public RazorConfiguration? Configuration => HostProject.Configuration;
+    public RazorConfiguration Configuration => HostProject.Configuration;
 
     public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
 
+    public int DocumentCount => State.Documents.Count;
+
     public string FilePath => State.HostProject.FilePath;
 
+    public string IntermediateOutputPath => State.HostProject.IntermediateOutputPath;
+
     public string? RootNamespace => State.HostProject.RootNamespace;
+
+    public string DisplayName => State.HostProject.DisplayName;
 
     public LanguageVersion CSharpLanguageVersion => State.CSharpLanguageVersion;
 
@@ -41,9 +54,9 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public virtual VersionStamp Version => State.Version;
 
-    public IReadOnlyList<TagHelperDescriptor> TagHelpers => State.TagHelpers;
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => new(State.TagHelpers);
 
-    public ProjectWorkspaceState? ProjectWorkspaceState => State.ProjectWorkspaceState;
+    public ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
 
     public virtual IDocumentSnapshot? GetDocument(string filePath)
     {
@@ -60,6 +73,12 @@ internal class ProjectSnapshot : IProjectSnapshot
         }
     }
 
+    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    {
+        document = GetDocument(filePath);
+        return document is not null;
+    }
+
     public bool IsImportDocument(IDocumentSnapshot document)
     {
         if (document is null)
@@ -67,7 +86,7 @@ internal class ProjectSnapshot : IProjectSnapshot
             throw new ArgumentNullException(nameof(document));
         }
 
-        return State.ImportsToRelatedDocuments.ContainsKey(document.TargetPath);
+        return document.TargetPath is { } targetPath && State.ImportsToRelatedDocuments.ContainsKey(targetPath);
     }
 
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)

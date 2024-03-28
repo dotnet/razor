@@ -9,31 +9,20 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
+internal class DefaultRazorComponentSearchEngine(
+    IProjectSnapshotManager projectManager,
+    IRazorLoggerFactory loggerFactory)
+    : RazorComponentSearchEngine
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
-    private readonly ILogger<DefaultRazorComponentSearchEngine> _logger;
-
-    public DefaultRazorComponentSearchEngine(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        ILoggerFactory loggerFactory)
-    {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
-    }
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
 
     public async override Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
@@ -49,9 +38,7 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             return null;
         }
 
-        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-             () => _projectSnapshotManager.Projects.ToArray(),
-             cancellationToken).ConfigureAwait(false);
+        var projects = _projectManager.GetProjects();
 
         foreach (var project in projects)
         {
@@ -69,11 +56,12 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             }
 
             // If we got this far, we can check for tag helpers
-            foreach (var tagHelper in project.TagHelpers)
+            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var tagHelper in tagHelpers)
             {
                 // Check the typename and namespace match
-                if (IsPathCandidateForComponent(documentSnapshot, tagHelper.GetTypeNameIdentifier()) &&
-                    ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, tagHelper.GetTypeNamespace()))
+                if (IsPathCandidateForComponent(documentSnapshot, tagHelper.GetTypeNameIdentifier().AsMemory()) &&
+                    ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, tagHelper.GetTypeNamespace().AsSpan()))
                 {
                     return tagHelper;
                 }
@@ -108,11 +96,9 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             return null;
         }
 
-        var lookupSymbolName = RemoveGenericContent(typeName);
+        var lookupSymbolName = RemoveGenericContent(typeName.AsMemory());
 
-        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-            () => _projectSnapshotManager.Projects.ToArray(),
-            CancellationToken.None).ConfigureAwait(false);
+        var projects = _projectManager.GetProjects();
 
         foreach (var project in projects)
         {
@@ -137,7 +123,7 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
                 }
 
                 // Make sure we have the right namespace of the fully qualified name
-                if (!ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, namespaceName))
+                if (!ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, namespaceName.AsSpan()))
                 {
                     continue;
                 }
@@ -149,19 +135,16 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
         return null;
     }
 
-    internal static StringSegment RemoveGenericContent(StringSegment typeName)
+    internal static ReadOnlyMemory<char> RemoveGenericContent(ReadOnlyMemory<char> typeName)
     {
-        var genericSeparatorStart = typeName.IndexOf('<');
-        if (genericSeparatorStart > 0)
-        {
-            var nonGenericTypeName = typeName.Subsegment(0, genericSeparatorStart);
-            return nonGenericTypeName;
-        }
+        var genericSeparatorStart = typeName.Span.IndexOf('<');
 
-        return typeName;
+        return genericSeparatorStart > 0
+            ? typeName[..genericSeparatorStart]
+            : typeName;
     }
 
-    private static bool IsPathCandidateForComponent(IDocumentSnapshot documentSnapshot, StringSegment path)
+    private static bool IsPathCandidateForComponent(IDocumentSnapshot documentSnapshot, ReadOnlyMemory<char> path)
     {
         if (documentSnapshot.FileKind != FileKinds.Component)
         {
@@ -169,20 +152,20 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
         }
 
         var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
-        return new StringSegment(fileName).Equals(path, FilePathComparison.Instance);
+        return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
     }
 
-    private bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, StringSegment namespaceName)
+    private bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, ReadOnlySpan<char> namespaceName)
     {
         var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
             .GetDocumentIntermediateNode()
             .FindDescendantNodes<IntermediateNode>()
             .First(n => n is NamespaceDeclarationIntermediateNode);
 
-        var namespacesMatch = new StringSegment(namespaceNode.Content).Equals(namespaceName, StringComparison.Ordinal);
+        var namespacesMatch = namespaceNode.Content.AsSpan().Equals(namespaceName, StringComparison.Ordinal);
         if (!namespacesMatch)
         {
-            _logger.LogInformation("Namespace name {namespaceNodeContent} does not match namespace name {namespaceName}.", namespaceNode.Content, namespaceName);
+            _logger.LogInformation("Namespace name {namespaceNodeContent} does not match namespace name {namespaceName}.", namespaceNode.Content, namespaceName.ToString());
         }
 
         return namespacesMatch;

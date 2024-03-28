@@ -1,8 +1,9 @@
-﻿<Project>
+﻿<!-- Whenever altering this or other Source Build files, please include @dotnet/source-build-internal as a reviewer. -->
+
+<Project>
   <PropertyGroup>
     <GitHubRepositoryName>razor</GitHubRepositoryName>
     <SourceBuildManagedOnly>true</SourceBuildManagedOnly>
-    <SourceBuildTrimNetFrameworkTargets>true</SourceBuildTrimNetFrameworkTargets>
     <CloneSubmodulesToInnerSourceBuildRepo>false</CloneSubmodulesToInnerSourceBuildRepo>
   </PropertyGroup>
 
@@ -17,10 +18,4 @@
     <Delete Files="$(InnerSourceBuildRepoRoot).globalconfig" />
   </Target>
 
-  <Target Name="CustomizeInnerBuildArgs"
-          BeforeTargets="GetSourceBuildCommandConfiguration">
-    <PropertyGroup>
-      <InnerBuildArgs>$(InnerBuildArgs) /p:SourceBuildRuntimeIdentifier=$(TargetRuntimeIdentifier)</InnerBuildArgs>
-    </PropertyGroup>
-  </Target>
 </Project>

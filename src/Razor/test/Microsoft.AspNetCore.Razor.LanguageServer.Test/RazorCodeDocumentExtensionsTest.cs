@@ -4,14 +4,13 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class RazorCodeDocumentExtensionsTest : TestBase
+public class RazorCodeDocumentExtensionsTest : ToolingTestBase
 {
     public RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput)
         : base(testOutput)

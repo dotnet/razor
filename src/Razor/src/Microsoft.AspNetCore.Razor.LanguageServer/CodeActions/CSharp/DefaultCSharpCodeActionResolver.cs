@@ -7,15 +7,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
+internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
 {
     // Usually when we need to format code, we utilize the formatting options provided
     // by the platform. However, we aren't provided such options in the case of code actions
@@ -32,14 +32,14 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
         },
     };
 
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly IRazorFormattingService _razorFormattingService;
 
     public DefaultCSharpCodeActionResolver(
-        DocumentContextFactory documentContextFactory,
-        ClientNotifierServiceBase languageServer,
+        IDocumentContextFactory documentContextFactory,
+        IClientConnection clientConnection,
         IRazorFormattingService razorFormattingService)
-        : base(languageServer)
+        : base(clientConnection)
     {
         if (documentContextFactory is null)
         {
@@ -72,13 +72,13 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
             throw new ArgumentNullException(nameof(codeAction));
         }
 
-        var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+        var documentContext = _documentContextFactory.TryCreateForOpenDocument(csharpParams.RazorFileIdentifier);
         if (documentContext is null)
         {
             return codeAction;
         }
 
-        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, documentContext.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
+        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileIdentifier, documentContext.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
         if (resolvedCodeAction?.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action
@@ -111,7 +111,7 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
             RazorLanguageKind.CSharp,
             csharpTextEdits,
             s_defaultFormattingOptions,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -119,18 +119,18 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
-            Uri = csharpParams.RazorFileUri,
+            Uri = csharpParams.RazorFileIdentifier.Uri,
             Version = documentVersion,
         };
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {
             DocumentChanges = new TextDocumentEdit[] {
-                    new TextDocumentEdit()
-                    {
-                        TextDocument = codeDocumentIdentifier,
-                        Edits = formattedEdits,
-                    }
+                new TextDocumentEdit()
+                {
+                    TextDocument = codeDocumentIdentifier,
+                    Edits = formattedEdits,
                 }
+            }
         };
 
         return resolvedCodeAction;

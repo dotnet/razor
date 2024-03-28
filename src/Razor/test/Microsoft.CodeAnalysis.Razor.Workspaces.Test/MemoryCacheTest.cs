@@ -10,12 +10,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Test;
 
-public class MemoryCacheTest : TestBase
+public class MemoryCacheTest : ToolingTestBase
 {
     public MemoryCacheTest(ITestOutputHelper testOutput)
         : base(testOutput)

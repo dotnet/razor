@@ -3,12 +3,13 @@
 
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-public class DiagnosticTests : AbstractRazorEditorTest
+public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8150")]
+    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8150")]
     public async Task Diagnostics_ShowErrors_Razor()
     {
         // Arrange
@@ -48,7 +49,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8150")]
+    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8150")]
     public async Task Diagnostics_ShowErrors_Html()
     {
         // Arrange
@@ -80,7 +81,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8150")]
+    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8150")]
     public async Task Diagnostics_ShowErrors_CSharp()
     {
         // Arrange
@@ -112,7 +113,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8150")]
+    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8150")]
     public async Task Diagnostics_ShowErrors_CSharp_NoDocType()
     {
         // Why this test, when we have the above test, and they seem so similar, and we also have Diagnostics_ShowErrors_CSharpAndHtml you ask? Well I'll tell you!
@@ -152,7 +153,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8150")]
+    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8150")]
     public async Task Diagnostics_ShowErrors_CSharpAndHtml()
     {
         // Arrange

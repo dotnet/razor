@@ -34,6 +34,7 @@
 [$RootKey$\Languages\Language Services\Razor]
 @="{4513FA64-5B72-4B58-9D4C-1D3C81996C2C}"
 "Package"="{13b72f58-279e-49e0-a56d-296be02f0805}"
+"ShowCompletion"=dword:00000001
 "ShowBraceCompletion"=dword:00000001
 "ShowSmartIndent"=dword:00000001
 
@@ -43,14 +44,39 @@
 "Title"="Use legacy Razor editor (requires restart)"
 "PreviewPaneChannels"="int.main"
 
-[$RootKey$\FeatureFlags\Razor\LSP\SingleServerCompletion]
-"Description"="Enable single server completion when editing Razor (ASP.NET Core)."
-"Value"=dword:00000001
-"Title"="Enable enhanced Razor completion (requires restart)"
+[$RootKey$\FeatureFlags\Razor\LSP\ShowAllCSharpCodeActions]
+"Description"="Show all C# code actions in Razor files. Note: This is experimental, some actions may not apply correctly, or at all!"
+"Value"=dword:00000000
+"Title"="Show all C# code actions in Razor files (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
 
-[$RootKey$\FeatureFlags\Razor\LSP\SingleServer]
-"Description"="Enable single server support when editing Razor (ASP.NET Core)."
+[$RootKey$\FeatureFlags\Razor\LSP\IncludeProjectKeyInGeneratedFilePath]
+"Description"="Enables the experimental support for Razor projects to support multi-targeting, including allowing different C# code generation per-target."
 "Value"=dword:00000001
-"Title"="Enable enhanced Razor LSP server (requires restart)"
+"Title"="Experimental Razor project multi-targeting support (requires restart)"
+"PreviewPaneChannels"="*"
+
+[$RootKey$\FeatureFlags\Razor\LSP\UsePreciseSemanticTokenRanges]
+"Description"="Use precise semantic token ranges when requesting semantic token information on razor files. Note: This is experimental, some actions may not apply correctly, or at all!"
+"Value"=dword:00000000
+"Title"="Use precise semantic token ranges when requesting semantic token information on Razor files (requires restart)"
+"PreviewPaneChannels"="*"
+"VisibleToInternalUsersOnlyChannels"="*"
+
+[$RootKey$\FeatureFlags\Razor\LSP\UseRazorCohostServer]
+"Description"="Uses the Razor language server that is cohosted in Roslyn to provide some Razor tooling functionality."
+"Value"=dword:00000000
+"Title"="Use Roslyn Cohost server for Razor (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Razor\LSP\DisableRazorLanguageServer]
+"Description"="Disables the Razor Language Server so that only the Cohost server is active. This is probably a bad idea to turn on if you are not on the Razor Tooling team."
+"Value"=dword:00000000
+"Title"="Disable Razor Language Server (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Razor\LSP\ForceRuntimeCodeGeneration]
+"Description"="Enable combined design time/runtime code generation for Razor files"
+"Value"=dword:00000000
+"Title"="Force use of runtime code generation for Razor (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"

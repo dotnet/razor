@@ -7,9 +7,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.Extensions.Logging;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -35,7 +36,7 @@ public class ProjectConfigurationFileChangeDetectorTest : LanguageServerTestBase
         var listener2 = new Mock<IProjectConfigurationFileChangeListener>(MockBehavior.Strict);
         listener2.Setup(l => l.ProjectConfigurationFileChanged(It.IsAny<ProjectConfigurationFileChangeEventArgs>()))
             .Callback<ProjectConfigurationFileChangeEventArgs>(args => eventArgs2.Add(args));
-        var existingConfigurationFiles = new[] { "c:/path/to/project.razor.json", "c:/other/path/project.razor.json" };
+        var existingConfigurationFiles = new[] { "c:/path/to/project.razor.json", "c:/other/path/project.razor.bin" };
         var cts = new CancellationTokenSource();
         var detector = new TestProjectConfigurationFileChangeDetector(
             cts,
@@ -82,7 +83,7 @@ public class ProjectConfigurationFileChangeDetectorTest : LanguageServerTestBase
             ProjectSnapshotManagerDispatcher dispatcher,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             IReadOnlyList<string> existingConfigurationFiles,
-            ILoggerFactory loggerFactory)
+            IRazorLoggerFactory loggerFactory)
             : base(dispatcher, listeners, TestLanguageServerFeatureOptions.Instance, loggerFactory)
         {
             _cancellationTokenSource = cancellationTokenSource;

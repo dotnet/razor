@@ -2,7 +2,7 @@
 #pragma warning disable 1591
 namespace AspNetCore
 {
-    #line hidden
+    #line default
     using TModel = global::System.Object;
     using System;
     using System.Collections.Generic;
@@ -11,6 +11,8 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    #line default
+    #line hidden
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
         #pragma warning disable 219
@@ -47,6 +49,16 @@ MyService<TModel> __typeHelper = default;
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
+#line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+      
+
+#line default
+#line hidden
+#line 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+       
+
+#line default
+#line hidden
         }
         #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

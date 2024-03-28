@@ -3,9 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
@@ -13,7 +17,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactory
+internal class DefaultVSLSPTagHelperTooltipFactory(ISnapshotResolver snapshotResolver) : VSLSPTagHelperTooltipFactory(snapshotResolver)
 {
     private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
 
@@ -49,21 +53,20 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
     private static readonly ClassifiedTextRun s_newLine = new(VSPredefinedClassificationTypeNames.WhiteSpace, Environment.NewLine);
     private static readonly ClassifiedTextRun s_nullableType = new(VSPredefinedClassificationTypeNames.Punctuation, "?");
 
-    public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, [NotNullWhen(true)] out ContainerElement? tooltipContent)
+    public override async Task<ContainerElement?> TryCreateTooltipContainerAsync(string documentFilePath, AggregateBoundElementDescription elementDescriptionInfo, CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(elementDescriptionInfo));
         }
 
-        if (!TryClassifyElement(elementDescriptionInfo, out var descriptionClassifications))
+        var descriptionClassifications = await TryClassifyElementAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+        if (descriptionClassifications.IsDefaultOrEmpty)
         {
-            tooltipContent = null;
-            return false;
+            return null;
         }
 
-        tooltipContent = CombineClassifiedTextRuns(descriptionClassifications, ClassGlyph);
-        return true;
+        return CombineClassifiedTextRuns(descriptionClassifications, ClassGlyph);
     }
 
     public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ContainerElement? tooltipContent)
@@ -85,21 +88,20 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
 
     // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
     // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-    public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, [NotNullWhen(true)] out ClassifiedTextElement? tooltipContent)
+    public override async Task<ClassifiedTextElement?> TryCreateTooltipAsync(string documentFilePath, AggregateBoundElementDescription elementDescriptionInfo, CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(elementDescriptionInfo));
         }
 
-        if (!TryClassifyElement(elementDescriptionInfo, out var descriptionClassifications))
+        var descriptionClassifications = await TryClassifyElementAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+        if (descriptionClassifications.IsDefaultOrEmpty)
         {
-            tooltipContent = null;
-            return false;
+            return null;
         }
 
-        tooltipContent = GenerateClassifiedTextElement(descriptionClassifications);
-        return true;
+        return GenerateClassifiedTextElement(descriptionClassifications);
     }
 
     // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
@@ -121,18 +123,15 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
         return true;
     }
 
-    private static bool TryClassifyElement(
-        AggregateBoundElementDescription elementDescriptionInfo,
-        [NotNullWhen(true)] out IReadOnlyList<DescriptionClassification>? descriptionClassifications)
+    private async Task<ImmutableArray<DescriptionClassification>> TryClassifyElementAsync(string documentFilePath, AggregateBoundElementDescription elementInfo, CancellationToken cancellationToken)
     {
-        var associatedTagHelperInfos = elementDescriptionInfo.AssociatedTagHelperDescriptions;
-        if (associatedTagHelperInfos.Count == 0)
+        var associatedTagHelperInfos = elementInfo.DescriptionInfos;
+        if (associatedTagHelperInfos.Length == 0)
         {
-            descriptionClassifications = null;
-            return false;
+            return default;
         }
 
-        var descriptions = new List<DescriptionClassification>();
+        using var descriptions = new PooledArrayBuilder<DescriptionClassification>();
 
         // Generates a ClassifiedTextElement that looks something like:
         //     Namespace.TypeName
@@ -143,33 +142,42 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
         {
             // 1. Classify type name
             var typeRuns = new List<ClassifiedTextRun>();
-
             ClassifyTypeName(typeRuns, descriptionInfo.TagHelperTypeName);
 
             // 2. Classify summary
             var documentationRuns = new List<ClassifiedTextRun>();
             TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
 
-            // 3. Combine type + summary information
+            // 3. Project availability
+            await AddProjectAvailabilityInfoAsync(documentFilePath, descriptionInfo.TagHelperTypeName, documentationRuns, cancellationToken).ConfigureAwait(false);
+
+            // 4. Combine type + summary information
             descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
         }
 
-        descriptionClassifications = descriptions;
-        return true;
+        return descriptions.DrainToImmutable();
     }
 
-    private static bool TryClassifyAttribute(
-        AggregateBoundAttributeDescription attributeDescriptionInfo,
-        [NotNullWhen(true)] out List<DescriptionClassification>? descriptionClassifications)
+    private async Task AddProjectAvailabilityInfoAsync(string documentFilePath, string tagHelperTypeName, List<ClassifiedTextRun> documentationRuns, CancellationToken cancellationToken)
     {
-        var associatedAttributeInfos = attributeDescriptionInfo.DescriptionInfos;
-        if (associatedAttributeInfos.Count == 0)
+        var availability = await GetProjectAvailabilityAsync(documentFilePath, tagHelperTypeName, cancellationToken).ConfigureAwait(false);
+
+        if (availability is not null)
         {
-            descriptionClassifications = null;
+            documentationRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, availability));
+        }
+    }
+
+    private static bool TryClassifyAttribute(AggregateBoundAttributeDescription attributeInfo, out ImmutableArray<DescriptionClassification> classifications)
+    {
+        var associatedAttributeInfos = attributeInfo.DescriptionInfos;
+        if (associatedAttributeInfos.Length == 0)
+        {
+            classifications = default;
             return false;
         }
 
-        var descriptions = new List<DescriptionClassification>();
+        using var descriptions = new PooledArrayBuilder<DescriptionClassification>();
 
         // Generates a ClassifiedTextElement that looks something like:
         //     ReturnType Namespace.TypeName.Property
@@ -201,7 +209,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
             descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
         }
 
-        descriptionClassifications = descriptions;
+        classifications = descriptions.DrainToImmutable();
         return true;
     }
 
@@ -253,7 +261,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
             // There are certain characters that should be classified as plain text. For example,
             // in 'TypeName<T, T2>', the characters '<', ',' and '>' should be classified as plain
             // text while the rest should be classified as a keyword or type.
-            if (ch == '<' || ch == '>' || ch == '[' || ch == ']' || ch == ',')
+            if (ch is '<' or '>' or '[' or ']' or ',')
             {
                 if (currentTextRun.Length != 0)
                 {
@@ -261,7 +269,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
 
                     // The type we're working with could contain a nested type, in which case we may
                     // also need to reduce the inner type name(s), e.g. 'List<NamespaceName.TypeName>'
-                    if ((ch == '<' || ch == '>' || ch == '[' || ch == ']') && currentRunTextStr.Contains("."))
+                    if (ch is '<' or '>' or '[' or ']' && currentRunTextStr.Contains('.'))
                     {
                         var reducedName = ReduceTypeName(currentRunTextStr);
                         ClassifyShortName(runs, reducedName);
@@ -409,7 +417,6 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
         {
             if (currentTextRun.Length != 0)
             {
-
                 runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, currentTextRun.ToString()));
                 currentTextRun.Clear();
             }
@@ -443,9 +450,10 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
         return new ContainerElement(ContainerElementStyle.Stacked, classifiedElementContainer);
     }
 
-    private static ClassifiedTextElement GenerateClassifiedTextElement(IReadOnlyList<DescriptionClassification> descriptionClassifications)
+    private static ClassifiedTextElement GenerateClassifiedTextElement(ImmutableArray<DescriptionClassification> descriptionClassifications)
     {
         var runs = new List<ClassifiedTextRun>();
+
         foreach (var classification in descriptionClassifications)
         {
             if (runs.Count > 0)

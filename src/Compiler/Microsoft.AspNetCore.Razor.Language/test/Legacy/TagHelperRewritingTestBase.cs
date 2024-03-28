@@ -4,11 +4,12 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class TagHelperRewritingTestBase : ParserTestBase
+public class TagHelperRewritingTestBase() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     internal void RunParseTreeRewriterTest(string documentContent, params string[] tagNames)
     {
@@ -17,7 +18,7 @@ public class TagHelperRewritingTestBase : ParserTestBase
         EvaluateData(descriptors, documentContent);
     }
 
-    internal IEnumerable<TagHelperDescriptor> BuildDescriptors(params string[] tagNames)
+    internal ImmutableArray<TagHelperDescriptor> BuildDescriptors(params string[] tagNames)
     {
         var descriptors = new List<TagHelperDescriptor>();
 
@@ -29,18 +30,19 @@ public class TagHelperRewritingTestBase : ParserTestBase
             descriptors.Add(descriptor);
         }
 
-        return descriptors;
+        return descriptors.ToImmutableArray();
     }
 
     internal void EvaluateData(
-        IEnumerable<TagHelperDescriptor> descriptors,
+        ImmutableArray<TagHelperDescriptor> descriptors,
         string documentContent,
         string tagHelperPrefix = null,
         RazorParserFeatureFlags featureFlags = null)
     {
         var syntaxTree = ParseDocument(documentContent, featureFlags: featureFlags);
 
-        var rewrittenTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, tagHelperPrefix, descriptors, out _);
+        var binder = new TagHelperBinder(tagHelperPrefix, descriptors);
+        var rewrittenTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, binder, out _);
 
         Assert.Equal(syntaxTree.Root.FullWidth, rewrittenTree.Root.FullWidth);
 

@@ -2,68 +2,60 @@
 #pragma warning disable 1591
 namespace Test
 {
+    #line default
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
+    #line default
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
-    public partial class TestComponent<TDomain, TValue> : global::Microsoft.AspNetCore.Components.ComponentBase
-    where TDomain : struct
-    where TValue : struct
+    #nullable restore
+    public partial class TestComponent<
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+TDomain
+
+#line default
+#line hidden
+#nullable disable
+    ,
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+TValue
+
+#line default
+#line hidden
+#nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+where TDomain : struct
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+where TValue : struct
+
+#line default
+#line hidden
+#nullable disable
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
         ((global::System.Action)(() => {
-#nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-global::System.Object TDomain = null!;
-
-#line default
-#line hidden
-#nullable disable
         }
         ))();
         ((global::System.Action)(() => {
-#pragma warning disable CS0693
-#pragma warning disable CS8321
-#nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-void __TypeConstraints_TDomain<TDomain>() where TDomain : struct
-{
-}
-#pragma warning restore CS0693
-#pragma warning restore CS8321
-
-#line default
-#line hidden
-#nullable disable
         }
         ))();
         ((global::System.Action)(() => {
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-global::System.Object TValue = null!;
-
-#line default
-#line hidden
-#nullable disable
         }
         ))();
         ((global::System.Action)(() => {
-#pragma warning disable CS0693
-#pragma warning disable CS8321
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-void __TypeConstraints_TValue<TValue>() where TValue : struct
-{
-}
-#pragma warning restore CS0693
-#pragma warning restore CS8321
-
-#line default
-#line hidden
-#nullable disable
         }
         ))();
         }
@@ -104,7 +96,8 @@ void __TypeConstraints_TValue<TValue>() where TValue : struct
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.TestComponent<decimal, decimal>)default).
+            #pragma warning disable BL0005
+            ((global::Test.TestComponent<decimal, decimal>)default).
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
                Data
@@ -112,7 +105,8 @@ void __TypeConstraints_TValue<TValue>() where TValue : struct
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.TestComponent<,>);

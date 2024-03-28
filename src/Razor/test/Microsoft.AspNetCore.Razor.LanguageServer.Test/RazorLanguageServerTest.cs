@@ -4,16 +4,18 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-public class RazorLanguageServerTest : TestBase
+public class RazorLanguageServerTest : ToolingTestBase
 {
     public RazorLanguageServerTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -21,13 +23,41 @@ public class RazorLanguageServerTest : TestBase
     }
 
     [Fact]
+    public async Task LocaleIsSetCorrectly()
+    {
+        var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+        using var server = RazorLanguageServerWrapper.Create(serverStream, serverStream, LoggerFactory, NoOpTelemetryReporter.Instance);
+
+        var innerServer = server.GetInnerLanguageServerForTesting();
+        innerServer.Initialize();
+        var queue = innerServer.GetTestAccessor().GetRequestExecutionQueue();
+
+        var initializeParams = new InitializeParams
+        {
+            Capabilities = new(),
+            Locale = "de-DE"
+        };
+
+        await queue.ExecuteAsync<InitializeParams, InitializeResult>(initializeParams, Methods.InitializeName, innerServer.GetLspServices(), DisposalToken);
+
+        // We have to send one more request, because culture is set before any request starts, but the first initialize request has to
+        // be started in order to set the culture.
+        await queue.ExecuteAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(new(), VSInternalMethods.WorkspacePullDiagnosticName, innerServer.GetLspServices(), DisposalToken);
+
+        var cultureInfo = queue.GetTestAccessor().GetCultureInfo();
+
+        Assert.NotNull(cultureInfo);
+        Assert.Equal("de-DE", cultureInfo.Name);
+    }
+
+    [Fact]
     public void AllHandlersRegisteredAsync()
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        using var server = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, NoOpTelemetryReporter.Instance);
+        using var server = RazorLanguageServerWrapper.Create(serverStream, serverStream, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var innerServer = server.GetInnerLanguageServerForTesting();
-        var handlerProvider = innerServer.GetTestAccessor().GetHandlerProvider();
+        var handlerProvider = innerServer.GetTestAccessor().HandlerProvider;
 
         var registeredMethods = handlerProvider.GetRegisteredMethods();
         var handlerTypes = typeof(RazorLanguageServerWrapper).Assembly.GetTypes()
@@ -40,7 +70,7 @@ public class RazorLanguageServerTest : TestBase
         if (registeredMethods.Length != typeMethods.Count)
         {
             var unregisteredHandlers = typeMethods.Where(t => !registeredMethods.Any(m => m.MethodName == t));
-            Assert.True(false, $"Unregistered handlers: {string.Join(";", unregisteredHandlers.Select(t => t))}");
+            Assert.Fail($"Unregistered handlers: {string.Join(";", unregisteredHandlers.Select(t => t))}");
         }
 
         static string GetMethodFromType(Type t)

@@ -3,6 +3,8 @@
 
 #nullable disable
 
+using System.Threading;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -13,19 +15,24 @@ public class ProjectLoadBenchmark : ProjectSnapshotManagerBenchmarkBase
     [IterationSetup]
     public void Setup()
     {
-        SnapshotManager = CreateProjectSnapshotManager();
+        ProjectManager = CreateProjectSnapshotManager();
     }
 
-    private DefaultProjectSnapshotManager SnapshotManager { get; set; }
+    private ProjectSnapshotManager ProjectManager { get; set; }
 
     [Benchmark(Description = "Initializes a project and 100 files", OperationsPerInvoke = 100)]
-    public void ProjectLoad_AddProjectAnd100Files()
+    public async Task ProjectLoad_AddProjectAnd100Files()
     {
-        SnapshotManager.ProjectAdded(HostProject);
+        await ProjectManager.UpdateAsync(
+            updater =>
+            {
+                updater.ProjectAdded(HostProject);
 
-        for (var i= 0; i < Documents.Length; i++)
-        {
-            SnapshotManager.DocumentAdded(HostProject, Documents[i], TextLoaders[i % 4]);
-        }
+                for (var i = 0; i < Documents.Length; i++)
+                {
+                    updater.DocumentAdded(HostProject.Key, Documents[i], TextLoaders[i % 4]);
+                }
+            },
+            CancellationToken.None);
     }
 }

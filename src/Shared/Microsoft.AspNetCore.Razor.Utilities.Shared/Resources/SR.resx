@@ -117,7 +117,31 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Cannot_advance_past_end_of_the_buffer_which_has_a_size_of_0" xml:space="preserve">
+    <value>Cannot advance past the end of the buffer, which has a size of {0}.</value>
+  </data>
+  <data name="Cannot_allocate_a_buffer_of_size_0" xml:space="preserve">
+    <value>Cannot allocate a buffer of size {0}.</value>
+  </data>
+  <data name="Destination_is_too_short" xml:space="preserve">
+    <value>Destination is too short.</value>
+  </data>
+  <data name="Expected_condition_to_be_false" xml:space="preserve">
+    <value>Expected condition to be false.</value>
+  </data>
+  <data name="Expected_condition_to_be_true" xml:space="preserve">
+    <value>Expected condition to be true.</value>
+  </data>
+  <data name="File_0_Line_1" xml:space="preserve">
+    <value> File='{0}', Line={1}</value>
+  </data>
   <data name="Non_negative_number_required" xml:space="preserve">
     <value>Non-negative number required.</value>
+  </data>
+  <data name="This_program_location_is_thought_to_be_unreachable" xml:space="preserve">
+    <value>This program location is thought to be unreachable.</value>
+  </data>
+  <data name="Unsupported_type_0" xml:space="preserve">
+    <value>Unsupported type: '{0}'.</value>
   </data>
 </root>
