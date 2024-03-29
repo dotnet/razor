@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 /// Used to receive project system info updates from the client that were discovered OOB.
 /// </summary>
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorProjectInfoEndpoint)]
-internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams>, IDisposable
+internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams>
 {
     private readonly ProjectConfigurationStateManager _projectConfigurationStateManager;
 
@@ -26,10 +26,6 @@ internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams
     }
 
     public bool MutatesSolutionState => false;
-
-    public void Dispose()
-    {
-    }
 
     public async Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
