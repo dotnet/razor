@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -27,12 +28,8 @@ internal class ProjectConfigurationStateManager
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IRazorProjectService _projectService;
+    private readonly IProjectSnapshotManager _projectManager;
     private readonly ILogger _logger;
-
-    /// <summary>
-    /// A set of all projects known to this service.
-    /// </summary>
-    private readonly HashSet<ProjectKey> _projectSet;
 
     /// <summary>
     /// Used to throttle project system updates
@@ -42,12 +39,13 @@ internal class ProjectConfigurationStateManager
     public ProjectConfigurationStateManager(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IRazorProjectService projectService,
+        IProjectSnapshotManager projectManager,
         IRazorLoggerFactory loggerFactory)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = projectService;
+        _projectManager = projectManager;
         _logger = loggerFactory.CreateLogger<ProjectConfigurationStateManager>();
-        _projectSet = new();
 
         ProjectInfoMap = new Dictionary<ProjectKey, DelayedProjectInfo>();
     }
@@ -66,9 +64,11 @@ internal class ProjectConfigurationStateManager
     {
         _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
+        var knownProject = _projectManager.GetProjects().Any((projectSnapshot) => projectSnapshot.Key == projectKey);
+
         if (projectInfo is null)
         {
-            if (_projectSet.Remove(projectKey))
+            if (knownProject)
             {
                 // projectInfo null is "remove"
                 EnqueueUpdateProject(projectKey, projectInfo: null);
@@ -81,7 +81,7 @@ internal class ProjectConfigurationStateManager
             return;
         }
 
-        if (!_projectSet.Contains(projectKey))
+        if (!knownProject)
         {
             var configurationFilePath = FilePathNormalizer.Normalize(projectInfo.SerializedFilePath);
             _logger.LogInformation("Found no existing project key for project key '{0}'. Assuming new project.", projectKey.Id);
@@ -102,7 +102,6 @@ internal class ProjectConfigurationStateManager
         var rootNamespace = projectInfo.RootNamespace;
 
         var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
-        _projectSet.Add(projectKey);
 
         _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
         EnqueueUpdateProject(projectKey, projectInfo);
