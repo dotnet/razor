@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -124,7 +125,6 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         var rootNamespace = projectInfo.RootNamespace;
 
         var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
-        _projectSet.Add(projectKey);
 
         _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, intermediateOutputPath);
         EnqueueUpdateProject(projectKey, projectInfo);
