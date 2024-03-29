@@ -6,11 +6,11 @@
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)')" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" />
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" />
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" SubFolder="$(ServiceHubCoreSubPath)" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" SubFolder="$(ServiceHubCoreSubPath)" />
     </ItemGroup>
   </Target>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
   <Import Project="$(RepositoryEngineeringDir)targets\ReplaceServiceHubAssetsInVsixManifest.targets" />
-  <Import Project="$(RepositoryEngineeringDir)targets\GeneratePkgDef.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\GenerateBrokeredServicesPkgDef.targets" />
 </Project>

@@ -40,7 +40,7 @@
     "assemblyPath": "Microsoft.CodeAnalysis.Remote.Razor.dll",
     "fullClassName": "%(_CoreServicesWithSuffix.ClassName)"
   },
-  "friendServices": [ "Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzerCore64" ]
+  "friendServices": [ "Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzerCore64%(_CoreServicesWithSuffix.HostIdSuffix)" ]
 }
 ]]>
         </Content>

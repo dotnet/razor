@@ -46,10 +46,10 @@
 
     <ItemGroup>
       <_PkgDefEntry Include="@(PkgDefBrokeredService)" Condition="'%(PkgDefBrokeredService.ProfferingPackageId)' == ''">
-        <!-- 11AD60FC-6D87-4674-8F88-9ABE79176CBE is id of the HubClient package which proffers ServiceHub services -->
+        <!-- 11ad60fc-6d87-4674-8f88-9abe79176cbe is id of the HubClient package which proffers ServiceHub services -->
         <RawValue>
           <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)]
-@="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
+@="{11ad60fc-6d87-4674-8f88-9abe79176cbe}"
 "IsServiceHub"=dword:00000001
 "ServiceLocation"=%(PkgDefBrokeredService._ServiceLocation)
 "audience"=%(PkgDefBrokeredService._Audience)
