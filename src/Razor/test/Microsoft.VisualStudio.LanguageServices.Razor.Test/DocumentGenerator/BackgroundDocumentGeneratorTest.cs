@@ -242,8 +242,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         await generator.WaitUntilCurrentBatchCompletesAsync();
 
         Assert.Collection(generator.CompletedWork.OrderBy(key => key.DocumentFilePath),
-            key => Assert.Equal(documentKey1, key),
-            key => Assert.Equal(documentKey2, key));
+            key => Assert.Equal(documentKey2, key),
+            key => Assert.Equal(documentKey1, key));
     }
 
     [UIFact]
