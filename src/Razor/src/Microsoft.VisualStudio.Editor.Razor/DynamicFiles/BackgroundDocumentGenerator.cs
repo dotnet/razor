@@ -21,7 +21,6 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(2);
 
     private readonly IProjectSnapshotManager _projectManager;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
     private readonly IErrorReporter _errorReporter;
 
@@ -33,23 +32,20 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     [ImportingConstructor]
     public BackgroundDocumentGenerator(
         IProjectSnapshotManager projectManager,
-        ProjectSnapshotManagerDispatcher dispatcher,
         IRazorDynamicFileInfoProviderInternal infoProvider,
         IErrorReporter errorReporter)
-        : this(projectManager, dispatcher, infoProvider, errorReporter, s_delay)
+        : this(projectManager, infoProvider, errorReporter, s_delay)
     {
     }
 
     // Provided for tests to be able to modify the timer delay
     protected BackgroundDocumentGenerator(
         IProjectSnapshotManager projectManager,
-        ProjectSnapshotManagerDispatcher dispatcher,
         IRazorDynamicFileInfoProviderInternal infoProvider,
         IErrorReporter errorReporter,
         TimeSpan delay)
     {
         _projectManager = projectManager;
-        _dispatcher = dispatcher;
         _infoProvider = infoProvider;
         _errorReporter = errorReporter;
 
@@ -77,18 +73,16 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
     public virtual void Enqueue(IProjectSnapshot project, IDocumentSnapshot document)
     {
-        if (project is ProjectSnapshot { HostProject: FallbackHostProject })
-        {
-            // We don't support closed file code generation for fallback projects
-            return;
-        }
-
         if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
 
-        _dispatcher.AssertRunningOnDispatcher();
+        if (project is ProjectSnapshot { HostProject: FallbackHostProject })
+        {
+            // We don't support closed file code generation for fallback projects
+            return;
+        }
 
         if (Suppressed(project, document))
         {

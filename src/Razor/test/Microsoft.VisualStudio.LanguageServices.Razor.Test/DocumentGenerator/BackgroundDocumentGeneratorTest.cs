@@ -65,7 +65,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         var hostDocument = s_documents[0];
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
-        using var generator = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        using var generator = new TestBackgroundDocumentGenerator(projectManager, _dynamicFileInfoProvider, ErrorReporter)
         {
             NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false)
         };
@@ -125,13 +125,10 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        using var generator = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, errorReporterMock.Object);
+        using var generator = new TestBackgroundDocumentGenerator(projectManager, _dynamicFileInfoProvider, errorReporterMock.Object);
 
         // Act & Assert
-        await RunOnDispatcherAsync(() =>
-        {
-            generator.Enqueue(project, project.GetDocument(s_documents[0].FilePath).AssumeNotNull());
-        });
+        generator.Enqueue(project, project.GetDocument(s_documents[0].FilePath).AssumeNotNull());
 
         await generator.WaitUntilCurrentBatchCompletesAsync();
     }
@@ -164,13 +161,10 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
 
-        using var generator = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, errorReporterMock.Object);
+        using var generator = new TestBackgroundDocumentGenerator(projectManager, _dynamicFileInfoProvider, errorReporterMock.Object);
 
         // Act & Assert
-        await RunOnDispatcherAsync(() =>
-        {
-            generator.Enqueue(project, project.GetDocument(s_documents[0].FilePath).AssumeNotNull());
-        });
+        generator.Enqueue(project, project.GetDocument(s_documents[0].FilePath).AssumeNotNull());
 
         await generator.WaitUntilCurrentBatchCompletesAsync();
     }
@@ -192,15 +186,12 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         var project = projectManager.GetLoadedProject(s_hostProject1.Key);
         var documentKey1 = new DocumentKey(project.Key, s_documents[0].FilePath);
 
-        using var generator = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter);
+        using var generator = new TestBackgroundDocumentGenerator(projectManager, _dynamicFileInfoProvider, ErrorReporter);
 
         // Act & Assert
 
         // Enqueue some work.
-        await RunOnDispatcherAsync(() =>
-        {
-            generator.Enqueue(project, project.GetDocument(s_documents[0].FilePath).AssumeNotNull());
-        });
+        generator.Enqueue(project, project.GetDocument(s_documents[0].FilePath).AssumeNotNull());
 
         // Wait for the work to complete.
         await generator.WaitUntilCurrentBatchCompletesAsync();
@@ -230,15 +221,12 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         var documentKey1 = new DocumentKey(project.Key, s_documents[0].FilePath);
         var documentKey2 = new DocumentKey(project.Key, s_documents[1].FilePath);
 
-        using var generator = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter);
+        using var generator = new TestBackgroundDocumentGenerator(projectManager, _dynamicFileInfoProvider, ErrorReporter);
 
         // Act & Assert
 
         // First, enqueue some work.
-        await RunOnDispatcherAsync(() =>
-        {
-            generator.Enqueue(project, project.GetDocument(s_documents[0].FilePath).AssumeNotNull());
-        });
+        generator.Enqueue(project, project.GetDocument(s_documents[0].FilePath).AssumeNotNull());
 
         // Wait for the work to complete.
         await generator.WaitUntilCurrentBatchCompletesAsync();
@@ -247,10 +235,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         Assert.Single(generator.CompletedWork, documentKey1);
 
         // Enqueue more work.
-        await RunOnDispatcherAsync(() =>
-        {
-            generator.Enqueue(project, project.GetDocument(s_documents[1].FilePath).AssumeNotNull());
-        });
+        generator.Enqueue(project, project.GetDocument(s_documents[1].FilePath).AssumeNotNull());
 
         // Wait for the work to complete.
         await generator.WaitUntilCurrentBatchCompletesAsync();
@@ -281,7 +266,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             }
         });
 
-        using var generator = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        using var generator = new TestBackgroundDocumentGenerator(projectManager, _dynamicFileInfoProvider, ErrorReporter)
         {
             BlockBatchProcessing = true
         };
@@ -325,7 +310,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             updater.DocumentAdded(s_hostProject1.Key, TestProjectData.SomeProjectImportFile, null!);
         });
 
-        using var generator = new TestBackgroundDocumentGenerator(projectManager, Dispatcher, _dynamicFileInfoProvider, ErrorReporter)
+        using var generator = new TestBackgroundDocumentGenerator(projectManager, _dynamicFileInfoProvider, ErrorReporter)
         {
             BlockBatchProcessing = true
         };
@@ -351,10 +336,9 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
     private class TestBackgroundDocumentGenerator(
         IProjectSnapshotManager projectManager,
-        ProjectSnapshotManagerDispatcher dispatcher,
         IRazorDynamicFileInfoProviderInternal dynamicFileInfoProvider,
         IErrorReporter errorReporter)
-        : BackgroundDocumentGenerator(projectManager, dispatcher, dynamicFileInfoProvider, errorReporter, delay: TimeSpan.FromMilliseconds(1))
+        : BackgroundDocumentGenerator(projectManager, dynamicFileInfoProvider, errorReporter, delay: TimeSpan.FromMilliseconds(1))
     {
         public readonly List<DocumentKey> PendingWork = [];
         public readonly List<DocumentKey> CompletedWork = [];
