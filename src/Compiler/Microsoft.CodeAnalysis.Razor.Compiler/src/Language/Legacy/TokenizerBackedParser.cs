@@ -720,4 +720,9 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     {
         Context.CurrentAcceptedCharacters = acceptedCharacters ?? AcceptedCharactersInternal.None;
     }
+
+    internal void StartingBlock()
+    {
+        _tokenizer.Tokenizer.StartingBlock();
+    }
 }

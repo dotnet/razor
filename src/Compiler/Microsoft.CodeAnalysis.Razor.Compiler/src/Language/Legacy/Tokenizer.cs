@@ -69,6 +69,8 @@ internal abstract class Tokenizer : ITokenizer
 
     protected abstract StateResult Dispatch();
 
+    internal virtual void StartingBlock() { }
+
     SyntaxToken ITokenizer.NextToken()
     {
         return NextToken();
@@ -251,7 +253,7 @@ internal abstract class Tokenizer : ITokenizer
         return !EndOfFile;
     }
 
-    protected void TakeCurrent()
+    protected virtual void TakeCurrent(bool advanceSecondaryLexer = true)
     {
         if (EndOfFile)
         {

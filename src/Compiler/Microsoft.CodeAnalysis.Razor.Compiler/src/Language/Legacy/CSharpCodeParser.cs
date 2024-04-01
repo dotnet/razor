@@ -224,6 +224,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             return null;
         }
 
+        base.StartingBlock();
+
         using (var pooledResult = Pool.Allocate<RazorSyntaxNode>())
         using (PushSpanContextConfig(DefaultSpanContextConfig))
         {
