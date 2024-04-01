@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -240,7 +241,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         // Wait for the work to complete.
         await generator.WaitUntilCurrentBatchCompletesAsync();
 
-        Assert.Collection(generator.CompletedWork,
+        Assert.Collection(generator.CompletedWork.OrderBy(key => key.DocumentFilePath),
             key => Assert.Equal(documentKey1, key),
             key => Assert.Equal(documentKey2, key));
     }
@@ -281,7 +282,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         Assert.True(generator.HasPendingWork);
 
-        Assert.Collection(generator.PendingWork,
+        Assert.Collection(generator.PendingWork.OrderBy(key => key.DocumentFilePath),
             key => Assert.Equal(new(s_hostProject1.Key, documents[0].FilePath), key),
             key => Assert.Equal(new(s_hostProject1.Key, documents[1].FilePath), key));
 
@@ -292,7 +293,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         Assert.False(generator.HasPendingWork);
 
-        Assert.Collection(generator.CompletedWork,
+        Assert.Collection(generator.CompletedWork.OrderBy(key => key.DocumentFilePath),
             key => Assert.Equal(new(s_hostProject1.Key, documents[0].FilePath), key),
             key => Assert.Equal(new(s_hostProject1.Key, documents[1].FilePath), key));
     }

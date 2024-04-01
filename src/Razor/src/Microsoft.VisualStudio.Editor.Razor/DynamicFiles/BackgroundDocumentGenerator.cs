@@ -94,43 +94,36 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
     protected virtual async ValueTask ProcessBatchAsync(ImmutableArray<(IProjectSnapshot, IDocumentSnapshot)> items, CancellationToken token)
     {
-        try
+        foreach (var (project, document) in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
-            foreach (var (project, document) in items.GetMostRecentUniqueItems(Comparer.Instance))
+            if (_disposeTokenSource.IsCancellationRequested)
             {
-                if (_disposeTokenSource.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                // If the solution is closing, suspect any in-progress work
-                if (_solutionIsClosing)
-                {
-                    break;
-                }
-
-                try
-                {
-                    await ProcessDocumentAsync(project, document).ConfigureAwait(false);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // Ignore UnauthorizedAccessException. These can occur when a file gets its permissions changed as we're processing it.
-                }
-                catch (IOException)
-                {
-                    // Ignore IOException. These can occur when a file was in the middle of being renamed and it disappears as we're processing it.
-                    // This is a common case and does not warrant an activity log entry.
-                }
-                catch (Exception ex)
-                {
-                    _errorReporter.ReportError(ex, project);
-                }
+                return;
             }
-        }
-        catch (Exception ex)
-        {
-            _errorReporter.ReportError(ex);
+
+            // If the solution is closing, suspect any in-progress work
+            if (_solutionIsClosing)
+            {
+                break;
+            }
+
+            try
+            {
+                await ProcessDocumentAsync(project, document).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Ignore UnauthorizedAccessException. These can occur when a file gets its permissions changed as we're processing it.
+            }
+            catch (IOException)
+            {
+                // Ignore IOException. These can occur when a file was in the middle of being renamed and it disappears as we're processing it.
+                // This is a common case and does not warrant an activity log entry.
+            }
+            catch (Exception ex)
+            {
+                _errorReporter.ReportError(ex, project);
+            }
         }
     }
 
@@ -179,7 +172,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        if (newProject.GetDocument(documentFilePath) is { } document)
+                        if (newProject.TryGetDocument(documentFilePath, out var document))
                         {
                             Enqueue(newProject, document);
                         }
@@ -187,13 +180,14 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
                     break;
                 }
+
             case ProjectChangeKind.ProjectChanged:
                 {
                     var newProject = args.Newer.AssumeNotNull();
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        if (newProject.GetDocument(documentFilePath) is { } document)
+                        if (newProject.TryGetDocument(documentFilePath, out var document))
                         {
                             Enqueue(newProject, document);
                         }
@@ -208,7 +202,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
                     var newProject = args.Newer.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    if (newProject.GetDocument(documentFilePath) is { } document)
+                    if (newProject.TryGetDocument(documentFilePath, out var document))
                     {
                         Enqueue(newProject, document);
 
@@ -229,7 +223,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
                     var oldProject = args.Older.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    if (oldProject.GetDocument(documentFilePath) is { } document)
+                    if (oldProject.TryGetDocument(documentFilePath, out var document))
                     {
                         foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
                         {
