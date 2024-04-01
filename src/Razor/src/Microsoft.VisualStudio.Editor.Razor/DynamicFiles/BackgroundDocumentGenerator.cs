@@ -19,21 +19,20 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 [Export(typeof(IRazorStartupService))]
-internal class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
+internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(2);
-
-    // Internal for testing
-    internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work = [];
 
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
     private readonly IErrorReporter _errorReporter;
+    private readonly TimeSpan _delay;
+
+    private readonly CancellationTokenSource _disposeTokenSource;
+    private readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> _work = [];
     private ImmutableHashSet<string> _suppressedDocuments;
 
-    private readonly TimeSpan _delay;
-    private readonly CancellationTokenSource _disposeTokenSource;
     private Timer? _timer;
     private bool _solutionIsClosing;
 
@@ -77,70 +76,57 @@ internal class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
         }
     }
 
-    public bool HasPendingNotifications
-    {
-        get
-        {
-            lock (Work)
-            {
-                return Work.Count > 0;
-            }
-        }
-    }
-
-    public bool IsScheduledOrRunning => _timer != null;
-
     // Used in unit tests to ensure we can control when background work starts.
-    public ManualResetEventSlim? BlockBackgroundWorkStart { get; set; }
+    private ManualResetEventSlim? _blockBackgroundWorkStart;
 
     // Used in unit tests to ensure we can know when background work finishes.
-    public ManualResetEventSlim? NotifyBackgroundWorkStarting { get; set; }
+    private ManualResetEventSlim? _notifyBackgroundWorkStarting;
 
     // Used in unit tests to ensure we can know when background has captured its current workload.
-    public ManualResetEventSlim? NotifyBackgroundCapturedWorkload { get; set; }
+    private ManualResetEventSlim? _notifyBackgroundCapturedWorkload;
 
     // Used in unit tests to ensure we can control when background work completes.
-    public ManualResetEventSlim? BlockBackgroundWorkCompleting { get; set; }
+    private ManualResetEventSlim? _blockBackgroundWorkCompleting;
 
     // Used in unit tests to ensure we can know when background work finishes.
-    public ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
+    private ManualResetEventSlim? _notifyBackgroundWorkCompleted;
 
     // Used in unit tests to ensure we can know when errors are reported
-    public ManualResetEventSlim? NotifyErrorBeingReported { get; set; }
+    private ManualResetEventSlim? _notifyErrorBeingReported;
 
     private void OnStartingBackgroundWork()
     {
-        if (BlockBackgroundWorkStart is not null)
+        if (_blockBackgroundWorkStart is not null)
         {
-            BlockBackgroundWorkStart.Wait();
-            BlockBackgroundWorkStart.Reset();
+            _blockBackgroundWorkStart.Wait();
+            _blockBackgroundWorkStart.Reset();
         }
 
-        NotifyBackgroundWorkStarting?.Set();
+        _notifyBackgroundWorkStarting?.Set();
     }
 
     private void OnCompletingBackgroundWork()
     {
-        if (BlockBackgroundWorkCompleting is not null)
+        if (_blockBackgroundWorkCompleting is not null)
         {
-            BlockBackgroundWorkCompleting.Wait();
-            BlockBackgroundWorkCompleting.Reset();
+            _blockBackgroundWorkCompleting.Wait();
+            _blockBackgroundWorkCompleting.Reset();
         }
     }
 
     private void OnCompletedBackgroundWork()
     {
-        NotifyBackgroundWorkCompleted?.Set();
+        _notifyBackgroundWorkCompleted?.Set();
     }
 
     private void OnBackgroundCapturedWorkload()
     {
-        NotifyBackgroundCapturedWorkload?.Set();
+        _notifyBackgroundCapturedWorkload?.Set();
     }
 
     private void OnErrorBeingReported()
     {
-        NotifyErrorBeingReported?.Set();
+        _notifyErrorBeingReported?.Set();
     }
 
     protected virtual async Task ProcessDocumentAsync(IProjectSnapshot project, IDocumentSnapshot document)
@@ -175,7 +161,7 @@ internal class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
 
         _dispatcher.AssertRunningOnDispatcher();
 
-        lock (Work)
+        lock (_work)
         {
             if (Suppressed(project, document))
             {
@@ -184,7 +170,7 @@ internal class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
 
             // We only want to store the last 'seen' version of any given document. That way when we pick one to process
             // it's always the best version to use.
-            Work[new DocumentKey(project.Key, document.FilePath.AssumeNotNull())] = (project, document);
+            _work[new DocumentKey(project.Key, document.FilePath.AssumeNotNull())] = (project, document);
 
             StartWorker();
         }
@@ -224,10 +210,10 @@ internal class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
             OnStartingBackgroundWork();
 
             KeyValuePair<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)>[] work;
-            lock (Work)
+            lock (_work)
             {
-                work = Work.ToArray();
-                Work.Clear();
+                work = _work.ToArray();
+                _work.Clear();
             }
 
             OnBackgroundCapturedWorkload();
@@ -267,7 +253,7 @@ internal class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
 
             OnCompletingBackgroundWork();
 
-            lock (Work)
+            lock (_work)
             {
                 // Resetting the timer allows another batch of work to start.
                 _timer.Dispose();
@@ -275,7 +261,7 @@ internal class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
 
                 // If more work came in while we were running start the worker again, unless the solution
                 // is being closed.
-                if (Work.Count > 0 && !_solutionIsClosing)
+                if (_work.Count > 0 && !_solutionIsClosing)
                 {
                     StartWorker();
                 }
