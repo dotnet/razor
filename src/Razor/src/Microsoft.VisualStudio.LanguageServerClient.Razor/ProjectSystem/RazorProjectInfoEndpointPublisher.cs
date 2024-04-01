@@ -79,7 +79,6 @@ internal partial class RazorProjectInfoEndpointPublisher
         switch (args.Kind)
         {
             case ProjectChangeKind.ProjectChanged:
-            case ProjectChangeKind.DocumentChanged:
             case ProjectChangeKind.DocumentRemoved:
             case ProjectChangeKind.DocumentAdded:
                 if (!ProjectWorkspacePublishable(args.Newer))
