@@ -64,7 +64,7 @@ internal class ProjectConfigurationStateManager
     {
         _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
-        var knownProject = _projectManager.GetProjects().Any((projectSnapshot) => projectSnapshot.Key == projectKey);
+        var knownProject = _projectManager.TryGetLoadedProject(projectKey, out _);
 
         if (projectInfo is null)
         {
