@@ -16,6 +16,15 @@ if ($flag.EndsWith("\")) {
   throw "Provided flag '$flag' ends with '\', which is not valid"
 }
 
+$value = 0
+
+if ($enable)
+{
+  $value = 1
+}
+
+Write-Host "Attempting to modify '$flag' to '$value'"
+
 $flagBase = "FeatureFlags\Razor\LSP"
 $slashIndex = $flag.LastIndexOf("\")
 
@@ -43,17 +52,21 @@ if ($set)
   }
 }
 
-. (Join-Path $PSScriptRoot "eng" "common" "tools.ps1")
+$engPath = Join-Path $PSScriptRoot ".."
+$commonPath = Join-Path $engPath "common"
+$toolScript = Join-Path $commonPath "tools.ps1"
+
+Write-Host "Executing '$toolScript'"
+. $toolScript
 
 $vsInfo = LocateVisualStudio
 if ($null -eq $vsInfo) {
   throw "Unable to locate required Visual Studio installation"
 }
 
+Write-Host "Running VsRegEdit"
 $vsDir = $vsInfo.installationPath.TrimEnd("\")
 $vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'
-
-$value = $enable ? 1 : 0
 
 if ($set) {
   &$vsRegEdit set "$vsDir" $hive HKCU $flagBase $flag dword $value
@@ -61,4 +74,3 @@ if ($set) {
 else {
   &$vsRegEdit read "$vsDir" $hive HKCU $flagBase $flag dword
 }
- 
