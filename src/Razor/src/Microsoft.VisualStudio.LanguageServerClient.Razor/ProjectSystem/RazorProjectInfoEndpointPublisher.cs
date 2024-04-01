@@ -31,6 +31,8 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
     private readonly CancellationTokenSource _disposeTokenSource;
     private bool _active;
 
+    private bool _active;
+
     [ImportingConstructor]
     public RazorProjectInfoEndpointPublisher(
         LSPRequestInvoker requestInvoker,
