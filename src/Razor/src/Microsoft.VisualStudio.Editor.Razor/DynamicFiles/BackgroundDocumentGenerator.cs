@@ -96,7 +96,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     {
         foreach (var (project, document) in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
-            if (_disposeTokenSource.IsCancellationRequested)
+            if (token.IsCancellationRequested)
             {
                 return;
             }
