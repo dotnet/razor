@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 [Export(typeof(IRazorStartupService))]
-internal class BackgroundDocumentGenerator : IRazorStartupService
+internal class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(2);
 
@@ -33,6 +33,7 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
     private ImmutableHashSet<string> _suppressedDocuments;
 
     private readonly TimeSpan _delay;
+    private readonly CancellationTokenSource _disposeTokenSource;
     private Timer? _timer;
     private bool _solutionIsClosing;
 
@@ -60,8 +61,20 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
         _errorReporter = errorReporter;
         _delay = delay;
 
+        _disposeTokenSource = new();
         _suppressedDocuments = ImmutableHashSet<string>.Empty.WithComparer(FilePathComparer.Instance);
         _projectManager.Changed += ProjectManager_Changed;
+    }
+
+    public void Dispose()
+    {
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
+
+        if (_timer is Timer timer)
+        {
+            timer.Dispose();
+        }
     }
 
     public bool HasPendingNotifications
@@ -155,6 +168,11 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
             return;
         }
 
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         _dispatcher.AssertRunningOnDispatcher();
 
         lock (Work)
@@ -174,6 +192,11 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
 
     protected virtual void StartWorker()
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         // Access to the timer is protected by the lock in Enqueue and in Timer_Tick
         // Timer will fire after a fixed delay, but only once.
         _timer ??= NonCapturingTimer.Create(state => ((BackgroundDocumentGenerator)state).Timer_Tick(), this, _delay, Timeout.InfiniteTimeSpan);
@@ -187,6 +210,11 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
     private async Task TimerTickAsync()
     {
         Assumes.NotNull(_timer);
+
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
 
         try
         {
@@ -206,6 +234,11 @@ internal class BackgroundDocumentGenerator : IRazorStartupService
 
             for (var i = 0; i < work.Length; i++)
             {
+                if (_disposeTokenSource.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 // If the solution is closing, suspect any in-progress work
                 if (_solutionIsClosing)
                 {
