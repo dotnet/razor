@@ -77,16 +77,6 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
     public virtual void Enqueue(IProjectSnapshot project, IDocumentSnapshot document)
     {
-        if (project is null)
-        {
-            throw new ArgumentNullException(nameof(project));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
         if (project is ProjectSnapshot { HostProject: FallbackHostProject })
         {
             // We don't support closed file code generation for fallback projects
