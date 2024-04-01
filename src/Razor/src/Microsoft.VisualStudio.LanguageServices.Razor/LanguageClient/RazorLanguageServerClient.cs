@@ -283,29 +283,20 @@ internal class RazorLanguageServerClient(
 
     private void ServerStarted()
     {
-        _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
-
         if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
         {
-            _projectInfoEndpointPublisher.StopCachingRequests();
+            _projectInfoEndpointPublisher.StartSending();
         }
-
-        var mappings = _projectConfigurationFilePathStore.GetMappings();
-        foreach (var mapping in mappings)
+        else
         {
-            var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
-            ProjectConfigurationFilePathStore_Changed(this, args);
+            _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
 
-            if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
+            var mappings = _projectConfigurationFilePathStore.GetMappings();
+            foreach (var mapping in mappings)
             {
-                _projectInfoEndpointPublisher.SerializeToEndpointUncached(mapping.Key, mapping.Value);
+                var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
+                ProjectConfigurationFilePathStore_Changed(this, args);
             }
-        }
-
-
-        if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
-        {
-            _projectInfoEndpointPublisher.ClearCache();
         }
     }
 

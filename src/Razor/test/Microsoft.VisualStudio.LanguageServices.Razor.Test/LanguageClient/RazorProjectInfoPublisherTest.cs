@@ -690,8 +690,6 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
             s_lspEditorFeatureDetector.Object,
             projectManager,
             projectStatePublishFilePathStore,
-            new RazorProjectInfoEndpointPublisher(Mock.Of<LSPRequestInvoker>(MockBehavior.Strict)),
-            TestLanguageServerFeatureOptions.Instance,
             TestRazorLogger.Instance)
     {
         private static readonly StrictMock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new();
