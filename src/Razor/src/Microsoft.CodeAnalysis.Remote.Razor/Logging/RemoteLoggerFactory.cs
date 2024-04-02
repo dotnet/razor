@@ -4,7 +4,6 @@
 using System.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Logging;
 

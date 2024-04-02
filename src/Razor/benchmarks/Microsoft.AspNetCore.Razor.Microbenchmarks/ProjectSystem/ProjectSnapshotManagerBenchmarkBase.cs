@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;

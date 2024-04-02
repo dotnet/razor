@@ -3,7 +3,6 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;

@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -150,8 +149,6 @@ internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
     // Protected virtual for testing
     protected virtual IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
     {
-        using var _ = _logger.BeginScope("Searching for existing project configuration files");
-
         return DirectoryHelper.GetFilteredFiles(
             workspaceDirectory,
             _options.ProjectConfigurationFileName,

@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
@@ -24,13 +22,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 internal class HtmlFormattingPass : FormattingPassBase
 {
     private readonly ILogger _logger;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
     public HtmlFormattingPass(
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IDocumentVersionCache documentVersionCache,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+        RazorLSPOptionsMonitor optionsMonitor,
         IRazorLoggerFactory loggerFactory)
         : base(documentMappingService, clientConnection)
     {

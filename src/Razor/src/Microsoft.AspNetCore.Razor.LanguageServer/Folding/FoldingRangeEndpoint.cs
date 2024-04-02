@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
@@ -56,8 +55,6 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
 
     public async Task<IEnumerable<FoldingRange>?> HandleRequestAsync(FoldingRangeParams @params, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        using var _ = _logger.BeginScope("FoldingRangeEndpoint.Handle");
-
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {

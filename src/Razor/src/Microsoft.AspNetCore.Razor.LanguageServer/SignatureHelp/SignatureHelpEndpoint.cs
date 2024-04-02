@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -21,7 +19,7 @@ internal sealed class SignatureHelpEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+        RazorLSPOptionsMonitor optionsMonitor,
         IRazorLoggerFactory loggerProvider)
     : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>(
         languageServerFeatureOptions,

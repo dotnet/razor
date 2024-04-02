@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
 using StreamJsonRpc;
 

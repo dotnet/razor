@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 

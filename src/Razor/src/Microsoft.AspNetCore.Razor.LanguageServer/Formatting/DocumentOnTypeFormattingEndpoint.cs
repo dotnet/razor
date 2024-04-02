@@ -9,13 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -24,13 +21,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 internal class DocumentOnTypeFormattingEndpoint(
     IRazorFormattingService razorFormattingService,
     IRazorDocumentMappingService razorDocumentMappingService,
-    IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+    RazorLSPOptionsMonitor optionsMonitor,
     IRazorLoggerFactory loggerFactory)
     : IRazorRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>, ICapabilitiesProvider
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
     private readonly IRazorDocumentMappingService _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
     private readonly ILogger _logger = loggerFactory.CreateLogger<DocumentOnTypeFormattingEndpoint>();
 
     private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };

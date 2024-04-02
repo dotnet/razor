@@ -6,7 +6,6 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -50,17 +49,12 @@ internal class OutputWindowLoggerProvider(
             _clientSettingsManager = clientSettingsManager;
         }
 
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return Scope.Instance;
-        }
-
         public bool IsEnabled(LogLevel logLevel)
         {
             return logLevel >= _clientSettingsManager.GetClientSettings().AdvancedSettings.LogLevel;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        public void Log<TState>(LogLevel logLevel, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             if (IsEnabled(logLevel))
             {

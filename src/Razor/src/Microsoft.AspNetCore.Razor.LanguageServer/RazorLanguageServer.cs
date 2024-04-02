@@ -90,8 +90,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
     protected override ILspServices ConstructLspServices()
     {
-        var services = new ServiceCollection()
-            .AddOptions();
+        var services = new ServiceCollection();
 
         var loggerFactoryWrapper = new LoggerFactoryWrapper(_loggerFactory);
         // Wrap the logger factory so that we can add [LSP] to the start of all the categories

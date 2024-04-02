@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
@@ -145,7 +144,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
             _disposalTokenSource.Dispose();
         }
 
-        LoggerFactory.Dispose();
         JoinableTaskContext.Dispose();
     }
 
