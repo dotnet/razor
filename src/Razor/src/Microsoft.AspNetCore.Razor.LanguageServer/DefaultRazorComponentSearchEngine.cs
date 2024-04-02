@@ -21,7 +21,7 @@ internal class DefaultRazorComponentSearchEngine(
     : RazorComponentSearchEngine
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DefaultRazorComponentSearchEngine>();
 
     public async override Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {

@@ -63,7 +63,7 @@ internal class LegacyRazorCompletionResolveEndpoint : IVSCompletionResolveEndpoi
 
         _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
         _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
-        _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorCompletionEndpoint>();
         _completionListCache = completionListCache;
     }
 

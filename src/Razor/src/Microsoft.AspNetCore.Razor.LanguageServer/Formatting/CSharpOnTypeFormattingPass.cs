@@ -44,7 +44,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<CSharpOnTypeFormattingPass>();
+        _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
         _optionsMonitor = optionsMonitor;
     }
 

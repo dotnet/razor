@@ -33,7 +33,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     private readonly IOutOfProcSemanticTokensService _semanticTokensInfoService = semanticTokensInfoService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<CohostSemanticTokensRangeEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostSemanticTokensRangeEndpoint>();
 
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;

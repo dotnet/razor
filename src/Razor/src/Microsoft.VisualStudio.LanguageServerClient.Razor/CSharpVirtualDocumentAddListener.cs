@@ -20,7 +20,7 @@ internal class CSharpVirtualDocumentAddListener(IRazorLoggerFactory loggerFactor
 {
     private static readonly TimeSpan s_waitTimeout = TimeSpan.FromMilliseconds(500);
 
-    private readonly ILogger logger = loggerFactory.CreateLogger<CSharpVirtualDocumentAddListener>();
+    private readonly ILogger logger = loggerFactory.GetOrCreateLogger<CSharpVirtualDocumentAddListener>();
 
     private TaskCompletionSource<bool>? _tcs;
     private CancellationTokenSource? _cts;

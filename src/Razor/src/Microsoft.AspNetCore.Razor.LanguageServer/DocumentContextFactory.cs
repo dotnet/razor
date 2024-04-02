@@ -24,7 +24,7 @@ internal sealed class DocumentContextFactory(
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<DocumentContextFactory>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentContextFactory>();
 
     public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
     {

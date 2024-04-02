@@ -21,11 +21,11 @@ internal partial class RazorLanguageServer
             _loggerFactory.AddLoggerProvider(provider);
         }
 
-        public ILogger CreateLogger(string categoryName)
+        public ILogger GetOrCreateLogger(string categoryName)
         {
             // Adding [LSP] to the start to identify the LSP server, as some of our services exist in the server, and in VS
             // It looks weird because the category is surround with square brackets, so this ends up being [LSP][Category]
-            return _loggerFactory.CreateLogger($"LSP][{categoryName}");
+            return _loggerFactory.GetOrCreateLogger($"LSP][{categoryName}");
         }
     }
 }

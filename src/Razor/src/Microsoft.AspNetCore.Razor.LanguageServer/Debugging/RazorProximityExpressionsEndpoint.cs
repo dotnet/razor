@@ -39,7 +39,7 @@ internal class RazorProximityExpressionsEndpoint : IRazorDocumentlessRequestHand
         }
 
         _documentMappingService = documentMappingService;
-        _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorBreakpointSpanEndpoint>();
     }
 
     public bool MutatesSolutionState => false;

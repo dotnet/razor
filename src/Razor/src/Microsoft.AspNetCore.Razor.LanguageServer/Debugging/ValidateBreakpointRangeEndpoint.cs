@@ -24,7 +24,7 @@ internal class ValidateBreakpointRangeEndpoint(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
-        loggerFactory.CreateLogger<ValidateBreakpointRangeEndpoint>()), ICapabilitiesProvider
+        loggerFactory.GetOrCreateLogger<ValidateBreakpointRangeEndpoint>()), ICapabilitiesProvider
 {
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
 

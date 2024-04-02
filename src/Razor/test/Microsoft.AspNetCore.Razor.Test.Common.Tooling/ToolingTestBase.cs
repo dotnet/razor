@@ -78,7 +78,7 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     /// <summary>
     ///  An <see cref="ILogger"/> for the currently running test.
     /// </summary>
-    private protected ILogger Logger => _logger ??= LoggerFactory.CreateLogger(GetType().Name);
+    private protected ILogger Logger => _logger ??= LoggerFactory.GetOrCreateLogger(GetType().Name);
 
     private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 

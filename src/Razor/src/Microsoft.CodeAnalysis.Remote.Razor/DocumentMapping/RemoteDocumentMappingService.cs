@@ -18,6 +18,6 @@ internal sealed class RemoteDocumentMappingService(
     : AbstractRazorDocumentMappingService(
         filePathService,
         documentContextFactory,
-        loggerFactory.CreateLogger<RemoteDocumentMappingService>())
+        loggerFactory.GetOrCreateLogger<RemoteDocumentMappingService>())
 {
 }

@@ -32,7 +32,7 @@ internal sealed class DefinitionEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
     IRazorLoggerFactory loggerFactory)
-    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<DefinitionEndpoint>()), ICapabilitiesProvider
+    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<DefinitionEndpoint>()), ICapabilitiesProvider
 {
     private readonly RazorComponentSearchEngine _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));

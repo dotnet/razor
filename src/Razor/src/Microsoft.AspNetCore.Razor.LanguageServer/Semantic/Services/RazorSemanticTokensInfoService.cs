@@ -14,6 +14,6 @@ internal class RazorSemanticTokensInfoService(
     ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IRazorLoggerFactory loggerFactory)
-    : AbstractRazorSemanticTokensInfoService(documentMappingService, semanticTokensLegendService, csharpSemanticTokensProvider, languageServerFeatureOptions, loggerFactory.CreateLogger<RazorSemanticTokensInfoService>())
+    : AbstractRazorSemanticTokensInfoService(documentMappingService, semanticTokensLegendService, csharpSemanticTokensProvider, languageServerFeatureOptions, loggerFactory.GetOrCreateLogger<RazorSemanticTokensInfoService>())
 {
 }

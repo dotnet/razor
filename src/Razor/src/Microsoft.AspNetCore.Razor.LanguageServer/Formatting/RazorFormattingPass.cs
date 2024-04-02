@@ -25,7 +25,7 @@ internal class RazorFormattingPass(
     IRazorLoggerFactory loggerFactory)
     : FormattingPassBase(documentMappingService, clientConnection)
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorFormattingPass>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorFormattingPass>();
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
 
     // Run after the C# formatter pass.

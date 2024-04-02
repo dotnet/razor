@@ -18,7 +18,7 @@ internal class TextDocumentTextPresentationEndpoint(
     IClientConnection clientConnection,
     IFilePathService filePathService,
     IRazorLoggerFactory loggerFactory)
-    : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.CreateLogger<TextDocumentTextPresentationEndpoint>()), ITextDocumentTextPresentationHandler
+    : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.GetOrCreateLogger<TextDocumentTextPresentationEndpoint>()), ITextDocumentTextPresentationHandler
 {
     public override string EndpointName => CustomMessageNames.RazorTextPresentationEndpoint;
 

@@ -25,7 +25,7 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IRazorLoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<HoverEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<HoverEndpoint>())
     {
         _hoverService = hoverService ?? throw new ArgumentNullException(nameof(hoverService));
     }

@@ -30,7 +30,7 @@ internal class FormattingContentValidationPass : FormattingPassBase
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<FormattingContentValidationPass>();
+        _logger = loggerFactory.GetOrCreateLogger<FormattingContentValidationPass>();
     }
 
     // We want this to run at the very end.

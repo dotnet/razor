@@ -18,7 +18,7 @@ internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService do
     : IRazorRequestHandler<RazorLanguageQueryParams, RazorLanguageQueryResponse>
 {
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorLanguageQueryEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorLanguageQueryEndpoint>();
 
     public bool MutatesSolutionState { get; } = false;
 

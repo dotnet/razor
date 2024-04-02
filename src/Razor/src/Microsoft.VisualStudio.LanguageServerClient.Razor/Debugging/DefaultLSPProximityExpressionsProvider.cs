@@ -39,7 +39,7 @@ internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsP
         }
 
         _requestInvoker = requestInvoker;
-        _logger = new Lazy<ILogger>(() => loggerFactory.Value.CreateLogger<DefaultLSPProximityExpressionsProvider>());
+        _logger = new Lazy<ILogger>(() => loggerFactory.Value.GetOrCreateLogger<DefaultLSPProximityExpressionsProvider>());
     }
 
     public async override Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)

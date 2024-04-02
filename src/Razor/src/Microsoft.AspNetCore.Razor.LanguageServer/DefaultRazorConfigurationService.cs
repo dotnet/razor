@@ -31,7 +31,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         }
 
         _clientConnection = clientConnection;
-        _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
+        _logger = loggerFactory.GetOrCreateLogger<DefaultRazorConfigurationService>();
     }
 
     public async Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken)

@@ -37,7 +37,7 @@ internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
         }
 
         _requestInvoker = requestInvoker;
-        _logger = new Lazy<ILogger>(() => loggerFactory.Value.CreateLogger<DefaultLSPBreakpointSpanProvider>());
+        _logger = new Lazy<ILogger>(() => loggerFactory.Value.GetOrCreateLogger<DefaultLSPBreakpointSpanProvider>());
     }
 
     public async override Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)

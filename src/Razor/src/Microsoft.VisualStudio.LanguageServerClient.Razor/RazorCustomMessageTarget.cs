@@ -83,7 +83,7 @@ internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _projectManager = projectManager ?? throw new ArgumentNullException(nameof(projectManager));
         _snippetCache = snippetCache ?? throw new ArgumentNullException(nameof(snippetCache));
-        _logger = loggerFactory.CreateLogger<RazorCustomMessageTarget>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorCustomMessageTarget>();
     }
 
     private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)

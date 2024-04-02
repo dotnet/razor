@@ -19,7 +19,7 @@ internal abstract partial class AbstractRazorLoggerFactory : IRazorLoggerFactory
         _loggers = ImmutableDictionary.Create<string, AggregateLogger>(StringComparer.OrdinalIgnoreCase);
     }
 
-    public ILogger CreateLogger(string categoryName)
+    public ILogger GetOrCreateLogger(string categoryName)
     {
         if (_loggers.TryGetValue(categoryName, out var logger))
         {

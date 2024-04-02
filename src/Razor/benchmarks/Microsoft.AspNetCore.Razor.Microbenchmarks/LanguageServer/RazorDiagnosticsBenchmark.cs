@@ -149,7 +149,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     }
 
     private IRazorLoggerFactory BuildLoggerFactory() => Mock.Of<IRazorLoggerFactory>(
-        r => r.CreateLogger(
+        r => r.GetOrCreateLogger(
             It.IsAny<string>()) == new NoopLogger(),
         MockBehavior.Strict);
 

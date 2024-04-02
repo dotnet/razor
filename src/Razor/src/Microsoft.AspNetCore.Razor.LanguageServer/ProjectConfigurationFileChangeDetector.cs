@@ -43,7 +43,7 @@ internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _listeners = listeners ?? throw new ArgumentNullException(nameof(listeners));
         _options = options ?? throw new ArgumentNullException(nameof(options));
-        _logger = loggerFactory.CreateLogger<ProjectConfigurationFileChangeDetector>();
+        _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationFileChangeDetector>();
     }
 
     public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)

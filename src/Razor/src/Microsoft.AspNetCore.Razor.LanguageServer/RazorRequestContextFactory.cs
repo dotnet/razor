@@ -19,7 +19,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
     public override Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
     {
-        var logger = _lspServices.GetRequiredService<IRazorLoggerFactory>().CreateLogger<RazorRequestContextFactory>();
+        var logger = _lspServices.GetRequiredService<IRazorLoggerFactory>().GetOrCreateLogger<RazorRequestContextFactory>();
 
         VersionedDocumentContext? documentContext = null;
         var textDocumentHandler = methodHandler as ITextDocumentIdentifierHandler;

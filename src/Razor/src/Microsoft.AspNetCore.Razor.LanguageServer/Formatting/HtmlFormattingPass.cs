@@ -37,7 +37,7 @@ internal class HtmlFormattingPass : FormattingPassBase
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
+        _logger = loggerFactory.GetOrCreateLogger<HtmlFormattingPass>();
 
         HtmlFormatter = new HtmlFormatter(clientConnection, documentVersionCache);
         _optionsMonitor = optionsMonitor;

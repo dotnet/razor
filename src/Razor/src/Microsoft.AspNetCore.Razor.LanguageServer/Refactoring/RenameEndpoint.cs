@@ -37,7 +37,7 @@ internal sealed class RenameEndpoint(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
-        loggerFactory.CreateLogger<RenameEndpoint>()), ICapabilitiesProvider
+        loggerFactory.GetOrCreateLogger<RenameEndpoint>()), ICapabilitiesProvider
 {
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IProjectSnapshotManager _projectManager = projectManager;

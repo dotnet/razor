@@ -14,7 +14,7 @@ internal class RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor,
     : IDidChangeConfigurationEndpoint, IOnInitialized
 {
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorConfigurationEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorConfigurationEndpoint>();
 
     public bool MutatesSolutionState => true;
 

@@ -27,7 +27,7 @@ internal class DocumentDidChangeEndpoint(
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
     private readonly IRazorProjectService _projectService = razorProjectService;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<DocumentDidChangeEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentDidChangeEndpoint>();
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {

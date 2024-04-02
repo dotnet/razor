@@ -26,7 +26,7 @@ internal class WrapWithTagEndpoint(
 {
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly IRazorDocumentMappingService _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
-    private readonly ILogger _logger = loggerFactory.CreateLogger<WrapWithTagEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<WrapWithTagEndpoint>();
 
     public bool MutatesSolutionState => false;
 

@@ -23,6 +23,6 @@ internal class RazorSemanticTokensInfoService(
         semanticTokensLegendService,
         csharpSemanticTokensProvider,
         languageServerFeatureOptions,
-        loggerFactory.CreateLogger<RemoteDocumentMappingService>())
+        loggerFactory.GetOrCreateLogger<RemoteDocumentMappingService>())
 {
 }

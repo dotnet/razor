@@ -24,7 +24,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
     public SnapshotResolver(IProjectSnapshotManager projectManager, IRazorLoggerFactory loggerFactory)
     {
         _projectManager = projectManager;
-        _logger = loggerFactory.CreateLogger<SnapshotResolver>();
+        _logger = loggerFactory.GetOrCreateLogger<SnapshotResolver>();
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         var normalizedPath = FilePathNormalizer.Normalize(miscellaneousProjectPath);

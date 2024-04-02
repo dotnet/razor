@@ -54,7 +54,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         }
 
         _optionsMonitor = optionsMonitor;
-        _logger = loggerFactory.CreateLogger<IOnAutoInsertProvider>();
+        _logger = loggerFactory.GetOrCreateLogger<IOnAutoInsertProvider>();
     }
 
     public string TriggerCharacter => ">";

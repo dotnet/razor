@@ -64,7 +64,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
         var loggerFactoryMock = new Mock<IRazorLoggerFactory>(MockBehavior.Strict);
         loggerFactoryMock
-            .Setup(x => x.CreateLogger(It.IsAny<string>()))
+            .Setup(x => x.GetOrCreateLogger(It.IsAny<string>()))
             .Returns(Mock.Of<ILogger>(MockBehavior.Strict));
 
         ErrorReporter = new TestErrorReporter();

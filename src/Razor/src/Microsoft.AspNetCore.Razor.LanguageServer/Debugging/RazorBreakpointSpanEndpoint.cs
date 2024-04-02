@@ -37,7 +37,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
         }
 
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-        _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorBreakpointSpanEndpoint>();
     }
 
     public Uri GetTextDocumentIdentifier(RazorBreakpointSpanParams request)

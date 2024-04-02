@@ -28,7 +28,7 @@ internal class DocumentOnTypeFormattingEndpoint(
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
     private readonly IRazorDocumentMappingService _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
-    private readonly ILogger _logger = loggerFactory.CreateLogger<DocumentOnTypeFormattingEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentOnTypeFormattingEndpoint>();
 
     private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };
     private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = new[] { "\n", "{", "}", ";" };

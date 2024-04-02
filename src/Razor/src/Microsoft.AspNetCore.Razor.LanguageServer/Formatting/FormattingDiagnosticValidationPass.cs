@@ -32,7 +32,7 @@ internal class FormattingDiagnosticValidationPass : FormattingPassBase
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<FormattingDiagnosticValidationPass>();
+        _logger = loggerFactory.GetOrCreateLogger<FormattingDiagnosticValidationPass>();
     }
 
     // We want this to run at the very end.

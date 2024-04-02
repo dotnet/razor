@@ -25,7 +25,7 @@ internal class RazorCompletionListProvider(
 {
     private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
     private readonly CompletionListCache _completionListCache = completionListCache;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCompletionListProvider>();
     private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = "editor.action.triggerSuggest",

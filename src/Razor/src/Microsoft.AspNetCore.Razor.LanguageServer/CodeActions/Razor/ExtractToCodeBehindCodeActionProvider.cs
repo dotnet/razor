@@ -31,7 +31,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<ExtractToCodeBehindCodeActionProvider>();
+        _logger = loggerFactory.GetOrCreateLogger<ExtractToCodeBehindCodeActionProvider>();
     }
 
     public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)

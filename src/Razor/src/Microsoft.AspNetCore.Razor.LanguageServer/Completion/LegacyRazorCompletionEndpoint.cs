@@ -29,7 +29,7 @@ internal class LegacyRazorCompletionEndpoint(
 {
     private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
     private readonly CompletionListCache _completionListCache = completionListCache;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<LegacyRazorCompletionEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<LegacyRazorCompletionEndpoint>();
 
     private static readonly Command s_retriggerCompletionCommand = new()
     {

@@ -28,7 +28,7 @@ internal class CohostTextDocumentSyncHandler(
     private readonly IRemoteClientProvider _remoteClientProvider = remoteClientProvider;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
     private readonly TrackingLSPDocumentManager _documentManager = documentManager as TrackingLSPDocumentManager ?? throw new InvalidOperationException("Expected TrackingLSPDocumentManager");
-    private readonly ILogger _logger = loggerFactory.CreateLogger<CohostTextDocumentSyncHandler>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostTextDocumentSyncHandler>();
 
     public async Task HandleAsync(int version, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {

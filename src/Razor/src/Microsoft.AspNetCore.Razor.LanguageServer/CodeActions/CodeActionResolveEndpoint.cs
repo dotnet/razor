@@ -52,7 +52,7 @@ internal sealed class CodeActionResolveEndpoint : IRazorDocumentlessRequestHandl
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<CodeActionResolveEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<CodeActionResolveEndpoint>();
 
         _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
         _csharpCodeActionResolvers = CreateResolverMap<BaseDelegatedCodeActionResolver>(csharpCodeActionResolvers);

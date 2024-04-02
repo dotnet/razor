@@ -56,7 +56,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         _filePathService = filePathService;
         _projectManager = projectManager;
         _languageServerFeatureOptions = languageServerFeatureOptions;
-        _logger = loggerFactory.CreateLogger<CSharpVirtualDocumentFactory>();
+        _logger = loggerFactory.GetOrCreateLogger<CSharpVirtualDocumentFactory>();
         _telemetryReporter = telemetryReporter;
     }
 

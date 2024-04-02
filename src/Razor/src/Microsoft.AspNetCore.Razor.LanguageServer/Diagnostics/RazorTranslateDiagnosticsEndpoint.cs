@@ -29,7 +29,7 @@ internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDia
         }
 
         _translateDiagnosticsService = translateDiagnosticsService ?? throw new ArgumentNullException(nameof(translateDiagnosticsService));
-        _logger = loggerFactory.CreateLogger<RazorTranslateDiagnosticsEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsEndpoint>();
     }
 
     public async Task<RazorDiagnosticsResponse> HandleRequestAsync(RazorDiagnosticsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

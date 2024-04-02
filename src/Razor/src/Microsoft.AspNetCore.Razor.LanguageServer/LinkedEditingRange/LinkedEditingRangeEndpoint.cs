@@ -33,7 +33,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<LinkedEditingRangeEndpoint>();
     }
 
     public bool MutatesSolutionState => false;

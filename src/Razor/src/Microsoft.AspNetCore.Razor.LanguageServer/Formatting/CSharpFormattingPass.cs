@@ -32,7 +32,7 @@ internal class CSharpFormattingPass : CSharpFormattingPassBase
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<CSharpFormattingPass>();
+        _logger = loggerFactory.GetOrCreateLogger<CSharpFormattingPass>();
     }
 
     // Run after the HTML and Razor formatter pass.

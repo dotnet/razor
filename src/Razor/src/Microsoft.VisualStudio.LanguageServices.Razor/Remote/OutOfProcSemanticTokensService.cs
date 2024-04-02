@@ -19,7 +19,7 @@ internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClient
 {
     private readonly IRemoteClientProvider _remoteClientProvider = remoteClientProvider;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<OutOfProcSemanticTokensService>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<OutOfProcSemanticTokensService>();
 
     public async ValueTask<int[]?> GetSemanticTokensDataAsync(TextDocument razorDocument, LinePositionSpan span, Guid correlationId, CancellationToken cancellationToken)
     {

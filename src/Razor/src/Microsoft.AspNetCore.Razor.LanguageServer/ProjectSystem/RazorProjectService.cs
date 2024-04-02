@@ -36,7 +36,7 @@ internal class RazorProjectService(
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory = remoteTextLoaderFactory;
     private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorProjectService>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorProjectService>();
 
     public void AddDocument(string filePath)
     {

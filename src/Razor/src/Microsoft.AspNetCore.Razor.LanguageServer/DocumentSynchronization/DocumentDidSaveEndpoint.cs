@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 internal class DocumentDidSaveEndpoint(IRazorLoggerFactory loggerFactory)
     : IRazorNotificationHandler<DidSaveTextDocumentParams>, ITextDocumentIdentifierHandler<DidSaveTextDocumentParams, TextDocumentIdentifier>
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<DocumentDidSaveEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentDidSaveEndpoint>();
 
     public bool MutatesSolutionState => false;
 

@@ -23,7 +23,7 @@ internal partial class RemoteLoggerFactory() : IRazorLoggerFactory
         throw new System.NotImplementedException();
     }
 
-    public ILogger CreateLogger(string categoryName)
+    public ILogger GetOrCreateLogger(string categoryName)
     {
         return new Logger(categoryName);
     }

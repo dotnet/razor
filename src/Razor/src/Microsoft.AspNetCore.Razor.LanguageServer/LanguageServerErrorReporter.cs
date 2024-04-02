@@ -20,7 +20,7 @@ internal class LanguageServerErrorReporter : IErrorReporter
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<LanguageServerErrorReporter>();
+        _logger = loggerFactory.GetOrCreateLogger<LanguageServerErrorReporter>();
     }
 
     public void ReportError(Exception exception)

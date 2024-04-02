@@ -36,7 +36,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = projectService;
         _languageServerFeatureOptions = languageServerFeatureOptions;
-        _logger = loggerFactory.CreateLogger<ProjectConfigurationStateSynchronizer>();
+        _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateSynchronizer>();
         _configurationToProjectMap = new Dictionary<string, ProjectKey>(FilePathComparer.Instance);
         ProjectInfoMap = new Dictionary<ProjectKey, DelayedProjectInfo>();
     }

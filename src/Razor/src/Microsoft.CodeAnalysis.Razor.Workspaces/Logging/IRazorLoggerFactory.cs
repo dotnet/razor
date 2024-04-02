@@ -7,5 +7,5 @@ namespace Microsoft.CodeAnalysis.Razor.Logging;
 internal interface IRazorLoggerFactory
 {
     void AddLoggerProvider(IRazorLoggerProvider provider);
-    ILogger CreateLogger(string categoryName);
+    ILogger GetOrCreateLogger(string categoryName);
 }

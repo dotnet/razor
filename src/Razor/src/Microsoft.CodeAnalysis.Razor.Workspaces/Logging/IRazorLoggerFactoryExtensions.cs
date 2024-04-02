@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis.Razor.Logging;
 
 internal static class IRazorLoggerFactoryExtensions
 {
-    public static ILogger CreateLogger<T>(this IRazorLoggerFactory factory)
+    public static ILogger GetOrCreateLogger<T>(this IRazorLoggerFactory factory)
     {
-        return factory.CreateLogger(TrimTypeName(typeof(T).FullName));
+        return factory.GetOrCreateLogger(TrimTypeName(typeof(T).FullName));
     }
 
     private static string TrimTypeName(string name)

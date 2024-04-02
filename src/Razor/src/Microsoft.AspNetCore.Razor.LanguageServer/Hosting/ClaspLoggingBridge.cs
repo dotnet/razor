@@ -22,7 +22,7 @@ internal class ClaspLoggingBridge : ILspLogger
     public ClaspLoggingBridge(IRazorLoggerFactory loggerFactory, ITelemetryReporter? telemetryReporter = null)
     {
         // We're creating this on behalf of CLaSP, because it doesn't know how to use IRazorLoggerFactory, so using that as the category name.
-        _logger = loggerFactory.CreateLogger("CLaSP");
+        _logger = loggerFactory.GetOrCreateLogger("CLaSP");
         _telemetryReporter = telemetryReporter;
     }
 

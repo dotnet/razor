@@ -19,7 +19,7 @@ internal class AggregateCompletionItemResolver
     public AggregateCompletionItemResolver(IEnumerable<CompletionItemResolver> completionItemResolvers, IRazorLoggerFactory loggerFactory)
     {
         _completionItemResolvers = completionItemResolvers.ToArray();
-        _logger = loggerFactory.CreateLogger<AggregateCompletionItemResolver>();
+        _logger = loggerFactory.GetOrCreateLogger<AggregateCompletionItemResolver>();
     }
 
     public async Task<VSInternalCompletionItem?> ResolveAsync(

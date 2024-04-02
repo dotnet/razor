@@ -57,7 +57,7 @@ internal class RazorTranslateDiagnosticsService
         }
 
         _documentMappingService = documentMappingService;
-        _logger = loggerFactory.CreateLogger<RazorTranslateDiagnosticsService>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsService>();
     }
 
     /// <summary>

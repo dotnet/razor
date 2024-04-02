@@ -84,7 +84,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         PublishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
         PublishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
         _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
-        _logger = loggerFactory.CreateLogger<RazorDiagnosticsPublisher>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorDiagnosticsPublisher>();
     }
 
     // Used in tests to ensure we can control when background work completes.

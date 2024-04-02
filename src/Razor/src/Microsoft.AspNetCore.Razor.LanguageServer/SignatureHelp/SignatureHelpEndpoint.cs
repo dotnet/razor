@@ -25,7 +25,7 @@ internal sealed class SignatureHelpEndpoint(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
-        loggerProvider.CreateLogger<SignatureHelpEndpoint>()),
+        loggerProvider.GetOrCreateLogger<SignatureHelpEndpoint>()),
     ICapabilitiesProvider
 {
     protected override string CustomMessageTarget => CustomMessageNames.RazorSignatureHelpEndpointName;

@@ -47,7 +47,7 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationH
         _listeners = listeners;
         _options = options;
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-        _logger = loggerFactory.CreateLogger<MonitorProjectConfigurationFilePathEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<MonitorProjectConfigurationFilePathEndpoint>();
         _outputPathMonitors = new ConcurrentDictionary<string, (string, IFileChangeDetector)>(FilePathComparer.Instance);
         _disposeLock = new object();
     }

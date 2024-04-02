@@ -29,7 +29,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
         IClientConnection clientConnection,
         IRazorLoggerFactory loggerFactory,
         IFilePathService filePathService)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<FindAllReferencesEndpoint>())
     {
         _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));

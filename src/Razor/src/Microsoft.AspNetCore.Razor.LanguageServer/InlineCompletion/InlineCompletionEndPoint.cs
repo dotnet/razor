@@ -39,7 +39,7 @@ internal sealed class InlineCompletionEndpoint(
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
-    private readonly ILogger _logger = loggerFactory.CreateLogger<InlineCompletionEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
 
     public bool MutatesSolutionState => false;
 

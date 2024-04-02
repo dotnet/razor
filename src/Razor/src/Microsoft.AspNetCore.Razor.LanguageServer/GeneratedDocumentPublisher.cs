@@ -38,7 +38,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
         _dispatcher = dispatcher;
         _clientConnection = clientConnection;
         _options = options;
-        _logger = loggerFactory.CreateLogger<GeneratedDocumentPublisher>();
+        _logger = loggerFactory.GetOrCreateLogger<GeneratedDocumentPublisher>();
         _publishedCSharpData = new Dictionary<DocumentKey, PublishData>();
 
         // We don't generate individual Html documents per-project, so in order to ensure diffs are calculated correctly

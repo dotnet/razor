@@ -27,7 +27,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IRazorLoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<ImplementationEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<ImplementationEndpoint>())
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }

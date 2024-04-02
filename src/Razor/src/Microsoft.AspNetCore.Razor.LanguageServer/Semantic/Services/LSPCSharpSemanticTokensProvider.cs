@@ -21,7 +21,7 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection = clientConnection;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<LSPCSharpSemanticTokensProvider>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<LSPCSharpSemanticTokensProvider>();
 
     public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(
             VersionedDocumentContext documentContext,

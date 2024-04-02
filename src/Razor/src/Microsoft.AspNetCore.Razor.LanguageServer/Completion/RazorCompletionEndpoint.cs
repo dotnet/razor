@@ -24,7 +24,7 @@ internal class RazorCompletionEndpoint(
     private readonly CompletionListProvider _completionListProvider = completionListProvider;
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCompletionEndpoint>();
 
     private VSInternalClientCapabilities? _clientCapabilities;
 
