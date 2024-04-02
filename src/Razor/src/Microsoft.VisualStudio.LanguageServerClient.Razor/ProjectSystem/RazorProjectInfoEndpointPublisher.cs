@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.ProjectSystem;
 /// </summary>
 [Shared]
 [Export(typeof(RazorProjectInfoEndpointPublisher))]
-internal partial class RazorProjectInfoEndpointPublisher
+internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 {
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly IProjectSnapshotManager _projectManager;
 
     private readonly AsyncBatchingWorkQueue<(IProjectSnapshot Project, bool Removal)> _workQueue;
-
+    private readonly CancellationTokenSource _disposeTokenSource;
     private bool _active;
 
     [ImportingConstructor]
@@ -40,10 +40,17 @@ internal partial class RazorProjectInfoEndpointPublisher
         _requestInvoker = requestInvoker;
         _projectManager = projectManager;
 
+        _disposeTokenSource = new ();
         _workQueue = new(
             EnqueueDelay,
             ProcessBatchAsync,
-            CancellationToken.None);
+            _disposeTokenSource.Token);
+    }
+
+    public void Dispose()
+    {
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
     }
 
     // internal for testing
