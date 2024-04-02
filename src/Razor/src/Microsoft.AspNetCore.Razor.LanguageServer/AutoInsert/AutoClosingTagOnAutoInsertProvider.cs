@@ -41,7 +41,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
     private readonly RazorLSPOptionsMonitor _optionsMonitor;
     private readonly ILogger _logger;
 
-    public AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor optionsMonitor, IRazorLoggerFactory loggerFactory)
+    public AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor optionsMonitor, ILoggerFactory loggerFactory)
     {
         if (optionsMonitor is null)
         {

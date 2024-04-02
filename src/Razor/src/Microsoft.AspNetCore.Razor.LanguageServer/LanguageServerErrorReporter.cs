@@ -13,7 +13,7 @@ internal class LanguageServerErrorReporter : IErrorReporter
 {
     private readonly ILogger _logger;
 
-    public LanguageServerErrorReporter(IRazorLoggerFactory loggerFactory)
+    public LanguageServerErrorReporter(ILoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {

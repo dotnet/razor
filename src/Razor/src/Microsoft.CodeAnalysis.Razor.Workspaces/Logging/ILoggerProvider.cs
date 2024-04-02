@@ -3,8 +3,7 @@
 
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
-// Very very light wrapper for ILoggerProvider, so that we're not MEF importing general use types
-internal interface IRazorLoggerProvider
+internal interface ILoggerProvider
 {
     ILogger CreateLogger(string categoryName);
 }

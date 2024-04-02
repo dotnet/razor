@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal sealed class RazorDocumentMappingService(
         IFilePathService filePathService,
         IDocumentContextFactory documentContextFactory,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
          : AbstractRazorDocumentMappingService(filePathService, documentContextFactory, loggerFactory.GetOrCreateLogger<RazorDocumentMappingService>())
 {
 }

@@ -29,7 +29,7 @@ internal class HtmlFormattingPass : FormattingPassBase
         IClientConnection clientConnection,
         IDocumentVersionCache documentVersionCache,
         RazorLSPOptionsMonitor optionsMonitor,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
         : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)

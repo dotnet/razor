@@ -2,18 +2,21 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
+#if !NET7_0_OR_GREATER
+using System.Collections.Generic;
+#endif
+
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
-internal abstract partial class AbstractRazorLoggerFactory : IRazorLoggerFactory
+internal abstract partial class AbstractLoggerFactory : ILoggerFactory
 {
     private ImmutableDictionary<string, AggregateLogger> _loggers;
-    private ImmutableArray<IRazorLoggerProvider> _providers;
+    private ImmutableArray<ILoggerProvider> _providers;
 
-    protected AbstractRazorLoggerFactory(ImmutableArray<IRazorLoggerProvider> providers)
+    protected AbstractLoggerFactory(ImmutableArray<ILoggerProvider> providers)
     {
         _providers = providers;
         _loggers = ImmutableDictionary.Create<string, AggregateLogger>(StringComparer.OrdinalIgnoreCase);
@@ -37,7 +40,7 @@ internal abstract partial class AbstractRazorLoggerFactory : IRazorLoggerFactory
         return ImmutableInterlocked.AddOrUpdate(ref _loggers, categoryName, result, (k, v) => v);
     }
 
-    public void AddLoggerProvider(IRazorLoggerProvider provider)
+    public void AddLoggerProvider(ILoggerProvider provider)
     {
         if (ImmutableInterlocked.Update(ref _providers, (set, p) => set.Add(p), provider))
         {

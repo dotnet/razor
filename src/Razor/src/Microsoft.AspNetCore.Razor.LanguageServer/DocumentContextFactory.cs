@@ -18,7 +18,7 @@ internal sealed class DocumentContextFactory(
     IProjectSnapshotManager projectManager,
     ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IDocumentContextFactory
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;

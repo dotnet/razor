@@ -30,7 +30,7 @@ internal sealed class CodeActionResolveEndpoint : IRazorDocumentlessRequestHandl
         IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
         IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers,
         IEnumerable<HtmlCodeActionResolver> htmlCodeActionResolvers,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         if (razorCodeActionResolvers is null)
         {

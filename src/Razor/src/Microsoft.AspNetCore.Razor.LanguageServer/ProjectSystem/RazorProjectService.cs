@@ -28,7 +28,7 @@ internal class RazorProjectService(
     ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
     IProjectSnapshotManager projectManager,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IRazorProjectService
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;

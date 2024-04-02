@@ -22,7 +22,7 @@ internal class FormattingContentValidationPass : FormattingPassBase
     public FormattingContentValidationPass(
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
         : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)

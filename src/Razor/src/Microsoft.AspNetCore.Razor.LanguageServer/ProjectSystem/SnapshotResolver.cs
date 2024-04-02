@@ -21,7 +21,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
     // Internal for testing
     internal readonly HostProject MiscellaneousHostProject;
 
-    public SnapshotResolver(IProjectSnapshotManager projectManager, IRazorLoggerFactory loggerFactory)
+    public SnapshotResolver(IProjectSnapshotManager projectManager, ILoggerFactory loggerFactory)
     {
         _projectManager = projectManager;
         _logger = loggerFactory.GetOrCreateLogger<SnapshotResolver>();

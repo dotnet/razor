@@ -4,8 +4,8 @@
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
 // Our version of ILoggerFactory, so that we're not MEF importing general use types
-internal interface IRazorLoggerFactory
+internal interface ILoggerFactory
 {
-    void AddLoggerProvider(IRazorLoggerProvider provider);
+    void AddLoggerProvider(ILoggerProvider provider);
     ILogger GetOrCreateLogger(string categoryName);
 }

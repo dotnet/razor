@@ -42,9 +42,9 @@ internal class RazorTranslateDiagnosticsService
     /// translating code diagnostics from one representation into another, such as from C# to Razor.
     /// </summary>
     /// <param name="documentMappingService">The <see cref="IRazorDocumentMappingService"/>.</param>
-    /// <param name="loggerFactory">The <see cref="IRazorLoggerFactory"/>.</param>
+    /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
     /// <exception cref="ArgumentNullException"/>
-    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, IRazorLoggerFactory loggerFactory)
+    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
     {
         if (documentMappingService is null)
         {

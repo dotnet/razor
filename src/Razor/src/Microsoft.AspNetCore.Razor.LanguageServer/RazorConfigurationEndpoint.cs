@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor, IRazorLoggerFactory loggerFactory)
+internal class RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor, ILoggerFactory loggerFactory)
     : IDidChangeConfigurationEndpoint, IOnInitialized
 {
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));

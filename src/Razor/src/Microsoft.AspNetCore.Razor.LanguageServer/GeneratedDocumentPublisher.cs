@@ -32,7 +32,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
         ProjectSnapshotManagerDispatcher dispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions options,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         _projectManager = projectManager;
         _dispatcher = dispatcher;

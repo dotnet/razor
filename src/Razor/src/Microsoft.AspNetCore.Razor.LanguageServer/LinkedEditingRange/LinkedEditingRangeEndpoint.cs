@@ -26,7 +26,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
 
     private readonly ILogger _logger;
 
-    public LinkedEditingRangeEndpoint(IRazorLoggerFactory loggerFactory)
+    public LinkedEditingRangeEndpoint(ILoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {

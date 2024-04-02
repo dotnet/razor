@@ -44,7 +44,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         LanguageServerFeatureOptions languageServerFeatureOptions,
         Lazy<RazorTranslateDiagnosticsService> razorTranslateDiagnosticsService,
         Lazy<IDocumentContextFactory> documentContextFactory,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
         {

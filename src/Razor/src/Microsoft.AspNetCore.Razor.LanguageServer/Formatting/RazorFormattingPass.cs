@@ -22,7 +22,7 @@ internal class RazorFormattingPass(
     IRazorDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     RazorLSPOptionsMonitor optionsMonitor,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : FormattingPassBase(documentMappingService, clientConnection)
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorFormattingPass>();

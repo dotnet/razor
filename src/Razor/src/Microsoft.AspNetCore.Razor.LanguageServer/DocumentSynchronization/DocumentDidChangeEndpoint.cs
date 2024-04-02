@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 internal class DocumentDidChangeEndpoint(
     ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
     IRazorProjectService razorProjectService,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IRazorNotificationHandler<DidChangeTextDocumentParams>, ITextDocumentIdentifierHandler<DidChangeTextDocumentParams, TextDocumentIdentifier>, ICapabilitiesProvider
 {
     public bool MutatesSolutionState => true;

@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 internal class WrapWithTagEndpoint(
     IClientConnection clientConnection,
     IRazorDocumentMappingService razorDocumentMappingService,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IRazorRequestHandler<WrapWithTagParams, WrapWithTagResponse?>
 {
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));

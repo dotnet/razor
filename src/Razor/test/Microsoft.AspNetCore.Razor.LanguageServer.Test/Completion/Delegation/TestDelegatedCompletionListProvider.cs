@@ -23,7 +23,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
     private TestDelegatedCompletionListProvider(
         DelegatedCompletionResponseRewriter[] responseRewriters,
         CompletionRequestResponseFactory completionFactory,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
         : base(
             responseRewriters,
             new RazorDocumentMappingService(new LSPFilePathService(TestLanguageServerFeatureOptions.Instance), new TestDocumentContextFactory(), loggerFactory),
@@ -37,13 +37,13 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
     }
 
     public static TestDelegatedCompletionListProvider Create(
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         params DelegatedCompletionResponseRewriter[] responseRewriters) =>
         Create(delegatedCompletionList: null, loggerFactory, responseRewriters: responseRewriters);
 
     public static TestDelegatedCompletionListProvider Create(
         CSharpTestLspServer csharpServer,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         CancellationToken cancellationToken,
         params DelegatedCompletionResponseRewriter[] responseRewriters)
     {
@@ -54,7 +54,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
 
     public static TestDelegatedCompletionListProvider Create(
         VSInternalCompletionList delegatedCompletionList,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         params DelegatedCompletionResponseRewriter[] responseRewriters)
     {
         delegatedCompletionList ??= new VSInternalCompletionList()
@@ -67,7 +67,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
     }
 
     public static TestDelegatedCompletionListProvider CreateWithNullResponse(
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         params DelegatedCompletionResponseRewriter[] responseRewriters)
     {
         var requestResponseFactory = new StaticCompletionRequestResponseFactory(null);

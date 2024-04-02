@@ -19,7 +19,7 @@ internal sealed class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
     private readonly RazorLSPOptionsMonitor _optionsMonitor;
     private readonly ILogger _logger;
 
-    public CloseTextTagOnAutoInsertProvider(RazorLSPOptionsMonitor optionsMonitor, IRazorLoggerFactory loggerFactory)
+    public CloseTextTagOnAutoInsertProvider(RazorLSPOptionsMonitor optionsMonitor, ILoggerFactory loggerFactory)
     {
         if (optionsMonitor is null)
         {

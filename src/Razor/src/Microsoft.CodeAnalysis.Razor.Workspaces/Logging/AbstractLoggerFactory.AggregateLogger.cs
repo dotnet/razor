@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
-internal abstract partial class AbstractRazorLoggerFactory
+internal abstract partial class AbstractLoggerFactory
 {
     private class AggregateLogger(ImmutableArray<ILogger> loggers) : ILogger
     {

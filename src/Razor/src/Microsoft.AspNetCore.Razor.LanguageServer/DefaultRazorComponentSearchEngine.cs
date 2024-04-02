@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultRazorComponentSearchEngine(
     IProjectSnapshotManager projectManager,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : RazorComponentSearchEngine
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Export(typeof(IOutOfProcSemanticTokensService))]
 [method: ImportingConstructor]
-internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClientProvider, IClientSettingsManager clientSettingsManager, IRazorLoggerFactory loggerFactory) : IOutOfProcSemanticTokensService
+internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClientProvider, IClientSettingsManager clientSettingsManager, ILoggerFactory loggerFactory) : IOutOfProcSemanticTokensService
 {
     private readonly IRemoteClientProvider _remoteClientProvider = remoteClientProvider;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;

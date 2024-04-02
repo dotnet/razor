@@ -25,7 +25,7 @@ internal class OnAutoInsertEndpoint(
     IClientConnection clientConnection,
     IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
     RazorLSPOptionsMonitor optionsMonitor,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<OnAutoInsertEndpoint>()), ICapabilitiesProvider
 {
     private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new(StringComparer.Ordinal) { "=", };

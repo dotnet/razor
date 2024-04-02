@@ -16,7 +16,7 @@ internal class VSTelemetryReporter : TelemetryReporter
     private readonly Lazy<ILogger?> _logger;
 
     [ImportingConstructor]
-    public VSTelemetryReporter(Lazy<IRazorLoggerFactory> loggerFactory)
+    public VSTelemetryReporter(Lazy<ILoggerFactory> loggerFactory)
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
         // appinsights keys etc

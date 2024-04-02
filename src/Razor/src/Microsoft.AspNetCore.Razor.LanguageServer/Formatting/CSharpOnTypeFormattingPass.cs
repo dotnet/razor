@@ -36,7 +36,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         RazorLSPOptionsMonitor optionsMonitor,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
         : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)

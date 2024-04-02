@@ -35,7 +35,7 @@ internal sealed class CodeActionEndpoint(
     IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
     IClientConnection clientConnection,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRazorLoggerFactory loggerFactory,
+    ILoggerFactory loggerFactory,
     ITelemetryReporter? telemetryReporter)
     : IRazorRequestHandler<VSCodeActionParams, SumType<Command, CodeAction>[]?>, ICapabilitiesProvider
 {

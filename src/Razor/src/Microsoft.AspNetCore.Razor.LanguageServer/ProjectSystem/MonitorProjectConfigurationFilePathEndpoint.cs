@@ -25,7 +25,7 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationH
     private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
     private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
     private readonly LanguageServerFeatureOptions _options;
-    private readonly IRazorLoggerFactory _loggerFactory;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
     private readonly ConcurrentDictionary<string, (string ConfigurationDirectory, IFileChangeDetector Detector)> _outputPathMonitors;
     private readonly object _disposeLock;
@@ -39,7 +39,7 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationH
         WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
         IEnumerable<IProjectConfigurationFileChangeListener> listeners,
         LanguageServerFeatureOptions options,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         _projectManager = projectManager;
         _dispatcher = dispatcher;

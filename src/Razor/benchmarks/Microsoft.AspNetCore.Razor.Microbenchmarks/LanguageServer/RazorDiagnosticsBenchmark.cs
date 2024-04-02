@@ -148,7 +148,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         return razorDocumentMappingService.Object;
     }
 
-    private IRazorLoggerFactory BuildLoggerFactory() => Mock.Of<IRazorLoggerFactory>(
+    private ILoggerFactory BuildLoggerFactory() => Mock.Of<ILoggerFactory>(
         r => r.GetOrCreateLogger(
             It.IsAny<string>()) == new NoopLogger(),
         MockBehavior.Strict);

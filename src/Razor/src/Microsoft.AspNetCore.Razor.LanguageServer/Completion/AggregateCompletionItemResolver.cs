@@ -16,7 +16,7 @@ internal class AggregateCompletionItemResolver
     private readonly IReadOnlyList<CompletionItemResolver> _completionItemResolvers;
     private readonly ILogger _logger;
 
-    public AggregateCompletionItemResolver(IEnumerable<CompletionItemResolver> completionItemResolvers, IRazorLoggerFactory loggerFactory)
+    public AggregateCompletionItemResolver(IEnumerable<CompletionItemResolver> completionItemResolvers, ILoggerFactory loggerFactory)
     {
         _completionItemResolvers = completionItemResolvers.ToArray();
         _logger = loggerFactory.GetOrCreateLogger<AggregateCompletionItemResolver>();

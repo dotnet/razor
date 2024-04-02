@@ -24,7 +24,7 @@ internal class FormattingDiagnosticValidationPass : FormattingPassBase
     public FormattingDiagnosticValidationPass(
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
         : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)

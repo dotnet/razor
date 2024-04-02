@@ -18,7 +18,7 @@ internal class RazorCompletionEndpoint(
     CompletionListProvider completionListProvider,
     ITelemetryReporter? telemetryReporter,
     RazorLSPOptionsMonitor optionsMonitor,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IVSCompletionEndpoint
 {
     private readonly CompletionListProvider _completionListProvider = completionListProvider;

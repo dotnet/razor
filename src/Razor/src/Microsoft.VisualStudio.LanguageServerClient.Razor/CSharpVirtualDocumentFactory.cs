@@ -48,7 +48,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         IFilePathService filePathService,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         ITelemetryReporter telemetryReporter)
         : base(contentTypeRegistry, textBufferFactory, textDocumentFactory, fileUriProvider)
     {

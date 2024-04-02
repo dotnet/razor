@@ -19,7 +19,7 @@ internal class ValidateBreakpointRangeEndpoint(
     IRazorDocumentMappingService documentMappingService,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<ValidateBreakpointRangeParams, Range?>(
         languageServerFeatureOptions,
         documentMappingService,

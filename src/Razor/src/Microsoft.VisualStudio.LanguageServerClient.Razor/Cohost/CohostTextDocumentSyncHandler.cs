@@ -23,7 +23,7 @@ internal class CohostTextDocumentSyncHandler(
     IRemoteClientProvider remoteClientProvider,
     LSPDocumentManager documentManager,
     JoinableTaskContext joinableTaskContext,
-    IRazorLoggerFactory loggerFactory) : IRazorCohostTextDocumentSyncHandler
+    ILoggerFactory loggerFactory) : IRazorCohostTextDocumentSyncHandler
 {
     private readonly IRemoteClientProvider _remoteClientProvider = remoteClientProvider;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;

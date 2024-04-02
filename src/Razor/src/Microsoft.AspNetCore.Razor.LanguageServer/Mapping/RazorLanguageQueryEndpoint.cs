@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorLanguageQueryEndpoint)]
-internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService documentMappingService, IRazorLoggerFactory loggerFactory)
+internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
     : IRazorRequestHandler<RazorLanguageQueryParams, RazorLanguageQueryResponse>
 {
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;

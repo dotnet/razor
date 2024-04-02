@@ -26,7 +26,7 @@ internal class RazorProximityExpressionsEndpoint : IRazorDocumentlessRequestHand
 
     public RazorProximityExpressionsEndpoint(
         IRazorDocumentMappingService documentMappingService,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         if (documentMappingService is null)
         {

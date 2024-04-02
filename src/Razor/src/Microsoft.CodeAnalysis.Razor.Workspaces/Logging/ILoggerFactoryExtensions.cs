@@ -5,9 +5,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
-internal static class IRazorLoggerFactoryExtensions
+internal static class ILoggerFactoryExtensions
 {
-    public static ILogger GetOrCreateLogger<T>(this IRazorLoggerFactory factory)
+    public static ILogger GetOrCreateLogger<T>(this ILoggerFactory factory)
     {
         return factory.GetOrCreateLogger(TrimTypeName(typeof(T).FullName));
     }

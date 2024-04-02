@@ -18,7 +18,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
     private readonly IClientConnection _clientConnection;
     private readonly ILogger _logger;
 
-    public DefaultRazorConfigurationService(IClientConnection clientConnection, IRazorLoggerFactory loggerFactory)
+    public DefaultRazorConfigurationService(IClientConnection clientConnection, ILoggerFactory loggerFactory)
     {
         if (clientConnection is null)
         {

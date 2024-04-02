@@ -17,7 +17,7 @@ internal class RazorSemanticTokensInfoService(
     ISemanticTokensLegendService semanticTokensLegendService,
     ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorSemanticTokensInfoService(
         documentMappingService,
         semanticTokensLegendService,

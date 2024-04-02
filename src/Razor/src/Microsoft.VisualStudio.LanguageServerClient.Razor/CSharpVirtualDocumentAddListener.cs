@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 [Export(typeof(LSPDocumentChangeListener))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
 [method: ImportingConstructor]
-internal class CSharpVirtualDocumentAddListener(IRazorLoggerFactory loggerFactory) : LSPDocumentChangeListener
+internal class CSharpVirtualDocumentAddListener(ILoggerFactory loggerFactory) : LSPDocumentChangeListener
 {
     private static readonly TimeSpan s_waitTimeout = TimeSpan.FromMilliseconds(500);
 

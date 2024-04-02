@@ -26,7 +26,7 @@ internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsP
     [ImportingConstructor]
     public DefaultLSPProximityExpressionsProvider(
         LSPRequestInvoker requestInvoker,
-        Lazy<IRazorLoggerFactory> loggerFactory)
+        Lazy<ILoggerFactory> loggerFactory)
     {
         if (requestInvoker is null)
         {

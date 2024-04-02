@@ -27,7 +27,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     IOutOfProcSemanticTokensService semanticTokensInfoService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ITelemetryReporter telemetryReporter,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, ICapabilitiesProvider
 {
     private readonly IOutOfProcSemanticTokensService _semanticTokensInfoService = semanticTokensInfoService;

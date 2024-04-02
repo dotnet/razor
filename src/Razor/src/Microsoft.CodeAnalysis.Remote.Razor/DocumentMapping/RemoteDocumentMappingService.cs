@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 internal sealed class RemoteDocumentMappingService(
     IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorDocumentMappingService(
         filePathService,
         documentContextFactory,

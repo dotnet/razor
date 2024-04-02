@@ -35,7 +35,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IEnumerable<IRazorFoldingRangeProvider> foldingRangeProviders,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));

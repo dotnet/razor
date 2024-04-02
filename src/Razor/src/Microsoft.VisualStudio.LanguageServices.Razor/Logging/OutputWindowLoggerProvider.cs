@@ -14,14 +14,14 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 
-[Export(typeof(IRazorLoggerProvider))]
+[Export(typeof(ILoggerProvider))]
 [method: ImportingConstructor]
 internal class OutputWindowLoggerProvider(
     // Anything this class imports would have a circular dependency if they tried to log anything,
     // or used anything that does logging, so make sure everything of ours is imported lazily
     Lazy<IClientSettingsManager> clientSettingsManager,
     JoinableTaskContext joinableTaskContext)
-    : IRazorLoggerProvider
+    : ILoggerProvider
 {
     private readonly Lazy<IClientSettingsManager> _clientSettingsManager = clientSettingsManager;
     private readonly OutputPane _outputPane = new OutputPane(joinableTaskContext);

@@ -62,7 +62,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
         Documents = documents.ToImmutable();
 
-        var loggerFactoryMock = new Mock<IRazorLoggerFactory>(MockBehavior.Strict);
+        var loggerFactoryMock = new Mock<ILoggerFactory>(MockBehavior.Strict);
         loggerFactoryMock
             .Setup(x => x.GetOrCreateLogger(It.IsAny<string>()))
             .Returns(Mock.Of<ILogger>(MockBehavior.Strict));

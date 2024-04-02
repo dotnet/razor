@@ -21,7 +21,7 @@ internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDia
 
     public RazorTranslateDiagnosticsEndpoint(
         RazorTranslateDiagnosticsService translateDiagnosticsService,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {

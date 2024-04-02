@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentDidSaveName)]
-internal class DocumentDidSaveEndpoint(IRazorLoggerFactory loggerFactory)
+internal class DocumentDidSaveEndpoint(ILoggerFactory loggerFactory)
     : IRazorNotificationHandler<DidSaveTextDocumentParams>, ITextDocumentIdentifierHandler<DidSaveTextDocumentParams, TextDocumentIdentifier>
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentDidSaveEndpoint>();

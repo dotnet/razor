@@ -6,7 +6,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.Logging;
 
-internal class TestOutputLoggerProvider(ITestOutputHelper output) : IRazorLoggerProvider
+internal class TestOutputLoggerProvider(ITestOutputHelper output) : ILoggerProvider
 {
     private ITestOutputHelper? _output = output;
 

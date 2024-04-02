@@ -24,7 +24,7 @@ internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
     [ImportingConstructor]
     public DefaultLSPBreakpointSpanProvider(
         LSPRequestInvoker requestInvoker,
-        Lazy<IRazorLoggerFactory> loggerFactory)
+        Lazy<ILoggerFactory> loggerFactory)
     {
         if (requestInvoker is null)
         {

@@ -30,7 +30,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
     public ProjectConfigurationStateSynchronizer(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IRazorProjectService projectService,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         LanguageServerFeatureOptions languageServerFeatureOptions)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;

@@ -24,7 +24,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
     private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
     private readonly ILogger _logger;
 
-    public ExtractToCodeBehindCodeActionProvider(IRazorLoggerFactory loggerFactory)
+    public ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {

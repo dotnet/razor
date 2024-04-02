@@ -22,7 +22,7 @@ internal class DocumentOnTypeFormattingEndpoint(
     IRazorFormattingService razorFormattingService,
     IRazorDocumentMappingService razorDocumentMappingService,
     RazorLSPOptionsMonitor optionsMonitor,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IRazorRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>, ICapabilitiesProvider
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));

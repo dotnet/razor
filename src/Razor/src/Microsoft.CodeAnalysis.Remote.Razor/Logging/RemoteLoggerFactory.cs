@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Logging;
 
-[Export(typeof(IRazorLoggerFactory)), Shared]
+[Export(typeof(ILoggerFactory)), Shared]
 [method: ImportingConstructor]
-internal partial class RemoteLoggerFactory() : IRazorLoggerFactory
+internal partial class RemoteLoggerFactory() : ILoggerFactory
 {
     private static TraceSource? s_traceSource;
 
@@ -18,7 +18,7 @@ internal partial class RemoteLoggerFactory() : IRazorLoggerFactory
         s_traceSource ??= traceSource;
     }
 
-    public void AddLoggerProvider(IRazorLoggerProvider provider)
+    public void AddLoggerProvider(ILoggerProvider provider)
     {
         throw new System.NotImplementedException();
     }

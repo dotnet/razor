@@ -54,7 +54,7 @@ internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IProjectSnapshotManager projectManager,
         SnippetCache snippetCache,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         if (documentManager is null)
         {

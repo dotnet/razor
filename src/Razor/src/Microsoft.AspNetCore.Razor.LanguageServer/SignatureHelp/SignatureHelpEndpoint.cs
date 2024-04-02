@@ -20,7 +20,7 @@ internal sealed class SignatureHelpEndpoint(
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         RazorLSPOptionsMonitor optionsMonitor,
-        IRazorLoggerFactory loggerProvider)
+        ILoggerFactory loggerProvider)
     : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>(
         languageServerFeatureOptions,
         documentMappingService,

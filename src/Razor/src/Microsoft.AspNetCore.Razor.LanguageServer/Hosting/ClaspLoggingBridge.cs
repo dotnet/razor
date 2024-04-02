@@ -19,9 +19,9 @@ internal class ClaspLoggingBridge : ILspLogger
     private readonly ILogger _logger;
     private readonly ITelemetryReporter? _telemetryReporter;
 
-    public ClaspLoggingBridge(IRazorLoggerFactory loggerFactory, ITelemetryReporter? telemetryReporter = null)
+    public ClaspLoggingBridge(ILoggerFactory loggerFactory, ITelemetryReporter? telemetryReporter = null)
     {
-        // We're creating this on behalf of CLaSP, because it doesn't know how to use IRazorLoggerFactory, so using that as the category name.
+        // We're creating this on behalf of CLaSP, because it doesn't know how to use our ILoggerFactory, so using that as the category name.
         _logger = loggerFactory.GetOrCreateLogger("CLaSP");
         _telemetryReporter = telemetryReporter;
     }

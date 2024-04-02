@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 internal class LegacyRazorCompletionEndpoint(
     IRazorCompletionFactsService completionFactsService,
     CompletionListCache completionListCache,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IVSCompletionEndpoint
 {
     private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
