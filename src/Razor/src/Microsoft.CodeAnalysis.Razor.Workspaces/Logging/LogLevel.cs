@@ -3,8 +3,13 @@
 
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
-// Very very light wrapper for ILoggerProvider, so that we're not MEF importing general use types
-internal interface IRazorLoggerProvider
+internal enum LogLevel
 {
-    ILogger CreateLogger(string categoryName);
+    Trace,
+    Debug,
+    Information,
+    Warning,
+    Error,
+    Critical,
+    None
 }

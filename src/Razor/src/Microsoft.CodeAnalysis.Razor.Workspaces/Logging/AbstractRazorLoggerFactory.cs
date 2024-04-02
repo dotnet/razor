@@ -1,41 +1,49 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
-internal abstract class AbstractRazorLoggerFactory : IRazorLoggerFactory
+internal abstract partial class AbstractRazorLoggerFactory : IRazorLoggerFactory
 {
-    private readonly ILoggerFactory _loggerFactory;
+    private ImmutableDictionary<string, AggregateLogger> _loggers;
+    private ImmutableArray<IRazorLoggerProvider> _providers;
 
     protected AbstractRazorLoggerFactory(ImmutableArray<IRazorLoggerProvider> providers)
     {
-        _loggerFactory = LoggerFactory.Create(b =>
-        {
-            // We let everything through, and expect individual loggers to control their own levels
-            b.AddFilter(level => true);
-
-            foreach (var provider in providers)
-            {
-                b.AddProvider(provider);
-            }
-        });
+        _providers = providers;
+        _loggers = ImmutableDictionary.Create<string, AggregateLogger>(StringComparer.OrdinalIgnoreCase);
     }
 
     public ILogger CreateLogger(string categoryName)
     {
-        return _loggerFactory.CreateLogger(categoryName);
+        if (_loggers.TryGetValue(categoryName, out var logger))
+        {
+            return logger;
+        }
+
+        using var loggers = new PooledArrayBuilder<ILogger>(_providers.Length);
+
+        foreach (var provider in _providers)
+        {
+            loggers.Add(provider.CreateLogger(categoryName));
+        }
+
+        var result = new AggregateLogger(loggers.DrainToImmutable());
+        return ImmutableInterlocked.AddOrUpdate(ref _loggers, categoryName, result, (k, v) => v);
     }
 
     public void AddLoggerProvider(IRazorLoggerProvider provider)
     {
-        _loggerFactory.AddProvider(provider);
-    }
-
-    public void Dispose()
-    {
-        _loggerFactory.Dispose();
+        if (ImmutableInterlocked.Update(ref _providers, (set, p) => set.Add(p), provider))
+        {
+            foreach (var entry in _loggers)
+            {
+                entry.Value.AddLogger(provider.CreateLogger(entry.Key));
+            }
+        }
     }
 }
