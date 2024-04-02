@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -40,9 +41,9 @@ internal abstract partial class AbstractRazorLoggerFactory : IRazorLoggerFactory
     {
         if (ImmutableInterlocked.Update(ref _providers, (set, p) => set.Add(p), provider))
         {
-            foreach (var entry in _loggers)
+            foreach (var (category, logger) in _loggers)
             {
-                entry.Value.AddLogger(provider.CreateLogger(entry.Key));
+                logger.AddLogger(provider.CreateLogger(category));
             }
         }
     }
