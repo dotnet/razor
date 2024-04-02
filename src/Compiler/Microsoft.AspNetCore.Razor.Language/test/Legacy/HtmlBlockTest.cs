@@ -295,6 +295,23 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_04()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{
+                    <i>x
+                    y
+                    z </i>
+                }
+                <text>a
+                b
+                c</text>
+            }
+            """);
+    }
+
     [Fact]
     public void StopsParsingMidEmptyTagIfEOFReached()
     {
