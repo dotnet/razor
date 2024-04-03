@@ -23,7 +23,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
     public void ApplyContentChanges_SingleChange()
     {
         // Arrange
-        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, _projectService, LoggerFactory);
+        var endpoint = new DocumentDidChangeEndpoint(_projectService, LoggerFactory);
         var sourceText = SourceText.From("Hello World");
         var change = new TextDocumentContentChangeEvent()
         {
@@ -47,7 +47,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
     public void ApplyContentChanges_MultipleChanges()
     {
         // Arrange
-        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, _projectService, LoggerFactory);
+        var endpoint = new DocumentDidChangeEndpoint(_projectService, LoggerFactory);
         var sourceText = SourceText.From("Hello World");
         var changes = new[] {
             new TextDocumentContentChangeEvent()
@@ -119,7 +119,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
                 Assert.Equal(documentPath.OriginalString, path);
                 Assert.Equal(1337, version);
             });
-        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, projectService.Object, LoggerFactory);
+        var endpoint = new DocumentDidChangeEndpoint(projectService.Object, LoggerFactory);
         var change = new TextDocumentContentChangeEvent()
         {
             Range = new Range
