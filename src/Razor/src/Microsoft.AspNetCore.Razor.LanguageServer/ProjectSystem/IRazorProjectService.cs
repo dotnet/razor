@@ -30,6 +30,14 @@ internal interface IRazorProjectService
         string? rootNamespace,
         string? displayName = null);
 
+    Task<ProjectKey> AddProjectAsync(
+        string filePath,
+        string intermediateOutputPath,
+        RazorConfiguration? configuration,
+        string? rootNamespace,
+        string? displayName,
+        CancellationToken cancellationToken);
+
     void UpdateProject(
         ProjectKey projectKey,
         RazorConfiguration? configuration,

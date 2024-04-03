@@ -377,6 +377,33 @@ internal class RazorProjectService(
         return hostProject.Key;
     }
 
+    public async Task<ProjectKey> AddProjectAsync(
+        string filePath,
+        string intermediateOutputPath,
+        RazorConfiguration? configuration,
+        string? rootNamespace,
+        string? displayName,
+        CancellationToken cancellationToken)
+    {
+        var normalizedPath = FilePathNormalizer.Normalize(filePath);
+        var hostProject = new HostProject(
+            normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
+
+        // ProjectAdded will no-op if the project already exists
+        await _projectManager
+            .UpdateAsync(
+                static (updater, hostProject) => updater.ProjectAdded(hostProject),
+                state: hostProject,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        _logger.LogInformation("Added project '{filePath}' with key {key} to project system.", filePath, hostProject.Key);
+
+        await TryMigrateMiscellaneousDocumentsToProjectAsync(cancellationToken).ConfigureAwait(false);
+
+        return hostProject.Key;
+    }
+
     public void UpdateProject(
         ProjectKey projectKey,
         RazorConfiguration? configuration,
@@ -638,6 +665,50 @@ internal class RazorProjectService(
             _projectManager.Update(
                 static (updater, state) => updater.DocumentAdded(state.key, state.newHostDocument, state.textLoader),
                 state: (key: defaultProject.Key, newHostDocument, textLoader));
+        }
+    }
+
+    private async Task TryMigrateMiscellaneousDocumentsToProjectAsync(CancellationToken cancellationToken)
+    {
+        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+
+        foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
+        {
+            var projectSnapshot = _snapshotResolver.FindPotentialProjects(documentFilePath).FirstOrDefault();
+            if (projectSnapshot is null)
+            {
+                continue;
+            }
+
+            if (miscellaneousProject.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
+            {
+                continue;
+            }
+
+            // Remove from miscellaneous project
+            var defaultMiscProject = miscellaneousProject;
+
+            await _projectManager
+                .UpdateAsync(
+                    static (updater, state) => updater.DocumentRemoved(state.Key, state.HostDocument),
+                    state: (defaultMiscProject.Key, documentSnapshot.State.HostDocument),
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            // Add to new project
+
+            var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
+            var defaultProject = projectSnapshot;
+            var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath);
+            _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.",
+                documentFilePath, miscellaneousProject.Key, projectSnapshot.Key);
+
+            await _projectManager
+                .UpdateAsync(
+                    static (updater, state) => updater.DocumentAdded(state.key, state.newHostDocument, state.textLoader),
+                    state: (key: defaultProject.Key, newHostDocument, textLoader),
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 

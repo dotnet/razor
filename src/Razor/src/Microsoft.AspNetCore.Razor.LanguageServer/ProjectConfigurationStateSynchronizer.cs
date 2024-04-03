@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -81,7 +83,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     {
                         _logger.LogWarning("Found no project key for configuration file. Assuming new project. Configuration file path: '{0}'", configurationFilePath);
 
-                        AddProject(configurationFilePath, projectInfo);
+                        AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
                         return;
                     }
 
@@ -101,7 +103,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         return;
                     }
 
-                    AddProject(configurationFilePath, projectInfo);
+                    AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
                     break;
                 }
             case RazorFileChangeKind.Removed:
@@ -123,13 +125,21 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                 }
         }
 
-        void AddProject(string configurationFilePath, RazorProjectInfo projectInfo)
+        async Task AddProjectAsync(string configurationFilePath, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
         {
             var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
             var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
             var rootNamespace = projectInfo.RootNamespace;
 
-            var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
+            var projectKey = await _projectService
+                .AddProjectAsync(
+                    projectFilePath,
+                    intermediateOutputPath,
+                    projectInfo.Configuration,
+                    rootNamespace,
+                    projectInfo.DisplayName,
+                    cancellationToken)
+                .ConfigureAwait(false);
             _configurationToProjectMap[configurationFilePath] = projectKey;
 
             _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
