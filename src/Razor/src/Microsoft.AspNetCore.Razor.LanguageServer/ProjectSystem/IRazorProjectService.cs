@@ -14,21 +14,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal interface IRazorProjectService
 {
-    void AddDocument(string filePath);
     Task AddDocumentAsync(string filePath, CancellationToken cancellationToken);
-    void OpenDocument(string filePath, SourceText sourceText, int version);
     Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken);
-    void UpdateDocument(string filePath, SourceText sourceText, int version);
     Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken);
     Task CloseDocumentAsync(string filePath, CancellationToken cancellationToken);
     Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken);
-
-    ProjectKey AddProject(
-        string filePath,
-        string intermediateOutputPath,
-        RazorConfiguration? configuration,
-        string? rootNamespace,
-        string? displayName = null);
 
     Task<ProjectKey> AddProjectAsync(
         string filePath,

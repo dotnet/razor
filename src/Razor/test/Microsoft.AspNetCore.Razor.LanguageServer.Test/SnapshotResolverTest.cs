@@ -117,10 +117,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
 
-        await RunOnDispatcherAsync(() =>
-        {
-            _ = snapshotResolver.GetMiscellaneousProject();
-        });
+        await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
 
         // Act
         IProjectSnapshot[]? projects = null;
@@ -284,7 +281,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
 
         // Act
-        var project = await RunOnDispatcherAsync(snapshotResolver.GetMiscellaneousProject);
+        var project = await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
         var inManager = projectManager.GetLoadedProject(snapshotResolver.MiscellaneousHostProject.Key);
 
         // Assert
@@ -299,7 +296,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
 
         // Act
-        var project = await RunOnDispatcherAsync(snapshotResolver.GetMiscellaneousProject);
+        var project = await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
 
         // Assert
         Assert.Single(projectManager.GetProjects());
