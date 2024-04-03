@@ -304,6 +304,29 @@ internal class RazorProjectService(
         });
     }
 
+    public async Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    {
+        await ActOnDocumentInMultipleProjectsAsync(
+                filePath,
+                (project, textDocumentPath, cancellationToken) =>
+                {
+                    _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
+
+                    return _projectManager.UpdateAsync(
+                        static (updater, state) => updater.DocumentChanged(state.key, state.textDocumentPath, state.sourceText),
+                        state: (key: project.Key, textDocumentPath, sourceText),
+                        cancellationToken);
+                },
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
+        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
+        {
+            TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: false);
+        });
+    }
+
     private void ActOnDocumentInMultipleProjects(string filePath, Action<IProjectSnapshot, string> action)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);

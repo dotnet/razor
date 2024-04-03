@@ -953,10 +953,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.UpdateDocument(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43);
-        });
+        await _projectService.UpdateDocumentAsync(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -993,10 +990,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.UpdateDocument(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43);
-        });
+        await _projectService.UpdateDocumentAsync(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -1025,10 +1019,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.UpdateDocument(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43);
-        });
+        await _projectService.UpdateDocumentAsync(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -1059,10 +1050,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.UpdateDocument(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43);
-        });
+        await _projectService.UpdateDocumentAsync(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -1089,10 +1077,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         // Act
         await Assert.ThrowsAnyAsync<InvalidOperationException>(() =>
         {
-            return RunOnDispatcherAsync(() =>
-            {
-                _projectService.UpdateDocument(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43);
-            });
+            return _projectService.UpdateDocumentAsync(DocumentFilePath, s_emptyText.Replace(0, 0, "Hello World"), version: 43, DisposalToken);
         });
     }
 
