@@ -161,10 +161,8 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
     private void RemovePublishingData(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
-        if (_active)
-        {
-            ImmediatePublish(projectSnapshot.Key, encodedProjectInfo: null, cancellationToken);
-        }
+        // This should never get called if we are inactive, so don't check _active flag
+        ImmediatePublish(projectSnapshot.Key, encodedProjectInfo: null, cancellationToken);
     }
 
     private void ImmediatePublish(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
@@ -185,6 +183,13 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
     private void ImmediatePublish(ProjectKey projectKey, string? encodedProjectInfo, CancellationToken cancellationToken)
     {
+        // This might be getting called after getting dequeued from work queue,
+        // check if the work got cancelled before doing anything.
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
         var parameter = new ProjectInfoParams()
         {
             ProjectKeyId = projectKey.Id,
