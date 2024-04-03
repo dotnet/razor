@@ -125,4 +125,16 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         documentSnapshot = null;
         return false;
     }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal sealed class TestAccessor(SnapshotResolver instance)
+    {
+        public Task WaitForMiscFilesProjectAsync()
+        {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+            return instance._initializeTask;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
+        }
+    }
 }
