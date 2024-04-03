@@ -25,7 +25,7 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
             .Setup(service => service.AddDocumentAsync(filePath, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
+        var synchronizer = new RazorFileSynchronizer(projectService.Object);
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -45,7 +45,7 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
             .Setup(service => service.AddDocumentAsync(filePath, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
+        var synchronizer = new RazorFileSynchronizer(projectService.Object);
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -65,7 +65,7 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
             .Setup(service => service.RemoveDocumentAsync(filePath, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
+        var synchronizer = new RazorFileSynchronizer(projectService.Object);
 
         // Act
         await RunOnDispatcherAsync(() =>
@@ -85,7 +85,7 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
             .Setup(service => service.RemoveDocumentAsync(filePath, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
+        var synchronizer = new RazorFileSynchronizer(projectService.Object);
 
         // Act
         await RunOnDispatcherAsync(() =>
