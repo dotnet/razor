@@ -3,9 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -17,6 +20,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
 {
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ILogger _logger;
+    private readonly Task _initializeTask;
 
     // Internal for testing
     internal readonly HostProject MiscellaneousHostProject;
@@ -29,6 +33,11 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         var normalizedPath = FilePathNormalizer.Normalize(miscellaneousProjectPath);
         MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null, "Miscellaneous Files");
+
+        _initializeTask = _projectManager.UpdateAsync(
+            static (updater, miscFilesHostProject) => updater.ProjectAdded(miscFilesHostProject),
+            state: MiscellaneousHostProject,
+            CancellationToken.None);
     }
 
     /// <inheritdoc/>
@@ -61,9 +70,17 @@ internal sealed class SnapshotResolver : ISnapshotResolver
     {
         if (!_projectManager.TryGetLoadedProject(MiscellaneousHostProject.Key, out var miscellaneousProject))
         {
-            _projectManager.Update(
-                static (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
-                state: MiscellaneousHostProject);
+            if (_initializeTask.Status is not (TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled))
+            {
+                Debug.Fail("We should not have been asked for the miscellaneous project before it has been added.");
+
+                // We don't expect this to happen, but if it does, we'll block and wait for the miscellaneous project
+                // to be added before attempting to return it.
+
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+                _initializeTask.Wait();
+#pragma warning restore VSTHRD002
+            }
 
             miscellaneousProject = _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
         }
