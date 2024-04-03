@@ -28,7 +28,7 @@ internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams
 
     public bool MutatesSolutionState => false;
 
-    public async Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    public Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         RazorProjectInfo? razorProjectInfo = null;
 
