@@ -70,7 +70,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
             {
                 // Don't enqueue project addition as those are unlikely to come through in large batches.
                 // Also ensures that we won't get project removal go through the queue without project addition.
-                ImmediatePublish(project);
+                ImmediatePublish(project, _disposeTokenSource.Token);
             }
         }
     }
@@ -103,7 +103,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 {
                     // Don't enqueue project addition as those are unlikely to come through in large batches.
                     // Also ensures that we won't get project removal go through the queue without project addition.
-                    ImmediatePublish(args.Newer!);
+                    ImmediatePublish(args.Newer!, _disposeTokenSource.Token);
                 }
 
                 break;
@@ -137,37 +137,37 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         _workQueue.AddWork((Project: projectSnapshot, Removal: true));
     }
 
-    private ValueTask ProcessBatchAsync(ImmutableArray<(IProjectSnapshot Project, bool Removal)> workItems, CancellationToken token)
+    private ValueTask ProcessBatchAsync(ImmutableArray<(IProjectSnapshot Project, bool Removal)> workItems, CancellationToken cancellationToken)
     {
         foreach (var workItem in workItems.GetMostRecentUniqueItems(Comparer.Instance))
         {
-            if (token.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
                 return default;
             }
 
             if (workItem.Removal)
             {
-                RemovePublishingData(workItem.Project);
+                RemovePublishingData(workItem.Project, cancellationToken);
             }
             else
             {
-                ImmediatePublish(workItem.Project);
+                ImmediatePublish(workItem.Project, cancellationToken);
             }
         }
 
         return default;
     }
 
-    private void RemovePublishingData(IProjectSnapshot projectSnapshot)
+    private void RemovePublishingData(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         if (_active)
         {
-            ImmediatePublish(projectSnapshot.Key, encodedProjectInfo: null);
+            ImmediatePublish(projectSnapshot.Key, encodedProjectInfo: null, cancellationToken);
         }
     }
 
-    private void ImmediatePublish(IProjectSnapshot projectSnapshot)
+    private void ImmediatePublish(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         if (!_active)
         {
@@ -180,10 +180,10 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         projectInfo.SerializeTo(stream);
         var base64ProjectInfo = Convert.ToBase64String(stream.ToArray());
 
-        ImmediatePublish(projectSnapshot.Key, base64ProjectInfo);
+        ImmediatePublish(projectSnapshot.Key, base64ProjectInfo, cancellationToken);
     }
 
-    private void ImmediatePublish(ProjectKey projectKey, string? encodedProjectInfo)
+    private void ImmediatePublish(ProjectKey projectKey, string? encodedProjectInfo, CancellationToken cancellationToken)
     {
         var parameter = new ProjectInfoParams()
         {
@@ -195,6 +195,6 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 LanguageServerConstants.RazorProjectInfoEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 parameter,
-                CancellationToken.None);
+                cancellationToken);
     }
 }
