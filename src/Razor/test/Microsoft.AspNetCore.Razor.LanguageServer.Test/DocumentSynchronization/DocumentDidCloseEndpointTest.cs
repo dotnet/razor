@@ -27,7 +27,7 @@ public class DocumentDidCloseEndpointTest(ITestOutputHelper testOutput) : Langua
             .Setup(service => service.CloseDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Callback((string path, CancellationToken cancellationToken) => Assert.Equal(documentPath, path));
-        var endpoint = new DocumentDidCloseEndpoint(Dispatcher, projectService.Object);
+        var endpoint = new DocumentDidCloseEndpoint(projectService.Object);
         var request = new DidCloseTextDocumentParams()
         {
             TextDocument = new TextDocumentIdentifier()
