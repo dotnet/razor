@@ -2,9 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -46,7 +48,7 @@ internal class RazorFileSynchronizer : IRazorFileChangeListener
                 _projectService.AddDocument(filePath);
                 break;
             case RazorFileChangeKind.Removed:
-                _projectService.RemoveDocument(filePath);
+                _projectService.RemoveDocumentAsync(filePath, CancellationToken.None).Forget();
                 break;
         }
     }

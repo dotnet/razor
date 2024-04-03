@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Moq;
 using Xunit;
@@ -52,8 +54,11 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
     {
         // Arrange
         var filePath = "/path/to/file.razor";
-        var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.RemoveDocument(filePath)).Verifiable();
+        var projectService = new StrictMock<IRazorProjectService>();
+        projectService
+            .Setup(service => service.RemoveDocumentAsync(filePath, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable();
         var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
 
         // Act
@@ -69,8 +74,11 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
     {
         // Arrange
         var filePath = "/path/to/file.cshtml";
-        var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.RemoveDocument(filePath)).Verifiable();
+        var projectService = new StrictMock<IRazorProjectService>();
+        projectService
+            .Setup(service => service.RemoveDocumentAsync(filePath, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable();
         var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
 
         // Act

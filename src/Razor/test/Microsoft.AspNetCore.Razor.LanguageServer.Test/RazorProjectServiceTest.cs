@@ -788,10 +788,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.RemoveDocument(DocumentFilePath);
-        });
+        await _projectService.RemoveDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -825,10 +822,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.RemoveDocument(DocumentFilePath);
-        });
+        await _projectService.RemoveDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -864,10 +858,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.RemoveDocument(DocumentFilePath);
-        });
+        await _projectService.RemoveDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -895,10 +886,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.RemoveDocument(DocumentFilePath);
-        });
+        await _projectService.RemoveDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -924,10 +912,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.RemoveDocument(DocumentFilePath);
-        });
+        await _projectService.RemoveDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNoNotifications();
@@ -946,10 +931,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.RemoveDocument(DocumentFilePath);
-        });
+        await _projectService.RemoveDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNoNotifications();

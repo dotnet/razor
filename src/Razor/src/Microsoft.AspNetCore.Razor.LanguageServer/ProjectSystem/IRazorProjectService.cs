@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
@@ -16,7 +18,7 @@ internal interface IRazorProjectService
     void OpenDocument(string filePath, SourceText sourceText, int version);
     void UpdateDocument(string filePath, SourceText sourceText, int version);
     void CloseDocument(string filePath);
-    void RemoveDocument(string filePath);
+    Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken);
 
     ProjectKey AddProject(
         string filePath,

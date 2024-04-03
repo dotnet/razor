@@ -144,11 +144,9 @@ internal class RazorProjectService(
         });
     }
 
-    public void RemoveDocument(string filePath)
+    public Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
-        _dispatcher.AssertRunningOnDispatcher();
-
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
+        return ActOnDocumentInMultipleProjectsAsync(filePath, async (projectSnapshot, textDocumentPath, cancellationToken) =>
         {
             if (!projectSnapshot.DocumentFilePaths.Contains(textDocumentPath, FilePathComparer.Instance))
             {
@@ -171,18 +169,22 @@ internal class RazorProjectService(
                 var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
                 if (projectSnapshot != miscellaneousProject)
                 {
-                    MoveDocument(textDocumentPath, projectSnapshot, miscellaneousProject);
+                    await MoveDocumentAsync(textDocumentPath, projectSnapshot, miscellaneousProject, cancellationToken).ConfigureAwait(false);
                 }
             }
             else
             {
                 _logger.LogInformation("Removing document '{textDocumentPath}' from project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
 
-                _projectManager.Update(
-                    static (updater, state) => updater.DocumentRemoved(state.Key, state.HostDocument),
-                    state: (projectSnapshot.Key, documentSnapshot.State.HostDocument));
+                await _projectManager
+                    .UpdateAsync(
+                        static (updater, state) => updater.DocumentRemoved(state.Key, state.HostDocument),
+                        state: (projectSnapshot.Key, documentSnapshot.State.HostDocument),
+                        cancellationToken)
+                    .ConfigureAwait(false);
             }
-        });
+        },
+        cancellationToken);
     }
 
     public void UpdateDocument(string filePath, SourceText sourceText, int version)
@@ -210,12 +212,29 @@ internal class RazorProjectService(
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
         if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projectSnapshots))
         {
-            projectSnapshots = new[] { _snapshotResolver.GetMiscellaneousProject() };
+            projectSnapshots = [_snapshotResolver.GetMiscellaneousProject()];
         }
 
         foreach (var project in projectSnapshots)
         {
             action(project, textDocumentPath);
+        }
+    }
+
+    private async Task ActOnDocumentInMultipleProjectsAsync(
+        string filePath,
+        Func<IProjectSnapshot, string, CancellationToken, Task> func,
+        CancellationToken cancellationToken)
+    {
+        var textDocumentPath = FilePathNormalizer.Normalize(filePath);
+        if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projectSnapshots))
+        {
+            projectSnapshots = [_snapshotResolver.GetMiscellaneousProject()];
+        }
+
+        foreach (var project in projectSnapshots)
+        {
+            await func(project, textDocumentPath, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -421,6 +440,34 @@ internal class RazorProjectService(
                 updater.DocumentAdded(state.toProject.Key, state.newHostDocument, state.textLoader);
             },
             state: (fromProject, currentHostDocument, toProject, newHostDocument, textLoader));
+    }
+
+    private Task MoveDocumentAsync(string documentFilePath, IProjectSnapshot fromProject, IProjectSnapshot toProject, CancellationToken cancellationToken)
+    {
+        Debug.Assert(fromProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
+        Debug.Assert(!toProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
+
+        if (fromProject.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
+        {
+            return Task.CompletedTask;
+        }
+
+        var currentHostDocument = documentSnapshot.State.HostDocument;
+
+        var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
+        var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
+
+        _logger.LogInformation("Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.",
+            documentFilePath, fromProject.Key, toProject.Key);
+
+        return _projectManager.UpdateAsync(
+            static (updater, state) =>
+            {
+                updater.DocumentRemoved(state.fromProject.Key, state.currentHostDocument);
+                updater.DocumentAdded(state.toProject.Key, state.newHostDocument, state.textLoader);
+            },
+            state: (fromProject, currentHostDocument, toProject, newHostDocument, textLoader),
+            cancellationToken);
     }
 
     private static string EnsureFullPath(string filePath, string projectDirectory)
