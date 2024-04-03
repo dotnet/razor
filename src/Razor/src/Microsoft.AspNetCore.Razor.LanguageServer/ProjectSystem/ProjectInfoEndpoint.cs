@@ -27,7 +27,7 @@ internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams
 
     public bool MutatesSolutionState => false;
 
-    public async Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    public Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         RazorProjectInfo? razorProjectInfo = null;
 
@@ -41,6 +41,6 @@ internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams
 
         var projectKey = ProjectKey.FromString(request.ProjectKeyId);
 
-        await _projectConfigurationStateManager.ProjectInfoUpdatedAsync(projectKey, razorProjectInfo, cancellationToken).ConfigureAwait(false);
+        return _projectConfigurationStateManager.ProjectInfoUpdatedAsync(projectKey, razorProjectInfo, cancellationToken);
     }
 }
