@@ -33,7 +33,7 @@ public class DocumentDidOpenEndpointTest(ITestOutputHelper testOutput) : Languag
                 Assert.Equal(documentPath, path);
                 Assert.Equal(1337, version);
             });
-        var endpoint = new DocumentDidOpenEndpoint(Dispatcher, projectService.Object);
+        var endpoint = new DocumentDidOpenEndpoint(projectService.Object);
         var request = new DidOpenTextDocumentParams()
         {
             TextDocument = new TextDocumentItem()
