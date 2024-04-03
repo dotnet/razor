@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -64,6 +66,23 @@ internal sealed class SnapshotResolver : ISnapshotResolver
             _projectManager.Update(
                 static (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
                 state: MiscellaneousHostProject);
+
+            miscellaneousProject = _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
+        }
+
+        return miscellaneousProject;
+    }
+
+    public async Task<IProjectSnapshot> GetMiscellaneousProjectAsync(CancellationToken cancellationToken)
+    {
+        if (!_projectManager.TryGetLoadedProject(MiscellaneousHostProject.Key, out var miscellaneousProject))
+        {
+            await _projectManager
+                .UpdateAsync(
+                    static (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
+                    state: MiscellaneousHostProject,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
             miscellaneousProject = _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
         }

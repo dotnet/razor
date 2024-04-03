@@ -110,7 +110,8 @@ internal class RazorProjectService(
 
         if (!added)
         {
-            await AddDocumentToProjectAsync(_snapshotResolver.GetMiscellaneousProject(), textDocumentPath, cancellationToken).ConfigureAwait(false);
+            var miscFilesProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
+            await AddDocumentToProjectAsync(miscFilesProject, textDocumentPath, cancellationToken).ConfigureAwait(false);
         }
 
         async Task AddDocumentToProjectAsync(IProjectSnapshot projectSnapshot, string textDocumentPath, CancellationToken cancellationToken)
@@ -263,7 +264,7 @@ internal class RazorProjectService(
             if (_projectManager.IsDocumentOpen(textDocumentPath))
             {
                 _logger.LogInformation("Moving document '{textDocumentPath}' from project '{projectKey}' to misc files because it is open.", textDocumentPath, projectSnapshot.Key);
-                var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+                var miscellaneousProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
                 if (projectSnapshot != miscellaneousProject)
                 {
                     await MoveDocumentAsync(textDocumentPath, projectSnapshot, miscellaneousProject, cancellationToken).ConfigureAwait(false);
@@ -349,7 +350,8 @@ internal class RazorProjectService(
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
         if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projectSnapshots))
         {
-            projectSnapshots = [_snapshotResolver.GetMiscellaneousProject()];
+            var miscFilesProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
+            projectSnapshots = [miscFilesProject];
         }
 
         foreach (var project in projectSnapshots)
@@ -478,7 +480,7 @@ internal class RazorProjectService(
         var currentProjectKey = project.Key;
         var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(project.FilePath);
         var documentMap = documents.ToDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
-        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+        var miscellaneousProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
 
         // "Remove" any unnecessary documents by putting them into the misc project
         foreach (var documentFilePath in project.DocumentFilePaths)
@@ -539,7 +541,7 @@ internal class RazorProjectService(
         }
 
         project = _projectManager.GetLoadedProject(project.Key);
-        miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+        miscellaneousProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
 
         // Add (or migrate from misc) any new documents
         foreach (var documentKvp in documentMap)
@@ -654,7 +656,7 @@ internal class RazorProjectService(
 
     private async Task TryMigrateMiscellaneousDocumentsToProjectAsync(CancellationToken cancellationToken)
     {
-        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+        var miscellaneousProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
         {

@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -39,6 +41,11 @@ internal class TestSnapshotResolver : ISnapshotResolver
     public IProjectSnapshot GetMiscellaneousProject()
     {
         return _miscProject;
+    }
+
+    public Task<IProjectSnapshot> GetMiscellaneousProjectAsync(CancellationToken cancellationToken)
+    {
+        return Task.FromResult(_miscProject);
     }
 
     public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)

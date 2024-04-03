@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -14,6 +16,7 @@ internal interface ISnapshotResolver
     /// </summary>
     IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath);
     IProjectSnapshot GetMiscellaneousProject();
+    Task<IProjectSnapshot> GetMiscellaneousProjectAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Finds a <see cref="IDocumentSnapshot"/> for the given document path that is contained within any project, and returns the first
