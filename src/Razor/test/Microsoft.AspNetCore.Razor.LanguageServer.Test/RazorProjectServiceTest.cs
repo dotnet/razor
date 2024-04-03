@@ -465,10 +465,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.CloseDocument(DocumentFilePath);
-        });
+        await _projectService.CloseDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -505,10 +502,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.CloseDocument(DocumentFilePath);
-        });
+        await _projectService.CloseDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
@@ -537,10 +531,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-        {
-            _projectService.CloseDocument(DocumentFilePath);
-        });
+        await _projectService.CloseDocumentAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNotifications(

@@ -35,8 +35,6 @@ internal class DocumentDidCloseEndpoint : IRazorNotificationHandler<DidCloseText
 
     public async Task HandleNotificationAsync(DidCloseTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        await _projectSnapshotManagerDispatcher.RunAsync(
-            () => _projectService.CloseDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath()),
-            cancellationToken).ConfigureAwait(false);
+        await _projectService.CloseDocumentAsync(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
     }
 }

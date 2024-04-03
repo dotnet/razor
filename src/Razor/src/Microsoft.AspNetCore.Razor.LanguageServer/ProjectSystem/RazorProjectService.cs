@@ -226,19 +226,19 @@ internal class RazorProjectService(
         });
     }
 
-    public void CloseDocument(string filePath)
+    public Task CloseDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
-        _dispatcher.AssertRunningOnDispatcher();
-
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
+        return ActOnDocumentInMultipleProjectsAsync(filePath, (projectSnapshot, textDocumentPath, cancellationToken) =>
         {
             var textLoader = _remoteTextLoaderFactory.Create(filePath);
             _logger.LogInformation("Closing document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
 
-            _projectManager.Update(
+            return _projectManager.UpdateAsync(
                 static (updater, state) => updater.DocumentClosed(state.key, state.textDocumentPath, state.textLoader),
-                state: (key: projectSnapshot.Key, textDocumentPath, textLoader));
-        });
+                state: (key: projectSnapshot.Key, textDocumentPath, textLoader),
+                cancellationToken);
+        },
+        cancellationToken);
     }
 
     public Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
