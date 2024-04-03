@@ -72,22 +72,26 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
         projectService
-            .Setup(x => x.UpdateProject(
+            .Setup(x => x.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
-                projectInfo.Documents))
+                projectInfo.Documents,
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         projectService
-            .Setup(x => x.UpdateProject(
+            .Setup(x => x.UpdateProjectAsync(
                 projectKey,
                 null,
                 null,
                 "",
                 ProjectWorkspaceState.Default,
-                ImmutableArray<DocumentSnapshotHandle>.Empty))
+                ImmutableArray<DocumentSnapshotHandle>.Empty,
+                CancellationToken.None))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var jsonFileDeserializer = CreateDeserializer(projectInfo);
@@ -166,13 +170,14 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
         projectService
-            .Setup(service => service.UpdateProject(
+            .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
-                projectInfo.Documents))
+                projectInfo.Documents, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var jsonFileDeserializer = CreateDeserializer(projectInfo);
@@ -215,22 +220,26 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
         projectService
-            .Setup(service => service.UpdateProject(
+            .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
-                projectInfo.Documents))
+                projectInfo.Documents,
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         projectService
-            .Setup(service => service.UpdateProject(
+            .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 null,
                 null,
                 "",
                 ProjectWorkspaceState.Default,
-                ImmutableArray<DocumentSnapshotHandle>.Empty))
+                ImmutableArray<DocumentSnapshotHandle>.Empty,
+                CancellationToken.None))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var deserializer = CreateDeserializer(projectInfo);
@@ -284,13 +293,15 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
         projectService
-            .Setup(service => service.UpdateProject(
+            .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
                 initialProjectInfo.RootNamespace,
                 initialProjectInfo.DisplayName,
                 initialProjectInfo.ProjectWorkspaceState,
-                initialProjectInfo.Documents))
+                initialProjectInfo.Documents,
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         var changedProjectInfo = new RazorProjectInfo(
             "/path/to/obj/project.razor.bin",
@@ -303,13 +314,15 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             ProjectWorkspaceState.Create(LanguageVersion.CSharp6),
             ImmutableArray<DocumentSnapshotHandle>.Empty);
         projectService
-            .Setup(service => service.UpdateProject(
+            .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
                 changedProjectInfo.RootNamespace,
                 changedProjectInfo.DisplayName,
                 changedProjectInfo.ProjectWorkspaceState,
-                changedProjectInfo.Documents))
+                changedProjectInfo.Documents,
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var addDeserializer = CreateDeserializer(initialProjectInfo);
@@ -368,13 +381,15 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
         projectService
-            .Setup(service => service.UpdateProject(
+            .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
                 initialProjectInfo.RootNamespace,
                 initialProjectInfo.DisplayName,
                 initialProjectInfo.ProjectWorkspaceState,
-                initialProjectInfo.Documents))
+                initialProjectInfo.Documents,
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         var changedProjectInfo = new RazorProjectInfo(
             "/path/to/obj/project.razor.bin",
@@ -389,13 +404,15 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
         // This is the request that happens when the server is reset
         projectService
-            .Setup(service => service.UpdateProject(
+            .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 null,
                 null,
                 "",
                 ProjectWorkspaceState.Default,
-                ImmutableArray<DocumentSnapshotHandle>.Empty))
+                ImmutableArray<DocumentSnapshotHandle>.Empty,
+                CancellationToken.None))
+            .Returns(Task.CompletedTask)
             .Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var addDeserializer = CreateDeserializer(initialProjectInfo);
@@ -483,13 +500,15 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
         projectService
-            .Setup(p => p.UpdateProject(
+            .Setup(p => p.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<ProjectWorkspaceState>(),
-                It.IsAny<ImmutableArray<DocumentSnapshotHandle>>()));
+                It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         var synchronizer = GetSynchronizer(projectService.Object);
         var changedDeserializer = CreateDeserializer(projectInfo);
@@ -507,13 +526,14 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await enqueueTask;
 
         // Assert
-        projectService.Verify(p => p.UpdateProject(
+        projectService.Verify(p => p.UpdateProjectAsync(
             projectKey,
             It.IsAny<RazorConfiguration>(),
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<ProjectWorkspaceState>(),
-            It.IsAny<ImmutableArray<DocumentSnapshotHandle>>()), Times.Once);
+            It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+            It.IsAny<CancellationToken>()), Times.Once);
 
         projectService.VerifyAll();
     }

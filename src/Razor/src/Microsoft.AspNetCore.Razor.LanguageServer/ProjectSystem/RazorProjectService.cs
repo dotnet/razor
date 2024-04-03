@@ -404,16 +404,15 @@ internal class RazorProjectService(
         return hostProject.Key;
     }
 
-    public void UpdateProject(
+    public async Task UpdateProjectAsync(
         ProjectKey projectKey,
         RazorConfiguration? configuration,
         string? rootNamespace,
         string? displayName,
         ProjectWorkspaceState projectWorkspaceState,
-        ImmutableArray<DocumentSnapshotHandle> documents)
+        ImmutableArray<DocumentSnapshotHandle> documents,
+        CancellationToken cancellationToken)
     {
-        _dispatcher.AssertRunningOnDispatcher();
-
         if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
         {
             // Never tracked the project to begin with, noop.
@@ -421,7 +420,7 @@ internal class RazorProjectService(
             return;
         }
 
-        UpdateProjectDocuments(documents, project.Key);
+        await UpdateProjectDocumentsAsync(documents, project.Key, cancellationToken).ConfigureAwait(false);
 
         if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
         {
@@ -429,9 +428,12 @@ internal class RazorProjectService(
                 project.Key, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
         }
 
-        _projectManager.Update(
-            static (updater, state) => updater.ProjectWorkspaceStateChanged(state.key, state.projectWorkspaceState),
-            state: (key: project.Key, projectWorkspaceState));
+        await _projectManager
+            .UpdateAsync(
+                static (updater, state) => updater.ProjectWorkspaceStateChanged(state.key, state.projectWorkspaceState),
+                state: (key: project.Key, projectWorkspaceState),
+                cancellationToken)
+            .ConfigureAwait(false);
 
         var currentConfiguration = project.Configuration;
         var currentRootNamespace = project.RootNamespace;
@@ -460,12 +462,15 @@ internal class RazorProjectService(
         }
 
         var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
-        _projectManager.Update(
-            static (updater, hostProject) => updater.ProjectConfigurationChanged(hostProject),
-            state: hostProject);
+        await _projectManager
+            .UpdateAsync(
+                static (updater, hostProject) => updater.ProjectConfigurationChanged(hostProject),
+                state: hostProject,
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
-    private void UpdateProjectDocuments(ImmutableArray<DocumentSnapshotHandle> documents, ProjectKey projectKey)
+    private async Task UpdateProjectDocumentsAsync(ImmutableArray<DocumentSnapshotHandle> documents, ProjectKey projectKey, CancellationToken cancellationToken)
     {
         _logger.LogDebug("UpdateProjectDocuments for {projectKey} with {documentCount} documents.", projectKey, documents.Length);
 
@@ -486,7 +491,7 @@ internal class RazorProjectService(
 
             _logger.LogDebug("Document '{documentFilePath}' no longer exists in project '{projectKey}'. Moving to miscellaneous project.", documentFilePath, projectKey);
 
-            MoveDocument(documentFilePath, project, miscellaneousProject);
+            await MoveDocumentAsync(documentFilePath, project, miscellaneousProject, cancellationToken).ConfigureAwait(false);
         }
 
         project = _projectManager.GetLoadedProject(projectKey);
@@ -521,13 +526,16 @@ internal class RazorProjectService(
 
             var remoteTextLoader = _remoteTextLoaderFactory.Create(newFilePath);
 
-            _projectManager.Update(
-                static (updater, state) =>
-                {
-                    updater.DocumentRemoved(state.currentProjectKey, state.currentHostDocument);
-                    updater.DocumentAdded(state.currentProjectKey, state.newHostDocument, state.remoteTextLoader);
-                },
-                state: (currentProjectKey, currentHostDocument, newHostDocument, remoteTextLoader));
+            await _projectManager
+                .UpdateAsync(
+                    static (updater, state) =>
+                    {
+                        updater.DocumentRemoved(state.currentProjectKey, state.currentHostDocument);
+                        updater.DocumentAdded(state.currentProjectKey, state.newHostDocument, state.remoteTextLoader);
+                    },
+                    state: (currentProjectKey, currentHostDocument, newHostDocument, remoteTextLoader),
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
 
         project = _projectManager.GetLoadedProject(project.Key);
@@ -545,7 +553,7 @@ internal class RazorProjectService(
 
             if (miscellaneousProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance))
             {
-                MoveDocument(documentFilePath, miscellaneousProject, project);
+                await MoveDocumentAsync(documentFilePath, miscellaneousProject, project, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -555,38 +563,14 @@ internal class RazorProjectService(
 
                 _logger.LogInformation("Adding new document '{documentFilePath}' to project '{key}'.", documentFilePath, currentProjectKey);
 
-                _projectManager.Update(
-                    static (updater, state) => updater.DocumentAdded(state.currentProjectKey, state.newHostDocument, state.remoteTextLoader),
-                    state: (currentProjectKey, newHostDocument, remoteTextLoader));
+                await _projectManager
+                    .UpdateAsync(
+                        static (updater, state) => updater.DocumentAdded(state.currentProjectKey, state.newHostDocument, state.remoteTextLoader),
+                        state: (currentProjectKey, newHostDocument, remoteTextLoader),
+                        cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
-    }
-
-    private void MoveDocument(string documentFilePath, IProjectSnapshot fromProject, IProjectSnapshot toProject)
-    {
-        Debug.Assert(fromProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
-        Debug.Assert(!toProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
-
-        if (fromProject.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
-        {
-            return;
-        }
-
-        var currentHostDocument = documentSnapshot.State.HostDocument;
-
-        var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-        var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
-
-        _logger.LogInformation("Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.",
-            documentFilePath, fromProject.Key, toProject.Key);
-
-        _projectManager.Update(
-            static (updater, state) =>
-            {
-                updater.DocumentRemoved(state.fromProject.Key, state.currentHostDocument);
-                updater.DocumentAdded(state.toProject.Key, state.newHostDocument, state.textLoader);
-            },
-            state: (fromProject, currentHostDocument, toProject, newHostDocument, textLoader));
     }
 
     private Task MoveDocumentAsync(string documentFilePath, IProjectSnapshot fromProject, IProjectSnapshot toProject, CancellationToken cancellationToken)

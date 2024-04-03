@@ -38,11 +38,12 @@ internal interface IRazorProjectService
         string? displayName,
         CancellationToken cancellationToken);
 
-    void UpdateProject(
+    Task UpdateProjectAsync(
         ProjectKey projectKey,
         RazorConfiguration? configuration,
         string? rootNamespace,
         string displayName,
         ProjectWorkspaceState projectWorkspaceState,
-        ImmutableArray<DocumentSnapshotHandle> documents);
+        ImmutableArray<DocumentSnapshotHandle> documents,
+        CancellationToken cancellationToken);
 }

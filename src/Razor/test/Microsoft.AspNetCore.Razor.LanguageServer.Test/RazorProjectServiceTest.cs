@@ -68,14 +68,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var projectWorkspaceState = ProjectWorkspaceState.Create(LanguageVersion.LatestMajor);
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                hostProject.Key,
-                hostProject.Configuration,
-                hostProject.RootNamespace,
-                hostProject.DisplayName,
-                projectWorkspaceState,
-                documents: []));
+        await _projectService.UpdateProjectAsync(
+            hostProject.Key,
+            hostProject.Configuration,
+            hostProject.RootNamespace,
+            hostProject.DisplayName,
+            projectWorkspaceState,
+            documents: [],
+            DisposalToken);
 
         // Assert
         var project = _projectManager.GetLoadedProject(hostProject.Key);
@@ -98,14 +98,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var newDocument = new DocumentSnapshotHandle("file.cshtml", "file.cshtml", FileKinds.Component);
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                hostProject.Key,
-                hostProject.Configuration,
-                hostProject.RootNamespace,
-                hostProject.DisplayName,
-                ProjectWorkspaceState.Default,
-                [newDocument]));
+        await _projectService.UpdateProjectAsync(
+            hostProject.Key,
+            hostProject.Configuration,
+            hostProject.RootNamespace,
+            hostProject.DisplayName,
+            ProjectWorkspaceState.Default,
+            [newDocument],
+            DisposalToken);
 
         // Assert
         var project = _projectManager.GetLoadedProject(hostProject.Key);
@@ -131,14 +131,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                hostProject.Key,
-                hostProject.Configuration,
-                hostProject.RootNamespace,
-                hostProject.DisplayName,
-                ProjectWorkspaceState.Default,
-                [oldDocument, newDocument]));
+        await _projectService.UpdateProjectAsync(
+            hostProject.Key,
+            hostProject.Configuration,
+            hostProject.RootNamespace,
+            hostProject.DisplayName,
+            ProjectWorkspaceState.Default,
+            [oldDocument, newDocument],
+            DisposalToken);
 
         // Assert
         var project = _projectManager.GetLoadedProject(hostProject.Key);
@@ -166,14 +166,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var addedDocument = new DocumentSnapshotHandle(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                hostProject.Key,
-                hostProject.Configuration,
-                hostProject.RootNamespace,
-                hostProject.DisplayName,
-                ProjectWorkspaceState.Default,
-                [addedDocument]));
+        await _projectService.UpdateProjectAsync(
+            hostProject.Key,
+            hostProject.Configuration,
+            hostProject.RootNamespace,
+            hostProject.DisplayName,
+            ProjectWorkspaceState.Default,
+            [addedDocument],
+            DisposalToken);
 
         // Assert
         project = _projectManager.GetLoadedProject(hostProject.Key);
@@ -205,14 +205,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                hostProject.Key,
-                hostProject.Configuration,
-                hostProject.RootNamespace,
-                hostProject.DisplayName,
-                ProjectWorkspaceState.Default,
-                [newDocument]));
+        await _projectService.UpdateProjectAsync(
+            hostProject.Key,
+            hostProject.Configuration,
+            hostProject.RootNamespace,
+            hostProject.DisplayName,
+            ProjectWorkspaceState.Default,
+            [newDocument],
+            DisposalToken);
 
         // Assert
         project = _projectManager.GetLoadedProject(hostProject.Key);
@@ -247,14 +247,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                hostProject.Key,
-                hostProject.Configuration,
-                hostProject.RootNamespace,
-                hostProject.DisplayName,
-                ProjectWorkspaceState.Default,
-                [newDocument]));
+        await _projectService.UpdateProjectAsync(
+            hostProject.Key,
+            hostProject.Configuration,
+            hostProject.RootNamespace,
+            hostProject.DisplayName,
+            ProjectWorkspaceState.Default,
+            [newDocument],
+            DisposalToken);
 
         listener.AssertNoNotifications();
     }
@@ -275,14 +275,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var newDocument = new DocumentSnapshotHandle(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                hostProject.Key,
-                hostProject.Configuration,
-                hostProject.RootNamespace,
-                hostProject.DisplayName,
-                ProjectWorkspaceState.Default,
-                [newDocument]));
+        await _projectService.UpdateProjectAsync(
+            hostProject.Key,
+            hostProject.Configuration,
+            hostProject.RootNamespace,
+            hostProject.DisplayName,
+            ProjectWorkspaceState.Default,
+            [newDocument],
+            DisposalToken);
 
         // Assert
         var project = _projectManager.GetLoadedProject(hostProject.Key);
@@ -309,14 +309,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                ownerProject.Key,
-                ownerProject.Configuration,
-                NewRootNamespace,
-                ownerProject.DisplayName,
-                ProjectWorkspaceState.Default,
-                documents: []));
+        await _projectService.UpdateProjectAsync(
+            ownerProject.Key,
+            ownerProject.Configuration,
+            NewRootNamespace,
+            ownerProject.DisplayName,
+            ProjectWorkspaceState.Default,
+            documents: [],
+            DisposalToken);
 
         var notification = Assert.Single(listener);
         Assert.NotNull(notification.Older);
@@ -343,14 +343,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                ownerProject.Key,
-                ownerProject.Configuration,
-                ownerProject.RootNamespace,
-                displayName: "",
-                ProjectWorkspaceState.Default,
-                documents: []));
+        await _projectService.UpdateProjectAsync(
+            ownerProject.Key,
+            ownerProject.Configuration,
+            ownerProject.RootNamespace,
+            displayName: "",
+            ProjectWorkspaceState.Default,
+            documents: [],
+            DisposalToken);
 
         listener.AssertNoNotifications();
     }
@@ -373,14 +373,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                ownerProject.Key,
-                configuration: null,
-                "TestRootNamespace",
-                displayName: "",
-                ProjectWorkspaceState.Default,
-                documents: []));
+        await _projectService.UpdateProjectAsync(
+            ownerProject.Key,
+            configuration: null,
+            "TestRootNamespace",
+            displayName: "",
+            ProjectWorkspaceState.Default,
+            documents: [],
+            DisposalToken);
 
         // Assert
         var notification = Assert.Single(listener);
@@ -406,14 +406,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                ownerProject.Key,
-                FallbackRazorConfiguration.MVC_1_1,
-                "TestRootNamespace",
-                displayName: "",
-                ProjectWorkspaceState.Default,
-                documents: []));
+        await _projectService.UpdateProjectAsync(
+            ownerProject.Key,
+            FallbackRazorConfiguration.MVC_1_1,
+            "TestRootNamespace",
+            displayName: "",
+            ProjectWorkspaceState.Default,
+            documents: [],
+            DisposalToken);
 
         // Assert
         var notification = Assert.Single(listener);
@@ -428,14 +428,14 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
-        await RunOnDispatcherAsync(() =>
-            _projectService.UpdateProject(
-                TestProjectKey.Create("C:/path/to/obj"),
-                FallbackRazorConfiguration.MVC_1_1,
-                "TestRootNamespace",
-                displayName: "",
-                ProjectWorkspaceState.Default,
-                documents: []));
+        await _projectService.UpdateProjectAsync(
+            TestProjectKey.Create("C:/path/to/obj"),
+            FallbackRazorConfiguration.MVC_1_1,
+            "TestRootNamespace",
+            displayName: "",
+            ProjectWorkspaceState.Default,
+            documents: [],
+            DisposalToken);
 
         listener.AssertNoNotifications();
     }
