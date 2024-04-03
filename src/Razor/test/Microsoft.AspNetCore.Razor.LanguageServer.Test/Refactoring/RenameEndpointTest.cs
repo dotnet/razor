@@ -636,7 +636,6 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             });
 
         var projectService = new RazorProjectService(
-            Dispatcher,
             remoteTextLoaderFactoryMock.Object,
             snapshotResolver,
             documentVersionCache,

@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal class RazorProjectService(
-    ProjectSnapshotManagerDispatcher dispatcher,
     RemoteTextLoaderFactory remoteTextLoaderFactory,
     ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
@@ -32,7 +31,6 @@ internal class RazorProjectService(
     : IRazorProjectService
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory = remoteTextLoaderFactory;
     private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;

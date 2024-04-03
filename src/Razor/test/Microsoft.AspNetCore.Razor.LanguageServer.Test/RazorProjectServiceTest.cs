@@ -46,7 +46,6 @@ public class RazorProjectServiceTest : LanguageServerTestBase
             .Returns(CreateEmptyTextLoader());
 
         _projectService = new RazorProjectService(
-            Dispatcher,
             remoteTextLoaderFactoryMock.Object,
             _snapshotResolver,
             _documentVersionCache,

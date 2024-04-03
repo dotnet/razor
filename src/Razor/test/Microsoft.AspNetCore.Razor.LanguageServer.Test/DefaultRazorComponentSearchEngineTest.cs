@@ -63,7 +63,6 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
             });
 
         var projectService = new RazorProjectService(
-            Dispatcher,
             remoteTextLoaderFactoryMock.Object,
             snapshotResolver,
             documentVersionCache,
