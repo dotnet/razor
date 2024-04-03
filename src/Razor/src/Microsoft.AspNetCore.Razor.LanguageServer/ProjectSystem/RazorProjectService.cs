@@ -189,6 +189,43 @@ internal class RazorProjectService(
         });
     }
 
+    public async Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    {
+        var textDocumentPath = FilePathNormalizer.Normalize(filePath);
+
+        // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
+        // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
+        // we process them all too
+        if (!_snapshotResolver.TryResolveDocumentInAnyProject(textDocumentPath, out _))
+        {
+            // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
+            // processes and pre-initializes already open documents.
+            await AddDocumentAsync(filePath, cancellationToken).ConfigureAwait(false);
+        }
+
+        await ActOnDocumentInMultipleProjectsAsync(
+                filePath,
+                async (projectSnapshot, textDocumentPath, cancellationToken) =>
+                {
+                    _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
+
+                    await _projectManager
+                        .UpdateAsync(
+                            static (updater, state) => updater.DocumentOpened(state.key, state.textDocumentPath, state.sourceText),
+                            state: (key: projectSnapshot.Key, textDocumentPath, sourceText),
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                },
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
+        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
+        {
+            TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: true);
+        });
+    }
+
     public void CloseDocument(string filePath)
     {
         _dispatcher.AssertRunningOnDispatcher();

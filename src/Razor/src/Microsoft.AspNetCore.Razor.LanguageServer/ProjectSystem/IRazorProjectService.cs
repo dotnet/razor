@@ -17,6 +17,7 @@ internal interface IRazorProjectService
     void AddDocument(string filePath);
     Task AddDocumentAsync(string filePath, CancellationToken cancellationToken);
     void OpenDocument(string filePath, SourceText sourceText, int version);
+    Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken);
     void UpdateDocument(string filePath, SourceText sourceText, int version);
     void CloseDocument(string filePath);
     Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken);
