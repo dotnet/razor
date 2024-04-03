@@ -51,12 +51,11 @@ internal class ProjectConfigurationStateManager
 
     internal int EnqueueDelay { get; set; } = 250;
 
-    public async Task ProjectInfoUpdatedAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
+    public Task ProjectInfoUpdatedAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
     {
-        await _projectSnapshotManagerDispatcher.RunAsync(
+        return _projectSnapshotManagerDispatcher.RunAsync(
             () => ProjectInfoUpdatedImpl(projectKey, projectInfo),
-            cancellationToken
-        ).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private void ProjectInfoUpdatedImpl(ProjectKey projectKey, RazorProjectInfo? projectInfo)
