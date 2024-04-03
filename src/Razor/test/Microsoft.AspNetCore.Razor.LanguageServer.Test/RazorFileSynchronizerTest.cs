@@ -20,8 +20,11 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
     {
         // Arrange
         var filePath = "/path/to/file.razor";
-        var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.AddDocument(filePath)).Verifiable();
+        var projectService = new StrictMock<IRazorProjectService>();
+        projectService
+            .Setup(service => service.AddDocumentAsync(filePath, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable();
         var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
 
         // Act
@@ -37,8 +40,11 @@ public class RazorFileSynchronizerTest(ITestOutputHelper testOutput) : LanguageS
     {
         // Arrange
         var filePath = "/path/to/file.cshtml";
-        var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.AddDocument(filePath)).Verifiable();
+        var projectService = new StrictMock<IRazorProjectService>();
+        projectService
+            .Setup(service => service.AddDocumentAsync(filePath, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable();
         var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
 
         // Act

@@ -45,7 +45,7 @@ internal class RazorFileSynchronizer : IRazorFileChangeListener
         switch (kind)
         {
             case RazorFileChangeKind.Added:
-                _projectService.AddDocument(filePath);
+                _projectService.AddDocumentAsync(filePath, CancellationToken.None).Forget();
                 break;
             case RazorFileChangeKind.Removed:
                 _projectService.RemoveDocumentAsync(filePath, CancellationToken.None).Forget();
