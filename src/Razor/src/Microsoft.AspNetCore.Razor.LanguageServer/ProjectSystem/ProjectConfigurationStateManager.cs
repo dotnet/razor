@@ -73,6 +73,14 @@ internal partial class ProjectConfigurationStateManager : IDisposable
 
     internal TimeSpan EnqueueDelay { get; set; } = TimeSpan.FromMilliseconds(250);
 
+            UpdateProject(workItem.ProjectKey, workItem.ProjectInfo);
+        }
+
+        return default;
+    }
+
+    internal TimeSpan EnqueueDelay { get; set; } = TimeSpan.FromMilliseconds(250);
+
     public Task ProjectInfoUpdatedAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
     {
         return _projectSnapshotManagerDispatcher.RunAsync(
@@ -120,7 +128,6 @@ internal partial class ProjectConfigurationStateManager : IDisposable
     private void AddProject(string intermediateOutputPath, RazorProjectInfo projectInfo)
     {
         var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
-        var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
         var rootNamespace = projectInfo.RootNamespace;
 
         var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
@@ -148,14 +155,6 @@ internal partial class ProjectConfigurationStateManager : IDisposable
             projectInfo.DisplayName,
             projectWorkspaceState,
             documents);
-    }
-
-    private async Task UpdateAfterDelayAsync(ProjectKey projectKey)
-    {
-        await Task.Delay(EnqueueDelay).ConfigureAwait(true);
-
-        var delayedProjectInfo = ProjectInfoMap[projectKey];
-        UpdateProject(projectKey, delayedProjectInfo.ProjectInfo);
     }
 
     private void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
