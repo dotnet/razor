@@ -66,7 +66,6 @@
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor" Version="$(MicrosoftNETSdkRazorPackageVersion)" />
-    <PackageVersion Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Transport" Version="7.0.0-preview.5.22528.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="0.2.28-beta" />
     <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="17.9.132-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
