@@ -3,7 +3,9 @@
 
 #nullable disable
 
+using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -28,6 +30,19 @@ public class ComponentDeclarationRazorIntegrationTest : RazorIntegrationTestBase
     internal override string FileKind => FileKinds.Component;
 
     internal override bool DeclarationOnly => true;
+
+    protected static new void AssertSourceEquals(string expected, CompileToCSharpResult generated)
+    {
+        // Normalize the paths inside the expected result to match the OS paths
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var windowsPath = Path.Combine(ArbitraryWindowsPath, generated.CodeDocument.Source.RelativePath).Replace('/', '\\');
+            expected = expected.Replace(windowsPath, generated.CodeDocument.Source.FilePath);
+        }
+
+        expected = expected.Trim();
+        Assert.Equal(expected, generated.Code.Trim(), ignoreLineEndingDifferences: true);
+    }
 
     [Fact]
     public void DeclarationConfiguration_IncludesFunctions()
