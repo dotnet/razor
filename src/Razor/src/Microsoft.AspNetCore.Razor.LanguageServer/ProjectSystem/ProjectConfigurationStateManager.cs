@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -23,17 +25,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 /// Used to figure out if the project system data is being added, updated or deleted
 /// and acts accordingly to update project system service.
 /// </remarks>
-internal class ProjectConfigurationStateManager
+internal partial class ProjectConfigurationStateManager : IDisposable
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IRazorProjectService _projectService;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ILogger _logger;
 
-    /// <summary>
-    /// Used to throttle project system updates
-    /// </summary>
-    internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
+    private readonly AsyncBatchingWorkQueue<(ProjectKey ProjectKey, RazorProjectInfo? ProjectInfo)> _workQueue;
+    private readonly CancellationTokenSource _disposalTokenSource;
 
     public ProjectConfigurationStateManager(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -46,10 +46,29 @@ internal class ProjectConfigurationStateManager
         _projectManager = projectManager;
         _logger = loggerFactory.CreateLogger<ProjectConfigurationStateManager>();
 
-        ProjectInfoMap = new Dictionary<ProjectKey, DelayedProjectInfo>();
+        _disposalTokenSource = new ();
+        _workQueue = new(
+            EnqueueDelay,
+            ProcessBatchAsync,
+            _disposalTokenSource.Token);
     }
 
-    internal int EnqueueDelay { get; set; } = 250;
+    private ValueTask ProcessBatchAsync(ImmutableArray<(ProjectKey ProjectKey, RazorProjectInfo? ProjectInfo)> workItems, CancellationToken cancellationToken)
+    {
+        foreach (var workItem in workItems.GetMostRecentUniqueItems(Comparer.Instance))
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return default;
+            }
+
+            UpdateProject(workItem.ProjectKey, workItem.ProjectInfo);
+        }
+
+        return default;
+    }
+
+    internal TimeSpan EnqueueDelay { get; set; } = TimeSpan.FromMilliseconds(250);
 
     public Task ProjectInfoUpdatedAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
     {
@@ -81,10 +100,12 @@ internal class ProjectConfigurationStateManager
 
         if (!knownProject)
         {
-            var configurationFilePath = FilePathNormalizer.Normalize(projectInfo.SerializedFilePath);
+            // For the new code path using endpoint, SerializedFilePath is IntermediateOutputPath.
+            // We will rename it when we remove the old code path that actually uses serialized bin file.
+            var intermediateOutputPath = FilePathNormalizer.Normalize(projectInfo.SerializedFilePath);
             _logger.LogInformation("Found no existing project key for project key '{0}'. Assuming new project.", projectKey.Id);
 
-            AddProject(configurationFilePath, projectInfo);
+            AddProject(intermediateOutputPath, projectInfo);
             return;
         }
 
@@ -93,15 +114,14 @@ internal class ProjectConfigurationStateManager
         EnqueueUpdateProject(projectKey, projectInfo);
     }
 
-    private void AddProject(string configurationFilePath, RazorProjectInfo projectInfo)
+    private void AddProject(string intermediateOutputPath, RazorProjectInfo projectInfo)
     {
         var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
-        var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
         var rootNamespace = projectInfo.RootNamespace;
 
         var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
 
-        _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
+        _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, intermediateOutputPath);
         EnqueueUpdateProject(projectKey, projectInfo);
     }
 
@@ -126,28 +146,9 @@ internal class ProjectConfigurationStateManager
             documents);
     }
 
-    private async Task UpdateAfterDelayAsync(ProjectKey projectKey)
-    {
-        await Task.Delay(EnqueueDelay).ConfigureAwait(true);
-
-        var delayedProjectInfo = ProjectInfoMap[projectKey];
-        UpdateProject(projectKey, delayedProjectInfo.ProjectInfo);
-    }
-
     private void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
     {
-        if (!ProjectInfoMap.ContainsKey(projectKey))
-        {
-            ProjectInfoMap[projectKey] = new DelayedProjectInfo();
-        }
-
-        var delayedProjectInfo = ProjectInfoMap[projectKey];
-        delayedProjectInfo.ProjectInfo = projectInfo;
-
-        if (delayedProjectInfo.ProjectUpdateTask is null || delayedProjectInfo.ProjectUpdateTask.IsCompleted)
-        {
-            delayedProjectInfo.ProjectUpdateTask = UpdateAfterDelayAsync(projectKey);
-        }
+        _workQueue.AddWork((projectKey, projectInfo));
     }
 
     private void ResetProject(ProjectKey projectKey)
@@ -161,10 +162,9 @@ internal class ProjectConfigurationStateManager
             ImmutableArray<DocumentSnapshotHandle>.Empty);
     }
 
-    internal class DelayedProjectInfo
+    public void Dispose()
     {
-        public Task? ProjectUpdateTask { get; set; }
-
-        public RazorProjectInfo? ProjectInfo { get; set; }
+        _disposalTokenSource.Cancel();
+        _disposalTokenSource.Dispose();
     }
 }
