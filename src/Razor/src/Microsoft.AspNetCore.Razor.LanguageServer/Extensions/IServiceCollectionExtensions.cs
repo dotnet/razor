@@ -212,7 +212,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
 
-        if (featureOptions.DoNotUseProjectConfigurationFile)
+        if (featureOptions.UseProjectConfigurationEndpoint)
         {
             services.AddSingleton<ProjectConfigurationStateManager>();
         }
