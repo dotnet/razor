@@ -61,5 +61,5 @@ internal abstract class LanguageServerFeatureOptions
     /// <summary>
     /// When enabled, project information will be sent to the server using endpoint instead of file.
     /// </summary>
-    public abstract bool DoNotUseProjectConfigurationFile { get; }
+    public abstract bool UseProjectConfigurationEndpoint { get; }
 }

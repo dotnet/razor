@@ -81,8 +81,8 @@
 "Title"="Force use of runtime code generation for Razor (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
 
-[$RootKey$\FeatureFlags\Razor\LSP\DoNotUseProjectConfigurationFile]
+[$RootKey$\FeatureFlags\Razor\LSP\UseProjectConfigurationEndpoint]
 "Description"="Use endpoint instead of file to send project information"
 "Value"=dword:00000000
-"Title"="Do not use project configuration file for Razor (requires restart)"
+"Title"="Use project configuration LSP endpoint instead of a binary file for Razor (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"

@@ -177,7 +177,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
 
             // Project system info handler
-            if (featureOptions.DoNotUseProjectConfigurationFile)
+            if (featureOptions.UseProjectConfigurationEndpoint)
             {
                 services.AddHandler<ProjectInfoEndpoint>();
             }

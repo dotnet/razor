@@ -214,7 +214,7 @@ internal class RazorLanguageServerClient(
 
     private async Task ProjectConfigurationFilePathStore_ChangedAsync(ProjectConfigurationFilePathChangedEventArgs args, CancellationToken cancellationToken)
     {
-        if (_languageServerFeatureOptions.DisableRazorLanguageServer || _languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
+        if (_languageServerFeatureOptions.DisableRazorLanguageServer || _languageServerFeatureOptions.UseProjectConfigurationEndpoint)
         {
             return;
         }
@@ -283,7 +283,7 @@ internal class RazorLanguageServerClient(
 
     private void ServerStarted()
     {
-        if (_languageServerFeatureOptions.DoNotUseProjectConfigurationFile)
+        if (_languageServerFeatureOptions.UseProjectConfigurationEndpoint)
         {
             _projectInfoEndpointPublisher.StartSending();
         }

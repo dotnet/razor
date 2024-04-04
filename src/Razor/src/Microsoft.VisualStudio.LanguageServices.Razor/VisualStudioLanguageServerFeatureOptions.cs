@@ -18,7 +18,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private const string UseRazorCohostServerFeatureFlag = "Razor.LSP.UseRazorCohostServer";
     private const string DisableRazorLanguageServerFeatureFlag = "Razor.LSP.DisableRazorLanguageServer";
     private const string ForceRuntimeCodeGenerationFeatureFlag = "Razor.LSP.ForceRuntimeCodeGeneration";
-    private const string DoNotUseProjectConfigurationFileFeatureFlag = "Razor.LSP.DoNotUseProjectConfigurationFile";
+    private const string UseProjectConfigurationEndpointFeatureFlag = "Razor.LSP.UseProjectConfigurationEndpoint";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
@@ -27,7 +27,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _useRazorCohostServer;
     private readonly Lazy<bool> _disableRazorLanguageServer;
     private readonly Lazy<bool> _forceRuntimeCodeGeneration;
-    private readonly Lazy<bool> _doNotUseProjectConfigurationFile;
+    private readonly Lazy<bool> _useProjectConfigurationEndpoint;
 
     [ImportingConstructor]
     public VisualStudioLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -81,11 +81,11 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
             return forceRuntimeCodeGeneration;
         });
 
-        _doNotUseProjectConfigurationFile = new Lazy<bool>(() =>
+        _useProjectConfigurationEndpoint = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var doNotUseProjectConfigurationFile = featureFlags.IsFeatureEnabled(DoNotUseProjectConfigurationFileFeatureFlag, defaultValue: false);
-            return doNotUseProjectConfigurationFile;
+            var useProjectConfigurationEndpoint = featureFlags.IsFeatureEnabled(UseProjectConfigurationEndpointFeatureFlag, defaultValue: false);
+            return useProjectConfigurationEndpoint;
         });
     }
 
@@ -127,5 +127,5 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration.Value;
 
     /// <inheritdoc />
-    public override bool DoNotUseProjectConfigurationFile => _doNotUseProjectConfigurationFile.Value;
+    public override bool UseProjectConfigurationEndpoint => _useProjectConfigurationEndpoint.Value;
 }

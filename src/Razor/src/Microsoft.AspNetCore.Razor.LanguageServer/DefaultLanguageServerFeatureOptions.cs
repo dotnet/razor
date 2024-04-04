@@ -46,5 +46,5 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool ForceRuntimeCodeGeneration => false;
 
-    public override bool DoNotUseProjectConfigurationFile => false;
+    public override bool UseProjectConfigurationEndpoint => false;
 }

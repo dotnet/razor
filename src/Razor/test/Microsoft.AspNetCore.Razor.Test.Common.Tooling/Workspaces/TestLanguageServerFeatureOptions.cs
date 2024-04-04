@@ -44,5 +44,5 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool ForceRuntimeCodeGeneration => forceRuntimeCodeGeneration;
 
-    public override bool DoNotUseProjectConfigurationFile => false;
+    public override bool UseProjectConfigurationEndpoint => false;
 }
