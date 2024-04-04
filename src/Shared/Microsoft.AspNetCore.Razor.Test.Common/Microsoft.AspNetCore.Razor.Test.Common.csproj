@@ -16,6 +16,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Utilities" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="DiffPlex" />
+    <PackageReference Include="xunit.assert" VersionOverride="$(XUnitVersion)" />
+    <PackageReference Include="xunit.analyzers" VersionOverride="$(XUnitAnalyzersVersion)" />
     <PackageReference Include="xunit.extensibility.execution" />
   </ItemGroup>
 
