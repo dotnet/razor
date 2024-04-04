@@ -59,8 +59,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(_MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(_MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(_MicrosoftExtensionsPackageVersion)" />
-    <!-- !!!! THIS IS WEIRD CHECK THIS. should be the same as other ms.extensions -->
-    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="6.0.0-preview.7.21377.19" />
+    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(_MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.NonCapturingTimer.Sources" Version="5.0.0-preview.4.20205.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(_MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="$(MicrosoftExtensionsObjectPoolPackageVersion)" />
@@ -116,9 +115,7 @@
     <PackageVersion Include="System.Resources.Extensions" Version="6.0.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
-
-    <!-- !!!! THIS IS WEIRD CHECK THIS whhy isn't this flowing like SCI -->
-    <PackageVersion Include="System.Reflection.Metadata" Version="5.0.0" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataPackageVersion)" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="6.0.0" />
     <PackageVersion Include="System.Text.Json" Version="6.0.0" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
