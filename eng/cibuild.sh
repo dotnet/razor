@@ -13,6 +13,7 @@ while [[ -h $source ]]; do
 done
 scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 
+env | sort
 echo before nuget-workaround
 echo NUGET_PACKAGES=$NUGET_PACKAGES
 echo NuGetPackageRoot=$NuGetPackageRoot
