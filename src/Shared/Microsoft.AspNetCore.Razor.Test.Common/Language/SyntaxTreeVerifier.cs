@@ -40,7 +40,7 @@ internal class SyntaxTreeVerifier
 
         if (tokens.Count == 0)
         {
-            Assert.Fail("No tokens found in the syntax tree. There should at least be an EOF token.");
+            Assert.False(true, "No tokens found in the syntax tree. There should at least be an EOF token.");
         }
 
         var root = syntaxTree.Root;
@@ -104,7 +104,7 @@ internal class SyntaxTreeVerifier
                 return;
             }
 
-            Assert.Fail("Did not find the non-zero width token in the list of tokens.");
+            Assert.False(true, "Did not find the non-zero width token in the list of tokens.");
         }
     }
 
