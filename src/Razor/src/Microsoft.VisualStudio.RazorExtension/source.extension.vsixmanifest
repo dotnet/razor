@@ -49,8 +49,6 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.Editor.Razor.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly"  Path="Microsoft.VisualStudio.LegacyEditor.Razor.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LegacyEditor.Razor.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly"  Path="Microsoft.VisualStudio.LanguageServerClient.Razor.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LanguageServerClient.Razor.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly"  Path="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Razor.ProjectEngineHost.dll" />
