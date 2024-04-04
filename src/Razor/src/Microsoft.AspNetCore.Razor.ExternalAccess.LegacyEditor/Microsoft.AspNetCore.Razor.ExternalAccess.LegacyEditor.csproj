@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup>
