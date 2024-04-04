@@ -128,29 +128,47 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         Assert.Equal<TagHelperDescriptor>(originalTagHelpers, actualTagHelpers);
     }
 
-
     /// <summary>
-    /// Verifies that a previous generated file is able to be serialized. If this
-    /// fails make sure to do ONE of the following:
-    ///
-    /// 1. Update the deserializer to be lenient on the previous version
-    /// 2. Bump the Microsoft.AspNetCore.Razor.Serialization.MessagePack.SerializationFormat.Version
-    ///     a. Generate a new file to replace project.razor.bin with the new format. As of writing this was made from the base blazorserver template
-    ///     b. This will require a dual insertion with Roslyn do use the correct version number
+    /// When set to <c>true</c>, the test will generate a message pack baseline file to use for future testing.
+    /// This should only be used when Microsoft.AspNetCore.Razor.Serialization.MessagePack.SerializationFormat.Version has
+    /// changed and the baseline needs to be updated.
     /// </summary>
-    [Theory]
-    [InlineData("project.razor.bin")]
-    public void VerifyMessagePack_DeserializeMessagepack(string resourceName)
+    const bool GenerateBaseline = false;
+
+    [Fact]
+    public void ValidateGenerateBaselineIsFalse()
+    {
+        Assert.False(GenerateBaseline);
+    }
+
+    [Fact]
+    public void VerifyMessagePack_DeserializeMessagepack()
     {
         // Arrange
-        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
+        var resourceName = "test.project.razor.bin";
         var options = MessagePackSerializerOptions.Standard
             .WithResolver(CompositeResolver.Create(
                 RazorProjectInfoResolver.Instance,
                 StandardResolver.Instance));
 
+        var directory = TestProject.GetProjectDirectory(typeof(SerializerValidationTest), layer: TestProject.Layer.Tooling, useCurrentDirectory: true);
+        var path = Path.Combine(directory, resourceName);
+
+        if (GenerateBaseline)
+        {
+#pragma warning disable CS0162 // Unreachable code detected
+            var projectBytes = RazorTestResources.GetResourceBytes("project.razor.json", "Benchmarking");
+            var projectInfo = DeserializeProjectInfoFromJsonBytes(projectBytes);
+
+            File.WriteAllBytes(path, MessagePackConvert.Serialize(projectInfo, options).ToArray());
+            return;
+#pragma warning restore CS0162 // Unreachable code detected
+        }
+
+        var testBytes = File.ReadAllBytes(path);
+
         // Act
-        var actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(resourceBytes, options);
+        var actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(testBytes, options);
 
         // Assert
         Assert.NotNull(actualProjectInfo);
