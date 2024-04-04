@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [Export(typeof(VirtualDocumentFactory))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]

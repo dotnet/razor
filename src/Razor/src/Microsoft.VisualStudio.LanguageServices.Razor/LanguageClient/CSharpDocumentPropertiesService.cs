@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 // Our IRazorDocumentPropertiesService services are our way to tell Roslyn to show C# diagnostics for files that are associated with the `DiagnosticsLspClientName`.
 // Otherwise Roslyn would treat these documents as closed and would not provide any of their diagnostics.

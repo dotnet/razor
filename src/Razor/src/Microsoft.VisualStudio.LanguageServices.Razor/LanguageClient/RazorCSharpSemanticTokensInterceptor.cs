@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [Export(typeof(MessageInterceptor))]
 [InterceptMethod(Methods.WorkspaceSemanticTokensRefreshName)]

@@ -7,14 +7,14 @@ using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
+using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 public class CSharpVirtualDocumentPublisherTest : ToolingTestBase
 {

@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 using StreamJsonRpc;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
 
 internal partial class RazorCustomMessageTarget
 {

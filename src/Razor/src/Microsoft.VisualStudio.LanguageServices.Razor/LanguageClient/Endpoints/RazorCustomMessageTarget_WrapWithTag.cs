@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
+using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
 using StreamJsonRpc;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
 
 internal partial class RazorCustomMessageTarget
 {

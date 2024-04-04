@@ -11,14 +11,13 @@ using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 
 public class DefaultLSPDocumentMappingProviderTest : ToolingTestBase
 {

@@ -11,12 +11,12 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
+using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [Export(typeof(LSPDocumentChangeListener))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
@@ -92,7 +92,7 @@ internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
         }
 
         public IRazorDocumentExcerptServiceImplementation GetExcerptService()
-            => _excerptService ??InterlockedOperations.Initialize(ref _excerptService,
+            => _excerptService ?? InterlockedOperations.Initialize(ref _excerptService,
                 new CSharpDocumentExcerptService(GetMappingService(), _documentSnapshot));
 
         public IRazorSpanMappingService GetMappingService()

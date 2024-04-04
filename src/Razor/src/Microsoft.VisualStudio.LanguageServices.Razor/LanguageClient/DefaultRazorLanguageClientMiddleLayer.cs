@@ -5,9 +5,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [Export(typeof(RazorLanguageClientMiddleLayer))]
 internal class DefaultRazorLanguageClientMiddleLayer : RazorLanguageClientMiddleLayer

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 internal class TestDocumentManager(CSharpTestLspServer testLspServer = null) : TrackingLSPDocumentManager
 {

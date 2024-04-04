@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 [Export(typeof(IRazorCohostLanguageClientActivationService))]
 [method: ImportingConstructor]

@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Options;
 
 [Export(typeof(OptionsStorage))]
 [Export(typeof(IAdvancedSettingsStorage))]

@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 
 internal abstract class LSPDocumentMappingProvider
 {

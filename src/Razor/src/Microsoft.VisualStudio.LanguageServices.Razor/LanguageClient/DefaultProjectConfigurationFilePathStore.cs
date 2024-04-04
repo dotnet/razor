@@ -9,7 +9,7 @@ using System.IO;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [Export(typeof(ProjectConfigurationFilePathStore))]
 internal class DefaultProjectConfigurationFilePathStore : ProjectConfigurationFilePathStore

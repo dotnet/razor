@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 internal class CSharpVirtualDocument(ProjectKey projectKey, Uri uri, ITextBuffer textBuffer, ITelemetryReporter telemetryReporter)
     : GeneratedVirtualDocument<CSharpVirtualDocumentSnapshot>(uri, textBuffer, telemetryReporter)

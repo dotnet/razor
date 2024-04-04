@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
+using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 internal class TestRazorLSPSpanMappingService : IRazorSpanMappingService
 {

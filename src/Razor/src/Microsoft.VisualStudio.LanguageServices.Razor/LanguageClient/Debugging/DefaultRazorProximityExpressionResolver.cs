@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
 [Export(typeof(RazorProximityExpressionResolver))]
 internal class DefaultRazorProximityExpressionResolver : RazorProximityExpressionResolver

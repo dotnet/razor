@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal sealed class RazorCohostClientConnection(IRazorCohostClientLanguageServerManager clientNotifier) : IClientConnection
 {
     private readonly IRazorCohostClientLanguageServerManager _clientNotifier = clientNotifier;
 
     public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
-        => _clientNotifier.SendNotificationAsync<TParams>(method, @params, cancellationToken).AsTask();
+        => _clientNotifier.SendNotificationAsync(method, @params, cancellationToken).AsTask();
 
     public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
         => _clientNotifier.SendNotificationAsync(method, cancellationToken).AsTask();

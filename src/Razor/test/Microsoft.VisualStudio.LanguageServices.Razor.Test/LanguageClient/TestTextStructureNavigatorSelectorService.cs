@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 internal class TestTextStructureNavigatorSelectorService : ITextStructureNavigatorSelectorService
 {

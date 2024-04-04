@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 #pragma warning disable CS0618 // Type or member is obsolete. Temporary until we remove ILanguageClientMiddleLayer
 internal abstract class RazorLanguageClientMiddleLayer : ILanguageClientMiddleLayer

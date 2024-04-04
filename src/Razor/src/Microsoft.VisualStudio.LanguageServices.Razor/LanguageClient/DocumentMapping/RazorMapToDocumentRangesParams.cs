@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 
 // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
 [DataContract]

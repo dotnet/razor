@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 
 [Export(typeof(LSPDocumentMappingProvider))]
 internal class DefaultLSPDocumentMappingProvider : LSPDocumentMappingProvider

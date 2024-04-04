@@ -17,7 +17,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {

@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 internal class TestRazorLogger : RazorLogger
 {

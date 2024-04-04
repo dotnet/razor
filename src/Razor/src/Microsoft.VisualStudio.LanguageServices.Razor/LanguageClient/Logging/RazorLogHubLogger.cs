@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Logging;
 
 internal sealed class RazorLogHubLogger : ILogger
 {

@@ -12,13 +12,13 @@ using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
-using Microsoft.VisualStudio.LanguageServerClient.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Razor.LanguageClient;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 

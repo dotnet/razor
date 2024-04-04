@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 
 internal static class TextChangeExtensions
 {

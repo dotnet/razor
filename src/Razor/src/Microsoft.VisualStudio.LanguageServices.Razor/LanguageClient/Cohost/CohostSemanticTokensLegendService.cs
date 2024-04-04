@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 [Export(typeof(ISemanticTokensLegendService))]
 [method: ImportingConstructor]

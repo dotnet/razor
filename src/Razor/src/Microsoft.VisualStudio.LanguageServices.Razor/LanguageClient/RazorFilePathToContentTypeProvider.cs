@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [FileExtension(RazorLSPConstants.RazorFileExtension)]
 [Name(nameof(RazorFilePathToContentTypeProvider))]

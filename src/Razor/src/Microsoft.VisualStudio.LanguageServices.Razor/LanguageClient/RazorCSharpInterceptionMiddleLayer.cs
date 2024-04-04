@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [Export(typeof(IRazorCSharpInterceptionMiddleLayer))]
 internal class RazorCSharpInterceptionMiddleLayer : IRazorCSharpInterceptionMiddleLayer

@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {

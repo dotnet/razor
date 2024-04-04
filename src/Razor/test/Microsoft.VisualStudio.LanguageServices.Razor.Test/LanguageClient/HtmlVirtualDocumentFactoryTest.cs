@@ -14,7 +14,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 public class HtmlVirtualDocumentFactoryTest : ToolingTestBase
 {

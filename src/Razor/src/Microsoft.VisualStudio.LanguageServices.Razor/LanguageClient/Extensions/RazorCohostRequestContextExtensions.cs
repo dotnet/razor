@@ -5,10 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using StreamJsonRpc;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 
 internal static class RazorCohostRequestContextExtensions
 {

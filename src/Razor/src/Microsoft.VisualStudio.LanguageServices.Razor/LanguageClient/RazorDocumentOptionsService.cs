@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.Editor.Razor.Settings;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 [Export(typeof(IRazorDocumentOptionsService))]
 internal sealed class RazorDocumentOptionsService : IRazorDocumentOptionsService

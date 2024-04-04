@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor.DynamicFiles.Test;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.DynamicFiles;
 
 public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {

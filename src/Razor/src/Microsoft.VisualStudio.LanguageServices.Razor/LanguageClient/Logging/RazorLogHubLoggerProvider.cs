@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Logging;
 
 [Export(typeof(ILoggerProvider))]
 internal sealed class RazorLogHubLoggerProvider : ILoggerProvider

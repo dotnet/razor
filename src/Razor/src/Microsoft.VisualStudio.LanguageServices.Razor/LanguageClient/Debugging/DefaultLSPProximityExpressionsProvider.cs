@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
 [Export(typeof(LSPProximityExpressionsProvider))]
 internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsProvider

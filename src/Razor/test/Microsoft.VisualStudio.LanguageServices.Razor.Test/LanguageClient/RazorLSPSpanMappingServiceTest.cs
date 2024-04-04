@@ -14,13 +14,13 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
+using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping.RazorMapToDocumentRangesResponse;
+using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping.RazorMapToDocumentRangesResponse;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 public class RazorLSPSpanMappingServiceTest : ToolingTestBase
 {

@@ -5,7 +5,7 @@ using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 
 internal static class TextDocumentExtensions
 {

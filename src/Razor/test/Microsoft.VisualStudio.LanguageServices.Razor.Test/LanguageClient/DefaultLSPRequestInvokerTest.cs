@@ -3,8 +3,8 @@
 
 #nullable disable
 
-using System.Threading;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 public class DefaultLSPRequestInvokerTest : ToolingTestBase
 {

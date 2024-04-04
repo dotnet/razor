@@ -5,7 +5,7 @@ using System;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 internal class HtmlVirtualDocumentSnapshot : VirtualDocumentSnapshot
 {

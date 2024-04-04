@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 [Export(typeof(IRazorCohostCapabilitiesProvider))]
 [Export(typeof(IClientCapabilitiesService))]

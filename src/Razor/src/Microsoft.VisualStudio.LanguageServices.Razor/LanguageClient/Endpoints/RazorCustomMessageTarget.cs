@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using static Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPDocumentSynchronizer;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
 
 [Export(typeof(IRazorCustomMessageTarget))]
 [Export(typeof(RazorCustomMessageTarget))]
