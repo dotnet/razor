@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Razor;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 internal class TestProjectWorkspaceStateGenerator : IProjectWorkspaceStateGenerator
 {

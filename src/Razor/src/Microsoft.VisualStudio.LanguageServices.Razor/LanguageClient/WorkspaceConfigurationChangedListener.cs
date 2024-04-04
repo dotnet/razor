@@ -5,9 +5,9 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Razor.Settings;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient;

@@ -138,7 +138,7 @@
     <MicrosoftVisualStudioThreadingPackageVersion>17.10.12-preview</MicrosoftVisualStudioThreadingPackageVersion>
     <MicrosoftVisualStudioWebPackageVersion>16.10.0-preview-1-31008-014</MicrosoftVisualStudioWebPackageVersion>
     <MicrosoftVisualStudioValidationPackageVersion>17.8.8</MicrosoftVisualStudioValidationPackageVersion>
-    <MicrosoftVisualStudioComponentModelHostPackageVersion>17.9.132-preview</MicrosoftVisualStudioComponentModelHostPackageVersion>
+    <MicrosoftVisualStudioComponentModelHostPackageVersion>17.10.9-preview</MicrosoftVisualStudioComponentModelHostPackageVersion>
     <MicrosoftWebToolsLanguagesHtmlPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesHtmlPackageVersion>
     <MicrosoftWebToolsLanguagesLanguageServerServerPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesLanguageServerServerPackageVersion>
     <MicrosoftWebToolsLanguagesSharedPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesSharedPackageVersion>

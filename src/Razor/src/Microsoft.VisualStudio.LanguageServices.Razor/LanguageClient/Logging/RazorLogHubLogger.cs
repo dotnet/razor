@@ -5,7 +5,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.VisualStudio.Editor.Razor.Logging;
+using Microsoft.VisualStudio.Razor.Logging;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Logging;
 
