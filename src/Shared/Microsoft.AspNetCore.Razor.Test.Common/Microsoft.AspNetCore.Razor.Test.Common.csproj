@@ -16,7 +16,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Utilities" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="DiffPlex" />
-    <PackageReference Include="xunit.assert" PrivateAssets="all" />
     <PackageReference Include="xunit.extensibility.execution" />
   </ItemGroup>
 

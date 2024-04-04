@@ -9,15 +9,19 @@
     <PackageVersion Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="$(MicrosoftBuildUtilitiesCoreVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisAnalyzerTestingPackageVersion)" NoWarn="NU1608" />
     <!-- Temporarily force analyzers to match compiler version https://github.com/dotnet/razor-tooling/issues/6758 -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion)" NoWarn="NU1608" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer" Version="$(MicrosoftCodeAnalysisCSharpAnalyzerTestingPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpAnalyzerTestingXUnitPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" Version="$(MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(MicrosoftCodeAnalysisCSharpFeaturesPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.EditorFeatures" Version="$(MicrosoftCodeAnalysisEditorFeaturesPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.EditorFeatures.Common" Version="$(MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.EditorFeatures.Text" Version="$(MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" Version="$(MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
@@ -41,6 +45,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="$(MicrosoftExtensionsObjectPoolPackageVersion)" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="$(MicrosoftInternalVisualStudioShellFrameworkPackageVersion)" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="$(MicrosoftInternalVisualStudioInteropPackageVersion)" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor" Version="$(MicrosoftNETSdkRazorPackageVersion)" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Transport" Version="$(Benchmarks_BaselineSourceGeneratorsVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="$(MicrosoftVisualStudioCopilotVersion)" />
@@ -69,6 +74,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioTextLogicPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationPackageVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Web" Version="$(MicrosoftVisualStudioWebPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html.Editor" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Languages.LanguageServer.Server" Version="$(MicrosoftWebToolsLanguagesLanguageServerServerPackageVersion)" />
@@ -90,12 +96,8 @@
     <PackageVersion Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensions)" />
     <PackageVersion Include="xunit" Version="$(XunitVersion)" />
-    <PackageVersion Include="xunit.analyzers" Version="$(XUnitAnalyzersVersion)" />
-    <PackageVersion Include="xunit.assert" Version="$(XunitVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="$(XunitCombinatorialPackageVersion)" />
     <PackageVersion Include="xunit.extensibility.execution" Version="$(XunitExtensibilityExecutionVersion)" />
-    <PackageVersion Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="$(XunitRunnerVisualStudioVersion)" />
     <PackageVersion Include="Xunit.StaFact" Version="$(XunitStaFactVersion)" />
   </ItemGroup>
 </Project>
