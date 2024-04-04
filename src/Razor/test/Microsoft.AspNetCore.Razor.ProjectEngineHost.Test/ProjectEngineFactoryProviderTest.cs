@@ -5,9 +5,9 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,10 +15,10 @@ using Mvc1_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
 using Mvc2_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 using MvcLatest = Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 // Testing this here because we need references to the MVC factories.
-public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
+public class ProjectEngineFactoryProviderTest : ToolingTestBase
 {
     private readonly ImmutableArray<IProjectEngineFactory> _customFactories;
     private readonly IProjectSnapshot _snapshot_For_1_0;
@@ -28,7 +28,7 @@ public class DefaultProjectSnapshotProjectEngineFactoryTest : ToolingTestBase
     private readonly IProjectSnapshot _snapshot_For_3_0;
     private readonly IProjectSnapshot _snapshot_For_UnknownConfiguration;
 
-    public DefaultProjectSnapshotProjectEngineFactoryTest(ITestOutputHelper testOutput)
+    public ProjectEngineFactoryProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         var projectFilePath = "/TestPath/SomePath/Test.csproj";
