@@ -4,11 +4,9 @@
 using System;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 
-// Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
 [DataContract]
 internal class RazorMapToDocumentRangesParams
 {

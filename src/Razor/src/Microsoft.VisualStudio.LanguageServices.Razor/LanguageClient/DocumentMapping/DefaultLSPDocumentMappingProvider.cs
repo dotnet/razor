@@ -6,7 +6,9 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Newtonsoft.Json.Linq;
 
@@ -62,7 +64,7 @@ internal class DefaultLSPDocumentMappingProvider : LSPDocumentMappingProvider
             Kind = languageKind,
             RazorDocumentUri = razorDocumentUri,
             ProjectedRanges = projectedRanges,
-            MappingBehavior = LanguageServerMappingBehavior.Strict,
+            MappingBehavior = MappingBehavior.Strict,
         };
 
         if (!_lazyDocumentManager.Value.TryGetDocument(razorDocumentUri, out var documentSnapshot))

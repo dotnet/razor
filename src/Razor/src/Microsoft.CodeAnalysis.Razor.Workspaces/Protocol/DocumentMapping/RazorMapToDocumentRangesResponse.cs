@@ -3,10 +3,8 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
+namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 
-// NOTE: Changes here MUST be copied over to
-// Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse
 [DataContract]
 internal class RazorMapToDocumentRangesResponse
 {

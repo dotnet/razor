@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -18,7 +19,6 @@ using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping.RazorMapToDocumentRangesResponse;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
