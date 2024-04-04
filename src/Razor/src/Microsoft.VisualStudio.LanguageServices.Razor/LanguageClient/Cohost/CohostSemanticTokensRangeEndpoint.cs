@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -18,9 +18,10 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
-[Shared]
+#pragma warning disable RS0030 // Do not use banned APIs
+[ExportRazorStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint)), System.Composition.Shared]
+#pragma warning restore RS0030 // Do not use banned APIs
 [RazorMethod(Methods.TextDocumentSemanticTokensRangeName)]
-[ExportRazorStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint))]
 [Export(typeof(ICapabilitiesProvider))]
 [method: ImportingConstructor]
 internal sealed class CohostSemanticTokensRangeEndpoint(

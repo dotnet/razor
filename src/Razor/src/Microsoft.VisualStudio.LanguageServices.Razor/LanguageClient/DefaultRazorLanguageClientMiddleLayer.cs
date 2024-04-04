@@ -2,14 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-[Shared]
 [Export(typeof(RazorLanguageClientMiddleLayer))]
 internal class DefaultRazorLanguageClientMiddleLayer : RazorLanguageClientMiddleLayer
 {

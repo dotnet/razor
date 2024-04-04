@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.Razor;
@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-[Shared]
 [Export(typeof(ProjectConfigurationFilePathStore))]
 internal class DefaultProjectConfigurationFilePathStore : ProjectConfigurationFilePathStore
 {

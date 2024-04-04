@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
 
-[Export(typeof(IRazorCohostTextDocumentSyncHandler)), Shared]
+[Export(typeof(IRazorCohostTextDocumentSyncHandler))]
 [method: ImportingConstructor]
 internal class CohostTextDocumentSyncHandler(
     IRemoteClientProvider remoteClientProvider,

@@ -2,8 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -16,16 +15,14 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 
-[Shared]
-[Export(typeof(LSPProximityExpressionsProvider))]
-internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsProvider
+[Export(typeof(LSPBreakpointSpanProvider))]
+internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
 {
     private readonly LSPRequestInvoker _requestInvoker;
-
     private readonly Lazy<ILogger> _logger;
 
     [ImportingConstructor]
-    public DefaultLSPProximityExpressionsProvider(
+    public DefaultLSPBreakpointSpanProvider(
         LSPRequestInvoker requestInvoker,
         Lazy<ILoggerFactory> loggerFactory)
     {
@@ -40,10 +37,10 @@ internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsP
         }
 
         _requestInvoker = requestInvoker;
-        _logger = new Lazy<ILogger>(() => loggerFactory.Value.GetOrCreateLogger<DefaultLSPProximityExpressionsProvider>());
+        _logger = new Lazy<ILogger>(() => loggerFactory.Value.GetOrCreateLogger<DefaultLSPBreakpointSpanProvider>());
     }
 
-    public async override Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+    public async override Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
     {
         if (documentSnapshot is null)
         {
@@ -55,37 +52,37 @@ internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsP
             throw new ArgumentNullException(nameof(position));
         }
 
-        var proximityExpressionsParams = new RazorProximityExpressionsParams()
+        var languageQueryParams = new RazorBreakpointSpanParams()
         {
             Position = position,
             Uri = documentSnapshot.Uri
         };
 
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorProximityExpressionsParams, RazorProximityExpressionsResponse>(
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorBreakpointSpanParams, RazorBreakpointSpanResponse>(
             documentSnapshot.Snapshot.TextBuffer,
-            LanguageServerConstants.RazorProximityExpressionsEndpoint,
+            LanguageServerConstants.RazorBreakpointSpanEndpoint,
             RazorLSPConstants.RazorLanguageServerName,
-            CheckRazorProximityExpressionsCapability,
-            proximityExpressionsParams,
+            CheckRazorBreakpointSpanCapability,
+            languageQueryParams,
             cancellationToken).ConfigureAwait(false);
 
         var languageResponse = response?.Response;
         if (languageResponse is null)
         {
-            _logger.Value.LogInformation("The proximity expressions could not be resolved.");
+            _logger.Value.LogInformation("The breakpoint position could not be mapped to a valid range.");
             return null;
         }
 
-        return languageResponse.Expressions;
+        return languageResponse.Range;
     }
 
-    private static bool CheckRazorProximityExpressionsCapability(JToken token)
+    private static bool CheckRazorBreakpointSpanCapability(JToken token)
     {
         if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
         {
             return false;
         }
 
-        return razorCapability.ProximityExpressions;
+        return razorCapability.BreakpointSpan;
     }
 }

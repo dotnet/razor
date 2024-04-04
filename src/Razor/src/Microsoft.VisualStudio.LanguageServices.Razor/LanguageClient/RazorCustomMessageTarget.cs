@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -23,7 +23,6 @@ using static Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPD
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-[Shared]
 [Export(typeof(IRazorCustomMessageTarget))]
 [Export(typeof(RazorCustomMessageTarget))]
 internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget

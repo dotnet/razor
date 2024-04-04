@@ -27,7 +27,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
     private readonly IProjectWorkspaceStateGenerator _generator;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _options;
-    private readonly Workspace _workspace;
+    private readonly CodeAnalysis.Workspace _workspace;
 
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)> _workQueue;

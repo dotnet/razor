@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -12,7 +12,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
 
-[Shared]
 [Export(typeof(LSPDocumentMappingProvider))]
 internal class DefaultLSPDocumentMappingProvider : LSPDocumentMappingProvider
 {
