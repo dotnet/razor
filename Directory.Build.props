@@ -35,9 +35,6 @@
     <!-- Working around https://github.com/dotnet/sdk/issues/24747 -->
     <NoWarn>$(NoWarn);NU1505</NoWarn>
 
-    <!-- Fine with explicitly referencing implicitly referenced packages for the moment -->
-    <NoWarn>$(NoWarn);NU1009</NoWarn>
-
     <!-- Working around https://github.com/microsoft/msbuild/pull/4764 -->
     <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
 

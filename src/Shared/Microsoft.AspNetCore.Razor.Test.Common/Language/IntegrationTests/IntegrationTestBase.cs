@@ -141,7 +141,7 @@ public abstract class IntegrationTestBase
         // use "" as the base path by convention to avoid baking in an actual file system
         // path.
         var basePath = "";
-        var physicalPath = Path.Combine(workingDirectory, filePath).Replace('/', '\\');
+        var physicalPath = Path.Combine(workingDirectory!, filePath).Replace('/', '\\');
         var relativePhysicalPath = physicalPath;
 
         // FilePaths in Razor are **always** are of the form '/a/b/c.cshtml'
