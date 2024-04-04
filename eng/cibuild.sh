@@ -13,7 +13,11 @@ while [[ -h $source ]]; do
 done
 scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 
-echo before nuget-workaround NUGET_PACKAGES=$NUGET_PACKAGES
+echo before nuget-workaround
+echo NUGET_PACKAGES=$NUGET_PACKAGES
+echo NuGetPackageRoot=$NuGetPackageRoot
 . "$scriptroot/nuget-workaround.sh" --ci $@
-echo after nuget-workaround NUGET_PACKAGES=$NUGET_PACKAGES
+echo after nuget-workaround
+echo NUGET_PACKAGES=$NUGET_PACKAGES
+echo NuGetPackageRoot=$NuGetPackageRoot
 . "$scriptroot/common/build.sh" --ci $@
