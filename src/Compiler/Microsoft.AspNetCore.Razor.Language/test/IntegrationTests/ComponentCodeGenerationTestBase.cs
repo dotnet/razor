@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public class ComponentCodeGenerationTestBase(bool designTime = false)
-        : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler, generateBaselines: null)
+        : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
 {
     private RazorConfiguration _configuration;
 
@@ -1439,7 +1439,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass<T>
             {
                 public static implicit operator string(MyClass<T> c) => throw null!;
@@ -1452,16 +1452,16 @@ namespace Test
 
                 [Parameter]
                 public EventCallback<MyClass<T>> MyParameterChanged { get; set; }
-            
+
                 [Parameter]
                 public bool BoolParameter { get; set; }
-            
+
                 [Parameter]
                 public string StringParameter { get; set; } = null!;
-            
+
                 [Parameter]
                 public System.Delegate DelegateParameter { get; set; } = null!;
-            
+
                 [Parameter]
                 public object ObjectParameter { get; set; } = null!;
             }
@@ -1493,7 +1493,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass<T>
             {
                 public static implicit operator string(MyClass<T> c) => throw null!;
@@ -1506,16 +1506,16 @@ namespace Test
 
                 [Parameter]
                 public EventCallback MyEvent { get; set; }
-            
+
                 [Parameter]
                 public bool BoolParameter { get; set; }
-            
+
                 [Parameter]
                 public string StringParameter { get; set; } = null!;
-            
+
                 [Parameter]
                 public System.Delegate DelegateParameter { get; set; } = null!;
-            
+
                 [Parameter]
                 public object ObjectParameter { get; set; } = null!;
             }
@@ -1548,7 +1548,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass
             {
                 public static implicit operator string(MyClass c) => throw null!;
@@ -1581,7 +1581,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass
             {
                 public static implicit operator string(MyClass c) => throw null!;
@@ -1615,7 +1615,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass<T>
             {
                 public static implicit operator bool(MyClass<T> c) => throw null!;
@@ -1625,7 +1625,7 @@ namespace Test
             {
                 [Parameter]
                 public MyClass<T> MyParameter { get; set; }
-            
+
                 [Parameter]
                 public bool BoolParameter { get; set; }
             }
@@ -1651,7 +1651,7 @@ namespace Test
             @typeparam T
 
             <TestComponent Param="42" />
-            
+
             @code {
                 [Parameter]
                 public T Param { get; set; }
@@ -4715,7 +4715,7 @@ namespace Test3
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: false);
     }
-    
+
     [IntegrationTestFact]
     public void Component_WithMultipleUsingDirectives()
     {
@@ -7032,7 +7032,7 @@ namespace Test
             public partial class GridColumn<T> : ComponentBase
             {
             }
-            
+
             public class X { }
             """));
 
@@ -8153,7 +8153,7 @@ namespace Test
         // Arrange
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
-            
+
             namespace Test;
 
             public interface IInterfaceConstraint<T> { }
@@ -10654,7 +10654,7 @@ Time: @DateTime.Now
     public void RenderMode_Attribute_With_SimpleIdentifier()
     {
         var generated = CompileToCSharp($"""
-                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" /> 
+                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
                 """, throwOnFailure: true);
 
         // Assert
@@ -10674,7 +10674,7 @@ Time: @DateTime.Now
                     {
                         public string Extra {get;set;}
                     }
-                } 
+                }
                 """, throwOnFailure: true);
 
         // Assert
@@ -10694,7 +10694,7 @@ Time: @DateTime.Now
                     [Parameter]public string P1 {get; set;}
 
                     [Parameter]public string P2 {get; set;}
-                } 
+                }
                 """, throwOnFailure: true);
 
         // Assert
