@@ -388,7 +388,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
     private class CompilationFailedException : XunitException
     {
         public CompilationFailedException(Compilation compilation)
-            :base("Compilation failed")
         {
             Compilation = compilation;
         }
