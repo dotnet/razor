@@ -112,26 +112,29 @@ internal class RazorProjectService(
         }
 
         await ActOnDocumentInMultipleProjectsAsync(
-                filePath,
-                async (projectSnapshot, textDocumentPath, cancellationToken) =>
-                {
-                    _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
+            filePath,
+            async (projectSnapshot, textDocumentPath, cancellationToken) =>
+            {
+                _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
 
-                    await _projectManager
-                        .UpdateAsync(
-                            static (updater, state) => updater.DocumentOpened(state.key, state.textDocumentPath, state.sourceText),
-                            state: (key: projectSnapshot.Key, textDocumentPath, sourceText),
-                            cancellationToken)
-                        .ConfigureAwait(false);
-                },
-                cancellationToken)
-            .ConfigureAwait(false);
+                await _projectManager
+                    .UpdateAsync(
+                        static (updater, state) => updater.DocumentOpened(state.key, state.textDocumentPath, state.sourceText),
+                        state: (key: projectSnapshot.Key, textDocumentPath, sourceText),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            },
+            cancellationToken).ConfigureAwait(false);
 
         // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
-        {
-            TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: true);
-        });
+        await ActOnDocumentInMultipleProjectsAsync(
+            filePath,
+            (projectSnapshot, textDocumentPath, cancellationToken) =>
+            {
+                TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: true);
+                return Task.CompletedTask;
+            },
+            cancellationToken).ConfigureAwait(false);
     }
 
     public Task CloseDocumentAsync(string filePath, CancellationToken cancellationToken)
@@ -195,38 +198,27 @@ internal class RazorProjectService(
     public async Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
     {
         await ActOnDocumentInMultipleProjectsAsync(
-                filePath,
-                (project, textDocumentPath, cancellationToken) =>
-                {
-                    _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
+            filePath,
+            (project, textDocumentPath, cancellationToken) =>
+            {
+                _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
 
-                    return _projectManager.UpdateAsync(
-                        static (updater, state) => updater.DocumentChanged(state.key, state.textDocumentPath, state.sourceText),
-                        state: (key: project.Key, textDocumentPath, sourceText),
-                        cancellationToken);
-                },
-                cancellationToken)
-            .ConfigureAwait(false);
+                return _projectManager.UpdateAsync(
+                    static (updater, state) => updater.DocumentChanged(state.key, state.textDocumentPath, state.sourceText),
+                    state: (key: project.Key, textDocumentPath, sourceText),
+                    cancellationToken);
+            },
+            cancellationToken).ConfigureAwait(false);
 
         // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
-        {
-            TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: false);
-        });
-    }
-
-    private void ActOnDocumentInMultipleProjects(string filePath, Action<IProjectSnapshot, string> action)
-    {
-        var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projectSnapshots))
-        {
-            projectSnapshots = [_snapshotResolver.GetMiscellaneousProject()];
-        }
-
-        foreach (var project in projectSnapshots)
-        {
-            action(project, textDocumentPath);
-        }
+        await ActOnDocumentInMultipleProjectsAsync(
+            filePath,
+            (projectSnapshot, textDocumentPath, cancellationToken) =>
+            {
+                TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: false);
+                return Task.CompletedTask;
+            },
+            cancellationToken).ConfigureAwait(false);
     }
 
     private async Task ActOnDocumentInMultipleProjectsAsync(
