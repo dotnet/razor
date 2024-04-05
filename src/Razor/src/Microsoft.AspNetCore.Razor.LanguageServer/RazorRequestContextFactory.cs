@@ -17,7 +17,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 {
     private readonly ILspServices _lspServices = lspServices;
 
-    public override Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
+    public override async Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
     {
         var logger = _lspServices.GetRequiredService<ILoggerFactory>().GetOrCreateLogger<RazorRequestContextFactory>();
 
@@ -35,7 +35,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
                 logger.LogDebug("Trying to create DocumentContext for {methodName} for {projectContext} for {uri}", queueItem.MethodName, textDocumentIdentifier.GetProjectContext()?.Id ?? "(no project context)", uri);
 
-                documentContext = documentContextFactory.TryCreateForOpenDocument(textDocumentIdentifier);
+                documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
             }
             else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
             {
@@ -43,7 +43,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
                 logger.LogDebug("Trying to create DocumentContext for {methodName}, with no project context, for {uri}", queueItem.MethodName, uri);
 
-                documentContext = documentContextFactory.TryCreateForOpenDocument(uri);
+                documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -58,6 +58,6 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
         var requestContext = new RazorRequestContext(documentContext, _lspServices, queueItem.MethodName, uri);
 
-        return Task.FromResult(requestContext);
+        return requestContext;
     }
 }

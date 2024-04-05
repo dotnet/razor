@@ -2,12 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -34,43 +34,33 @@ internal sealed class SnapshotResolver : ISnapshotResolver
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
+    public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
     {
         if (documentFilePath is null)
         {
             throw new ArgumentNullException(nameof(documentFilePath));
         }
 
-        var projects = _projectManager.GetProjects();
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-        foreach (var projectSnapshot in projects)
+
+        using var projects = new PooledArrayBuilder<IProjectSnapshot>();
+
+        foreach (var project in _projectManager.GetProjects())
         {
             // Always exclude the miscellaneous project.
-            if (projectSnapshot.FilePath == MiscellaneousHostProject.FilePath)
+            if (project.FilePath == MiscellaneousHostProject.FilePath)
             {
                 continue;
             }
 
-            var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(projectSnapshot.FilePath);
+            var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(project.FilePath);
             if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance))
             {
-                yield return projectSnapshot;
+                projects.Add(project);
             }
         }
-    }
 
-    public IProjectSnapshot GetMiscellaneousProject()
-    {
-        if (!_projectManager.TryGetLoadedProject(MiscellaneousHostProject.Key, out var miscellaneousProject))
-        {
-            _projectManager.Update(
-                static (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
-                state: MiscellaneousHostProject);
-
-            miscellaneousProject = _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
-        }
-
-        return miscellaneousProject;
+        return projects.DrainToImmutable();
     }
 
     public async Task<IProjectSnapshot> GetMiscellaneousProjectAsync(CancellationToken cancellationToken)
@@ -90,7 +80,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         return miscellaneousProject;
     }
 
-    public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+    public async Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken)
     {
         _logger.LogTrace("Looking for {documentFilePath}.", documentFilePath);
 
@@ -99,32 +89,29 @@ internal sealed class SnapshotResolver : ISnapshotResolver
             throw new ArgumentNullException(nameof(documentFilePath));
         }
 
-        documentSnapshot = null;
-
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
         var potentialProjects = FindPotentialProjects(documentFilePath);
+
         foreach (var project in potentialProjects)
         {
-            documentSnapshot = project.GetDocument(normalizedDocumentPath);
-            if (documentSnapshot is not null)
+            if (project.GetDocument(normalizedDocumentPath) is { } document)
             {
                 _logger.LogTrace("Found {documentFilePath} in {project}", documentFilePath, project.FilePath);
-                return true;
+                return document;
             }
         }
 
         _logger.LogTrace("Looking for {documentFilePath} in miscellaneous project.", documentFilePath);
-        var miscellaneousProject = GetMiscellaneousProject();
-        documentSnapshot = miscellaneousProject.GetDocument(normalizedDocumentPath);
-        if (documentSnapshot is not null)
+        var miscellaneousProject = await GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
+
+        if (miscellaneousProject.GetDocument(normalizedDocumentPath) is { } miscDocument)
         {
             _logger.LogTrace("Found {documentFilePath} in miscellaneous project.", documentFilePath);
-            return true;
+            return miscDocument;
         }
 
         _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectManager.GetProjects().SelectMany(p => p.DocumentFilePaths));
 
-        documentSnapshot = null;
-        return false;
+        return null;
     }
 }

@@ -104,7 +104,11 @@ internal class RazorProjectService(
         // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
         // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
         // we process them all too
-        if (!_snapshotResolver.TryResolveDocumentInAnyProject(textDocumentPath, out _))
+        var document = await _snapshotResolver
+            .ResolveDocumentInAnyProjectAsync(textDocumentPath, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (document is null)
         {
             // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
             // processes and pre-initializes already open documents.
@@ -227,13 +231,14 @@ internal class RazorProjectService(
         CancellationToken cancellationToken)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projectSnapshots))
+        var projects = await _snapshotResolver.TryResolveAllProjectsAsync(textDocumentPath, cancellationToken).ConfigureAwait(false);
+        if (projects.IsEmpty)
         {
             var miscFilesProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
-            projectSnapshots = [miscFilesProject];
+            projects = [miscFilesProject];
         }
 
-        foreach (var project in projectSnapshots)
+        foreach (var project in projects)
         {
             await func(project, textDocumentPath, cancellationToken).ConfigureAwait(false);
         }
