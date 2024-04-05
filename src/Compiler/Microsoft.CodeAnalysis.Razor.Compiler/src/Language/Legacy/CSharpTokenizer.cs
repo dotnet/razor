@@ -15,8 +15,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class CSharpTokenizer : Tokenizer
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Dictionary<char, Func<SyntaxKind>> _operatorHandlers;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private static readonly Dictionary<string, CSharpKeyword> _keywords = new Dictionary<string, CSharpKeyword>(StringComparer.Ordinal)
         {
             { "await", CSharpKeyword.Await },
@@ -134,14 +136,19 @@ internal class CSharpTokenizer : Tokenizer
             };
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected override int StartState => (int)CSharpTokenizerState.Data;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private new CSharpTokenizerState? CurrentState => (CSharpTokenizerState?)base.CurrentState;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public override SyntaxKind RazorCommentKind => SyntaxKind.RazorCommentLiteral;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public override SyntaxKind RazorCommentTransitionKind => SyntaxKind.RazorCommentTransition;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public override SyntaxKind RazorCommentStarKind => SyntaxKind.RazorCommentStar;
 
     protected override StateResult Dispatch()

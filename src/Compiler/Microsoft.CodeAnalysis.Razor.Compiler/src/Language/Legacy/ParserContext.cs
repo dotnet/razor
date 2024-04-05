@@ -56,6 +56,7 @@ internal partial class ParserContext
 
     public AcceptedCharactersInternal CurrentAcceptedCharacters { get; set; } = AcceptedCharactersInternal.Any;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public bool EndOfFile
     {
         get { return Source.Peek() == -1; }

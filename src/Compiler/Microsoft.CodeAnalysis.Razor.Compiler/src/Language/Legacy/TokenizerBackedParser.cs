@@ -10,35 +10,45 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
+[DebuggerDisplay("Nuttin")]
 internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     where TTokenizer : Tokenizer
 {
     protected delegate void SpanContextConfigAction(SpanEditHandlerBuilder? editHandlerBuilder, ref ISpanChunkGenerator? chunkGenerator);
     protected delegate void SpanContextConfigActionWithPreviousConfig(SpanEditHandlerBuilder? editHandlerBuilder, ref ISpanChunkGenerator? chunkGenerator, SpanContextConfigAction? previousConfig);
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly SyntaxListPool _pool = new SyntaxListPool();
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly TokenizerView<TTokenizer> _tokenizer;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private SyntaxListBuilder<SyntaxToken>? _tokenBuilder;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected SpanEditHandlerBuilder? editHandlerBuilder;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected ISpanChunkGenerator? chunkGenerator;
 
     // Following four high traffic methods cached as using method groups would cause allocation on every invocation.
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected static readonly Func<SyntaxToken, bool> IsSpacingToken = (token) =>
     {
         return token.Kind == SyntaxKind.Whitespace;
     };
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected static readonly Func<SyntaxToken, bool> IsSpacingTokenIncludingNewLines = (token) =>
     {
         return IsSpacingToken(token) || token.Kind == SyntaxKind.NewLine;
     };
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected static readonly Func<SyntaxToken, bool> IsSpacingTokenIncludingComments = (token) =>
     {
         return IsSpacingToken(token) || token.Kind == SyntaxKind.CSharpComment;
     };
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected static readonly Func<SyntaxToken, bool> IsSpacingTokenIncludingNewLinesAndComments = (token) =>
     {
         return IsSpacingTokenIncludingNewLines(token) || token.Kind == SyntaxKind.CSharpComment;
@@ -55,8 +65,10 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
         editHandlerBuilder = context.EnableSpanEditHandlers ? new SpanEditHandlerBuilder(LanguageTokenizeString) : null;
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected SyntaxListPool Pool => _pool;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected SyntaxListBuilder<SyntaxToken> TokenBuilder
     {
         get
@@ -71,23 +83,30 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
         }
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected SpanContextConfigAction? SpanContextConfig { get; set; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected SyntaxToken CurrentToken
     {
         get { return _tokenizer.Current; }
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected SyntaxToken? PreviousToken { get; private set; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected SourceLocation CurrentStart => _tokenizer.Tokenizer.CurrentStart;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected bool EndOfFile
     {
         get { return _tokenizer.EndOfFile; }
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected LanguageCharacteristics<TTokenizer> Language { get; }
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected Func<string, IEnumerable<SyntaxToken>> LanguageTokenizeString { get; }
 
     protected SyntaxToken Lookahead(int count)

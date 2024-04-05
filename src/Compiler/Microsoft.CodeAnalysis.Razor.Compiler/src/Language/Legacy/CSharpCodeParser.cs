@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -75,9 +75,12 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             "where"
          );
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly ImmutableHashSet<string> CurrentKeywords;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly ImmutableDictionary<CSharpKeyword, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>> _keywordParserMap;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly ImmutableDictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>> _directiveParserMap;
 
     public CSharpCodeParser(ParserContext context)
@@ -192,7 +195,9 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         }
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private HtmlMarkupParser? _htmlParser;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public HtmlMarkupParser HtmlParser
     {
         get
@@ -204,8 +209,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         set => _htmlParser = value;
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected internal ImmutableHashSet<string> Keywords { get; private set; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public bool IsNested { get; set; }
 
     public CSharpCodeBlockSyntax? ParseBlock()

@@ -26,27 +26,38 @@ internal abstract class Tokenizer : ITokenizer
         StartToken();
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected List<RazorDiagnostic> CurrentErrors { get; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected abstract int StartState { get; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected int? CurrentState { get; set; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected SyntaxToken CurrentSyntaxToken { get; private set; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ITextDocument Source { get; private set; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected StringBuilder Buffer { get; private set; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected bool EndOfFile
     {
         get { return Source.Peek() == -1; }
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public abstract SyntaxKind RazorCommentStarKind { get; }
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public abstract SyntaxKind RazorCommentKind { get; }
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public abstract SyntaxKind RazorCommentTransitionKind { get; }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected bool HaveContent
     {
         get { return Buffer.Length > 0; }
@@ -61,8 +72,10 @@ internal abstract class Tokenizer : ITokenizer
         }
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SourceLocation CurrentLocation => Source.Location;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SourceLocation CurrentStart { get; private set; }
 
     protected abstract SyntaxToken CreateToken(string content, SyntaxKind type, RazorDiagnostic[] errors);
