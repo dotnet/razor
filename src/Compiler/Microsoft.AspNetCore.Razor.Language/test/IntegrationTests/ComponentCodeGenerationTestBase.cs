@@ -4592,8 +4592,8 @@ namespace Test
         // Act
         var generated = CompileToCSharp(@"
 @page ""/MyPage""
-@page ""/AnotherRoute/{id}""
 @staticpage
+@page ""/AnotherRoute/{id}""
 Hello");
 
         // Assert

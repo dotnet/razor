@@ -32,7 +32,7 @@ global::System.Object __typeHelper = "/MyPage";
         ((global::System.Action)(() => {
 // language=Route,Component
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 global::System.Object __typeHelper = "/AnotherRoute/{id}";
 
 #line default

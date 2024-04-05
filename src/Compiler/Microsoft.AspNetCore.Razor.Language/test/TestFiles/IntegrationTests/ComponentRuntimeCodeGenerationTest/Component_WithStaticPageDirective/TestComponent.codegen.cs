@@ -23,7 +23,7 @@ namespace Test
     [global::Microsoft.AspNetCore.Components.RouteAttribute(
     // language=Route,Component
 #nullable restore
-#line (2,7)-(2,27) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (3,7)-(3,27) "x:\dir\subdir\Test\TestComponent.cshtml"
 "/AnotherRoute/{id}"
 
 #line default
