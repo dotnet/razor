@@ -39,8 +39,7 @@ internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDia
             throw new ArgumentNullException(nameof(request));
         }
 
-        _logger.LogInformation("Received {requestKind} diagnostic request for {razorDocumentUri} with {diagnosticsLength} diagnostics.",
-            request.Kind, request.RazorDocumentUri, request.Diagnostics.Length);
+        _logger.LogInformation($"Received {request.Kind} diagnostic request for {request.RazorDocumentUri} with {request.Diagnostics.Length} diagnostics.");
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -48,7 +47,7 @@ internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDia
 
         if (documentContext is null)
         {
-            _logger.LogInformation("Failed to find document {razorDocumentUri}.", request.RazorDocumentUri);
+            _logger.LogInformation($"Failed to find document {request.RazorDocumentUri}.");
 
             return new RazorDiagnosticsResponse()
             {
@@ -59,7 +58,7 @@ internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDia
 
         var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(request.Kind, request.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
 
-        _logger.LogInformation("Returning {mappedDiagnosticsLength} mapped diagnostics.", mappedDiagnostics.Length);
+        _logger.LogInformation($"Returning {mappedDiagnostics.Length} mapped diagnostics.");
 
         return new RazorDiagnosticsResponse()
         {

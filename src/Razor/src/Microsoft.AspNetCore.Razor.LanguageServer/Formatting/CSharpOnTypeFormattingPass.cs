@@ -65,7 +65,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         {
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
-                _logger.LogWarning("Failed to map to projected position for document {context.Uri}.", context.Uri);
+                _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
                 return result;
             }
 
@@ -88,12 +88,12 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
             if (formattingChanges.IsEmpty)
             {
-                _logger.LogInformation("Received no results.");
+                _logger.LogInformation($"Received no results.");
                 return result;
             }
 
             textEdits = formattingChanges.Select(change => change.ToTextEdit(csharpText)).ToArray();
-            _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
+            _logger.LogInformation($"Received {textEdits.Length} results from C#.");
         }
 
         // Sometimes the C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
@@ -107,7 +107,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
             var count = csharpText.Lines.Count;
             if (startLine >= count || endLine >= count)
             {
-                _logger.LogWarning("Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.", startLine, endLine, count);
+                _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.");
                 return result;
             }
         }

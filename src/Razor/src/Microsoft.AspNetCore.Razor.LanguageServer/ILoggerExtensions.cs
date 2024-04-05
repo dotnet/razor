@@ -15,10 +15,8 @@ internal static class ILoggerExtensions
     {
         if (TestOnlyLoggingEnabled)
         {
-#pragma warning disable CA2254 // Template should be a static expression
             // This is test-only, so we don't mind losing structured logging for it.
-            logger.LogDebug(message, args);
-#pragma warning restore CA2254 // Template should be a static expression
+            logger.LogDebug($"{message}: {string.Join(",", args)}");
         }
     }
 }
