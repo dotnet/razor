@@ -1,7 +1,7 @@
 ﻿steps:
   - task: NuGetAuthenticate@1
     inputs:
-      nuGetServiceConnections: 'devdiv/dotnet-core-internal-tooling'
+      nuGetServiceConnections: devdiv/dotnet-core-internal-tooling, devdiv/engineering
       forceReinstallCredentialProvider: true
 
   # Needed because the build fails the NuGet Tools restore without it
