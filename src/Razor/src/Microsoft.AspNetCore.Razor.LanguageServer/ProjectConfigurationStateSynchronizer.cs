@@ -125,23 +125,30 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
         async Task AddProjectAsync(string configurationFilePath, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
         {
-            var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
-            var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
-            var rootNamespace = projectInfo.RootNamespace;
+            try
+            {
+                var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
+                var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
+                var rootNamespace = projectInfo.RootNamespace;
 
-            var projectKey = await _projectService
-                .AddProjectAsync(
-                    projectFilePath,
-                    intermediateOutputPath,
-                    projectInfo.Configuration,
-                    rootNamespace,
-                    projectInfo.DisplayName,
-                    cancellationToken)
-                .ConfigureAwait(false);
-            _configurationToProjectMap[configurationFilePath] = projectKey;
+                var projectKey = await _projectService
+                    .AddProjectAsync(
+                        projectFilePath,
+                        intermediateOutputPath,
+                        projectInfo.Configuration,
+                        rootNamespace,
+                        projectInfo.DisplayName,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+                _configurationToProjectMap[configurationFilePath] = projectKey;
 
-            _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
-            EnqueueUpdateProject(projectKey, projectInfo, cancellationToken);
+                _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
+                EnqueueUpdateProject(projectKey, projectInfo, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while adding project: {FilePath}", projectInfo.FilePath);
+            }
         }
 
         Task UpdateProjectAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
