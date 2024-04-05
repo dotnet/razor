@@ -2,9 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -14,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
@@ -38,13 +35,13 @@ internal partial class ProjectConfigurationStateManager : IDisposable
     public ProjectConfigurationStateManager(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IRazorProjectService projectService,
-        IProjectSnapshotManager projectManager,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        IProjectSnapshotManager projectManager)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = projectService;
         _projectManager = projectManager;
-        _logger = loggerFactory.CreateLogger<ProjectConfigurationStateManager>();
+        _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateManager>();
 
         _disposalTokenSource = new ();
         _workQueue = new(
