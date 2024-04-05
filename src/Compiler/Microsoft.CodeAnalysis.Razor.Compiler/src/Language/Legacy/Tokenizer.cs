@@ -253,7 +253,7 @@ internal abstract class Tokenizer : ITokenizer
         return !EndOfFile;
     }
 
-    protected virtual void TakeCurrent(bool advanceSecondaryLexer = true)
+    protected virtual void TakeCurrent(bool advanceSecondaryTokenizer = true)
     {
         if (EndOfFile)
         {

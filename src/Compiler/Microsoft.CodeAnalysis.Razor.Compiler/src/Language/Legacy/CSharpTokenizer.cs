@@ -12,6 +12,7 @@ using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.Sy
 using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxFactory;
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 using CSharpSyntaxToken = Microsoft.CodeAnalysis.SyntaxToken;
+using CSharpSyntaxTriviaList = Microsoft.CodeAnalysis.SyntaxTriviaList;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -19,6 +20,7 @@ internal partial class CSharpTokenizer : Tokenizer
 {
     private readonly SyntaxTokenParser _lexer;
     private CSharpSyntaxToken? _currentCSharpToken;
+    private CSharpSyntaxTriviaList.Enumerator? _currentCSharpTokenTriviaEnumerator;
 
     public CSharpTokenizer(SeekableTextReader source)
         : base(source)
@@ -49,8 +51,9 @@ internal partial class CSharpTokenizer : Tokenizer
         {
             case CSharpTokenizerState.Data:
                 return Data();
+            case CSharpTokenizerState.LeadingTriviaForCSharpToken:
             case CSharpTokenizerState.TrailingTriviaForCSharpToken:
-                return TrailingTrivia();
+                return Trivia();
             case CSharpTokenizerState.AfterRazorCommentTransition:
                 return AfterRazorCommentTransition();
             case CSharpTokenizerState.EscapedRazorCommentTransition:
@@ -65,11 +68,6 @@ internal partial class CSharpTokenizer : Tokenizer
                 Debug.Fail("Invalid TokenizerState");
                 return default(StateResult);
         }
-    }
-
-    private StateResult TrailingTrivia()
-    {
-        throw new NotImplementedException();
     }
 
     // Optimize memory allocation by returning constants for the most frequent cases
@@ -148,7 +146,7 @@ internal partial class CSharpTokenizer : Tokenizer
     {
         if (SyntaxFacts.IsNewLine(CurrentCharacter) || SyntaxFacts.IsWhitespace(CurrentCharacter))
         {
-            return Stay(Trivia());
+            return Trivia();
         }
         else if (SyntaxFacts.IsIdentifierStartCharacter(CurrentCharacter))
         {
@@ -182,7 +180,7 @@ internal partial class CSharpTokenizer : Tokenizer
                 }
                 return Operator();
             case '/' when Peek() is '/' or '*':
-                return Stay(Trivia());
+                return Trivia();
             default:
                 return Operator();
         }
@@ -344,7 +342,7 @@ internal partial class CSharpTokenizer : Tokenizer
 
         for (; curPosition < finalPosition; curPosition++)
         {
-            TakeCurrent(advanceSecondaryLexer: false);
+            TakeCurrent(advanceSecondaryTokenizer: false);
         }
 
         // If the token is the expected kind and has the expected prefix or doesn't have the expected postfix, then it's unterminated.
@@ -361,37 +359,50 @@ internal partial class CSharpTokenizer : Tokenizer
         return Transition(CSharpTokenizerState.TrailingTriviaForCSharpToken, EndToken(razorTokenKind));
     }
 
-    private SyntaxToken Trivia()
+    private StateResult Trivia()
     {
-        // TODO:
-        Debug.Assert((CurrentCharacter == '/' && Peek() is '*' or '/')
-                     || SyntaxFacts.IsWhitespace(CurrentCharacter)
-                     || SyntaxFacts.IsNewLine(CurrentCharacter));
+        Debug.Assert(_currentCSharpToken.HasValue);
+        Debug.Assert(CurrentState is CSharpTokenizerState.LeadingTriviaForCSharpToken or CSharpTokenizerState.TrailingTriviaForCSharpToken);
+        if (_currentCSharpTokenTriviaEnumerator is not { } triviaEnumerator)
+        {
+            triviaEnumerator = CurrentState == CSharpTokenizerState.LeadingTriviaForCSharpToken
+                ? _currentCSharpToken.Value.LeadingTrivia.GetEnumerator()
+                : _currentCSharpToken.Value.TrailingTrivia.GetEnumerator();
+        }
+
+        var moveNext = triviaEnumerator.MoveNext();
+
+        if (!moveNext)
+        {
+            _currentCSharpTokenTriviaEnumerator = null;
+            return Transition(CurrentState == CSharpTokenizerState.LeadingTriviaForCSharpToken ? CSharpTokenizerState.CSharpToken : CSharpTokenizerState.Data, null);
+        }
+
+        _currentCSharpTokenTriviaEnumerator = triviaEnumerator;
+
         var curPosition = Source.Position;
-        var result = _lexer.ParseNextToken();
-        var nextToken = result.Token;
-        Debug.Assert(nextToken.HasLeadingTrivia);
-        Debug.Assert(!_currentCSharpToken.HasValue);
-        _currentCSharpToken = nextToken;
-        var leadingTrivia = nextToken.LeadingTrivia[0];
+        var trivia = triviaEnumerator.Current;
 
         // Use FullSpan here because doc comment trivias exclude the leading `///` or `/**` and the trailing `*/`
-        var finalPosition = curPosition + leadingTrivia.FullSpan.Length;
+        var finalPosition = curPosition + trivia.FullSpan.Length;
 
         for (; curPosition < finalPosition; curPosition++)
         {
-            TakeCurrent(advanceSecondaryLexer: false);
+            TakeCurrent(advanceSecondaryTokenizer: false);
         }
 
-        if (nextToken.IsKind(CSharpSyntaxKind.EndOfFileToken) && leadingTrivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia &&
-            !leadingTrivia.ToFullString().EndsWith("*/", StringComparison.Ordinal))
+        if (_currentCSharpToken.Value.IsKind(CSharpSyntaxKind.EndOfFileToken)
+            && trivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia
+            && !trivia.ToFullString().EndsWith("*/", StringComparison.Ordinal))
         {
             CurrentErrors.Add(
                 RazorDiagnosticFactory.CreateParsing_BlockCommentNotTerminated(
                     new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
         }
 
-        var tokenType = leadingTrivia.Kind() switch
+        // TODO: Handle preprocessor directives
+        // TODO: Handle @:
+        var tokenType = trivia.Kind() switch
         {
             CSharpSyntaxKind.WhitespaceTrivia => SyntaxKind.Whitespace,
             CSharpSyntaxKind.EndOfLineTrivia => SyntaxKind.NewLine,
@@ -399,7 +410,7 @@ internal partial class CSharpTokenizer : Tokenizer
             _ => throw new InvalidOperationException("Unexpected trivia kind."),
         };
 
-        return EndToken(tokenType);
+        return Stay(EndToken(tokenType));
     }
 
     // CSharp Spec §2.4.4
@@ -415,7 +426,7 @@ internal partial class CSharpTokenizer : Tokenizer
 
         for (; curPosition < finalPosition; curPosition++)
         {
-            TakeCurrent(advanceSecondaryLexer: false);
+            TakeCurrent(advanceSecondaryTokenizer: false);
         }
 
         Buffer.Clear();
@@ -434,7 +445,7 @@ internal partial class CSharpTokenizer : Tokenizer
 
         for (; curPosition < finalPosition; curPosition++)
         {
-            TakeCurrent(advanceSecondaryLexer: false);
+            TakeCurrent(advanceSecondaryTokenizer: false);
         }
 
         var type = SyntaxKind.Identifier;
@@ -467,10 +478,10 @@ internal partial class CSharpTokenizer : Tokenizer
             : SyntaxFacts.GetContextualKeywordKind(content);
     }
 
-    protected override void TakeCurrent(bool advanceSecondaryLexer = true)
+    protected override void TakeCurrent(bool advanceSecondaryTokenizer = true)
     {
-        base.TakeCurrent(advanceSecondaryLexer);
-        if (advanceSecondaryLexer)
+        base.TakeCurrent(advanceSecondaryTokenizer);
+        if (advanceSecondaryTokenizer)
         {
             _lexer.SkipForwardTo(Source.Position);
         }
@@ -481,8 +492,8 @@ internal partial class CSharpTokenizer : Tokenizer
         Data,
 
         // TODO:
-        //LeadingTriviaForCSharpToken,
-        //CSharpToken,
+        LeadingTriviaForCSharpToken,
+        CSharpToken,
         TrailingTriviaForCSharpToken,
 
         // Razor Comments - need to be the same for HTML and CSharp
