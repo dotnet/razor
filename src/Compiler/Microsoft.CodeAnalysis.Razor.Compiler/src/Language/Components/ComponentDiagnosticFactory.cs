@@ -432,6 +432,14 @@ internal static class ComponentDiagnosticFactory
     public static RazorDiagnostic CreateStaticPageDirective_MustCombineWithPage(SourceSpan? source)
         => RazorDiagnostic.Create(StaticPageDirective_MustCombineWithPage, source);
 
+    public static readonly RazorDiagnosticDescriptor StaticPageDirective_MustNotCombineWithRenderMode =
+        new($"{DiagnosticPrefix}10026",
+            "Components declared as @staticpage cannot also specify a @rendermode.",
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateStaticPageDirective_MustNotCombineWithRenderMode(SourceSpan? source)
+        => RazorDiagnostic.Create(StaticPageDirective_MustNotCombineWithRenderMode, source);
+
     public static RazorDiagnostic CreateRenderModeAttribute_ComponentDeclaredRenderMode(SourceSpan? source, string component)
     {
         return RazorDiagnostic.Create(RenderModeAttribute_ComponentDeclaredRenderMode, source, component);

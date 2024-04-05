@@ -4638,6 +4638,23 @@ Hello", throwOnFailure: false);
     }
 
     [IntegrationTestFact]
+    public void Component_WithStaticPageDirective_AndRenderMode()
+    {
+        var generated = CompileToCSharp(@"
+@page ""/url""
+@rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
+@staticpage
+Hello", throwOnFailure: false);
+
+        Assert.Collection(generated.Diagnostics, d =>
+        {
+            Assert.Equal("RZ10026", d.Id);
+            Assert.Equal(RazorDiagnosticSeverity.Error, d.Severity);
+            Assert.Equal("Components declared as @staticpage cannot also specify a @rendermode.", d.GetMessage(CultureInfo.InvariantCulture));
+        });
+    }
+
+    [IntegrationTestFact]
     public void Component_WithUsingDirectives()
     {
         // Arrange
