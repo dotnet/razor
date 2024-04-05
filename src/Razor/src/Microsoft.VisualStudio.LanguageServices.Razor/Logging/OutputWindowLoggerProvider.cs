@@ -54,11 +54,11 @@ internal class OutputWindowLoggerProvider(
             return logLevel >= _clientSettingsManager.GetClientSettings().AdvancedSettings.LogLevel;
         }
 
-        public void Log<TState>(LogLevel logLevel, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        public void Log(LogLevel logLevel, string message, Exception? exception)
         {
             if (IsEnabled(logLevel))
             {
-                _outputPane.WriteLine($"{DateTime.Now:h:mm:ss.fff} [{_categoryName}] {formatter(state, exception)}");
+                _outputPane.WriteLine($"{DateTime.Now:h:mm:ss.fff} [{_categoryName}] {message}");
                 if (exception is not null)
                 {
                     _outputPane.WriteLine(exception.ToString());

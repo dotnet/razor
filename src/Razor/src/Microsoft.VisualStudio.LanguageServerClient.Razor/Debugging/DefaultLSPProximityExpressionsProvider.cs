@@ -72,7 +72,7 @@ internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsP
         var languageResponse = response?.Response;
         if (languageResponse is null)
         {
-            _logger.Value.LogInformation("The proximity expressions could not be resolved.");
+            _logger.Value.LogInformation($"The proximity expressions could not be resolved.");
             return null;
         }
 

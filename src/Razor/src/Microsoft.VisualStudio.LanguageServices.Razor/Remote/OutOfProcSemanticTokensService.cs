@@ -31,7 +31,7 @@ internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClient
 
         if (remoteClient is null)
         {
-            _logger.LogWarning("Couldn't get remote client");
+            _logger.LogWarning($"Couldn't get remote client");
             // Could not resolve
             return null;
         }
@@ -54,7 +54,7 @@ internal class OutOfProcSemanticTokensService(IRemoteClientProvider remoteClient
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling remote");
+            _logger.LogError(ex, $"Error calling remote");
             return null;
         }
     }

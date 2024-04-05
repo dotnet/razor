@@ -22,7 +22,7 @@ internal static class RazorCohostRequestContextExtensions
         }
         catch (RemoteInvocationException e)
         {
-            logger.LogError(e, "Error calling delegate server for {method}", target);
+            logger.LogError(e, $"Error calling delegate server for {target}");
             throw;
         }
     }

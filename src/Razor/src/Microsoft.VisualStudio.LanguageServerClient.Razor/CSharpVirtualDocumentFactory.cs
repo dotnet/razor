@@ -110,7 +110,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         foreach (var projectKey in GetProjectKeys(hostDocumentUri))
         {
             // We just call the base class here, it will call back into us to produce the virtual document uri
-            _logger.LogDebug("Creating C# virtual document for {projectKey} for {uri}", projectKey, hostDocumentUri);
+            _logger.LogDebug($"Creating C# virtual document for {projectKey} for {hostDocumentUri}");
             newVirtualDocuments.Add(CreateVirtualDocument(projectKey, hostDocumentUri));
         }
 
@@ -135,7 +135,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         // host document has been removed completely from all projects, we assume the document manager will clean it up soon anyway.
         if (projectKeys.Count == 0)
         {
-            _logger.LogWarning("Can't refresh C# virtual documents because no projects found for {uri}", document.Uri);
+            _logger.LogWarning($"Can't refresh C# virtual documents because no projects found for {document.Uri}");
             return false;
         }
 
@@ -162,7 +162,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
             {
                 // Project has been removed, or document is no longer in it. Dispose the old virtual document
                 didWork = true;
-                _logger.LogDebug("Disposing C# virtual document for {projectKey} for {uri}", csharpVirtualDocument.ProjectKey, csharpVirtualDocument.Uri);
+                _logger.LogDebug($"Disposing C# virtual document for {csharpVirtualDocument.ProjectKey} for {csharpVirtualDocument.Uri}");
                 virtualDocument.Dispose();
             }
         }
@@ -172,7 +172,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         {
             // We just call the base class here, it will call back into us to produce the virtual document uri
             didWork = true;
-            _logger.LogDebug("Creating C# virtual document for {projectKey} for {uri}", key, document.Uri);
+            _logger.LogDebug($"Creating C# virtual document for {key} for {document.Uri}");
             virtualDocuments.Add(CreateVirtualDocument(key, document.Uri));
         }
 
@@ -211,7 +211,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
             // We got called before we know about any projects. Probably just a .razor document being restored in VS from a previous session.
             // All we can do is return a default key and hope for the best.
             // TODO: Do we need to create some sort of Misc Files project on this (VS) side so the nav bar looks nicer?
-            _logger.LogDebug("Could not find any documents in projects for {uri}", hostDocumentUri);
+            _logger.LogDebug($"Could not find any documents in projects for {hostDocumentUri}");
             yield return default;
         }
     }

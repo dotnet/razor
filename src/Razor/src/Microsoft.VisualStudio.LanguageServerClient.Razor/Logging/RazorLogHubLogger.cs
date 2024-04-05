@@ -25,7 +25,7 @@ internal sealed class RazorLogHubLogger : ILogger
         return true;
     }
 
-    public void Log<TState>(LogLevel logLevel, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    public void Log(LogLevel logLevel, string message, Exception? exception)
     {
         var traceSource = _traceProvider.TryGetTraceSource();
         if (traceSource is null)
@@ -34,24 +34,22 @@ internal sealed class RazorLogHubLogger : ILogger
             return;
         }
 
-        var formattedResult = formatter(state, exception);
-
         switch (logLevel)
         {
             // We separate out Information because we want to check for specific log messages set from CLaSP
             case LogLevel.Information:
                 // The category for start and stop will only ever be "CLaSP" so no point logging it
-                if (formattedResult.StartsWith(ClaspLoggingBridge.LogStartContextMarker))
+                if (message.StartsWith(ClaspLoggingBridge.LogStartContextMarker))
                 {
-                    traceSource.TraceEvent(TraceEventType.Start, id: 0, "{0}", formattedResult);
+                    traceSource.TraceEvent(TraceEventType.Start, id: 0, "{0}", message);
                 }
-                else if (formattedResult.StartsWith(ClaspLoggingBridge.LogEndContextMarker))
+                else if (message.StartsWith(ClaspLoggingBridge.LogEndContextMarker))
                 {
-                    traceSource.TraceEvent(TraceEventType.Stop, id: 0, "{0}", formattedResult);
+                    traceSource.TraceEvent(TraceEventType.Stop, id: 0, "{0}", message);
                 }
                 else
                 {
-                    traceSource.TraceEvent(TraceEventType.Information, id: 0, "[{0}] {1}", _categoryName, formattedResult);
+                    traceSource.TraceEvent(TraceEventType.Information, id: 0, "[{0}] {1}", _categoryName, message);
                 }
 
                 break;
@@ -59,24 +57,15 @@ internal sealed class RazorLogHubLogger : ILogger
             case LogLevel.Trace:
             case LogLevel.Debug:
             case LogLevel.None:
-                traceSource.TraceEvent(TraceEventType.Information, id: 0, "[{0}] {1}", _categoryName, formattedResult);
+                traceSource.TraceEvent(TraceEventType.Information, id: 0, "[{0}] {1}", _categoryName, message);
                 break;
             case LogLevel.Warning:
-                traceSource.TraceEvent(TraceEventType.Warning, id: 0, "[{0}] {1}", _categoryName, formattedResult);
+                traceSource.TraceEvent(TraceEventType.Warning, id: 0, "[{0}] {1}", _categoryName, message);
                 break;
             case LogLevel.Error:
             case LogLevel.Critical:
-                traceSource.TraceEvent(TraceEventType.Error, id: 0, "[{0}] {1} {2}", _categoryName, formattedResult, exception!);
+                traceSource.TraceEvent(TraceEventType.Error, id: 0, "[{0}] {1} {2}", _categoryName, message, exception!);
                 break;
-        }
-    }
-
-    private class Scope : IDisposable
-    {
-        public static readonly Scope Instance = new();
-
-        public void Dispose()
-        {
         }
     }
 }

@@ -63,9 +63,9 @@ internal class VSTelemetryReporter : TelemetryReporter
         }
     }
 
-    protected override void LogTrace(string? message, params object?[] args)
-        => _logger.Value?.LogTrace(message, args);
+    protected override void LogTrace(string message)
+        => _logger.Value?.Log(LogLevel.Trace, message, exception: null);
 
-    protected override void LogError(Exception exception, string? message, params object?[] args)
-        => _logger.Value?.LogError(exception, message, args);
+    protected override void LogError(Exception exception, string message)
+        => _logger.Value?.Log(LogLevel.Error, message, exception);
 }

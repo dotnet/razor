@@ -42,12 +42,12 @@ internal class CohostTextDocumentSyncHandler(
         var textDocument = context.TextDocument.AssumeNotNull();
         var textDocumentPath = context.TextDocument.FilePath.AssumeNotNull();
 
-        _logger.LogDebug("[Cohost] {method} of '{document}' with version {version}.", context.Method, textDocumentPath, version);
+        _logger.LogDebug($"[Cohost] {context.Method} of '{textDocumentPath}' with version {version}.");   
 
         var client = await _remoteClientProvider.TryGetClientAsync(cancellationToken);
         if (client is null)
         {
-            _logger.LogError("[Cohost] Couldn't get remote client for {method} of '{document}'. Html document contents will be stale", context.Method, textDocumentPath);
+            _logger.LogError($"[Cohost] Couldn't get remote client for {context.Method} of '{textDocumentPath}'. Html document contents will be stale");
             return;
         }
 
@@ -57,7 +57,7 @@ internal class CohostTextDocumentSyncHandler(
 
         if (!htmlText.HasValue || htmlText.Value is null)
         {
-            _logger.LogError("[Cohost] Couldn't get Html text for {method} of '{document}'. Html document contents will be stale", context.Method, textDocumentPath);
+            _logger.LogError($"[Cohost] Couldn't get Html text for {context.Method} of '{textDocumentPath}'. Html document contents will be stale");
             return;
         }
 
@@ -70,7 +70,7 @@ internal class CohostTextDocumentSyncHandler(
             !documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
         {
             Debug.Fail("Got an LSP text document update before getting informed of the VS buffer");
-            _logger.LogError("[Cohost] Couldn't get an Html document for {method} of '{document}'. Html document contents will be stale (or non-existent?)", context.Method, textDocumentPath);
+            _logger.LogError($"[Cohost] Couldn't get an Html document for {context.Method} of '{textDocumentPath}'. Html document contents will be stale (or non-existent?)");
             return;
         }
 
@@ -79,6 +79,6 @@ internal class CohostTextDocumentSyncHandler(
         VisualStudioTextChange[] changes = [new(0, htmlDocument.Snapshot.Length, htmlText.Value)];
         _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, version, state: null);
 
-        _logger.LogDebug("[Cohost] Exiting {method} of '{document}' with version {version}.", context.Method, textDocumentPath, version);
+        _logger.LogDebug($"[Cohost] Exiting {context.Method} of '{textDocumentPath}' with version {version}.");
     }
 }
