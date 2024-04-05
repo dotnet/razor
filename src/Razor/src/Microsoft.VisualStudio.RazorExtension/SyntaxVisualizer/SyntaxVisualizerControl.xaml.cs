@@ -7,7 +7,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Shell;
@@ -19,6 +18,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Razor.Documents;
 using Microsoft.VisualStudio.Razor.SyntaxVisualizer;
+using Microsoft.VisualStudio.Razor;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 

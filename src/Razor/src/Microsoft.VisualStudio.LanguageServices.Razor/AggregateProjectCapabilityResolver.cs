@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(AggregateProjectCapabilityResolver))]
 internal class AggregateProjectCapabilityResolver : ProjectCapabilityResolver

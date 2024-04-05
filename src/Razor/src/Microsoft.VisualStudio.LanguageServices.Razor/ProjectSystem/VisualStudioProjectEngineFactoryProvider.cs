@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 [Export(typeof(IProjectEngineFactoryProvider))]
 internal sealed class VisualStudioProjectEngineFactoryProvider : IProjectEngineFactoryProvider

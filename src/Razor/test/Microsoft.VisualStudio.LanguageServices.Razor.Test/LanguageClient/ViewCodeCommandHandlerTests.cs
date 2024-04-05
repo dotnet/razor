@@ -6,7 +6,6 @@
 using System.CodeDom.Compiler;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;

@@ -5,9 +5,9 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
-[Guid(RazorVisualStudioWindowsConstants.RazorLanguageServiceString)]
+[Guid(RazorConstants.RazorLanguageServiceString)]
 internal partial class RazorLanguageService : IVsLanguageInfo
 {
     public int GetLanguageName(out string bstrName)

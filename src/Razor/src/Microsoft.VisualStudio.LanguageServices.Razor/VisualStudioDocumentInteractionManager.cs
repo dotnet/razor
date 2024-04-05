@@ -4,13 +4,12 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(DocumentInteractionManager))]
-internal class VisualStudioWindowsDocumentInteractionManager : DocumentInteractionManager
+internal class VisualStudioDocumentInteractionManager : DocumentInteractionManager
 {
     public override Task OpenDocumentAsync(string filePath, CancellationToken cancellationToken)
     {

@@ -10,11 +10,11 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
-public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
+public class VisualStudioLSPEditorFeatureDetectorTest : ToolingTestBase
 {
-    public VisualStudioWindowsLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput)
+    public VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -146,7 +146,7 @@ public class VisualStudioWindowsLSPEditorFeatureDetectorTest : ToolingTestBase
     }
 
 #pragma warning disable CS0618 // Type or member is obsolete (Test constructor)
-    private class TestLSPEditorFeatureDetector : VisualStudioWindowsLSPEditorFeatureDetector
+    private class TestLSPEditorFeatureDetector : VisualStudioLSPEditorFeatureDetector
     {
         public TestLSPEditorFeatureDetector(RazorLogger logger)
             : base(projectCapabilityResolver: null, logger)

@@ -4,7 +4,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(ILspServerActivationTracker))]
 internal class LspServerActivationTracker : ILspServerActivationTracker
@@ -13,11 +13,11 @@ internal class LspServerActivationTracker : ILspServerActivationTracker
 
     public void Activated()
     {
-        this.IsActive = true;
+        IsActive = true;
     }
 
     public void Deactivated()
     {
-        this.IsActive = false;
+        IsActive = false;
     }
 }

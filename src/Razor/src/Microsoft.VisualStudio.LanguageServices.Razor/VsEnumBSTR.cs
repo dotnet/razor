@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 internal class VsEnumBSTR : IVsEnumBSTR
 {

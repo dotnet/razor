@@ -8,7 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ComponentModelHost;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(RazorStartupInitializer))]
 [method: ImportingConstructor]

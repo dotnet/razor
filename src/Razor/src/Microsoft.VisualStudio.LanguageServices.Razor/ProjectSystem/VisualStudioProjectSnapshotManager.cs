@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 [Export(typeof(IProjectSnapshotManager))]
 [method: ImportingConstructor]

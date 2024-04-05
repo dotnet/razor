@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(LanguageServerFeatureOptions))]
-internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerFeatureOptions
+internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
     private const string ShowAllCSharpCodeActionsFeatureFlag = "Razor.LSP.ShowAllCSharpCodeActions";
     private const string IncludeProjectKeyInGeneratedFilePathFeatureFlag = "Razor.LSP.IncludeProjectKeyInGeneratedFilePath";
@@ -28,7 +28,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private readonly Lazy<bool> _forceRuntimeCodeGeneration;
 
     [ImportingConstructor]
-    public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
+    public VisualStudioLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
     {
         if (lspEditorFeatureDetector is null)
         {

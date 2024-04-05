@@ -3,7 +3,7 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Razor;
 using Microsoft.VisualStudio.Razor.Documents;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;

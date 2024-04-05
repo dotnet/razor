@@ -11,7 +11,7 @@ using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.Telemetry;
 
 public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {

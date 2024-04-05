@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Razor.Debugging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -19,7 +18,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {

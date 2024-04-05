@@ -6,14 +6,14 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(LSPEditorFeatureDetector))]
-internal class VisualStudioWindowsLSPEditorFeatureDetector : LSPEditorFeatureDetector
+internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
 {
     private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
     private const string DotNetCoreCSharpCapability = "CSharp&CPS";
@@ -30,7 +30,7 @@ internal class VisualStudioWindowsLSPEditorFeatureDetector : LSPEditorFeatureDet
     private readonly RazorLogger _logger;
 
     [ImportingConstructor]
-    public VisualStudioWindowsLSPEditorFeatureDetector(AggregateProjectCapabilityResolver projectCapabilityResolver, RazorLogger logger)
+    public VisualStudioLSPEditorFeatureDetector(AggregateProjectCapabilityResolver projectCapabilityResolver, RazorLogger logger)
     {
         _projectCapabilityResolver = projectCapabilityResolver;
         _vsUIShellOpenDocument = new Lazy<IVsUIShellOpenDocument>(() =>
@@ -43,14 +43,14 @@ internal class VisualStudioWindowsLSPEditorFeatureDetector : LSPEditorFeatureDet
 
         _useLegacyEditor = new Lazy<bool>(() =>
         {
-            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
             var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false);
             if (legacyEditorFeatureFlagEnabled)
             {
                 return true;
             }
 
-            var settingsManager = (Settings.ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
+            var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
             Assumes.Present(settingsManager);
 
             var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
@@ -62,7 +62,7 @@ internal class VisualStudioWindowsLSPEditorFeatureDetector : LSPEditorFeatureDet
 
     [Obsolete("Test constructor")]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    internal VisualStudioWindowsLSPEditorFeatureDetector()
+    internal VisualStudioLSPEditorFeatureDetector()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     {
     }

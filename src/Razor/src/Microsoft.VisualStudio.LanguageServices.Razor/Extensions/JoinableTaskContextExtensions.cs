@@ -5,7 +5,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Razor.Extensions;
 
 internal static class JoinableTaskContextExtensions
 {

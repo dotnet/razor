@@ -4,7 +4,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(IFilePathService))]
 [method: ImportingConstructor]
