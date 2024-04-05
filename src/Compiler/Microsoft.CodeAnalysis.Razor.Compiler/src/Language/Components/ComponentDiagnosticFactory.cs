@@ -424,6 +424,14 @@ internal static class ComponentDiagnosticFactory
             "Cannot override render mode for component '{0}' as it explicitly declares one.",
             RazorDiagnosticSeverity.Error);
 
+    public static readonly RazorDiagnosticDescriptor StaticPageDirective_MustCombineWithPage =
+        new($"{DiagnosticPrefix}10025",
+            "The @staticpage directive is only valid on components that also have a @page directive.",
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateStaticPageDirective_MustCombineWithPage(SourceSpan? source)
+        => RazorDiagnostic.Create(StaticPageDirective_MustCombineWithPage, source);
+
     public static RazorDiagnostic CreateRenderModeAttribute_ComponentDeclaredRenderMode(SourceSpan? source, string component)
     {
         return RazorDiagnostic.Create(RenderModeAttribute_ComponentDeclaredRenderMode, source, component);

@@ -4623,6 +4623,21 @@ Hello
     }
 
     [IntegrationTestFact]
+    public void Component_WithStaticPageDirective_ButNoPage()
+    {
+        var generated = CompileToCSharp(@"
+@staticpage
+Hello", throwOnFailure: false);
+
+        Assert.Collection(generated.Diagnostics, d =>
+        {
+            Assert.Equal("RZ10025", d.Id);
+            Assert.Equal(RazorDiagnosticSeverity.Error, d.Severity);
+            Assert.Equal("The @staticpage directive is only valid on components that also have a @page directive.", d.GetMessage(CultureInfo.InvariantCulture));
+        });
+    }
+
+    [IntegrationTestFact]
     public void Component_WithUsingDirectives()
     {
         // Arrange

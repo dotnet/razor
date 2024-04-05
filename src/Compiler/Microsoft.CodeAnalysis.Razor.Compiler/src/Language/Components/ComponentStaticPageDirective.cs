@@ -26,5 +26,6 @@ internal class ComponentStaticPageDirective
         }
 
         builder.AddDirective(Directive, FileKinds.Component, FileKinds.ComponentImport);
+        builder.Features.Add(new ComponentStaticPagePass());
     }
 }
