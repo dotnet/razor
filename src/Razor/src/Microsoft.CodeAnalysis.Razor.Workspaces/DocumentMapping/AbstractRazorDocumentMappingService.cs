@@ -237,7 +237,7 @@ internal abstract class AbstractRazorDocumentMappingService(
             hostDocumentRange.End.Line == hostDocumentRange.Start.Line &&
              hostDocumentRange.End.Character < hostDocumentRange.Start.Character)
         {
-            _logger.LogWarning("RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{originalRange}'", hostDocumentRange);
+            _logger.LogWarning($"RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{hostDocumentRange}'");
             Debug.Fail($"RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{hostDocumentRange}'");
             return false;
         }
@@ -782,7 +782,7 @@ internal abstract class AbstractRazorDocumentMappingService(
         {
             s_haveAsserted = true;
             var sourceTextLinesCount = sourceText.Lines.Count;
-            _logger.LogWarning("Attempted to map a range ({startLine},{startChar})-({endLine},{endChar}) outside of the Source (line count {sourceTextLinesCount}.) This could happen if the Roslyn and Razor LSP servers are not in sync.", range.Start.Line, range.Start.Character, range.End.Line, range.End.Character, sourceTextLinesCount);
+            _logger.LogWarning($"Attempted to map a range ({range.Start.Line},{range.Start.Character})-({range.End.Line},{range.End.Character}) outside of the Source (line count {sourceTextLinesCount}.) This could happen if the Roslyn and Razor LSP servers are not in sync.");
         }
 
         return result;
