@@ -476,6 +476,7 @@ public class RazorProjectEngine
         if (razorLanguageVersion >= RazorLanguageVersion.Version_8_0)
         {
             ComponentRenderModeDirective.Register(builder);
+            ComponentStaticPageDirective.Register(builder);
         }
 
         // Document Classifier

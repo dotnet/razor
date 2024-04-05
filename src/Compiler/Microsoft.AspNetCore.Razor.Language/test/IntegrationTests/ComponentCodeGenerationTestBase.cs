@@ -4587,6 +4587,22 @@ namespace Test
     }
 
     [IntegrationTestFact]
+    public void Component_WithStaticPageDirective()
+    {
+        // Act
+        var generated = CompileToCSharp(@"
+@page ""/MyPage""
+@page ""/AnotherRoute/{id}""
+@staticpage
+Hello");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
     public void Component_WithUsingDirectives()
     {
         // Arrange

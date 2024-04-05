@@ -54,6 +54,8 @@ internal class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDire
             }
         }
 
+        var isStaticPage = documentNode.FindDirectiveReferences(ComponentStaticPageDirective.Directive).Any();
+
         for (var i = 0; i < directives.Count; i++)
         {
             var pageDirective = (DirectiveIntermediateNode)directives[i].Node;
@@ -63,7 +65,7 @@ internal class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDire
 
             if (routeToken is { Content: ['"', '/', .., '"'] content })
             {
-                @namespace.Children.Insert(index++, new RouteAttributeExtensionNode(content) { Source = routeToken.Source });
+                @namespace.Children.Insert(index++, new RouteAttributeExtensionNode(content, isStaticPage) { Source = routeToken.Source });
             }
             else
             {

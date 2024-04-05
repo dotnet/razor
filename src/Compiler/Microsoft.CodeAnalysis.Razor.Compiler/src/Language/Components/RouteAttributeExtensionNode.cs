@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal sealed class RouteAttributeExtensionNode(string template) : ExtensionIntermediateNode
+internal sealed class RouteAttributeExtensionNode(string template, bool isStaticPage) : ExtensionIntermediateNode
 {
     public string Template { get; } = template;
 
@@ -32,6 +32,12 @@ internal sealed class RouteAttributeExtensionNode(string template) : ExtensionIn
                 context.CodeWriter.WriteLine(Template);
             }
         }
+
+        if (isStaticPage)
+        {
+            context.CodeWriter.Write(", Static = true");
+        }
+
         context.CodeWriter.WriteLine(")]");
     }
 }
