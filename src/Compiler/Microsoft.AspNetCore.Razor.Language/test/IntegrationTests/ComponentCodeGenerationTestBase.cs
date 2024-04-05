@@ -4603,6 +4603,26 @@ Hello");
     }
 
     [IntegrationTestFact]
+    public void Component_WithStaticPageDirective_DefinedInImportsFile()
+    {
+        // Arrange
+        var importItem = CreateProjectItem("_Imports.razor", "@staticpage", FileKinds.ComponentImport);
+        ImportItems.Add(importItem);
+
+        // Act
+        var generated = CompileToCSharp(@"
+@page ""/MyPage""
+@page ""/AnotherRoute/{id}""
+Hello
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
     public void Component_WithUsingDirectives()
     {
         // Arrange
