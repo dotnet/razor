@@ -10535,145 +10535,39 @@ Time: @DateTime.Now
   }
 }";
 
-        DiagnosticDescription[] expectedDiagnostics = DesignTime
-                    ? [// (36,9): error CS0103: The name '__builder' does not exist in the current context
-                       //         __builder.OpenElement(0, "p");
-                       Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(36, 9),
-                       // (37,29): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(37, 29),
-                       // (37,30): error CS1031: Type expected
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(37, 30),
-                       // (37,30): error CS8124: Tuple must contain at least two elements.
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_TupleTooFewElements, "1").WithLocation(37, 30),
-                       // (37,30): error CS1026: ) expected
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(37, 30),
-                       // (37,30): error CS1519: Invalid token '1' in class, record, struct, or interface member declaration
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(37, 30),
-                       // (45,9): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
-                       //         );
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(45, 9),
-                       // (45,9): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
-                       //         );
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(45, 9),
-                       // (46,31): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-                       //         __builder.CloseElement();
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(46, 31),
-                       // (46,32): error CS8124: Tuple must contain at least two elements.
-                       //         __builder.CloseElement();
-                       Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(46, 32),
-                       // (46,33): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                       //         __builder.CloseElement();
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(46, 33),
-                       // (47,35): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(47, 35),
-                       // (47,36): error CS1031: Type expected
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_TypeExpected, "2").WithLocation(47, 36),
-                       // (47,36): error CS8124: Tuple must contain at least two elements.
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_TupleTooFewElements, "2").WithLocation(47, 36),
-                       // (47,36): error CS1026: ) expected
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_CloseParenExpected, "2").WithLocation(47, 36),
-                       // (47,36): error CS1519: Invalid token '2' in class, record, struct, or interface member declaration
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "2").WithArguments("2").WithLocation(47, 36)]
-                    : [// (36,9): error CS0103: The name '__builder' does not exist in the current context
-                       //         __builder.OpenElement(0, "p");
-                       Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(36, 9),
-                       // (37,29): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(37, 29),
-                       // (37,30): error CS1031: Type expected
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(37, 30),
-                       // (37,30): error CS8124: Tuple must contain at least two elements.
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_TupleTooFewElements, "1").WithLocation(37, 30),
-                       // (37,30): error CS1026: ) expected
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(37, 30),
-                       // (37,30): error CS1519: Invalid token '1' in class, record, struct, or interface member declaration
-                       //         __builder.AddContent(1,
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(37, 30),
-                       // (45,9): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
-                       //         );
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(45, 9),
-                       // (45,9): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
-                       //         );
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(45, 9),
-                       // (46,31): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-                       //         __builder.CloseElement();
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(46, 31),
-                       // (46,32): error CS8124: Tuple must contain at least two elements.
-                       //         __builder.CloseElement();
-                       Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(46, 32),
-                       // (46,33): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                       //         __builder.CloseElement();
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(46, 33),
-                       // (47,35): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(47, 35),
-                       // (47,36): error CS1031: Type expected
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_TypeExpected, "2").WithLocation(47, 36),
-                       // (47,36): error CS8124: Tuple must contain at least two elements.
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_TupleTooFewElements, "2").WithLocation(47, 36),
-                       // (47,36): error CS1026: ) expected
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_CloseParenExpected, "2").WithLocation(47, 36),
-                       // (47,36): error CS1519: Invalid token '2' in class, record, struct, or interface member declaration
-                       //         __builder.AddMarkupContent(2, "\r\n");
-                       Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "2").WithArguments("2").WithLocation(47, 36)
-                    ];
+        DiagnosticDescription[] expectedDiagnostics = [
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,67): error CS1525: Invalid expression term '<'
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(13, 67),
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,67): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_IllegalStatement, """
+            <p>@context</p>
+              [Parameter]
+            """.NormalizeLineEndings()).WithLocation(13, 67),
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,68): error CS0103: The name 'p' does not exist in the current context
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(13, 68),
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,79): error CS1525: Invalid expression term '/'
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "/").WithArguments("/").WithLocation(13, 79),
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,80): error CS0103: The name 'p' does not exist in the current context
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(13, 80),
+            // x:\dir\subdir\Test\TestComponent.cshtml(14,4): error CS0103: The name 'Parameter' does not exist in the current context
+            //   [Parameter]
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Parameter").WithArguments("Parameter").WithLocation(14, 4),
+            // x:\dir\subdir\Test\TestComponent.cshtml(14,14): error CS1002: ; expected
+            //   [Parameter]
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 14)]
+                    ;
 
         var generated = CompileToCSharp(code, expectedDiagnostics);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, DesignTime
-            ? []
-            : [// (78,9): error CS0103: The name '__builder' does not exist in the current context
-               //         __builder.OpenElement(10, "p");
-               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(78, 9),
-               // (79,29): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-               //         __builder.AddContent(11,
-               Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(79, 29),
-               // (79,30): error CS1031: Type expected
-               //         __builder.AddContent(11,
-               Diagnostic(ErrorCode.ERR_TypeExpected, "11").WithLocation(79, 30),
-               // (79,30): error CS8124: Tuple must contain at least two elements.
-               //         __builder.AddContent(11,
-               Diagnostic(ErrorCode.ERR_TupleTooFewElements, "11").WithLocation(79, 30),
-               // (79,30): error CS1026: ) expected
-               //         __builder.AddContent(11,
-               Diagnostic(ErrorCode.ERR_CloseParenExpected, "11").WithLocation(79, 30),
-               // (79,30): error CS1519: Invalid token '11' in class, record, struct, or interface member declaration
-               //         __builder.AddContent(11,
-               Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "11").WithArguments("11").WithLocation(79, 30),
-               // (87,9): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
-               //         );
-               Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(87, 9),
-               // (87,9): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
-               //         );
-               Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(87, 9),
-               // (88,31): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-               //         __builder.CloseElement();
-               Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(88, 31),
-               // (88,32): error CS8124: Tuple must contain at least two elements.
-               //         __builder.CloseElement();
-               Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(88, 32),
-               // (88,33): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-               //         __builder.CloseElement();
-               Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(88, 33)]);
+        CompileToAssembly(generated, expectedDiagnostics);
     }
 
     [IntegrationTestFact]

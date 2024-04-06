@@ -61,21 +61,7 @@ namespace Test
 #line 11 "x:\dir\subdir\Test\TestComponent.cshtml"
  
   [Parameter]
-  public RenderFragment ChildContent { get; set; } = (context) => 
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line 13 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                __o = context;
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line 13 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                                 
+  public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
   [Parameter]
   public bool Collapsed { get; set; }
   string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
