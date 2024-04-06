@@ -1,16 +1,16 @@
-﻿RazorDocument - [0..119)::119 - [@{LF    void Foo()LF    {LF        var time = DateTime.Now;LF        <strong>Hello the time is @time</strong>LF    }LF}]
-    MarkupBlock - [0..119)::119
+﻿RazorDocument - [0..118)::118 - [@{LF    void Foo()LF    {LF        var time = DateTime.NowLF        <strong>Hello the time is @time</strong>LF    }LF}]
+    MarkupBlock - [0..118)::118
         MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
-        CSharpCodeBlock - [0..119)::119
-            CSharpStatement - [0..119)::119
+        CSharpCodeBlock - [0..118)::118
+            CSharpStatement - [0..118)::118
                 CSharpTransition - [0..1)::1 - Gen<None>
                     Transition;[@];
-                CSharpStatementBody - [1..119)::118
+                CSharpStatementBody - [1..118)::117
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
-                    CSharpCodeBlock - [2..118)::116
-                        CSharpStatementLiteral - [2..61)::59 - [LF    void Foo()LF    {LF        var time = DateTime.Now;LF] - Gen<Stmt>
+                    CSharpCodeBlock - [2..117)::115
+                        CSharpStatementLiteral - [2..68)::66 - [LF    void Foo()LF    {LF        var time = DateTime.NowLF        ] - Gen<Stmt>
                             NewLine;[LF];
                             Whitespace;[    ];
                             Keyword;[void];
@@ -32,17 +32,15 @@
                             Identifier;[DateTime];
                             Dot;[.];
                             Identifier;[Now];
-                            Semicolon;[;];
                             NewLine;[LF];
-                        MarkupBlock - [61..111)::50
-                            MarkupTextLiteral - [61..69)::8 - [        ] - Gen<Markup>
-                                Whitespace;[        ];
-                            MarkupElement - [69..109)::40
-                                MarkupStartTag - [69..77)::8 - [<strong>] - Gen<Markup>
+                            Whitespace;[        ];
+                        MarkupBlock - [68..110)::42
+                            MarkupElement - [68..108)::40
+                                MarkupStartTag - [68..76)::8 - [<strong>] - Gen<Markup>
                                     OpenAngle;[<];
                                     Text;[strong];
                                     CloseAngle;[>];
-                                MarkupTextLiteral - [77..95)::18 - [Hello the time is ] - Gen<Markup>
+                                MarkupTextLiteral - [76..94)::18 - [Hello the time is ] - Gen<Markup>
                                     Text;[Hello];
                                     Whitespace;[ ];
                                     Text;[the];
@@ -51,27 +49,27 @@
                                     Whitespace;[ ];
                                     Text;[is];
                                     Whitespace;[ ];
-                                CSharpCodeBlock - [95..100)::5
-                                    CSharpImplicitExpression - [95..100)::5
-                                        CSharpTransition - [95..96)::1 - Gen<None>
+                                CSharpCodeBlock - [94..99)::5
+                                    CSharpImplicitExpression - [94..99)::5
+                                        CSharpTransition - [94..95)::1 - Gen<None>
                                             Transition;[@];
-                                        CSharpImplicitExpressionBody - [96..100)::4
-                                            CSharpCodeBlock - [96..100)::4
-                                                CSharpExpressionLiteral - [96..100)::4 - [time] - Gen<Expr>
+                                        CSharpImplicitExpressionBody - [95..99)::4
+                                            CSharpCodeBlock - [95..99)::4
+                                                CSharpExpressionLiteral - [95..99)::4 - [time] - Gen<Expr>
                                                     Identifier;[time];
-                                MarkupEndTag - [100..109)::9 - [</strong>] - Gen<Markup>
+                                MarkupEndTag - [99..108)::9 - [</strong>] - Gen<Markup>
                                     OpenAngle;[<];
                                     ForwardSlash;[/];
                                     Text;[strong];
                                     CloseAngle;[>];
-                            MarkupTextLiteral - [109..111)::2 - [LF] - Gen<Markup>
+                            MarkupTextLiteral - [108..110)::2 - [LF] - Gen<Markup>
                                 NewLine;[LF];
-                        CSharpStatementLiteral - [111..118)::7 - [    }LF] - Gen<Stmt>
+                        CSharpStatementLiteral - [110..117)::7 - [    }LF] - Gen<Stmt>
                             Whitespace;[    ];
                             RightBrace;[}];
                             NewLine;[LF];
-                    RazorMetaCode - [118..119)::1 - Gen<None>
+                    RazorMetaCode - [117..118)::1 - Gen<None>
                         RightBrace;[}];
-        MarkupTextLiteral - [119..119)::0 - [] - Gen<Markup>
+        MarkupTextLiteral - [118..118)::0 - [] - Gen<Markup>
             Marker;[];
     EndOfFile;[];
