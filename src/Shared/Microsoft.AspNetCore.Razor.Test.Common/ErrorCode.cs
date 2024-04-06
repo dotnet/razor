@@ -8,15 +8,18 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public enum ErrorCode
 {
+    ERR_BadIndexLHS = 21,
     ERR_NoImplicitConv = 29,
     ERR_NameNotInContext = 103,
     ERR_BadSKunknown = 119,
     ERR_ObjectRequired = 120,
     WRN_UnreferencedField = 169,
+    ERR_IllegalStatement = 201,
     ERR_DottedTypeNameNotFoundInNS = 234,
     ERR_SingleTypeNameNotFound = 246,
     ERR_CantInferMethTypeArgs = 411,
     WRN_UnreferencedFieldAssg = 414,
+    ERR_SemicolonExpected = 1002,
     ERR_SyntaxError = 1003,
     ERR_CloseParenExpected = 1026,
     ERR_TypeExpected = 1031,
@@ -24,6 +27,7 @@ public enum ErrorCode
     ERR_BadArgCount = 1501,
     ERR_BadArgType = 1503,
     ERR_InvalidMemberDecl = 1519,
+    ERR_InvalidExprTerm = 1525,
     ERR_CantConvAnonMethReturns = 1662,
     WRN_AsyncLacksAwaits = 1998,
     ERR_NoCorrespondingArgument = 7036,

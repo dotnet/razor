@@ -66,28 +66,10 @@ ChildContent
         }
         #pragma warning restore 1998
 #nullable restore
-#line (11,2)-(13,67) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (11,2)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 
   [Parameter]
-  public RenderFragment ChildContent { get; set; } = (context) => 
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.OpenElement(10, "p");
-        __builder.AddContent(11, 
-#nullable restore
-#line (13,71)-(13,78) "x:\dir\subdir\Test\TestComponent.cshtml"
-context
-
-#line default
-#line hidden
-#nullable disable
-        );
-        __builder.CloseElement();
-#nullable restore
-#line (14,1)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+  public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
   [Parameter]
   public bool Collapsed { get; set; }
   string ActionText { get => Collapsed ? "Expand" : "Collapse"; }

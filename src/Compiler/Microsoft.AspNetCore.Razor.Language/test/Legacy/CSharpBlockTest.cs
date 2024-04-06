@@ -782,37 +782,6 @@ catch(bar) { baz(); }");
     [Fact]
     public void EscapedIdentifiers_03()
     {
-        // Asserts:
-        /*
-        System.InvalidOperationException : Token content mismatch: '@' != 'v'. Token Type: 'Transition'.
-   at Microsoft.CodeAnalysis.ThrowingTraceListener.Fail(String message, String detailMessage)
-   at System.Diagnostics.TraceInternal.Fail(String message, String detailMessage)
-   at System.Diagnostics.Debug.Fail(String message, String detailMessage)
-   at Microsoft.AspNetCore.Razor.Language.Legacy.Tokenizer.EndToken(SyntaxKind type) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/Tokenizer.cs:line 229
-   at Microsoft.AspNetCore.Razor.Language.Legacy.CSharpTokenizer.EscapedRazorCommentTransition() in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/CSharpTokenizer.cs:line 461
-   at Microsoft.AspNetCore.Razor.Language.Legacy.CSharpTokenizer.Dispatch() in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/CSharpTokenizer.cs:line 171
-   at Microsoft.AspNetCore.Razor.Language.Legacy.Tokenizer.Turn() in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/Tokenizer.cs:line 119
-   at Microsoft.AspNetCore.Razor.Language.Legacy.Tokenizer.NextToken() in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/Tokenizer.cs:line 101
-   at Microsoft.AspNetCore.Razor.Language.Legacy.TokenizerView`1.Next() in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/TokenizerView.cs:line 29
-   at Microsoft.AspNetCore.Razor.Language.Legacy.TokenizerBackedParser`1.NextToken() in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/TokenizerBackedParser.cs:line 200
-   at Microsoft.AspNetCore.Razor.Language.Legacy.CSharpCodeParser.ParseStandardStatement(SyntaxListBuilder`1& builder) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/CSharpCodeParser.cs:line 983
-   at Microsoft.AspNetCore.Razor.Language.Legacy.CSharpCodeParser.ParseStatement(SyntaxListBuilder`1& builder, Block block) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/CSharpCodeParser.cs:line 850
-   at Microsoft.AspNetCore.Razor.Language.Legacy.CSharpCodeParser.ParseCodeBlock(SyntaxListBuilder`1& builder, Block block) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/CSharpCodeParser.cs:line 718
-   at Microsoft.AspNetCore.Razor.Language.Legacy.CSharpCodeParser.ParseStatementBody(Block block) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/CSharpCodeParser.cs:line 666
-   at Microsoft.AspNetCore.Razor.Language.Legacy.CSharpCodeParser.ParseBlock() in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/CSharpCodeParser.cs:line 275
-   at Microsoft.AspNetCore.Razor.Language.Legacy.HtmlMarkupParser.OtherParserBlock(SyntaxListBuilder`1& builder) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/HtmlMarkupParser.cs:line 2139
-   at Microsoft.AspNetCore.Razor.Language.Legacy.HtmlMarkupParser.ParseCodeTransition(SyntaxListBuilder`1& builder) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/HtmlMarkupParser.cs:line 1554
-   at Microsoft.AspNetCore.Razor.Language.Legacy.HtmlMarkupParser.ParseMarkupNode(SyntaxListBuilder`1& builder, ParseMode mode) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/HtmlMarkupParser.cs:line 258
-   at Microsoft.AspNetCore.Razor.Language.Legacy.HtmlMarkupParser.ParseMarkupNodes(SyntaxListBuilder`1& builder, ParseMode mode, Func`2 stopCondition) in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/HtmlMarkupParser.cs:line 225
-   at Microsoft.AspNetCore.Razor.Language.Legacy.HtmlMarkupParser.ParseDocument() in /src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/Legacy/HtmlMarkupParser.cs:line 78
-   at Microsoft.AspNetCore.Razor.Language.Legacy.ParserTestBase.ParseDocument(RazorLanguageVersion version, String document, IEnumerable`1 directives, Boolean designTime, RazorParserFeatureFlags featureFlags, String fileKind) in /src/Shared/Microsoft.AspNetCore.Razor.Test.Common/Language/Legacy/ParserTestBase.cs:line 208
-   at Microsoft.AspNetCore.Razor.Language.Legacy.ParserTestBase.ParseDocumentTest(RazorLanguageVersion version, String document, IEnumerable`1 directives, Boolean designTime, String fileKind) in /src/Shared/Microsoft.AspNetCore.Razor.Test.Common/Language/Legacy/ParserTestBase.cs:line 250
-   at Microsoft.AspNetCore.Razor.Language.Legacy.ParserTestBase.ParseDocumentTest(String document, IEnumerable`1 directives, Boolean designTime, String fileKind) in /src/Shared/Microsoft.AspNetCore.Razor.Test.Common/Language/Legacy/ParserTestBase.cs:line 245
-   at Microsoft.AspNetCore.Razor.Language.Legacy.ParserTestBase.ParseDocumentTest(String document) in /src/Shared/Microsoft.AspNetCore.Razor.Test.Common/Language/Legacy/ParserTestBase.cs:line 225
-   at Microsoft.AspNetCore.Razor.Language.Legacy.CSharpBlockTest.EscapedIdentifiers_03() in /src/Compiler/Microsoft.AspNetCore.Razor.Language/test/Legacy/CSharpBlockTest.cs:line 785
-   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
-   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
-        */
         ParseDocumentTest("""
             @{
                 var @@class = 1;

@@ -10,13 +10,12 @@
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..68)::66
-                        CSharpStatementLiteral - [2..68)::66 - [LF    var @string = "string test";LF    @@string = "new string";LF] - Gen<Stmt>
+                        CSharpStatementLiteral - [2..42)::40 - [LF    var @string = "string test";LF    ] - Gen<Stmt>
                             NewLine;[LF];
                             Whitespace;[    ];
                             Identifier;[var];
                             Whitespace;[ ];
-                            Transition;[@];
-                            Keyword;[string];
+                            Identifier;[@string];
                             Whitespace;[ ];
                             Assign;[=];
                             Whitespace;[ ];
@@ -24,7 +23,9 @@
                             Semicolon;[;];
                             NewLine;[LF];
                             Whitespace;[    ];
+                        CSharpEphemeralTextLiteral - [42..43)::1 - [@] - Gen<None>
                             Transition;[@];
+                        CSharpStatementLiteral - [43..68)::25 - [@string = "new string";LF] - Gen<Stmt>
                             Transition;[@];
                             Keyword;[string];
                             Whitespace;[ ];
