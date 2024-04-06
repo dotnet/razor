@@ -603,7 +603,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             @* kdl
 
             skd
-
+                
                     sdfasdfasdf
             slf*@
             """;
