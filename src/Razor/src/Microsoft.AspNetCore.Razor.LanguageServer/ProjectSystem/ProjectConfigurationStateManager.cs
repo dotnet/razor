@@ -55,6 +55,12 @@ internal partial class ProjectConfigurationStateManager : IDisposable
             _disposalTokenSource.Token);
     }
 
+    public void Dispose()
+    {
+        _disposalTokenSource.Cancel();
+        _disposalTokenSource.Dispose();
+    }
+
     private ValueTask ProcessBatchAsync(ImmutableArray<(ProjectKey ProjectKey, RazorProjectInfo? ProjectInfo)> workItems, CancellationToken cancellationToken)
     {
         foreach (var workItem in workItems.GetMostRecentUniqueItems(Comparer.Instance))
@@ -170,11 +176,5 @@ internal partial class ProjectConfigurationStateManager : IDisposable
             displayName: "",
             ProjectWorkspaceState.Default,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
-    }
-
-    public void Dispose()
-    {
-        _disposalTokenSource.Cancel();
-        _disposalTokenSource.Dispose();
     }
 }
