@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
@@ -95,8 +96,6 @@ internal partial class ProjectConfigurationStateManager : IDisposable
 
     private void ProjectInfoUpdatedImpl(ProjectKey projectKey, RazorProjectInfo? projectInfo)
     {
-        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
-
         var knownProject = _projectManager.TryGetLoadedProject(projectKey, out _);
 
         if (projectInfo is null)
@@ -121,7 +120,9 @@ internal partial class ProjectConfigurationStateManager : IDisposable
             var intermediateOutputPath = FilePathNormalizer.Normalize(projectInfo.SerializedFilePath);
             _logger.LogInformation("Found no existing project key for project key '{0}'. Assuming new project.", projectKey.Id);
 
-            AddProject(intermediateOutputPath, projectInfo);
+            _projectSnapshotManagerDispatcher.RunAsync(
+                () => AddProject(intermediateOutputPath, projectInfo),
+                cancellationToken).Forget();
             return;
         }
 
