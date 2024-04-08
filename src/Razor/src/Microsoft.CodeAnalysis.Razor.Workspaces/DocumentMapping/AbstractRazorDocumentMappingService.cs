@@ -449,7 +449,7 @@ internal abstract class AbstractRazorDocumentMappingService(
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        var documentContext = _documentContextFactory.TryCreate(razorDocumentUri);
+        var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
             return (generatedDocumentUri, generatedDocumentRange);
@@ -809,7 +809,7 @@ internal abstract class AbstractRazorDocumentMappingService(
             }
 
             var razorDocumentUri = _documentFilePathService.GetRazorDocumentUri(generatedDocumentUri);
-            var documentContext = _documentContextFactory.TryCreateForOpenDocument(razorDocumentUri, entry.TextDocument.GetProjectContext());
+            var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(razorDocumentUri, entry.TextDocument.GetProjectContext(), cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 continue;
@@ -853,7 +853,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                 continue;
             }
 
-            var documentContext = _documentContextFactory.TryCreate(uri);
+            var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 continue;

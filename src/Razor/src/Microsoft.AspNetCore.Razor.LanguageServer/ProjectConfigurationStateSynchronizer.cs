@@ -3,18 +3,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -73,7 +73,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         // We found the last associated project file for the configuration file. Reset the project since we can't
                         // accurately determine its configurations.
 
-                        EnqueueUpdateProject(lastAssociatedProjectKey, projectInfo: null);
+                        EnqueueUpdateProject(lastAssociatedProjectKey, projectInfo: null, CancellationToken.None);
                         return;
                     }
 
@@ -81,13 +81,13 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     {
                         _logger.LogWarning("Found no project key for configuration file. Assuming new project. Configuration file path: '{0}'", configurationFilePath);
 
-                        AddProject(configurationFilePath, projectInfo);
+                        AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
                         return;
                     }
 
                     _logger.LogInformation("Project configuration file changed for project '{0}': '{1}'", associatedProjectKey.Id, configurationFilePath);
 
-                    EnqueueUpdateProject(associatedProjectKey, projectInfo);
+                    EnqueueUpdateProject(associatedProjectKey, projectInfo, CancellationToken.None);
                     break;
                 }
             case RazorFileChangeKind.Added:
@@ -101,7 +101,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         return;
                     }
 
-                    AddProject(configurationFilePath, projectInfo);
+                    AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
                     break;
                 }
             case RazorFileChangeKind.Removed:
@@ -118,54 +118,69 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
                     _logger.LogInformation("Project configuration file removed for project '{0}': '{1}'", projectFilePath, configurationFilePath);
 
-                    EnqueueUpdateProject(projectFilePath, projectInfo: null);
+                    EnqueueUpdateProject(projectFilePath, projectInfo: null, CancellationToken.None);
                     break;
                 }
         }
 
-        void AddProject(string configurationFilePath, RazorProjectInfo projectInfo)
+        async Task AddProjectAsync(string configurationFilePath, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
         {
-            var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
-            var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
-            var rootNamespace = projectInfo.RootNamespace;
+            try
+            {
+                var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
+                var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
+                var rootNamespace = projectInfo.RootNamespace;
 
-            var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
-            _configurationToProjectMap[configurationFilePath] = projectKey;
+                var projectKey = await _projectService
+                    .AddProjectAsync(
+                        projectFilePath,
+                        intermediateOutputPath,
+                        projectInfo.Configuration,
+                        rootNamespace,
+                        projectInfo.DisplayName,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+                _configurationToProjectMap[configurationFilePath] = projectKey;
 
-            _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
-            EnqueueUpdateProject(projectKey, projectInfo);
+                _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
+                EnqueueUpdateProject(projectKey, projectInfo, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while adding project: {FilePath}", projectInfo.FilePath);
+            }
         }
 
-        void UpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
+        Task UpdateProjectAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
         {
             if (projectInfo is null)
             {
-                ResetProject(projectKey);
-                return;
+                return ResetProjectAsync(projectKey, cancellationToken);
             }
 
             _logger.LogInformation("Actually updating {project} with a real projectInfo", projectKey);
 
             var projectWorkspaceState = projectInfo.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
             var documents = projectInfo.Documents;
-            _projectService.UpdateProject(
+            return _projectService.UpdateProjectAsync(
                 projectKey,
                 projectInfo.Configuration,
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectWorkspaceState,
-                documents);
+                documents,
+                cancellationToken);
         }
 
-        async Task UpdateAfterDelayAsync(ProjectKey projectKey)
+        async Task UpdateAfterDelayAsync(ProjectKey projectKey, CancellationToken cancellationToken)
         {
             await Task.Delay(EnqueueDelay).ConfigureAwait(true);
 
             var delayedProjectInfo = ProjectInfoMap[projectKey];
-            UpdateProject(projectKey, delayedProjectInfo.ProjectInfo);
+            await UpdateProjectAsync(projectKey, delayedProjectInfo.ProjectInfo, cancellationToken).ConfigureAwait(false);
         }
 
-        void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
+        void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
         {
             if (!ProjectInfoMap.ContainsKey(projectKey))
             {
@@ -177,19 +192,20 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
             if (delayedProjectInfo.ProjectUpdateTask is null || delayedProjectInfo.ProjectUpdateTask.IsCompleted)
             {
-                delayedProjectInfo.ProjectUpdateTask = UpdateAfterDelayAsync(projectKey);
+                delayedProjectInfo.ProjectUpdateTask = UpdateAfterDelayAsync(projectKey, cancellationToken);
             }
         }
 
-        void ResetProject(ProjectKey projectKey)
+        Task ResetProjectAsync(ProjectKey projectKey, CancellationToken cancellationToken)
         {
-            _projectService.UpdateProject(
+            return _projectService.UpdateProjectAsync(
                 projectKey,
                 configuration: null,
                 rootNamespace: null,
                 displayName: "",
                 ProjectWorkspaceState.Default,
-                ImmutableArray<DocumentSnapshotHandle>.Empty);
+                documents: [],
+                cancellationToken);
         }
     }
 
