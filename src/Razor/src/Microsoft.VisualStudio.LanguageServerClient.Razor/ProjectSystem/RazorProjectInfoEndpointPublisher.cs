@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.ProjectSystem;
 /// Publishes project data (including TagHelper info) discovered OOB to the server via LSP notification
 /// instead of old method of writing a project configuration bin file
 /// </summary>
-[Shared]
 [Export(typeof(RazorProjectInfoEndpointPublisher))]
 internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 {
