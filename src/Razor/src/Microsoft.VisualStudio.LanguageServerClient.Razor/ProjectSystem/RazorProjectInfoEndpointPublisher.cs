@@ -8,11 +8,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.ProjectSystem;
 
@@ -35,8 +37,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
     [ImportingConstructor]
     public RazorProjectInfoEndpointPublisher(
         LSPRequestInvoker requestInvoker,
-        IProjectSnapshotManager projectManager
-    )
+        IProjectSnapshotManager projectManager)
     {
         _requestInvoker = requestInvoker;
         _projectManager = projectManager;
@@ -94,7 +95,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                     break;
                 }
 
-                EnqueuePublish(args.Newer!);
+                EnqueuePublish(args.Newer.AssumeNotNull());
 
                 break;
 
@@ -104,14 +105,14 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 {
                     // Don't enqueue project addition as those are unlikely to come through in large batches.
                     // Also ensures that we won't get project removal go through the queue without project addition.
-                    ImmediatePublish(args.Newer!, _disposeTokenSource.Token);
+                    ImmediatePublish(args.Newer.AssumeNotNull(), _disposeTokenSource.Token);
                 }
 
                 break;
 
             case ProjectChangeKind.ProjectRemoved:
                 // Enqueue removal so it will replace any other project changes in the work queue as they unnecessary now.
-                EnqueueRemoval(args.Older!);
+                EnqueueRemoval(args.Older.AssumeNotNull());
                 break;
 
             default:
@@ -197,10 +198,10 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
             ProjectInfo = encodedProjectInfo
         };
 
-        _ = _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
+        _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
                 LanguageServerConstants.RazorProjectInfoEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 parameter,
-                cancellationToken);
+                cancellationToken).Forget();
     }
 }
