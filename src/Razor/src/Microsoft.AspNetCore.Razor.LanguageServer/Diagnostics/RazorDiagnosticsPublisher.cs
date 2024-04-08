@@ -231,10 +231,18 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
             if (delegatedResponse.HasValue &&
                 delegatedResponse.Value.TryGetFirst(out var fullDiagnostics) &&
-                fullDiagnostics.Items is not null &&
-                _documentContextFactory.Value.TryCreate(delegatedParams.TextDocument.Uri, projectContext: null) is { } documentContext)
+                fullDiagnostics.Items is not null)
             {
-                csharpDiagnostics = await _razorTranslateDiagnosticsService.Value.TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None).ConfigureAwait(false);
+                var documentContext = await _documentContextFactory.Value
+                    .TryCreateAsync(delegatedParams.TextDocument.Uri, projectContext: null, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                if (documentContext is not null)
+                {
+                    csharpDiagnostics = await _razorTranslateDiagnosticsService.Value
+                        .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None)
+                        .ConfigureAwait(false);
+                }
             }
         }
 
