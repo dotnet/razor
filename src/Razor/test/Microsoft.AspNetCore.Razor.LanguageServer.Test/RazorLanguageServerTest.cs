@@ -14,6 +14,8 @@ using Nerdbank.Streams;
 using Xunit;
 using Xunit.Abstractions;
 
+using RazorLanguageServerConstants = Microsoft.CodeAnalysis.Razor.Protocol.LanguageServerConstants;
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
 public class RazorLanguageServerTest : ToolingTestBase
@@ -67,6 +69,9 @@ public class RazorLanguageServerTest : ToolingTestBase
         // We turn this into a Set to handle cases like Completion where we have two handlers, only one of which will be registered
         // CLaSP will throw if two handlers register for the same method, so if THAT doesn't hold it's a CLaSP bug, not a Razor bug.
         var typeMethods = handlerTypes.Select(t => GetMethodFromType(t)).ToHashSet();
+
+        // razor/projectInfo is currently behind a feature flag, so ignore it for now
+        typeMethods.Remove(RazorLanguageServerConstants.RazorProjectInfoEndpoint);
 
         if (registeredMethods.Length != typeMethods.Count)
         {
