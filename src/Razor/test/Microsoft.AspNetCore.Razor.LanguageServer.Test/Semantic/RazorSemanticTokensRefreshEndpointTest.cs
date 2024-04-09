@@ -6,12 +6,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.Extensions.Options;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -60,11 +61,8 @@ public class RazorSemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput
             .Setup(c => c.GetLatestOptionsAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult<RazorLSPOptions?>(options));
 
-        var optionsMonitorCache = new OptionsCache<RazorLSPOptions>();
-
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create(
-            configurationSyncService.Object,
-            optionsMonitorCache);
+            configurationSyncService.Object);
 
         return optionsMonitor;
     }

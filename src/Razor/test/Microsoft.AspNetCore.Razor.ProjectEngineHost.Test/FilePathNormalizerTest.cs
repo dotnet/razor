@@ -24,8 +24,34 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
         Assert.Equal("c:/path/to/something", path);
     }
 
+    [OSSkipConditionFact(["OSX", "Linux"])]
+    public void Normalize_Windows_StripsPrecedingSlash_ShortPath()
+    {
+        // Arrange
+        var path = "/c";
+
+        // Act
+        path = FilePathNormalizer.Normalize(path);
+
+        // Assert
+        Assert.Equal("c", path);
+    }
+
     [Fact]
-    public void Normalize_IgnoresUNCPaths()
+    public void Normalize_NormalizesPathsWithSlashAtPositionOne()
+    {
+        // Arrange
+        var path = @"d\ComputerName\path\to\something";
+
+        // Act
+        path = FilePathNormalizer.Normalize(path);
+
+        // Assert
+        Assert.Equal("d/ComputerName/path/to/something", path);
+    }
+
+    [Fact]
+    public void Normalize_FixesUNCPaths()
     {
         // Arrange
         var path = "//ComputerName/path/to/something";
@@ -34,7 +60,20 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
         path = FilePathNormalizer.Normalize(path);
 
         // Assert
-        Assert.Equal("//ComputerName/path/to/something", path);
+        Assert.Equal(@"\\ComputerName/path/to/something", path);
+    }
+
+    [Fact]
+    public void Normalize_IgnoresUNCPaths()
+    {
+        // Arrange
+        var path = @"\\ComputerName\path\to\something";
+
+        // Act
+        path = FilePathNormalizer.Normalize(path);
+
+        // Assert
+        Assert.Equal(@"\\ComputerName/path/to/something", path);
     }
 
     [Fact]
@@ -107,6 +146,19 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
     {
         // Arrange
         var directory = @"\";
+
+        // Act
+        var normalized = FilePathNormalizer.NormalizeDirectory(directory);
+
+        // Assert
+        Assert.Equal("/", normalized);
+    }
+
+    [Fact]
+    public void NormalizeDirectory_HandlesSingleSlashDirectory()
+    {
+        // Arrange
+        var directory = "/";
 
         // Act
         var normalized = FilePathNormalizer.NormalizeDirectory(directory);

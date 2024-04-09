@@ -6,11 +6,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -22,7 +22,7 @@ internal class FormattingContentValidationPass : FormattingPassBase
     public FormattingContentValidationPass(
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
         : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)
@@ -30,7 +30,7 @@ internal class FormattingContentValidationPass : FormattingPassBase
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<FormattingContentValidationPass>();
+        _logger = loggerFactory.GetOrCreateLogger<FormattingContentValidationPass>();
     }
 
     // We want this to run at the very end.
@@ -59,18 +59,18 @@ internal class FormattingContentValidationPass : FormattingPassBase
             // Looks like we removed some non-whitespace content as part of formatting. Oops.
             // Discard this formatting result.
 
-            _logger.LogWarning("{value}", SR.Format_operation_changed_nonwhitespace);
+            _logger.LogWarning($"{SR.Format_operation_changed_nonwhitespace}");
 
             foreach (var edit in edits)
             {
                 if (edit.NewText.Any(c => !char.IsWhiteSpace(c)))
                 {
-                    _logger.LogWarning("{value}", SR.FormatEdit_at_adds(edit.Range.ToDisplayString(), edit.NewText));
+                    _logger.LogWarning($"{SR.FormatEdit_at_adds(edit.Range.ToDisplayString(), edit.NewText)}");
                 }
                 else if (text.GetSubText(edit.Range.ToTextSpan(text)) is { } subText &&
                     subText.GetFirstNonWhitespaceOffset(span: null, out _) is not null)
                 {
-                    _logger.LogWarning("{value}", SR.FormatEdit_at_deletes(edit.Range.ToDisplayString(), subText.ToString()));
+                    _logger.LogWarning($"{SR.FormatEdit_at_deletes(edit.Range.ToDisplayString(), subText.ToString())}");
                 }
             }
 

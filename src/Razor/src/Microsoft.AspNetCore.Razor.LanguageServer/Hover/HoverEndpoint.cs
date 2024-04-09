@@ -4,13 +4,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
@@ -25,8 +24,8 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<HoverEndpoint>())
+        ILoggerFactory loggerFactory)
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<HoverEndpoint>())
     {
         _hoverService = hoverService ?? throw new ArgumentNullException(nameof(hoverService));
     }

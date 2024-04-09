@@ -8,13 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
@@ -23,14 +22,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 internal class HtmlFormattingPass : FormattingPassBase
 {
     private readonly ILogger _logger;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
     public HtmlFormattingPass(
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IDocumentVersionCache documentVersionCache,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-        IRazorLoggerFactory loggerFactory)
+        RazorLSPOptionsMonitor optionsMonitor,
+        ILoggerFactory loggerFactory)
         : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)
@@ -38,7 +37,7 @@ internal class HtmlFormattingPass : FormattingPassBase
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
+        _logger = loggerFactory.GetOrCreateLogger<HtmlFormattingPass>();
 
         HtmlFormatter = new HtmlFormatter(clientConnection, documentVersionCache);
         _optionsMonitor = optionsMonitor;
@@ -74,7 +73,7 @@ internal class HtmlFormattingPass : FormattingPassBase
         var changedText = originalText;
         var changedContext = context;
 
-        _logger.LogTestOnly("Before HTML formatter:\r\n{changedText}", changedText);
+        _logger.LogTestOnly($"Before HTML formatter:\r\n{changedText}");
 
         if (htmlEdits.Length > 0)
         {
@@ -83,7 +82,7 @@ internal class HtmlFormattingPass : FormattingPassBase
             // Create a new formatting context for the changed razor document.
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
 
-            _logger.LogTestOnly("After normalizedEdits:\r\n{changedText}", changedText);
+            _logger.LogTestOnly($"After normalizedEdits:\r\n{changedText}");
         }
         else if (context.IsFormatOnType)
         {
@@ -96,7 +95,7 @@ internal class HtmlFormattingPass : FormattingPassBase
         {
             // Apply the edits that adjust indentation.
             changedText = changedText.WithChanges(indentationChanges);
-            _logger.LogTestOnly("After AdjustRazorIndentation:\r\n{changedText}", changedText);
+            _logger.LogTestOnly($"After AdjustRazorIndentation:\r\n{changedText}");
         }
 
         var finalChanges = changedText.GetTextChanges(originalText);

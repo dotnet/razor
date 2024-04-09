@@ -8,12 +8,11 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+namespace Microsoft.VisualStudio.Razor.Documents;
 
 [Export(typeof(IFileChangeTrackerFactory))]
 internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly IErrorReporter _errorReporter;
     private readonly JoinableTask<IVsAsyncFileChangeEx> _getFileChangeServiceTask;
@@ -22,10 +21,8 @@ internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
     public VisualStudioFileChangeTrackerFactory(
         [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
         JoinableTaskContext joinableTaskContext,
-        ProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter)
     {
-        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
         _errorReporter = errorReporter;
 
@@ -43,6 +40,6 @@ internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
         // TODO: Make IFileChangeTrackerFactory.Create(...) asynchronous to avoid blocking here.
         var fileChangeService = _getFileChangeServiceTask.Join();
 
-        return new VisualStudioFileChangeTracker(filePath, _errorReporter, fileChangeService, _dispatcher, _joinableTaskContext);
+        return new VisualStudioFileChangeTracker(filePath, _errorReporter, fileChangeService, _joinableTaskContext);
     }
 }

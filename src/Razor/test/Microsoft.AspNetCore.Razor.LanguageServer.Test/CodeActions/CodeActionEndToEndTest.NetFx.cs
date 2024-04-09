@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -22,6 +23,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -1253,18 +1255,18 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             }
         }
 
-        public override DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+        public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
         {
             if (FilePath is null || CodeDocument is null)
             {
-                return null;
+                return Task.FromResult<DocumentContext?>(null);
             }
 
             var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
             var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
             testDocumentSnapshot.With(CodeDocument);
 
-            return CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
+            return Task.FromResult<DocumentContext?>(CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot));
         }
 
         private static List<TagHelperDescriptor> CreateTagHelperDescriptors()

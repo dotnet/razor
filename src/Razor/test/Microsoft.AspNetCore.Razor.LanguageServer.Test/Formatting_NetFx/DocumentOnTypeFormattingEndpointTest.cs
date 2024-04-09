@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -207,7 +207,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
             Position = new Position(2, 11),
             Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 }
         };
-        var documentContext = documentResolver.TryCreateForOpenDocument(uri);
+        var documentContext = await documentResolver.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext!);
 
         // Act

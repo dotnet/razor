@@ -12,17 +12,16 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultRazorComponentSearchEngine(
     IProjectSnapshotManager projectManager,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : RazorComponentSearchEngine
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DefaultRazorComponentSearchEngine>();
 
     public async override Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
@@ -92,7 +91,7 @@ internal class DefaultRazorComponentSearchEngine(
         var namespaceName = tagHelper.GetTypeNamespace();
         if (typeName == null || namespaceName == null)
         {
-            _logger.LogWarning("Could not split namespace and type for name {tagHelperName}.", tagHelper.Name);
+            _logger.LogWarning($"Could not split namespace and type for name {tagHelper.Name}.");
             return null;
         }
 
@@ -165,7 +164,7 @@ internal class DefaultRazorComponentSearchEngine(
         var namespacesMatch = namespaceNode.Content.AsSpan().Equals(namespaceName, StringComparison.Ordinal);
         if (!namespacesMatch)
         {
-            _logger.LogInformation("Namespace name {namespaceNodeContent} does not match namespace name {namespaceName}.", namespaceNode.Content, namespaceName.ToString());
+            _logger.LogInformation($"Namespace name {namespaceNode.Content} does not match namespace name {namespaceName.ToString()}.");
         }
 
         return namespacesMatch;

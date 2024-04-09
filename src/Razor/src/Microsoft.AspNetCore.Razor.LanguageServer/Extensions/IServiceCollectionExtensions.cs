@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
@@ -23,13 +24,12 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -193,11 +193,8 @@ internal static class IServiceCollectionExtensions
         {
             return new RazorLSPOptionsMonitor(
                 s.GetRequiredService<IConfigurationSyncService>(),
-                s.GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>(),
                 currentOptions);
         });
-
-        services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>(s => s.GetRequiredService<RazorLSPOptionsMonitor>());
     }
 
     public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)

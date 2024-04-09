@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -28,9 +27,9 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         IFilePathService filePathService)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<FindAllReferencesEndpoint>())
     {
         _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));

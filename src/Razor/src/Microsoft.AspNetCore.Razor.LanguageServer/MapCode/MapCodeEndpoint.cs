@@ -11,16 +11,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode.Mappers;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Location = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
@@ -85,7 +85,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            var documentContext = _documentContextFactory.TryCreateForOpenDocument(mapping.TextDocument.Uri);
+            var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(mapping.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 continue;
@@ -356,7 +356,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                var documentContext = _documentContextFactory.TryCreateForOpenDocument(potentialLocation.Uri);
+                var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(potentialLocation.Uri, cancellationToken).ConfigureAwait(false);
                 if (documentContext is null)
                 {
                     continue;

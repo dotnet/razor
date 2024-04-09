@@ -9,11 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
@@ -65,7 +67,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
-            _logger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
+            _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
             return null;
         }
 
@@ -85,7 +87,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
 
         if (languageKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
         {
-            _logger.LogInformation("Unsupported language {languageKind}.", languageKind);
+            _logger.LogInformation($"Unsupported language {languageKind}.");
             return null;
         }
 

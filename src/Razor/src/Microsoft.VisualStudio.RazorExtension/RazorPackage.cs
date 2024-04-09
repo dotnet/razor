@@ -10,18 +10,16 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.Editor.Razor.Debugging;
-using Microsoft.VisualStudio.Editor.Razor.Logging;
-using Microsoft.VisualStudio.Editor.Razor.Snippets;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
-using Microsoft.VisualStudio.LanguageServices.Razor;
+using Microsoft.VisualStudio.Razor;
+using Microsoft.VisualStudio.Razor.Debugging;
+using Microsoft.VisualStudio.Razor.LanguageClient.Options;
+using Microsoft.VisualStudio.Razor.Logging;
+using Microsoft.VisualStudio.Razor.Snippets;
 using Microsoft.VisualStudio.RazorExtension.Options;
 using Microsoft.VisualStudio.RazorExtension.Snippets;
 using Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Task = System.Threading.Tasks.Task;
@@ -32,21 +30,6 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [AboutDialogInfo(PackageGuidString, "Razor (ASP.NET Core)", "#110", "#112", IconResourceID = "#400")]
 [ProvideService(typeof(RazorLanguageService))]
 [ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.SemanticTokens", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.SemanticTokens64", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.SemanticTokens64S", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.SemanticTokensCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.SemanticTokensCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.ClientInitialization", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.ClientInitialization64", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.ClientInitialization64S", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.ClientInitializationCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.ClientInitializationCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
-[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
 [ProvideMenuResource("Menus.ctmenu", 1)]
 [ProvideMenuResource("SyntaxVisualizerMenu.ctmenu", 1)]
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
