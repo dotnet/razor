@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -545,7 +546,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
             LanguageServerFeatureOptions options,
             RazorTranslateDiagnosticsService razorTranslateDiagnosticsService,
             IDocumentContextFactory documentContextFactory,
-            IRazorLoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory)
             : base(dispatcher, clientConnection, options,
                   new Lazy<RazorTranslateDiagnosticsService>(() => razorTranslateDiagnosticsService),
                   new Lazy<IDocumentContextFactory>(() => documentContextFactory),

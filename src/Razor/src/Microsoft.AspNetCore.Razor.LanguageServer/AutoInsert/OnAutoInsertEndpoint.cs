@@ -7,15 +7,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
@@ -26,15 +24,15 @@ internal class OnAutoInsertEndpoint(
     IRazorDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
-    IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-    IRazorLoggerFactory loggerFactory)
-    : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<OnAutoInsertEndpoint>()), ICapabilitiesProvider
+    RazorLSPOptionsMonitor optionsMonitor,
+    ILoggerFactory loggerFactory)
+    : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<OnAutoInsertEndpoint>()), ICapabilitiesProvider
 {
     private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new(StringComparer.Ordinal) { "=", };
     private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
     private readonly IReadOnlyList<IOnAutoInsertProvider> _onAutoInsertProviders = onAutoInsertProvider?.ToList() ?? throw new ArgumentNullException(nameof(onAutoInsertProvider));
 
     protected override string CustomMessageTarget => CustomMessageNames.RazorOnAutoInsertEndpointName;
@@ -121,7 +119,7 @@ internal class OnAutoInsertEndpoint(
         {
             if (!s_htmlAllowedTriggerCharacters.Contains(request.Character))
             {
-                Logger.LogInformation("Inapplicable HTML trigger char {request.Character}.", request.Character);
+                Logger.LogInformation($"Inapplicable HTML trigger char {request.Character}.");
                 return Task.FromResult<IDelegatedParams?>(null);
             }
 
@@ -129,7 +127,7 @@ internal class OnAutoInsertEndpoint(
             {
                 // Use Razor setting for autoinsert attribute quotes. HTML Server doesn't have a way to pass that
                 // information along so instead we just don't delegate the request.
-                Logger.LogTrace("Not delegating to HTML completion because AutoInsertAttributeQuotes is disabled");
+                Logger.LogTrace($"Not delegating to HTML completion because AutoInsertAttributeQuotes is disabled");
                 return Task.FromResult<IDelegatedParams?>(null);
             }
         }
@@ -137,7 +135,7 @@ internal class OnAutoInsertEndpoint(
         {
             if (!s_cSharpAllowedTriggerCharacters.Contains(request.Character))
             {
-                Logger.LogInformation("Inapplicable C# trigger char {request.Character}.", request.Character);
+                Logger.LogInformation($"Inapplicable C# trigger char {request.Character}.");
                 return Task.FromResult<IDelegatedParams?>(null);
             }
 
@@ -154,7 +152,7 @@ internal class OnAutoInsertEndpoint(
             // having to restart VS. Not the worst compromise (hopefully!)
             if (!_optionsMonitor.CurrentValue.FormatOnType)
             {
-                Logger.LogInformation("Formatting on type disabled, so auto insert is a no-op for C#.");
+                Logger.LogInformation($"Formatting on type disabled, so auto insert is a no-op for C#.");
                 return Task.FromResult<IDelegatedParams?>(null);
             }
         }

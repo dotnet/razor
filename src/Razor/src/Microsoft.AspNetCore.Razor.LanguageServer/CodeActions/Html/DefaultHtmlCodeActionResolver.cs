@@ -5,9 +5,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -54,7 +55,7 @@ internal sealed class DefaultHtmlCodeActionResolver : HtmlCodeActionResolver
             throw new ArgumentNullException(nameof(codeAction));
         }
 
-        var documentContext = _documentContextFactory.TryCreateForOpenDocument(resolveParams.RazorFileIdentifier);
+        var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(resolveParams.RazorFileIdentifier, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
             return codeAction;

@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -19,14 +17,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 internal class RazorCompletionEndpoint(
     CompletionListProvider completionListProvider,
     ITelemetryReporter? telemetryReporter,
-    IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-    IRazorLoggerFactory loggerFactory)
+    RazorLSPOptionsMonitor optionsMonitor,
+    ILoggerFactory loggerFactory)
     : IVSCompletionEndpoint
 {
     private readonly CompletionListProvider _completionListProvider = completionListProvider;
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCompletionEndpoint>();
 
     private VSInternalClientCapabilities? _clientCapabilities;
 

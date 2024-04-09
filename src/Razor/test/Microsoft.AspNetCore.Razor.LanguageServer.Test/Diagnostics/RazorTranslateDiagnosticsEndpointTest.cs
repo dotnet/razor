@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -1226,7 +1226,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         public TestRazorDiagnosticsServiceWithRazorDiagnostic(
             IRazorDocumentMappingService documentMappingService,
-            IRazorLoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory)
             : base(documentMappingService, loggerFactory)
         {
         }
@@ -1241,7 +1241,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         public TestRazorDiagnosticsServiceWithoutRazorDiagnostic(
             IRazorDocumentMappingService documentMappingService,
-            IRazorLoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory)
             : base(documentMappingService, loggerFactory)
         {
         }

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
@@ -18,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 
@@ -108,9 +108,9 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         }
     }
 
-    internal class NoopLoggerFactory() : AbstractRazorLoggerFactory([new NoopLoggerProvider()]);
+    internal class NoopLoggerFactory() : AbstractLoggerFactory([new NoopLoggerProvider()]);
 
-    internal class NoopLoggerProvider : IRazorLoggerProvider
+    internal class NoopLoggerProvider : ILoggerProvider
     {
         public ILogger CreateLogger(string categoryName)
         {
@@ -124,17 +124,12 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     internal class NoopLogger : ILogger, ILspLogger
     {
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool IsEnabled(LogLevel logLevel)
         {
             return true;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log(LogLevel logLevel, string message, Exception exception)
         {
         }
 

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(DefaultNetCoreTargetFrameworks)</TargetFrameworks>
-    <PublishTargetFramework>net7.0</PublishTargetFramework>
+    <PublishTargetFramework>net8.0</PublishTargetFramework>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the language server assets for C# DevKit.</Description>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
@@ -28,11 +28,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.VisualStudio.Editor.Razor\Telemetry\TelemetryReporter.cs" Link="Telemetry\TelemetryReporter.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\TelemetryReporter.cs" Link="Telemetry\TelemetryReporter.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
   </ItemGroup>
 
   <ItemGroup>

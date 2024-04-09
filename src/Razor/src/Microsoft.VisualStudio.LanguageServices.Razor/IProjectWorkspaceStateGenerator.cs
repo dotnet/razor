@@ -2,12 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 internal interface IProjectWorkspaceStateGenerator
 {
-    void Update(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken);
+    Task UpdateAsync(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken);
 }

@@ -9,12 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -54,7 +55,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
             htmlCodeActionProviders: languageServer.GetRequiredService<IEnumerable<IHtmlCodeActionProvider>>(),
             clientConnection: languageServer.GetRequiredService<IClientConnection>(),
             languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
-            loggerFactory: languageServer.GetRequiredService<IRazorLoggerFactory>(),
+            loggerFactory: languageServer.GetRequiredService<ILoggerFactory>(),
             telemetryReporter: null);
 
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");

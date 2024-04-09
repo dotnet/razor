@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -20,8 +21,8 @@ using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -120,7 +121,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -143,7 +144,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -184,7 +185,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -207,7 +208,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -230,7 +231,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -253,7 +254,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -276,7 +277,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -299,7 +300,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -385,7 +386,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -431,7 +432,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -484,7 +485,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "TestComponent"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -549,7 +550,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -583,7 +584,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        var documentContext = await GetDocumentContextAsync(documentContextFactory, request.TextDocument.Uri);
+        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument.Uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -592,12 +593,6 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         // Assert
         Assert.Null(result);
     }
-
-    private Task<VersionedDocumentContext?> GetDocumentContextAsync(IDocumentContextFactory documentContextFactory, Uri file)
-        => RunOnDispatcherAsync(() =>
-        {
-            return documentContextFactory.TryCreateForOpenDocument(file);
-        });
 
     private async Task<(RenameEndpoint, IDocumentContextFactory)> CreateEndpointAndDocumentContextFactoryAsync(
         LanguageServerFeatureOptions? options = null,
@@ -635,57 +630,49 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             });
 
         var projectService = new RazorProjectService(
-            Dispatcher,
             remoteTextLoaderFactoryMock.Object,
             snapshotResolver,
             documentVersionCache,
             projectManager,
             LoggerFactory);
 
-        var projectKey1 = await RunOnDispatcherAsync(() =>
-        {
-            return projectService.AddProject(s_projectFilePath1, s_intermediateOutputPath1, RazorConfiguration.Default, RootNamespace1);
-        });
+        var projectKey1 = await projectService.AddProjectAsync(
+            s_projectFilePath1, s_intermediateOutputPath1, RazorConfiguration.Default, RootNamespace1, displayName: null, DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
             updater.ProjectWorkspaceStateChanged(projectKey1, ProjectWorkspaceState.Create(tagHelpers));
         });
 
-        var projectKey2 = await RunOnDispatcherAsync(() =>
-        {
-            projectService.AddDocument(s_componentFilePath1);
-            projectService.AddDocument(s_componentFilePath2);
-            projectService.AddDocument(s_directoryFilePath1);
-            projectService.AddDocument(s_directoryFilePath2);
-            projectService.AddDocument(s_componentFilePath1337);
-            projectService.AddDocument(s_indexFilePath1);
+        await projectService.AddDocumentAsync(s_componentFilePath1, DisposalToken);
+        await projectService.AddDocumentAsync(s_componentFilePath2, DisposalToken);
+        await projectService.AddDocumentAsync(s_directoryFilePath1, DisposalToken);
+        await projectService.AddDocumentAsync(s_directoryFilePath2, DisposalToken);
+        await projectService.AddDocumentAsync(s_componentFilePath1337, DisposalToken);
+        await projectService.AddDocumentAsync(s_indexFilePath1, DisposalToken);
 
-            projectService.UpdateDocument(s_componentFilePath1, SourceText.From(ComponentText1), version: 42);
-            projectService.UpdateDocument(s_componentFilePath2, SourceText.From(ComponentText2), version: 42);
-            projectService.UpdateDocument(s_directoryFilePath1, SourceText.From(DirectoryText1), version: 42);
-            projectService.UpdateDocument(s_directoryFilePath2, SourceText.From(DirectoryText2), version: 4);
-            projectService.UpdateDocument(s_componentFilePath1337, SourceText.From(ComponentText1337), version: 42);
-            projectService.UpdateDocument(s_indexFilePath1, SourceText.From(IndexText1), version: 42);
+        await projectService.UpdateDocumentAsync(s_componentFilePath1, SourceText.From(ComponentText1), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath2, SourceText.From(ComponentText2), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_directoryFilePath1, SourceText.From(DirectoryText1), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_directoryFilePath2, SourceText.From(DirectoryText2), version: 4, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath1337, SourceText.From(ComponentText1337), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_indexFilePath1, SourceText.From(IndexText1), version: 42, DisposalToken);
 
-            return projectService.AddProject(s_projectFilePath2, s_intermediateOutputPath2, RazorConfiguration.Default, RootNamespace2);
-        });
+        var projectKey2 = await projectService.AddProjectAsync(
+            s_projectFilePath2, s_intermediateOutputPath2, RazorConfiguration.Default, RootNamespace2, displayName: null, DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
             updater.ProjectWorkspaceStateChanged(projectKey2, ProjectWorkspaceState.Create(tagHelpers));
         });
 
-        await RunOnDispatcherAsync(() =>
-        {
-            projectService.AddDocument(s_componentFilePath3);
-            projectService.AddDocument(s_componentFilePath4);
-            projectService.AddDocument(s_componentWithParamFilePath);
+        await projectService.AddDocumentAsync(s_componentFilePath3, DisposalToken);
+        await projectService.AddDocumentAsync(s_componentFilePath4, DisposalToken);
+        await projectService.AddDocumentAsync(s_componentWithParamFilePath, DisposalToken);
 
-            projectService.UpdateDocument(s_componentFilePath3, SourceText.From(ComponentText3), version: 42);
-            projectService.UpdateDocument(s_componentFilePath4, SourceText.From(ComponentText4), version: 42);
-            projectService.UpdateDocument(s_componentWithParamFilePath, SourceText.From(ComponentWithParamText), version: 42);
-        });
+        await projectService.UpdateDocumentAsync(s_componentFilePath3, SourceText.From(ComponentText3), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath4, SourceText.From(ComponentText4), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentWithParamFilePath, SourceText.From(ComponentWithParamText), version: 42, DisposalToken);
 
         var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
         options ??= StrictMock.Of<LanguageServerFeatureOptions>(o =>

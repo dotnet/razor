@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -14,22 +13,22 @@ internal class LanguageServerErrorReporter : IErrorReporter
 {
     private readonly ILogger _logger;
 
-    public LanguageServerErrorReporter(IRazorLoggerFactory loggerFactory)
+    public LanguageServerErrorReporter(ILoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<LanguageServerErrorReporter>();
+        _logger = loggerFactory.GetOrCreateLogger<LanguageServerErrorReporter>();
     }
 
     public void ReportError(Exception exception)
-        => _logger.LogError(exception, "Error thrown from LanguageServer");
+        => _logger.LogError(exception, $"Error thrown from LanguageServer");
 
     public void ReportError(Exception exception, IProjectSnapshot? project)
-        => _logger.LogError(exception, "Error thrown from project {projectFilePath}", project?.FilePath);
+        => _logger.LogError(exception, $"Error thrown from project {project?.FilePath}");
 
     public void ReportError(Exception exception, Project workspaceProject)
-        => _logger.LogError(exception, "Error thrown from project {workspaceProjectFilePath}", workspaceProject.FilePath);
+        => _logger.LogError(exception, $"Error thrown from project {workspaceProject.FilePath}");
 }

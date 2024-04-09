@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -43,11 +44,12 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         var documentMappingService = lspServices.GetRequiredService<IRazorDocumentMappingService>();
         var clientConnection = lspServices.GetRequiredService<IClientConnection>();
         var completionListCache = lspServices.GetRequiredService<CompletionListCache>();
-        var loggerFactory = lspServices.GetRequiredService<IRazorLoggerFactory>();
+        var loggerFactory = lspServices.GetRequiredService<ILoggerFactory>();
 
         var delegatedCompletionListProvider = new TestDelegatedCompletionListProvider(responseRewriters, documentMappingService, clientConnection, completionListCache);
         var completionListProvider = new CompletionListProvider(razorCompletionListProvider, delegatedCompletionListProvider);
-        var optionsMonitor = new BenchmarkOptionsMonitor<RazorLSPOptions>(RazorLSPOptions.Default);
+        var configurationService = new DefaultRazorConfigurationService(clientConnection, loggerFactory);
+        var optionsMonitor = new RazorLSPOptionsMonitor(configurationService, RazorLSPOptions.Default);
 
         CompletionEndpoint = new RazorCompletionEndpoint(completionListProvider, telemetryReporter: null, optionsMonitor, loggerFactory);
 

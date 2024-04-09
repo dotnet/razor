@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -12,8 +13,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -21,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 internal static class TestRazorFormattingService
 {
     public static async Task<IRazorFormattingService> CreateWithFullSupportAsync(
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         ProjectSnapshotManagerDispatcher dispatcher,
         RazorCodeDocument? codeDocument = null,
         IDocumentSnapshot? documentSnapshot = null,
@@ -50,11 +49,8 @@ internal static class TestRazorFormattingService
             .Setup(c => c.GetLatestOptionsAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(razorLSPOptions));
 
-        var optionsMonitorCache = new OptionsCache<RazorLSPOptions>();
-
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create(
-            configurationSyncService.Object,
-            optionsMonitorCache);
+            configurationSyncService.Object);
 
         if (razorLSPOptions is not null)
         {
