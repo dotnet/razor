@@ -233,7 +233,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
             // before we're ready to send them to the cloud
             var name = telemetryEvent.Name;
             var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
-            LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
+            LogTrace($"Telemetry Event: {name} \n Properties: {propertyString}\n");
 
             if (telemetryEvent is FaultEvent)
             {
@@ -257,11 +257,11 @@ internal abstract class TelemetryReporter : ITelemetryReporter
     protected virtual bool HandleException(Exception exception, string? message, params object?[] @params)
         => false;
 
-    protected virtual void LogTrace(string? message, params object?[] args)
+    protected virtual void LogTrace(string message)
     {
     }
 
-    protected virtual void LogError(Exception exception, string? message, params object?[] args)
+    protected virtual void LogError(Exception exception, string message)
     {
     }
 

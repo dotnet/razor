@@ -33,7 +33,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
                 var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
                 uri = textDocumentIdentifier.Uri;
 
-                logger.LogDebug("Trying to create DocumentContext for {methodName} for {projectContext} for {uri}", queueItem.MethodName, textDocumentIdentifier.GetProjectContext()?.Id ?? "(no project context)", uri);
+                logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName} for {textDocumentIdentifier.GetProjectContext()?.Id ?? "(no project context)"} for {uri}");
 
                 documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
             }
@@ -41,7 +41,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
             {
                 uri = uriHandler.GetTextDocumentIdentifier(@params);
 
-                logger.LogDebug("Trying to create DocumentContext for {methodName}, with no project context, for {uri}", queueItem.MethodName, uri);
+                logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName}, with no project context, for {uri}");
 
                 documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken).ConfigureAwait(false);
             }
@@ -52,7 +52,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
             if (documentContext is null)
             {
-                logger.LogWarning("Could not create a document context for {methodName} for {uri}. Endpoint may crash later if it calls GetRequiredDocumentContext.", queueItem.MethodName, uri);
+                logger.LogWarning($"Could not create a document context for {queueItem.MethodName} for {uri}. Endpoint may crash later if it calls GetRequiredDocumentContext.");
             }
         }
 

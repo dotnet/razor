@@ -30,7 +30,7 @@ internal class CSharpVirtualDocumentAddListener(ILoggerFactory loggerFactory) : 
     {
         if (_tcs is null)
         {
-            logger.LogDebug("CSharpVirtualDocumentAddListener: Waiting for a document to be added");
+            logger.LogDebug($"CSharpVirtualDocumentAddListener: Waiting for a document to be added");
 
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _cts.Token.Register(() =>
@@ -42,7 +42,7 @@ internal class CSharpVirtualDocumentAddListener(ILoggerFactory loggerFactory) : 
                         return;
                     }
 
-                    logger.LogDebug("CSharpVirtualDocumentAddListener: Timed out waiting for a document to be added");
+                    logger.LogDebug($"CSharpVirtualDocumentAddListener: Timed out waiting for a document to be added");
 
                     _tcs.SetResult(false);
                     _tcs = null;
@@ -72,7 +72,7 @@ internal class CSharpVirtualDocumentAddListener(ILoggerFactory loggerFactory) : 
                     return;
                 }
 
-                logger.LogDebug("CSharpVirtualDocumentAddListener: Document added ({doc}) (not that we care)", @new!.Uri);
+                logger.LogDebug($"CSharpVirtualDocumentAddListener: Document added ({@new!.Uri}) (not that we care)");
 
                 _tcs.SetResult(true);
                 _tcs = null;

@@ -82,7 +82,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
 
     public async Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken)
     {
-        _logger.LogTrace("Looking for {documentFilePath}.", documentFilePath);
+        _logger.LogTrace($"Looking for {documentFilePath}.");
 
         if (documentFilePath is null)
         {
@@ -96,21 +96,21 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         {
             if (project.GetDocument(normalizedDocumentPath) is { } document)
             {
-                _logger.LogTrace("Found {documentFilePath} in {project}", documentFilePath, project.FilePath);
+                _logger.LogTrace($"Found {documentFilePath} in {project.FilePath}");
                 return document;
             }
         }
 
-        _logger.LogTrace("Looking for {documentFilePath} in miscellaneous project.", documentFilePath);
+        _logger.LogTrace($"Looking for {documentFilePath} in miscellaneous project.");
         var miscellaneousProject = await GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
 
         if (miscellaneousProject.GetDocument(normalizedDocumentPath) is { } miscDocument)
         {
-            _logger.LogTrace("Found {documentFilePath} in miscellaneous project.", documentFilePath);
+            _logger.LogTrace($"Found {documentFilePath} in miscellaneous project.");
             return miscDocument;
         }
 
-        _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectManager.GetProjects().SelectMany(p => p.DocumentFilePaths));
+        _logger.LogTrace($"{documentFilePath} not found in {_projectManager.GetProjects().SelectMany(p => p.DocumentFilePaths)}");
 
         return null;
     }

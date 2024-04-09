@@ -75,7 +75,7 @@ internal sealed class DocumentContextFactory(
                 return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
             }
 
-            _logger.LogWarning("Tried to create context for document {filePath} and project {projectContext} and a document was found, but version didn't match.", filePath, projectContext?.Id);
+            _logger.LogWarning($"Tried to create context for document {filePath} and project {projectContext?.Id} and a document was found, but version didn't match.");
         }
 
         // This is super rare, if we get here it could mean many things. Some of which:
@@ -84,7 +84,7 @@ internal sealed class DocumentContextFactory(
         //          - Took too long to run and by the time the request needed the document context the
         //            version cache has evicted the entry
         //     2. Client is misbehaving and sending requests for a document that we've never seen before.
-        _logger.LogWarning("Tried to create context for document {filePath} and project {projectContext} which was not found.", filePath, projectContext?.Id);
+        _logger.LogWarning($"Tried to create context for document {filePath} and project {projectContext?.Id} which was not found.");
         return null;
     }
 
@@ -110,7 +110,7 @@ internal sealed class DocumentContextFactory(
         var normalizedDocumentPath = FilePathNormalizer.Normalize(filePath);
         if (miscellaneousProject.GetDocument(normalizedDocumentPath) is { } miscDocument)
         {
-            _logger.LogDebug("Found document {document} in the misc files project, but was asked for project context {context}", filePath, projectContext);
+            _logger.LogDebug($"Found document {filePath} in the misc files project, but was asked for project context {projectContext}");
             return miscDocument;
         }
 

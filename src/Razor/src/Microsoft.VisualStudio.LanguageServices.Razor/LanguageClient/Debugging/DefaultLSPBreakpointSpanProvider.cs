@@ -69,7 +69,7 @@ internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
         var languageResponse = response?.Response;
         if (languageResponse is null)
         {
-            _logger.Value.LogInformation("The breakpoint position could not be mapped to a valid range.");
+            _logger.Value.LogInformation($"The breakpoint position could not be mapped to a valid range.");
             return null;
         }
 

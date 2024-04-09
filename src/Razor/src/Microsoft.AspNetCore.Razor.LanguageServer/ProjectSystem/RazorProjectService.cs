@@ -76,7 +76,7 @@ internal class RazorProjectService(
             var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
             var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
 
-            _logger.LogInformation("Adding document '{filePath}' to project '{projectKey}'.", filePath, projectSnapshot.Key);
+            _logger.LogInformation($"Adding document '{filePath}' to project '{projectSnapshot.Key}'.");
 
             await _projectManager
                 .UpdateAsync(
@@ -119,7 +119,7 @@ internal class RazorProjectService(
             filePath,
             async (projectSnapshot, textDocumentPath, cancellationToken) =>
             {
-                _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
+                _logger.LogInformation($"Opening document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
 
                 await _projectManager
                     .UpdateAsync(
@@ -146,7 +146,7 @@ internal class RazorProjectService(
         return ActOnDocumentInMultipleProjectsAsync(filePath, (projectSnapshot, textDocumentPath, cancellationToken) =>
         {
             var textLoader = _remoteTextLoaderFactory.Create(filePath);
-            _logger.LogInformation("Closing document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
+            _logger.LogInformation($"Closing document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
 
             return _projectManager.UpdateAsync(
                 static (updater, state) => updater.DocumentClosed(state.key, state.textDocumentPath, state.textLoader),
@@ -162,13 +162,13 @@ internal class RazorProjectService(
         {
             if (!projectSnapshot.DocumentFilePaths.Contains(textDocumentPath, FilePathComparer.Instance))
             {
-                _logger.LogInformation("Containing project is not tracking document '{filePath}'", textDocumentPath);
+                _logger.LogInformation($"Containing project is not tracking document '{textDocumentPath}'");
                 return;
             }
 
             if (projectSnapshot.GetDocument(textDocumentPath) is not DocumentSnapshot documentSnapshot)
             {
-                _logger.LogError("Containing project does not contain document '{filePath}'", textDocumentPath);
+                _logger.LogError($"Containing project does not contain document '{textDocumentPath}'");
                 return;
             }
 
@@ -177,7 +177,7 @@ internal class RazorProjectService(
             // a remove via the project.razor.bin
             if (_projectManager.IsDocumentOpen(textDocumentPath))
             {
-                _logger.LogInformation("Moving document '{textDocumentPath}' from project '{projectKey}' to misc files because it is open.", textDocumentPath, projectSnapshot.Key);
+                _logger.LogInformation($"Moving document '{textDocumentPath}' from project '{projectSnapshot.Key}' to misc files because it is open.");
                 var miscellaneousProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
                 if (projectSnapshot != miscellaneousProject)
                 {
@@ -186,7 +186,7 @@ internal class RazorProjectService(
             }
             else
             {
-                _logger.LogInformation("Removing document '{textDocumentPath}' from project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
+                _logger.LogInformation($"Removing document '{textDocumentPath}' from project '{projectSnapshot.Key}'.");
 
                 await _projectManager
                     .UpdateAsync(
@@ -205,7 +205,7 @@ internal class RazorProjectService(
             filePath,
             (project, textDocumentPath, cancellationToken) =>
             {
-                _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
+                _logger.LogTrace($"Updating document '{textDocumentPath}' in {project.Key}.");
 
                 return _projectManager.UpdateAsync(
                     static (updater, state) => updater.DocumentChanged(state.key, state.textDocumentPath, state.sourceText),
@@ -264,7 +264,7 @@ internal class RazorProjectService(
                 cancellationToken)
             .ConfigureAwait(false);
 
-        _logger.LogInformation("Added project '{filePath}' with key {key} to project system.", filePath, hostProject.Key);
+        _logger.LogInformation($"Added project '{filePath}' with key {hostProject.Key} to project system.");
 
         await TryMigrateMiscellaneousDocumentsToProjectAsync(cancellationToken).ConfigureAwait(false);
 
@@ -283,7 +283,7 @@ internal class RazorProjectService(
         if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
         {
             // Never tracked the project to begin with, noop.
-            _logger.LogInformation("Failed to update untracked project '{projectKey}'.", projectKey);
+            _logger.LogInformation($"Failed to update untracked project '{projectKey}'.");
             return;
         }
 
@@ -291,8 +291,7 @@ internal class RazorProjectService(
 
         if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
         {
-            _logger.LogInformation("Updating project '{key}' TagHelpers ({projectWorkspaceState.TagHelpers.Count}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).",
-                project.Key, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
+            _logger.LogInformation($"Updating project '{project.Key}' TagHelpers ({projectWorkspaceState.TagHelpers.Length}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).");
         }
 
         await _projectManager
@@ -307,25 +306,23 @@ internal class RazorProjectService(
         if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
             currentRootNamespace == rootNamespace)
         {
-            _logger.LogTrace("Updating project '{key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.",
-                project.Key, configuration.ConfigurationName, rootNamespace);
+            _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
             return;
         }
 
         if (configuration is null)
         {
             configuration = FallbackRazorConfiguration.Latest;
-            _logger.LogInformation("Updating project '{key}' to use the latest configuration ('{configuration.ConfigurationName}')'.", project.Key, configuration.ConfigurationName);
+            _logger.LogInformation($"Updating project '{project.Key}' to use the latest configuration ('{configuration.ConfigurationName}')'.");
         }
         else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
         {
-            _logger.LogInformation("Updating project '{key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.",
-                project.Key, configuration.ConfigurationName, configuration.LanguageVersion);
+            _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.");
         }
 
         if (currentRootNamespace != rootNamespace)
         {
-            _logger.LogInformation("Updating project '{key}''s root namespace to '{rootNamespace}'.", project.Key, rootNamespace);
+            _logger.LogInformation($"Updating project '{project.Key}''s root namespace to '{rootNamespace}'.");
         }
 
         var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
@@ -339,7 +336,7 @@ internal class RazorProjectService(
 
     private async Task UpdateProjectDocumentsAsync(ImmutableArray<DocumentSnapshotHandle> documents, ProjectKey projectKey, CancellationToken cancellationToken)
     {
-        _logger.LogDebug("UpdateProjectDocuments for {projectKey} with {documentCount} documents.", projectKey, documents.Length);
+        _logger.LogDebug($"UpdateProjectDocuments for {projectKey} with {documents.Length} documents.");
 
         var project = _projectManager.GetLoadedProject(projectKey);
         var currentProjectKey = project.Key;
@@ -356,7 +353,7 @@ internal class RazorProjectService(
                 continue;
             }
 
-            _logger.LogDebug("Document '{documentFilePath}' no longer exists in project '{projectKey}'. Moving to miscellaneous project.", documentFilePath, projectKey);
+            _logger.LogDebug($"Document '{documentFilePath}' no longer exists in project '{projectKey}'. Moving to miscellaneous project.");
 
             await MoveDocumentAsync(documentFilePath, project, miscellaneousProject, cancellationToken).ConfigureAwait(false);
         }
@@ -388,8 +385,7 @@ internal class RazorProjectService(
                 continue;
             }
 
-            _logger.LogTrace("Updating document '{newHostDocument.FilePath}''s file kind to '{newHostDocument.FileKind}' and target path to '{newHostDocument.TargetPath}'.",
-                newHostDocument.FilePath, newHostDocument.FileKind, newHostDocument.TargetPath);
+            _logger.LogTrace($"Updating document '{newHostDocument.FilePath}''s file kind to '{newHostDocument.FileKind}' and target path to '{newHostDocument.TargetPath}'.");
 
             var remoteTextLoader = _remoteTextLoaderFactory.Create(newFilePath);
 
@@ -428,7 +424,7 @@ internal class RazorProjectService(
                 var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
                 var newHostDocument = new HostDocument(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
 
-                _logger.LogInformation("Adding new document '{documentFilePath}' to project '{key}'.", documentFilePath, currentProjectKey);
+                _logger.LogInformation($"Adding new document '{documentFilePath}' to project '{currentProjectKey}'.");
 
                 await _projectManager
                     .UpdateAsync(
@@ -455,8 +451,7 @@ internal class RazorProjectService(
         var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
         var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
 
-        _logger.LogInformation("Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.",
-            documentFilePath, fromProject.Key, toProject.Key);
+        _logger.LogInformation($"Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.");
 
         return _projectManager.UpdateAsync(
             static (updater, state) =>
@@ -512,8 +507,7 @@ internal class RazorProjectService(
             var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
             var defaultProject = projectSnapshot;
             var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath);
-            _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.",
-                documentFilePath, miscellaneousProject.Key, projectSnapshot.Key);
+            _logger.LogInformation($"Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.");
 
             await _projectManager
                 .UpdateAsync(

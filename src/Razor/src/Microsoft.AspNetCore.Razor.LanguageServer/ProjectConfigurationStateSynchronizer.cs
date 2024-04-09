@@ -62,12 +62,12 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var lastAssociatedProjectKey))
                         {
                             // Could not resolve an associated project file, noop.
-                            _logger.LogWarning("Failed to deserialize configuration file after change for an unknown project. Configuration file path: '{0}'", configurationFilePath);
+                            _logger.LogWarning($"Failed to deserialize configuration file after change for an unknown project. Configuration file path: '{configurationFilePath}'");
                             return;
                         }
                         else
                         {
-                            _logger.LogWarning("Failed to deserialize configuration file after change for project '{0}': '{1}'", lastAssociatedProjectKey.Id, configurationFilePath);
+                            _logger.LogWarning($"Failed to deserialize configuration file after change for project '{lastAssociatedProjectKey.Id}': '{configurationFilePath}'");
                         }
 
                         // We found the last associated project file for the configuration file. Reset the project since we can't
@@ -79,13 +79,13 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
                     if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var associatedProjectKey))
                     {
-                        _logger.LogWarning("Found no project key for configuration file. Assuming new project. Configuration file path: '{0}'", configurationFilePath);
+                        _logger.LogWarning($"Found no project key for configuration file. Assuming new project. Configuration file path: '{configurationFilePath}'");
 
                         AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
                         return;
                     }
 
-                    _logger.LogInformation("Project configuration file changed for project '{0}': '{1}'", associatedProjectKey.Id, configurationFilePath);
+                    _logger.LogInformation($"Project configuration file changed for project '{associatedProjectKey.Id}': '{configurationFilePath}'");
 
                     EnqueueUpdateProject(associatedProjectKey, projectInfo, CancellationToken.None);
                     break;
@@ -97,7 +97,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     {
                         // Given that this is the first time we're seeing this configuration file if we can't deserialize it
                         // then we have to noop.
-                        _logger.LogWarning("Failed to deserialize configuration file on configuration added event. Configuration file path: '{0}'", configurationFilePath);
+                        _logger.LogWarning($"Failed to deserialize configuration file on configuration added event. Configuration file path: '{configurationFilePath}'");
                         return;
                     }
 
@@ -110,13 +110,13 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var projectFilePath))
                     {
                         // Failed to deserialize the initial project configuration file on add so we can't remove the configuration file because it doesn't exist in the list.
-                        _logger.LogWarning("Failed to resolve associated project on configuration removed event. Configuration file path: '{0}'", configurationFilePath);
+                        _logger.LogWarning($"Failed to resolve associated project on configuration removed event. Configuration file path: '{configurationFilePath}'");
                         return;
                     }
 
                     _configurationToProjectMap.Remove(configurationFilePath);
 
-                    _logger.LogInformation("Project configuration file removed for project '{0}': '{1}'", projectFilePath, configurationFilePath);
+                    _logger.LogInformation($"Project configuration file removed for project '{projectFilePath}': '{configurationFilePath}'");
 
                     EnqueueUpdateProject(projectFilePath, projectInfo: null, CancellationToken.None);
                     break;
@@ -142,12 +142,12 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     .ConfigureAwait(false);
                 _configurationToProjectMap[configurationFilePath] = projectKey;
 
-                _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
+                _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{configurationFilePath}'");
                 EnqueueUpdateProject(projectKey, projectInfo, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while adding project: {FilePath}", projectInfo.FilePath);
+                _logger.LogError(ex, $"Error occurred while adding project: {projectInfo.FilePath}");
             }
         }
 
@@ -158,7 +158,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                 return ResetProjectAsync(projectKey, cancellationToken);
             }
 
-            _logger.LogInformation("Actually updating {project} with a real projectInfo", projectKey);
+            _logger.LogInformation($"Actually updating {projectKey} with a real projectInfo");
 
             var projectWorkspaceState = projectInfo.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
             var documents = projectInfo.Documents;
