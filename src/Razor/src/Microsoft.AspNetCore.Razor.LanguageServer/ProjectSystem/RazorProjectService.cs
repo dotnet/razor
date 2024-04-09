@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
@@ -28,7 +29,7 @@ internal class RazorProjectService(
     IDocumentVersionCache documentVersionCache,
     IProjectSnapshotManager projectManager,
     ILoggerFactory loggerFactory)
-    : IRazorProjectService
+    : IRazorProjectService, IDisposable
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory = remoteTextLoaderFactory;
@@ -36,7 +37,23 @@ internal class RazorProjectService(
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorProjectService>();
 
+    // This lock is used to ensure that the public entry points to the project service,
+    // i.e. AddDocumentAsync, OpenDocumentAsync, etc., cannot interleave.
+    private readonly AsyncSemaphore _gate = new(initialCount: 1);
+
+    public void Dispose()
+    {
+        _gate.Dispose();
+    }
+
     public async Task AddDocumentAsync(string filePath, CancellationToken cancellationToken)
+    {
+        using var _ = await _gate.EnterAsync(cancellationToken).ConfigureAwait(false);
+
+        await AddDocumentNeedsLocksAsync(filePath, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task AddDocumentNeedsLocksAsync(string filePath, CancellationToken cancellationToken)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
@@ -99,6 +116,8 @@ internal class RazorProjectService(
 
     public async Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
     {
+        using var _ = await _gate.EnterAsync(cancellationToken).ConfigureAwait(false);
+
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
         // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
@@ -112,7 +131,7 @@ internal class RazorProjectService(
         {
             // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
             // processes and pre-initializes already open documents.
-            await AddDocumentAsync(filePath, cancellationToken).ConfigureAwait(false);
+            await AddDocumentNeedsLocksAsync(filePath, cancellationToken).ConfigureAwait(false);
         }
 
         await ActOnDocumentInMultipleProjectsAsync(
@@ -141,24 +160,30 @@ internal class RazorProjectService(
             cancellationToken).ConfigureAwait(false);
     }
 
-    public Task CloseDocumentAsync(string filePath, CancellationToken cancellationToken)
+    public async Task CloseDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
-        return ActOnDocumentInMultipleProjectsAsync(filePath, (projectSnapshot, textDocumentPath, cancellationToken) =>
-        {
-            var textLoader = _remoteTextLoaderFactory.Create(filePath);
-            _logger.LogInformation($"Closing document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
+        using var _ = await _gate.EnterAsync(cancellationToken).ConfigureAwait(false);
 
-            return _projectManager.UpdateAsync(
-                static (updater, state) => updater.DocumentClosed(state.key, state.textDocumentPath, state.textLoader),
-                state: (key: projectSnapshot.Key, textDocumentPath, textLoader),
-                cancellationToken);
-        },
-        cancellationToken);
+        await ActOnDocumentInMultipleProjectsAsync(
+            filePath,
+            (projectSnapshot, textDocumentPath, cancellationToken) =>
+            {
+                var textLoader = _remoteTextLoaderFactory.Create(filePath);
+                _logger.LogInformation($"Closing document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
+
+                return _projectManager.UpdateAsync(
+                    static (updater, state) => updater.DocumentClosed(state.key, state.textDocumentPath, state.textLoader),
+                    state: (key: projectSnapshot.Key, textDocumentPath, textLoader),
+                    cancellationToken);
+            },
+            cancellationToken).ConfigureAwait(false);
     }
 
-    public Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
+    public async Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
-        return ActOnDocumentInMultipleProjectsAsync(filePath, async (projectSnapshot, textDocumentPath, cancellationToken) =>
+        using var _ = await _gate.EnterAsync(cancellationToken).ConfigureAwait(false);
+
+        await ActOnDocumentInMultipleProjectsAsync(filePath, async (projectSnapshot, textDocumentPath, cancellationToken) =>
         {
             if (!projectSnapshot.DocumentFilePaths.Contains(textDocumentPath, FilePathComparer.Instance))
             {
@@ -196,11 +221,13 @@ internal class RazorProjectService(
                     .ConfigureAwait(false);
             }
         },
-        cancellationToken);
+        cancellationToken).ConfigureAwait(false);
     }
 
     public async Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
     {
+        using var _ = await _gate.EnterAsync(cancellationToken).ConfigureAwait(false);
+
         await ActOnDocumentInMultipleProjectsAsync(
             filePath,
             (project, textDocumentPath, cancellationToken) =>
@@ -252,6 +279,8 @@ internal class RazorProjectService(
         string? displayName,
         CancellationToken cancellationToken)
     {
+        using var _ = await _gate.EnterAsync(cancellationToken).ConfigureAwait(false);
+
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
         var hostProject = new HostProject(
             normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
@@ -280,6 +309,8 @@ internal class RazorProjectService(
         ImmutableArray<DocumentSnapshotHandle> documents,
         CancellationToken cancellationToken)
     {
+        using var _ = await _gate.EnterAsync(cancellationToken).ConfigureAwait(false);
+
         if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
         {
             // Never tracked the project to begin with, noop.
