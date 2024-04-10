@@ -961,6 +961,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         builder.Add(OutputTokensAsStatementLiteral());
                         ParseTemplate(builder);
                         continue;
+
                     case SyntaxKind.Keyword when encounteredUnexpectedMarkupTransition:
                         // In this case, we were in an unexpected markup transition, such as:
                         //
@@ -969,7 +970,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         //
                         // In such a case, the likelihood is that the user actually wants this to be interpreted as a new statement,
                         // not as an identifier. So we simply accept what we have and return to continue to main parsing loop.
-                        Debug.Assert(encounteredUnexpectedMarkupTransition);
                         Accept(in read);
                         return;
 

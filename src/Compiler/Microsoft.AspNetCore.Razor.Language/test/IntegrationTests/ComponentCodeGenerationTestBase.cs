@@ -1787,13 +1787,19 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        CompileToAssembly(generated,
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-            // ParentValue
-            Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
-            // (30,127): error CS0029: Cannot implicitly convert type 'int' to 'string'
-            //             __builder.AddComponentParameter(2, "ValueChanged", (global::System.Action<System.Int32>)(__value => ParentValue = __value));
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(DesignTime ? 37 : 30, DesignTime ? 38 : 127));
+        CompileToAssembly(generated, DesignTime
+            ? [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+               // ParentValue
+               Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
+               // (30,127): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(2, "ValueChanged", (global::System.Action<System.Int32>)(__value => ParentValue = __value));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(37, 38)]
+            : [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+               // ParentValue
+               Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
+               // (30,127): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(2, "ValueChanged", (global::System.Action<System.Int32>)(__value => ParentValue = __value));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(30, 127)]);
     }
 
     [IntegrationTestFact]
@@ -1860,20 +1866,21 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var assembly = CompileToAssembly(generated,
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-            //                           ParentValue
-            Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
-            // (37,13): error CS1503: Argument 2: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback<string>' to 'Microsoft.AspNetCore.Components.EventCallback'
-            //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)));
-            Diagnostic(ErrorCode.ERR_BadArgType, "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)").WithArguments("2", "Microsoft.AspNetCore.Components.EventCallback<string>", "Microsoft.AspNetCore.Components.EventCallback").WithLocation(DesignTime ? 37 : 30, DesignTime ? 13 : 320)
+        CompileToAssembly(generated, DesignTime
+            ? [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+               //                           ParentValue
+               Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
+               // (37,13): error CS1503: Argument 2: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback<string>' to 'Microsoft.AspNetCore.Components.EventCallback'
+               //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)));
+               Diagnostic(ErrorCode.ERR_BadArgType, "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)").WithArguments("2", "Microsoft.AspNetCore.Components.EventCallback<string>", "Microsoft.AspNetCore.Components.EventCallback").WithLocation(37, 13)]
+            : [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+               //                           ParentValue
+               Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
+               // (37,13): error CS1503: Argument 2: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback<string>' to 'Microsoft.AspNetCore.Components.EventCallback'
+               //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)));
+               Diagnostic(ErrorCode.ERR_BadArgType, "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)").WithArguments("2", "Microsoft.AspNetCore.Components.EventCallback<string>", "Microsoft.AspNetCore.Components.EventCallback").WithLocation(30, 320)
+            ]
         );
-
-        // This has some errors
-        Assert.Collection(
-            assembly.CSharpDiagnostics.OrderBy(d => d.Id),
-            d => Assert.Equal("CS1503", d.Id),
-            d => Assert.Equal("CS1503", d.Id));
     }
 
     [IntegrationTestFact]
@@ -2068,16 +2075,21 @@ namespace Test
     public int ParentValue { get; set; } = 42;
 }");
 
-        var row = DesignTime ? 38 : 31;
-        var column = DesignTime ? 179 : 227;
 
-        CompileToAssembly(generated,
-            // (31,227): error CS0029: Cannot implicitly convert type 'int' to 'string'
-            //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "ParentValue").WithArguments("int", "string").WithLocation(row, column),
-            // (31,227): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-            //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "ParentValue").WithArguments("lambda expression").WithLocation(row, column));
+        CompileToAssembly(generated, DesignTime
+            ? [// (31,227): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "ParentValue").WithArguments("int", "string").WithLocation(38, 179),
+               // (31,227): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+               //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
+               Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "ParentValue").WithArguments("lambda expression").WithLocation(38, 179)]
+            : [// (31,227): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "ParentValue").WithArguments("int", "string").WithLocation(31, 227),
+               // (31,227): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+               //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
+               Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "ParentValue").WithArguments("lambda expression").WithLocation(31, 227)
+            ]);
     }
 
     [IntegrationTestFact]
@@ -4929,10 +4941,13 @@ namespace AnotherTest
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated,
-            // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
-            // __o = _field.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, DesignTime ? 7 : 3));
+        CompileToAssembly(generated, DesignTime
+            ? // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
+              // __o = _field.ToString();
+              Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 7)
+            : // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
+              // __o = _field.ToString();
+              Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 3));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
@@ -9415,7 +9430,14 @@ namespace Test
 "));
 
         // Act
-        DiagnosticDescription[] expectedDiagnostics = [
+        var generated = CompileToCSharp("_Imports.razor", @"
+@using System.Text
+@using System.Reflection
+
+@layout MainLayout
+@Foo
+<div>Hello</div>
+", fileKind: FileKinds.ComponentImport, expectedCSharpDiagnostics: [
             // (4,31): error CS0246: The type or namespace name 'ComponentBase' could not be found (are you missing a using directive or an assembly reference?)
             //     public class MainLayout : ComponentBase, ILayoutComponent
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ComponentBase").WithArguments("ComponentBase").WithLocation(4, 31),
@@ -9424,29 +9446,39 @@ namespace Test
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ILayoutComponent").WithArguments("ILayoutComponent").WithLocation(4, 46),
             // (6,16): error CS0246: The type or namespace name 'RenderFragment' could not be found (are you missing a using directive or an assembly reference?)
             //         public RenderFragment Body { get; set; }
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RenderFragment").WithArguments("RenderFragment").WithLocation(6, 16)];
-        var generated = CompileToCSharp("_Imports.razor", @"
-@using System.Text
-@using System.Reflection
-
-@layout MainLayout
-@Foo
-<div>Hello</div>
-", fileKind: FileKinds.ComponentImport, expectedCSharpDiagnostics: expectedDiagnostics);
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RenderFragment").WithArguments("RenderFragment").WithLocation(6, 16)]);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, [.. expectedDiagnostics,
-                // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name 'Foo' does not exist in the current context
-                // Foo
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, DesignTime ? 7 : 2),
-                .. (DesignTime ? Array.Empty<DiagnosticDescription>()
-                : [
-                // (33,13): error CS0103: The name '__builder' does not exist in the current context
-                //             __builder.AddContent(0,
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(33, 13)
-                ])]);
+        CompileToAssembly(generated, DesignTime
+            ? [// (4,31): error CS0246: The type or namespace name 'ComponentBase' could not be found (are you missing a using directive or an assembly reference?)
+               //     public class MainLayout : ComponentBase, ILayoutComponent
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ComponentBase").WithArguments("ComponentBase").WithLocation(4, 31),
+               // (4,46): error CS0246: The type or namespace name 'ILayoutComponent' could not be found (are you missing a using directive or an assembly reference?)
+               //     public class MainLayout : ComponentBase, ILayoutComponent
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ILayoutComponent").WithArguments("ILayoutComponent").WithLocation(4, 46),
+               // (6,16): error CS0246: The type or namespace name 'RenderFragment' could not be found (are you missing a using directive or an assembly reference?)
+               //         public RenderFragment Body { get; set; }
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RenderFragment").WithArguments("RenderFragment").WithLocation(6, 16),
+               // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name 'Foo' does not exist in the current context
+               // Foo
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, 7)]
+            : [// (4,31): error CS0246: The type or namespace name 'ComponentBase' could not be found (are you missing a using directive or an assembly reference?)
+               //     public class MainLayout : ComponentBase, ILayoutComponent
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ComponentBase").WithArguments("ComponentBase").WithLocation(4, 31),
+               // (4,46): error CS0246: The type or namespace name 'ILayoutComponent' could not be found (are you missing a using directive or an assembly reference?)
+               //     public class MainLayout : ComponentBase, ILayoutComponent
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ILayoutComponent").WithArguments("ILayoutComponent").WithLocation(4, 46),
+               // (6,16): error CS0246: The type or namespace name 'RenderFragment' could not be found (are you missing a using directive or an assembly reference?)
+               //         public RenderFragment Body { get; set; }
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RenderFragment").WithArguments("RenderFragment").WithLocation(6, 16),
+               // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name 'Foo' does not exist in the current context
+               // Foo
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, 2),
+               // (33,13): error CS0103: The name '__builder' does not exist in the current context
+               //             __builder.AddContent(0,
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(33, 13)]);
     }
 
     [IntegrationTestFact]
@@ -10304,13 +10336,20 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated,
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,32): error CS1003: Syntax error, ',' expected
-            //                               x
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
-            // (27,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
-            //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(DesignTime ? 27 : 21, DesignTime? 91 : 138));
+        CompileToAssembly(generated, DesignTime
+            ? [// x:\dir\subdir\Test\TestComponent.cshtml(1,32): error CS1003: Syntax error, ',' expected
+              //                               x
+              Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
+              // (27,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
+              //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
+              Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(27, 91)]
+            : [// x:\dir\subdir\Test\TestComponent.cshtml(1,32): error CS1003: Syntax error, ',' expected
+              //                               x
+              Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
+              // (27,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
+              //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
+              Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(21, 138)]
+            );
         Assert.NotEmpty(generated.RazorDiagnostics);
     }
 
@@ -10444,6 +10483,21 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact]
+    public void AtTransitions()
+    {
+        var generated = CompileToCSharp("""
+            @{  
+                var x = "hello";  
+                @x x = "world"; @x  
+            }  
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region LinePragmas
@@ -10500,13 +10554,7 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated,
-            // x:\dir\subdir\Test\TestComponent.cshtml(8,3): error CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
-            //   System.Console.WriteLine(1);System.Console.WriteLine(2);
-            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "System.Console").WithArguments("Console", "System", "System.Console, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(8, 3),
-            // x:\dir\subdir\Test\TestComponent.cshtml(8,31): error CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
-            //   System.Console.WriteLine(1);System.Console.WriteLine(2);
-            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "System.Console").WithArguments("Console", "System", "System.Console, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(8, 31));
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -10986,7 +11034,7 @@ Time: @DateTime.Now
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, DesignTime
-            ?  [
+            ? [
                 // x:\dir\subdir\Test\TestComponent.cshtml(2,74): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //                                                                          x
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "string").WithLocation(2, 74)
@@ -11043,10 +11091,14 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated,
-            // (41,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
-            //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
-             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(DesignTime? 41 : 37, DesignTime ? 85: 105));
+        CompileToAssembly(generated, DesignTime
+            ? [// (41,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+             //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
+             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(41, 85)]
+            : [// (41,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+               //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
+               Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(37, 105)]
+             );
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]

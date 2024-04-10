@@ -859,6 +859,27 @@ catch(bar) { baz(); }");
             """);
     }
 
+    [Fact]
+    public void EscapedIdentifiers_09()
+    {
+        ParseDocumentTest("""
+            @{
+                var x = "hello";
+                @x x = "world"; @x
+            }
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_10()
+    {
+        ParseDocumentTest("""
+            @{
+                @@string.Format("1{0}", DateTime.Now)
+            }
+            """);
+    }
+
     private void RunRazorCommentBetweenClausesTest(string preComment, string postComment, AcceptedCharactersInternal acceptedCharacters = AcceptedCharactersInternal.Any)
     {
         ParseDocumentTest(preComment + "@* Foo *@ @* Bar *@" + postComment);

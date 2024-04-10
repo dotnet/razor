@@ -39,6 +39,7 @@ public class RazorIntegrationTestBase
         {
             typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
             typeof(Enumerable).Assembly, // Other .NET fundamental types
+            typeof(Console).Assembly,
             typeof(System.Linq.Expressions.Expression).Assembly,
             typeof(ComponentBase).Assembly,
             typeof(CSharp.RuntimeBinder.CSharpArgumentInfo).Assembly, // needed to support `dynamic`
