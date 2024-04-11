@@ -115,10 +115,9 @@ internal partial class ComponentTagHelperDescriptorProvider : RazorEngineFeature
 
             if (fullyQualified)
             {
-                var containingNamespace = type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
-                var fullName = string.IsNullOrEmpty(containingNamespace)
+                var fullName = type.ContainingNamespace.IsGlobalNamespace
                     ? type.Name
-                    : $"{containingNamespace}.{type.Name}";
+                    : $"{type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat)}.{type.Name}";
 
                 builder.TagMatchingRule(r =>
                 {
