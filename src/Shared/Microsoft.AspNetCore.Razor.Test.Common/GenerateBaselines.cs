@@ -6,7 +6,7 @@
 
 using Xunit;
 
-internal class GenerateBaselines
+public class GenerateBaselines
 {
 #if GENERATE_BASELINES
     internal static readonly bool ShouldGenerate = true;
