@@ -4,7 +4,7 @@
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal interface IDynamicRegistrationProvider
 {

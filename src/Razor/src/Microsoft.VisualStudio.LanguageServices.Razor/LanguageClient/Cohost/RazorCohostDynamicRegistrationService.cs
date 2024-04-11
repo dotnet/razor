@@ -10,26 +10,23 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
+#pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [Export(typeof(IRazorCohostDynamicRegistrationService))]
 [method: ImportingConstructor]
-<<<<<<< HEAD:src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/LanguageClient/Cohost/RazorCohostDynamicRegistrationService.cs
-internal class RazorCohostDynamicRegistrationService(LanguageServerFeatureOptions languageServerFeatureOptions, Lazy<ISemanticTokensLegendService> semanticTokensLegendService, ILoggerFactory loggerFactory) : IRazorCohostDynamicRegistrationService, IClientCapabilitiesService
-=======
 internal class RazorCohostDynamicRegistrationService(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     [ImportMany] IEnumerable<IDynamicRegistrationProvider> registrationProviders,
     RazorCohostClientCapabilitiesService razorCohostClientCapabilitiesService,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IRazorCohostDynamicRegistrationService
->>>>>>> dfe6ec440 (Move capabilities logic back into the endpoint):src/Razor/src/Microsoft.VisualStudio.LanguageServerClient.Razor/Cohost/RazorCohostDynamicRegistrationService.cs
 {
+#pragma warning restore RS0030 // Do not use banned APIs
     private readonly DocumentFilter[] _filter = [new DocumentFilter()
     {
         Language = Constants.RazorLanguageName,
@@ -39,7 +36,7 @@ internal class RazorCohostDynamicRegistrationService(
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IEnumerable<IDynamicRegistrationProvider> _registrationProviders = registrationProviders;
     private readonly RazorCohostClientCapabilitiesService _razorCohostClientCapabilitiesService = razorCohostClientCapabilitiesService;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCohostDynamicRegistrationService>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCohostDynamicRegistrationService>();
 
     public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {

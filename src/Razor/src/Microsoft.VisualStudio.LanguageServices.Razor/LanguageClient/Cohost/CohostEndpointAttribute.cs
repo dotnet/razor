@@ -2,11 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal class CohostEndpointAttribute : LanguageServerEndpointAttribute
+internal class CohostEndpointAttribute : RazorMethodAttribute
 {
     public CohostEndpointAttribute(string method)
         : base(method, Constants.RazorLanguageName)
