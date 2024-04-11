@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,12 +23,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 public class RazorDocumentMappingServiceTest : ToolingTestBase
 {
-    private readonly FilePathService _filePathService;
+    private readonly IFilePathService _filePathService;
 
     public RazorDocumentMappingServiceTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
+        _filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
     }
 
     [Fact]

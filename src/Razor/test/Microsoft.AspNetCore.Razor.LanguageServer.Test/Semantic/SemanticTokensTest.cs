@@ -13,18 +13,20 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -989,11 +991,8 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             .Setup(c => c.GetLatestOptionsAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult<RazorLSPOptions?>(options));
 
-        var optionsMonitorCache = new OptionsCache<RazorLSPOptions>();
-
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create(
-            configurationSyncService.Object,
-            optionsMonitorCache);
+            configurationSyncService.Object);
 
         await optionsMonitor.UpdateAsync(CancellationToken.None);
 
@@ -1004,7 +1003,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             options.HtmlVirtualDocumentSuffix == "__virtual.html",
             MockBehavior.Strict);
 
-        var csharpSemanticTokensProvider = new LSPCSharpSemanticTokensProvider(_clientConnection.Object, LoggerFactory);
+        var csharpSemanticTokensProvider = new LSPCSharpSemanticTokensProvider(featureOptions, _clientConnection.Object, LoggerFactory);
 
         var service = new RazorSemanticTokensInfoService(
             documentMappingService,
@@ -1208,9 +1207,9 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     private class TestDocumentContextFactory(VersionedDocumentContext? documentContext = null) : IDocumentContextFactory
     {
-        public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+        public Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
         {
-            return documentContext;
+            return Task.FromResult<DocumentContext?>(documentContext);
         }
     }
 }

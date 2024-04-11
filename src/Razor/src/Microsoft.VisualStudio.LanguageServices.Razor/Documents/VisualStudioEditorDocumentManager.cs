@@ -4,17 +4,20 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Razor.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+namespace Microsoft.VisualStudio.Razor.Documents;
 
 // Similar to the DocumentProvider in dotnet/Roslyn - but simplified quite a bit to remove
 // concepts that we don't need. Responsible for providing data about text changes for documents
@@ -25,14 +28,14 @@ internal sealed class VisualStudioEditorDocumentManager(
     SVsServiceProvider serviceProvider,
     IVsEditorAdaptersFactoryService editorAdaptersFactory,
     IFileChangeTrackerFactory fileChangeTrackerFactory,
-    ProjectSnapshotManagerDispatcher dispatcher,
-    JoinableTaskContext joinableTaskContext) : EditorDocumentManager(fileChangeTrackerFactory, dispatcher, joinableTaskContext)
+    JoinableTaskContext joinableTaskContext) : EditorDocumentManager(fileChangeTrackerFactory, joinableTaskContext)
 {
-    private readonly IVsRunningDocumentTable4 _runningDocumentTable = serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(throwOnFailure: true).AssumeNotNull();
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory = editorAdaptersFactory;
 
     private readonly Dictionary<uint, List<DocumentKey>> _documentsByCookie = [];
     private readonly Dictionary<DocumentKey, uint> _cookiesByDocument = [];
+    private IVsRunningDocumentTable4? _runningDocumentTable;
     private bool _advised;
 
     protected override ITextBuffer? GetTextBufferForOpenDocument(string filePath)
@@ -49,7 +52,7 @@ internal sealed class VisualStudioEditorDocumentManager(
         // Check if the document is already open and initialized, and associate a buffer if possible.
         uint cookie;
         if (_runningDocumentTable.IsMonikerValid(filePath) &&
-            ((cookie = _runningDocumentTable.GetDocumentCookie(filePath)) != VSConstants.VSCOOKIE_NIL) &&
+            (cookie = _runningDocumentTable.GetDocumentCookie(filePath)) != VSConstants.VSCOOKIE_NIL &&
             (_runningDocumentTable.GetDocumentFlags(cookie) & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0)
         {
             // GetDocumentData requires the UI thread
@@ -99,7 +102,7 @@ internal sealed class VisualStudioEditorDocumentManager(
         lock (Lock)
         {
             // Casts avoid dynamic
-            if ((object)_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer vsTextBuffer)
+            if (_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer vsTextBuffer)
             {
                 var filePath = _runningDocumentTable.GetDocumentMoniker(cookie);
                 if (!TryGetMatchingDocuments(filePath, out var documents))
@@ -219,9 +222,14 @@ internal sealed class VisualStudioEditorDocumentManager(
         }
     }
 
+    [MemberNotNull(nameof(_runningDocumentTable))]
     private void EnsureDocumentTableAdvised()
     {
         JoinableTaskContext.AssertUIThread();
+
+        // Note: Because it is a COM interface, we defer retrieving IVsRunningDocumentTable until
+        // now to avoid implicitly marshalling to the UI thread, which can deadlock.
+        _runningDocumentTable ??= _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(throwOnFailure: true).AssumeNotNull();
 
         if (!_advised)
         {

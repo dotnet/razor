@@ -13,10 +13,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
 using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
@@ -43,9 +42,9 @@ internal class RazorTranslateDiagnosticsService
     /// translating code diagnostics from one representation into another, such as from C# to Razor.
     /// </summary>
     /// <param name="documentMappingService">The <see cref="IRazorDocumentMappingService"/>.</param>
-    /// <param name="loggerFactory">The <see cref="IRazorLoggerFactory"/>.</param>
+    /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
     /// <exception cref="ArgumentNullException"/>
-    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, IRazorLoggerFactory loggerFactory)
+    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
     {
         if (documentMappingService is null)
         {
@@ -58,7 +57,7 @@ internal class RazorTranslateDiagnosticsService
         }
 
         _documentMappingService = documentMappingService;
-        _logger = loggerFactory.CreateLogger<RazorTranslateDiagnosticsService>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsService>();
     }
 
     /// <summary>
@@ -78,7 +77,7 @@ internal class RazorTranslateDiagnosticsService
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported() != false)
         {
-            _logger.LogInformation("Unsupported code document.");
+            _logger.LogInformation($"Unsupported code document.");
             return Array.Empty<Diagnostic>();
         }
 
@@ -89,12 +88,12 @@ internal class RazorTranslateDiagnosticsService
             : FilterHTMLDiagnostics(diagnostics, codeDocument, sourceText, _logger);
         if (!filteredDiagnostics.Any())
         {
-            _logger.LogDebug("No diagnostics remaining after filtering.");
+            _logger.LogDebug($"No diagnostics remaining after filtering.");
 
             return Array.Empty<Diagnostic>();
         }
 
-        _logger.LogDebug("{filteredDiagnosticsLength}/{unmappedDiagnosticsLength} diagnostics remain after filtering.", filteredDiagnostics.Length, diagnostics.Length);
+        _logger.LogDebug($"{filteredDiagnostics.Length}/{diagnostics.Length} diagnostics remain after filtering.");
 
         var mappedDiagnostics = MapDiagnostics(
             diagnosticKind,
@@ -525,7 +524,7 @@ internal class RazorTranslateDiagnosticsService
             default:
                 // Unsupported owner of rude diagnostic, lets map to the entirety of the diagnostic range to be sure the diagnostic can be presented
 
-                _logger.LogInformation("Failed to remap rude edit for SyntaxTree owner '{ownerKind}'.", owner?.Kind);
+                _logger.LogInformation($"Failed to remap rude edit for SyntaxTree owner '{owner?.Kind}'.");
 
                 var startLineIndex = diagnosticRange.Start.Line;
                 if (startLineIndex >= sourceText.Lines.Count)

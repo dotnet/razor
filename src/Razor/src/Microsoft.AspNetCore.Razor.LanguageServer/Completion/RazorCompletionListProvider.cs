@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -22,11 +21,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 internal class RazorCompletionListProvider(
     IRazorCompletionFactsService completionFactsService,
     CompletionListCache completionListCache,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
 {
     private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
     private readonly CompletionListCache _completionListCache = completionListCache;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCompletionListProvider>();
     private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = "editor.action.triggerSuggest",
@@ -62,7 +61,7 @@ internal class RazorCompletionListProvider(
         var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
-        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
+        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
 
         var razorCompletionContext = new RazorCompletionContext(
             absoluteIndex,
@@ -75,7 +74,7 @@ internal class RazorCompletionListProvider(
 
         var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
-        _logger.LogTrace("Resolved {razorCompletionItemsCount} completion items.", razorCompletionItems.Length);
+        _logger.LogTrace($"Resolved {razorCompletionItems.Length} completion items.");
 
         var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
 

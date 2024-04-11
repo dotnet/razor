@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -18,6 +17,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -59,7 +60,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
 
         var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
 
-        var documentContext = _documentContextFactory.TryCreate(actionParams.Uri);
+        var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
             return null;

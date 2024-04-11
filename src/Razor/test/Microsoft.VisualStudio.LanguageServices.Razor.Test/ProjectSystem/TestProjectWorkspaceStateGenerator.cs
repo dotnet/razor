@@ -1,14 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 internal class TestProjectWorkspaceStateGenerator : IProjectWorkspaceStateGenerator
 {
@@ -19,18 +19,41 @@ internal class TestProjectWorkspaceStateGenerator : IProjectWorkspaceStateGenera
         _updates = new List<TestUpdate>();
     }
 
-    public IReadOnlyList<TestUpdate> UpdateQueue => _updates;
+    public IReadOnlyList<TestUpdate> Updates => _updates;
 
-    public void Update(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    public Task UpdateAsync(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         var update = new TestUpdate(workspaceProject, projectSnapshot, cancellationToken);
         _updates.Add(update);
+
+        return Task.CompletedTask;
     }
 
-    public void ClearQueue()
+    public void Clear()
     {
         _updates.Clear();
     }
 
-    public record TestUpdate(Project WorkspaceProject, IProjectSnapshot ProjectSnapshot, CancellationToken CancellationToken);
+    public record TestUpdate(Project? WorkspaceProject, IProjectSnapshot ProjectSnapshot, CancellationToken CancellationToken)
+    {
+        public override string ToString()
+        {
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+            builder.Append($"{{{nameof(WorkspaceProject)} = ");
+
+            if (WorkspaceProject is null)
+            {
+                builder.Append("<null>");
+            }
+            else
+            {
+                builder.Append(WorkspaceProject.Name);
+            }
+
+            builder.Append($", {nameof(ProjectSnapshot)} = {ProjectSnapshot.DisplayName}}}");
+
+            return builder.ToString();
+        }
+    }
 }

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ProjectSystem;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -485,7 +486,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         ProjectSnapshotManagerDispatcher dispatcher,
         WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
         IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions? options = null) : MonitorProjectConfigurationFilePathEndpoint(
             projectManager,

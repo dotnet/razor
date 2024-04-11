@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
@@ -27,14 +26,14 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
 
     private readonly ILogger _logger;
 
-    public LinkedEditingRangeEndpoint(IRazorLoggerFactory loggerFactory)
+    public LinkedEditingRangeEndpoint(ILoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<LinkedEditingRangeEndpoint>();
     }
 
     public bool MutatesSolutionState => false;
@@ -57,14 +56,14 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null || cancellationToken.IsCancellationRequested)
         {
-            _logger.LogWarning("Unable to resolve document for {Uri} or cancellation was requested.", request.TextDocument.Uri);
+            _logger.LogWarning($"Unable to resolve document for {request.TextDocument.Uri} or cancellation was requested.");
             return null;
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
-            _logger.LogWarning("FileKind {FileKind} is unsupported", codeDocument.GetFileKind());
+            _logger.LogWarning($"FileKind {codeDocument.GetFileKind()} is unsupported");
             return null;
         }
 
@@ -92,7 +91,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
             };
         }
 
-        _logger.LogInformation("LinkedEditingRange request was null at {location} for {uri}", location, request.TextDocument.Uri);
+        _logger.LogInformation($"LinkedEditingRange request was null at {location} for {request.TextDocument.Uri}");
         return null;
 
         async Task<SourceLocation?> GetSourceLocationAsync(

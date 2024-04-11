@@ -11,16 +11,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
@@ -33,12 +32,12 @@ internal sealed class RenameEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IRazorDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
-        loggerFactory.CreateLogger<RenameEndpoint>()), ICapabilitiesProvider
+        loggerFactory.GetOrCreateLogger<RenameEndpoint>()), ICapabilitiesProvider
 {
     private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IProjectSnapshotManager _projectManager = projectManager;

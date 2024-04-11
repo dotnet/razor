@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
@@ -36,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
-    private readonly IRazorLoggerFactory _loggerFactory;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly LanguageServerFeatureOptions? _featureOptions;
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
@@ -50,7 +51,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer,
@@ -73,7 +74,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         Initialize();
     }
 
-    private static ILspLogger CreateILspLogger(IRazorLoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)
+    private static ILspLogger CreateILspLogger(ILoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)
     {
         return new ClaspLoggingBridge(loggerFactory, telemetryReporter);
     }
@@ -83,18 +84,17 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         var handlerProvider = this.HandlerProvider;
         var queue = new RazorRequestExecutionQueue(this, _logger, handlerProvider);
         queue.Start();
-        return queue;
 
+        return queue;
     }
 
     protected override ILspServices ConstructLspServices()
     {
-        var services = new ServiceCollection()
-            .AddOptions();
+        var services = new ServiceCollection();
 
         var loggerFactoryWrapper = new LoggerFactoryWrapper(_loggerFactory);
         // Wrap the logger factory so that we can add [LSP] to the start of all the categories
-        services.AddSingleton<IRazorLoggerFactory>(loggerFactoryWrapper);
+        services.AddSingleton<ILoggerFactory>(loggerFactoryWrapper);
 
         if (_configureServer is not null)
         {
@@ -123,12 +123,12 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
 
-        services.AddSingleton<FilePathService>();
+        services.AddSingleton<IFilePathService, LSPFilePathService>();
 
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
-        services.AddSemanticTokensServices();
+        services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
         services.AddCompletionServices(featureOptions);
         services.AddFormattingServices();
@@ -219,12 +219,12 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     }
 
     // Internal for testing
-    internal TestAccessor GetTestAccessor()
+    internal new TestAccessor GetTestAccessor()
     {
         return new TestAccessor(this);
     }
 
-    internal class TestAccessor
+    internal new class TestAccessor
     {
         private RazorLanguageServer _server;
 

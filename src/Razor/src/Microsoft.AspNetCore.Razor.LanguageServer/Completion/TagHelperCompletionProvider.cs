@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -20,20 +19,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
 {
     // Internal for testing
-    internal static readonly IReadOnlyList<RazorCommitCharacter> MinimizedAttributeCommitCharacters = RazorCommitCharacter.FromArray(new[] { "=", " " });
-    internal static readonly IReadOnlyList<RazorCommitCharacter> AttributeCommitCharacters = RazorCommitCharacter.FromArray(new[] { "=" });
-    internal static readonly IReadOnlyList<RazorCommitCharacter> AttributeSnippetCommitCharacters = RazorCommitCharacter.FromArray(new[] { "=" }, insert: false);
+    internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = RazorCommitCharacter.CreateArray(["=", " "]);
+    internal static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = RazorCommitCharacter.CreateArray(["="]);
+    internal static readonly ImmutableArray<RazorCommitCharacter> AttributeSnippetCommitCharacters = RazorCommitCharacter.CreateArray(["="], insert: false);
 
-    private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { " ", ">" });
-    private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.FromArray(new[] { ">" });
-    private static readonly IReadOnlyList<RazorCommitCharacter> s_noCommitCharacters = Array.Empty<RazorCommitCharacter>();
+    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.CreateArray([" ", ">"]);
+    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.CreateArray([">"]);
 
     private readonly ITagHelperCompletionService _tagHelperCompletionService;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
     public TagHelperCompletionProvider(
         ITagHelperCompletionService tagHelperCompletionService,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        RazorLSPOptionsMonitor optionsMonitor)
     {
         _tagHelperCompletionService = tagHelperCompletionService;
         _optionsMonitor = optionsMonitor;
@@ -290,11 +288,11 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         return AttributeContext.Full;
     }
 
-    private static IReadOnlyList<RazorCommitCharacter> ResolveAttributeCommitCharacters(AttributeContext attributeContext)
+    private static ImmutableArray<RazorCommitCharacter> ResolveAttributeCommitCharacters(AttributeContext attributeContext)
     {
         return attributeContext switch
         {
-            AttributeContext.Indexer => s_noCommitCharacters,
+            AttributeContext.Indexer => [],
             AttributeContext.Minimized => MinimizedAttributeCommitCharacters,
             AttributeContext.Full => AttributeCommitCharacters,
             AttributeContext.FullSnippet => AttributeSnippetCommitCharacters,

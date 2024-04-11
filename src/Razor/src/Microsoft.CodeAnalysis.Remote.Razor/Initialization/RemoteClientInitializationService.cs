@@ -5,25 +5,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed class RemoteClientInitializationService : RazorServiceBase, IRemoteClientInitializationService
+internal sealed class RemoteClientInitializationService(
+    IServiceBroker serviceBroker)
+    : RazorServiceBase(serviceBroker), IRemoteClientInitializationService
 {
-    internal RemoteClientInitializationService(IServiceBroker serviceBroker)
-        : base(serviceBroker)
-    {
-    }
-
-    public async ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
-    {
-        await RazorBrokeredServiceImplementation.RunServiceAsync(
-            _ =>
+    public ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
+        => RazorBrokeredServiceImplementation.RunServiceAsync(_ =>
             {
                 RemoteLanguageServerFeatureOptions.SetOptions(options);
                 return default;
             },
             cancellationToken);
-    }
+
+    public ValueTask InitializeLSPAsync(RemoteClientLSPInitializationOptions options, CancellationToken cancellationToken)
+        => RazorBrokeredServiceImplementation.RunServiceAsync(_ =>
+        {
+            RemoteSemanticTokensLegendService.SetLegend(options.TokenTypes, options.TokenModifiers);
+            return default;
+        },
+            cancellationToken);
 }

@@ -8,14 +8,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
@@ -34,12 +34,12 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IEnumerable<IRazorFoldingRangeProvider> foldingRangeProviders,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
         _foldingRangeProviders = foldingRangeProviders ?? throw new ArgumentNullException(nameof(foldingRangeProviders));
-        _logger = loggerFactory.CreateLogger<FoldingRangeEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<FoldingRangeEndpoint>();
     }
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
@@ -54,8 +54,6 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
 
     public async Task<IEnumerable<FoldingRange>?> HandleRequestAsync(FoldingRangeParams @params, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        using var _ = _logger.BeginScope("FoldingRangeEndpoint.Handle");
-
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
@@ -82,7 +80,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
             }
             catch (Exception e) when (e is not OperationCanceledException && retries < MaxRetries)
             {
-                _logger.LogWarning(e, "Try {retries} to get FoldingRange", retries);
+                _logger.LogWarning(e, $"Try {retries} to get FoldingRange");
             }
         }
 
@@ -163,7 +161,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         {
             // Sometimes VS Code seems to send us wildly out-of-range folding ranges for Html, so log a warning,
             // but prevent a toast from appearing from an exception.
-            _logger.LogWarning("Got a folding range of ({StartLine}-{EndLine}) but Razor document {filePath} only has {count} lines.", range.StartLine, range.EndLine, codeDocument.Source.FilePath, sourceText.Lines.Count);
+            _logger.LogWarning($"Got a folding range of ({range.StartLine}-{range.EndLine}) but Razor document {codeDocument.Source.FilePath} only has {sourceText.Lines.Count} lines.");
             return range;
         }
 

@@ -4,8 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Razor.IntegrationTests.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -107,6 +106,20 @@ internal partial class OutputInProcess
             }
 
             return textView;
+        }
+    }
+
+    private class NullLogger : ILogger
+    {
+        public static ILogger Instance { get; } = new NullLogger();
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return false;
+        }
+
+        public void Log(LogLevel logLevel, string message, Exception? exception)
+        {
         }
     }
 }

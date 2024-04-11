@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Editor.Razor.Documents;
+using Microsoft.VisualStudio.Razor.Documents;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -76,17 +76,11 @@ public class ImportDocumentManagerIntegrationTest : VisualStudioTestBase
             .Returns(StrictMock.Of<IFileChangeTracker>());
 
         var called = false;
-        var manager = new ImportDocumentManager(Dispatcher, fileChangeTrackerFactoryMock.Object);
+        var manager = new ImportDocumentManager(fileChangeTrackerFactoryMock.Object);
 
-        await RunOnDispatcherAsync(() =>
-        {
-            manager.OnSubscribed(tracker);
-        });
+        manager.OnSubscribed(tracker);
 
-        await RunOnDispatcherAsync(() =>
-        {
-            manager.OnSubscribed(anotherTracker);
-        });
+        manager.OnSubscribed(anotherTracker);
 
         manager.Changed += (sender, args) =>
         {

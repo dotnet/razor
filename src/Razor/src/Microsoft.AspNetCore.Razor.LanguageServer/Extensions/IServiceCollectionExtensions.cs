@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
@@ -23,11 +24,12 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -44,8 +46,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorLifeCycleManager>(razorLifeCycleManager);
         services.AddSingleton<CapabilitiesManager>();
         services.AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>(sp => sp.GetRequiredService<CapabilitiesManager>());
+        services.AddSingleton<IClientCapabilitiesService>(sp => sp.GetRequiredService<CapabilitiesManager>());
         services.AddSingleton<AbstractRequestContextFactory<RazorRequestContext>, RazorRequestContextFactory>();
-        services.AddSingleton<IClientCapabilitiesService, ClientCapabilitiesService>();
 
         services.AddSingleton<ICapabilitiesProvider, RazorLanguageServerCapability>();
 
@@ -98,7 +100,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<CompletionItemResolver, RazorCompletionItemResolver>();
         services.AddSingleton<CompletionItemResolver, DelegatedCompletionItemResolver>();
         services.AddSingleton<ITagHelperCompletionService, LspTagHelperCompletionService>();
-        services.AddSingleton<IRazorCompletionFactsService, RazorCompletionFactsService>();
+        services.AddSingleton<IRazorCompletionFactsService, LspRazorCompletionFactsService>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeParameterCompletionItemProvider>();
@@ -109,7 +111,6 @@ internal static class IServiceCollectionExtensions
 
     public static void AddDiagnosticServices(this IServiceCollection services)
     {
-        services.AddHandler<RazorTranslateDiagnosticsEndpoint>();
         services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
         services.AddHandler<WorkspacePullDiagnosticsEndpoint>();
         services.AddSingleton<RazorTranslateDiagnosticsService>();
@@ -123,18 +124,21 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IHoverService, HoverService>();
     }
 
-    public static void AddSemanticTokensServices(this IServiceCollection services)
+    public static void AddSemanticTokensServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
-        services.AddHandlerWithCapabilities<SemanticTokensRangeEndpoint>();
-        // Ensure that we don't add the default service if something else has added one.
-        services.TryAddSingleton<IRazorSemanticTokensInfoService, RazorSemanticTokensInfoService>();
-        services.AddSingleton<ICSharpSemanticTokensProvider, LSPCSharpSemanticTokensProvider>();
+        if (!featureOptions.UseRazorCohostServer)
+        {
+            services.AddHandlerWithCapabilities<SemanticTokensRangeEndpoint>();
+            // Ensure that we don't add the default service if something else has added one.
+            services.TryAddSingleton<IRazorSemanticTokensInfoService, RazorSemanticTokensInfoService>();
+            services.AddSingleton<ICSharpSemanticTokensProvider, LSPCSharpSemanticTokensProvider>();
 
-        services.AddSingleton<ISemanticTokensLegendService, RazorSemanticTokensLegendService>();
+            services.AddSingleton<ISemanticTokensLegendService, RazorSemanticTokensLegendService>();
+        }
 
         services.AddHandler<RazorSemanticTokensRefreshEndpoint>();
 
-        services.AddSingleton<IWorkspaceSemanticTokensRefreshPublisher, WorkspaceSemanticTokensRefreshPublisher>();
+        services.AddSingleton<IWorkspaceSemanticTokensRefreshNotifier, WorkspaceSemanticTokensRefreshNotifier>();
         services.AddSingleton<IRazorStartupService, WorkspaceSemanticTokensRefreshTrigger>();
     }
 
@@ -176,7 +180,6 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<DocumentDidOpenEndpoint>();
         services.AddHandler<DocumentDidSaveEndpoint>();
 
-        services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
         services.AddHandler<RazorLanguageQueryEndpoint>();
     }
@@ -188,11 +191,8 @@ internal static class IServiceCollectionExtensions
         {
             return new RazorLSPOptionsMonitor(
                 s.GetRequiredService<IConfigurationSyncService>(),
-                s.GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>(),
                 currentOptions);
         });
-
-        services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>(s => s.GetRequiredService<RazorLSPOptionsMonitor>());
     }
 
     public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)

@@ -6,16 +6,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -30,7 +29,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
 
     public RazorBreakpointSpanEndpoint(
         IRazorDocumentMappingService documentMappingService,
-        IRazorLoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {
@@ -38,7 +37,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
         }
 
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-        _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
+        _logger = loggerFactory.GetOrCreateLogger<RazorBreakpointSpanEndpoint>();
     }
 
     public Uri GetTextDocumentIdentifier(RazorBreakpointSpanParams request)
@@ -120,8 +119,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        _logger.LogTrace("Breakpoint span request for ({requestLine}, {requestCharacter}) = ({hostDocumentStartLine}, {hostDocumentStartCharacter}",
-            request.Position.Line, request.Position.Character, hostDocumentRange.Start.Line, hostDocumentRange.Start.Character);
+        _logger.LogTrace($"Breakpoint span request for ({request.Position.Line}, {request.Position.Character}) = ({hostDocumentRange.Start.Line}, {hostDocumentRange.Start.Character}");
 
         return new RazorBreakpointSpanResponse()
         {

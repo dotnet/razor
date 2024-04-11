@@ -3,14 +3,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -21,13 +19,13 @@ internal sealed class SignatureHelpEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-        IRazorLoggerFactory loggerProvider)
+        RazorLSPOptionsMonitor optionsMonitor,
+        ILoggerFactory loggerProvider)
     : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
-        loggerProvider.CreateLogger<SignatureHelpEndpoint>()),
+        loggerProvider.GetOrCreateLogger<SignatureHelpEndpoint>()),
     ICapabilitiesProvider
 {
     protected override string CustomMessageTarget => CustomMessageNames.RazorSignatureHelpEndpointName;

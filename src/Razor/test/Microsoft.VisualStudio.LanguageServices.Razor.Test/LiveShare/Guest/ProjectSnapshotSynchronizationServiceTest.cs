@@ -10,12 +10,12 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LiveShare.Razor.Test;
+using Microsoft.VisualStudio.LiveShare;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Guest;
+namespace Microsoft.VisualStudio.Razor.LiveShare.Guest;
 
 public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTestBase
 {
@@ -54,7 +54,6 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _sessionContext,
             hostProjectManagerProxyMock.Object,
             _projectManager,
-            Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
 
@@ -89,7 +88,6 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _sessionContext,
             StrictMock.Of<IProjectSnapshotManagerProxy>(),
             _projectManager,
-            Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
         var args = new ProjectChangeEventProxyArgs(older: null, newHandle, ProjectProxyChangeKind.ProjectAdded);
@@ -125,7 +123,6 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _sessionContext,
             StrictMock.Of<IProjectSnapshotManagerProxy>(),
             _projectManager,
-            Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
@@ -166,7 +163,6 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _sessionContext,
             StrictMock.Of<IProjectSnapshotManagerProxy>(),
             _projectManager,
-            Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
@@ -211,7 +207,6 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _sessionContext,
             StrictMock.Of<IProjectSnapshotManagerProxy>(),
             _projectManager,
-            Dispatcher,
             ErrorReporter,
             JoinableTaskFactory);
         var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");

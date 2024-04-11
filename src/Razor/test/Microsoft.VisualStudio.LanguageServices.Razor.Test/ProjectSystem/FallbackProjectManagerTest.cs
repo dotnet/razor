@@ -17,7 +17,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Test.Common.TestProjectData;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 {
@@ -71,12 +71,15 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
                 new CompilationOutputInfo().WithAssemblyPath(Path.Combine(SomeProject.IntermediateOutputPath, "SomeProject.dll")));
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            hostProject.Key,
-            SomeProject.FilePath,
-            SomeProjectFile1.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                hostProject.Key,
+                SomeProject.FilePath,
+                SomeProjectFile1.FilePath,
+                DisposalToken);
+        });
 
         var project = Assert.Single(_projectManager.GetProjects());
         Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
@@ -93,12 +96,15 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            SomeProject.Key,
-            SomeProject.FilePath,
-            SomeProjectFile1.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                SomeProject.Key,
+                SomeProject.FilePath,
+                SomeProjectFile1.FilePath,
+                DisposalToken);
+        });
 
         var project = Assert.Single(_projectManager.GetProjects());
         Assert.Equal("DisplayName", project.DisplayName);
@@ -122,12 +128,15 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
             projectId,
             SomeProject.Key,
             SomeProject.FilePath,
             SomeProjectFile1.FilePath,
             DisposalToken);
+        });
 
         var project = Assert.Single(_projectManager.GetProjects());
         Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
@@ -159,26 +168,35 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            SomeProject.Key,
-            SomeProject.FilePath,
-            SomeProjectFile1.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                SomeProject.Key,
+                SomeProject.FilePath,
+                SomeProjectFile1.FilePath,
+                DisposalToken);
+        });
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            SomeProject.Key,
-            SomeProject.FilePath,
-            SomeProjectFile2.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                SomeProject.Key,
+                SomeProject.FilePath,
+                SomeProjectFile2.FilePath,
+                DisposalToken);
+        });
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            SomeProject.Key,
-            SomeProject.FilePath,
-            SomeProjectNestedComponentFile3.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                SomeProject.Key,
+                SomeProject.FilePath,
+                SomeProjectNestedComponentFile3.FilePath,
+                DisposalToken);
+        });
 
         var project = Assert.Single(_projectManager.GetProjects());
 
@@ -190,7 +208,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(SomeProjectFile1.FilePath)!.TargetPath);
         Assert.Equal(SomeProjectFile2.TargetPath, project.GetDocument(SomeProjectFile2.FilePath)!.TargetPath);
         // The test data is created with a "\" so when the test runs on Linux, and direct string comparison wouldn't work
-        Assert.True(FilePathNormalizer.FilePathsEquivalent(SomeProjectNestedComponentFile3.TargetPath, project.GetDocument(SomeProjectNestedComponentFile3.FilePath)!.TargetPath));
+        Assert.True(FilePathNormalizer.AreFilePathsEquivalent(SomeProjectNestedComponentFile3.TargetPath, project.GetDocument(SomeProjectNestedComponentFile3.FilePath)!.TargetPath));
     }
 
     [UIFact]
@@ -204,27 +222,36 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            SomeProject.Key,
-            SomeProject.FilePath,
-            SomeProjectFile1.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                SomeProject.Key,
+                SomeProject.FilePath,
+                SomeProjectFile1.FilePath,
+                DisposalToken);
+        });
 
         // These two represent linked files, or shared project items
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            SomeProject.Key,
-            SomeProject.FilePath,
-            AnotherProjectFile2.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                SomeProject.Key,
+                SomeProject.FilePath,
+                AnotherProjectFile2.FilePath,
+                DisposalToken);
+        });
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            SomeProject.Key,
-            SomeProject.FilePath,
-            AnotherProjectComponentFile1.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                SomeProject.Key,
+                SomeProject.FilePath,
+                AnotherProjectComponentFile1.FilePath,
+                DisposalToken);
+        });
 
         var project = Assert.Single(_projectManager.GetProjects());
 
@@ -245,12 +272,15 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
-        await _fallbackProjectManger.DynamicFileAddedAsync(
-            projectId,
-            SomeProject.Key,
-            SomeProject.FilePath,
-            SomeProjectFile1.FilePath,
-            DisposalToken);
+        await RunOnDispatcherAsync(() =>
+        {
+            _fallbackProjectManger.DynamicFileAdded(
+                projectId,
+                SomeProject.Key,
+                SomeProject.FilePath,
+                SomeProjectFile1.FilePath,
+                DisposalToken);
+        });
 
         var kvp = Assert.Single(_projectConfigurationFilePathStore.GetMappings());
         Assert.Equal(SomeProject.Key, kvp.Key);

@@ -10,11 +10,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -22,12 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 internal class RazorFormattingPass(
     IRazorDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
-    IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-    IRazorLoggerFactory loggerFactory)
+    RazorLSPOptionsMonitor optionsMonitor,
+    ILoggerFactory loggerFactory)
     : FormattingPassBase(documentMappingService, clientConnection)
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorFormattingPass>();
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorFormattingPass>();
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
 
     // Run after the C# formatter pass.
     public override int Order => DefaultOrder - 4;

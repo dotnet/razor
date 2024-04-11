@@ -84,13 +84,7 @@ internal static class FilePathNormalizer
         var filePathSpan = filePath.AsSpan();
 
         using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan.Length, out var array);
-        var normalizedSpan = NormalizeCoreAndGetSpan(filePathSpan, array);
-
-        var lastSlashIndex = normalizedSpan.LastIndexOf('/');
-
-        var directoryNameSpan = lastSlashIndex >= 0
-            ? normalizedSpan[..(lastSlashIndex + 1)] // Include trailing slash
-            : normalizedSpan;
+        var directoryNameSpan = NormalizeDirectoryNameCore(filePathSpan, array);
 
         if (filePathSpan.Equals(directoryNameSpan, StringComparison.Ordinal))
         {
@@ -100,7 +94,30 @@ internal static class FilePathNormalizer
         return CreateString(directoryNameSpan);
     }
 
-    public static bool FilePathsEquivalent(string? filePath1, string? filePath2)
+    public static bool AreDirectoryPathsEquivalent(string? filePath1, string? filePath2)
+    {
+        var filePathSpan1 = filePath1.AsSpanOrDefault();
+        var filePathSpan2 = filePath2.AsSpanOrDefault();
+
+        if (filePathSpan1.IsEmpty)
+        {
+            return filePathSpan2.IsEmpty;
+        }
+        else if (filePathSpan2.IsEmpty)
+        {
+            return false;
+        }
+
+        using var _1 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan1.Length, out var array1);
+        var normalizedSpan1 = NormalizeDirectoryNameCore(filePathSpan1, array1);
+
+        using var _2 = ArrayPool<char>.Shared.GetPooledArray(filePathSpan2.Length, out var array2);
+        var normalizedSpan2 = NormalizeDirectoryNameCore(filePathSpan2, array2);
+
+        return normalizedSpan1.Equals(normalizedSpan2, FilePathComparison.Instance);
+    }
+
+    public static bool AreFilePathsEquivalent(string? filePath1, string? filePath2)
     {
         var filePathSpan1 = filePath1.AsSpanOrDefault();
         var filePathSpan2 = filePath2.AsSpanOrDefault();
@@ -151,6 +168,17 @@ internal static class FilePathNormalizer
         return destination.Slice(start, length);
     }
 
+    private static ReadOnlySpan<char> NormalizeDirectoryNameCore(ReadOnlySpan<char> source, Span<char> destination)
+    {
+        var normalizedSpan = NormalizeCoreAndGetSpan(source, destination);
+
+        var lastSlashIndex = normalizedSpan.LastIndexOf('/');
+
+        return lastSlashIndex >= 0
+            ? normalizedSpan[..(lastSlashIndex + 1)] // Include trailing slash
+            : normalizedSpan;
+    }
+
     /// <summary>
     ///  Normalizes the given <paramref name="source"/> file path and writes the result in <paramref name="destination"/>.
     /// </summary>
@@ -197,6 +225,7 @@ internal static class FilePathNormalizer
         NormalizeAndDedupeSlashes(destination, ref charsWritten);
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            charsWritten > 1 &&
             destination is ['/', ..] and not ['/', '/', ..])
         {
             // We've been provided a path that probably looks something like /C:/path/to.
@@ -224,11 +253,23 @@ internal static class FilePathNormalizer
             {
                 writeSlot = '/';
 
-                // if there are two slashes in a row, we skip over one of them, unless we're
-                // at the start of the span, in order to allow '\\network' paths
-                if (read > 0 && Unsafe.Add(ref readSlot, 1) is '/' or '\\')
+                if (Unsafe.Add(ref readSlot, 1) is '/' or '\\')
                 {
-                    read++;
+                    // We found two slashes in a row. If we are at the start of the path,
+                    // we we are at '\\network' paths, so want to leave them alone. Otherwise
+                    // we skip over one of them to de-dupe
+                    if (read == 0)
+                    {
+                        writeSlot = '\\';
+                        writeSlot = ref Unsafe.Add(ref writeSlot, 1);
+                        writeSlot = '\\';
+                        read++;
+                        write++;
+                    }
+                    else if (read > 0)
+                    {
+                        read++;
+                    }
                 }
             }
             else

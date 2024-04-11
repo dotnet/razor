@@ -8,27 +8,26 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+namespace Microsoft.VisualStudio.Razor.Documents;
 
 [Export(typeof(IFileChangeTrackerFactory))]
 internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
 {
-    private readonly IErrorReporter _errorReporter;
-    private readonly IVsAsyncFileChangeEx _fileChangeService;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly IErrorReporter _errorReporter;
+    private readonly JoinableTask<IVsAsyncFileChangeEx> _getFileChangeServiceTask;
 
     [ImportingConstructor]
     public VisualStudioFileChangeTrackerFactory(
-        SVsServiceProvider serviceProvider,
+        [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
         JoinableTaskContext joinableTaskContext,
-        ProjectSnapshotManagerDispatcher dispatcher,
         IErrorReporter errorReporter)
     {
-        _errorReporter = errorReporter;
-        _fileChangeService = (IVsAsyncFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-        _projectSnapshotManagerDispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
+        _errorReporter = errorReporter;
+
+        var jtf = _joinableTaskContext.Factory;
+        _getFileChangeServiceTask = jtf.RunAsync(serviceProvider.GetServiceAsync<SVsFileChangeEx, IVsAsyncFileChangeEx>);
     }
 
     public IFileChangeTracker Create(string filePath)
@@ -38,6 +37,9 @@ internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
             throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
-        return new VisualStudioFileChangeTracker(filePath, _errorReporter, _fileChangeService, _projectSnapshotManagerDispatcher, _joinableTaskContext);
+        // TODO: Make IFileChangeTrackerFactory.Create(...) asynchronous to avoid blocking here.
+        var fileChangeService = _getFileChangeServiceTask.Join();
+
+        return new VisualStudioFileChangeTracker(filePath, _errorReporter, fileChangeService, _joinableTaskContext);
     }
 }

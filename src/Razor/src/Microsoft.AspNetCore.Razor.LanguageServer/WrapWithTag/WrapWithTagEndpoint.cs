@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
@@ -21,12 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 internal class WrapWithTagEndpoint(
     IClientConnection clientConnection,
     IRazorDocumentMappingService razorDocumentMappingService,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IRazorRequestHandler<WrapWithTagParams, WrapWithTagResponse?>
 {
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly IRazorDocumentMappingService _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
-    private readonly ILogger _logger = loggerFactory.CreateLogger<WrapWithTagEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<WrapWithTagEndpoint>();
 
     public bool MutatesSolutionState => false;
 
@@ -40,7 +40,7 @@ internal class WrapWithTagEndpoint(
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
-            _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
+            _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
             return null;
         }
 
@@ -49,7 +49,7 @@ internal class WrapWithTagEndpoint(
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
-            _logger.LogWarning("Failed to retrieve generated output for document {textDocumentUri}.", request.TextDocument.Uri);
+            _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
             return null;
         }
 
@@ -94,7 +94,7 @@ internal class WrapWithTagEndpoint(
 
         if (languageKind is not RazorLanguageKind.Html)
         {
-            _logger.LogInformation("Unsupported language {languageKind:G}.", languageKind);
+            _logger.LogInformation($"Unsupported language {languageKind:G}.");
             return null;
         }
 

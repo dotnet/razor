@@ -10,17 +10,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
@@ -35,7 +35,7 @@ internal sealed class CodeActionEndpoint(
     IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
     IClientConnection clientConnection,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRazorLoggerFactory loggerFactory,
+    ILoggerFactory loggerFactory,
     ITelemetryReporter? telemetryReporter)
     : IRazorRequestHandler<VSCodeActionParams, SumType<Command, CodeAction>[]?>, ICapabilitiesProvider
 {
@@ -47,7 +47,7 @@ internal sealed class CodeActionEndpoint(
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders ?? throw new ArgumentNullException(nameof(htmlCodeActionProviders));
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-    private readonly ILogger _logger = loggerFactory.CreateLogger<CodeActionEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CodeActionEndpoint>();
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
 
     internal bool _supportsCodeActionResolve = false;
@@ -300,7 +300,7 @@ internal sealed class CodeActionEndpoint(
         catch (RemoteInvocationException e)
         {
             _telemetryReporter?.ReportFault(e, "Error getting code actions from delegate language server for {languageKind}", languageKind);
-            _logger.LogError(e, "Error getting code actions from delegate language server for {languageKind}", languageKind);
+            _logger.LogError(e, $"Error getting code actions from delegate language server for {languageKind}");
             return Array.Empty<RazorVSInternalCodeAction>();
         }
     }

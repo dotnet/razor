@@ -7,15 +7,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
@@ -24,10 +24,10 @@ internal class TextDocumentUriPresentationEndpoint(
     IRazorDocumentMappingService razorDocumentMappingService,
     RazorComponentSearchEngine razorComponentSearchEngine,
     IClientConnection clientConnection,
-    FilePathService filePathService,
+    IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory,
-    IRazorLoggerFactory loggerFactory)
-    : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>()), ITextDocumentUriPresentationHandler
+    ILoggerFactory loggerFactory)
+    : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.GetOrCreateLogger<TextDocumentUriPresentationEndpoint>()), ITextDocumentUriPresentationHandler
 {
     private readonly RazorComponentSearchEngine _razorComponentSearchEngine = razorComponentSearchEngine ?? throw new ArgumentNullException(nameof(razorComponentSearchEngine));
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
@@ -62,7 +62,7 @@ internal class TextDocumentUriPresentationEndpoint(
 
         if (request.Uris is null || request.Uris.Length == 0)
         {
-            Logger.LogInformation("No URIs were included in the request?");
+            Logger.LogInformation($"No URIs were included in the request?");
             return null;
         }
 
@@ -74,14 +74,14 @@ internal class TextDocumentUriPresentationEndpoint(
         // thinks they're just dragging the parent one, so we have to be a little bit clever with the filter here
         if (razorFileUri == null)
         {
-            Logger.LogInformation("No file in the drop was a razor file URI.");
+            Logger.LogInformation($"No file in the drop was a razor file URI.");
             return null;
         }
 
         var fileName = Path.GetFileName(razorFileUri.GetAbsoluteOrUNCPath());
         if (request.Uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
         {
-            Logger.LogInformation("One or more URIs were not a child file of the main .razor file.");
+            Logger.LogInformation($"One or more URIs were not a child file of the main .razor file.");
             return null;
         }
 
@@ -116,12 +116,12 @@ internal class TextDocumentUriPresentationEndpoint(
 
     private async Task<string?> TryGetComponentTagAsync(Uri uri, CancellationToken cancellationToken)
     {
-        Logger.LogInformation("Trying to find document info for dropped uri {uri}.", uri);
+        Logger.LogInformation($"Trying to find document info for dropped uri {uri}.");
 
-        var documentContext = _documentContextFactory.TryCreate(uri);
+        var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
-            Logger.LogInformation("Failed to find document for component {uri}.", uri);
+            Logger.LogInformation($"Failed to find document for component {uri}.");
             return null;
         }
 
@@ -130,14 +130,14 @@ internal class TextDocumentUriPresentationEndpoint(
         var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
         if (descriptor is null)
         {
-            Logger.LogInformation("Failed to find tag helper descriptor.");
+            Logger.LogInformation($"Failed to find tag helper descriptor.");
             return null;
         }
 
         var typeName = descriptor.GetTypeNameIdentifier();
         if (string.IsNullOrWhiteSpace(typeName))
         {
-            Logger.LogWarning("Found a tag helper, {descriptorName}, but it has an empty TypeNameIdentifier.", descriptor.Name);
+            Logger.LogWarning($"Found a tag helper, {descriptor.Name}, but it has an empty TypeNameIdentifier.");
             return null;
         }
 
