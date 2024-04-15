@@ -39,11 +39,11 @@ public class RazorLanguageServerTest : ToolingTestBase
             Locale = "de-DE"
         };
 
-        await queue.ExecuteAsync<InitializeParams, InitializeResult>(initializeParams, Methods.InitializeName, innerServer.GetLspServices(), DisposalToken);
+        await queue.ExecuteAsync<InitializeParams, InitializeResult>(initializeParams, Methods.InitializeName, LanguageServerConstants.DefaultLanguageName, innerServer.GetLspServices(), DisposalToken);
 
         // We have to send one more request, because culture is set before any request starts, but the first initialize request has to
         // be started in order to set the culture.
-        await queue.ExecuteAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(new(), VSInternalMethods.WorkspacePullDiagnosticName, innerServer.GetLspServices(), DisposalToken);
+        await queue.ExecuteAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(new(), VSInternalMethods.WorkspacePullDiagnosticName, LanguageServerConstants.DefaultLanguageName, innerServer.GetLspServices(), DisposalToken);
 
         var cultureInfo = queue.GetTestAccessor().GetCultureInfo();
 
