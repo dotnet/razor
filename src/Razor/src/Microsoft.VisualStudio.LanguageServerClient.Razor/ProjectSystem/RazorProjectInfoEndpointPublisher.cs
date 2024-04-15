@@ -38,13 +38,22 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
     public RazorProjectInfoEndpointPublisher(
         LSPRequestInvoker requestInvoker,
         IProjectSnapshotManager projectManager)
+        : this(requestInvoker, projectManager, s_enqueueDelay)
+    {
+    }
+
+    // Provided for tests to specify enqueue delay
+    public RazorProjectInfoEndpointPublisher(
+        LSPRequestInvoker requestInvoker,
+        IProjectSnapshotManager projectManager,
+        TimeSpan enqueueDelay)
     {
         _requestInvoker = requestInvoker;
         _projectManager = projectManager;
 
-        _disposeTokenSource = new ();
+        _disposeTokenSource = new();
         _workQueue = new(
-            EnqueueDelay,
+            enqueueDelay,
             ProcessBatchAsync,
             _disposeTokenSource.Token);
     }
@@ -54,10 +63,6 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
     }
-
-    // internal for testing
-    // Delay between publishes to prevent bursts of changes yet still be responsive to changes.
-    internal TimeSpan EnqueueDelay { get; set; } = TimeSpan.FromMilliseconds(250);
 
     public void StartSending()
     {

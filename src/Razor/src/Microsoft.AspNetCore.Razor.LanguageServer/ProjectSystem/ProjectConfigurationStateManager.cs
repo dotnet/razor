@@ -32,6 +32,7 @@ internal partial class ProjectConfigurationStateManager : IDisposable
 
     private readonly AsyncBatchingWorkQueue<(ProjectKey ProjectKey, RazorProjectInfo? ProjectInfo)> _workQueue;
     private readonly CancellationTokenSource _disposalTokenSource;
+    private static readonly TimeSpan s_enqueueDelay = TimeSpan.FromMilliseconds(250);
 
     /// <summary>
     /// Used to throttle project system updates
@@ -43,6 +44,20 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         IRazorProjectService projectService,
         ILoggerFactory loggerFactory,
         IProjectSnapshotManager projectManager)
+        : this(projectSnapshotManagerDispatcher,
+               projectService,
+               loggerFactory,
+               projectManager,
+               s_enqueueDelay)
+    { }
+
+    // Provided for tests to specify enqueue delay
+    public ProjectConfigurationStateManager(
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IRazorProjectService projectService,
+        ILoggerFactory loggerFactory,
+        IProjectSnapshotManager projectManager,
+        TimeSpan enqueueDelay)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = projectService;
@@ -51,7 +66,7 @@ internal partial class ProjectConfigurationStateManager : IDisposable
 
         _disposalTokenSource = new ();
         _workQueue = new(
-            EnqueueDelay,
+            enqueueDelay,
             ProcessBatchAsync,
             _disposalTokenSource.Token);
     }
