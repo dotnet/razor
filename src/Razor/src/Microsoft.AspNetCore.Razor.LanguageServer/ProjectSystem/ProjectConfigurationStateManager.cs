@@ -71,7 +71,7 @@ internal partial class ProjectConfigurationStateManager : IDisposable
                 return default;
             }
 
-            UpdateProject(workItem.ProjectKey, workItem.ProjectInfo);
+            UpdateProject(workItem.ProjectKey, workItem.ProjectInfo, cancellationToken);
         }
 
         return default;
@@ -142,11 +142,11 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         EnqueueUpdateProject(projectKey, projectInfo);
     }
 
-    private void UpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
+    private void UpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
     {
         if (projectInfo is null)
         {
-            ResetProject(projectKey);
+            ResetProject(projectKey, cancellationToken);
             return;
         }
 
@@ -154,13 +154,15 @@ internal partial class ProjectConfigurationStateManager : IDisposable
 
         var projectWorkspaceState = projectInfo.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
         var documents = projectInfo.Documents;
-        _projectService.UpdateProject(
+        _projectSnapshotManagerDispatcher.RunAsync(
+            () => _projectService.UpdateProject(
             projectKey,
             projectInfo.Configuration,
             projectInfo.RootNamespace,
             projectInfo.DisplayName,
             projectWorkspaceState,
-            documents);
+            documents),
+            cancellationToken).Forget();
     }
 
     private void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
@@ -168,14 +170,16 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         _workQueue.AddWork((projectKey, projectInfo));
     }
 
-    private void ResetProject(ProjectKey projectKey)
+    private void ResetProject(ProjectKey projectKey, CancellationToken cancellationToken)
     {
-        _projectService.UpdateProject(
+        _projectSnapshotManagerDispatcher.RunAsync(
+            () => _projectService.UpdateProject(
             projectKey,
             configuration: null,
             rootNamespace: null,
             displayName: "",
             ProjectWorkspaceState.Default,
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
+            ImmutableArray<DocumentSnapshotHandle>.Empty),
+            cancellationToken).Forget();
     }
 }
