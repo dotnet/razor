@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
 /// <summary>
 /// Publishes project data (including TagHelper info) discovered OOB to the server via LSP notification
@@ -32,7 +32,8 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
     private readonly CancellationTokenSource _disposeTokenSource;
     private bool _active;
 
-    private bool _active;
+    // Delay between publishes to prevent bursts of changes yet still be responsive to changes.
+    private static readonly TimeSpan s_enqueueDelay = TimeSpan.FromMilliseconds(250);
 
     [ImportingConstructor]
     public RazorProjectInfoEndpointPublisher(
@@ -80,7 +81,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 ImmediatePublish(project, _disposeTokenSource.Token);
             }
         }
-            }
+    }
 
     private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
@@ -130,9 +131,9 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
     // so that we don't publish half-finished projects, which can cause things like Semantic coloring to "flash"
     // when they update repeatedly as they load.
     private static bool ProjectWorkspacePublishable(IProjectSnapshot? project)
-        {
+    {
         return project?.ProjectWorkspaceState != null;
-        }
+    }
 
     private void EnqueuePublish(IProjectSnapshot projectSnapshot)
     {
@@ -156,9 +157,9 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
             if (workItem.Removal)
             {
                 RemovePublishingData(workItem.Project, cancellationToken);
-        }
-        else
-        {
+            }
+            else
+            {
                 ImmediatePublish(workItem.Project, cancellationToken);
             }
         }

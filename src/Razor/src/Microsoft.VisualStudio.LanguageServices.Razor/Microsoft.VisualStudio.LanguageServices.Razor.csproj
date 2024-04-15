@@ -158,6 +158,9 @@
       <DependentUpon>ProjectSystem\Rules\RazorComponentWithTargetPath.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LanguageClient\ProjectSystem\" />
+  </ItemGroup>
 
   <!--
     Despite us specifying %(XamlPropertyRule.OutputPath), the ProjectSystem.SDK targets still add files in the

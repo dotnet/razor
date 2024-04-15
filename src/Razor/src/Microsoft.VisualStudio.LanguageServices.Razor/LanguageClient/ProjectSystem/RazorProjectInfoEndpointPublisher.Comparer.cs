@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
 internal partial class RazorProjectInfoEndpointPublisher
 {

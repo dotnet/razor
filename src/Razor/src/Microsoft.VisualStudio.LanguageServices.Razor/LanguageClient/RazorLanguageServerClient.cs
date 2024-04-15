@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
+using Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Threading;
@@ -284,20 +285,21 @@ internal class RazorLanguageServerClient(
 
     private void ServerStarted()
     {
-        _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
-        _projectInfoEndpointPublisher.StopCachingRequests();
-
-        var mappings = _projectConfigurationFilePathStore.GetMappings();
-        foreach (var mapping in mappings)
+        if (_languageServerFeatureOptions.UseProjectConfigurationEndpoint)
         {
-            var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
-            ProjectConfigurationFilePathStore_Changed(this, args);
-
-            _projectInfoEndpointPublisher.SerializeToEndpointUncached(mapping.Key, mapping.Value);
+            _projectInfoEndpointPublisher.StartSending();
         }
+        else
+        {
+            _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
 
-
-        _projectInfoEndpointPublisher.ClearCache();
+            var mappings = _projectConfigurationFilePathStore.GetMappings();
+            foreach (var mapping in mappings)
+            {
+                var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
+                ProjectConfigurationFilePathStore_Changed(this, args);
+            }
+        }
     }
 
     private sealed class HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider) : HostServicesProvider

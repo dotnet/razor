@@ -25,7 +25,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 /// </remarks>
 internal partial class ProjectConfigurationStateManager : IDisposable
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IRazorProjectService _projectService;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ILogger _logger;
@@ -34,18 +33,11 @@ internal partial class ProjectConfigurationStateManager : IDisposable
     private readonly CancellationTokenSource _disposalTokenSource;
     private static readonly TimeSpan s_enqueueDelay = TimeSpan.FromMilliseconds(250);
 
-    /// <summary>
-    /// Used to throttle project system updates
-    /// </summary>
-    internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
-
     public ProjectConfigurationStateManager(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IRazorProjectService projectService,
         ILoggerFactory loggerFactory,
         IProjectSnapshotManager projectManager)
-        : this(projectSnapshotManagerDispatcher,
-               projectService,
+        : this(projectService,
                loggerFactory,
                projectManager,
                s_enqueueDelay)
@@ -53,13 +45,11 @@ internal partial class ProjectConfigurationStateManager : IDisposable
 
     // Provided for tests to specify enqueue delay
     public ProjectConfigurationStateManager(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IRazorProjectService projectService,
         ILoggerFactory loggerFactory,
         IProjectSnapshotManager projectManager,
         TimeSpan enqueueDelay)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = projectService;
         _projectManager = projectManager;
         _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateManager>();
@@ -92,24 +82,7 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         return default;
     }
 
-    internal TimeSpan EnqueueDelay { get; set; } = TimeSpan.FromMilliseconds(250);
-
-            UpdateProject(workItem.ProjectKey, workItem.ProjectInfo);
-        }
-
-        return default;
-    }
-
-    internal TimeSpan EnqueueDelay { get; set; } = TimeSpan.FromMilliseconds(250);
-
-    public Task ProjectInfoUpdatedAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
-    {
-        return _projectSnapshotManagerDispatcher.RunAsync(
-            () => ProjectInfoUpdatedImpl(projectKey, projectInfo),
-            cancellationToken);
-    }
-
-    private void ProjectInfoUpdatedImpl(ProjectKey projectKey, RazorProjectInfo? projectInfo)
+    public void ProjectInfoUpdated(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
     {
         var knownProject = _projectManager.TryGetLoadedProject(projectKey, out _);
 
@@ -122,7 +95,7 @@ internal partial class ProjectConfigurationStateManager : IDisposable
             }
             else
             {
-                _logger.LogWarning("Found no existing project key '{0}' but projectInfo is null. Assuming no-op deletion.", projectKey.Id);
+                _logger.LogWarning($"Found no existing project key '{projectKey.Id}' but projectInfo is null. Assuming no-op deletion.");
             }
 
             return;
@@ -133,27 +106,37 @@ internal partial class ProjectConfigurationStateManager : IDisposable
             // For the new code path using endpoint, SerializedFilePath is IntermediateOutputPath.
             // We will rename it when we remove the old code path that actually uses serialized bin file.
             var intermediateOutputPath = FilePathNormalizer.Normalize(projectInfo.SerializedFilePath);
-            _logger.LogInformation("Found no existing project key for project key '{0}'. Assuming new project.", projectKey.Id);
+            _logger.LogInformation($"Found no existing project key for project key '{projectKey.Id}'. Assuming new project.");
 
-            _projectSnapshotManagerDispatcher.RunAsync(
-                () => AddProject(intermediateOutputPath, projectInfo),
+            AddProjectAsync(
+                intermediateOutputPath,
+                projectInfo,
                 cancellationToken).Forget();
             return;
         }
 
-        _logger.LogInformation("Project info changed for project '{0}'", projectKey.Id);
+        _logger.LogInformation($"Project info changed for project '{projectKey.Id}'");
 
         EnqueueUpdateProject(projectKey, projectInfo);
     }
 
-    private void AddProject(string intermediateOutputPath, RazorProjectInfo projectInfo)
+    private async Task AddProjectAsync(
+        string intermediateOutputPath,
+        RazorProjectInfo projectInfo,
+        CancellationToken cancellationToken)
     {
         var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
         var rootNamespace = projectInfo.RootNamespace;
 
-        var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
+        var projectKey = await _projectService.AddProjectAsync(
+            projectFilePath,
+            intermediateOutputPath,
+            projectInfo.Configuration,
+            rootNamespace,
+            projectInfo.DisplayName,
+            cancellationToken).ConfigureAwait(false);
 
-        _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, intermediateOutputPath);
+        _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{intermediateOutputPath}'");
         EnqueueUpdateProject(projectKey, projectInfo);
     }
 
@@ -165,18 +148,17 @@ internal partial class ProjectConfigurationStateManager : IDisposable
             return;
         }
 
-        _logger.LogInformation("Actually updating {project} with a real projectInfo", projectKey);
+        _logger.LogInformation($"Actually updating {projectKey} with a real projectInfo");
 
         var projectWorkspaceState = projectInfo.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
         var documents = projectInfo.Documents;
-        _projectSnapshotManagerDispatcher.RunAsync(
-            () => _projectService.UpdateProject(
+        _projectService.UpdateProjectAsync(
             projectKey,
             projectInfo.Configuration,
             projectInfo.RootNamespace,
             projectInfo.DisplayName,
             projectWorkspaceState,
-            documents),
+            documents,
             cancellationToken).Forget();
     }
 
@@ -187,14 +169,13 @@ internal partial class ProjectConfigurationStateManager : IDisposable
 
     private void ResetProject(ProjectKey projectKey, CancellationToken cancellationToken)
     {
-        _projectSnapshotManagerDispatcher.RunAsync(
-            () => _projectService.UpdateProject(
+        _projectService.UpdateProjectAsync(
             projectKey,
             configuration: null,
             rootNamespace: null,
             displayName: "",
             ProjectWorkspaceState.Default,
-            ImmutableArray<DocumentSnapshotHandle>.Empty),
+            ImmutableArray<DocumentSnapshotHandle>.Empty,
             cancellationToken).Forget();
     }
 }
