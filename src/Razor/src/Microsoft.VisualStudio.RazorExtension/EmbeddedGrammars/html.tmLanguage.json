@@ -112,11 +112,14 @@
 												}
 											},
 											"name": "string.quoted.double.html",
-											"patterns": [
-												{
-													"include": "#entities"
-												}
-											]
+                      "patterns": [
+                        {
+                          "include": "text.aspnetcorerazor#implicit-or-explicit-expression"
+                        },
+                        {
+                          "include": "#entities"
+                        }
+                      ]
 										},
 										{
 											"begin": "'",
@@ -136,11 +139,14 @@
 												}
 											},
 											"name": "string.quoted.single.html",
-											"patterns": [
-												{
-													"include": "#entities"
-												}
-											]
+                      "patterns": [
+                        {
+                          "include": "text.aspnetcorerazor#implicit-or-explicit-expression"
+                        },
+                        {
+                          "include": "#entities"
+                        }
+                      ]
 										}
 									]
 								},
@@ -402,11 +408,14 @@
 								}
 							},
 							"name": "string.quoted.double.html",
-							"patterns": [
-								{
-									"include": "#entities"
-								}
-							]
+              "patterns": [
+                {
+                  "include": "text.aspnetcorerazor#implicit-or-explicit-expression"
+                },
+                {
+                  "include": "#entities"
+                }
+              ]
 						},
 						{
 							"begin": "'",
@@ -422,11 +431,14 @@
 								}
 							},
 							"name": "string.quoted.single.html",
-							"patterns": [
-								{
-									"include": "#entities"
-								}
-							]
+              "patterns": [
+                {
+                  "include": "text.aspnetcorerazor#implicit-or-explicit-expression"
+                },
+                {
+                  "include": "#entities"
+                }
+              ]
 						},
 						{
 							"match": "=",
