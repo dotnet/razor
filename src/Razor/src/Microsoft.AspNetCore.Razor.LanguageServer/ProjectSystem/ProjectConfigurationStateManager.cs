@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
@@ -77,51 +76,41 @@ internal partial class ProjectConfigurationStateManager : IDisposable
                 return default;
             }
 
-            UpdateProject(workItem.ProjectKey, workItem.ProjectInfo, cancellationToken);
+            UpdateProjectAsync(workItem.ProjectKey, workItem.ProjectInfo, cancellationToken).Forget();
         }
 
         return default;
     }
 
-    public void ProjectInfoUpdated(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
+    public async Task ProjectInfoUpdatedAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
     {
-        var knownProject = _projectManager.TryGetLoadedProject(projectKey, out _);
-
-        if (projectInfo is null)
+        if (!_projectManager.TryGetLoadedProject(projectKey, out _))
         {
-            if (knownProject)
+            if (projectInfo is not null)
             {
-                // projectInfo null is "remove"
-                EnqueueUpdateProject(projectKey, projectInfo: null);
+                // For the new code path using endpoint, SerializedFilePath is IntermediateOutputPath.
+                // We will rename it when we remove the old code path that actually uses serialized bin file.
+                var intermediateOutputPath = FilePathNormalizer.Normalize(projectInfo.SerializedFilePath);
+                _logger.LogInformation($"Found no existing project key for project key '{projectKey.Id}'. Assuming new project.");
+
+                projectKey = await AddProjectAsync(intermediateOutputPath, projectInfo, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 _logger.LogWarning($"Found no existing project key '{projectKey.Id}' but projectInfo is null. Assuming no-op deletion.");
+                return;
             }
-
-            return;
         }
-
-        if (!knownProject)
+        else
         {
-            // For the new code path using endpoint, SerializedFilePath is IntermediateOutputPath.
-            // We will rename it when we remove the old code path that actually uses serialized bin file.
-            var intermediateOutputPath = FilePathNormalizer.Normalize(projectInfo.SerializedFilePath);
-            _logger.LogInformation($"Found no existing project key for project key '{projectKey.Id}'. Assuming new project.");
-
-            AddProjectAsync(
-                intermediateOutputPath,
-                projectInfo,
-                cancellationToken).Forget();
-            return;
+            _logger.LogInformation($"Project info changed for project '{projectKey.Id}'");
         }
 
-        _logger.LogInformation($"Project info changed for project '{projectKey.Id}'");
-
+        // projectInfo may be null, in which case we are enqueuing remove is "remove"
         EnqueueUpdateProject(projectKey, projectInfo);
     }
 
-    private async Task AddProjectAsync(
+    private Task<ProjectKey> AddProjectAsync(
         string intermediateOutputPath,
         RazorProjectInfo projectInfo,
         CancellationToken cancellationToken)
@@ -129,38 +118,36 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
         var rootNamespace = projectInfo.RootNamespace;
 
-        var projectKey = await _projectService.AddProjectAsync(
+        _logger.LogInformation($"Project configuration added for project '{projectFilePath}': '{intermediateOutputPath}'");
+
+        return _projectService.AddProjectAsync(
             projectFilePath,
             intermediateOutputPath,
             projectInfo.Configuration,
             rootNamespace,
             projectInfo.DisplayName,
-            cancellationToken).ConfigureAwait(false);
-
-        _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{intermediateOutputPath}'");
-        EnqueueUpdateProject(projectKey, projectInfo);
+            cancellationToken);
     }
 
-    private void UpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
+    private Task UpdateProjectAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
     {
         if (projectInfo is null)
         {
-            ResetProject(projectKey, cancellationToken);
-            return;
+            return ResetProjectAsync(projectKey, cancellationToken);
         }
 
         _logger.LogInformation($"Actually updating {projectKey} with a real projectInfo");
 
         var projectWorkspaceState = projectInfo.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
         var documents = projectInfo.Documents;
-        _projectService.UpdateProjectAsync(
+        return _projectService.UpdateProjectAsync(
             projectKey,
             projectInfo.Configuration,
             projectInfo.RootNamespace,
             projectInfo.DisplayName,
             projectWorkspaceState,
             documents,
-            cancellationToken).Forget();
+            cancellationToken);
     }
 
     private void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo)
@@ -168,15 +155,15 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         _workQueue.AddWork((projectKey, projectInfo));
     }
 
-    private void ResetProject(ProjectKey projectKey, CancellationToken cancellationToken)
+    private Task ResetProjectAsync(ProjectKey projectKey, CancellationToken cancellationToken)
     {
-        _projectService.UpdateProjectAsync(
+        return _projectService.UpdateProjectAsync(
             projectKey,
             configuration: null,
             rootNamespace: null,
             displayName: "",
             ProjectWorkspaceState.Default,
-            ImmutableArray<DocumentSnapshotHandle>.Empty,
-            cancellationToken).Forget();
+            documents: ImmutableArray<DocumentSnapshotHandle>.Empty,
+            cancellationToken);
     }
 }

@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -31,14 +30,14 @@ internal partial class ProjectConfigurationStateManager
         {
             // Project removal should replace project update so treat Removal and non-Removal
             // of the same ProjectKey as equivalent work item
-            return FilePathComparer.Instance.Equals(x.ProjectKey.Id, y.ProjectKey.Id);
+            return x.ProjectKey.Equals(y.ProjectKey);
         }
 
         public int GetHashCode((ProjectKey ProjectKey, RazorProjectInfo? ProjectInfo) obj)
         {
             var (projectKey, _) = obj;
 
-            return FilePathComparer.Instance.GetHashCode(projectKey.Id);
+            return projectKey.GetHashCode();
         }
     }
 }

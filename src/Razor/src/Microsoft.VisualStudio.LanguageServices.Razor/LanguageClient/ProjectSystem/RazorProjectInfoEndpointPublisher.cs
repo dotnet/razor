@@ -30,7 +30,6 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
     private readonly AsyncBatchingWorkQueue<(IProjectSnapshot Project, bool Removal)> _workQueue;
     private readonly CancellationTokenSource _disposeTokenSource;
-    private bool _active;
 
     // Delay between publishes to prevent bursts of changes yet still be responsive to changes.
     private static readonly TimeSpan s_enqueueDelay = TimeSpan.FromMilliseconds(250);
@@ -67,19 +66,14 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
     public void StartSending()
     {
-        _active = true;
-
         _projectManager.Changed += ProjectManager_Changed;
 
         var projects = _projectManager.GetProjects();
         foreach (var project in projects)
         {
-            if (ProjectWorkspacePublishable(project))
-            {
-                // Don't enqueue project addition as those are unlikely to come through in large batches.
-                // Also ensures that we won't get project removal go through the queue without project addition.
-                ImmediatePublish(project, _disposeTokenSource.Token);
-            }
+            // Don't enqueue project addition as those are unlikely to come through in large batches.
+            // Also ensures that we won't get project removal go through the queue without project addition.
+            ImmediatePublish(project, _disposeTokenSource.Token);
         }
     }
 
@@ -96,7 +90,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
             case ProjectChangeKind.ProjectChanged:
             case ProjectChangeKind.DocumentRemoved:
             case ProjectChangeKind.DocumentAdded:
-                if (!ProjectWorkspacePublishable(args.Newer))
+                if (args.Newer is null)
                 {
                     break;
                 }
@@ -107,7 +101,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
             case ProjectChangeKind.ProjectAdded:
 
-                if (ProjectWorkspacePublishable(args.Newer))
+                if (args.Newer is not null)
                 {
                     // Don't enqueue project addition as those are unlikely to come through in large batches.
                     // Also ensures that we won't get project removal go through the queue without project addition.
@@ -125,14 +119,6 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 Debug.Fail("A new ProjectChangeKind has been added that the RazorProjectInfoEndpointPublisher doesn't know how to deal with");
                 break;
         }
-    }
-
-    // We want to wait until our project has been initialized (ProjectWorkspaceState != null)
-    // so that we don't publish half-finished projects, which can cause things like Semantic coloring to "flash"
-    // when they update repeatedly as they load.
-    private static bool ProjectWorkspacePublishable(IProjectSnapshot? project)
-    {
-        return project?.ProjectWorkspaceState != null;
     }
 
     private void EnqueuePublish(IProjectSnapshot projectSnapshot)
@@ -175,11 +161,6 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
     private void ImmediatePublish(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
-        if (!_active)
-        {
-            return;
-        }
-
         using var stream = new MemoryStream();
 
         var projectInfo = projectSnapshot.ToRazorProjectInfo(projectSnapshot.IntermediateOutputPath);
