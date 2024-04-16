@@ -77,7 +77,7 @@ extends:
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
-        image: 1es-windows-2022-pt
+        image: 1es-windows-2022
         os: windows
       sbom:
         enabled: false
@@ -385,7 +385,7 @@ extends:
                 demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
               ${{ if eq(variables['System.TeamProject'], 'internal') }}:
                 name: $(DncEngInternalBuildPool)
-                demands: ImageOverride -equals 1es-ubuntu-2004-pt
+                demands: ImageOverride -equals 1es-ubuntu-2004
               os: linux
 
             strategy:
