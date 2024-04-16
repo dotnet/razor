@@ -41,7 +41,8 @@ internal partial class ProjectConfigurationStateManager : IDisposable
                loggerFactory,
                projectManager,
                s_enqueueDelay)
-    { }
+    {
+    }
 
     // Provided for tests to specify enqueue delay
     public ProjectConfigurationStateManager(
