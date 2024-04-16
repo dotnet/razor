@@ -55,7 +55,7 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         _projectManager = projectManager;
         _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateManager>();
 
-        _disposalTokenSource = new ();
+        _disposalTokenSource = new();
         _workQueue = new(
             enqueueDelay,
             ProcessBatchAsync,
