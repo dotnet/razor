@@ -177,7 +177,17 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
             services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
-            services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
+
+            // Project system info handler
+            if (featureOptions.UseProjectConfigurationEndpoint)
+            {
+                services.AddHandler<ProjectInfoEndpoint>();
+            }
+            else
+            {
+                services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
+            }
+
             services.AddHandlerWithCapabilities<RenameEndpoint>();
             services.AddHandlerWithCapabilities<DefinitionEndpoint>();
             services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
