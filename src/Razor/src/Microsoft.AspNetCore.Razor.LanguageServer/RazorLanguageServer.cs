@@ -30,7 +30,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -52,7 +51,6 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
-        JsonSerializer serializer,
         ILoggerFactory loggerFactory,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
@@ -60,7 +58,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
         ITelemetryReporter telemetryReporter)
-        : base(jsonRpc, serializer, CreateILspLogger(loggerFactory, telemetryReporter))
+        : base(jsonRpc, CreateILspLogger(loggerFactory, telemetryReporter))
     {
         _jsonRpc = jsonRpc;
         _loggerFactory = loggerFactory;

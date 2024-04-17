@@ -20,7 +20,4 @@ internal sealed class RazorCohostClientConnection(IRazorCohostClientLanguageServ
 
     public Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         => _clientNotifier.SendRequestAsync<TParams, TResponse>(method, @params, cancellationToken);
-
-    public ValueTask SendRequestAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken)
-        => _clientNotifier.SendRequestAsync(methodName, @params, cancellationToken);
 }

@@ -45,7 +45,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-        var languageServerFactory = exportProvider.GetExportedValue<AbstractRazorLanguageServerFactoryWrapper>();
+        var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
 
         _serverMessageFormatter = CreateJsonMessageFormatter(languageServerFactory);
         _serverMessageHandler = new HeaderDelimitedMessageHandler(serverStream, serverStream, _serverMessageFormatter);
@@ -67,9 +67,9 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         _clientRpc.StartListening();
 
-        _languageServer = CreateLanguageServer(_serverRpc, _serverMessageFormatter.JsonSerializer, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
+        _languageServer = CreateLanguageServer(_serverRpc, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
 
-        static JsonMessageFormatter CreateJsonMessageFormatter(AbstractRazorLanguageServerFactoryWrapper languageServerFactory)
+        static JsonMessageFormatter CreateJsonMessageFormatter(IRazorLanguageServerFactoryWrapper languageServerFactory)
         {
             var messageFormatter = new JsonMessageFormatter();
             VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
@@ -82,9 +82,8 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         static IRazorLanguageServerTarget CreateLanguageServer(
             JsonRpc serverRpc,
-            JsonSerializer jsonSerializer,
             Workspace workspace,
-            AbstractRazorLanguageServerFactoryWrapper languageServerFactory,
+            IRazorLanguageServerFactoryWrapper languageServerFactory,
             ExportProvider exportProvider,
             VSInternalServerCapabilities serverCapabilities)
         {
@@ -94,7 +93,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             registrationService.Register(workspace);
 
             var hostServices = workspace.Services.HostServices;
-            var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, jsonSerializer, capabilitiesProvider, hostServices);
+            var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, capabilitiesProvider, hostServices);
 
             serverRpc.StartListening();
             return languageServer;
