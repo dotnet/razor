@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
@@ -22,8 +21,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal class RazorCohostDynamicRegistrationService(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     [ImportMany] IEnumerable<Lazy<IDynamicRegistrationProvider>> lazyRegistrationProviders,
-    Lazy<RazorCohostClientCapabilitiesService> lazyRazorCohostClientCapabilitiesService,
-    ILoggerFactory loggerFactory)
+    Lazy<RazorCohostClientCapabilitiesService> lazyRazorCohostClientCapabilitiesService)
     : IRazorCohostDynamicRegistrationService
 {
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -36,7 +34,6 @@ internal class RazorCohostDynamicRegistrationService(
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IEnumerable<Lazy<IDynamicRegistrationProvider>> _lazyRegistrationProviders = lazyRegistrationProviders;
     private readonly Lazy<RazorCohostClientCapabilitiesService> _lazyRazorCohostClientCapabilitiesService = lazyRazorCohostClientCapabilitiesService;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCohostDynamicRegistrationService>();
 
     public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
