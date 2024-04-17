@@ -10,12 +10,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class CodeDocumentReferenceHolder : IDocumentProcessedListener
 {
-    private Dictionary<DocumentKey, RazorCodeDocument> _codeDocumentCache;
-    private IProjectSnapshotManager? _projectManager;
+    private readonly IProjectSnapshotManager _projectManager;
+    private readonly Dictionary<DocumentKey, RazorCodeDocument> _codeDocumentCache;
 
-    public CodeDocumentReferenceHolder()
+    public CodeDocumentReferenceHolder(IProjectSnapshotManager projectManager)
     {
-        _codeDocumentCache = new();
+        _projectManager = projectManager;
+        _codeDocumentCache = [];
+
+        _projectManager.Changed += ProjectManager_Changed;
     }
 
     public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot)
@@ -25,14 +28,15 @@ internal class CodeDocumentReferenceHolder : IDocumentProcessedListener
         // (brains of DocumentSnapshot) will garbage collect its generated output aggressively and due to the
         // nature of LSP being heavily asynchronous (multiple requests for single keystrokes) we don't want to cause
         // multiple parses/regenerations across LSP requests that are all for the same document version.
-        var key = new DocumentKey(documentSnapshot.Project.Key, documentSnapshot.FilePath.AssumeNotNull());
-        _codeDocumentCache[key] = codeDocument;
+        lock (_codeDocumentCache)
+        {
+            var key = new DocumentKey(documentSnapshot.Project.Key, documentSnapshot.FilePath.AssumeNotNull());
+            _codeDocumentCache[key] = codeDocument;
+        }
     }
 
     public void Initialize(IProjectSnapshotManager projectManager)
     {
-        _projectManager = projectManager;
-        _projectManager.Changed += ProjectManager_Changed;
     }
 
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
@@ -45,26 +49,38 @@ internal class CodeDocumentReferenceHolder : IDocumentProcessedListener
             case ProjectChangeKind.ProjectChanged:
                 foreach (var documentFilePath in args.Newer!.DocumentFilePaths)
                 {
-                    var key = new DocumentKey(args.Newer.Key, documentFilePath);
-                    _codeDocumentCache.Remove(key);
+                    lock (_codeDocumentCache)
+                    {
+                        var key = new DocumentKey(args.Newer.Key, documentFilePath);
+                        _codeDocumentCache.Remove(key);
+                    }
                 }
 
                 break;
+
             case ProjectChangeKind.ProjectRemoved:
                 foreach (var documentFilePath in args.Older!.DocumentFilePaths)
                 {
-                    var key = new DocumentKey(args.Older.Key, documentFilePath);
-                    _codeDocumentCache.Remove(key);
+                    lock (_codeDocumentCache)
+                    {
+                        var key = new DocumentKey(args.Older.Key, documentFilePath);
+                        _codeDocumentCache.Remove(key);
+                    }
                 }
 
                 break;
+
             case ProjectChangeKind.DocumentChanged:
             case ProjectChangeKind.DocumentRemoved:
                 {
-                    var key = new DocumentKey(args.ProjectKey, args.DocumentFilePath.AssumeNotNull());
-                    _codeDocumentCache.Remove(key);
-                    break;
+                    lock (_codeDocumentCache)
+                    {
+                        var key = new DocumentKey(args.ProjectKey, args.DocumentFilePath.AssumeNotNull());
+                        _codeDocumentCache.Remove(key);
+                    }
                 }
+
+                break;
         }
     }
 }

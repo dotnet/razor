@@ -34,8 +34,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     protected override Task InitializeAsync()
     {
         _projectManager = CreateProjectSnapshotManager();
-        _referenceHolder = new CodeDocumentReferenceHolder();
-        _referenceHolder.Initialize(_projectManager);
+        _referenceHolder = new CodeDocumentReferenceHolder(_projectManager);
 
         return Task.CompletedTask;
     }
