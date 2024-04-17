@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -99,23 +98,17 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
     private async Task UpdateWorkspaceStateAsync(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
-        // We fire this up on a background thread so we could have been disposed already, and if so, waiting on our semaphore
-        // throws an exception.
         if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
 
-        // Specifically not using BeginBlock because we want to capture cases where tag helper discovery never finishes.
-        var telemetryId = Guid.NewGuid();
-        _telemetryReporter.ReportEvent("taghelperresolve/begin", Severity.Normal,
-            new Property("id", telemetryId),
-            new Property("tagHelperCount", projectSnapshot.ProjectWorkspaceState.TagHelpers.Length));
-
         try
         {
-            // Only allow a single TagHelper resolver request to process at a time in order to reduce Visual Studio memory pressure. Typically a TagHelper resolution result can be upwards of 10mb+.
-            // So if we now do multiple requests to resolve TagHelpers simultaneously it results in only a single one executing at a time so that we don't have N number of requests in flight with these
+            // Only allow a single TagHelper resolver request to process at a time in order to reduce
+            // Visual Studio memory pressure. Typically a TagHelper resolution result can be upwards of 10mb+.
+            // So if we now do multiple requests to resolve TagHelpers simultaneously it results in only a
+            // single one executing at a time so that we don't have N number of requests in flight with these
             // 10mb payloads waiting to be processed.
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -131,65 +124,13 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
             if (cancellationToken.IsCancellationRequested)
             {
-                // Silently cancel, we're the only ones creating these tasks.
                 return;
             }
 
-            var workspaceState = ProjectWorkspaceState.Default;
-            try
+            var workspaceState = await GetProjectWorkspaceStateAsync(workspaceProject, projectSnapshot, cancellationToken);
+
+            if (workspaceState is null || cancellationToken.IsCancellationRequested)
             {
-                if (workspaceProject != null)
-                {
-                    var csharpLanguageVersion = LanguageVersion.Default;
-                    var csharpParseOptions = workspaceProject.ParseOptions as CSharpParseOptions;
-                    if (csharpParseOptions is null)
-                    {
-                        Debug.Fail("Workspace project should always have CSharp parse options.");
-                    }
-                    else
-                    {
-                        csharpLanguageVersion = csharpParseOptions.LanguageVersion;
-                    }
-
-                    using var _ = StopwatchPool.GetPooledObject(out var watch);
-
-                    watch.Restart();
-                    var tagHelpers = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
-                    watch.Stop();
-
-                    // don't report success if the work was cancelled
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    _telemetryReporter.ReportEvent("taghelperresolve/end", Severity.Normal,
-                        new Property("id", telemetryId),
-                        new Property("ellapsedms", watch.ElapsedMilliseconds),
-                        new Property("result", "success"),
-                        new Property("tagHelperCount", tagHelpers.Length));
-
-                    workspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Abort work if we get a task cancelled exception
-                _telemetryReporter.ReportEvent("taghelperresolve/end", Severity.Normal,
-                    new Property("id", telemetryId),
-                    new Property("result", "cancel"));
-                return;
-            }
-            catch (Exception ex)
-            {
-                _telemetryReporter.ReportEvent("taghelperresolve/end", Severity.Normal,
-                    new Property("id", telemetryId),
-                    new Property("result", "error"));
-
-                _errorReporter.ReportError(ex, projectSnapshot);
-                return;
-            }
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                // Silently cancel, we're the only ones creating these tasks.
                 return;
             }
 
@@ -237,6 +178,73 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         }
 
         OnBackgroundWorkCompleted();
+    }
+
+    /// <summary>
+    ///  Attempts to produce a <see cref="ProjectWorkspaceState"/> from the provide <see cref="Project"/> and <see cref="IProjectSnapshot"/>.
+    ///  Returns <see langword="null"/> if an error is encountered.
+    /// </summary>
+    private async Task<ProjectWorkspaceState?> GetProjectWorkspaceStateAsync(
+        Project? workspaceProject,
+        IProjectSnapshot projectSnapshot,
+        CancellationToken cancellationToken)
+    {
+        // This is the simplest case. If we don't have a project (likely because it is being removed),
+        // we just a default ProjectWorkspaceState.
+        if (workspaceProject is null)
+        {
+            return ProjectWorkspaceState.Default;
+        }
+
+        // Specifically not using BeginBlock because we want to capture cases where tag helper discovery never finishes.
+        var telemetryId = Guid.NewGuid();
+
+        _telemetryReporter.ReportEvent("taghelperresolve/begin", Severity.Normal,
+            new("id", telemetryId),
+            new("tagHelperCount", projectSnapshot.ProjectWorkspaceState.TagHelpers.Length));
+
+        try
+        {
+            var csharpLanguageVersion = workspaceProject.ParseOptions is CSharpParseOptions csharpParseOptions
+                ? csharpParseOptions.LanguageVersion
+                : LanguageVersion.Default;
+
+            using var _ = StopwatchPool.GetPooledObject(out var watch);
+
+            watch.Restart();
+            var tagHelpers = await _tagHelperResolver
+                .GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken)
+                .ConfigureAwait(false);
+            watch.Stop();
+
+            // don't report success if the work was cancelled
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _telemetryReporter.ReportEvent("taghelperresolve/end", Severity.Normal,
+                new("id", telemetryId),
+                new("ellapsedms", watch.ElapsedMilliseconds),
+                new("result", "success"),
+                new("tagHelperCount", tagHelpers.Length));
+
+            return ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
+        }
+        catch (OperationCanceledException)
+        {
+            // Abort work if we get a task cancelled exception
+            _telemetryReporter.ReportEvent("taghelperresolve/end", Severity.Normal,
+                new("id", telemetryId),
+                new("result", "cancel"));
+        }
+        catch (Exception ex)
+        {
+            _telemetryReporter.ReportEvent("taghelperresolve/end", Severity.Normal,
+                new("id", telemetryId),
+                new("result", "error"));
+
+            _errorReporter.ReportError(ex, projectSnapshot);
+        }
+
+        return null;
     }
 
     private void OnStartingBackgroundWork()
