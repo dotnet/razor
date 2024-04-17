@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(IProjectWorkspaceStateGenerator))]
 [method: ImportingConstructor]
-internal sealed class ProjectWorkspaceStateGenerator(
+internal sealed partial class ProjectWorkspaceStateGenerator(
     IProjectSnapshotManager projectManager,
     ITagHelperResolver tagHelperResolver,
     IErrorReporter errorReporter,
@@ -53,26 +53,14 @@ internal sealed class ProjectWorkspaceStateGenerator(
 
         lock (Updates)
         {
-            if (Updates.TryGetValue(projectSnapshot.Key, out var updateItem) &&
-                !updateItem.Task.IsCompleted &&
-                !updateItem.Cts.IsCancellationRequested)
+            if (Updates.TryGetValue(projectSnapshot.Key, out var updateItem))
             {
-                updateItem.Cts.Cancel();
+                updateItem.Dispose();
             }
 
-            if (updateItem?.Cts.IsCancellationRequested == false)
-            {
-                updateItem?.Cts.Dispose();
-            }
-
-            var lcts = CancellationTokenSource.CreateLinkedTokenSource(_disposeTokenSource.Token);
-            var updateTask = Task.Factory.StartNew(
-                () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, lcts.Token),
-                lcts.Token,
-                TaskCreationOptions.None,
-                TaskScheduler.Default).Unwrap();
-            updateItem = new UpdateItem(updateTask, lcts);
-            Updates[projectSnapshot.Key] = updateItem;
+            Updates[projectSnapshot.Key] = new UpdateItem(
+                token => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, token),
+                _disposeTokenSource.Token);
         }
     }
 
@@ -82,12 +70,7 @@ internal sealed class ProjectWorkspaceStateGenerator(
         {
             foreach (var (_, updateItem) in Updates)
             {
-                if (!updateItem.Task.IsCompleted &&
-                    !updateItem.Cts.IsCancellationRequested)
-                {
-                    updateItem.Cts.Cancel();
-                    updateItem.Cts.Dispose();
-                }
+                updateItem.Dispose();
             }
 
             Updates.Clear();
@@ -104,13 +87,9 @@ internal sealed class ProjectWorkspaceStateGenerator(
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
 
-        foreach (var update in Updates)
+        foreach (var (_, updateItem) in Updates)
         {
-            if (!update.Value.Task.IsCompleted &&
-                !update.Value.Cts.IsCancellationRequested)
-            {
-                update.Value.Cts.Cancel();
-            }
+            updateItem.Dispose();
         }
 
         // Release before dispose to ensure we don't throw exceptions from the background thread trying to release
@@ -279,13 +258,5 @@ internal sealed class ProjectWorkspaceStateGenerator(
         {
             NotifyBackgroundWorkCompleted.Set();
         }
-    }
-
-    // Internal for testing
-    internal class UpdateItem(Task task, CancellationTokenSource cts)
-    {
-        public Task Task { get; } = task;
-
-        public CancellationTokenSource Cts { get; } = cts;
     }
 }

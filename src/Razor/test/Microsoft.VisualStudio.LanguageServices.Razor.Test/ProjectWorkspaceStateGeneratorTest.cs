@@ -80,7 +80,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
 
         // Assert
         var update = Assert.Single(stateGenerator.Updates);
-        Assert.False(update.Value.Task.IsCompleted);
+        Assert.False(update.Value.UpdateTask.IsCompleted);
     }
 
     [UIFact]
@@ -99,7 +99,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         stateGenerator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Assert
-        Assert.True(initialUpdate.Cts.IsCancellationRequested);
+        Assert.True(initialUpdate.IsCancellationRequested);
     }
 
     [UIFact]
