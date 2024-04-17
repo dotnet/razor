@@ -48,9 +48,12 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
 
-        foreach (var (_, updateItem) in _updates)
+        lock (_updates)
         {
-            updateItem.Dispose();
+            foreach (var (_, updateItem) in _updates)
+            {
+                updateItem.Dispose();
+            }
         }
 
         // Release before dispose to ensure we don't throw exceptions from the background thread trying to release
