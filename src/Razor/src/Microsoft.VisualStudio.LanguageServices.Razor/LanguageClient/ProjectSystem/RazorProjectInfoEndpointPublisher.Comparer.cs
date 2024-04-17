@@ -33,14 +33,14 @@ internal partial class RazorProjectInfoEndpointPublisher
             var (snapshotX, _) = x;
             var (snapshotY, _) = y;
 
-            return FilePathComparer.Instance.Equals(snapshotX.Key.Id, snapshotY.Key.Id);
+            return snapshotX.Key.Equals(snapshotY.Key);
         }
 
         public int GetHashCode((IProjectSnapshot Project, bool Removal) obj)
         {
             var (snapshot, _) = obj;
 
-            return FilePathComparer.Instance.GetHashCode(snapshot.Key.Id);
+            return snapshot.Key.GetHashCode();
         }
     }
 }

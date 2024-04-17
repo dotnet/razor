@@ -95,7 +95,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                     break;
                 }
 
-                EnqueuePublish(args.Newer.AssumeNotNull());
+                EnqueuePublish(args.Newer);
 
                 break;
 
@@ -105,7 +105,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 {
                     // Don't enqueue project addition as those are unlikely to come through in large batches.
                     // Also ensures that we won't get project removal go through the queue without project addition.
-                    ImmediatePublish(args.Newer.AssumeNotNull(), _disposeTokenSource.Token);
+                    ImmediatePublish(args.Newer, _disposeTokenSource.Token);
                 }
 
                 break;
