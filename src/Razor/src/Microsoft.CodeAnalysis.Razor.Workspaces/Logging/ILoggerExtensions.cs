@@ -80,6 +80,14 @@ internal static class ILoggerExtensions
         }
     }
 
+    public static void LogCritical(this ILogger logger, Exception exception)
+    {
+        if (logger.IsEnabled(LogLevel.Critical))
+        {
+            logger.Log(LogLevel.Critical, exception.Message, exception);
+        }
+    }
+
     public static void LogCritical(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument(nameof(logger))] ref CriticalLogMessageInterpolatedStringHandler message)
     {
         if (message.IsEnabled)
