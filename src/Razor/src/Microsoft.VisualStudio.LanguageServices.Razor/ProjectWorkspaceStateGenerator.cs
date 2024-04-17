@@ -76,7 +76,11 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         {
             if (_updates.TryGetValue(projectSnapshot.Key, out var updateItem))
             {
-                _logger.LogTrace($"Cancelling previously enqueued update for '{projectSnapshot.FilePath}'.");
+                if (!updateItem.UpdateTask.IsCompleted &&
+                    !updateItem.IsCancellationRequested)
+                {
+                    _logger.LogTrace($"Cancelling previously enqueued update for '{projectSnapshot.FilePath}'.");
+                }
 
                 updateItem.Dispose();
             }
