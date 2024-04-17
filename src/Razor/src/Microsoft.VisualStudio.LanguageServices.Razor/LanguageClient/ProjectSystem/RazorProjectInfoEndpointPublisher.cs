@@ -115,6 +115,9 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 EnqueueRemoval(args.Older.AssumeNotNull());
                 break;
 
+            case ProjectChangeKind.DocumentChanged:
+                break;
+
             default:
                 Debug.Fail("A new ProjectChangeKind has been added that the RazorProjectInfoEndpointPublisher doesn't know how to deal with");
                 break;
