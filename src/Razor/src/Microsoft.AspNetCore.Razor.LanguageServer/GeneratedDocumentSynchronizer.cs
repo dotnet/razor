@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -11,12 +10,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal class GeneratedDocumentSynchronizer(
     IGeneratedDocumentPublisher publisher,
     IDocumentVersionCache documentVersionCache,
-    ProjectSnapshotManagerDispatcher dispatcher,
     LanguageServerFeatureOptions languageServerFeatureOptions) : IDocumentProcessedListener
 {
     private readonly IGeneratedDocumentPublisher _publisher = publisher;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public void Initialize(IProjectSnapshotManager projectManager)
@@ -25,8 +22,6 @@ internal class GeneratedDocumentSynchronizer(
 
     public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
-        _dispatcher.AssertRunningOnDispatcher();
-
         if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))
         {
             // Could not resolve document version
