@@ -21,8 +21,8 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 internal class RazorCohostDynamicRegistrationService(
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    [ImportMany] IEnumerable<IDynamicRegistrationProvider> registrationProviders,
-    RazorCohostClientCapabilitiesService razorCohostClientCapabilitiesService,
+    [ImportMany] IEnumerable<Lazy<IDynamicRegistrationProvider>> lazyRegistrationProviders,
+    Lazy<RazorCohostClientCapabilitiesService> lazyRazorCohostClientCapabilitiesService,
     ILoggerFactory loggerFactory)
     : IRazorCohostDynamicRegistrationService
 {
@@ -34,8 +34,8 @@ internal class RazorCohostDynamicRegistrationService(
     }];
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly IEnumerable<IDynamicRegistrationProvider> _registrationProviders = registrationProviders;
-    private readonly RazorCohostClientCapabilitiesService _razorCohostClientCapabilitiesService = razorCohostClientCapabilitiesService;
+    private readonly IEnumerable<Lazy<IDynamicRegistrationProvider>> _lazyRegistrationProviders = lazyRegistrationProviders;
+    private readonly Lazy<RazorCohostClientCapabilitiesService> _lazyRazorCohostClientCapabilitiesService = lazyRazorCohostClientCapabilitiesService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCohostDynamicRegistrationService>();
 
     public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
@@ -45,16 +45,18 @@ internal class RazorCohostDynamicRegistrationService(
             return;
         }
 
+        // TODO: Should we delay everything below this line until a Razor file is opened?
+
         var clientCapabilities = JsonConvert.DeserializeObject<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
 
-        _razorCohostClientCapabilitiesService.SetCapabilities(clientCapabilities);
+        _lazyRazorCohostClientCapabilitiesService.Value.SetCapabilities(clientCapabilities);
 
-        _registrationProviders.TryGetCount(out var providerCount);
+        _lazyRegistrationProviders.TryGetCount(out var providerCount);
         using var registrations = new PooledArrayBuilder<Registration>(providerCount);
 
-        foreach (var provider in _registrationProviders)
+        foreach (var provider in _lazyRegistrationProviders)
         {
-            var registration = provider.GetRegistration(clientCapabilities, _filter, requestContext);
+            var registration = provider.Value.GetRegistration(clientCapabilities, _filter, requestContext);
 
             if (registration is not null)
             {
