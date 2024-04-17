@@ -38,7 +38,7 @@ internal sealed class ProjectWorkspaceStateGenerator(
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 1);
 
-    private bool _disposed;
+    private readonly CancellationTokenSource _disposeTokenSource = new();
 
     // Used in unit tests to ensure we can control when background work starts.
     public ManualResetEventSlim? BlockBackgroundWorkStart { get; set; }
@@ -56,7 +56,7 @@ internal sealed class ProjectWorkspaceStateGenerator(
         return _dispatcher.RunAsync(
             () =>
             {
-                if (_disposed)
+                if (_disposeTokenSource.IsCancellationRequested)
                 {
                     return;
                 }
@@ -87,12 +87,13 @@ internal sealed class ProjectWorkspaceStateGenerator(
 
     public void Dispose()
     {
-        if (_disposed)
+        if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
 
-        _disposed = true;
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
 
         foreach (var update in Updates)
         {
@@ -116,7 +117,7 @@ internal sealed class ProjectWorkspaceStateGenerator(
     {
         // We fire this up on a background thread so we could have been disposed already, and if so, waiting on our semaphore
         // throws an exception.
-        if (_disposed)
+        if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
@@ -240,7 +241,7 @@ internal sealed class ProjectWorkspaceStateGenerator(
             {
                 // Prevent ObjectDisposedException if we've disposed before we got here. The dispose method will release
                 // anyway, so we're all good.
-                if (!_disposed)
+                if (!_disposeTokenSource.IsCancellationRequested)
                 {
                     _semaphore.Release();
                 }
