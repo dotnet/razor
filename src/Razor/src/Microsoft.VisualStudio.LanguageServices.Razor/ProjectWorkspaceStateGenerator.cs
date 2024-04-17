@@ -27,8 +27,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
     ITelemetryReporter telemetryReporter)
     : IProjectWorkspaceStateGenerator, IDisposable
 {
-    // Internal for testing
-    internal readonly Dictionary<ProjectKey, UpdateItem> Updates = new();
+    private readonly Dictionary<ProjectKey, UpdateItem> _updates = [];
 
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
@@ -38,11 +37,8 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
     private readonly CancellationTokenSource _disposeTokenSource = new();
 
-    // Used in unit tests to ensure we can control when background work starts.
-    public ManualResetEventSlim? BlockBackgroundWorkStart { get; set; }
-
-    // Used in unit tests to ensure we can know when background work finishes.
-    public ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
+    private ManualResetEventSlim? _blockBackgroundWorkStart;
+    private ManualResetEventSlim? _notifyBackgroundWorkCompleted;
 
     public void EnqueueUpdate(Project? workspaceProject, IProjectSnapshot projectSnapshot)
     {
@@ -51,14 +47,14 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
             return;
         }
 
-        lock (Updates)
+        lock (_updates)
         {
-            if (Updates.TryGetValue(projectSnapshot.Key, out var updateItem))
+            if (_updates.TryGetValue(projectSnapshot.Key, out var updateItem))
             {
                 updateItem.Dispose();
             }
 
-            Updates[projectSnapshot.Key] = new UpdateItem(
+            _updates[projectSnapshot.Key] = new UpdateItem(
                 token => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, token),
                 _disposeTokenSource.Token);
         }
@@ -66,14 +62,14 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
     public void CancelUpdates()
     {
-        lock (Updates)
+        lock (_updates)
         {
-            foreach (var (_, updateItem) in Updates)
+            foreach (var (_, updateItem) in _updates)
             {
                 updateItem.Dispose();
             }
 
-            Updates.Clear();
+            _updates.Clear();
         }
     }
 
@@ -87,7 +83,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
 
-        foreach (var (_, updateItem) in Updates)
+        foreach (var (_, updateItem) in _updates)
         {
             updateItem.Dispose();
         }
@@ -98,7 +94,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         _semaphore.Release();
         _semaphore.Dispose();
 
-        BlockBackgroundWorkStart?.Set();
+        _blockBackgroundWorkStart?.Set();
     }
 
     private async Task UpdateWorkspaceStateAsync(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
@@ -245,18 +241,18 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
     private void OnStartingBackgroundWork()
     {
-        if (BlockBackgroundWorkStart != null)
+        if (_blockBackgroundWorkStart is { } resetEvent)
         {
-            BlockBackgroundWorkStart.Wait();
-            BlockBackgroundWorkStart.Reset();
+            resetEvent.Wait();
+            resetEvent.Reset();
         }
     }
 
     private void OnBackgroundWorkCompleted()
     {
-        if (NotifyBackgroundWorkCompleted != null)
+        if (_notifyBackgroundWorkCompleted is { } resetEvent)
         {
-            NotifyBackgroundWorkCompleted.Set();
+            resetEvent.Set();
         }
     }
 }
