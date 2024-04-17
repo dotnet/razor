@@ -27,7 +27,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
     // a document for each keystroke.
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(10);
 
-    private readonly ImmutableArray<DocumentProcessedListener> _listeners;
+    private readonly ImmutableArray<IDocumentProcessedListener> _listeners;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly LanguageServerFeatureOptions _options;
@@ -36,7 +36,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
     private readonly CancellationTokenSource _disposeTokenSource;
 
     public OpenDocumentGenerator(
-        IEnumerable<DocumentProcessedListener> listeners,
+        IEnumerable<IDocumentProcessedListener> listeners,
         IProjectSnapshotManager projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
         LanguageServerFeatureOptions options)

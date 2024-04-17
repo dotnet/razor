@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class CodeDocumentReferenceHolder : DocumentProcessedListener
+internal class CodeDocumentReferenceHolder : IDocumentProcessedListener
 {
     private Dictionary<DocumentKey, RazorCodeDocument> _codeDocumentCache;
     private IProjectSnapshotManager? _projectManager;
@@ -18,7 +18,7 @@ internal class CodeDocumentReferenceHolder : DocumentProcessedListener
         _codeDocumentCache = new();
     }
 
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot)
+    public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot)
     {
         // We capture a reference to the code document after a document has been processed in order to ensure that
         // latest document state information is readily available without re-computation. The DocumentState type
@@ -29,7 +29,7 @@ internal class CodeDocumentReferenceHolder : DocumentProcessedListener
         _codeDocumentCache[key] = codeDocument;
     }
 
-    public override void Initialize(IProjectSnapshotManager projectManager)
+    public void Initialize(IProjectSnapshotManager projectManager)
     {
         _projectManager = projectManager;
         _projectManager.Changed += ProjectManager_Changed;

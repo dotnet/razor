@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-internal class RazorDiagnosticsPublisher : DocumentProcessedListener
+internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
 {
     // Internal for testing
     internal TimeSpan _publishDelay = TimeSpan.FromSeconds(2);
@@ -93,7 +93,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     // Used in tests to ensure we can control when background work completes.
     public ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
 
-    public override void Initialize(IProjectSnapshotManager projectManager)
+    public void Initialize(IProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {
@@ -103,7 +103,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         _projectManager = projectManager;
     }
 
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
+    public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
         if (document is null)
         {

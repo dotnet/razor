@@ -147,10 +147,10 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     private class TestOpenDocumentGenerator(
         IProjectSnapshotManager projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
-        params DocumentProcessedListener[] listeners)
+        params IDocumentProcessedListener[] listeners)
         : OpenDocumentGenerator(listeners, projectManager, dispatcher, TestLanguageServerFeatureOptions.Instance);
 
-    private class TestDocumentProcessedListener : DocumentProcessedListener
+    private class TestDocumentProcessedListener : IDocumentProcessedListener
     {
         private readonly TaskCompletionSource<IDocumentSnapshot> _tcs;
 
@@ -174,12 +174,12 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             return _tcs.Task;
         }
 
-        public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
+        public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
         {
             _tcs.SetResult(document);
         }
 
-        public override void Initialize(IProjectSnapshotManager projectManager)
+        public void Initialize(IProjectSnapshotManager projectManager)
         {
         }
     }
