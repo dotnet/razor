@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,13 +15,8 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal static class RazorSyntaxTreeExtensions
 {
-    {
-        if (syntaxTree is null)
-        {
-            throw new ArgumentNullException(nameof(syntaxTree));
-        }
-
     public static ImmutableArray<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
+    {
         // We want all nodes of type RazorDirectiveSyntax which will contain code.
         // Since code block directives occur at the top-level, we don't need to dive deeper into unrelated nodes.
         var codeBlockDirectives = syntaxTree.Root
