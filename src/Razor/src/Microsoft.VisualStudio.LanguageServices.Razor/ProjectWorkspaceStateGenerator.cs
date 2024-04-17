@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.Razor;
 internal sealed partial class ProjectWorkspaceStateGenerator(
     IProjectSnapshotManager projectManager,
     ITagHelperResolver tagHelperResolver,
-    IErrorReporter errorReporter,
+    ILoggerFactory loggerFactory,
     ITelemetryReporter telemetryReporter)
     : IProjectWorkspaceStateGenerator, IDisposable
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
-    private readonly IErrorReporter _errorReporter = errorReporter;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ProjectWorkspaceStateGenerator>();
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1);
 
@@ -73,8 +73,12 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         {
             if (_updates.TryGetValue(projectSnapshot.Key, out var updateItem))
             {
+                _logger.LogTrace($"Cancelling previously enqueued update for '{projectSnapshot.FilePath}'.");
+
                 updateItem.Dispose();
             }
+
+            _logger.LogTrace($"Enqueuing update for '{projectSnapshot.FilePath}'");
 
             _updates[projectSnapshot.Key] = new UpdateItem(
                 token => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, token),
@@ -84,6 +88,8 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
     public void CancelUpdates()
     {
+        _logger.LogTrace($"Cancelling all previously enqueued updates.");
+
         lock (_updates)
         {
             foreach (var (_, updateItem) in _updates)
@@ -157,7 +163,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         }
         catch (Exception ex)
         {
-            _errorReporter.ReportError(ex);
+            _logger.LogError(ex);
         }
         finally
         {
@@ -225,6 +231,11 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 new("result", "success"),
                 new("tagHelperCount", tagHelpers.Length));
 
+            _logger.LogInformation($"""
+                Resolved tag helpers for project in {watch.ElapsedMilliseconds} ms.
+                Project: {projectSnapshot.FilePath}
+                """);
+
             return ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
         }
         catch (OperationCanceledException)
@@ -240,7 +251,10 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 new("id", telemetryId),
                 new("result", "error"));
 
-            _errorReporter.ReportError(ex, projectSnapshot);
+            _logger.LogError(ex, $"""
+                Exception thrown during tag helper resolution for project.
+                Project: {projectSnapshot.FilePath}
+                """);
         }
 
         return null;

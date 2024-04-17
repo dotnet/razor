@@ -54,7 +54,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var generator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
         generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -73,7 +73,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var generator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
         generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -91,7 +91,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var generator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
         generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -112,7 +112,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var generator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
         generatorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
@@ -140,7 +140,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var generator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
         generatorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);

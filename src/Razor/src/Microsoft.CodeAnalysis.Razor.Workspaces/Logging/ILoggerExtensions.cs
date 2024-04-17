@@ -64,6 +64,14 @@ internal static class ILoggerExtensions
         }
     }
 
+    public static void LogError(this ILogger logger, Exception exception)
+    {
+        if (logger.IsEnabled(LogLevel.Error))
+        {
+            logger.Log(LogLevel.Error, exception.Message, exception);
+        }
+    }
+
     public static void LogError(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument(nameof(logger))] ref ErrorLogMessageInterpolatedStringHandler message)
     {
         if (message.IsEnabled)
