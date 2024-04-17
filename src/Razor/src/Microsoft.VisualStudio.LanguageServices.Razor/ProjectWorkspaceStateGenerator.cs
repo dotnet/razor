@@ -26,8 +26,6 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
     ITelemetryReporter telemetryReporter)
     : IProjectWorkspaceStateGenerator, IDisposable
 {
-    private readonly Dictionary<ProjectKey, UpdateItem> _updates = [];
-
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
     private readonly IErrorReporter _errorReporter = errorReporter;
@@ -35,9 +33,34 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1);
 
     private readonly CancellationTokenSource _disposeTokenSource = new();
+    private readonly Dictionary<ProjectKey, UpdateItem> _updates = [];
 
     private ManualResetEventSlim? _blockBackgroundWorkStart;
     private ManualResetEventSlim? _notifyBackgroundWorkCompleted;
+
+    public void Dispose()
+    {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
+
+        foreach (var (_, updateItem) in _updates)
+        {
+            updateItem.Dispose();
+        }
+
+        // Release before dispose to ensure we don't throw exceptions from the background thread trying to release
+        // while we're disposing. Multiple releases are fine, and if we release and it lets something passed the lock
+        // our cancellation token check will mean its a no-op.
+        _semaphore.Release();
+        _semaphore.Dispose();
+
+        _blockBackgroundWorkStart?.Set();
+    }
 
     public void EnqueueUpdate(Project? workspaceProject, IProjectSnapshot projectSnapshot)
     {
@@ -70,30 +93,6 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
             _updates.Clear();
         }
-    }
-
-    public void Dispose()
-    {
-        if (_disposeTokenSource.IsCancellationRequested)
-        {
-            return;
-        }
-
-        _disposeTokenSource.Cancel();
-        _disposeTokenSource.Dispose();
-
-        foreach (var (_, updateItem) in _updates)
-        {
-            updateItem.Dispose();
-        }
-
-        // Release before dispose to ensure we don't throw exceptions from the background thread trying to release
-        // while we're disposing. Multiple releases are fine, and if we release and it lets something passed the lock
-        // our cancellation token check will mean its a no-op.
-        _semaphore.Release();
-        _semaphore.Dispose();
-
-        _blockBackgroundWorkStart?.Set();
     }
 
     private async Task UpdateWorkspaceStateAsync(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
