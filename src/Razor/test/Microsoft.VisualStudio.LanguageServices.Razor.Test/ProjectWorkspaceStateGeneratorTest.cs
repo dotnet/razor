@@ -51,32 +51,32 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task Dispose_MakesUpdateNoop()
+    public void Dispose_MakesUpdateNoop()
     {
         // Arrange
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
         stateGenerator.Dispose();
 
-        await stateGenerator.UpdateAsync(_workspaceProject, _projectSnapshot, DisposalToken);
+        stateGenerator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Assert
         Assert.Empty(stateGenerator.Updates);
     }
 
     [UIFact]
-    public async Task Update_StartsUpdateTask()
+    public void Update_StartsUpdateTask()
     {
         // Arrange
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
-        await stateGenerator.UpdateAsync(_workspaceProject, _projectSnapshot, DisposalToken);
+        stateGenerator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Assert
         var update = Assert.Single(stateGenerator.Updates);
@@ -84,19 +84,19 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task Update_SoftCancelsIncompleteTaskForSameProject()
+    public void Update_SoftCancelsIncompleteTaskForSameProject()
     {
         // Arrange
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-        await stateGenerator.UpdateAsync(_workspaceProject, _projectSnapshot, DisposalToken);
+        stateGenerator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         var initialUpdate = stateGenerator.Updates.Single().Value;
 
         // Act
-        await stateGenerator.UpdateAsync(_workspaceProject, _projectSnapshot, DisposalToken);
+        stateGenerator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Assert
         Assert.True(initialUpdate.Cts.IsCancellationRequested);
@@ -107,7 +107,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await _projectManager.UpdateAsync(updater =>
@@ -117,7 +117,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         });
 
         // Act
-        await stateGenerator.UpdateAsync(workspaceProject: null, _projectSnapshot, DisposalToken);
+        stateGenerator.EnqueueUpdate(workspaceProject: null, _projectSnapshot);
 
         // Jump off the UI thread so the background work can complete.
         await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
@@ -133,7 +133,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var stateGenerator = new ProjectWorkspaceStateGenerator(
-            _projectManager, _tagHelperResolver, Dispatcher, ErrorReporter, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, ErrorReporter, NoOpTelemetryReporter.Instance);
         stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await _projectManager.UpdateAsync(updater =>
@@ -142,7 +142,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         });
 
         // Act
-        await stateGenerator.UpdateAsync(_workspaceProject, _projectSnapshot, DisposalToken);
+        stateGenerator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Jump off the UI thread so the background work can complete.
         await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));

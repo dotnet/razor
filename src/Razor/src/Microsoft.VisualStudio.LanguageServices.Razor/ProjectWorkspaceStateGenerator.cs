@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.Razor;
 internal sealed class ProjectWorkspaceStateGenerator(
     IProjectSnapshotManager projectManager,
     ITagHelperResolver tagHelperResolver,
-    ProjectSnapshotManagerDispatcher dispatcher,
     IErrorReporter errorReporter,
     ITelemetryReporter telemetryReporter)
     : IProjectWorkspaceStateGenerator, IDisposable
@@ -33,10 +32,9 @@ internal sealed class ProjectWorkspaceStateGenerator(
 
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IErrorReporter _errorReporter = errorReporter;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 1);
+    private readonly SemaphoreSlim _semaphore = new(initialCount: 1);
 
     private readonly CancellationTokenSource _disposeTokenSource = new();
 
@@ -46,43 +44,54 @@ internal sealed class ProjectWorkspaceStateGenerator(
     // Used in unit tests to ensure we can know when background work finishes.
     public ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
 
-    public Task UpdateAsync(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    public void EnqueueUpdate(Project? workspaceProject, IProjectSnapshot projectSnapshot)
     {
-        if (projectSnapshot is null)
+        if (_disposeTokenSource.IsCancellationRequested)
         {
-            throw new ArgumentNullException(nameof(projectSnapshot));
+            return;
         }
 
-        return _dispatcher.RunAsync(
-            () =>
+        lock (Updates)
+        {
+            if (Updates.TryGetValue(projectSnapshot.Key, out var updateItem) &&
+                !updateItem.Task.IsCompleted &&
+                !updateItem.Cts.IsCancellationRequested)
             {
-                if (_disposeTokenSource.IsCancellationRequested)
-                {
-                    return;
-                }
+                updateItem.Cts.Cancel();
+            }
 
-                if (Updates.TryGetValue(projectSnapshot.Key, out var updateItem) &&
-                    !updateItem.Task.IsCompleted &&
+            if (updateItem?.Cts.IsCancellationRequested == false)
+            {
+                updateItem?.Cts.Dispose();
+            }
+
+            var lcts = CancellationTokenSource.CreateLinkedTokenSource(_disposeTokenSource.Token);
+            var updateTask = Task.Factory.StartNew(
+                () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, lcts.Token),
+                lcts.Token,
+                TaskCreationOptions.None,
+                TaskScheduler.Default).Unwrap();
+            updateItem = new UpdateItem(updateTask, lcts);
+            Updates[projectSnapshot.Key] = updateItem;
+        }
+    }
+
+    public void CancelUpdates()
+    {
+        lock (Updates)
+        {
+            foreach (var (_, updateItem) in Updates)
+            {
+                if (!updateItem.Task.IsCompleted &&
                     !updateItem.Cts.IsCancellationRequested)
                 {
                     updateItem.Cts.Cancel();
+                    updateItem.Cts.Dispose();
                 }
+            }
 
-                if (updateItem?.Cts.IsCancellationRequested == false)
-                {
-                    updateItem?.Cts.Dispose();
-                }
-
-                var lcts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                var updateTask = Task.Factory.StartNew(
-                    () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, lcts.Token),
-                    lcts.Token,
-                    TaskCreationOptions.None,
-                    TaskScheduler.Default).Unwrap();
-                updateItem = new UpdateItem(updateTask, lcts);
-                Updates[projectSnapshot.Key] = updateItem;
-            },
-            cancellationToken);
+            Updates.Clear();
+        }
     }
 
     public void Dispose()
