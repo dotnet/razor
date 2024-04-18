@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
@@ -92,23 +93,23 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
     }
 
     [Fact]
-    public void DocumentProcessed_NewWorkQueued_RestartsTimer()
+    public async Task DocumentProcessed_NewWorkQueued_RestartsTimer()
     {
         // Arrange
         Assert.NotNull(_openedDocument.FilePath);
         var processedOpenDocument = TestDocumentSnapshot.Create(_openedDocument.FilePath);
         var codeDocument = CreateCodeDocument(s_singleRazorDiagnostic);
         processedOpenDocument.With(codeDocument);
-        // IClientConnection
-        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict).Object;
-        Mock.Get(clientConnection)
+
+        var clientConnectionMock = new StrictMock<IClientConnection>();
+        clientConnectionMock
             .Setup(d => d.SendNotificationAsync(
                 "textDocument/publishDiagnostics",
                 It.IsAny<PublishDiagnosticParams>(),
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        Mock.Get(clientConnection)
+        clientConnectionMock
             .Setup(d => d.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
                 It.IsAny<DocumentDiagnosticParams>(),
@@ -119,22 +120,32 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory(_openedDocument.FilePath, codeDocument);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnectionMock.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
-        publisherAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: true);
-        publisherAccessor.NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
 
+        // Act 1
         publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
-        Assert.True(publisherAccessor.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
-        publisherAccessor.NotifyBackgroundWorkCompleting.Reset();
+        await publisherAccessor.WaitForDiagnosticsToPublishAsync();
 
-        // Act
+        // Assert 1
+        clientConnectionMock
+            .Verify(d => d.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+                CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
+                It.IsAny<DocumentDiagnosticParams>(),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
+
+        // Act 2
         publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
-        publisherAccessor.BlockBackgroundWorkCompleting.Set();
+        await publisherAccessor.WaitForDiagnosticsToPublishAsync();
 
-        // Assert
-        // Verify that background work starts completing "again"
-        Assert.True(publisherAccessor.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
+        // Assert 2
+        clientConnectionMock
+            .Verify(d => d.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+                CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
+                It.IsAny<DocumentDiagnosticParams>(),
+                It.IsAny<CancellationToken>()),
+                Times.Exactly(2));
     }
 
     [Theory]

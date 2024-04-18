@@ -45,9 +45,6 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     private Task _clearClosedDocumentsTask = Task.CompletedTask;
     private bool _waitingToClearClosedDocuments;
 
-    private ManualResetEventSlim? _blockBackgroundWorkCompleting;
-    private ManualResetEventSlim? _notifyBackgroundWorkCompleting;
-
     public RazorDiagnosticsPublisher(
         IProjectSnapshotManager projectManager,
         IClientConnection clientConnection,
@@ -109,8 +106,6 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
             await PublishDiagnosticsAsync(document, token).ConfigureAwait(false);
         }
-
-        OnCompletingBackgroundWork();
     }
 
     private async Task PublishDiagnosticsAsync(IDocumentSnapshot document, CancellationToken token)
@@ -260,20 +255,6 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                     }
                 }
             }
-        }
-    }
-
-    private void OnCompletingBackgroundWork()
-    {
-        if (_notifyBackgroundWorkCompleting is { } notifyResetEvent)
-        {
-            notifyResetEvent.Set();
-        }
-
-        if (_blockBackgroundWorkCompleting is { } blockResetEvent)
-        {
-            blockResetEvent.Wait();
-            blockResetEvent.Reset();
         }
     }
 

@@ -39,22 +39,9 @@ internal partial class RazorDiagnosticsPublisher
             await task.ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Used in tests to ensure we can control when background work completes.
-        /// </summary>
-        public ManualResetEventSlim? BlockBackgroundWorkCompleting
+        public Task WaitForDiagnosticsToPublishAsync()
         {
-            get => instance._blockBackgroundWorkCompleting;
-            set => instance._blockBackgroundWorkCompleting = value;
-        }
-
-        /// <summary>
-        /// Used in tests to ensure we can control when background work completes.
-        /// </summary>
-        public ManualResetEventSlim? NotifyBackgroundWorkCompleting
-        {
-            get => instance._notifyBackgroundWorkCompleting;
-            set => instance._notifyBackgroundWorkCompleting = value;
+            return instance._workQueue.WaitUntilCurrentBatchCompletesAsync();
         }
 
         public void SetPublishedCSharpDiagnostics(string filePath, ImmutableArray<Diagnostic> diagnostics)
