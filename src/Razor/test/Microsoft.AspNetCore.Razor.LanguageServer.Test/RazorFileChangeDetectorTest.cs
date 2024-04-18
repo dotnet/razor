@@ -24,19 +24,25 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
     {
         // Arrange
         var args1 = new List<(string FilePath, RazorFileChangeKind Kind)>();
-        var listener1 = new Mock<IRazorFileChangeListener>(MockBehavior.Strict);
-        listener1.Setup(l => l.RazorFileChanged(It.IsAny<string>(), It.IsAny<RazorFileChangeKind>()))
-            .Callback<string, RazorFileChangeKind>((filePath, kind) => args1.Add((filePath, kind)));
+        var listenerMock1 = new StrictMock<IRazorFileChangeListener>();
+        listenerMock1
+            .Setup(l => l.RazorFileChangedAsync(It.IsAny<string>(), It.IsAny<RazorFileChangeKind>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Callback((string filePath, RazorFileChangeKind kind, CancellationToken _) => args1.Add((filePath, kind)));
+
         var args2 = new List<(string FilePath, RazorFileChangeKind Kind)>();
-        var listener2 = new Mock<IRazorFileChangeListener>(MockBehavior.Strict);
-        listener2.Setup(l => l.RazorFileChanged(It.IsAny<string>(), It.IsAny<RazorFileChangeKind>()))
-            .Callback<string, RazorFileChangeKind>((filePath, kind) => args2.Add((filePath, kind)));
-        var existingRazorFiles = new[] { "c:/path/to/index.razor", "c:/other/path/_Host.cshtml" };
+        var listenerMock2 = new StrictMock<IRazorFileChangeListener>();
+        listenerMock2
+            .Setup(l => l.RazorFileChangedAsync(It.IsAny<string>(), It.IsAny<RazorFileChangeKind>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Callback((string filePath, RazorFileChangeKind kind, CancellationToken _) => args2.Add((filePath, kind)));
+
+        string[] existingRazorFiles = ["c:/path/to/index.razor", "c:/other/path/_Host.cshtml"];
         var cts = new CancellationTokenSource();
-        var detector = new TestRazorFileChangeDetector(
+        using var detector = new TestRazorFileChangeDetector(
             cts,
             Dispatcher,
-            [listener1.Object, listener2.Object],
+            [listenerMock1.Object, listenerMock2.Object],
             existingRazorFiles);
 
         // Act
@@ -75,10 +81,11 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
         var changeKind = RazorFileChangeKind.Added;
         var listenerMock = new StrictMock<IRazorFileChangeListener>();
         listenerMock
-            .Setup(l => l.RazorFileChanged(filePath, changeKind))
+            .Setup(l => l.RazorFileChangedAsync(filePath, changeKind, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Verifiable();
 
-        var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(50))
+        using var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(50))
         {
             BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false),
         };
@@ -106,10 +113,11 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
         var listenerCalled = false;
         var listenerMock = new StrictMock<IRazorFileChangeListener>();
         listenerMock
-            .Setup(l => l.RazorFileChanged(filePath, It.IsAny<RazorFileChangeKind>()))
+            .Setup(l => l.RazorFileChangedAsync(filePath, It.IsAny<RazorFileChangeKind>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Callback(() => listenerCalled = true);
 
-        var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(10))
+        using var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(10))
         {
             NotifyNotificationNoop = new ManualResetEventSlim(initialState: false),
             BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false)
@@ -133,10 +141,11 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
         var listenerMock = new StrictMock<IRazorFileChangeListener>();
         var callCount = 0;
         listenerMock
-            .Setup(l => l.RazorFileChanged(filePath, RazorFileChangeKind.Added))
+            .Setup(l => l.RazorFileChangedAsync(filePath, RazorFileChangeKind.Added, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
             .Callback(() => callCount++);
 
-        var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(50))
+        using var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(50))
         {
             BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false),
         };

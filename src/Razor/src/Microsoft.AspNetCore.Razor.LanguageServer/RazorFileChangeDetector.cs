@@ -12,10 +12,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorFileChangeDetector : IFileChangeDetector
+internal class RazorFileChangeDetector : IFileChangeDetector, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
     private static readonly ImmutableArray<string> s_razorFileExtensions = [".razor", ".cshtml"];
@@ -29,6 +30,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
     private readonly List<FileSystemWatcher> _watchers;
     private readonly object _pendingNotificationsLock = new();
 
+    private readonly CancellationTokenSource _disposeTokenSource;
     private readonly TimeSpan _delay;
 
     public RazorFileChangeDetector(
@@ -48,6 +50,13 @@ internal class RazorFileChangeDetector : IFileChangeDetector
         _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Length);
         PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
         _delay = delay;
+        _disposeTokenSource = new();
+    }
+
+    public void Dispose()
+    {
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
     }
 
     // Used in tests to ensure we can control when delayed notification work starts.
@@ -58,24 +67,19 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
     public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
     {
-        if (workspaceDirectory is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceDirectory));
-        }
-
         // Dive through existing Razor files and fabricate "added" events so listeners can accurately listen to state changes for them.
 
         workspaceDirectory = FilePathNormalizer.Normalize(workspaceDirectory);
 
         var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
-        await _dispatcher.RunAsync(() =>
+        foreach (var razorFilePath in existingRazorFiles)
         {
-            foreach (var razorFilePath in existingRazorFiles)
+            foreach (var listener in _listeners)
             {
-                FileSystemWatcher_RazorFileEvent(razorFilePath, RazorFileChangeKind.Added);
+                await listener.RazorFileChangedAsync(razorFilePath, RazorFileChangeKind.Added, cancellationToken).ConfigureAwait(false);
             }
-        }, cancellationToken).ConfigureAwait(false);
+        }
 
         // This is an entry point for testing
         OnInitializationFinished();
@@ -200,7 +204,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
         await _dispatcher.RunAsync(
             () => NotifyAfterDelay_ProjectSnapshotManagerDispatcher(physicalFilePath),
-            CancellationToken.None).ConfigureAwait(false);
+            _disposeTokenSource.Token).ConfigureAwait(false);
     }
 
     private void NotifyAfterDelay_ProjectSnapshotManagerDispatcher(string physicalFilePath)
@@ -224,15 +228,12 @@ internal class RazorFileChangeDetector : IFileChangeDetector
                 return;
             }
 
-            FileSystemWatcher_RazorFileEvent(physicalFilePath, notification.ChangeKind.Value);
-        }
-    }
+            var kind = notification.ChangeKind.Value;
 
-    private void FileSystemWatcher_RazorFileEvent(string physicalFilePath, RazorFileChangeKind kind)
-    {
-        foreach (var listener in _listeners)
-        {
-            listener.RazorFileChanged(physicalFilePath, kind);
+            foreach (var listener in _listeners)
+            {
+                listener.RazorFileChangedAsync(physicalFilePath, kind, _disposeTokenSource.Token).Forget();
+            }
         }
     }
 
