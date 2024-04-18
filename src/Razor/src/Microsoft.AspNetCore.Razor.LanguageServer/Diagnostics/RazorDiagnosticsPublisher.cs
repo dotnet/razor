@@ -41,6 +41,9 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     private Timer? _workTimer;
     private Timer? _documentClosedTimer;
 
+    private ManualResetEventSlim? _blockBackgroundWorkCompleting;
+    private ManualResetEventSlim? _notifyBackgroundWorkCompleting;
+
     public RazorDiagnosticsPublisher(
         IProjectSnapshotManager projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
@@ -84,12 +87,6 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         _workTimer?.Dispose();
         _documentClosedTimer?.Dispose();
     }
-
-    // Used in tests to ensure we can control when background work completes.
-    public ManualResetEventSlim? BlockBackgroundWorkCompleting { get; set; }
-
-    // Used in tests to ensure we can control when background work completes.
-    public ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
 
     public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
@@ -329,15 +326,15 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
     private void OnCompletingBackgroundWork()
     {
-        if (NotifyBackgroundWorkCompleting != null)
+        if (_notifyBackgroundWorkCompleting is { } notifyResetEvent)
         {
-            NotifyBackgroundWorkCompleting.Set();
+            notifyResetEvent.Set();
         }
 
-        if (BlockBackgroundWorkCompleting != null)
+        if (_blockBackgroundWorkCompleting is { } blockResetEvent)
         {
-            BlockBackgroundWorkCompleting.Wait();
-            BlockBackgroundWorkCompleting.Reset();
+            blockResetEvent.Wait();
+            blockResetEvent.Reset();
         }
     }
 

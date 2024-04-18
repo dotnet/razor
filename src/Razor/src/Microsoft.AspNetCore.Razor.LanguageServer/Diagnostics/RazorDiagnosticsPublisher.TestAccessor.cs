@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -16,6 +17,24 @@ internal partial class RazorDiagnosticsPublisher
     internal sealed class TestAccessor(RazorDiagnosticsPublisher instance)
     {
         public bool IsWaitingToClearClosedDocuments => instance._documentClosedTimer is not null;
+
+        /// <summary>
+        /// Used in tests to ensure we can control when background work completes.
+        /// </summary>
+        public ManualResetEventSlim? BlockBackgroundWorkCompleting
+        {
+            get => instance._blockBackgroundWorkCompleting;
+            set => instance._blockBackgroundWorkCompleting = value;
+        }
+
+        /// <summary>
+        /// Used in tests to ensure we can control when background work completes.
+        /// </summary>
+        public ManualResetEventSlim? NotifyBackgroundWorkCompleting
+        {
+            get => instance._notifyBackgroundWorkCompleting;
+            set => instance._notifyBackgroundWorkCompleting = value;
+        }
 
         public void SetPublishedCSharpDiagnostics(string filePath, ImmutableArray<Diagnostic> diagnostics)
         {

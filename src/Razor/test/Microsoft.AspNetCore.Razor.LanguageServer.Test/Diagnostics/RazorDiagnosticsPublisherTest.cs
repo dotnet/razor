@@ -120,25 +120,24 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory(_openedDocument.FilePath, codeDocument);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory)
-        {
-            BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: true),
-            NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false),
-        };
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        var publisherAccessor = publisher.GetTestAccessor();
+        publisherAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: true);
+        publisherAccessor.NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
 
         await RunOnDispatcherAsync(() =>
             publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument));
-        Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
-        publisher.NotifyBackgroundWorkCompleting.Reset();
+        Assert.True(publisherAccessor.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
+        publisherAccessor.NotifyBackgroundWorkCompleting.Reset();
 
         // Act
         await RunOnDispatcherAsync(() =>
             publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument));
-        publisher.BlockBackgroundWorkCompleting.Set();
+        publisherAccessor.BlockBackgroundWorkCompleting.Set();
 
         // Assert
         // Verify that background work starts completing "again"
-        Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
+        Assert.True(publisherAccessor.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
     }
 
     [Theory]
