@@ -21,42 +21,61 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
 {
+    private static readonly TimeSpan s_publishDelay = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
+
     // Internal for testing
-    internal TimeSpan _publishDelay = TimeSpan.FromSeconds(2);
     internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> PublishedRazorDiagnostics;
     internal readonly Dictionary<string, IReadOnlyList<Diagnostic>> PublishedCSharpDiagnostics;
     internal Timer? _workTimer;
     internal Timer? _documentClosedTimer;
 
-    private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IClientConnection _clientConnection;
     private readonly Dictionary<string, IDocumentSnapshot> _work;
     private readonly ILogger _logger;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly Lazy<RazorTranslateDiagnosticsService> _razorTranslateDiagnosticsService;
+    private readonly LanguageServerFeatureOptions _options;
+    private readonly Lazy<RazorTranslateDiagnosticsService> _translateDiagnosticsService;
     private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
+    private readonly TimeSpan _publishDelay;
 
     public RazorDiagnosticsPublisher(
+        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IClientConnection clientConnection,
+        LanguageServerFeatureOptions options,
+        Lazy<RazorTranslateDiagnosticsService> translateDiagnosticsService,
+        Lazy<IDocumentContextFactory> documentContextFactory,
+        ILoggerFactory loggerFactory)
+        : this(projectManager, dispatcher, clientConnection,
+               options, translateDiagnosticsService, documentContextFactory,
+               loggerFactory, s_publishDelay)
+    {
+    }
+
+    // Present for test to specify publish delay
+    protected RazorDiagnosticsPublisher(
         IProjectSnapshotManager projectManager,
         ProjectSnapshotManagerDispatcher dispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         Lazy<RazorTranslateDiagnosticsService> razorTranslateDiagnosticsService,
         Lazy<IDocumentContextFactory> documentContextFactory,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        TimeSpan publishDelay)
     {
         _projectManager = projectManager;
         _dispatcher = dispatcher;
         _clientConnection = clientConnection;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-        _razorTranslateDiagnosticsService = razorTranslateDiagnosticsService;
+        _options = languageServerFeatureOptions;
+        _translateDiagnosticsService = razorTranslateDiagnosticsService;
         _documentContextFactory = documentContextFactory;
         PublishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
         PublishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
         _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
         _logger = loggerFactory.GetOrCreateLogger<RazorDiagnosticsPublisher>();
+        _publishDelay = publishDelay;
     }
 
     // Used in tests to ensure we can control when background work completes.
@@ -171,7 +190,7 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
         var result = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
         Diagnostic[]? csharpDiagnostics = null;
-        if (_languageServerFeatureOptions.DelegateToCSharpOnDiagnosticPublish)
+        if (_options.DelegateToCSharpOnDiagnosticPublish)
         {
             var uriBuilder = new UriBuilder()
             {
@@ -200,7 +219,7 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
 
                 if (documentContext is not null)
                 {
-                    csharpDiagnostics = await _razorTranslateDiagnosticsService.Value
+                    csharpDiagnostics = await _translateDiagnosticsService.Value
                         .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None)
                         .ConfigureAwait(false);
                 }

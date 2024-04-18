@@ -543,11 +543,9 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
             : base(projectManager, dispatcher, clientConnection, options,
                   new Lazy<RazorTranslateDiagnosticsService>(() => razorTranslateDiagnosticsService),
                   new Lazy<IDocumentContextFactory>(() => documentContextFactory),
-                  loggerFactory)
+                  loggerFactory,
+                  publishDelay: TimeSpan.FromMilliseconds(1))
         {
-            // The diagnostics publisher by default will wait 2 seconds until publishing diagnostics. For testing purposes we reduce
-            // the amount of time we wait for diagnostic publishing because we have more concrete control of the timer and its lifecycle.
-            _publishDelay = TimeSpan.FromMilliseconds(1);
         }
 
         public void Dispose()
