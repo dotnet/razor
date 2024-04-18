@@ -24,10 +24,6 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     private static readonly TimeSpan s_publishDelay = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
 
-    // Internal for testing
-    internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> PublishedRazorDiagnostics;
-    internal readonly Dictionary<string, IReadOnlyList<Diagnostic>> PublishedCSharpDiagnostics;
-
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IClientConnection _clientConnection;
@@ -37,6 +33,10 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     private readonly Lazy<RazorTranslateDiagnosticsService> _translateDiagnosticsService;
     private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
     private readonly TimeSpan _publishDelay;
+
+    private readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> _publishedRazorDiagnostics;
+    private readonly Dictionary<string, IReadOnlyList<Diagnostic>> _publishedCSharpDiagnostics;
+    private readonly object _gate = new();
 
     private Timer? _workTimer;
     private Timer? _documentClosedTimer;
@@ -72,8 +72,8 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         _options = languageServerFeatureOptions;
         _translateDiagnosticsService = razorTranslateDiagnosticsService;
         _documentContextFactory = documentContextFactory;
-        PublishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
-        PublishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
+        _publishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
+        _publishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
         _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
         _logger = loggerFactory.GetOrCreateLogger<RazorDiagnosticsPublisher>();
         _publishDelay = publishDelay;
@@ -138,16 +138,15 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     {
         try
         {
-            lock (PublishedRazorDiagnostics)
-            lock (PublishedCSharpDiagnostics)
+            lock (_gate)
             {
-                ClearClosedDocumentsPublishedDiagnostics(PublishedRazorDiagnostics);
-                ClearClosedDocumentsPublishedDiagnostics(PublishedCSharpDiagnostics);
+                ClearClosedDocumentsPublishedDiagnostics(_publishedRazorDiagnostics);
+                ClearClosedDocumentsPublishedDiagnostics(_publishedCSharpDiagnostics);
 
                 _documentClosedTimer?.Dispose();
                 _documentClosedTimer = null;
 
-                if (PublishedRazorDiagnostics.Count > 0 || PublishedCSharpDiagnostics.Count > 0)
+                if (_publishedRazorDiagnostics.Count > 0 || _publishedCSharpDiagnostics.Count > 0)
                 {
                     lock (_work)
                     {
@@ -180,8 +179,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         }
         catch
         {
-            lock (PublishedRazorDiagnostics)
-            lock (PublishedCSharpDiagnostics)
+            lock (_gate)
             {
                 _documentClosedTimer?.Dispose();
                 _documentClosedTimer = null;
@@ -235,22 +233,21 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
 
-        lock (PublishedRazorDiagnostics)
-        lock (PublishedCSharpDiagnostics)
+        lock (_gate)
         {
             var filePath = document.FilePath.AssumeNotNull();
 
-            if (PublishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
-                && (csharpDiagnostics == null || (PublishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
+            if (_publishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
+                && (csharpDiagnostics == null || (_publishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
             {
                 // Diagnostics are the same as last publish
                 return;
             }
 
-            PublishedRazorDiagnostics[filePath] = razorDiagnostics;
+            _publishedRazorDiagnostics[filePath] = razorDiagnostics;
             if (csharpDiagnostics != null)
             {
-                PublishedCSharpDiagnostics[filePath] = csharpDiagnostics;
+                _publishedCSharpDiagnostics[filePath] = csharpDiagnostics;
             }
         }
 
