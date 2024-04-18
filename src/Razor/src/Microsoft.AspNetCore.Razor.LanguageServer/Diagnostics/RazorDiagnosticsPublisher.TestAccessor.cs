@@ -44,19 +44,11 @@ internal partial class RazorDiagnosticsPublisher
             return instance._workQueue.WaitUntilCurrentBatchCompletesAsync();
         }
 
-        public void SetPublishedCSharpDiagnostics(string filePath, ImmutableArray<Diagnostic> diagnostics)
+        public void SetPublishedDiagnostics(string filePath, RazorDiagnostic[] razorDiagnostics, Diagnostic[]? csharpDiagnostics)
         {
-            lock (instance._publishedDiagnosticsGate)
+            lock (instance._publishedDiagnostics)
             {
-                instance._publishedCSharpDiagnostics[filePath] = diagnostics;
-            }
-        }
-
-        public void SetPublishedRazorDiagnostics(string filePath, ImmutableArray<RazorDiagnostic> diagnostics)
-        {
-            lock (instance._publishedDiagnosticsGate)
-            {
-                instance._publishedRazorDiagnostics[filePath] = diagnostics;
+                instance._publishedDiagnostics[filePath] = new(razorDiagnostics, csharpDiagnostics);
             }
         }
 

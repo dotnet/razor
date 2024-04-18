@@ -24,6 +24,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, IDisposable
 {
+    private readonly record struct PublishedDiagnostics(IReadOnlyList<RazorDiagnostic> Razor, Diagnostic[]? CSharp)
+    {
+        public int Count => Razor.Count + (CSharp?.Length ?? 0);
+    }
+
     private static readonly TimeSpan s_publishDelay = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan s_clearClosedDocumentsDelay = TimeSpan.FromSeconds(5);
 
@@ -36,10 +41,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<IDocumentSnapshot> _workQueue;
-
-    private readonly object _publishedDiagnosticsGate = new();
-    private readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> _publishedRazorDiagnostics;
-    private readonly Dictionary<string, IReadOnlyList<Diagnostic>> _publishedCSharpDiagnostics;
+    private readonly Dictionary<string, PublishedDiagnostics> _publishedDiagnostics;
 
     private readonly object _documentClosedGate = new();
     private Task _clearClosedDocumentsTask = Task.CompletedTask;
@@ -77,8 +79,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<IDocumentSnapshot>(publishDelay, ProcessBatchAsync, _disposeTokenSource.Token);
 
-        _publishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
-        _publishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
+        _publishedDiagnostics = new Dictionary<string, PublishedDiagnostics>(FilePathComparer.Instance);
         _logger = loggerFactory.GetOrCreateLogger<RazorDiagnosticsPublisher>();
     }
 
@@ -114,22 +115,28 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         var csharpDiagnostics = await GetCSharpDiagnosticsAsync(document, token).ConfigureAwait(false);
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
 
-        lock (_publishedDiagnosticsGate)
+        lock (_publishedDiagnostics)
         {
             var filePath = document.FilePath.AssumeNotNull();
 
-            if (_publishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
-                && (csharpDiagnostics == null || (_publishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
+            // See if these are the same diagnostics as last time. If so, we don't need to publish.
+            if (_publishedDiagnostics.TryGetValue(filePath, out var previousDiagnostics))
             {
-                // Diagnostics are the same as last publish
-                return;
+                var sameRazorDiagnostics = razorDiagnostics.SequenceEqual(previousDiagnostics.Razor);
+                var sameCSharpDiagnostics = (csharpDiagnostics, previousDiagnostics.CSharp) switch
+                {
+                    (not null, not null) => csharpDiagnostics.SequenceEqual(previousDiagnostics.CSharp),
+                    (null, null) => true,
+                    _ => false,
+                };
+
+                if (sameRazorDiagnostics && sameCSharpDiagnostics)
+                {
+                    return;
+                }
             }
 
-            _publishedRazorDiagnostics[filePath] = razorDiagnostics;
-            if (csharpDiagnostics != null)
-            {
-                _publishedCSharpDiagnostics[filePath] = csharpDiagnostics;
-            }
+            _publishedDiagnostics[filePath] = new(razorDiagnostics, csharpDiagnostics);
         }
 
         if (!document.TryGetText(out var sourceText))
@@ -138,8 +145,11 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
             return;
         }
 
-        var convertedDiagnostics = razorDiagnostics.Select(razorDiagnostic => RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText, document));
-        var combinedDiagnostics = csharpDiagnostics == null ? convertedDiagnostics : convertedDiagnostics.Concat(csharpDiagnostics);
+        Diagnostic[] combinedDiagnostics = [
+            .. razorDiagnostics.Select(d => RazorDiagnosticConverter.Convert(d, sourceText, document)),
+            .. csharpDiagnostics ?? []
+        ];
+
         PublishDiagnosticsForFilePath(document.FilePath, combinedDiagnostics);
 
         if (_logger.IsEnabled(LogLevel.Trace))
@@ -220,51 +230,45 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
     private void ClearClosedDocuments()
     {
-        lock (_publishedDiagnosticsGate)
+        lock (_publishedDiagnostics)
         {
-            ClearClosedDocumentsPublishedDiagnostics(_publishedRazorDiagnostics);
-            ClearClosedDocumentsPublishedDiagnostics(_publishedCSharpDiagnostics);
+            using var documentsToRemove = new PooledArrayBuilder<(string filePath, bool publishToClear)>(capacity: _publishedDiagnostics.Count);
 
-            if (_publishedRazorDiagnostics.Count > 0 || _publishedCSharpDiagnostics.Count > 0)
+            foreach (var (filePath, diagnostics) in _publishedDiagnostics)
+            {
+                if (!_projectManager.IsDocumentOpen(filePath))
+                {
+                    // If there were previously published diagnostics for this document, take note so
+                    // we can publish an empty set of diagnostics.
+                    documentsToRemove.Add((filePath, publishToClear: diagnostics.Count > 0));
+                }
+            }
+
+            if (documentsToRemove.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var (filePath, publishToClear) in documentsToRemove)
+            {
+                _publishedDiagnostics.Remove(filePath);
+
+                if (publishToClear)
+                {
+                    PublishDiagnosticsForFilePath(filePath, []);
+                }
+            }
+
+            if (_publishedDiagnostics.Count > 0)
             {
                 // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
                 // and check if the currently tracked documents are closed. In practice this work is super minimal.
                 StartDelayToClearDocuments();
             }
-
-            void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
-            {
-                using var documentsToRemove = new PooledArrayBuilder<(string key, bool publishEmptyDiagnostics)>(capacity: publishedDiagnostics.Count);
-
-                foreach (var (key, value) in publishedDiagnostics)
-                {
-                    if (!_projectManager.IsDocumentOpen(key))
-                    {
-                        // If there were previously published diagnostics for this document, take note so
-                        // we can publish an empty set of diagnostics.
-                        documentsToRemove.Add((key, publishEmptyDiagnostics: value.Count > 0));
-                    }
-                }
-
-                if (documentsToRemove.Count == 0)
-                {
-                    return;
-                }
-
-                foreach (var (key, publishEmptyDiagnostics) in documentsToRemove)
-                {
-                    publishedDiagnostics.Remove(key);
-
-                    if (publishEmptyDiagnostics)
-                    {
-                        PublishDiagnosticsForFilePath(key, []);
-                    }
-                }
-            }
         }
     }
 
-    private void PublishDiagnosticsForFilePath(string filePath, IEnumerable<Diagnostic> diagnostics)
+    private void PublishDiagnosticsForFilePath(string filePath, Diagnostic[] diagnostics)
     {
         var uriBuilder = new UriBuilder()
         {
@@ -279,7 +283,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                 new PublishDiagnosticParams()
                 {
                     Uri = uriBuilder.Uri,
-                    Diagnostics = diagnostics.ToArray(),
+                    Diagnostics = diagnostics,
                 },
                 _disposeTokenSource.Token)
             .Forget();

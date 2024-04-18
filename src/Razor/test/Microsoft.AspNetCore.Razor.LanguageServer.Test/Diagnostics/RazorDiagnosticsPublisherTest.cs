@@ -31,12 +31,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private static readonly ImmutableArray<RazorDiagnostic> s_singleRazorDiagnostic =
+    private static readonly RazorDiagnostic[] s_singleRazorDiagnostic =
     [
         RazorDiagnosticFactory.CreateDirective_BlockDirectiveCannotBeImported("test")
     ];
 
-    private static readonly ImmutableArray<Diagnostic> s_singleCSharpDiagnostic =
+    private static readonly Diagnostic[] s_singleCSharpDiagnostic =
     [
         new Diagnostic()
         {
@@ -288,7 +288,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
 
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnectionMock.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
-        publisherAccessor.SetPublishedRazorDiagnostics(processedOpenDocument.FilePath, []);
+        publisherAccessor.SetPublishedDiagnostics(processedOpenDocument.FilePath, razorDiagnostics: [], csharpDiagnostics: null);
 
         // Act
         await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
@@ -384,7 +384,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
 
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnectionMock.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
-        publisherAccessor.SetPublishedRazorDiagnostics(processedOpenDocument.FilePath, s_singleRazorDiagnostic);
+        publisherAccessor.SetPublishedDiagnostics(processedOpenDocument.FilePath, s_singleRazorDiagnostic, csharpDiagnostics: null);
 
         // Act & Assert
         await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
@@ -467,8 +467,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnectionMock.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_closedDocument.FilePath);
-        publisherAccessor.SetPublishedRazorDiagnostics(_closedDocument.FilePath, s_singleRazorDiagnostic);
-        publisherAccessor.SetPublishedCSharpDiagnostics(_closedDocument.FilePath, s_singleCSharpDiagnostic);
+        publisherAccessor.SetPublishedDiagnostics(_closedDocument.FilePath, s_singleRazorDiagnostic, s_singleCSharpDiagnostic);
 
         // Act
         publisherAccessor.ClearClosedDocuments();
@@ -488,8 +487,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnectionMock.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_openedDocument.FilePath);
-        publisherAccessor.SetPublishedRazorDiagnostics(_openedDocument.FilePath, s_singleRazorDiagnostic);
-        publisherAccessor.SetPublishedCSharpDiagnostics(_openedDocument.FilePath, s_singleCSharpDiagnostic);
+        publisherAccessor.SetPublishedDiagnostics(_openedDocument.FilePath, s_singleRazorDiagnostic, s_singleCSharpDiagnostic);
 
         // Act & Assert
         publisherAccessor.ClearClosedDocuments();
@@ -506,8 +504,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnectionMock.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_closedDocument.FilePath);
-        publisherAccessor.SetPublishedRazorDiagnostics(_closedDocument.FilePath, []);
-        publisherAccessor.SetPublishedCSharpDiagnostics(_closedDocument.FilePath, []);
+        publisherAccessor.SetPublishedDiagnostics(_closedDocument.FilePath, razorDiagnostics: [], csharpDiagnostics: []);
 
         // Act & Assert
         publisherAccessor.ClearClosedDocuments();
@@ -525,10 +522,8 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_closedDocument.FilePath);
         Assert.NotNull(_openedDocument.FilePath);
-        publisherAccessor.SetPublishedRazorDiagnostics(_closedDocument.FilePath, []);
-        publisherAccessor.SetPublishedCSharpDiagnostics(_closedDocument.FilePath, []);
-        publisherAccessor.SetPublishedRazorDiagnostics(_openedDocument.FilePath, []);
-        publisherAccessor.SetPublishedCSharpDiagnostics(_openedDocument.FilePath, []);
+        publisherAccessor.SetPublishedDiagnostics(_closedDocument.FilePath, razorDiagnostics: [], csharpDiagnostics: []);
+        publisherAccessor.SetPublishedDiagnostics(_openedDocument.FilePath, razorDiagnostics: [], csharpDiagnostics: []);
 
         // Act
         publisherAccessor.ClearClosedDocuments();
@@ -537,7 +532,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         Assert.True(publisherAccessor.IsWaitingToClearClosedDocuments);
     }
 
-    private static RazorCodeDocument CreateCodeDocument(ImmutableArray<RazorDiagnostic> diagnostics)
+    private static RazorCodeDocument CreateCodeDocument(RazorDiagnostic[] diagnostics)
     {
         var codeDocument = TestRazorCodeDocument.Create("hello");
         var razorCSharpDocument = RazorCSharpDocument.Create(codeDocument, "hello", RazorCodeGenerationOptions.CreateDefault(), diagnostics);
