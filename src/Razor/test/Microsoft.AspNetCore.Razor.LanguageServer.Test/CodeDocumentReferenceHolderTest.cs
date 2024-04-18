@@ -180,10 +180,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
 
-        await RunOnDispatcherAsync(() =>
-        {
-            _referenceHolder.DocumentProcessed(codeDocument, documentSnapshot);
-        });
+        _referenceHolder.DocumentProcessed(codeDocument, documentSnapshot);
 
         return new(codeDocument);
     }
