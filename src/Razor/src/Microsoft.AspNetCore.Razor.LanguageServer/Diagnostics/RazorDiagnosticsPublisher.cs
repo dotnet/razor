@@ -111,44 +111,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     private async Task PublishDiagnosticsAsync(IDocumentSnapshot document, CancellationToken token)
     {
         var result = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
-
-        Diagnostic[]? csharpDiagnostics = null;
-        if (_options.DelegateToCSharpOnDiagnosticPublish)
-        {
-            var uriBuilder = new UriBuilder()
-            {
-                Scheme = Uri.UriSchemeFile,
-                Path = document.FilePath,
-                Host = string.Empty,
-            };
-
-            var delegatedParams = new DocumentDiagnosticParams
-            {
-                TextDocument = new TextDocumentIdentifier { Uri = uriBuilder.Uri },
-            };
-
-            var delegatedResponse = await _clientConnection.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
-                CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
-                delegatedParams,
-                token).ConfigureAwait(false);
-
-            if (delegatedResponse.HasValue &&
-                delegatedResponse.Value.TryGetFirst(out var fullDiagnostics) &&
-                fullDiagnostics.Items is not null)
-            {
-                var documentContext = await _documentContextFactory.Value
-                    .TryCreateAsync(delegatedParams.TextDocument.Uri, projectContext: null, token)
-                    .ConfigureAwait(false);
-
-                if (documentContext is not null)
-                {
-                    csharpDiagnostics = await _translateDiagnosticsService.Value
-                        .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, token)
-                        .ConfigureAwait(false);
-                }
-            }
-        }
-
+        var csharpDiagnostics = await GetCSharpDiagnosticsAsync(document, token).ConfigureAwait(false);
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
 
         lock (_publishedDiagnosticsGate)
@@ -183,6 +146,49 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         {
             var diagnosticString = string.Join(", ", razorDiagnostics.Select(diagnostic => diagnostic.Id));
             _logger.LogTrace($"Publishing diagnostics for document '{document.FilePath}': {diagnosticString}");
+        }
+
+        async Task<Diagnostic[]?> GetCSharpDiagnosticsAsync(IDocumentSnapshot document, CancellationToken token)
+        {
+            if (_options.DelegateToCSharpOnDiagnosticPublish)
+            {
+                var uriBuilder = new UriBuilder()
+                {
+                    Scheme = Uri.UriSchemeFile,
+                    Path = document.FilePath,
+                    Host = string.Empty,
+                };
+
+                var delegatedParams = new DocumentDiagnosticParams
+                {
+                    TextDocument = new TextDocumentIdentifier { Uri = uriBuilder.Uri },
+                };
+
+                var delegatedResponse = await _clientConnection
+                    .SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+                        CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
+                        delegatedParams,
+                        token)
+                    .ConfigureAwait(false);
+
+                if (delegatedResponse.HasValue &&
+                    delegatedResponse.Value.TryGetFirst(out var fullDiagnostics) &&
+                    fullDiagnostics.Items is not null)
+                {
+                    var documentContext = await _documentContextFactory.Value
+                        .TryCreateAsync(delegatedParams.TextDocument.Uri, projectContext: null, token)
+                        .ConfigureAwait(false);
+
+                    if (documentContext is not null)
+                    {
+                        return await _translateDiagnosticsService.Value
+                            .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, token)
+                            .ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return null;
         }
     }
 
