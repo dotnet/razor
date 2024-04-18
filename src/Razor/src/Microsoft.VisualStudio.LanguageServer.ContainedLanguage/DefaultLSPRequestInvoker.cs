@@ -7,6 +7,7 @@ using System.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -86,7 +87,7 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
             cancellationToken);
 
         // No callers actually use the languageClient when handling the response.
-        var result = response is not null ? new ReinvokeResponse<TOut>(default!, response) : default;
+        var result = response is not null ? new ReinvokeResponse<TOut>(languageClient:null!, response) : default;
         return result;
     }
 
@@ -131,18 +132,18 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
             throw new ArgumentException("message", nameof(method));
         }
 
-        var requests = _languageServiceBroker.RequestAllAsync(
+        var reinvokeResponses = _languageServiceBroker.RequestAllAsync(
             new GeneralRequest<TIn, TOut>() { LanguageServerName = null, Method = method, Request = parameters},
             cancellationToken).ConfigureAwait(false);
 
-        List<ReinvokeResponse<TOut>> responses = new();
-        await foreach (var response in requests)
+        using var _ = ListPool<ReinvokeResponse<TOut>>.GetPooledObject(out var responses);
+        await foreach (var reinvokeResponse in reinvokeResponses)
         {
             // No callers actually use the languageClient when handling the response.
-            responses.Add(new ReinvokeResponse<TOut>(default!, response.response!));
+            responses.Add(new ReinvokeResponse<TOut>(languageClient:null!, reinvokeResponse.response!));
         }
 
-        return responses;
+        return responses.ToArray();
     }
 
     public override IAsyncEnumerable<ReinvocationResponse<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
