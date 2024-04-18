@@ -127,10 +127,10 @@ internal class TextDocumentUriPresentationEndpoint(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
+        var descriptor = await documentContext.Snapshot.TryGetTagHelperDescriptorAsync(cancellationToken).ConfigureAwait(false);
         if (descriptor is null)
         {
-            Logger.LogInformation($"Failed to find tag helper descriptor.");
+            Logger.LogInformation($"Failed to find tag helper descriptor for {documentContext.Snapshot.FilePath}.");
             return null;
         }
 
