@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -164,20 +165,30 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
             void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
             {
-                var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
-                foreach (var (key, value) in originalPublishedDiagnostics)
+                using var documentsToRemove = new PooledArrayBuilder<(string key, bool publicEmptyDiagnostics)>(capacity: publishedDiagnostics.Count);
+
+                foreach (var (key, value) in publishedDiagnostics)
                 {
                     if (!_projectManager.IsDocumentOpen(key))
                     {
-                        // Document is now closed, we shouldn't track its diagnostics anymore.
-                        publishedDiagnostics.Remove(key);
+                        // If there were previously published diagnostics for this document, take note so
+                        // we can publish an empty set of diagnostics.
+                        documentsToRemove.Add((key, publicEmptyDiagnostics: value.Count > 0));
+                    }
+                }
 
-                        // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
-                        // doesn't have a ton of closed document errors that they can't get rid of.
-                        if (value.Count > 0)
-                        {
-                            PublishDiagnosticsForFilePath(key, Array.Empty<Diagnostic>());
-                        }
+                if (documentsToRemove.Count == 0)
+                {
+                    return;
+                }
+
+                foreach (var (key, publicEmptyDiagnostics) in documentsToRemove)
+                {
+                    publishedDiagnostics.Remove(key);
+
+                    if (publicEmptyDiagnostics)
+                    {
+                        PublishDiagnosticsForFilePath(key, []);
                     }
                 }
             }
