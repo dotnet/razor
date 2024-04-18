@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -15,17 +17,23 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal static class RazorSyntaxTreeExtensions
 {
+    public static ImmutableArray<RazorDirectiveSyntax> GetSectionDirectives(this RazorSyntaxTree syntaxTree)
+    {
+        return GetDirectives(syntaxTree, directive => directive.DirectiveDescriptor?.Directive == SectionDirective.Directive.Directive);
+    }
+
     public static ImmutableArray<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
     {
-        // We want all nodes of type RazorDirectiveSyntax which will contain code.
-        // Since code block directives occur at the top-level, we don't need to dive deeper into unrelated nodes.
-        var codeBlockDirectives = syntaxTree.Root
-            .DescendantNodes(node => node is RazorDocumentSyntax || node is MarkupBlockSyntax || node is CSharpCodeBlockSyntax)
-            .OfType<RazorDirectiveSyntax>()
-            .Where(directive => directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
-            .SelectAsArray(d => d);
+        return GetDirectives(syntaxTree, directive => directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock);
+    }
 
-        return codeBlockDirectives;
+    private static ImmutableArray<RazorDirectiveSyntax> GetDirectives(RazorSyntaxTree syntaxTree, Func<RazorDirectiveSyntax, bool> predicate)
+    {
+        return syntaxTree.Root
+            .DescendantNodes(node => node is RazorDocumentSyntax or MarkupBlockSyntax or CSharpCodeBlockSyntax)
+            .OfType<RazorDirectiveSyntax>()
+            .Where(predicate)
+            .SelectAsArray(d => d);
     }
 
     public static IReadOnlyList<CSharpStatementSyntax> GetCSharpStatements(this RazorSyntaxTree syntaxTree)

@@ -58,6 +58,32 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
             """,
             filePath: "C:/path/to/file.cshtml");
 
+    [Fact]
+    public Task Section()
+       => VerifyRazorFoldsAsync("""
+            <p>hello!</p>
+
+            [|@section Hello {
+                <p>Hello</p>
+            }|]
+
+            <p>hello!</p>
+            """,
+           filePath: "C:/path/to/file.cshtml");
+
+    [Fact]
+    public Task Section_Invalid()
+      => VerifyRazorFoldsAsync("""
+            <p>hello!</p>
+
+            @section {
+                <p>Hello</p>
+            }
+
+            <p>hello!</p>
+            """,
+          filePath: "C:/path/to/file.cshtml");
+
     private async Task VerifyRazorFoldsAsync(string input, string? filePath = null)
     {
         filePath ??= "C:/path/to/file.razor";
@@ -71,7 +97,11 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
         var endpoint = new FoldingRangeEndpoint(
             DocumentMappingService,
             languageServer,
-            [new UsingsFoldingRangeProvider(), new RazorCodeBlockFoldingProvider()],
+            [
+                new UsingsFoldingRangeProvider(),
+                new RazorCodeBlockFoldingProvider(),
+                new SectionDirectiveFoldingProvider()
+            ],
             LoggerFactory);
 
         var request = new FoldingRangeParams()
