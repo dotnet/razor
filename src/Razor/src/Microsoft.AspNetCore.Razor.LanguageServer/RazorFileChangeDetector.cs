@@ -17,30 +17,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class RazorFileChangeDetector : IFileChangeDetector
 {
+    private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
     private static readonly ImmutableArray<string> s_razorFileExtensions = [".razor", ".cshtml"];
+    private static readonly string[] s_ignoredDirectories = ["node_modules"];
 
     // Internal for testing
     internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
 
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-    private readonly IEnumerable<IRazorFileChangeListener> _listeners;
+    private readonly ImmutableArray<IRazorFileChangeListener> _listeners;
     private readonly List<FileSystemWatcher> _watchers;
     private readonly object _pendingNotificationsLock = new();
 
-    private static readonly string[] s_ignoredDirectories = ["node_modules"];
+    private readonly TimeSpan _delay;
 
     public RazorFileChangeDetector(
         ProjectSnapshotManagerDispatcher dispatcher,
         IEnumerable<IRazorFileChangeListener> listeners)
+        : this(dispatcher, listeners, s_delay)
     {
-        _dispatcher = dispatcher;
-        _listeners = listeners;
-        _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Length);
-        PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
     }
 
-    // Internal for testing
-    internal int EnqueueDelay { get; set; } = 1000;
+    protected RazorFileChangeDetector(
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IEnumerable<IRazorFileChangeListener> listeners,
+        TimeSpan delay)
+    {
+        _dispatcher = dispatcher;
+        _listeners = listeners.ToImmutableArray();
+        _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Length);
+        PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
+        _delay = delay;
+    }
 
     // Used in tests to ensure we can control when delayed notification work starts.
     internal ManualResetEventSlim? BlockNotificationWorkStart { get; set; }
@@ -186,7 +194,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
     private async Task NotifyAfterDelayAsync(string physicalFilePath)
     {
-        await Task.Delay(EnqueueDelay).ConfigureAwait(false);
+        await Task.Delay(_delay).ConfigureAwait(false);
 
         OnStartingDelayedNotificationWork();
 

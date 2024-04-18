@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Moq;
@@ -35,7 +36,7 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
         var detector = new TestRazorFileChangeDetector(
             cts,
             Dispatcher,
-            new[] { listener1.Object, listener2.Object },
+            [listener1.Object, listener2.Object],
             existingRazorFiles);
 
         // Act
@@ -72,11 +73,13 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
         // Arrange
         var filePath = "C:/path/to/file.razor";
         var changeKind = RazorFileChangeKind.Added;
-        var listener = new Mock<IRazorFileChangeListener>(MockBehavior.Strict);
-        listener.Setup(l => l.RazorFileChanged(filePath, changeKind)).Verifiable();
-        var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, new[] { listener.Object })
+        var listenerMock = new StrictMock<IRazorFileChangeListener>();
+        listenerMock
+            .Setup(l => l.RazorFileChanged(filePath, changeKind))
+            .Verifiable();
+
+        var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(50))
         {
-            EnqueueDelay = 50,
             BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false),
         };
 
@@ -92,7 +95,7 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
 
         await notification.Value.NotifyTask;
 
-        listener.VerifyAll();
+        listenerMock.VerifyAll();
     }
 
     [Fact]
@@ -101,11 +104,13 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
         // Arrange
         var filePath = "C:/path/to/file.razor";
         var listenerCalled = false;
-        var listener = new Mock<IRazorFileChangeListener>(MockBehavior.Strict);
-        listener.Setup(l => l.RazorFileChanged(filePath, It.IsAny<RazorFileChangeKind>())).Callback(() => listenerCalled = true);
-        var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, new[] { listener.Object })
+        var listenerMock = new StrictMock<IRazorFileChangeListener>();
+        listenerMock
+            .Setup(l => l.RazorFileChanged(filePath, It.IsAny<RazorFileChangeKind>()))
+            .Callback(() => listenerCalled = true);
+
+        var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(10))
         {
-            EnqueueDelay = 10,
             NotifyNotificationNoop = new ManualResetEventSlim(initialState: false),
             BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false)
         };
@@ -125,12 +130,14 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
     {
         // Arrange
         var filePath = "C:/path/to/file.razor";
-        var listener = new Mock<IRazorFileChangeListener>(MockBehavior.Strict);
+        var listenerMock = new StrictMock<IRazorFileChangeListener>();
         var callCount = 0;
-        listener.Setup(l => l.RazorFileChanged(filePath, RazorFileChangeKind.Added)).Callback(() => callCount++);
-        var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, new[] { listener.Object })
+        listenerMock
+            .Setup(l => l.RazorFileChanged(filePath, RazorFileChangeKind.Added))
+            .Callback(() => callCount++);
+
+        var fileChangeDetector = new SimpleTestRazorFileChangeDetector(Dispatcher, [listenerMock.Object], TimeSpan.FromMilliseconds(50))
         {
-            EnqueueDelay = 50,
             BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false),
         };
 
@@ -151,6 +158,14 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
         Assert.Equal(1, callCount);
     }
 
+    private class SimpleTestRazorFileChangeDetector(
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IEnumerable<IRazorFileChangeListener> listeners,
+        TimeSpan delay)
+        : RazorFileChangeDetector(dispatcher, listeners, delay)
+    {
+    }
+
     private class TestRazorFileChangeDetector : RazorFileChangeDetector
     {
         private readonly CancellationTokenSource _cancellationTokenSource;
@@ -160,11 +175,11 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
             CancellationTokenSource cancellationTokenSource,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             IEnumerable<IRazorFileChangeListener> listeners,
-            IReadOnlyList<string> existingprojectFiles)
+            IReadOnlyList<string> existingProjectFiles)
             : base(projectSnapshotManagerDispatcher, listeners)
         {
             _cancellationTokenSource = cancellationTokenSource;
-            _existingProjectFiles = existingprojectFiles;
+            _existingProjectFiles = existingProjectFiles;
         }
 
         protected override void OnInitializationFinished()
