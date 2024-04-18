@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
+internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, IDisposable
 {
     private static readonly TimeSpan s_publishDelay = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
@@ -27,8 +27,6 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
     // Internal for testing
     internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> PublishedRazorDiagnostics;
     internal readonly Dictionary<string, IReadOnlyList<Diagnostic>> PublishedCSharpDiagnostics;
-    internal Timer? _workTimer;
-    internal Timer? _documentClosedTimer;
 
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
@@ -39,6 +37,9 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
     private readonly Lazy<RazorTranslateDiagnosticsService> _translateDiagnosticsService;
     private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
     private readonly TimeSpan _publishDelay;
+
+    private Timer? _workTimer;
+    private Timer? _documentClosedTimer;
 
     public RazorDiagnosticsPublisher(
         IProjectSnapshotManager projectManager,
@@ -76,6 +77,12 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
         _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
         _logger = loggerFactory.GetOrCreateLogger<RazorDiagnosticsPublisher>();
         _publishDelay = publishDelay;
+    }
+
+    public void Dispose()
+    {
+        _workTimer?.Dispose();
+        _documentClosedTimer?.Dispose();
     }
 
     // Used in tests to ensure we can control when background work completes.

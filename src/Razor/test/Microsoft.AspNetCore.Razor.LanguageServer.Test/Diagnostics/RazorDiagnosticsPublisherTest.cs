@@ -507,6 +507,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_closedDocument.FilePath);
         Assert.NotNull(_openedDocument.FilePath);
         publisher.PublishedRazorDiagnostics[_closedDocument.FilePath] = s_emptyRazorDiagnostics;
@@ -518,7 +519,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         publisher.ClearClosedDocuments();
 
         // Assert
-        Assert.NotNull(publisher._documentClosedTimer);
+        Assert.True(publisherAccessor.IsWaitingToClearClosedDocuments);
     }
 
     private static RazorCodeDocument CreateCodeDocument(params RazorDiagnostic[] diagnostics)
@@ -530,28 +531,16 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         return codeDocument;
     }
 
-    private class TestRazorDiagnosticsPublisher : RazorDiagnosticsPublisher, IDisposable
-    {
-        public TestRazorDiagnosticsPublisher(
-            IProjectSnapshotManager projectManager,
-            ProjectSnapshotManagerDispatcher dispatcher,
-            IClientConnection clientConnection,
-            LanguageServerFeatureOptions options,
-            RazorTranslateDiagnosticsService razorTranslateDiagnosticsService,
-            IDocumentContextFactory documentContextFactory,
-            ILoggerFactory loggerFactory)
-            : base(projectManager, dispatcher, clientConnection, options,
-                  new Lazy<RazorTranslateDiagnosticsService>(() => razorTranslateDiagnosticsService),
-                  new Lazy<IDocumentContextFactory>(() => documentContextFactory),
-                  loggerFactory,
-                  publishDelay: TimeSpan.FromMilliseconds(1))
-        {
-        }
-
-        public void Dispose()
-        {
-            _workTimer?.Dispose();
-            _documentClosedTimer?.Dispose();
-        }
-    }
+    private class TestRazorDiagnosticsPublisher(
+        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IClientConnection clientConnection,
+        LanguageServerFeatureOptions options,
+        RazorTranslateDiagnosticsService translateDiagnosticsService,
+        IDocumentContextFactory documentContextFactory,
+        ILoggerFactory loggerFactory) : RazorDiagnosticsPublisher(projectManager, dispatcher, clientConnection, options,
+              new Lazy<RazorTranslateDiagnosticsService>(() => translateDiagnosticsService),
+              new Lazy<IDocumentContextFactory>(() => documentContextFactory),
+              loggerFactory,
+              publishDelay: TimeSpan.FromMilliseconds(1));
 }
