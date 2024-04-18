@@ -10,47 +10,42 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorFileChangeDetector : IFileChangeDetector, IDisposable
+internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
     private static readonly ImmutableArray<string> s_razorFileExtensions = [".razor", ".cshtml"];
     private static readonly string[] s_ignoredDirectories = ["node_modules"];
 
-    // Internal for testing
-    internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
-
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly ImmutableArray<IRazorFileChangeListener> _listeners;
-    private readonly List<FileSystemWatcher> _watchers;
-    private readonly object _pendingNotificationsLock = new();
 
     private readonly CancellationTokenSource _disposeTokenSource;
-    private readonly TimeSpan _delay;
+    private readonly AsyncBatchingWorkQueue<(string, RazorFileChangeKind)> _workQueue;
+    private readonly Dictionary<string, (RazorFileChangeKind kind, int index)> _filePathToChangeMap;
+    private readonly HashSet<int> _indicesToSkip;
+    private readonly List<FileSystemWatcher> _watchers;
 
-    public RazorFileChangeDetector(
-        ProjectSnapshotManagerDispatcher dispatcher,
-        IEnumerable<IRazorFileChangeListener> listeners)
-        : this(dispatcher, listeners, s_delay)
+    public RazorFileChangeDetector(IEnumerable<IRazorFileChangeListener> listeners)
+        : this(listeners, s_delay)
     {
     }
 
-    protected RazorFileChangeDetector(
-        ProjectSnapshotManagerDispatcher dispatcher,
-        IEnumerable<IRazorFileChangeListener> listeners,
-        TimeSpan delay)
+    protected RazorFileChangeDetector(IEnumerable<IRazorFileChangeListener> listeners, TimeSpan delay)
     {
-        _dispatcher = dispatcher;
         _listeners = listeners.ToImmutableArray();
-        _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Length);
-        PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
-        _delay = delay;
+
         _disposeTokenSource = new();
+        _workQueue = new AsyncBatchingWorkQueue<(string, RazorFileChangeKind)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
+        _filePathToChangeMap = new(FilePathComparer.Instance);
+        _indicesToSkip = [];
+        _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Length);
     }
 
     public void Dispose()
@@ -59,11 +54,81 @@ internal class RazorFileChangeDetector : IFileChangeDetector, IDisposable
         _disposeTokenSource.Dispose();
     }
 
-    // Used in tests to ensure we can control when delayed notification work starts.
-    internal ManualResetEventSlim? BlockNotificationWorkStart { get; set; }
+    private async ValueTask ProcessBatchAsync(ImmutableArray<(string, RazorFileChangeKind)> items, CancellationToken token)
+    {
+        // Clear out our helper collections.
+        _filePathToChangeMap.Clear();
+        _indicesToSkip.Clear();
 
-    // Used in tests to ensure we can understand when notification work noops.
-    internal ManualResetEventSlim? NotifyNotificationNoop { get; set; }
+        // First, collect all of the file paths and note the indices add/remove change pairs for the same file path.
+        using var potentialItems = new PooledArrayBuilder<string>(capacity: items.Length);
+
+        var index = 0;
+
+        foreach (var (filePath, kind) in items)
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            if (_filePathToChangeMap.TryGetValue(filePath, out var value))
+            {
+                // We've already seen this file path, so we should skip it later.
+                _indicesToSkip.Add(index);
+
+                var (existingKind, existingIndex) = value;
+
+                // We only ever get added or removed. So, if we've already received an add and are getting
+                // a remove, there's no need to send the notification. Likewise, if we've received a remove
+                // and are getting an add, we can just elide this notification altogether.
+                if (kind != existingKind)
+                {
+                    _filePathToChangeMap.Remove(filePath);
+                    _indicesToSkip.Add(existingIndex);
+                }
+                else
+                {
+                    Debug.Fail($"Unexpected {kind} event because our prior tracked state was the same.");
+                }
+            }
+            else
+            {
+                _filePathToChangeMap.Add(filePath, (kind, index));
+            }
+
+            potentialItems.Add(filePath);
+            index++;
+        }
+
+        // Now, loop through all of the file paths we collected and notify listeners of changes,
+        // taking care of to skip any indices that we noted earlier.
+        for (var i = 0; i < potentialItems.Count; i++)
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            if (_indicesToSkip.Contains(i))
+            {
+                continue;
+            }
+
+            var filePath = potentialItems[i];
+
+            if (!_filePathToChangeMap.TryGetValue(filePath, out var value))
+            {
+                continue;
+            }
+
+            // We only send notifications for the changes that we kept.
+            foreach (var listener in _listeners)
+            {
+                await listener.RazorFileChangedAsync(filePath, value.kind, token).ConfigureAwait(false);
+            }
+        }
+    }
 
     public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
     {
@@ -100,8 +165,8 @@ internal class RazorFileChangeDetector : IFileChangeDetector, IDisposable
                 IncludeSubdirectories = true,
             };
 
-            watcher.Created += (sender, args) => FileSystemWatcher_RazorFileEvent_Background(args.FullPath, RazorFileChangeKind.Added);
-            watcher.Deleted += (sender, args) => FileSystemWatcher_RazorFileEvent_Background(args.FullPath, RazorFileChangeKind.Removed);
+            watcher.Created += (sender, args) => _workQueue.AddWork((args.FullPath, RazorFileChangeKind.Added));
+            watcher.Deleted += (sender, args) => _workQueue.AddWork((args.FullPath, RazorFileChangeKind.Removed));
             watcher.Renamed += (sender, args) =>
             {
                 // Translate file renames into remove->add
@@ -109,13 +174,13 @@ internal class RazorFileChangeDetector : IFileChangeDetector, IDisposable
                 if (args.OldFullPath.EndsWith(extension, FilePathComparison.Instance))
                 {
                     // Renaming from Razor file to something else.
-                    FileSystemWatcher_RazorFileEvent_Background(args.OldFullPath, RazorFileChangeKind.Removed);
+                    _workQueue.AddWork((args.OldFullPath, RazorFileChangeKind.Removed));
                 }
 
                 if (args.FullPath.EndsWith(extension, FilePathComparison.Instance))
                 {
                     // Renaming to a Razor file.
-                    FileSystemWatcher_RazorFileEvent_Background(args.FullPath, RazorFileChangeKind.Added);
+                    _workQueue.AddWork((args.FullPath, RazorFileChangeKind.Added));
                 }
             };
 
@@ -129,9 +194,9 @@ internal class RazorFileChangeDetector : IFileChangeDetector, IDisposable
     {
         // We're relying on callers to synchronize start/stops so we don't need to ensure one happens before the other.
 
-        for (var i = 0; i < _watchers.Count; i++)
+        foreach (var watcher in _watchers)
         {
-            _watchers[i].Dispose();
+            watcher.Dispose();
         }
 
         _watchers.Clear();
@@ -143,122 +208,16 @@ internal class RazorFileChangeDetector : IFileChangeDetector, IDisposable
     }
 
     // Protected virtual for testing
-    protected virtual IReadOnlyList<string> GetExistingRazorFiles(string workspaceDirectory)
+    protected virtual ImmutableArray<string> GetExistingRazorFiles(string workspaceDirectory)
     {
-        var existingRazorFiles = Enumerable.Empty<string>();
+        using var result = new PooledArrayBuilder<string>();
+
         foreach (var extension in s_razorFileExtensions)
         {
             var existingFiles = DirectoryHelper.GetFilteredFiles(workspaceDirectory, "*" + extension, s_ignoredDirectories);
-            existingRazorFiles = existingRazorFiles.Concat(existingFiles);
+            result.AddRange(existingFiles);
         }
 
-        return existingRazorFiles.ToArray();
-    }
-
-    // Internal for testing
-    internal void FileSystemWatcher_RazorFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
-    {
-        lock (_pendingNotificationsLock)
-        {
-            if (!PendingNotifications.TryGetValue(physicalFilePath, out var currentNotification))
-            {
-                currentNotification = new DelayedFileChangeNotification();
-                PendingNotifications[physicalFilePath] = currentNotification;
-            }
-
-            if (currentNotification.ChangeKind != null)
-            {
-                // We've already has a file change event for this file. Chances are we need to normalize the result.
-
-                Debug.Assert(currentNotification.ChangeKind == RazorFileChangeKind.Added || currentNotification.ChangeKind == RazorFileChangeKind.Removed);
-
-                if (currentNotification.ChangeKind != kind)
-                {
-                    // Previous was added and current is removed OR previous was removed and current is added. Either way there's no
-                    // actual change to notify, null it out.
-                    currentNotification.ChangeKind = null;
-                }
-                else
-                {
-                    Debug.Fail($"Unexpected {kind} event because our prior tracked state was the same.");
-                }
-            }
-            else
-            {
-                currentNotification.ChangeKind = kind;
-            }
-
-            if (currentNotification.NotifyTask is null)
-            {
-                // The notify task is only ever null when it's the first time we're being notified about a change to the corresponding file.
-                currentNotification.NotifyTask = NotifyAfterDelayAsync(physicalFilePath);
-            }
-        }
-    }
-
-    private async Task NotifyAfterDelayAsync(string physicalFilePath)
-    {
-        await Task.Delay(_delay).ConfigureAwait(false);
-
-        OnStartingDelayedNotificationWork();
-
-        await _dispatcher.RunAsync(
-            () => NotifyAfterDelay_ProjectSnapshotManagerDispatcher(physicalFilePath),
-            _disposeTokenSource.Token).ConfigureAwait(false);
-    }
-
-    private void NotifyAfterDelay_ProjectSnapshotManagerDispatcher(string physicalFilePath)
-    {
-        lock (_pendingNotificationsLock)
-        {
-            var result = PendingNotifications.TryGetValue(physicalFilePath, out var notification);
-            Debug.Assert(result, "We should always have an associated notification after delaying an update.");
-
-            Assumes.NotNull(notification);
-
-            PendingNotifications.Remove(physicalFilePath);
-
-            if (notification.ChangeKind is null)
-            {
-                // The file to be notified has been brought back to its original state.
-                // Aka Add -> Remove is equivalent to the file never having been added.
-
-                OnNoopingNotificationWork();
-
-                return;
-            }
-
-            var kind = notification.ChangeKind.Value;
-
-            foreach (var listener in _listeners)
-            {
-                listener.RazorFileChangedAsync(physicalFilePath, kind, _disposeTokenSource.Token).Forget();
-            }
-        }
-    }
-
-    private void OnStartingDelayedNotificationWork()
-    {
-        if (BlockNotificationWorkStart != null)
-        {
-            BlockNotificationWorkStart.Wait();
-            BlockNotificationWorkStart.Reset();
-        }
-    }
-
-    private void OnNoopingNotificationWork()
-    {
-        if (NotifyNotificationNoop != null)
-        {
-            NotifyNotificationNoop.Set();
-        }
-    }
-
-    // Internal for testing
-    internal class DelayedFileChangeNotification
-    {
-        public Task? NotifyTask { get; set; }
-
-        public RazorFileChangeKind? ChangeKind { get; set; }
+        return result.DrainToImmutable();
     }
 }
