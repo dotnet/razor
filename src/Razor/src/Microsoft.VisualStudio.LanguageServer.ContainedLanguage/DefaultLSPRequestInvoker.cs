@@ -107,7 +107,6 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
         var response = await _languageServiceBroker.RequestAsync(
             new DocumentRequest<TIn, TOut>()
             {
-
                 TextBuffer = textBuffer,
                 LanguageServerName = languageServerName,
                 ParameterFactory = _ => parameters,
