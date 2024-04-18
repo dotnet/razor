@@ -34,6 +34,8 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
     private readonly TimeSpan _publishDelay;
 
+    private readonly CancellationTokenSource _disposeTokenSource;
+
     private readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> _publishedRazorDiagnostics;
     private readonly Dictionary<string, IReadOnlyList<Diagnostic>> _publishedCSharpDiagnostics;
     private readonly object _gate = new();
@@ -75,6 +77,8 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         _options = languageServerFeatureOptions;
         _translateDiagnosticsService = razorTranslateDiagnosticsService;
         _documentContextFactory = documentContextFactory;
+
+        _disposeTokenSource = new();
         _publishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
         _publishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
         _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
@@ -86,6 +90,9 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     {
         _workTimer?.Dispose();
         _documentClosedTimer?.Dispose();
+
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
     }
 
     public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
@@ -120,7 +127,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
     private void DocumentClosedTimer_Tick(object? state)
     {
-        DocumentClosedTimer_TickAsync(CancellationToken.None).Forget();
+        DocumentClosedTimer_TickAsync(_disposeTokenSource.Token).Forget();
     }
 
     private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
@@ -207,20 +214,20 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
             var delegatedResponse = await _clientConnection.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
                 delegatedParams,
-                CancellationToken.None).ConfigureAwait(false);
+                _disposeTokenSource.Token).ConfigureAwait(false);
 
             if (delegatedResponse.HasValue &&
                 delegatedResponse.Value.TryGetFirst(out var fullDiagnostics) &&
                 fullDiagnostics.Items is not null)
             {
                 var documentContext = await _documentContextFactory.Value
-                    .TryCreateAsync(delegatedParams.TextDocument.Uri, projectContext: null, CancellationToken.None)
+                    .TryCreateAsync(delegatedParams.TextDocument.Uri, projectContext: null, _disposeTokenSource.Token)
                     .ConfigureAwait(false);
 
                 if (documentContext is not null)
                 {
                     csharpDiagnostics = await _translateDiagnosticsService.Value
-                        .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, CancellationToken.None)
+                        .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, _disposeTokenSource.Token)
                         .ConfigureAwait(false);
                 }
             }
@@ -347,12 +354,15 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
             Host = string.Empty,
         };
 
-        _ = _clientConnection.SendNotificationAsync(
-            Methods.TextDocumentPublishDiagnosticsName,
-            new PublishDiagnosticParams()
-            {
-                Uri = uriBuilder.Uri,
-                Diagnostics = diagnostics.ToArray(),
-            }, CancellationToken.None);
+        _clientConnection
+            .SendNotificationAsync(
+                Methods.TextDocumentPublishDiagnosticsName,
+                new PublishDiagnosticParams()
+                {
+                    Uri = uriBuilder.Uri,
+                    Diagnostics = diagnostics.ToArray(),
+                },
+                _disposeTokenSource.Token)
+            .Forget();
     }
 }
