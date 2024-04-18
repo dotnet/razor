@@ -9,25 +9,33 @@ namespace Microsoft.VisualStudio.Razor;
 
 internal sealed partial class ProjectWorkspaceStateGenerator
 {
-    // Internal for testing
-    internal class UpdateItem : IDisposable
+    private sealed class UpdateItem
     {
-        public Task UpdateTask { get; }
-
+        private readonly Task _task;
         private readonly CancellationTokenSource _tokenSource;
 
         public bool IsCancellationRequested => _tokenSource.IsCancellationRequested;
+        public bool IsCompleted => _task.IsCompleted;
+        public bool IsRunning => !IsCompleted && !IsCancellationRequested;
 
-        public UpdateItem(Func<CancellationToken, Task> updater, CancellationToken token)
+        private UpdateItem(Task task, CancellationTokenSource tokenSource)
         {
-            _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-
-            UpdateTask = Task.Run(
-                () => updater(_tokenSource.Token),
-                _tokenSource.Token);
+            _task = task;
+            _tokenSource = tokenSource;
         }
 
-        public void Dispose()
+        public static UpdateItem CreateAndStartWork(Func<CancellationToken, Task> updater, CancellationToken token)
+        {
+            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+            var task = Task.Run(
+                () => updater(tokenSource.Token),
+                tokenSource.Token);
+
+            return new(task, tokenSource);
+        }
+
+        public void CancelWorkAndCleanUp()
         {
             _tokenSource.Cancel();
             _tokenSource.Dispose();

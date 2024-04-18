@@ -52,7 +52,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         {
             foreach (var (_, updateItem) in _updates)
             {
-                updateItem.Dispose();
+                updateItem.CancelWorkAndCleanUp();
             }
         }
 
@@ -76,18 +76,17 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         {
             if (_updates.TryGetValue(projectSnapshot.Key, out var updateItem))
             {
-                if (!updateItem.UpdateTask.IsCompleted &&
-                    !updateItem.IsCancellationRequested)
+                if (updateItem.IsRunning)
                 {
                     _logger.LogTrace($"Cancelling previously enqueued update for '{projectSnapshot.FilePath}'.");
                 }
 
-                updateItem.Dispose();
+                updateItem.CancelWorkAndCleanUp();
             }
 
             _logger.LogTrace($"Enqueuing update for '{projectSnapshot.FilePath}'");
 
-            _updates[projectSnapshot.Key] = new UpdateItem(
+            _updates[projectSnapshot.Key] = UpdateItem.CreateAndStartWork(
                 token => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, token),
                 _disposeTokenSource.Token);
         }
@@ -101,7 +100,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         {
             foreach (var (_, updateItem) in _updates)
             {
-                updateItem.Dispose();
+                updateItem.CancelWorkAndCleanUp();
             }
 
             _updates.Clear();

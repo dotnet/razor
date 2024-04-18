@@ -22,7 +22,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator
 
         private sealed class UpdateItemWrapper(UpdateItem updateItem) : IUpdateItem
         {
-            public bool IsCompleted => updateItem.UpdateTask.IsCompleted;
+            public bool IsCompleted => updateItem.IsCompleted;
             public bool IsCancellationRequested => updateItem.IsCancellationRequested;
         }
 
