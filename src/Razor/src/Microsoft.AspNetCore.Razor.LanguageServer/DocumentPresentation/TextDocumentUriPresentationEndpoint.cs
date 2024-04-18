@@ -22,14 +22,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
 internal class TextDocumentUriPresentationEndpoint(
     IRazorDocumentMappingService razorDocumentMappingService,
-    RazorComponentSearchEngine razorComponentSearchEngine,
     IClientConnection clientConnection,
     IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory,
     ILoggerFactory loggerFactory)
     : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.GetOrCreateLogger<TextDocumentUriPresentationEndpoint>()), ITextDocumentUriPresentationHandler
 {
-    private readonly RazorComponentSearchEngine _razorComponentSearchEngine = razorComponentSearchEngine ?? throw new ArgumentNullException(nameof(razorComponentSearchEngine));
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
 
     public override string EndpointName => CustomMessageNames.RazorUriPresentationEndpoint;
@@ -101,14 +99,14 @@ internal class TextDocumentUriPresentationEndpoint(
                     {
                         Uri = request.TextDocument.Uri
                     },
-                    Edits = new[]
-                    {
+                    Edits =
+                    [
                         new TextEdit
                         {
                             NewText = componentTagText,
                             Range = request.Range
                         }
-                    }
+                    ]
                 }
             }
         };
