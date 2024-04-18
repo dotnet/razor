@@ -16,7 +16,28 @@ internal partial class RazorDiagnosticsPublisher
 
     internal sealed class TestAccessor(RazorDiagnosticsPublisher instance)
     {
-        public bool IsWaitingToClearClosedDocuments => instance._documentClosedTimer is not null;
+        public bool IsWaitingToClearClosedDocuments
+        {
+            get
+            {
+                lock (instance._documentClosedGate)
+                {
+                    return instance._waitingToClearClosedDocuments;
+                }
+            }
+        }
+
+        public async Task WaitForClearClosedDocumentsAsync()
+        {
+            Task task;
+
+            lock (instance._documentClosedGate)
+            {
+                task = instance._clearClosedDocumentsTask;
+            }
+
+            await task.ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Used in tests to ensure we can control when background work completes.
@@ -38,7 +59,7 @@ internal partial class RazorDiagnosticsPublisher
 
         public void SetPublishedCSharpDiagnostics(string filePath, ImmutableArray<Diagnostic> diagnostics)
         {
-            lock (instance._gate)
+            lock (instance._publishedDiagnosticsGate)
             {
                 instance._publishedCSharpDiagnostics[filePath] = diagnostics;
             }
@@ -46,7 +67,7 @@ internal partial class RazorDiagnosticsPublisher
 
         public void SetPublishedRazorDiagnostics(string filePath, ImmutableArray<RazorDiagnostic> diagnostics)
         {
-            lock (instance._gate)
+            lock (instance._publishedDiagnosticsGate)
             {
                 instance._publishedRazorDiagnostics[filePath] = diagnostics;
             }

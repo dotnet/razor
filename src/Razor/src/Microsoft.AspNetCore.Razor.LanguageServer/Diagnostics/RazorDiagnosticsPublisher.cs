@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, IDisposable
 {
     private static readonly TimeSpan s_publishDelay = TimeSpan.FromSeconds(2);
-    private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan s_clearClosedDocumentsDelay = TimeSpan.FromSeconds(5);
 
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
@@ -36,12 +36,15 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
     private readonly CancellationTokenSource _disposeTokenSource;
 
+    private readonly object _publishedDiagnosticsGate = new();
     private readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> _publishedRazorDiagnostics;
     private readonly Dictionary<string, IReadOnlyList<Diagnostic>> _publishedCSharpDiagnostics;
-    private readonly object _gate = new();
+
+    private readonly object _documentClosedGate = new();
+    private Task _clearClosedDocumentsTask = Task.CompletedTask;
+    private bool _waitingToClearClosedDocuments;
 
     private Timer? _workTimer;
-    private Timer? _documentClosedTimer;
 
     private ManualResetEventSlim? _blockBackgroundWorkCompleting;
     private ManualResetEventSlim? _notifyBackgroundWorkCompleting;
@@ -89,7 +92,6 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     public void Dispose()
     {
         _workTimer?.Dispose();
-        _documentClosedTimer?.Dispose();
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
@@ -109,7 +111,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
             var filePath = document.FilePath.AssumeNotNull();
             _work[filePath] = document;
             StartWorkTimer();
-            StartDocumentClosedCheckTimer();
+            StartDelayToClearDocuments();
         }
     }
 
@@ -120,75 +122,65 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         _workTimer ??= new Timer(WorkTimer_Tick, state: null, dueTime: _publishDelay, period: Timeout.InfiniteTimeSpan);
     }
 
-    private void StartDocumentClosedCheckTimer()
+    private void StartDelayToClearDocuments()
     {
-        _documentClosedTimer ??= new Timer(DocumentClosedTimer_Tick, null, s_checkForDocumentClosedDelay, Timeout.InfiniteTimeSpan);
-    }
+        lock (_documentClosedGate)
+        {
+            if (_waitingToClearClosedDocuments)
+            {
+                return;
+            }
 
-    private void DocumentClosedTimer_Tick(object? state)
-    {
-        DocumentClosedTimer_TickAsync(_disposeTokenSource.Token).Forget();
-    }
+            _clearClosedDocumentsTask = ClearClosedDocumentsAfterDelayAsync();
+            _waitingToClearClosedDocuments = true;
+        }
 
-    private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
-    {
-        await _dispatcher.RunAsync(
-            ClearClosedDocuments,
-            cancellationToken).ConfigureAwait(false);
+        async Task ClearClosedDocumentsAfterDelayAsync()
+        {
+            await Task.Delay(s_clearClosedDocumentsDelay, _disposeTokenSource.Token).ConfigureAwait(false);
+
+            ClearClosedDocuments();
+
+            lock (_documentClosedGate)
+            {
+                _waitingToClearClosedDocuments = false;
+            }
+        }
     }
 
     private void ClearClosedDocuments()
     {
-        try
+        lock (_publishedDiagnosticsGate)
         {
-            lock (_gate)
+            ClearClosedDocumentsPublishedDiagnostics(_publishedRazorDiagnostics);
+            ClearClosedDocumentsPublishedDiagnostics(_publishedCSharpDiagnostics);
+
+            if (_publishedRazorDiagnostics.Count > 0 || _publishedCSharpDiagnostics.Count > 0)
             {
-                ClearClosedDocumentsPublishedDiagnostics(_publishedRazorDiagnostics);
-                ClearClosedDocumentsPublishedDiagnostics(_publishedCSharpDiagnostics);
+                // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
+                // and check if the currently tracked documents are closed. In practice this work is super minimal.
+                StartDelayToClearDocuments();
+            }
 
-                _documentClosedTimer?.Dispose();
-                _documentClosedTimer = null;
-
-                if (_publishedRazorDiagnostics.Count > 0 || _publishedCSharpDiagnostics.Count > 0)
+            void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
+            {
+                var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
+                foreach (var (key, value) in originalPublishedDiagnostics)
                 {
-                    lock (_work)
+                    if (!_projectManager.IsDocumentOpen(key))
                     {
-                        // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
-                        // and check if the currently tracked documents are closed. In practice this work is super minimal.
-                        StartDocumentClosedCheckTimer();
-                    }
-                }
+                        // Document is now closed, we shouldn't track its diagnostics anymore.
+                        publishedDiagnostics.Remove(key);
 
-                void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
-                {
-                    var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
-                    foreach (var (key, value) in originalPublishedDiagnostics)
-                    {
-                        if (!_projectManager.IsDocumentOpen(key))
+                        // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
+                        // doesn't have a ton of closed document errors that they can't get rid of.
+                        if (value.Count > 0)
                         {
-                            // Document is now closed, we shouldn't track its diagnostics anymore.
-                            publishedDiagnostics.Remove(key);
-
-                            // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
-                            // doesn't have a ton of closed document errors that they can't get rid of.
-                            if (value.Count > 0)
-                            {
-                                PublishDiagnosticsForFilePath(key, Array.Empty<Diagnostic>());
-                            }
+                            PublishDiagnosticsForFilePath(key, Array.Empty<Diagnostic>());
                         }
                     }
                 }
             }
-        }
-        catch
-        {
-            lock (_gate)
-            {
-                _documentClosedTimer?.Dispose();
-                _documentClosedTimer = null;
-            }
-
-            throw;
         }
     }
 
@@ -235,7 +227,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
 
-        lock (_gate)
+        lock (_publishedDiagnosticsGate)
         {
             var filePath = document.FilePath.AssumeNotNull();
 
