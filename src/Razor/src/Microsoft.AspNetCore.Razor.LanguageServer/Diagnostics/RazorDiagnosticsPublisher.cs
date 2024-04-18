@@ -228,7 +228,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
             void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
             {
-                using var documentsToRemove = new PooledArrayBuilder<(string key, bool publicEmptyDiagnostics)>(capacity: publishedDiagnostics.Count);
+                using var documentsToRemove = new PooledArrayBuilder<(string key, bool publishEmptyDiagnostics)>(capacity: publishedDiagnostics.Count);
 
                 foreach (var (key, value) in publishedDiagnostics)
                 {
@@ -236,7 +236,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                     {
                         // If there were previously published diagnostics for this document, take note so
                         // we can publish an empty set of diagnostics.
-                        documentsToRemove.Add((key, publicEmptyDiagnostics: value.Count > 0));
+                        documentsToRemove.Add((key, publishEmptyDiagnostics: value.Count > 0));
                     }
                 }
 
@@ -245,11 +245,11 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                     return;
                 }
 
-                foreach (var (key, publicEmptyDiagnostics) in documentsToRemove)
+                foreach (var (key, publishEmptyDiagnostics) in documentsToRemove)
                 {
                     publishedDiagnostics.Remove(key);
 
-                    if (publicEmptyDiagnostics)
+                    if (publishEmptyDiagnostics)
                     {
                         PublishDiagnosticsForFilePath(key, []);
                     }
