@@ -134,38 +134,6 @@ internal class TextDocumentUriPresentationEndpoint(
             return null;
         }
 
-        var typeName = descriptor.GetTypeNameIdentifier();
-        if (string.IsNullOrWhiteSpace(typeName))
-        {
-            Logger.LogWarning($"Found a tag helper, {descriptor.Name}, but it has an empty TypeNameIdentifier.");
-            return null;
-        }
-
-        // TODO: Add @using statements if required, or fully qualify (GetTypeName())
-
-        using var _ = StringBuilderPool.GetPooledObject(out var sb);
-
-        sb.Append('<');
-        sb.Append(typeName);
-
-        foreach (var requiredAttribute in descriptor.EditorRequiredAttributes)
-        {
-            sb.Append(' ');
-            sb.Append(requiredAttribute.Name);
-            sb.Append("=\"\"");
-        }
-
-        if (descriptor.AllowedChildTags.Length > 0)
-        {
-            sb.Append("></");
-            sb.Append(typeName);
-            sb.Append('>');
-        }
-        else
-        {
-            sb.Append(" />");
-        }
-
-        return sb.ToString();
+        return descriptor.TryGetComponentTag();
     }
 }
