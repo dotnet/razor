@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,38 +17,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class RazorFileChangeDetector : IFileChangeDetector
 {
-    private static readonly IReadOnlyList<string> s_razorFileExtensions = new[] { ".razor", ".cshtml" };
+    private static readonly ImmutableArray<string> s_razorFileExtensions = [".razor", ".cshtml"];
 
     // Internal for testing
     internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IEnumerable<IRazorFileChangeListener> _listeners;
     private readonly List<FileSystemWatcher> _watchers;
     private readonly object _pendingNotificationsLock = new();
 
-    private static readonly string[] s_ignoredDirectories = new string[]
-    {
-        "node_modules",
-    };
+    private static readonly string[] s_ignoredDirectories = ["node_modules"];
 
     public RazorFileChangeDetector(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         IEnumerable<IRazorFileChangeListener> listeners)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (listeners is null)
-        {
-            throw new ArgumentNullException(nameof(listeners));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _listeners = listeners;
-        _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Count);
+        _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Length);
         PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
     }
 
@@ -73,7 +61,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
         var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
-        await _projectSnapshotManagerDispatcher.RunAsync(() =>
+        await _dispatcher.RunAsync(() =>
         {
             foreach (var razorFilePath in existingRazorFiles)
             {
@@ -92,9 +80,8 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
         // Start listening for project file changes (added/removed/renamed).
 
-        for (var i = 0; i < s_razorFileExtensions.Count; i++)
+        foreach (var extension in s_razorFileExtensions)
         {
-            var extension = s_razorFileExtensions[i];
             var watcher = new RazorFileSystemWatcher(workspaceDirectory, "*" + extension)
             {
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
@@ -147,9 +134,8 @@ internal class RazorFileChangeDetector : IFileChangeDetector
     protected virtual IReadOnlyList<string> GetExistingRazorFiles(string workspaceDirectory)
     {
         var existingRazorFiles = Enumerable.Empty<string>();
-        for (var i = 0; i < s_razorFileExtensions.Count; i++)
+        foreach (var extension in s_razorFileExtensions)
         {
-            var extension = s_razorFileExtensions[i];
             var existingFiles = DirectoryHelper.GetFilteredFiles(workspaceDirectory, "*" + extension, s_ignoredDirectories);
             existingRazorFiles = existingRazorFiles.Concat(existingFiles);
         }
@@ -204,7 +190,7 @@ internal class RazorFileChangeDetector : IFileChangeDetector
 
         OnStartingDelayedNotificationWork();
 
-        await _projectSnapshotManagerDispatcher.RunAsync(
+        await _dispatcher.RunAsync(
             () => NotifyAfterDelay_ProjectSnapshotManagerDispatcher(physicalFilePath),
             CancellationToken.None).ConfigureAwait(false);
     }
