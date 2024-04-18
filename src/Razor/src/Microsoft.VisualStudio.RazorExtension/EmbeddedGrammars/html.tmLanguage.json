@@ -112,11 +112,11 @@
 												}
 											},
 											"name": "string.quoted.double.html",
-                      "patterns": [
-                        {
-                          "include": "#entities"
-                        }
-                      ]
+											"patterns": [
+												{
+													"include": "#entities"
+												}
+											]
 										},
 										{
 											"begin": "'",
@@ -136,11 +136,11 @@
 												}
 											},
 											"name": "string.quoted.single.html",
-                      "patterns": [
-                        {
-                          "include": "#entities"
-                        }
-                      ]
+											"patterns": [
+												{
+													"include": "#entities"
+												}
+											]
 										}
 									]
 								},
@@ -402,11 +402,11 @@
 								}
 							},
 							"name": "string.quoted.double.html",
-              "patterns": [
-                {
-                  "include": "#entities"
-                }
-              ]
+							"patterns": [
+								{
+									"include": "#entities"
+								}
+							]
 						},
 						{
 							"begin": "'",
@@ -422,11 +422,11 @@
 								}
 							},
 							"name": "string.quoted.single.html",
-              "patterns": [
-                {
-                  "include": "#entities"
-                }
-              ]
+							"patterns": [
+								{
+									"include": "#entities"
+								}
+							]
 						},
 						{
 							"match": "=",
