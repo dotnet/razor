@@ -59,7 +59,12 @@ internal sealed class RenameEndpoint(
 
     protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return null;
+        }
+
         // We only support renaming of .razor components, not .cshtml tag helpers
         if (!FileKinds.IsComponent(documentContext.FileKind))
         {
@@ -80,7 +85,12 @@ internal sealed class RenameEndpoint(
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return Task.FromResult<IDelegatedParams?>(null);
+        }
+
         return Task.FromResult<IDelegatedParams?>(new DelegatedRenameParams(
                 documentContext.Identifier,
                 positionInfo.Position,
