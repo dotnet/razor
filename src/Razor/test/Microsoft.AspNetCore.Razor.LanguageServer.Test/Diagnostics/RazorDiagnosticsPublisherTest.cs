@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -93,7 +92,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
     }
 
     [Fact]
-    public async Task DocumentProcessed_NewWorkQueued_RestartsTimer()
+    public void DocumentProcessed_NewWorkQueued_RestartsTimer()
     {
         // Arrange
         Assert.NotNull(_openedDocument.FilePath);
@@ -120,19 +119,17 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory(_openedDocument.FilePath, codeDocument);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         publisherAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: true);
         publisherAccessor.NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
 
-        await RunOnDispatcherAsync(() =>
-            publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument));
+        publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
         Assert.True(publisherAccessor.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
         publisherAccessor.NotifyBackgroundWorkCompleting.Reset();
 
         // Act
-        await RunOnDispatcherAsync(() =>
-            publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument));
+        publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
         publisherAccessor.BlockBackgroundWorkCompleting.Set();
 
         // Assert
@@ -223,11 +220,11 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentMappingService = new RazorDocumentMappingService(filePathService, documentContextFactory, LoggerFactory);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(documentMappingService, LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
 
         // Act
-        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
 
         // Assert
         clientConnection.VerifyAll();
@@ -279,12 +276,12 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory(_openedDocument.FilePath, codeDocument);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         publisherAccessor.SetPublishedRazorDiagnostics(processedOpenDocument.FilePath, s_emptyRazorDiagnostics);
 
         // Act
-        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
 
         // Assert
         clientConnection.VerifyAll();
@@ -337,14 +334,14 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory(_openedDocument.FilePath, codeDocument);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
 
-        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
         arranging = false;
 
         // Act
-        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
 
         // Assert
         clientConnection.VerifyAll();
@@ -375,12 +372,12 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentMappingService = new RazorDocumentMappingService(filePathService, documentContextFactory, LoggerFactory);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(documentMappingService, LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         publisherAccessor.SetPublishedRazorDiagnostics(processedOpenDocument.FilePath, s_singleRazorDiagnostic);
 
         // Act & Assert
-        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
     }
 
     [Fact]
@@ -426,14 +423,14 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory(_openedDocument.FilePath, codeDocument);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
 
-        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
         arranging = false;
 
         // Act & Assert
-        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument, DisposalToken);
     }
 
     [Fact]
@@ -457,7 +454,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory();
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_closedDocument.FilePath);
         publisherAccessor.SetPublishedRazorDiagnostics(_closedDocument.FilePath, s_singleRazorDiagnostic);
@@ -478,7 +475,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory();
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_openedDocument.FilePath);
         publisherAccessor.SetPublishedRazorDiagnostics(_openedDocument.FilePath, s_singleRazorDiagnostic);
@@ -496,7 +493,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory();
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_closedDocument.FilePath);
         publisherAccessor.SetPublishedRazorDiagnostics(_closedDocument.FilePath, s_emptyRazorDiagnostics);
@@ -514,7 +511,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory();
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
-        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
         var publisherAccessor = publisher.GetTestAccessor();
         Assert.NotNull(_closedDocument.FilePath);
         Assert.NotNull(_openedDocument.FilePath);
@@ -541,12 +538,11 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
 
     private class TestRazorDiagnosticsPublisher(
         IProjectSnapshotManager projectManager,
-        ProjectSnapshotManagerDispatcher dispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions options,
         RazorTranslateDiagnosticsService translateDiagnosticsService,
         IDocumentContextFactory documentContextFactory,
-        ILoggerFactory loggerFactory) : RazorDiagnosticsPublisher(projectManager, dispatcher, clientConnection, options,
+        ILoggerFactory loggerFactory) : RazorDiagnosticsPublisher(projectManager, clientConnection, options,
               new Lazy<RazorTranslateDiagnosticsService>(() => translateDiagnosticsService),
               new Lazy<IDocumentContextFactory>(() => documentContextFactory),
               loggerFactory,
