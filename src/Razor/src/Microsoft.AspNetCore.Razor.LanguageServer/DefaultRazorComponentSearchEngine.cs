@@ -51,7 +51,7 @@ internal class DefaultRazorComponentSearchEngine(
         {
             // Check the typename and namespace match
             if (IsPathCandidateForComponent(documentSnapshot, tagHelper.GetTypeNameIdentifier().AsMemory()) &&
-                ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, tagHelper.GetTypeNamespace()))
+                razorCodeDocument.ComponentNamespaceMatches(tagHelper.GetTypeNamespace()))
             {
                 return tagHelper;
             }
@@ -112,7 +112,7 @@ internal class DefaultRazorComponentSearchEngine(
                 }
 
                 // Make sure we have the right namespace of the fully qualified name
-                if (!ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, namespaceName))
+                if (!razorCodeDocument.ComponentNamespaceMatches(namespaceName))
                 {
                     continue;
                 }
@@ -142,15 +142,5 @@ internal class DefaultRazorComponentSearchEngine(
 
         var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
         return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
-    }
-
-    private bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, string fullyQualifiedNamespace)
-    {
-        var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
-            .GetDocumentIntermediateNode()
-            .FindDescendantNodes<IntermediateNode>()
-            .First(n => n is NamespaceDeclarationIntermediateNode);
-
-        return namespaceNode.Content == fullyQualifiedNamespace;
     }
 }
