@@ -50,7 +50,7 @@ internal class DefaultRazorComponentSearchEngine(
         foreach (var tagHelper in tagHelpers)
         {
             // Check the typename and namespace match
-            if (IsPathCandidateForComponent(documentSnapshot, tagHelper.GetTypeNameIdentifier().AsMemory()) &&
+            if (documentSnapshot.IsPathCandidateForComponent(tagHelper.GetTypeNameIdentifier().AsMemory()) &&
                 razorCodeDocument.ComponentNamespaceMatches(tagHelper.GetTypeNamespace()))
             {
                 return tagHelper;
@@ -100,7 +100,7 @@ internal class DefaultRazorComponentSearchEngine(
                 }
 
                 // Rule out if not Razor component with correct name
-                if (!IsPathCandidateForComponent(documentSnapshot, lookupSymbolName))
+                if (!documentSnapshot.IsPathCandidateForComponent(lookupSymbolName))
                 {
                     continue;
                 }
@@ -131,16 +131,5 @@ internal class DefaultRazorComponentSearchEngine(
         return genericSeparatorStart > 0
             ? typeName[..genericSeparatorStart]
             : typeName;
-    }
-
-    private static bool IsPathCandidateForComponent(IDocumentSnapshot documentSnapshot, ReadOnlyMemory<char> path)
-    {
-        if (documentSnapshot.FileKind != FileKinds.Component)
-        {
-            return false;
-        }
-
-        var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
-        return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
     }
 }
