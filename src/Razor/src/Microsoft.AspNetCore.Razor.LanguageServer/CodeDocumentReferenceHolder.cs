@@ -35,10 +35,6 @@ internal class CodeDocumentReferenceHolder : IDocumentProcessedListener
         }
     }
 
-    public void Initialize(IProjectSnapshotManager projectManager)
-    {
-    }
-
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Goal here is to evict cache entries (really just references to code documents) of known documents when

@@ -178,9 +178,5 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             _tcs.SetResult(document);
         }
-
-        public void Initialize(IProjectSnapshotManager projectManager)
-        {
-        }
     }
 }

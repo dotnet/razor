@@ -8,7 +8,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal interface IDocumentProcessedListener
 {
-    void Initialize(IProjectSnapshotManager projectManager);
-
     void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot);
 }

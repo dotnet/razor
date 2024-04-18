@@ -16,10 +16,6 @@ internal class GeneratedDocumentSynchronizer(
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
-    public void Initialize(IProjectSnapshotManager projectManager)
-    {
-    }
-
     public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
         if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))

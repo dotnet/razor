@@ -53,11 +53,6 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
             _disposeTokenSource.Token);
 
         _projectManager.Changed += ProjectManager_Changed;
-
-        foreach (var listener in _listeners)
-        {
-            listener.Initialize(_projectManager);
-        }
     }
 
     public void Dispose()

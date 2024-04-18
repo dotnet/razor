@@ -29,54 +29,26 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
     internal Timer? _documentClosedTimer;
 
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IClientConnection _clientConnection;
     private readonly Dictionary<string, IDocumentSnapshot> _work;
     private readonly ILogger _logger;
-    private IProjectSnapshotManager? _projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly Lazy<RazorTranslateDiagnosticsService> _razorTranslateDiagnosticsService;
     private readonly Lazy<IDocumentContextFactory> _documentContextFactory;
 
     public RazorDiagnosticsPublisher(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManagerDispatcher dispatcher,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         Lazy<RazorTranslateDiagnosticsService> razorTranslateDiagnosticsService,
         Lazy<IDocumentContextFactory> documentContextFactory,
         ILoggerFactory loggerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (clientConnection is null)
-        {
-            throw new ArgumentNullException(nameof(clientConnection));
-        }
-
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
-
-        if (razorTranslateDiagnosticsService is null)
-        {
-            throw new ArgumentNullException(nameof(razorTranslateDiagnosticsService));
-        }
-
-        if (documentContextFactory is null)
-        {
-            throw new ArgumentNullException(nameof(documentContextFactory));
-        }
-
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _projectManager = projectManager;
+        _dispatcher = dispatcher;
         _clientConnection = clientConnection;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _razorTranslateDiagnosticsService = razorTranslateDiagnosticsService;
@@ -93,16 +65,6 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
     // Used in tests to ensure we can control when background work completes.
     public ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
 
-    public void Initialize(IProjectSnapshotManager projectManager)
-    {
-        if (projectManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectManager));
-        }
-
-        _projectManager = projectManager;
-    }
-
     public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
         if (document is null)
@@ -110,7 +72,7 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
             throw new ArgumentNullException(nameof(document));
         }
 
-        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
+        _dispatcher.AssertRunningOnDispatcher();
 
         lock (_work)
         {
@@ -140,7 +102,7 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
 
     private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
     {
-        await _projectSnapshotManagerDispatcher.RunAsync(
+        await _dispatcher.RunAsync(
             ClearClosedDocuments,
             cancellationToken).ConfigureAwait(false);
     }
@@ -174,7 +136,6 @@ internal class RazorDiagnosticsPublisher : IDocumentProcessedListener
                     var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
                     foreach (var (key, value) in originalPublishedDiagnostics)
                     {
-                        Assumes.NotNull(_projectManager);
                         if (!_projectManager.IsDocumentOpen(key))
                         {
                             // Document is now closed, we shouldn't track its diagnostics anymore.
