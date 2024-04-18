@@ -133,8 +133,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
             cancellationToken).ConfigureAwait(false);
     }
 
-    // Internal for testing
-    internal void ClearClosedDocuments()
+    private void ClearClosedDocuments()
     {
         try
         {
@@ -189,8 +188,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         }
     }
 
-    // Internal for testing
-    internal async Task PublishDiagnosticsAsync(IDocumentSnapshot document)
+    private async Task PublishDiagnosticsAsync(IDocumentSnapshot document)
     {
         var result = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
 

@@ -225,9 +225,10 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(documentMappingService, LoggerFactory);
 
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        var publisherAccessor = publisher.GetTestAccessor();
 
         // Act
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
 
         // Assert
         clientConnection.VerifyAll();
@@ -284,7 +285,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         publisherAccessor.SetPublishedRazorDiagnostics(processedOpenDocument.FilePath, s_emptyRazorDiagnostics);
 
         // Act
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
 
         // Assert
         clientConnection.VerifyAll();
@@ -338,12 +339,13 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        var publisherAccessor = publisher.GetTestAccessor();
 
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
         arranging = false;
 
         // Act
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
 
         // Assert
         clientConnection.VerifyAll();
@@ -379,7 +381,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         publisherAccessor.SetPublishedRazorDiagnostics(processedOpenDocument.FilePath, s_singleRazorDiagnostic);
 
         // Act & Assert
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
     }
 
     [Fact]
@@ -426,12 +428,13 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict), LoggerFactory);
 
         using var publisher = new TestRazorDiagnosticsPublisher(_projectManager, Dispatcher, clientConnection.Object, TestLanguageServerFeatureOptions.Instance, translateDiagnosticsService, documentContextFactory, LoggerFactory);
+        var publisherAccessor = publisher.GetTestAccessor();
 
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
         arranging = false;
 
         // Act & Assert
-        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        await publisherAccessor.PublishDiagnosticsAsync(processedOpenDocument);
     }
 
     [Fact]
@@ -462,7 +465,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         publisherAccessor.SetPublishedCSharpDiagnostics(_closedDocument.FilePath, s_singleCSharpDiagnostic);
 
         // Act
-        publisher.ClearClosedDocuments();
+        publisherAccessor.ClearClosedDocuments();
 
         // Assert
         clientConnection.VerifyAll();
@@ -483,7 +486,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         publisherAccessor.SetPublishedCSharpDiagnostics(_openedDocument.FilePath, s_singleCSharpDiagnostic);
 
         // Act & Assert
-        publisher.ClearClosedDocuments();
+        publisherAccessor.ClearClosedDocuments();
     }
 
     [Fact]
@@ -501,7 +504,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         publisherAccessor.SetPublishedCSharpDiagnostics(_closedDocument.FilePath, s_emptyCSharpDiagnostics);
 
         // Act & Assert
-        publisher.ClearClosedDocuments();
+        publisherAccessor.ClearClosedDocuments();
     }
 
     [Fact]
@@ -522,7 +525,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         publisherAccessor.SetPublishedCSharpDiagnostics(_openedDocument.FilePath, s_emptyCSharpDiagnostics);
 
         // Act
-        publisher.ClearClosedDocuments();
+        publisherAccessor.ClearClosedDocuments();
 
         // Assert
         Assert.True(publisherAccessor.IsWaitingToClearClosedDocuments);

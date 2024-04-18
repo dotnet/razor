@@ -2,7 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -29,6 +31,16 @@ internal partial class RazorDiagnosticsPublisher
             {
                 instance._publishedRazorDiagnostics[filePath] = diagnostics;
             }
+        }
+
+        public void ClearClosedDocuments()
+        {
+            instance.ClearClosedDocuments();
+        }
+
+        public Task PublishDiagnosticsAsync(IDocumentSnapshot document)
+        {
+            return instance.PublishDiagnosticsAsync(document);
         }
     }
 }
