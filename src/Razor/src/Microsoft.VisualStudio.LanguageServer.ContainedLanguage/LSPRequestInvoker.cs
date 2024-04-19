@@ -78,7 +78,6 @@ internal abstract class LSPRequestInvoker
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
-    [Obsolete("New callers should use a method that returns a ReinvocationResponse rather than an a ReinvokeResponse")]
     public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
         string method,
         string contentType,
@@ -98,7 +97,6 @@ internal abstract class LSPRequestInvoker
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
-    [Obsolete("New callers should use a method that returns a ReinvocationResponse rather than an a ReinvokeResponse")]
     public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
         string method,
         string contentType,
