@@ -36,14 +36,12 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
             .Callback((string filePath, RazorFileChangeKind kind, CancellationToken _) => args2.Add((filePath, kind)));
 
         ImmutableArray<string> existingRazorFiles = ["c:/path/to/index.razor", "c:/other/path/_Host.cshtml"];
-        using var cts = new CancellationTokenSource();
         using var detector = new InitializationSkippingRazorFileChangeDetector(
-            cts,
             [listenerMock1.Object, listenerMock2.Object],
             existingRazorFiles);
 
         // Act
-        await detector.StartAsync("/some/workspacedirectory", cts.Token);
+        await detector.StartAsync("/some/workspacedirectory", DisposalToken);
 
         // Assert
         Assert.Collection(args1,
@@ -122,22 +120,14 @@ public class RazorFileChangeDetectorTest(ITestOutputHelper testOutput) : Languag
     }
 
     private class InitializationSkippingRazorFileChangeDetector(
-        CancellationTokenSource initializationTokenSource,
         IEnumerable<IRazorFileChangeListener> listeners,
         ImmutableArray<string> existingProjectFiles) : RazorFileChangeDetector(listeners)
     {
-        private readonly CancellationTokenSource _initializationTokenSource = initializationTokenSource;
         private readonly ImmutableArray<string> _existingProjectFiles = existingProjectFiles;
 
-        protected override void OnInitializationFinished()
-        {
-            // Once initialization has finished we want to ensure that no file watchers are created so cancel!
-            _initializationTokenSource.Cancel();
-        }
+        protected override bool InitializeFileWatchers => false;
 
         protected override ImmutableArray<string> GetExistingRazorFiles(string workspaceDirectory)
-        {
-            return _existingProjectFiles;
-        }
+            => _existingProjectFiles;
     }
 }

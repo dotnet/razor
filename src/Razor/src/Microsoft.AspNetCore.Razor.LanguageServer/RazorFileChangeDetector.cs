@@ -146,8 +146,10 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
             }
         }
 
-        // This is an entry point for testing
-        OnInitializationFinished();
+        if (!InitializeFileWatchers)
+        {
+            return;
+        }
 
         if (cancellationToken.IsCancellationRequested)
         {
@@ -203,9 +205,7 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
     }
 
     // Protected virtual for testing
-    protected virtual void OnInitializationFinished()
-    {
-    }
+    protected virtual bool InitializeFileWatchers => true;
 
     // Protected virtual for testing
     protected virtual ImmutableArray<string> GetExistingRazorFiles(string workspaceDirectory)
