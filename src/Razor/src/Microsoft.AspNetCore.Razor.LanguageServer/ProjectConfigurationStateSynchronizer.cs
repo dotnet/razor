@@ -20,10 +20,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IRazorProjectService _projectService;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly LanguageServerFeatureOptions _options;
     private readonly ILogger _logger;
+
     private readonly Dictionary<string, ProjectKey> _configurationToProjectMap;
     internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
 
@@ -33,10 +34,11 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
         ILoggerFactory loggerFactory,
         LanguageServerFeatureOptions languageServerFeatureOptions)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = projectSnapshotManagerDispatcher;
         _projectService = projectService;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _options = languageServerFeatureOptions;
         _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateSynchronizer>();
+
         _configurationToProjectMap = new Dictionary<string, ProjectKey>(FilePathComparer.Instance);
         ProjectInfoMap = new Dictionary<ProjectKey, DelayedProjectInfo>();
     }
@@ -50,14 +52,14 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             throw new ArgumentNullException(nameof(args));
         }
 
-        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
+        _dispatcher.AssertRunningOnDispatcher();
 
         switch (args.Kind)
         {
             case RazorFileChangeKind.Changed:
                 {
                     var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-                    if (!args.TryDeserialize(_languageServerFeatureOptions, out var projectInfo))
+                    if (!args.TryDeserialize(_options, out var projectInfo))
                     {
                         if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var lastAssociatedProjectKey))
                         {
@@ -93,7 +95,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             case RazorFileChangeKind.Added:
                 {
                     var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-                    if (!args.TryDeserialize(_languageServerFeatureOptions, out var projectInfo))
+                    if (!args.TryDeserialize(_options, out var projectInfo))
                     {
                         // Given that this is the first time we're seeing this configuration file if we can't deserialize it
                         // then we have to noop.
@@ -177,7 +179,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             // ConfigureAwait(true) to make sure we are still running in ProjectSnapshotManagerDispatcher context
             await Task.Delay(EnqueueDelay).ConfigureAwait(true);
 
-            _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
+            _dispatcher.AssertRunningOnDispatcher();
 
             var delayedProjectInfo = ProjectInfoMap[projectKey];
             await UpdateProjectAsync(projectKey, delayedProjectInfo.ProjectInfo, cancellationToken).ConfigureAwait(false);
