@@ -15,12 +15,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal sealed class ProjectConfigurationFileChangeEventArgs(
     string configurationFilePath,
     RazorFileChangeKind kind,
-    IRazorProjectInfoDeserializer? projectInfoDeserializer = null) : EventArgs
+    IRazorProjectInfoDeserializer? deserializer = null) : EventArgs
 {
     public string ConfigurationFilePath { get; } = configurationFilePath;
     public RazorFileChangeKind Kind { get; } = kind;
 
-    private readonly IRazorProjectInfoDeserializer _deserializer = projectInfoDeserializer ?? RazorProjectInfoDeserializer.Instance;
+    private readonly IRazorProjectInfoDeserializer _deserializer = deserializer ?? RazorProjectInfoDeserializer.Instance;
     private RazorProjectInfo? _projectInfo;
     private readonly object _gate = new();
     private bool _deserialized;

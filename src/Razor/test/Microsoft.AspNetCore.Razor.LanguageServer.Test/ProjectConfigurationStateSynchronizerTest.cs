@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -33,16 +31,15 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     public async Task ProjectConfigurationFileChanged_Removed_UnknownDocumentNoops()
     {
         // Arrange
-        var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
 
-        using var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
 
-        var deserializerMock = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
         var args = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/project.razor.bin",
             kind: RazorFileChangeKind.Removed,
-            projectInfoDeserializer: deserializerMock.Object);
+            deserializer: StrictMock.Of<IRazorProjectInfoDeserializer>());
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(args);
@@ -50,7 +47,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        projectService.VerifyAll();
+        projectServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -64,11 +61,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             rootNamespace: "TestRootNamespace",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
+            documents: []);
         var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
         var projectKey = TestProjectKey.Create(intermediateOutputPath);
-        var projectService = new StrictMock<IRazorProjectService>();
-        projectService
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
             .Setup(x => x.AddProjectAsync(
                 projectInfo.FilePath,
                 intermediateOutputPath,
@@ -77,7 +75,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 projectInfo.DisplayName,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
-        projectService
+        projectServiceMock
             .Setup(x => x.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
@@ -88,7 +86,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        projectService
+        projectServiceMock
             .Setup(x => x.UpdateProjectAsync(
                 projectKey,
                 null,
@@ -100,11 +98,13 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        using var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
 
-        var jsonFileDeserializer = CreateDeserializer(projectInfo);
-        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.bin", RazorFileChangeKind.Added, jsonFileDeserializer);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs(
+            "/path/to\\obj/project.razor.bin",
+            RazorFileChangeKind.Added,
+            CreateDeserializer(projectInfo));
 
         synchronizer.ProjectConfigurationFileChanged(addArgs);
 
@@ -113,7 +113,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var removeArgs = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
             kind: RazorFileChangeKind.Removed,
-            projectInfoDeserializer: Mock.Of<IRazorProjectInfoDeserializer>(MockBehavior.Strict));
+            deserializer: StrictMock.Of<IRazorProjectInfoDeserializer>());
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(removeArgs);
@@ -121,27 +121,22 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        projectService.VerifyAll();
+        projectServiceMock.VerifyAll();
     }
 
     [Fact]
     public async Task ProjectConfigurationFileChanged_Added_CantDeserialize_Noops()
     {
         // Arrange
-        var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
 
-        using var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
-
-        var deserializerMock = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
-        deserializerMock
-            .Setup(x => x.DeserializeFromFile(It.IsAny<string>()))
-            .Returns((RazorProjectInfo)null);
 
         var args = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/project.razor.bin",
             kind: RazorFileChangeKind.Added,
-            projectInfoDeserializer: deserializerMock.Object);
+            deserializer: CreateDeserializer(projectInfo: null));
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(args);
@@ -149,7 +144,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        projectService.VerifyAll();
+        projectServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -163,11 +158,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             rootNamespace: "TestRootNamespace",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
+            documents: []);
         var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
         var projectKey = TestProjectKey.Create(intermediateOutputPath);
-        var projectService = new StrictMock<IRazorProjectService>();
-        projectService
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
             .Setup(service => service.AddProjectAsync(
                 projectInfo.FilePath,
                 intermediateOutputPath,
@@ -176,22 +172,25 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 projectInfo.DisplayName,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
-        projectService
+        projectServiceMock
             .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
                 projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
-                projectInfo.Documents, It.IsAny<CancellationToken>()))
+                projectInfo.Documents,
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        using var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
 
-        var jsonFileDeserializer = CreateDeserializer(projectInfo);
-        var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, jsonFileDeserializer);
+        var args = new ProjectConfigurationFileChangeEventArgs(
+            configurationFilePath: "/path/to/obj/project.razor.bin",
+            kind: RazorFileChangeKind.Added,
+            deserializer: CreateDeserializer(projectInfo));
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(args);
@@ -199,7 +198,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        projectService.VerifyAll();
+        projectServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -213,11 +212,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             rootNamespace: "TestRootNamespace",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
+            documents: []);
         var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
         var projectKey = TestProjectKey.Create(intermediateOutputPath);
-        var projectService = new StrictMock<IRazorProjectService>();
-        projectService
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
             .Setup(service => service.AddProjectAsync(
                 projectInfo.FilePath,
                 intermediateOutputPath,
@@ -226,7 +226,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 projectInfo.DisplayName,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
-        projectService
+        projectServiceMock
             .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
@@ -237,7 +237,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        projectService
+        projectServiceMock
             .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 null,
@@ -249,11 +249,13 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        using var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
 
-        var deserializer = CreateDeserializer(projectInfo);
-        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, deserializer);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs(
+            configurationFilePath: "/path/to/obj/project.razor.bin",
+            kind: RazorFileChangeKind.Added,
+            deserializer: CreateDeserializer(projectInfo));
 
         synchronizer.ProjectConfigurationFileChanged(addArgs);
 
@@ -262,7 +264,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         var removeArgs = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
             kind: RazorFileChangeKind.Removed,
-            projectInfoDeserializer: Mock.Of<IRazorProjectInfoDeserializer>(MockBehavior.Strict));
+            deserializer: StrictMock.Of<IRazorProjectInfoDeserializer>());
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(removeArgs);
@@ -270,7 +272,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        projectService.VerifyAll();
+        projectServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -284,11 +286,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             rootNamespace: "TestRootNamespace",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
+            documents: []);
         var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(initialProjectInfo.SerializedFilePath);
         var projectKey = TestProjectKey.Create(intermediateOutputPath);
-        var projectService = new StrictMock<IRazorProjectService>();
-        projectService
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
             .Setup(service => service.AddProjectAsync(
                 initialProjectInfo.FilePath,
                 intermediateOutputPath,
@@ -297,7 +300,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 initialProjectInfo.DisplayName,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
-        projectService
+        projectServiceMock
             .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
@@ -317,8 +320,8 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             rootNamespace: "TestRootNamespace2",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp6),
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
-        projectService
+            documents: []);
+        projectServiceMock
             .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
@@ -330,24 +333,22 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        using var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
 
-        var addDeserializer = CreateDeserializer(initialProjectInfo);
         var addArgs = new ProjectConfigurationFileChangeEventArgs(
-            "/path/to/obj/project.razor.bin",
-            RazorFileChangeKind.Added,
-            addDeserializer);
+            configurationFilePath: "/path/to/obj/project.razor.bin",
+            kind: RazorFileChangeKind.Added,
+            deserializer: CreateDeserializer(initialProjectInfo));
 
         synchronizer.ProjectConfigurationFileChanged(addArgs);
 
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        var changedDeserializer = CreateDeserializer(changedProjectInfo);
         var changedArgs = new ProjectConfigurationFileChangeEventArgs(
-            "/path/to/obj/project.razor.bin",
-            RazorFileChangeKind.Changed,
-            changedDeserializer);
+            configurationFilePath: "/path/to/obj/project.razor.bin",
+            kind: RazorFileChangeKind.Changed,
+            deserializer: CreateDeserializer(changedProjectInfo));
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(changedArgs);
@@ -355,7 +356,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        projectService.VerifyAll();
+        projectServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -369,11 +370,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             rootNamespace: "TestRootNamespace",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
+            documents: []);
         var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(initialProjectInfo.SerializedFilePath);
         var projectKey = TestProjectKey.Create(intermediateOutputPath);
-        var projectService = new StrictMock<IRazorProjectService>();
-        projectService
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
             .Setup(service => service.AddProjectAsync(
                 initialProjectInfo.FilePath,
                 intermediateOutputPath,
@@ -382,7 +384,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 initialProjectInfo.DisplayName,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
-        projectService
+        projectServiceMock
             .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
@@ -402,10 +404,10 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             rootNamespace: "TestRootNamespace2",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp6),
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
+            documents: []);
 
         // This is the request that happens when the server is reset
-        projectService
+        projectServiceMock
             .Setup(service => service.UpdateProjectAsync(
                 projectKey,
                 null,
@@ -417,25 +419,22 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        using var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
 
-        var addDeserializer = CreateDeserializer(initialProjectInfo);
-        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, addDeserializer);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs(
+            configurationFilePath: "/path/to/obj/project.razor.bin",
+            kind: RazorFileChangeKind.Added,
+            deserializer: CreateDeserializer(initialProjectInfo));
 
         synchronizer.ProjectConfigurationFileChanged(addArgs);
 
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        var changedDeserializerMock = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
-        changedDeserializerMock
-            .Setup(x => x.DeserializeFromFile(It.IsAny<string>()))
-            .Returns((RazorProjectInfo)null);
-
         var changedArgs = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
             kind: RazorFileChangeKind.Changed,
-            projectInfoDeserializer: changedDeserializerMock.Object);
+            deserializer: CreateDeserializer(projectInfo: null));
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(changedArgs);
@@ -443,27 +442,22 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        projectService.VerifyAll();
+        projectServiceMock.VerifyAll();
     }
 
     [Fact]
     public async Task ProjectConfigurationFileChanged_Changed_UntrackedProject_Noops()
     {
         // Arrange
-        var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
+        var projectService = new StrictMock<IRazorProjectService>();
 
         using var synchronizer = GetSynchronizer(projectService.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
 
-        var changedDeserializerMock = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
-        changedDeserializerMock
-            .Setup(x => x.DeserializeFromFile(It.IsAny<string>()))
-            .Returns((RazorProjectInfo)null);
-
         var changedArgs = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/project.razor.bin",
             kind: RazorFileChangeKind.Changed,
-            projectInfoDeserializer: changedDeserializerMock.Object);
+            deserializer: CreateDeserializer(projectInfo: null));
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(changedArgs);
@@ -485,11 +479,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             rootNamespace: "TestRootNamespace",
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
-            ImmutableArray<DocumentSnapshotHandle>.Empty);
+            documents: []);
         var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
         var projectKey = TestProjectKey.Create(intermediateOutputPath);
-        var projectService = new StrictMock<IRazorProjectService>();
-        projectService
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
             .Setup(service => service.AddProjectAsync(
                 projectInfo.FilePath,
                 intermediateOutputPath,
@@ -498,7 +493,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 projectInfo.DisplayName,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(projectKey);
-        projectService
+        projectServiceMock
             .Setup(p => p.UpdateProjectAsync(
                 projectKey,
                 It.IsAny<RazorConfiguration>(),
@@ -509,13 +504,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        using var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
         var synchronizerAccessor = synchronizer.GetTestAccessor();
 
-        var changedDeserializer = CreateDeserializer(projectInfo);
-        var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Removed, changedDeserializer);
-        var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Added, changedDeserializer);
-        var changedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Changed, changedDeserializer);
+        var deserializer = CreateDeserializer(projectInfo);
+        var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Added, deserializer);
+        var changedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Changed, deserializer);
 
         // Act
         synchronizer.ProjectConfigurationFileChanged(addedArgs);
@@ -524,29 +518,30 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        projectService.Verify(p => p.UpdateProjectAsync(
+        projectServiceMock.Verify(p => p.UpdateProjectAsync(
             projectKey,
             It.IsAny<RazorConfiguration>(),
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<ProjectWorkspaceState>(),
             It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
-            It.IsAny<CancellationToken>()), Times.Once);
+            It.IsAny<CancellationToken>()),
+            Times.Once);
 
-        projectService.VerifyAll();
+        projectServiceMock.VerifyAll();
     }
 
     private TestProjectConfigurationStateSynchronizer GetSynchronizer(IRazorProjectService razorProjectService)
         => new(razorProjectService, LoggerFactory, TestLanguageServerFeatureOptions.Instance, TimeSpan.FromMilliseconds(5));
 
-    private static IRazorProjectInfoDeserializer CreateDeserializer(RazorProjectInfo projectInfo)
+    private static IRazorProjectInfoDeserializer CreateDeserializer(RazorProjectInfo? projectInfo)
     {
-        var deserializer = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
-        deserializer
+        var deserializerMock = new StrictMock<IRazorProjectInfoDeserializer>();
+        deserializerMock
             .Setup(x => x.DeserializeFromFile(It.IsAny<string>()))
             .Returns(projectInfo);
 
-        return deserializer.Object;
+        return deserializerMock.Object;
     }
 
     private sealed class TestProjectConfigurationStateSynchronizer(

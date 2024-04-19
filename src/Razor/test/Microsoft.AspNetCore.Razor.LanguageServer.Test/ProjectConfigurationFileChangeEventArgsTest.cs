@@ -36,7 +36,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
         var args = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
             kind: RazorFileChangeKind.Removed,
-            projectInfoDeserializer: deserializerMock.Object);
+            deserializer: deserializerMock.Object);
 
         // Act
         var result = args.TryDeserialize(TestLanguageServerFeatureOptions.Instance, out var handle);
@@ -68,7 +68,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
         var args = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/DIFFERENT/obj/project.razor.bin",
             kind: RazorFileChangeKind.Added,
-            projectInfoDeserializer: deserializerMock.Object);
+            deserializer: deserializerMock.Object);
 
         // Act
         var result = args.TryDeserialize(TestLanguageServerFeatureOptions.Instance, out var deserializedProjectInfo);
@@ -99,7 +99,7 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
         var args = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
             kind: RazorFileChangeKind.Added,
-            projectInfoDeserializer: deserializerMock.Object);
+            deserializer: deserializerMock.Object);
 
         // Act
         var result1 = args.TryDeserialize(TestLanguageServerFeatureOptions.Instance, out var projectInfo1);
