@@ -49,7 +49,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
     private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
     {
-        var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
+        var dispatcher = new ProjectSnapshotManagerDispatcher(ErrorReporter);
         AddDisposable(dispatcher);
 
         return dispatcher;
@@ -58,7 +58,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(projectEngineFactoryProvider, Dispatcher, DisposalToken);
+        => new(projectEngineFactoryProvider, ErrorReporter, DisposalToken);
 
     internal RazorRequestContext CreateRazorRequestContext(VersionedDocumentContext? documentContext, ILspServices? lspServices = null)
     {

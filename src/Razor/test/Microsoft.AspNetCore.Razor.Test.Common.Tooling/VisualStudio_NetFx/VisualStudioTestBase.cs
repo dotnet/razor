@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.Razor;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
@@ -14,7 +13,7 @@ public abstract class VisualStudioTestBase(ITestOutputHelper testOutput) : Tooli
 {
     private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
     {
-        var dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter);
+        var dispatcher = new ProjectSnapshotManagerDispatcher(ErrorReporter);
         AddDisposable(dispatcher);
 
         return dispatcher;
@@ -24,5 +23,5 @@ public abstract class VisualStudioTestBase(ITestOutputHelper testOutput) : Tooli
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(projectEngineFactoryProvider, Dispatcher, DisposalToken);
+        => new(projectEngineFactoryProvider, ErrorReporter, DisposalToken);
 }

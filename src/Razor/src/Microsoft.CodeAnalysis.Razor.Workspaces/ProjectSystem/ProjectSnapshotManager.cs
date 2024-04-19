@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // The implementation will create a ProjectSnapshot for each HostProject.
 internal partial class ProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
-    ProjectSnapshotManagerDispatcher dispatcher)
+    IErrorReporter errorReporter)
     : IProjectSnapshotManager
 {
     public event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
@@ -41,7 +41,7 @@ internal partial class ProjectSnapshotManager(
     // we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider = projectEngineFactoryProvider;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher = new(errorReporter);
 
     // internal for testing
     internal bool IsSolutionClosing { get; private set; }

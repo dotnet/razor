@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal abstract class ProjectSnapshotManagerDispatcher(IErrorReporter errorReporter) : IDisposable
+internal sealed class ProjectSnapshotManagerDispatcher(IErrorReporter errorReporter) : IDisposable
 {
     private readonly CustomScheduler _scheduler = new(errorReporter);
 

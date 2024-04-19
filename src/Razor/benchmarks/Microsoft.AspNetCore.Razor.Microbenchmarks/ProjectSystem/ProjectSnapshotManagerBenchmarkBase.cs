@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -68,13 +67,13 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             .Returns(Mock.Of<ILogger>(MockBehavior.Strict));
 
         ErrorReporter = new TestErrorReporter();
-        Dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
+        Dispatcher = new ProjectSnapshotManagerDispatcher(ErrorReporter);
     }
 
     internal ProjectSnapshotManager CreateProjectSnapshotManager()
     {
         return new ProjectSnapshotManager(
             projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
-            dispatcher: Dispatcher);
+            errorReporter: ErrorReporter);
     }
 }
