@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,45 +15,28 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
+internal class ProjectConfigurationFileChangeDetector(
+    ProjectSnapshotManagerDispatcher dispatcher,
+    IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+    LanguageServerFeatureOptions options,
+    ILoggerFactory loggerFactory) : IFileChangeDetector
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-    private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
-    private readonly LanguageServerFeatureOptions _options;
-    private readonly ILogger _logger;
-    private FileSystemWatcher? _watcher;
-
-    private static readonly IReadOnlyCollection<string> s_ignoredDirectories = new string[]
-    {
+    private static readonly ImmutableArray<string> s_ignoredDirectories =
+    [
         "node_modules",
         "bin",
         ".vs",
-    };
+    ];
 
-    public ProjectConfigurationFileChangeDetector(
-        ProjectSnapshotManagerDispatcher dispatcher,
-        IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-        LanguageServerFeatureOptions options,
-        ILoggerFactory loggerFactory)
-    {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
+    private readonly ImmutableArray<IProjectConfigurationFileChangeListener> _listeners = listeners.ToImmutableArray();
+    private readonly LanguageServerFeatureOptions _options = options;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationFileChangeDetector>();
 
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
-        _listeners = listeners ?? throw new ArgumentNullException(nameof(listeners));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationFileChangeDetector>();
-    }
+    private FileSystemWatcher? _watcher;
 
     public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
     {
-        if (workspaceDirectory is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceDirectory));
-        }
-
         // Dive through existing project configuration files and fabricate "added" events so listeners can accurately listen to state changes for them.
 
         workspaceDirectory = FilePathNormalizer.Normalize(workspaceDirectory);
@@ -147,13 +131,13 @@ internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
     }
 
     // Protected virtual for testing
-    protected virtual IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
+    protected virtual ImmutableArray<string> GetExistingConfigurationFiles(string workspaceDirectory)
     {
         return DirectoryHelper.GetFilteredFiles(
             workspaceDirectory,
             _options.ProjectConfigurationFileName,
             s_ignoredDirectories,
-            logger: _logger);
+            logger: _logger).ToImmutableArray();
     }
 
     private void FileSystemWatcher_ProjectConfigurationFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)

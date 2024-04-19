@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -36,7 +37,7 @@ public class ProjectConfigurationFileChangeDetectorTest : LanguageServerTestBase
         var listener2 = new Mock<IProjectConfigurationFileChangeListener>(MockBehavior.Strict);
         listener2.Setup(l => l.ProjectConfigurationFileChanged(It.IsAny<ProjectConfigurationFileChangeEventArgs>()))
             .Callback<ProjectConfigurationFileChangeEventArgs>(args => eventArgs2.Add(args));
-        var existingConfigurationFiles = new[] { "c:/path/to/project.razor.json", "c:/other/path/project.razor.bin" };
+        ImmutableArray<string> existingConfigurationFiles = ["c:/path/to/project.razor.json", "c:/other/path/project.razor.bin"];
         var cts = new CancellationTokenSource();
         var detector = new TestProjectConfigurationFileChangeDetector(
             cts,
@@ -76,13 +77,13 @@ public class ProjectConfigurationFileChangeDetectorTest : LanguageServerTestBase
     private class TestProjectConfigurationFileChangeDetector : ProjectConfigurationFileChangeDetector
     {
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly IReadOnlyList<string> _existingConfigurationFiles;
+        private readonly ImmutableArray<string> _existingConfigurationFiles;
 
         public TestProjectConfigurationFileChangeDetector(
             CancellationTokenSource cancellationTokenSource,
             ProjectSnapshotManagerDispatcher dispatcher,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            IReadOnlyList<string> existingConfigurationFiles,
+            ImmutableArray<string> existingConfigurationFiles,
             ILoggerFactory loggerFactory)
             : base(dispatcher, listeners, TestLanguageServerFeatureOptions.Instance, loggerFactory)
         {
@@ -96,7 +97,7 @@ public class ProjectConfigurationFileChangeDetectorTest : LanguageServerTestBase
             _cancellationTokenSource.Cancel();
         }
 
-        protected override IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
+        protected override ImmutableArray<string> GetExistingConfigurationFiles(string workspaceDirectory)
         {
             return _existingConfigurationFiles;
         }
