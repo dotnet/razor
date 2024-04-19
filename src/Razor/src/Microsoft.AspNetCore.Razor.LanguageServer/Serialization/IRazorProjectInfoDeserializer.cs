@@ -8,6 +8,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 
 internal interface IRazorProjectInfoDeserializer
 {
+    RazorProjectInfo? DeserializeFromString(string? projectInfoString);
     RazorProjectInfo? DeserializeFromFile(string filePath);
     RazorProjectInfo? DeserializeFromStream(Stream stream);
 }

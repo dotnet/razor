@@ -77,7 +77,8 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         }
     }
 
-    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+    // internal for testing
+    internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
         if (args.SolutionIsClosing)
@@ -124,7 +125,8 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         }
     }
 
-    private void EnqueuePublish(IProjectSnapshot projectSnapshot)
+    // protected for tests
+    protected void EnqueuePublish(IProjectSnapshot projectSnapshot)
     {
         _workQueue.AddWork((Project: projectSnapshot, Removal: false));
     }
@@ -158,17 +160,12 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
     private void RemovePublishingData(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
-        // This should never get called if we are inactive, so don't check _active flag
         ImmediatePublish(projectSnapshot.Key, encodedProjectInfo: null, cancellationToken);
     }
 
     private void ImmediatePublish(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
-        using var stream = new MemoryStream();
-
-        var projectInfo = projectSnapshot.ToRazorProjectInfo(projectSnapshot.IntermediateOutputPath);
-        projectInfo.SerializeTo(stream);
-        var base64ProjectInfo = Convert.ToBase64String(stream.ToArray());
+        var base64ProjectInfo = projectSnapshot.ToRazorProjectInfoString(projectSnapshot.IntermediateOutputPath);
 
         ImmediatePublish(projectSnapshot.Key, base64ProjectInfo, cancellationToken);
     }
@@ -194,4 +191,8 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 parameter,
                 cancellationToken).Forget();
     }
+
+    // Used by tests
+    protected Task WaitUntilCurrentBatchCompletesAsync()
+        => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 }
