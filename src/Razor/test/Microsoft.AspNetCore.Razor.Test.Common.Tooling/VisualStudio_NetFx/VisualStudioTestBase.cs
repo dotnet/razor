@@ -4,21 +4,12 @@
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 
 public abstract class VisualStudioTestBase(ITestOutputHelper testOutput) : ToolingParserTestBase(testOutput)
 {
-    private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
-    {
-        var dispatcher = new ProjectSnapshotManagerDispatcher(ErrorReporter);
-        AddDisposable(dispatcher);
-
-        return dispatcher;
-    }
-
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 

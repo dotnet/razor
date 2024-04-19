@@ -68,9 +68,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         _workspaceProvider = workspaceProviderMock.Object;
     }
 
-    private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
-        => new ProjectSnapshotManagerDispatcher(ErrorReporter);
-
     [UIFact]
     public async Task Initialize_AttachesEventSink()
     {

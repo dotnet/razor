@@ -47,13 +47,6 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
     }
 
-    private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
-    {
-        var dispatcher = new ProjectSnapshotManagerDispatcher(ErrorReporter);
-        AddDisposable(dispatcher);
-
-        return dispatcher;
-    }
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 

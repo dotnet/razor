@@ -47,7 +47,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     private List<IDisposable>? _disposables;
     private List<IAsyncDisposable>? _asyncDisposables;
     private IErrorReporter? _errorReporter;
-    private ProjectSnapshotManagerDispatcher? _dispatcher;
 
     /// <summary>
     ///  A common context within which joinable tasks may be created and interact to avoid
@@ -81,8 +80,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     private protected ILogger Logger => _logger ??= LoggerFactory.GetOrCreateLogger(GetType().Name);
 
     private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
-
-    private protected ProjectSnapshotManagerDispatcher Dispatcher => _dispatcher ??= CreateDispatcher();
 
     protected ToolingTestBase(ITestOutputHelper testOutput)
     {
@@ -156,9 +153,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     ///  Override to provide custom initialization logic for all tests in this test class.
     /// </summary>
     protected virtual Task DisposeAsync() => Task.CompletedTask;
-
-    private protected virtual ProjectSnapshotManagerDispatcher CreateDispatcher()
-        => throw new NotSupportedException($"Override {nameof(CreateDispatcher)} in order to use the {nameof(Dispatcher)} property in this test.");
 
     /// <summary>
     ///  Register an <see cref="IDisposable"/> instance to be disposed when the test completes.
