@@ -26,7 +26,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentRenameName)]
 internal sealed class RenameEndpoint(
-    ProjectSnapshotManagerDispatcher dispatcher,
     RazorComponentSearchEngine componentSearchEngine,
     IProjectSnapshotManager projectManager,
     LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -39,7 +38,6 @@ internal sealed class RenameEndpoint(
         clientConnection,
         loggerFactory.GetOrCreateLogger<RenameEndpoint>()), ICapabilitiesProvider
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly RazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
@@ -136,7 +134,7 @@ internal sealed class RenameEndpoint(
         documentChanges.Add(fileRename);
         AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
 
-        var documentSnapshots = await GetAllDocumentSnapshotsAsync(documentContext, cancellationToken).ConfigureAwait(false);
+        var documentSnapshots = GetAllDocumentSnapshots(documentContext);
 
         foreach (var documentSnapshot in documentSnapshots)
         {
@@ -158,14 +156,12 @@ internal sealed class RenameEndpoint(
         };
     }
 
-    private async Task<ImmutableArray<IDocumentSnapshot?>> GetAllDocumentSnapshotsAsync(DocumentContext skipDocumentContext, CancellationToken cancellationToken)
+    private ImmutableArray<IDocumentSnapshot?> GetAllDocumentSnapshots(DocumentContext skipDocumentContext)
     {
         using var documentSnapshots = new PooledArrayBuilder<IDocumentSnapshot?>();
         using var _ = StringHashSetPool.GetPooledObject(out var documentPaths);
 
-        var projects = await _dispatcher
-            .RunAsync(() => _projectManager.GetProjects(), cancellationToken)
-            .ConfigureAwait(false);
+        var projects = _projectManager.GetProjects();
 
         foreach (var project in projects)
         {
