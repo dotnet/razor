@@ -77,12 +77,14 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             SomeProjectFile1.FilePath,
             DisposalToken);
 
+        await WaitForProjectManagerUpdatesAsync();
+
         var project = Assert.Single(_projectManager.GetProjects());
         Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
     }
 
     [UIFact]
-    public void DynamicFileAdded_UnknownProject_Adds()
+    public async Task DynamicFileAdded_UnknownProject_Adds()
     {
         var projectId = ProjectId.CreateNewId();
         var projectInfo = ProjectInfo.Create(
@@ -98,6 +100,8 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             SomeProject.FilePath,
             SomeProjectFile1.FilePath,
             DisposalToken);
+
+        await WaitForProjectManagerUpdatesAsync();
 
         var project = Assert.Single(_projectManager.GetProjects());
         Assert.Equal("DisplayName", project.DisplayName);
@@ -122,11 +126,13 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(projectInfo));
 
         _fallbackProjectManger.DynamicFileAdded(
-        projectId,
-        SomeProject.Key,
-        SomeProject.FilePath,
-        SomeProjectFile1.FilePath,
-        DisposalToken);
+            projectId,
+            SomeProject.Key,
+            SomeProject.FilePath,
+            SomeProjectFile1.FilePath,
+            DisposalToken);
+
+        await WaitForProjectManagerUpdatesAsync();
 
         var project = Assert.Single(_projectManager.GetProjects());
         Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
@@ -148,7 +154,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DynamicFileAdded_TrackedProject_AddsDocuments()
+    public async Task DynamicFileAdded_TrackedProject_AddsDocuments()
     {
         var projectId = ProjectId.CreateNewId();
         var projectInfo = ProjectInfo.Create(
@@ -179,6 +185,8 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             SomeProjectNestedComponentFile3.FilePath,
             DisposalToken);
 
+        await WaitForProjectManagerUpdatesAsync();
+
         var project = Assert.Single(_projectManager.GetProjects());
 
         Assert.Collection(project.DocumentFilePaths.OrderBy(f => f), // DocumentFilePaths comes from a dictionary, so no sort guarantee
@@ -193,7 +201,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DynamicFileAdded_TrackedProject_IgnoresDocumentFromOutsideCone()
+    public async Task DynamicFileAdded_TrackedProject_IgnoresDocumentFromOutsideCone()
     {
         var projectId = ProjectId.CreateNewId();
         var projectInfo = ProjectInfo.Create(
@@ -225,6 +233,8 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             AnotherProjectComponentFile1.FilePath,
             DisposalToken);
 
+        await WaitForProjectManagerUpdatesAsync();
+
         var project = Assert.Single(_projectManager.GetProjects());
 
         Assert.Single(project.DocumentFilePaths,
@@ -234,7 +244,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void DynamicFileAdded_UnknownProject_SetsConfigurationFileStore()
+    public async Task DynamicFileAdded_UnknownProject_SetsConfigurationFileStore()
     {
         var projectId = ProjectId.CreateNewId();
         var projectInfo = ProjectInfo.Create(
@@ -251,8 +261,17 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             SomeProjectFile1.FilePath,
             DisposalToken);
 
+        await WaitForProjectManagerUpdatesAsync();
+
         var kvp = Assert.Single(_projectConfigurationFilePathStore.GetMappings());
         Assert.Equal(SomeProject.Key, kvp.Key);
         Assert.Equal(Path.Combine(SomeProject.IntermediateOutputPath, "project.razor.bin"), kvp.Value);
+    }
+
+    private Task WaitForProjectManagerUpdatesAsync()
+    {
+        // The FallbackProjectManager fires and forgets any updates to the project manager.
+        // We can perform a no-op update to wait until the FallbackProjectManager's work is done.
+        return _projectManager.UpdateAsync(x => { });
     }
 }
