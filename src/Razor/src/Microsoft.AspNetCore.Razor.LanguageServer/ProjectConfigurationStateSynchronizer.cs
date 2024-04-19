@@ -20,30 +20,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
 {
+    private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(250);
+
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IRazorProjectService _projectService;
     private readonly LanguageServerFeatureOptions _options;
     private readonly ILogger _logger;
+    private readonly TimeSpan _delay;
 
     private readonly Dictionary<string, ProjectKey> _configurationToProjectMap;
     internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
 
     public ProjectConfigurationStateSynchronizer(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerDispatcher dispatcher,
         IRazorProjectService projectService,
         ILoggerFactory loggerFactory,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
+        LanguageServerFeatureOptions options)
+        : this(dispatcher, projectService, loggerFactory, options, s_delay)
     {
-        _dispatcher = projectSnapshotManagerDispatcher;
+    }
+
+    protected ProjectConfigurationStateSynchronizer(
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IRazorProjectService projectService,
+        ILoggerFactory loggerFactory,
+        LanguageServerFeatureOptions options,
+        TimeSpan delay)
+    {
+        _dispatcher = dispatcher;
         _projectService = projectService;
-        _options = languageServerFeatureOptions;
+        _options = options;
         _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateSynchronizer>();
+        _delay = delay;
 
         _configurationToProjectMap = new Dictionary<string, ProjectKey>(FilePathComparer.Instance);
         ProjectInfoMap = new Dictionary<ProjectKey, DelayedProjectInfo>();
     }
-
-    internal int EnqueueDelay { get; set; } = 250;
 
     public void ProjectConfigurationFileChanged(ProjectConfigurationFileChangeEventArgs args)
     {
@@ -177,7 +189,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
         async Task UpdateAfterDelayAsync(ProjectKey projectKey, CancellationToken cancellationToken)
         {
             // ConfigureAwait(true) to make sure we are still running in ProjectSnapshotManagerDispatcher context
-            await Task.Delay(EnqueueDelay).ConfigureAwait(true);
+            await Task.Delay(_delay).ConfigureAwait(true);
 
             _dispatcher.AssertRunningOnDispatcher();
 

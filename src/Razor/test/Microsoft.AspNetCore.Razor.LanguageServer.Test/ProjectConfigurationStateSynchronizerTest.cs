@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -19,6 +20,9 @@ using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -554,10 +558,8 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
     private ProjectConfigurationStateSynchronizer GetSynchronizer(IRazorProjectService razorProjectService)
     {
-        var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, LoggerFactory, new TestLanguageServerFeatureOptions());
-        synchronizer.EnqueueDelay = 5;
-
-        return synchronizer;
+        return new TestProjectConfigurationStateSynchronizer(
+            Dispatcher, razorProjectService, LoggerFactory, TestLanguageServerFeatureOptions.Instance, TimeSpan.FromMilliseconds(5));
     }
 
     private static IRazorProjectInfoDeserializer CreateDeserializer(RazorProjectInfo projectInfo)
@@ -569,4 +571,12 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
         return deserializer.Object;
     }
+
+    private sealed class TestProjectConfigurationStateSynchronizer(
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IRazorProjectService projectService,
+        ILoggerFactory loggerFactory,
+        LanguageServerFeatureOptions options,
+        TimeSpan delay)
+        : ProjectConfigurationStateSynchronizer(dispatcher, projectService, loggerFactory, options, delay);
 }
