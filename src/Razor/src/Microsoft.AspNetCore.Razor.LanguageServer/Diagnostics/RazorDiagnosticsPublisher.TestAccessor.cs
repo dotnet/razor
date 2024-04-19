@@ -20,23 +20,15 @@ internal partial class RazorDiagnosticsPublisher
         {
             get
             {
-                lock (instance._documentClosedGate)
-                {
-                    return instance._waitingToClearClosedDocuments;
-                }
+                return !instance._clearClosedDocumentsTask.IsCompleted;
             }
         }
 
-        public async Task WaitForClearClosedDocumentsAsync()
+        public Task WaitForClearClosedDocumentsAsync()
         {
-            Task task;
-
-            lock (instance._documentClosedGate)
-            {
-                task = instance._clearClosedDocumentsTask;
-            }
-
-            await task.ConfigureAwait(false);
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+            return instance._clearClosedDocumentsTask;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
         }
 
         public Task WaitForDiagnosticsToPublishAsync()

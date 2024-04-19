@@ -43,9 +43,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
     private readonly AsyncBatchingWorkQueue<IDocumentSnapshot> _workQueue;
     private readonly Dictionary<string, PublishedDiagnostics> _publishedDiagnostics;
 
-    private readonly object _documentClosedGate = new();
     private Task _clearClosedDocumentsTask = Task.CompletedTask;
-    private bool _waitingToClearClosedDocuments;
 
     public RazorDiagnosticsPublisher(
         IProjectSnapshotManager projectManager,
@@ -204,27 +202,18 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
     private void StartDelayToClearDocuments()
     {
-        lock (_documentClosedGate)
+        if (!_clearClosedDocumentsTask.IsCompleted)
         {
-            if (_waitingToClearClosedDocuments)
-            {
-                return;
-            }
-
-            _clearClosedDocumentsTask = ClearClosedDocumentsAfterDelayAsync();
-            _waitingToClearClosedDocuments = true;
+            return;
         }
+
+        _clearClosedDocumentsTask = ClearClosedDocumentsAfterDelayAsync();
 
         async Task ClearClosedDocumentsAfterDelayAsync()
         {
             await Task.Delay(s_clearClosedDocumentsDelay, _disposeTokenSource.Token).ConfigureAwait(false);
 
             ClearClosedDocuments();
-
-            lock (_documentClosedGate)
-            {
-                _waitingToClearClosedDocuments = false;
-            }
         }
     }
 
