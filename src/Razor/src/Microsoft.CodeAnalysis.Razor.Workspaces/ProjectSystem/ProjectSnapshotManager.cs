@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal partial class ProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
     IErrorReporter errorReporter)
-    : IProjectSnapshotManager
+    : IProjectSnapshotManager, IDisposable
 {
     public event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
     public event EventHandler<ProjectChangeEventArgs>? Changed;
@@ -41,10 +41,15 @@ internal partial class ProjectSnapshotManager(
     // we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider = projectEngineFactoryProvider;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = new(errorReporter);
+    private readonly Dispatcher _dispatcher = new(errorReporter);
 
     // internal for testing
     internal bool IsSolutionClosing { get; private set; }
+
+    public void Dispose()
+    {
+        _dispatcher.Dispose();
+    }
 
     public ImmutableArray<IProjectSnapshot> GetProjects()
     {
