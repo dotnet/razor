@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,8 +29,9 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
     private readonly ILogger _logger;
     private readonly TimeSpan _delay;
 
-    private readonly Dictionary<string, ProjectKey> _configurationToProjectMap;
     internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
+
+    private ImmutableDictionary<string, ProjectKey> _filePathToProjectKeyMap = ImmutableDictionary<string, ProjectKey>.Empty;
 
     private readonly CancellationTokenSource _disposeTokenSource;
 
@@ -55,7 +57,6 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
         _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateSynchronizer>();
         _delay = delay;
 
-        _configurationToProjectMap = new Dictionary<string, ProjectKey>(FilePathComparer.Instance);
         ProjectInfoMap = new Dictionary<ProjectKey, DelayedProjectInfo>();
 
         _disposeTokenSource = new();
@@ -83,7 +84,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
                     if (!args.TryDeserialize(_options, out var projectInfo))
                     {
-                        if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var lastAssociatedProjectKey))
+                        if (!_filePathToProjectKeyMap.TryGetValue(configurationFilePath, out var lastAssociatedProjectKey))
                         {
                             // Could not resolve an associated project file, noop.
                             _logger.LogWarning($"Failed to deserialize configuration file after change for an unknown project. Configuration file path: '{configurationFilePath}'");
@@ -101,7 +102,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         return;
                     }
 
-                    if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var associatedProjectKey))
+                    if (!_filePathToProjectKeyMap.TryGetValue(configurationFilePath, out var associatedProjectKey))
                     {
                         _logger.LogWarning($"Found no project key for configuration file. Assuming new project. Configuration file path: '{configurationFilePath}'");
 
@@ -131,18 +132,16 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             case RazorFileChangeKind.Removed:
                 {
                     var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-                    if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var projectFilePath))
+                    if (!ImmutableInterlocked.TryRemove(ref _filePathToProjectKeyMap, configurationFilePath, out var projectKey))
                     {
                         // Failed to deserialize the initial project configuration file on add so we can't remove the configuration file because it doesn't exist in the list.
                         _logger.LogWarning($"Failed to resolve associated project on configuration removed event. Configuration file path: '{configurationFilePath}'");
                         return;
                     }
 
-                    _configurationToProjectMap.Remove(configurationFilePath);
+                    _logger.LogInformation($"Project configuration file removed for project '{projectKey}': '{configurationFilePath}'");
 
-                    _logger.LogInformation($"Project configuration file removed for project '{projectFilePath}': '{configurationFilePath}'");
-
-                    EnqueueUpdateProject(projectFilePath, projectInfo: null, _disposeTokenSource.Token);
+                    EnqueueUpdateProject(projectKey, projectInfo: null, _disposeTokenSource.Token);
                     break;
                 }
         }
@@ -164,7 +163,8 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         projectInfo.DisplayName,
                         cancellationToken)
                     .ConfigureAwait(false);
-                _configurationToProjectMap[configurationFilePath] = projectKey;
+
+                ImmutableInterlocked.AddOrUpdate(ref _filePathToProjectKeyMap, configurationFilePath, projectKey, static (k, v) => v);
 
                 _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{configurationFilePath}'");
                 EnqueueUpdateProject(projectKey, projectInfo, cancellationToken);
