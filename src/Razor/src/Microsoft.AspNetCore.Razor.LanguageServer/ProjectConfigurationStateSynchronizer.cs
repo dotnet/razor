@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
+internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(250);
 
@@ -30,6 +30,8 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
     private readonly Dictionary<string, ProjectKey> _configurationToProjectMap;
     internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
+
+    private readonly CancellationTokenSource _disposeTokenSource;
 
     public ProjectConfigurationStateSynchronizer(
         ProjectSnapshotManagerDispatcher dispatcher,
@@ -55,6 +57,14 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
         _configurationToProjectMap = new Dictionary<string, ProjectKey>(FilePathComparer.Instance);
         ProjectInfoMap = new Dictionary<ProjectKey, DelayedProjectInfo>();
+
+        _disposeTokenSource = new();
+    }
+
+    public void Dispose()
+    {
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
     }
 
     public void ProjectConfigurationFileChanged(ProjectConfigurationFileChangeEventArgs args)
@@ -87,7 +97,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         // We found the last associated project file for the configuration file. Reset the project since we can't
                         // accurately determine its configurations.
 
-                        EnqueueUpdateProject(lastAssociatedProjectKey, projectInfo: null, CancellationToken.None);
+                        EnqueueUpdateProject(lastAssociatedProjectKey, projectInfo: null, _disposeTokenSource.Token);
                         return;
                     }
 
@@ -95,13 +105,13 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     {
                         _logger.LogWarning($"Found no project key for configuration file. Assuming new project. Configuration file path: '{configurationFilePath}'");
 
-                        AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
+                        AddProjectAsync(configurationFilePath, projectInfo, _disposeTokenSource.Token).Forget();
                         return;
                     }
 
                     _logger.LogInformation($"Project configuration file changed for project '{associatedProjectKey.Id}': '{configurationFilePath}'");
 
-                    EnqueueUpdateProject(associatedProjectKey, projectInfo, CancellationToken.None);
+                    EnqueueUpdateProject(associatedProjectKey, projectInfo, _disposeTokenSource.Token);
                     break;
                 }
             case RazorFileChangeKind.Added:
@@ -115,7 +125,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                         return;
                     }
 
-                    AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
+                    AddProjectAsync(configurationFilePath, projectInfo, _disposeTokenSource.Token).Forget();
                     break;
                 }
             case RazorFileChangeKind.Removed:
@@ -132,7 +142,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
                     _logger.LogInformation($"Project configuration file removed for project '{projectFilePath}': '{configurationFilePath}'");
 
-                    EnqueueUpdateProject(projectFilePath, projectInfo: null, CancellationToken.None);
+                    EnqueueUpdateProject(projectFilePath, projectInfo: null, _disposeTokenSource.Token);
                     break;
                 }
         }

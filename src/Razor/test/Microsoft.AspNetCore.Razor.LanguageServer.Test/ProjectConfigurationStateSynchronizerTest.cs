@@ -36,7 +36,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     {
         // Arrange
         var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
         var deserializerMock = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
         var args = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/project.razor.bin",
@@ -94,10 +94,10 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 "",
                 ProjectWorkspaceState.Default,
                 ImmutableArray<DocumentSnapshotHandle>.Empty,
-                CancellationToken.None))
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
         var jsonFileDeserializer = CreateDeserializer(projectInfo);
         var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.bin", RazorFileChangeKind.Added, jsonFileDeserializer);
         var enqueueTask = await Dispatcher.RunAsync(async () =>
@@ -129,7 +129,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     {
         // Arrange
         var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
 
         var deserializerMock = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
         deserializerMock
@@ -183,7 +183,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 projectInfo.Documents, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
         var jsonFileDeserializer = CreateDeserializer(projectInfo);
         var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, jsonFileDeserializer);
 
@@ -242,10 +242,10 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 "",
                 ProjectWorkspaceState.Default,
                 ImmutableArray<DocumentSnapshotHandle>.Empty,
-                CancellationToken.None))
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
         var deserializer = CreateDeserializer(projectInfo);
         var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, deserializer);
         var enqueueTask = await Dispatcher.RunAsync(async () =>
@@ -328,7 +328,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
         var addDeserializer = CreateDeserializer(initialProjectInfo);
         var addArgs = new ProjectConfigurationFileChangeEventArgs(
             "/path/to/obj/project.razor.bin",
@@ -415,10 +415,10 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 "",
                 ProjectWorkspaceState.Default,
                 ImmutableArray<DocumentSnapshotHandle>.Empty,
-                CancellationToken.None))
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
         var addDeserializer = CreateDeserializer(initialProjectInfo);
         var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.bin", RazorFileChangeKind.Added, addDeserializer);
         var enqueueTask = await Dispatcher.RunAsync(async () =>
@@ -455,7 +455,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
     {
         // Arrange
         var projectService = new Mock<IRazorProjectService>(MockBehavior.Strict);
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
 
         var changedDeserializerMock = new Mock<IRazorProjectInfoDeserializer>(MockBehavior.Strict);
         changedDeserializerMock
@@ -514,7 +514,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var synchronizer = GetSynchronizer(projectService.Object);
+        using var synchronizer = GetSynchronizer(projectService.Object);
         var changedDeserializer = CreateDeserializer(projectInfo);
         var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Removed, changedDeserializer);
         var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Added, changedDeserializer);
@@ -556,11 +556,8 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         }
     }
 
-    private ProjectConfigurationStateSynchronizer GetSynchronizer(IRazorProjectService razorProjectService)
-    {
-        return new TestProjectConfigurationStateSynchronizer(
-            Dispatcher, razorProjectService, LoggerFactory, TestLanguageServerFeatureOptions.Instance, TimeSpan.FromMilliseconds(5));
-    }
+    private TestProjectConfigurationStateSynchronizer GetSynchronizer(IRazorProjectService razorProjectService)
+        => new(Dispatcher, razorProjectService, LoggerFactory, TestLanguageServerFeatureOptions.Instance, TimeSpan.FromMilliseconds(5));
 
     private static IRazorProjectInfoDeserializer CreateDeserializer(RazorProjectInfo projectInfo)
     {
