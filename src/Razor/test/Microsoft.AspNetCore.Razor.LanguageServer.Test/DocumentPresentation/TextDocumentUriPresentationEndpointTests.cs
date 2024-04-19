@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
 public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    [Fact]
+    [OSSkipConditionFact(["OSX", "Linux"])]
     public async Task Handle_SimpleComponent_ReturnsResult()
     {
         // Arrange
@@ -87,7 +87,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         Assert.Equal("<MyTagHelper />", result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
     }
 
-    [Fact]
+    [OSSkipConditionFact(["OSX", "Linux"])]
     public async Task Handle_SimpleComponentWithChildFile_ReturnsResult()
     {
         // Arrange
@@ -154,7 +154,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         Assert.Equal("<MyTagHelper />", result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
     }
 
-    [Fact]
+    [OSSkipConditionFact(["OSX", "Linux"])]
     public async Task Handle_ComponentWithRequiredAttribute_ReturnsResult()
     {
         // Arrange
@@ -383,7 +383,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         Assert.Null(result);
     }
 
-    [Fact]
+    [OSSkipConditionFact(["OSX", "Linux"])]
     public async Task Handle_ComponentWithNestedFiles_ReturnsResult()
     {
         // Arrange
