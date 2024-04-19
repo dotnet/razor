@@ -21,7 +21,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     internal ImmutableArray<HostDocument> Documents { get; }
     internal ImmutableArray<TextLoader> TextLoaders { get; }
     protected string RepoRoot { get; }
-    private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
     private protected IErrorReporter ErrorReporter { get; }
 
     protected ProjectSnapshotManagerBenchmarkBase(int documentCount = 100)
@@ -67,7 +66,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             .Returns(Mock.Of<ILogger>(MockBehavior.Strict));
 
         ErrorReporter = new TestErrorReporter();
-        Dispatcher = new ProjectSnapshotManagerDispatcher(ErrorReporter);
     }
 
     internal ProjectSnapshotManager CreateProjectSnapshotManager()
