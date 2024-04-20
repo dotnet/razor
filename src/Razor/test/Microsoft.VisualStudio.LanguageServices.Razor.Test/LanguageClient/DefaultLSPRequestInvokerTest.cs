@@ -108,7 +108,7 @@ public class DefaultLSPRequestInvokerTest : ToolingTestBase
 
         // Assert
         Assert.True(called);
-    } 
+    }
 
     [Fact]
     public async Task CustomRequestServerAsync_InvokesHtmlLanguageClient()
@@ -156,9 +156,9 @@ public class DefaultLSPRequestInvokerTest : ToolingTestBase
     {
         var broker = new StrictMock<ILanguageServiceBroker2>();
 #pragma warning disable CS0618 // Type or member is obsolete
-        broker.Setup(b => b.RequestAsync(It.IsAny<Request<object,object>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((null))
-            .Callback((Request<object,object> request, CancellationToken _) => callback(request.Method));
+        broker.Setup(b => b.RequestAsync(It.IsAny<string[]>(), It.IsAny<Func<JToken, bool>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<JToken>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((null, null))
+            .Callback((string[] _, Func<JToken, bool> _, string _, string method, JToken _, CancellationToken _) => callback(method));
 #pragma warning restore CS0618 // Type or member is obsolete
 
         return broker.Object;

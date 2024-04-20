@@ -8,10 +8,10 @@
     <_MicrosoftWebToolsPackageVersion>17.9.67-preview-0001</_MicrosoftWebToolsPackageVersion>
     <_MicrosoftVisualStudioShellPackagesVersion>17.9.36524</_MicrosoftVisualStudioShellPackagesVersion>
     <_MicrosoftVisualStudioPackagesVersion>17.10.72-preview</_MicrosoftVisualStudioPackagesVersion>
-    <_VisualStudioLanguageServerProtocolVersion>17.10.34-preview</_VisualStudioLanguageServerProtocolVersion>
+    <_VisualStudioLanguageServerProtocolVersion>17.10.13-preview</_VisualStudioLanguageServerProtocolVersion>
     <_MicrosoftExtensionsPackageVersion>8.0.0</_MicrosoftExtensionsPackageVersion>
     <_BenchmarkDotNetPackageVersion>0.13.5.2136</_BenchmarkDotNetPackageVersion>
-    <_MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</_MicrosoftVisualStudioExtensibilityTestingVersion>
+    <_MicrosoftVisualStudioExtensibilityTestingVersion>0.1.169-beta</_MicrosoftVisualStudioExtensibilityTestingVersion>
     <_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.11.0-beta1.24170.2</_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <_MicrosoftVisualStudioLanguageServicesPackageVersion>$(MicrosoftVisualStudioLanguageServicesPackageVersion)</_MicrosoftVisualStudioLanguageServicesPackageVersion>
     <_XunitPackageVersion>2.6.3</_XunitPackageVersion>
@@ -67,7 +67,7 @@
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor" Version="$(MicrosoftNETSdkRazorPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="0.2.28-beta" />
-    <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="17.10.29-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="17.10.9-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(_MicrosoftVisualStudioExtensibilityTestingVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(_MicrosoftVisualStudioExtensibilityTestingVersion)" />
@@ -76,10 +76,10 @@
     <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <!--
         This package should use _VisualStudioLanguageServerProtocolVersion, but as of updating there was
-        a mismatch in published versions (17.10.108-preview was not published).Next time this is updated please switch back to
-        _VisualStudioLanguageServerProtocolVersion  if possible
-      -->
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.108-preview" />
+        a mismatch in published versions (17.10.13-preview was not published). Next time this is updated please switch back to
+        _VisualStudioLanguageServerProtocolVersion if possible
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.16-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
