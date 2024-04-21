@@ -83,7 +83,7 @@ steps:
     displayName: Start background dump collection
 
   - script: eng\cibuild.cmd
-      -configuration ${{ parameters.configuration }}0
+      -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
       -prepareMachine
       -integrationTest
