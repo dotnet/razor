@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 
