@@ -75,7 +75,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
                 AddProject(var configurationFilePath, var projectInfo) => AddProjectAsync(configurationFilePath, projectInfo, token),
                 ResetProject(_, var projectKey) => ResetProjectAsync(projectKey, token),
                 UpdateProject(_, var projectKey, var projectInfo) => UpdateProjectAsync(projectKey, projectInfo, token),
-                _ => Task.CompletedTask
+                _ => Assumed.Unreachable<Task>()
             };
 
             await itemTask.ConfigureAwait(false);
