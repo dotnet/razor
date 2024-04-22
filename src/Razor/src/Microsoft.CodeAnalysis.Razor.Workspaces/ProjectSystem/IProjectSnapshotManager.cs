@@ -14,6 +14,8 @@ internal interface IProjectSnapshotManager
     event EventHandler<ProjectChangeEventArgs> PriorityChanged;
     event EventHandler<ProjectChangeEventArgs> Changed;
 
+    bool IsSolutionClosing { get; }
+
     ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
     ImmutableArray<IProjectSnapshot> GetProjects();
     IProjectSnapshot GetLoadedProject(ProjectKey projectKey);
