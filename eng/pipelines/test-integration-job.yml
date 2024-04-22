@@ -124,7 +124,7 @@ steps:
       ArtifactName: '$(System.JobAttempt)-TestResults $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
-    condition: succeededOrFailed()
+    condition: always()
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Logs
@@ -133,4 +133,4 @@ steps:
       ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
-    condition: succeededOrFailed()
+    condition: always()
