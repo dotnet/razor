@@ -76,8 +76,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         }
     }
 
-    // internal for testing
-    internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
         if (args.SolutionIsClosing)
@@ -124,8 +123,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         }
     }
 
-    // protected for tests
-    protected void EnqueuePublish(IProjectSnapshot projectSnapshot)
+    private void EnqueuePublish(IProjectSnapshot projectSnapshot)
     {
         _workQueue.AddWork((Project: projectSnapshot, Removal: false));
     }
@@ -190,8 +188,4 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 parameter,
                 cancellationToken).Forget();
     }
-
-    // Used by tests
-    protected Task WaitUntilCurrentBatchCompletesAsync()
-        => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 }

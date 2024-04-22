@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +50,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = new TestRazorProjectInfoEndpointPublisher(
+        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -94,7 +93,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = new TestRazorProjectInfoEndpointPublisher(
+        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -138,7 +137,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = new TestRazorProjectInfoEndpointPublisher(
+        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -179,7 +178,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
                 })
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = new TestRazorProjectInfoEndpointPublisher(
+        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -233,7 +232,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             })
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = new TestRazorProjectInfoEndpointPublisher(
+        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -259,21 +258,5 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
     internal static IProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
     {
         return TestProjectSnapshot.Create(projectFilePath, documentFilePaths);
-    }
-
-    private class TestRazorProjectInfoEndpointPublisher(
-        LSPRequestInvoker lspRequestInvoker,
-        IProjectSnapshotManager projectSnapshotManager)
-        : RazorProjectInfoEndpointPublisher(
-            lspRequestInvoker,
-            projectSnapshotManager,
-            TimeSpan.FromMilliseconds(1))
-
-    {
-        public new Task WaitUntilCurrentBatchCompletesAsync()
-            => base.WaitUntilCurrentBatchCompletesAsync();
-
-        public new void EnqueuePublish(IProjectSnapshot project)
-            => base.EnqueuePublish(project);
     }
 }
