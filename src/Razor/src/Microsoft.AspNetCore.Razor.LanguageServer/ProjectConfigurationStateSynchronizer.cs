@@ -37,7 +37,8 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
 
-    private ImmutableDictionary<string, ProjectKey> _filePathToProjectKeyMap = ImmutableDictionary<string, ProjectKey>.Empty;
+    private ImmutableDictionary<string, ProjectKey> _filePathToProjectKeyMap =
+        ImmutableDictionary<string, ProjectKey>.Empty.WithComparers(keyComparer: FilePathComparer.Instance);
 
     public ProjectConfigurationStateSynchronizer(
         IRazorProjectService projectService,
