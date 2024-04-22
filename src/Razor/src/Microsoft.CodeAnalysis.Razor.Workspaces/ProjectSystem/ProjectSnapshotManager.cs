@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -27,21 +28,23 @@ internal partial class ProjectSnapshotManager(
     IErrorReporter errorReporter)
     : IProjectSnapshotManager, IDisposable
 {
+    private static readonly LoadTextOptions s_loadTextOptions = new(SourceHashAlgorithm.Sha256);
+
+    private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider = projectEngineFactoryProvider;
+    private readonly Dispatcher _dispatcher = new(errorReporter);
+
     public event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
     public event EventHandler<ProjectChangeEventArgs>? Changed;
 
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
     // created lazily.
-    private readonly ReadWriterLocker _rwLocker = new();
+    private readonly ReaderWriterLockSlim _readerWriterLock = new(LockRecursionPolicy.NoRecursion);
     private readonly Dictionary<ProjectKey, Entry> _projects_needsLock = [];
     private readonly HashSet<string> _openDocuments_needsLock = new(FilePathComparer.Instance);
-    private static readonly LoadTextOptions s_loadTextOptions = new(SourceHashAlgorithm.Sha256);
 
     // We have a queue for changes because if one change results in another change aka, add -> open
     // we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
-    private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider = projectEngineFactoryProvider;
-    private readonly Dispatcher _dispatcher = new(errorReporter);
 
     // internal for testing
     internal bool IsSolutionClosing { get; private set; }
@@ -49,30 +52,35 @@ internal partial class ProjectSnapshotManager(
     public void Dispose()
     {
         _dispatcher.Dispose();
+        _readerWriterLock.Dispose();
     }
 
     public ImmutableArray<IProjectSnapshot> GetProjects()
     {
-        using var _ = _rwLocker.EnterReadLock();
-        using var builder = new PooledArrayBuilder<IProjectSnapshot>(_projects_needsLock.Count);
-
-        foreach (var (_, entry) in _projects_needsLock)
+        using (_readerWriterLock.DisposableRead())
         {
-            builder.Add(entry.GetSnapshot());
-        }
+            using var builder = new PooledArrayBuilder<IProjectSnapshot>(_projects_needsLock.Count);
 
-        return builder.DrainToImmutable();
+            foreach (var (_, entry) in _projects_needsLock)
+            {
+                builder.Add(entry.GetSnapshot());
+            }
+
+            return builder.DrainToImmutable();
+        }
     }
 
     public ImmutableArray<string> GetOpenDocuments()
     {
-        using var _ = _rwLocker.EnterReadLock();
-        return _openDocuments_needsLock.ToImmutableArray();
+        using (_readerWriterLock.DisposableRead())
+        {
+            return [.. _openDocuments_needsLock];
+        }
     }
 
     public IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
     {
-        using (_rwLocker.EnterReadLock())
+        using (_readerWriterLock.DisposableRead())
         {
             if (_projects_needsLock.TryGetValue(projectKey, out var entry))
             {
@@ -85,7 +93,7 @@ internal partial class ProjectSnapshotManager(
 
     public bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
     {
-        using (_rwLocker.EnterReadLock())
+        using (_readerWriterLock.DisposableRead())
         {
             if (_projects_needsLock.TryGetValue(projectKey, out var entry))
             {
@@ -100,43 +108,32 @@ internal partial class ProjectSnapshotManager(
 
     public ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
     {
-        if (projectFileName is null)
+        using (_readerWriterLock.DisposableRead())
         {
-            throw new ArgumentNullException(nameof(projectFileName));
-        }
+            using var projects = new PooledArrayBuilder<ProjectKey>(capacity: _projects_needsLock.Count);
 
-        using var _ = _rwLocker.EnterReadLock();
-        using var projects = new PooledArrayBuilder<ProjectKey>(capacity: _projects_needsLock.Count);
-
-        foreach (var (key, entry) in _projects_needsLock)
-        {
-            if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, projectFileName))
+            foreach (var (key, entry) in _projects_needsLock)
             {
-                projects.Add(key);
+                if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, projectFileName))
+                {
+                    projects.Add(key);
+                }
             }
-        }
 
-        return projects.DrainToImmutable();
+            return projects.DrainToImmutable();
+        }
     }
 
     public bool IsDocumentOpen(string documentFilePath)
     {
-        if (documentFilePath is null)
+        using (_readerWriterLock.DisposableRead())
         {
-            throw new ArgumentNullException(nameof(documentFilePath));
+            return _openDocuments_needsLock.Contains(documentFilePath);
         }
-
-        using var _ = _rwLocker.EnterReadLock();
-        return _openDocuments_needsLock.Contains(documentFilePath);
     }
 
     private void DocumentAdded(ProjectKey projectKey, HostDocument document, TextLoader textLoader)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
         if (TryChangeEntry_UsesLock(
             projectKey,
             document.FilePath,
@@ -150,11 +147,6 @@ internal partial class ProjectSnapshotManager(
 
     private void DocumentRemoved(ProjectKey projectKey, HostDocument document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
         if (TryChangeEntry_UsesLock(
             projectKey,
             document.FilePath,
@@ -168,16 +160,6 @@ internal partial class ProjectSnapshotManager(
 
     private void DocumentOpened(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
     {
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
-
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
-
         if (TryChangeEntry_UsesLock(
             projectKey,
             documentFilePath,
@@ -191,16 +173,6 @@ internal partial class ProjectSnapshotManager(
 
     private void DocumentClosed(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
     {
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
-
-        if (textLoader is null)
-        {
-            throw new ArgumentNullException(nameof(textLoader));
-        }
-
         if (TryChangeEntry_UsesLock(
             projectKey,
             documentFilePath,
@@ -214,16 +186,6 @@ internal partial class ProjectSnapshotManager(
 
     private void DocumentChanged(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
     {
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
-
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
-
         if (TryChangeEntry_UsesLock(
             projectKey,
             documentFilePath,
@@ -237,16 +199,6 @@ internal partial class ProjectSnapshotManager(
 
     private void DocumentChanged(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
     {
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
-
-        if (textLoader is null)
-        {
-            throw new ArgumentNullException(nameof(textLoader));
-        }
-
         if (TryChangeEntry_UsesLock(
             projectKey,
             documentFilePath,
@@ -260,16 +212,11 @@ internal partial class ProjectSnapshotManager(
 
     private void ProjectAdded(HostProject hostProject)
     {
-        if (hostProject is null)
-        {
-            throw new ArgumentNullException(nameof(hostProject));
-        }
-
         if (TryChangeEntry_UsesLock(
             hostProject.Key,
             documentFilePath: null,
             new ProjectAddedAction(hostProject),
-            out var oldSnapshot,
+            out _,
             out var newSnapshot))
         {
             NotifyListeners(older: null, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectAdded);
@@ -278,11 +225,6 @@ internal partial class ProjectSnapshotManager(
 
     private void ProjectConfigurationChanged(HostProject hostProject)
     {
-        if (hostProject is null)
-        {
-            throw new ArgumentNullException(nameof(hostProject));
-        }
-
         if (TryChangeEntry_UsesLock(
             hostProject.Key,
             documentFilePath: null,
@@ -294,13 +236,8 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    private void ProjectWorkspaceStateChanged(ProjectKey projectKey, ProjectWorkspaceState? projectWorkspaceState)
+    private void ProjectWorkspaceStateChanged(ProjectKey projectKey, ProjectWorkspaceState projectWorkspaceState)
     {
-        if (projectWorkspaceState is null)
-        {
-            throw new ArgumentNullException(nameof(projectWorkspaceState));
-        }
-
         if (TryChangeEntry_UsesLock(
             projectKey,
             documentFilePath: null,
@@ -384,7 +321,7 @@ internal partial class ProjectSnapshotManager(
         [NotNullWhen(true)] out IProjectSnapshot? oldSnapshot,
         [NotNullWhen(true)] out IProjectSnapshot? newSnapshot)
     {
-        using var upgradeableLock = _rwLocker.EnterUpgradeableReadLock();
+        using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
 
         if (action is ProjectAddedAction projectAddedAction)
         {
@@ -404,10 +341,9 @@ internal partial class ProjectSnapshotManager(
             var newEntry = new Entry(state);
 
             oldSnapshot = newSnapshot = newEntry.GetSnapshot();
-            using (upgradeableLock.EnterWriteLock())
-            {
-                _projects_needsLock[projectAddedAction.HostProject.Key] = newEntry;
-            }
+
+            upgradeableLock.EnterWrite();
+            _projects_needsLock[projectAddedAction.HostProject.Key] = newEntry;
 
             return true;
         }
@@ -420,47 +356,44 @@ internal partial class ProjectSnapshotManager(
                 oldSnapshot = newSnapshot = entry.GetSnapshot();
                 return true;
             }
-            else
+
+            DocumentState? documentState = null;
+            if (documentFilePath is not null)
             {
-                DocumentState? documentState = null;
-                if (documentFilePath is not null)
+                _ = entry.State.Documents.TryGetValue(documentFilePath, out documentState);
+            }
+
+            var newEntry = Change(entry, action, documentState);
+            if (!ReferenceEquals(newEntry?.State, entry.State))
+            {
+                oldSnapshot = entry.GetSnapshot();
+                newSnapshot = newEntry?.GetSnapshot() ?? oldSnapshot;
+
+                // We're about to mutate, so assert that we're on the dispatcher thread.
+                _dispatcher.AssertRunningOnDispatcher();
+
+                _readerWriterLock.EnterWriteLock();
+
+                if (newEntry is null)
                 {
-                    _ = entry.State.Documents.TryGetValue(documentFilePath, out documentState);
+                    _projects_needsLock.Remove(projectKey);
+                }
+                else
+                {
+                    _projects_needsLock[projectKey] = newEntry;
                 }
 
-                var newEntry = Change(entry, action, documentState);
-                if (!ReferenceEquals(newEntry?.State, entry.State))
+                switch (action)
                 {
-                    oldSnapshot = entry.GetSnapshot();
-                    newSnapshot = newEntry?.GetSnapshot() ?? oldSnapshot;
-
-                    // We're about to mutate, so assert that we're on the dispatcher thread.
-                    _dispatcher.AssertRunningOnDispatcher();
-
-                    using (upgradeableLock.EnterWriteLock())
-                    {
-                        if (newEntry is null)
-                        {
-                            _projects_needsLock.Remove(projectKey);
-                        }
-                        else
-                        {
-                            _projects_needsLock[projectKey] = newEntry;
-                        }
-
-                        switch (action)
-                        {
-                            case OpenDocumentAction:
-                                _openDocuments_needsLock.Add(documentFilePath.AssumeNotNull());
-                                break;
-                            case CloseDocumentAction:
-                                _openDocuments_needsLock.Remove(documentFilePath.AssumeNotNull());
-                                break;
-                        }
-                    }
-
-                    return true;
+                    case OpenDocumentAction:
+                        _openDocuments_needsLock.Add(documentFilePath.AssumeNotNull());
+                        break;
+                    case CloseDocumentAction:
+                        _openDocuments_needsLock.Remove(documentFilePath.AssumeNotNull());
+                        break;
                 }
+
+                return true;
             }
         }
 
@@ -480,11 +413,7 @@ internal partial class ProjectSnapshotManager(
 
             case CloseDocumentAction(var textLoader):
                 {
-                    if (documentState is null)
-                    {
-                        throw new ArgumentNullException(nameof(documentState));
-                    }
-
+                    documentState.AssumeNotNull();
                     var state = originalEntry.State.WithChangedHostDocument(
                         documentState.HostDocument,
                         () => textLoader.LoadTextAndVersionAsync(s_loadTextOptions, cancellationToken: default));
@@ -493,10 +422,7 @@ internal partial class ProjectSnapshotManager(
 
             case OpenDocumentAction(var sourceText):
                 {
-                    if (documentState is null)
-                    {
-                        throw new ArgumentNullException(nameof(documentState));
-                    }
+                    documentState.AssumeNotNull();
 
                     if (documentState.TryGetText(out var olderText) &&
                         documentState.TryGetTextVersion(out var olderVersion))
@@ -532,6 +458,7 @@ internal partial class ProjectSnapshotManager(
             case DocumentTextChangedAction(var sourceText):
                 {
                     documentState.AssumeNotNull();
+
                     if (documentState.TryGetText(out var olderText) &&
                         documentState.TryGetTextVersion(out var olderVersion))
                     {
