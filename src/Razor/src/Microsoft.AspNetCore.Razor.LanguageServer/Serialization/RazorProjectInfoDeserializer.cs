@@ -15,14 +15,14 @@ internal sealed class RazorProjectInfoDeserializer : IRazorProjectInfoDeserializ
     {
     }
 
-    public RazorProjectInfo? DeserializeFromString(string? projectInfoBase64)
+    public RazorProjectInfo? DeserializeFromString(string? projectInfoBase64String)
     {
         RazorProjectInfo? razorProjectInfo = null;
 
         // ProjectInfo will be null if project is being deleted and should be removed
-        if (projectInfoBase64 is not null)
+        if (projectInfoBase64String is not null)
         {
-            var projectInfoBytes = Convert.FromBase64String(projectInfoBase64);
+            var projectInfoBytes = Convert.FromBase64String(projectInfoBase64String);
             using var stream = new MemoryStream(projectInfoBytes);
             razorProjectInfo = DeserializeFromStream(stream);
         }

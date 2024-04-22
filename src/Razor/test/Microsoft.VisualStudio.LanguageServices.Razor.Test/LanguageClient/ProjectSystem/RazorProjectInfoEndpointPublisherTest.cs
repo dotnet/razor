@@ -69,7 +69,6 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
         Assert.Equal(1, callCount);
     }
 
-
     [Fact]
     public async Task ProjectManager_Changed_NotActive_Noops()
     {
@@ -156,7 +155,6 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
     [InlineData(ProjectChangeKind.ProjectChanged, true, false)]
     [InlineData(ProjectChangeKind.ProjectRemoved, true, true)]
     [InlineData(ProjectChangeKind.ProjectAdded, false, false)]
-
     internal async Task ProjectManager_Changed_EnqueuesPublishAsync(ProjectChangeKind changeKind, bool waitForQueueEmpty, bool expectNullProjectInfo)
     {
         // Arrange
