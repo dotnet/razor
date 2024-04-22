@@ -22,11 +22,6 @@ internal interface IProjectSnapshotManager
     bool IsDocumentOpen(string documentFilePath);
     ImmutableArray<string> GetOpenDocuments();
 
-    void Update(Action<ProjectSnapshotManager.Updater> updater);
-    void Update<TState>(Action<ProjectSnapshotManager.Updater, TState> updater, TState state);
-    TResult Update<TResult>(Func<ProjectSnapshotManager.Updater, TResult> updater);
-    TResult Update<TState, TResult>(Func<ProjectSnapshotManager.Updater, TState, TResult> updater, TState state);
-
     Task UpdateAsync(Action<ProjectSnapshotManager.Updater> updater, CancellationToken cancellationToken);
     Task UpdateAsync<TState>(Action<ProjectSnapshotManager.Updater, TState> updater, TState state, CancellationToken cancellationToken);
     Task<TResult> UpdateAsync<TResult>(Func<ProjectSnapshotManager.Updater, TResult> updater, CancellationToken cancellationToken);

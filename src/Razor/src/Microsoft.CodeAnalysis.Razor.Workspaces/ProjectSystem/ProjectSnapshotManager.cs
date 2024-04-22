@@ -569,30 +569,6 @@ internal partial class ProjectSnapshotManager(
         }
     }
 
-    public void Update(Action<Updater> updater)
-    {
-        _dispatcher.AssertRunningOnDispatcher();
-        updater(new(this));
-    }
-
-    public void Update<TState>(Action<Updater, TState> updater, TState state)
-    {
-        _dispatcher.AssertRunningOnDispatcher();
-        updater(new(this), state);
-    }
-
-    public TResult Update<TResult>(Func<Updater, TResult> updater)
-    {
-        _dispatcher.AssertRunningOnDispatcher();
-        return updater(new(this));
-    }
-
-    public TResult Update<TState, TResult>(Func<Updater, TState, TResult> updater, TState state)
-    {
-        _dispatcher.AssertRunningOnDispatcher();
-        return updater(new(this), state);
-    }
-
     public Task UpdateAsync(Action<Updater> updater, CancellationToken cancellationToken)
     {
         return _dispatcher.RunAsync(
