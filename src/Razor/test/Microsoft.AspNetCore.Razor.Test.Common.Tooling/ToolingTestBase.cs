@@ -46,7 +46,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     private readonly CancellationTokenSource _disposalTokenSource;
     private List<IDisposable>? _disposables;
     private List<IAsyncDisposable>? _asyncDisposables;
-    private IErrorReporter? _errorReporter;
     private ProjectSnapshotManagerDispatcher? _dispatcher;
 
     /// <summary>
@@ -79,8 +78,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     ///  An <see cref="ILogger"/> for the currently running test.
     /// </summary>
     private protected ILogger Logger => _logger ??= LoggerFactory.GetOrCreateLogger(GetType().Name);
-
-    private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 
     private protected ProjectSnapshotManagerDispatcher Dispatcher => _dispatcher ??= CreateDispatcher();
 
