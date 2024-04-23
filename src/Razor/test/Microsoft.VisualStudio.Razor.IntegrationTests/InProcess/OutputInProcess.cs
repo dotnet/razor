@@ -33,7 +33,7 @@ internal partial class OutputInProcess
         // We can't remove logging providers, so we just keep track of ours so we can make sure it points to the right test output helper
         if (_testLoggerProvider is null)
         {
-            _testLoggerProvider = new TestOutputLoggerProvider(testOutputHelper);
+            _testLoggerProvider = new TestOutputLoggerProvider(testOutputHelper, LogLevel.Warning);
             logger.AddLoggerProvider(_testLoggerProvider);
         }
         else
