@@ -39,7 +39,7 @@ internal static class ArgHelper
 #if !NET8_0_OR_GREATER
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
-    static void ThrowArgumentNullException(string? paramName)
+    private static void ThrowArgumentNullException(string? paramName)
     {
         throw new ArgumentNullException(paramName);
     }
