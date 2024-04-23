@@ -19,14 +19,7 @@ internal static class ArgHelper
 #else
         if (argument is null)
         {
-            ThrowException(paramName);
-        }
-
-        [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static void ThrowException(string? paramName)
-        {
-            throw new ArgumentNullException(paramName);
+            ThrowArgumentNullException(paramName);
         }
 #endif
     }
