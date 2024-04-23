@@ -33,6 +33,6 @@ if($success -eq $false){
 
 Write-Host "-- VS Info --"
 $vsDir = Split-Path -Parent $devenvExePath
-$isolationIni = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'devenv.isolation.ini'
+$isolationIni = Join-Path $vsDir 'devenv.isolation.ini'
 Get-Content $isolationIni | Write-Host
 Write-Host "-- /VS Info --"
