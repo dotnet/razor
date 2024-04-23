@@ -10,9 +10,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 
 internal sealed partial class ActivityLogLoggerProvider
 {
-    private sealed class Logger(ActivityLog activityLog, string categoryName) : ILogger
+    private sealed class Logger(RazorActivityLog activityLog, string categoryName) : ILogger
     {
-        private readonly ActivityLog _activityLog = activityLog;
+        private readonly RazorActivityLog _activityLog = activityLog;
         private readonly string _categoryName = categoryName;
 
         public bool IsEnabled(LogLevel logLevel)

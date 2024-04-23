@@ -14,8 +14,8 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.Logging;
 
-[Export(typeof(ActivityLog))]
-internal sealed class ActivityLog : IDisposable
+[Export(typeof(RazorActivityLog))]
+internal sealed class RazorActivityLog : IDisposable
 {
     private enum EntryType { Error, Warning, Info }
 
@@ -26,7 +26,7 @@ internal sealed class ActivityLog : IDisposable
     private readonly AsyncBatchingWorkQueue<(EntryType, string)> _loggingQueue;
     private IVsActivityLog? _vsActivityLog;
 
-    public ActivityLog(
+    public RazorActivityLog(
         [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
         JoinableTaskContext joinableTaskContext)
     {

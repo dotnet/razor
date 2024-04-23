@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 /// </summary>
 [Export(typeof(ILoggerProvider))]
 [method: ImportingConstructor]
-internal sealed partial class ActivityLogLoggerProvider(ActivityLog activityLog) : ILoggerProvider
+internal sealed partial class ActivityLogLoggerProvider(RazorActivityLog activityLog) : ILoggerProvider
 {
-    private readonly ActivityLog _activityLog = activityLog;
+    private readonly RazorActivityLog _activityLog = activityLog;
 
     public ILogger CreateLogger(string categoryName)
         => new Logger(_activityLog, categoryName);
