@@ -39,7 +39,7 @@ internal static class IProjectSnapshotExtensions
             documents: documents.DrainToImmutable());
     }
 
-    public static string ToRazorProjectInfoString(this IProjectSnapshot project, string serializedFilePath)
+    public static string ToBase64EncodedProjectInfo(this IProjectSnapshot project, string serializedFilePath)
     {
         var projectInfo = project.ToRazorProjectInfo(serializedFilePath);
 

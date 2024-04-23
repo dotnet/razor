@@ -50,7 +50,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
+        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -93,7 +93,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
+        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -137,7 +137,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
+        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -178,7 +178,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
                 })
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
+        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
             requestInvoker.Object,
             projectManager);
 
@@ -214,7 +214,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
 
         var firstSnapshot = CreateProjectSnapshot(@"C:\path\to\project.csproj");
         var secondSnapshot = CreateProjectSnapshot(@"C:\path\to\project.csproj", [@"C:\path\to\file.cshtml"]);
-        var expectedProjectInfoString = secondSnapshot.ToRazorProjectInfoString(secondSnapshot.IntermediateOutputPath);
+        var expectedProjectInfoString = secondSnapshot.ToBase64EncodedProjectInfo(secondSnapshot.IntermediateOutputPath);
 
         var projectInfoParams = (ProjectInfoParams?)null;
         var callCount = 0;
@@ -232,7 +232,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             })
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.CreateTestInstanceAccessor(
+        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
             requestInvoker.Object,
             projectManager);
 

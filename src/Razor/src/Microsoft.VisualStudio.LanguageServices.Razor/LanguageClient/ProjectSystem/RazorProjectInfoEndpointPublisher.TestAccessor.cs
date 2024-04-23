@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -11,10 +10,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
 internal partial class RazorProjectInfoEndpointPublisher
 {
-    internal TestAccessor GetTestAccessor() => new(this);
-
-    [SuppressMessage("RoslynDiagnosticsMaintainability", "RS0043:Do not call 'GetTestAccessor()'", Justification = "Used by test code only")]
-    internal static TestAccessor CreateTestInstanceAccessor(LSPRequestInvoker requestInvoker, IProjectSnapshotManager projectSnapshotManager)
+    internal static TestAccessor GetTestAccessor(LSPRequestInvoker requestInvoker, IProjectSnapshotManager projectSnapshotManager)
         => new(new RazorProjectInfoEndpointPublisher(requestInvoker, projectSnapshotManager, TimeSpan.FromMilliseconds(1)));
 
     internal sealed class TestAccessor(RazorProjectInfoEndpointPublisher instance)

@@ -162,7 +162,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
     private void ImmediatePublish(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
-        var base64ProjectInfo = projectSnapshot.ToRazorProjectInfoString(projectSnapshot.IntermediateOutputPath);
+        var base64ProjectInfo = projectSnapshot.ToBase64EncodedProjectInfo(projectSnapshot.IntermediateOutputPath);
 
         ImmediatePublish(projectSnapshot.Key, base64ProjectInfo, cancellationToken);
     }
