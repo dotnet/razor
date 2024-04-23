@@ -110,6 +110,11 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
     private async Task UpdateWorkspaceStateAsync(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         try
         {
             // Only allow a single TagHelper resolver request to process at a time in order to reduce
@@ -191,7 +196,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
                 // Prevent ObjectDisposedException if we've disposed before we got here. The dispose method will release
                 // anyway, so we're all good.
-                if (!cancellationToken.IsCancellationRequested)
+                if (!_disposeTokenSource.IsCancellationRequested)
                 {
                     _logger.LogTrace($"Releasing the semaphore, for '{projectSnapshot.Key}'");
                     _semaphore.Release();
