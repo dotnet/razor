@@ -10,12 +10,11 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.Editor.Razor.Debugging;
-using Microsoft.VisualStudio.Editor.Razor.Logging;
-using Microsoft.VisualStudio.Editor.Razor.Snippets;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
-using Microsoft.VisualStudio.LanguageServices.Razor;
+using Microsoft.VisualStudio.Razor;
+using Microsoft.VisualStudio.Razor.Debugging;
+using Microsoft.VisualStudio.Razor.LanguageClient.Options;
+using Microsoft.VisualStudio.Razor.Logging;
+using Microsoft.VisualStudio.Razor.Snippets;
 using Microsoft.VisualStudio.RazorExtension.Options;
 using Microsoft.VisualStudio.RazorExtension.Snippets;
 using Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
@@ -36,6 +35,14 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
 [ProvideLanguageEditorOptionPage(typeof(AdvancedOptionPage), RazorConstants.RazorLSPContentTypeName, category: null, "Advanced", pageNameResourceId: "#1050", keywordListResourceId: 1060)]
 [Guid(PackageGuidString)]
+// We activate cohosting when the first Razor file is opened. This matches the previous behavior where the
+// LSP client MEF export had the Razor content type metadata.
+[ProvideUIContextRule(
+        contextGuid: RazorConstants.RazorCohostingUIContext,
+        name: "Razor Cohosting Activation",
+        expression: "RazorContentType",
+        termNames: ["RazorContentType"],
+        termValues: [$"ActiveEditorContentType:{RazorConstants.RazorLSPContentTypeName}"])]
 internal sealed class RazorPackage : AsyncPackage
 {
     public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";

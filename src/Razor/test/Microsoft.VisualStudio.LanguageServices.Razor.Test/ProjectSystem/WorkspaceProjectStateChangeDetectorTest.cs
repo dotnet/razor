@@ -7,16 +7,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Razor;
-using Microsoft.VisualStudio.LanguageServices.Razor.Test;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTestBase
 {
@@ -124,7 +125,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        using var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         var workspaceChangedTask = detectorAccessor.ListenForWorkspaceChangesAsync(
@@ -166,7 +167,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        using var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -207,7 +208,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -250,7 +251,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -284,7 +285,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -324,7 +325,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -360,7 +361,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
@@ -392,7 +393,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
@@ -424,7 +425,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
@@ -456,7 +457,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
@@ -505,7 +506,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -533,7 +534,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Arrange
         var generator = new TestProjectWorkspaceStateGenerator();
         var projectManager = CreateProjectSnapshotManager();
-        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, Dispatcher);
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>

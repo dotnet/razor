@@ -5,6 +5,8 @@
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the language server library assets.</Description>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
+    <!-- CLaSP is a source package, and has a more lenient approach to using statements than us-->
+    <NoWarn>IDE0005</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,17 +22,17 @@
 
   <ItemGroup>
     <!-- Need this reference to avoid 'The C# language is not supported' error during formatting. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion)" />
-    <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="$(MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 
     <!--
       Pinning packages to avoid misaligned reference CI failures.
       CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
       Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
     -->
-    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsPackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
   </ItemGroup>
 
   <ItemGroup>

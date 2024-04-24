@@ -6,10 +6,10 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
+using Microsoft.VisualStudio.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -23,13 +23,11 @@ namespace Microsoft.VisualStudio.LegacyEditor.Razor.Completion;
 [ContentType(RazorConstants.LegacyCoreContentType)]
 [method: ImportingConstructor]
 internal sealed class RazorDirectiveAttributeCompletionSourceProvider(
-    ProjectSnapshotManagerDispatcher dispatcher,
     IRazorCompletionFactsService completionFactsService,
     ICompletionBroker completionBroker,
     IVisualStudioDescriptionFactory descriptionFactory,
     JoinableTaskContext joinableTaskContext) : IAsyncCompletionSourceProvider
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
     private readonly ICompletionBroker _completionBroker = completionBroker;
     private readonly IVisualStudioDescriptionFactory _descriptionFactory = descriptionFactory;
@@ -63,7 +61,6 @@ internal sealed class RazorDirectiveAttributeCompletionSourceProvider(
         }
 
         return new RazorDirectiveAttributeCompletionSource(
-            _dispatcher,
             parser,
             _completionFactsService,
             _completionBroker,

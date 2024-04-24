@@ -3,12 +3,13 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(ProjectSnapshotManagerDispatcher))]
 [method: ImportingConstructor]
-internal class VisualStudioProjectSnapshotManagerDispatcher(IErrorReporter errorReporter)
-    : ProjectSnapshotManagerDispatcher(errorReporter)
+internal class VisualStudioProjectSnapshotManagerDispatcher(ILoggerFactory loggerFactory)
+    : ProjectSnapshotManagerDispatcher(loggerFactory)
 {
 }

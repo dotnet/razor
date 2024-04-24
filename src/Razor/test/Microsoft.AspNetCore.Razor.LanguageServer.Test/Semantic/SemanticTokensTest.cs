@@ -58,12 +58,6 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
     private static Regex MyRegex() => new Regex("\r\n|\r|\n");
 #endif
 
-#if GENERATE_BASELINES
-    private bool GenerateBaselines { get; set; } = true;
-#else
-    private bool GenerateBaselines { get; set; } = false;
-#endif
-
     [Theory]
     [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_RazorIfNotReady(bool precise)
@@ -1087,7 +1081,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
         var actualFileContents = GetFileRepresentationOfTokens(sourceText, actualSemanticTokens);
 
-        if (GenerateBaselines)
+        if (GenerateBaselines.ShouldGenerate)
         {
             GenerateSemanticBaseline(actualFileContents, baselineFileName);
         }
@@ -1207,9 +1201,9 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     private class TestDocumentContextFactory(VersionedDocumentContext? documentContext = null) : IDocumentContextFactory
     {
-        public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+        public Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
         {
-            return documentContext;
+            return Task.FromResult<DocumentContext?>(documentContext);
         }
     }
 }

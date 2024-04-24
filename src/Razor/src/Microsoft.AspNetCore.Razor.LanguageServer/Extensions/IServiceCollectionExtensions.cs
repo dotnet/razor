@@ -111,7 +111,6 @@ internal static class IServiceCollectionExtensions
 
     public static void AddDiagnosticServices(this IServiceCollection services)
     {
-        services.AddHandler<RazorTranslateDiagnosticsEndpoint>();
         services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
         services.AddHandler<WorkspacePullDiagnosticsEndpoint>();
         services.AddSingleton<RazorTranslateDiagnosticsService>();
@@ -181,7 +180,6 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<DocumentDidOpenEndpoint>();
         services.AddHandler<DocumentDidSaveEndpoint>();
 
-        services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
         services.AddHandler<RazorLanguageQueryEndpoint>();
     }
@@ -214,8 +212,15 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
 
-        // File change listeners
-        services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
+        if (featureOptions.UseProjectConfigurationEndpoint)
+        {
+            services.AddSingleton<ProjectConfigurationStateManager>();
+        }
+        else 
+        {
+            services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
+        }
+
         services.AddSingleton<IRazorFileChangeListener, RazorFileSynchronizer>();
 
         // If we're not monitoring the whole workspace folder for configuration changes, then we don't actually need the the file change
@@ -233,11 +238,11 @@ internal static class IServiceCollectionExtensions
         {
             // If single server is on, then we don't want to publish diagnostics, so best to just not hook up to any
             // events etc.
-            services.AddSingleton<DocumentProcessedListener, RazorDiagnosticsPublisher>();
+            services.AddSingleton<IDocumentProcessedListener, RazorDiagnosticsPublisher>();
         }
 
-        services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
-        services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
+        services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
+        services.AddSingleton<IDocumentProcessedListener, CodeDocumentReferenceHolder>();
 
         services.AddSingleton<LSPTagHelperTooltipFactory, DefaultLSPTagHelperTooltipFactory>();
         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();

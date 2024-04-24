@@ -2,29 +2,30 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis;
-using System.Threading;
-using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Test;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 internal class TestProjectWorkspaceStateGenerator : IProjectWorkspaceStateGenerator
 {
-    private readonly List<TestUpdate> _updates;
-
-    public TestProjectWorkspaceStateGenerator()
-    {
-        _updates = new List<TestUpdate>();
-    }
+    private readonly List<TestUpdate> _updates = [];
 
     public IReadOnlyList<TestUpdate> Updates => _updates;
 
-    public void Update(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    public void EnqueueUpdate(Project? workspaceProject, IProjectSnapshot projectSnapshot)
     {
-        var update = new TestUpdate(workspaceProject, projectSnapshot, cancellationToken);
+        var update = new TestUpdate(workspaceProject, projectSnapshot);
         _updates.Add(update);
+    }
+
+    public void CancelUpdates()
+    {
+        foreach (var update in _updates)
+        {
+            update.IsCancelled = true;
+        }
     }
 
     public void Clear()
@@ -32,8 +33,10 @@ internal class TestProjectWorkspaceStateGenerator : IProjectWorkspaceStateGenera
         _updates.Clear();
     }
 
-    public record TestUpdate(Project? WorkspaceProject, IProjectSnapshot ProjectSnapshot, CancellationToken CancellationToken)
+    public record TestUpdate(Project? WorkspaceProject, IProjectSnapshot ProjectSnapshot)
     {
+        public bool IsCancelled { get; set; }
+
         public override string ToString()
         {
             using var _ = StringBuilderPool.GetPooledObject(out var builder);

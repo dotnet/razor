@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
-using static Nerdbank.Streams.MultiplexingStream;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
@@ -50,7 +49,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
     private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
     {
-        var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
+        var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
         AddDisposable(dispatcher);
 
         return dispatcher;

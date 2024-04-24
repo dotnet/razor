@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -38,13 +39,13 @@ public class ProjectContextsEndpointTest(ITestOutputHelper testOutput) : SingleS
             }
         };
 
-        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument.Uri);
+        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument.Uri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         var results = await endpoint.HandleRequestAsync(request, requestContext, default);
 
         Assert.NotNull(results);
-        Assert.Collection(results.ProjectContexts,
+        Assert.Collection(results.ProjectContexts.OrderBy(c => c.Label),
             context =>
             {
                 Assert.Equal(VSProjectKind.CSharp, context.Kind);

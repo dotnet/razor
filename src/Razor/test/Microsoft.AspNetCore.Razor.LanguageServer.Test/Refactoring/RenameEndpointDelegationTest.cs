@@ -66,7 +66,6 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
         var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
 
         var endpoint = new RenameEndpoint(
-            Dispatcher,
             searchEngine,
             projectManager,
             LanguageServerFeatureOptions,
@@ -84,7 +83,7 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
             Position = new Position(line, offset),
             NewName = newName
         };
-        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
+        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act

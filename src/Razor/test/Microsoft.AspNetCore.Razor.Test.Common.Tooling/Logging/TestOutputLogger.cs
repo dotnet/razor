@@ -31,14 +31,12 @@ internal partial class TestOutputLogger : ILogger
     public bool IsEnabled(LogLevel logLevel)
         => logLevel >= LogLevel;
 
-    public void Log<TState>(LogLevel logLevel, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    public void Log(LogLevel logLevel, string message, Exception? exception)
     {
         if (!IsEnabled(logLevel) || _provider.TestOutputHelper is null)
         {
             return;
         }
-
-        var message = formatter(state, exception);
 
         var builder = GetEmptyBuilder();
 
@@ -75,6 +73,10 @@ internal partial class TestOutputLogger : ILogger
         try
         {
             _provider.TestOutputHelper.WriteLine(finalMessage);
+        }
+        catch (InvalidOperationException iex) when (iex.Message == "There is no currently active test.")
+        {
+            // Ignore, something is logging a message outside of a test. Other loggers will capture it.
         }
         catch (Exception ex)
         {

@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.LanguageServices.Razor;
+using Microsoft.VisualStudio.Razor;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
@@ -12,7 +12,7 @@ public abstract class VisualStudioWorkspaceTestBase(ITestOutputHelper testOutput
 {
     private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
     {
-        var dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter);
+        var dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(LoggerFactory);
         AddDisposable(dispatcher);
 
         return dispatcher;

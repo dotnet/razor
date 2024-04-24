@@ -3,31 +3,28 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+namespace Microsoft.VisualStudio.Razor.Documents;
 
 [Export(typeof(IFileChangeTrackerFactory))]
 internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
-    private readonly IErrorReporter _errorReporter;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly JoinableTask<IVsAsyncFileChangeEx> _getFileChangeServiceTask;
 
     [ImportingConstructor]
     public VisualStudioFileChangeTrackerFactory(
         [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
         JoinableTaskContext joinableTaskContext,
-        ProjectSnapshotManagerDispatcher dispatcher,
-        IErrorReporter errorReporter)
+        ILoggerFactory loggerFactory)
     {
-        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
-        _errorReporter = errorReporter;
+        _loggerFactory = loggerFactory;
 
         var jtf = _joinableTaskContext.Factory;
         _getFileChangeServiceTask = jtf.RunAsync(serviceProvider.GetServiceAsync<SVsFileChangeEx, IVsAsyncFileChangeEx>);
@@ -43,6 +40,6 @@ internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
         // TODO: Make IFileChangeTrackerFactory.Create(...) asynchronous to avoid blocking here.
         var fileChangeService = _getFileChangeServiceTask.Join();
 
-        return new VisualStudioFileChangeTracker(filePath, _errorReporter, fileChangeService, _dispatcher, _joinableTaskContext);
+        return new VisualStudioFileChangeTracker(filePath, _loggerFactory, fileChangeService, _joinableTaskContext);
     }
 }

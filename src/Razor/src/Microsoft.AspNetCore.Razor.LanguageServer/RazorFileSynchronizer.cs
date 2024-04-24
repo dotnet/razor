@@ -2,52 +2,23 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorFileSynchronizer : IRazorFileChangeListener
+internal class RazorFileSynchronizer(IRazorProjectService projectService) : IRazorFileChangeListener
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly IRazorProjectService _projectService;
+    private readonly IRazorProjectService _projectService = projectService;
 
-    public RazorFileSynchronizer(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        IRazorProjectService projectService)
-    {
-        if (projectSnapshotManagerDispatcher is null)
+    public Task RazorFileChangedAsync(string filePath, RazorFileChangeKind kind, CancellationToken cancellationToken)
+        => kind switch
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (projectService is null)
-        {
-            throw new ArgumentNullException(nameof(projectService));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _projectService = projectService;
-    }
-
-    public void RazorFileChanged(string filePath, RazorFileChangeKind kind)
-    {
-        if (filePath is null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
-        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
-
-        switch (kind)
-        {
-            case RazorFileChangeKind.Added:
-                _projectService.AddDocument(filePath);
-                break;
-            case RazorFileChangeKind.Removed:
-                _projectService.RemoveDocument(filePath);
-                break;
-        }
-    }
+            RazorFileChangeKind.Added => _projectService.AddDocumentAsync(filePath, cancellationToken),
+            RazorFileChangeKind.Removed => _projectService.RemoveDocumentAsync(filePath, cancellationToken),
+            _ => Task.CompletedTask
+        };
 }

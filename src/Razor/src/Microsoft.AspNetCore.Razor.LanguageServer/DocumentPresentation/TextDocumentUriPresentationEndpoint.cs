@@ -22,14 +22,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
 internal class TextDocumentUriPresentationEndpoint(
     IRazorDocumentMappingService razorDocumentMappingService,
-    RazorComponentSearchEngine razorComponentSearchEngine,
     IClientConnection clientConnection,
     IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory,
     ILoggerFactory loggerFactory)
     : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.GetOrCreateLogger<TextDocumentUriPresentationEndpoint>()), ITextDocumentUriPresentationHandler
 {
-    private readonly RazorComponentSearchEngine _razorComponentSearchEngine = razorComponentSearchEngine ?? throw new ArgumentNullException(nameof(razorComponentSearchEngine));
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
 
     public override string EndpointName => CustomMessageNames.RazorUriPresentationEndpoint;
@@ -62,7 +60,7 @@ internal class TextDocumentUriPresentationEndpoint(
 
         if (request.Uris is null || request.Uris.Length == 0)
         {
-            Logger.LogInformation("No URIs were included in the request?");
+            Logger.LogInformation($"No URIs were included in the request?");
             return null;
         }
 
@@ -74,14 +72,14 @@ internal class TextDocumentUriPresentationEndpoint(
         // thinks they're just dragging the parent one, so we have to be a little bit clever with the filter here
         if (razorFileUri == null)
         {
-            Logger.LogInformation("No file in the drop was a razor file URI.");
+            Logger.LogInformation($"No file in the drop was a razor file URI.");
             return null;
         }
 
         var fileName = Path.GetFileName(razorFileUri.GetAbsoluteOrUNCPath());
         if (request.Uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
         {
-            Logger.LogInformation("One or more URIs were not a child file of the main .razor file.");
+            Logger.LogInformation($"One or more URIs were not a child file of the main .razor file.");
             return null;
         }
 
@@ -101,14 +99,14 @@ internal class TextDocumentUriPresentationEndpoint(
                     {
                         Uri = request.TextDocument.Uri
                     },
-                    Edits = new[]
-                    {
+                    Edits =
+                    [
                         new TextEdit
                         {
                             NewText = componentTagText,
                             Range = request.Range
                         }
-                    }
+                    ]
                 }
             }
         };
@@ -116,56 +114,24 @@ internal class TextDocumentUriPresentationEndpoint(
 
     private async Task<string?> TryGetComponentTagAsync(Uri uri, CancellationToken cancellationToken)
     {
-        Logger.LogInformation("Trying to find document info for dropped uri {uri}.", uri);
+        Logger.LogInformation($"Trying to find document info for dropped uri {uri}.");
 
-        var documentContext = _documentContextFactory.TryCreate(uri);
+        var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
-            Logger.LogInformation("Failed to find document for component {uri}.", uri);
+            Logger.LogInformation($"Failed to find document for component {uri}.");
             return null;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
+        var descriptor = await documentContext.Snapshot.TryGetTagHelperDescriptorAsync(cancellationToken).ConfigureAwait(false);
         if (descriptor is null)
         {
-            Logger.LogInformation("Failed to find tag helper descriptor.");
+            Logger.LogInformation($"Failed to find tag helper descriptor for {documentContext.Snapshot.FilePath}.");
             return null;
         }
 
-        var typeName = descriptor.GetTypeNameIdentifier();
-        if (string.IsNullOrWhiteSpace(typeName))
-        {
-            Logger.LogWarning("Found a tag helper, {descriptorName}, but it has an empty TypeNameIdentifier.", descriptor.Name);
-            return null;
-        }
-
-        // TODO: Add @using statements if required, or fully qualify (GetTypeName())
-
-        using var _ = StringBuilderPool.GetPooledObject(out var sb);
-
-        sb.Append('<');
-        sb.Append(typeName);
-
-        foreach (var requiredAttribute in descriptor.EditorRequiredAttributes)
-        {
-            sb.Append(' ');
-            sb.Append(requiredAttribute.Name);
-            sb.Append("=\"\"");
-        }
-
-        if (descriptor.AllowedChildTags.Length > 0)
-        {
-            sb.Append("></");
-            sb.Append(typeName);
-            sb.Append('>');
-        }
-        else
-        {
-            sb.Append(" />");
-        }
-
-        return sb.ToString();
+        return descriptor.TryGetComponentTag();
     }
 }
