@@ -752,8 +752,5 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     }
 
     private WorkspaceProjectStateChangeDetector CreateDetector(IProjectWorkspaceStateGenerator generator, IProjectSnapshotManager projectManager)
-    {
-        return new WorkspaceProjectStateChangeDetector(
-            generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, TimeSpan.FromMilliseconds(10));
-    }
+        => new(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, TimeSpan.FromMilliseconds(10));
 }
