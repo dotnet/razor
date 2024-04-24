@@ -16,7 +16,7 @@ internal sealed partial class ActivityLogLoggerProvider
         private readonly string _categoryName = categoryName;
 
         public bool IsEnabled(LogLevel logLevel)
-            => logLevel is LogLevel.Warning or LogLevel.Error or LogLevel.Critical;
+            => logLevel.IsAtLeast(LogLevel.Warning);
 
         public void Log(LogLevel logLevel, string message, Exception? exception)
         {
