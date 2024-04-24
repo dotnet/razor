@@ -34,7 +34,7 @@ internal sealed partial class ActivityLogLoggerProvider
             string GetLogMessage(string message, Exception? exception)
             {
                 using var _ = StringBuilderPool.GetPooledObject(out var builder);
-                builder.Append($"{DateTime.Now:h:mm:ss.fff} [{_categoryName}] {message}");
+                builder.Append($"[{_categoryName}] {message}");
 
                 if (exception is not null)
                 {
