@@ -5,15 +5,11 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.Logging;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Moq;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
@@ -23,7 +19,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     internal ImmutableArray<HostDocument> Documents { get; }
     internal ImmutableArray<TextLoader> TextLoaders { get; }
     protected string RepoRoot { get; }
-    private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
 
     protected ProjectSnapshotManagerBenchmarkBase(int documentCount = 100)
     {
@@ -61,19 +56,12 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         }
 
         Documents = documents.ToImmutable();
-
-        var loggerFactoryMock = new Mock<ILoggerFactory>(MockBehavior.Strict);
-        loggerFactoryMock
-            .Setup(x => x.GetOrCreateLogger(It.IsAny<string>()))
-            .Returns(Mock.Of<ILogger>(MockBehavior.Strict));
-
-        Dispatcher = new LSPProjectSnapshotManagerDispatcher(EmptyLoggingFactory.Instance);
     }
 
     internal ProjectSnapshotManager CreateProjectSnapshotManager()
     {
         return new ProjectSnapshotManager(
             projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
-            dispatcher: Dispatcher);
+            loggerFactory: EmptyLoggingFactory.Instance);
     }
 }
