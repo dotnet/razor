@@ -44,7 +44,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         // Act
         synchronizer.ProjectConfigurationFileChanged(args);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectServiceMock.VerifyAll();
@@ -108,7 +108,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
         synchronizer.ProjectConfigurationFileChanged(addArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         var removeArgs = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
@@ -118,7 +118,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         // Act
         synchronizer.ProjectConfigurationFileChanged(removeArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectServiceMock.VerifyAll();
@@ -141,7 +141,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         // Act
         synchronizer.ProjectConfigurationFileChanged(args);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectServiceMock.VerifyAll();
@@ -195,7 +195,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         // Act
         synchronizer.ProjectConfigurationFileChanged(args);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectServiceMock.VerifyAll();
@@ -259,7 +259,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
         synchronizer.ProjectConfigurationFileChanged(addArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         var removeArgs = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
@@ -269,7 +269,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         // Act
         synchronizer.ProjectConfigurationFileChanged(removeArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectServiceMock.VerifyAll();
@@ -343,7 +343,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
         synchronizer.ProjectConfigurationFileChanged(addArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         var changedArgs = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
@@ -353,7 +353,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         // Act
         synchronizer.ProjectConfigurationFileChanged(changedArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectServiceMock.VerifyAll();
@@ -429,7 +429,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
 
         synchronizer.ProjectConfigurationFileChanged(addArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         var changedArgs = new ProjectConfigurationFileChangeEventArgs(
             configurationFilePath: "/path/to/obj/project.razor.bin",
@@ -439,7 +439,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         // Act
         synchronizer.ProjectConfigurationFileChanged(changedArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectServiceMock.VerifyAll();
@@ -462,7 +462,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         // Act
         synchronizer.ProjectConfigurationFileChanged(changedArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectService.VerifyAll();
@@ -515,7 +515,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         synchronizer.ProjectConfigurationFileChanged(addedArgs);
         synchronizer.ProjectConfigurationFileChanged(changedArgs);
 
-        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+        await synchronizerAccessor.WaitForProjectUpdatesToDrainAsync(DisposalToken);
 
         // Assert
         projectServiceMock.Verify(p => p.UpdateProjectAsync(
