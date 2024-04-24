@@ -7,15 +7,23 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal partial class ProjectSnapshotManager
 {
-    private sealed class Dispatcher(IErrorReporter errorReporter) : IDisposable
+    private sealed class Dispatcher : IDisposable
     {
-        private readonly CustomScheduler _scheduler = new(errorReporter);
+        private readonly ILogger _logger;
+        private readonly CustomScheduler _scheduler;
+
+        public Dispatcher(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.GetOrCreateLogger<Dispatcher>();
+            _scheduler = new(_logger);
+        }
 
         public TaskScheduler Scheduler => _scheduler;
         public bool IsRunningOnDispatcher => TaskScheduler.Current == _scheduler;
@@ -81,15 +89,15 @@ internal partial class ProjectSnapshotManager
         private class CustomScheduler : TaskScheduler, IDisposable
         {
             private readonly AsyncQueue<Task> _taskQueue = new();
-            private readonly IErrorReporter _errorReporter;
+            private readonly ILogger _logger;
             private readonly CancellationTokenSource _disposeTokenSource;
 
             public override int MaximumConcurrencyLevel => 1;
 
-            public CustomScheduler(IErrorReporter errorReporter)
+            public CustomScheduler(ILogger logger)
             {
                 _taskQueue = new();
-                _errorReporter = errorReporter;
+                _logger = logger;
                 _disposeTokenSource = new();
 
                 _ = Task.Run(ProcessQueueAsync);
@@ -117,7 +125,7 @@ internal partial class ProjectSnapshotManager
                         catch (Exception ex)
                         {
                             // We don't want to crash our loop, so we report the exception and continue.
-                            _errorReporter.ReportError(ex);
+                            _logger.LogError(ex);
                         }
                     }
                 }

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // The implementation will create a ProjectSnapshot for each HostProject.
 internal partial class ProjectSnapshotManager(
     IProjectEngineFactoryProvider projectEngineFactoryProvider,
-    IErrorReporter errorReporter)
+    ILoggerFactory loggerFactory)
     : IProjectSnapshotManager, IDisposable
 {
     private static readonly LoadTextOptions s_loadTextOptions = new(SourceHashAlgorithm.Sha256);
 
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider = projectEngineFactoryProvider;
-    private readonly Dispatcher _dispatcher = new(errorReporter);
+    private readonly Dispatcher _dispatcher = new(loggerFactory);
 
     public event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
     public event EventHandler<ProjectChangeEventArgs>? Changed;

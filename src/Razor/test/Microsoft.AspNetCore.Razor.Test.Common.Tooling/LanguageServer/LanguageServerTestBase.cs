@@ -51,7 +51,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(projectEngineFactoryProvider, ErrorReporter, DisposalToken);
+        => new(projectEngineFactoryProvider, LoggerFactory, DisposalToken);
 
     internal RazorRequestContext CreateRazorRequestContext(VersionedDocumentContext? documentContext, ILspServices? lspServices = null)
     {

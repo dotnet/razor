@@ -105,8 +105,6 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
         services.AddSingleton<ILspLogger>(_logger);
 
-        services.AddSingleton<IErrorReporter, LanguageServerErrorReporter>();
-
         services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
         services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
 

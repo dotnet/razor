@@ -14,5 +14,5 @@ public abstract class VisualStudioTestBase(ITestOutputHelper testOutput) : Tooli
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(projectEngineFactoryProvider, ErrorReporter, DisposalToken);
+        => new(projectEngineFactoryProvider, LoggerFactory, DisposalToken);
 }

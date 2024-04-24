@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
@@ -46,7 +45,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     private readonly CancellationTokenSource _disposalTokenSource;
     private List<IDisposable>? _disposables;
     private List<IAsyncDisposable>? _asyncDisposables;
-    private IErrorReporter? _errorReporter;
 
     /// <summary>
     ///  A common context within which joinable tasks may be created and interact to avoid
@@ -78,8 +76,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     ///  An <see cref="ILogger"/> for the currently running test.
     /// </summary>
     private protected ILogger Logger => _logger ??= LoggerFactory.GetOrCreateLogger(GetType().Name);
-
-    private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 
     protected ToolingTestBase(ITestOutputHelper testOutput)
     {
