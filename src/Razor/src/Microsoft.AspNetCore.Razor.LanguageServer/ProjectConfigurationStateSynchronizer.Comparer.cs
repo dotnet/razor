@@ -31,7 +31,7 @@ internal partial class ProjectConfigurationStateSynchronizer
             // are equal only if their identifying properties are equal. So, only
             // configuration file paths and project keys.
 
-            if (!FilePathComparer.Instance.Equals(x.ConfigurationFilePath, y.ConfigurationFilePath))
+            if (x.ProjectKey != y.ProjectKey)
             {
                 return false;
             }

@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -23,10 +25,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener, IDisposable
 {
-    private abstract record Work(string ConfigurationFilePath);
-    private sealed record AddProject(string ConfigurationFilePath, RazorProjectInfo ProjectInfo) : Work(ConfigurationFilePath);
-    private sealed record ResetProject(string ConfigurationFilePath, ProjectKey ProjectKey) : Work(ConfigurationFilePath);
-    private sealed record UpdateProject(string ConfigurationFilePath, ProjectKey ProjectKey, RazorProjectInfo ProjectInfo) : Work(ConfigurationFilePath);
+    private abstract record Work(ProjectKey ProjectKey);
+    private sealed record AddProject(RazorProjectInfo ProjectInfo) : Work(ProjectKey.From(ProjectInfo));
+    private sealed record ResetProject(ProjectKey ProjectKey) : Work(ProjectKey);
+    private sealed record UpdateProject(ProjectKey ProjectKey, RazorProjectInfo ProjectInfo) : Work(ProjectKey);
 
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(250);
 
@@ -37,8 +39,8 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
 
-    private ImmutableDictionary<string, ProjectKey> _filePathToProjectKeyMap =
-        ImmutableDictionary<string, ProjectKey>.Empty.WithComparers(keyComparer: FilePathComparer.Instance);
+    private readonly Dictionary<ProjectKey, (ResetProject work, int index)> _resetProjectMap = new();
+    private readonly HashSet<int> _indicesToSkip = new();
 
     public ProjectConfigurationStateSynchronizer(
         IRazorProjectService projectService,
@@ -69,24 +71,81 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
     }
     private async ValueTask ProcessBatchAsync(ImmutableArray<Work> items, CancellationToken token)
     {
+        // Clear out our helper collections.
+        _resetProjectMap.Clear();
+        _indicesToSkip.Clear();
+
+        using var itemsToProcess = new PooledArrayBuilder<Work>(items.Length);
+        var index = 0;
+
         foreach (var item in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            if (item is ResetProject reset)
+            {
+                // We shouldn't ever get two resets for the same project, due to GetMostRecentUniqueItems, so the dictionary Add
+                // should always be safe
+                Debug.Assert(!_resetProjectMap.ContainsKey(reset.ProjectKey));
+
+                _resetProjectMap.Add(reset.ProjectKey, (reset, index));
+                itemsToProcess.Add(reset);
+            }
+            else if (item is AddProject add &&
+                _resetProjectMap.TryGetValue(add.ProjectKey, out var previousReset))
+            {
+                // We've already seen a Reset for this file path and now we have an Add, so let's convert to an Update
+                // and skip the Reset.
+                _indicesToSkip.Add(previousReset.index);
+
+                var update = new UpdateProject(previousReset.work.ProjectKey, add.ProjectInfo);
+                itemsToProcess.Add(update);
+                _resetProjectMap.Remove(add.ProjectKey);
+            }
+            else
+            {
+                itemsToProcess.Add(item);
+            }
+
+            index++;
+        }
+
+        // Now, loop through all of the file paths we collected and notify listeners of changes,
+        // taking care of to skip any indices that we noted earlier.
+        for (var i = 0; i < itemsToProcess.Count; i++)
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            if (_indicesToSkip.Contains(i))
+            {
+                continue;
+            }
+
+            var item = itemsToProcess[i];
+
             var itemTask = item switch
             {
-                AddProject(var configurationFilePath, var projectInfo) => AddProjectAsync(configurationFilePath, projectInfo, token),
-                ResetProject(_, var projectKey) => ResetProjectAsync(projectKey, token),
-                UpdateProject(_, var projectKey, var projectInfo) => UpdateProjectAsync(projectKey, projectInfo, token),
+                AddProject(var projectInfo) => AddProjectAsync(projectInfo, token),
+                ResetProject(var projectKey) => ResetProjectAsync(projectKey, token),
+                UpdateProject(var projectKey, var projectInfo) => UpdateProjectAsync(projectKey, projectInfo, token),
                 _ => Assumed.Unreachable<Task>()
             };
 
             await itemTask.ConfigureAwait(false);
         }
 
-        async Task AddProjectAsync(string configurationFilePath, RazorProjectInfo projectInfo, CancellationToken token)
+        async Task AddProjectAsync(RazorProjectInfo projectInfo, CancellationToken token)
         {
             var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
-            var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(configurationFilePath);
+            var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
 
+            // If the project already exists, this will be a no-op
             var projectKey = await _projectService
                 .AddProjectAsync(
                     projectFilePath,
@@ -99,8 +158,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
 
             _logger.LogInformation($"Added {projectKey.Id}.");
 
-            ImmutableInterlocked.AddOrUpdate(ref _filePathToProjectKeyMap, configurationFilePath, projectKey, static (k, v) => v);
-            _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{configurationFilePath}'");
+            _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{projectInfo.SerializedFilePath}'");
 
             await UpdateProjectAsync(projectKey, projectInfo, token).ConfigureAwait(false);
         }
@@ -138,55 +196,26 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
 
     public void ProjectConfigurationFileChanged(ProjectConfigurationFileChangeEventArgs args)
     {
-        var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-
         switch (args.Kind)
         {
             case RazorFileChangeKind.Changed:
                 {
                     if (args.TryDeserialize(_options, out var projectInfo))
                     {
-                        if (_filePathToProjectKeyMap.TryGetValue(configurationFilePath, out var projectKey))
-                        {
-                            _logger.LogInformation($"""
-                                Configuration file changed for project '{projectKey.Id}'.
-                                Configuration file path: '{configurationFilePath}'
-                                """);
+                        var projectKey = ProjectKey.From(projectInfo);
+                        _logger.LogInformation($"Configuration file changed for project '{projectKey.Id}'.");
 
-                            _workQueue.AddWork(new UpdateProject(configurationFilePath, projectKey, projectInfo));
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"""
-                                Adding project for previously unseen configuration file.
-                                Configuration file path: '{configurationFilePath}'
-                                """);
-
-                            _workQueue.AddWork(new AddProject(configurationFilePath, projectInfo));
-                        }
+                        // UpdateProject will no-op if the project isn't known
+                        _workQueue.AddWork(new UpdateProject(projectKey, projectInfo));
                     }
                     else
                     {
-                        if (_filePathToProjectKeyMap.TryGetValue(configurationFilePath, out var projectKey))
-                        {
-                            _logger.LogWarning($"""
-                                Failed to deserialize after change to configuration file for project '{projectKey.Id}'.
-                                Configuration file path: '{configurationFilePath}'
-                                """);
+                        var projectKey = ProjectKey.FromString(FilePathNormalizer.GetNormalizedDirectoryName(args.ConfigurationFilePath));
+                        _logger.LogWarning($"Failed to deserialize after change to configuration file for project '{projectKey.Id}'.");
 
-                            // We found the last associated project file for the configuration file. Reset the project since we can't
-                            // accurately determine its configurations.
-
-                            _workQueue.AddWork(new ResetProject(configurationFilePath, projectKey));
-                        }
-                        else
-                        {
-                            // Could not resolve an associated project file.
-                            _logger.LogWarning($"""
-                                Failed to deserialize after change to previously unseen configuration file.
-                                Configuration file path: '{configurationFilePath}'
-                                """);
-                        }
+                        // We found the last associated project file for the configuration file. Reset the project since we can't
+                        // accurately determine its configurations.
+                        _workQueue.AddWork(new ResetProject(projectKey));
                     }
                 }
 
@@ -196,16 +225,13 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
                 {
                     if (args.TryDeserialize(_options, out var projectInfo))
                     {
-                        _workQueue.AddWork(new AddProject(configurationFilePath, projectInfo));
+                        _workQueue.AddWork(new AddProject(projectInfo));
                     }
                     else
                     {
                         // This is the first time we've seen this configuration file, but we can't deserialize it.
                         // The only thing we can really do is issue a warning.
-                        _logger.LogWarning($"""
-                            Failed to deserialize previously unseen configuration file.
-                            Configuration file path: '{configurationFilePath}'
-                            """);
+                        _logger.LogWarning($"Failed to deserialize previously unseen configuration file '{args.ConfigurationFilePath}'");
                     }
                 }
 
@@ -213,22 +239,10 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
 
             case RazorFileChangeKind.Removed:
                 {
-                    if (ImmutableInterlocked.TryRemove(ref _filePathToProjectKeyMap, configurationFilePath, out var projectKey))
-                    {
-                        _logger.LogInformation($"""
-                            Configuration file removed for project '{projectKey}'.
-                            Configuration file path: '{configurationFilePath}'
-                            """);
+                    var projectKey = ProjectKey.FromString(FilePathNormalizer.GetNormalizedDirectoryName(args.ConfigurationFilePath));
+                    _logger.LogInformation($"Configuration file removed for project '{projectKey}'.");
 
-                        _workQueue.AddWork(new ResetProject(configurationFilePath, projectKey));
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"""
-                            Failed to resolve associated project on configuration removed event.
-                            Configuration file path: '{configurationFilePath}'
-                            """);
-                    }
+                    _workQueue.AddWork(new ResetProject(projectKey));
                 }
 
                 break;
