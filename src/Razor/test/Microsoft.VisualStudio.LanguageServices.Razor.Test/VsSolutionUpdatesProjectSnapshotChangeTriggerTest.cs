@@ -69,7 +69,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
     }
 
     private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
-        => new VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter);
+        => new VisualStudioProjectSnapshotManagerDispatcher(LoggerFactory);
 
     [UIFact]
     public async Task Initialize_AttachesEventSink()

@@ -14,7 +14,7 @@ public abstract class VisualStudioTestBase(ITestOutputHelper testOutput) : Tooli
 {
     private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
     {
-        var dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter);
+        var dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(LoggerFactory);
         AddDisposable(dispatcher);
 
         return dispatcher;

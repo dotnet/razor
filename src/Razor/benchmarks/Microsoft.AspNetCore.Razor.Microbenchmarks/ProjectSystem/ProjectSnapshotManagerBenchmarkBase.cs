@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.Logging;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -23,7 +24,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     internal ImmutableArray<TextLoader> TextLoaders { get; }
     protected string RepoRoot { get; }
     private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
-    private protected IErrorReporter ErrorReporter { get; }
 
     protected ProjectSnapshotManagerBenchmarkBase(int documentCount = 100)
     {
@@ -67,8 +67,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             .Setup(x => x.GetOrCreateLogger(It.IsAny<string>()))
             .Returns(Mock.Of<ILogger>(MockBehavior.Strict));
 
-        ErrorReporter = new TestErrorReporter();
-        Dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
+        Dispatcher = new LSPProjectSnapshotManagerDispatcher(EmptyLoggingFactory.Instance);
     }
 
     internal ProjectSnapshotManager CreateProjectSnapshotManager()
