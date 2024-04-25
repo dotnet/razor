@@ -26,6 +26,7 @@ internal sealed class RazorActivityLog : IDisposable
     private readonly AsyncBatchingWorkQueue<(EntryType, string)> _loggingQueue;
     private IVsActivityLog? _vsActivityLog;
 
+    [ImportingConstructor]
     public RazorActivityLog(
         [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
         JoinableTaskContext joinableTaskContext)
