@@ -47,6 +47,8 @@ stages:
       matrix:
         release:
           _configuration: Release
+        debug:
+          _configuration: Debug
     testMachineTotalCount: 1
     testAgentElevated: true
     preTestMachineConfigurationStepList:
