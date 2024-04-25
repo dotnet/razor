@@ -1,17 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
 internal partial class RazorProjectInfoEndpointPublisher
 {
-    internal static TestAccessor GetTestAccessor(LSPRequestInvoker requestInvoker, IProjectSnapshotManager projectSnapshotManager)
-        => new(new RazorProjectInfoEndpointPublisher(requestInvoker, projectSnapshotManager, TimeSpan.FromMilliseconds(1)));
+    internal TestAccessor GetTestAccessor()
+        => new(this);
 
     internal sealed class TestAccessor(RazorProjectInfoEndpointPublisher instance)
     {
@@ -26,11 +24,6 @@ internal partial class RazorProjectInfoEndpointPublisher
         /// </summary>
         public void EnqueuePublish(IProjectSnapshot projectSnapshot)
              => instance.EnqueuePublish(projectSnapshot);
-
-        /// <summary>
-        /// Delegates StartSending() call to wrapped instance for unit tests
-        /// </summary>
-        public void StartSending() => instance.StartSending();
 
         /// <summary>
         /// Allows unit tests to wait for all work queue items to be processed.

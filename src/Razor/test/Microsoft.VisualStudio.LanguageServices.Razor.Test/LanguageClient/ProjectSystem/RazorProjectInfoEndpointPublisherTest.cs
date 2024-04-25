@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,9 +51,8 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
-            requestInvoker.Object,
-            projectManager);
+        using var publisher = CreateRazorProjectInfoEndpointPublisher(requestInvoker.Object, projectManager);
+        var publisherAccessor = publisher.GetTestAccessor();
 
         var documentRemovedArgs = ProjectChangeEventArgs.CreateTestInstance(
             initialProjectSnapshot, initialProjectSnapshot, documentFilePath: @"C:\path\to\file.razor", ProjectChangeKind.DocumentRemoved);
@@ -60,9 +60,9 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             initialProjectSnapshot, expectedProjectSnapshot, documentFilePath: null!, ProjectChangeKind.ProjectChanged);
 
         // Act
-        publisher.ProjectManager_Changed(null!, documentRemovedArgs);
-        publisher.ProjectManager_Changed(null!, projectChangedArgs);
-        await publisher.WaitUntilCurrentBatchCompletesAsync();
+        publisherAccessor.ProjectManager_Changed(null!, documentRemovedArgs);
+        publisherAccessor.ProjectManager_Changed(null!, projectChangedArgs);
+        await publisherAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         Assert.Equal(1, callCount);
@@ -93,16 +93,15 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
-            requestInvoker.Object,
-            projectManager);
+        using var publisher = CreateRazorProjectInfoEndpointPublisher(requestInvoker.Object, projectManager);
+        var publisherAccessor = publisher.GetTestAccessor();
 
         // Act
         await projectManager.UpdateAsync(updater =>
         {
             updater.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
         });
-        await publisher.WaitUntilCurrentBatchCompletesAsync();
+        await publisherAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         Assert.Equal(0, callCount);
@@ -137,9 +136,7 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             .Callback<string, string, ProjectInfoParams, CancellationToken>((s1, s2, param, ct) => callCount++)
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
-            requestInvoker.Object,
-            projectManager);
+        using var publisher = CreateRazorProjectInfoEndpointPublisher(requestInvoker.Object, projectManager);
 
         // Act
         publisher.StartSending();
@@ -178,17 +175,16 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
                 })
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
-            requestInvoker.Object,
-            projectManager);
+        using var publisher = CreateRazorProjectInfoEndpointPublisher(requestInvoker.Object, projectManager);
+        var publisherAccessor = publisher.GetTestAccessor();
 
         var args = ProjectChangeEventArgs.CreateTestInstance(projectSnapshot, projectSnapshot, documentFilePath: null!, changeKind);
 
         // Act
-        publisher.ProjectManager_Changed(null!, args);
+        publisherAccessor.ProjectManager_Changed(null!, args);
         if (waitForQueueEmpty)
         {
-            await publisher.WaitUntilCurrentBatchCompletesAsync();
+            await publisherAccessor.WaitUntilCurrentBatchCompletesAsync();
         }
 
         // Assert
@@ -232,14 +228,13 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
             })
             .ReturnsAsync(new ReinvokeResponse<object>());
 
-        var publisher = RazorProjectInfoEndpointPublisher.GetTestAccessor(
-            requestInvoker.Object,
-            projectManager);
+        using var publisher = CreateRazorProjectInfoEndpointPublisher(requestInvoker.Object, projectManager);
+        var publisherAccessor = publisher.GetTestAccessor();
 
         // Act
-        publisher.EnqueuePublish(firstSnapshot);
-        publisher.EnqueuePublish(secondSnapshot);
-        await publisher.WaitUntilCurrentBatchCompletesAsync();
+        publisherAccessor.EnqueuePublish(firstSnapshot);
+        publisherAccessor.EnqueuePublish(secondSnapshot);
+        await publisherAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         Assert.Equal(1, callCount);
@@ -259,4 +254,8 @@ public class RazorProjectInfoEndpointPublisherTest(ITestOutputHelper testOutput)
     {
         return TestProjectSnapshot.Create(projectFilePath, documentFilePaths);
     }
+
+    private static RazorProjectInfoEndpointPublisher CreateRazorProjectInfoEndpointPublisher(
+        LSPRequestInvoker requestInvoker,
+        IProjectSnapshotManager projectSnapshotManager) => new(requestInvoker, projectSnapshotManager, TimeSpan.FromMilliseconds(1));
 }
