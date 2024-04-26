@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -217,9 +218,16 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         public IProjectSnapshot GetMiscellaneousProject()
             => throw new NotImplementedException();
 
-        public IDocumentSnapshot? ResolveDocumentInAnyProject(string documentFilePath)
-            => documentFilePath == _documentSnapshot?.FilePath
-                ? _documentSnapshot
-                : null;
+        public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+        {
+            if (documentFilePath == _documentSnapshot?.FilePath)
+            {
+                document = _documentSnapshot;
+                return true;
+            }
+
+            document = null;
+            return false;
+        }
     }
 }

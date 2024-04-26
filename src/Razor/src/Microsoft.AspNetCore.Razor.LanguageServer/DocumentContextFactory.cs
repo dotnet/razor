@@ -100,8 +100,7 @@ internal sealed class DocumentContextFactory(
     {
         if (projectContext is null)
         {
-            documentSnapshot = _snapshotResolver.ResolveDocumentInAnyProject(filePath);
-            return documentSnapshot is not null;
+            return _snapshotResolver.TryResolveDocumentInAnyProject(filePath, out documentSnapshot);
         }
 
         if (_projectManager.TryGetLoadedProject(projectContext.ToProjectKey(), out var project) &&

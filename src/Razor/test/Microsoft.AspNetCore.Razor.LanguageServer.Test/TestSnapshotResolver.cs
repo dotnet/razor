@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -38,6 +39,9 @@ internal class TestSnapshotResolver : ISnapshotResolver
     public IProjectSnapshot GetMiscellaneousProject()
         => _miscProject;
 
-    public IDocumentSnapshot? ResolveDocumentInAnyProject(string documentFilePath)
-        => null;
+    public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    {
+        document = null;
+        return false;
+    }
 }

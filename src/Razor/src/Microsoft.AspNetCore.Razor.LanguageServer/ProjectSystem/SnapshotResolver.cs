@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -78,24 +79,20 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         return _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
     }
 
-    public IDocumentSnapshot? ResolveDocumentInAnyProject(string documentFilePath)
+    public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
         _logger.LogTrace($"Looking for {documentFilePath}.");
-
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
         var potentialProjects = FindPotentialProjects(documentFilePath);
 
         foreach (var project in potentialProjects)
         {
-            if (project.GetDocument(normalizedDocumentPath) is { } document)
+            if (project.GetDocument(normalizedDocumentPath) is { } projectDocument)
             {
                 _logger.LogTrace($"Found {documentFilePath} in {project.FilePath}");
-                return document;
+                document = projectDocument;
+                return true;
             }
         }
 
@@ -105,11 +102,13 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         if (miscellaneousProject.GetDocument(normalizedDocumentPath) is { } miscDocument)
         {
             _logger.LogTrace($"Found {documentFilePath} in miscellaneous project.");
-            return miscDocument;
+            document = miscDocument;
+            return true;
         }
 
         _logger.LogTrace($"{documentFilePath} not found in {string.Join(", ", _projectManager.GetProjects().SelectMany(p => p.DocumentFilePaths))}");
 
-        return null;
+        document = null;
+        return false;
     }
 }
