@@ -258,7 +258,7 @@ internal class RazorProjectService(
         CancellationToken cancellationToken)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        var projects = await _snapshotResolver.TryResolveAllProjectsAsync(textDocumentPath, cancellationToken).ConfigureAwait(false);
+        var projects = _snapshotResolver.TryResolveAllProjects(textDocumentPath);
         if (projects.IsEmpty)
         {
             var miscFilesProject = _snapshotResolver.GetMiscellaneousProject();

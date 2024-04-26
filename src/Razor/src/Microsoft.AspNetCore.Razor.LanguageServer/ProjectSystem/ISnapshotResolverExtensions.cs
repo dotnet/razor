@@ -12,10 +12,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal static class ISnapshotResolverExtensions
 {
-    public static async Task<ImmutableArray<IProjectSnapshot>> TryResolveAllProjectsAsync(
+    public static ImmutableArray<IProjectSnapshot> TryResolveAllProjects(
         this ISnapshotResolver snapshotResolver,
-        string documentFilePath,
-        CancellationToken cancellationToken)
+        string documentFilePath)
     {
         var potentialProjects = snapshotResolver.FindPotentialProjects(documentFilePath);
 

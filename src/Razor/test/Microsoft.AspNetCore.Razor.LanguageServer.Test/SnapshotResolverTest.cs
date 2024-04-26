@@ -85,7 +85,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
-        var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
+        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
 
         // Assert
         Assert.Empty(projects);
@@ -101,7 +101,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
-        var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
+        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
 
         // Assert
         Assert.Empty(projects);
@@ -116,7 +116,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
-        var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
+        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
 
         // Assert
         var miscFilesProject = snapshotResolver.GetMiscellaneousProject();
@@ -138,7 +138,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
+        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
 
         // Assert
         Assert.Empty(projects);
@@ -164,7 +164,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
+        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
 
         // Assert
         var project = Assert.Single(projects);
@@ -192,7 +192,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
+        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
 
         // Assert
         var project = Assert.Single(projects);
@@ -217,7 +217,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
+        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
 
         // Assert
         var project = Assert.Single(projects);
