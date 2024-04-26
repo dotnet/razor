@@ -92,9 +92,7 @@ internal sealed class DocumentContextFactory(
     {
         if (projectContext is null)
         {
-            return await _snapshotResolver
-                .ResolveDocumentInAnyProjectAsync(filePath, cancellationToken)
-                .ConfigureAwait(false);
+            return _snapshotResolver.ResolveDocumentInAnyProject(filePath);
         }
 
         if (_projectManager.TryGetLoadedProject(projectContext.ToProjectKey(), out var project) &&

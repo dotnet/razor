@@ -78,7 +78,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         return _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
     }
 
-    public async Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken)
+    public IDocumentSnapshot? ResolveDocumentInAnyProject(string documentFilePath)
     {
         _logger.LogTrace($"Looking for {documentFilePath}.");
 

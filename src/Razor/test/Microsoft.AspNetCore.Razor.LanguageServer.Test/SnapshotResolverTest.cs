@@ -24,7 +24,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = await CreateSnapshotResolverAsync(normalizedFilePath);
 
         // Act
-        var document = await snapshotResolver.ResolveDocumentInAnyProjectAsync(documentFilePath, DisposalToken);
+        var document = snapshotResolver.ResolveDocumentInAnyProject(documentFilePath);
 
         // Assert
         Assert.NotNull(document);
@@ -52,7 +52,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var document = await snapshotResolver.ResolveDocumentInAnyProjectAsync(documentFilePath, DisposalToken);
+        var document = snapshotResolver.ResolveDocumentInAnyProject(documentFilePath);
 
         // Assert
         Assert.NotNull(document);
@@ -69,7 +69,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
-        var document = await snapshotResolver.ResolveDocumentInAnyProjectAsync(documentFilePath, DisposalToken);
+        var document = snapshotResolver.ResolveDocumentInAnyProject(documentFilePath);
 
         // Assert
         Assert.Null(document);

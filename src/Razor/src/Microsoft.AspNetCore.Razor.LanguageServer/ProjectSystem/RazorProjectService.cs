@@ -123,9 +123,7 @@ internal class RazorProjectService(
         // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
         // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
         // we process them all too
-        var document = await _snapshotResolver
-            .ResolveDocumentInAnyProjectAsync(textDocumentPath, cancellationToken)
-            .ConfigureAwait(false);
+        var document = _snapshotResolver.ResolveDocumentInAnyProject(textDocumentPath);
 
         if (document is null)
         {

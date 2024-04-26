@@ -23,5 +23,5 @@ internal interface ISnapshotResolver
     /// Finds a <see cref="IDocumentSnapshot"/> for the given document path that is contained within any project, and returns the first
     /// one found if it does. This method should be avoided where possible, and the overload that takes a <see cref="ProjectKey"/> should be used instead
     /// </summary>
-    Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken);
+    IDocumentSnapshot? ResolveDocumentInAnyProject(string documentFilePath);
 }

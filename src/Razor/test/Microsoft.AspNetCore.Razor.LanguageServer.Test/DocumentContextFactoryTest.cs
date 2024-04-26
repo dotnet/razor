@@ -217,9 +217,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         public IProjectSnapshot GetMiscellaneousProject()
             => throw new NotImplementedException();
 
-        public Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken)
+        public IDocumentSnapshot? ResolveDocumentInAnyProject(string documentFilePath)
             => documentFilePath == _documentSnapshot?.FilePath
-                ? Task.FromResult<IDocumentSnapshot?>(_documentSnapshot)
-                : Task.FromResult<IDocumentSnapshot?>(null);
+                ? _documentSnapshot
+                : null;
     }
 }

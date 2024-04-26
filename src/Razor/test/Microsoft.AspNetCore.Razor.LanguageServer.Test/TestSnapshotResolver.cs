@@ -38,6 +38,6 @@ internal class TestSnapshotResolver : ISnapshotResolver
     public IProjectSnapshot GetMiscellaneousProject()
         => _miscProject;
 
-    public Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken)
-        => Task.FromResult<IDocumentSnapshot?>(null);
+    public IDocumentSnapshot? ResolveDocumentInAnyProject(string documentFilePath)
+        => null;
 }
