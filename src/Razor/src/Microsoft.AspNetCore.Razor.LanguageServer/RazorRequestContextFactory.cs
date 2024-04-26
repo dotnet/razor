@@ -17,7 +17,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 {
     private readonly ILspServices _lspServices = lspServices;
 
-    public override async Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
+    public override Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
     {
         var logger = _lspServices.GetRequiredService<ILoggerFactory>().GetOrCreateLogger<RazorRequestContextFactory>();
 
@@ -58,6 +58,6 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
         var requestContext = new RazorRequestContext(documentContext, _lspServices, queueItem.MethodName, uri);
 
-        return requestContext;
+        return Task.FromResult(requestContext);
     }
 }
