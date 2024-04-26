@@ -46,7 +46,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreate(uri);
 
         // Assert
         Assert.Null(documentContext);
@@ -65,7 +65,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreateForOpenDocument(uri);
 
         // Assert
         Assert.Null(documentContext);
@@ -84,7 +84,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreateForOpenDocument(uri);
 
         // Assert
         Assert.Null(documentContext);
@@ -105,7 +105,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreate(uri);
 
         // Assert
         Assert.NotNull(documentContext);
@@ -139,7 +139,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         });
 
         // Act
-        var documentContext = await factory.TryCreateAsync(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id }, DisposalToken);
+        var documentContext = factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id });
 
         // Assert
         Assert.NotNull(documentContext);
@@ -171,7 +171,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         });
 
         // Act
-        var documentContext = await factory.TryCreateAsync(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id }, DisposalToken);
+        var documentContext = factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id });
 
         // Assert
         Assert.NotNull(documentContext);
@@ -195,7 +195,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreateForOpenDocument(uri);
 
         // Assert
         Assert.NotNull(documentContext);

@@ -56,7 +56,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
-        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, null, DisposalToken);
+        var documentContext = documentContextFactory.TryCreateForOpenDocument(uri, null);
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -121,7 +121,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
-        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, null, DisposalToken);
+        var documentContext = documentContextFactory.TryCreateForOpenDocument(uri, null);
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -197,7 +197,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
-        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, null, DisposalToken);
+        var documentContext = documentContextFactory.TryCreateForOpenDocument(uri, null);
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -424,7 +424,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
-        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, null, DisposalToken);
+        var documentContext = documentContextFactory.TryCreateForOpenDocument(uri, null);
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 

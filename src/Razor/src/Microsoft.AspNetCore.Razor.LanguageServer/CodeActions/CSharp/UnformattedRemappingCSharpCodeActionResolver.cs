@@ -54,7 +54,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeA
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(csharpParams.RazorFileIdentifier, cancellationToken).ConfigureAwait(false);
+        var documentContext = _documentContextFactory.TryCreateForOpenDocument(csharpParams.RazorFileIdentifier);
         if (documentContext is null)
         {
             return codeAction;

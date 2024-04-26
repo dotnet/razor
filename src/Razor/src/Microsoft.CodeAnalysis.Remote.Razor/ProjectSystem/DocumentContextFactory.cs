@@ -3,8 +3,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 [Export(typeof(IDocumentContextFactory)), Shared]
 internal class DocumentContextFactory : IDocumentContextFactory
 {
-    public Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+    public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
     {
         throw new NotSupportedException("OOP doesn't support this yet, because we don't have a way to pass in the right solution snapshot to use");
     }

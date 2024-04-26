@@ -85,7 +85,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(mapping.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var documentContext = _documentContextFactory.TryCreateForOpenDocument(mapping.TextDocument.Uri);
             if (documentContext is null)
             {
                 continue;
@@ -356,7 +356,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(potentialLocation.Uri, cancellationToken).ConfigureAwait(false);
+                var documentContext = _documentContextFactory.TryCreateForOpenDocument(potentialLocation.Uri);
                 if (documentContext is null)
                 {
                     continue;

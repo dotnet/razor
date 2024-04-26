@@ -35,7 +35,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
                 logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName} for {textDocumentIdentifier.GetProjectContext()?.Id ?? "(no project context)"} for {uri}");
 
-                documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+                documentContext = documentContextFactory.TryCreateForOpenDocument(textDocumentIdentifier);
             }
             else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
             {
@@ -43,7 +43,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
                 logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName}, with no project context, for {uri}");
 
-                documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken).ConfigureAwait(false);
+                documentContext = documentContextFactory.TryCreateForOpenDocument(uri);
             }
             else
             {

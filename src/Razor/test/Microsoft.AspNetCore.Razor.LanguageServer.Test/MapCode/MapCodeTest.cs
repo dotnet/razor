@@ -359,7 +359,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             Mappings = mappings
         };
 
-        var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(request.Mappings[0].TextDocument!, DisposalToken);
+        var documentContext = documentContextFactory.TryCreateForOpenDocument(request.Mappings[0].TextDocument!);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
