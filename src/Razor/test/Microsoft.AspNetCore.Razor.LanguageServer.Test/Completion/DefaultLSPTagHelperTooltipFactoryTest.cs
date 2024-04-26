@@ -67,6 +67,7 @@ World", cleanedSummary);
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var elementDescription = AggregateBoundElementDescription.Empty;
 
@@ -82,6 +83,7 @@ World", cleanedSummary);
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedTagHelperInfos = new[]
         {
@@ -104,6 +106,7 @@ Uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedTagHelperInfos = new[]
         {
@@ -123,10 +126,11 @@ Uses `List<System.String>`s", markdown.Value);
     }
 
     [Fact]
-    public void TryCreateTooltip_Markup_Attribute_PlainText_NoBold()
+    public async Task TryCreateTooltip_Markup_Attribute_PlainText_NoBold()
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedAttributeDescriptions = new[]
         {
@@ -154,6 +158,7 @@ Uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedTagHelperInfos = new[]
         {
@@ -178,10 +183,11 @@ Also uses `List<System.String>`s", markdown.Value);
     }
 
     [Fact]
-    public void TryCreateTooltip_Markup_Attribute_SingleAssociatedAttribute_ReturnsTrue()
+    public async Task TryCreateTooltip_Markup_Attribute_SingleAssociatedAttribute_ReturnsTrue()
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedAttributeDescriptions = new[]
         {
@@ -205,10 +211,11 @@ Uses `List<System.String>`s", markdown.Value);
     }
 
     [Fact]
-    public void TryCreateTooltip_Markup_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
+    public async Task TryCreateTooltip_Markup_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedAttributeDescriptions = new[]
         {

@@ -40,7 +40,10 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
-        var factory = new DocumentContextFactory(_projectManager, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
+
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
         var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
@@ -56,7 +59,10 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
-        var factory = new DocumentContextFactory(_projectManager, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
+
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
         var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
@@ -73,8 +79,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var uri = new Uri(filePath);
 
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
-        var factory = new DocumentContextFactory(_projectManager, documentResolver, _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
+        await snapshotResolver.InitializeAsync(DisposalToken);
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
         var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
@@ -93,8 +100,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
-        var factory = new DocumentContextFactory(_projectManager, documentResolver, _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
+        await snapshotResolver.InitializeAsync(DisposalToken);
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
         var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
@@ -117,8 +125,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
-        var factory = new DocumentContextFactory(_projectManager, documentResolver, _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
+        await snapshotResolver.InitializeAsync(DisposalToken);
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         var hostDocument = new HostDocument(filePath, "file.cshtml");
@@ -180,9 +189,10 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
+        var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
+        await snapshotResolver.InitializeAsync(DisposalToken);
         _documentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337);
-        var factory = new DocumentContextFactory(_projectManager, documentResolver, _documentVersionCache, LoggerFactory);
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
         var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
@@ -194,9 +204,12 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }
 
-    private class TestDocumentResolver(IDocumentSnapshot? documentSnapshot = null) : ISnapshotResolver
+    private sealed class TestSnapshotResolver(IDocumentSnapshot? documentSnapshot = null) : ISnapshotResolver
     {
         private readonly IDocumentSnapshot? _documentSnapshot = documentSnapshot;
+
+        public Task InitializeAsync(CancellationToken cancellationToken)
+            => Task.CompletedTask;
 
         public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
             => throw new NotImplementedException();

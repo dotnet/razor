@@ -27,6 +27,9 @@ internal class TestSnapshotResolver : ISnapshotResolver
         _projects = [.. projects];
     }
 
+    public Task InitializeAsync(CancellationToken cancellationToken)
+        => Task.CompletedTask;
+
     public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
         => documentFilePath == _filePath
             ? _projects

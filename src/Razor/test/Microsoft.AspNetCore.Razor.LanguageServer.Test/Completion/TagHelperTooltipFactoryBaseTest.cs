@@ -346,6 +346,7 @@ There is no xml, but I got you this < and the >.
     public async Task GetAvailableProjects_NoProjects_ReturnsNull()
     {
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var service = new TestTagHelperToolTipFactory(snapshotResolver);
 
         var availability = await service.GetProjectAvailabilityAsync("file.razor", "MyTagHelper", CancellationToken.None);
@@ -370,6 +371,7 @@ There is no xml, but I got you this < and the >.
         var project = TestProjectSnapshot.Create(projectFilePath, documentFilePaths: [razorFilePath], projectWorkspaceState);
 
         var snapshotResolver = new TestSnapshotResolver(razorFilePath, project);
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var service = new TestTagHelperToolTipFactory(snapshotResolver);
 
         var availability = await service.GetProjectAvailabilityAsync(razorFilePath, tagHelperTypeName, CancellationToken.None);
@@ -407,6 +409,7 @@ There is no xml, but I got you this < and the >.
            projectWorkspaceState);
 
         var snapshotResolver = new TestSnapshotResolver(razorFilePath, project1, project2);
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var service = new TestTagHelperToolTipFactory(snapshotResolver);
 
         var availability = await service.GetProjectAvailabilityAsync(razorFilePath, tagHelperTypeName, CancellationToken.None);
@@ -446,6 +449,7 @@ There is no xml, but I got you this < and the >.
             displayName: "project2");
 
         var snapshotResolver = new TestSnapshotResolver(razorFilePath, project1, project2);
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var service = new TestTagHelperToolTipFactory(snapshotResolver);
 
         var availability = await service.GetProjectAvailabilityAsync(razorFilePath, tagHelperTypeName, CancellationToken.None);
@@ -482,6 +486,7 @@ There is no xml, but I got you this < and the >.
            displayName: "project2");
 
         var snapshotResolver = new TestSnapshotResolver(razorFilePath, project1, project2);
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var service = new TestTagHelperToolTipFactory(snapshotResolver);
 
         var availability = await service.GetProjectAvailabilityAsync(razorFilePath, "MyTagHelper", CancellationToken.None);

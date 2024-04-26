@@ -17,20 +17,21 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-public class RazorCompletionItemResolverTest : LanguageServerTestBase
+public class RazorCompletionItemResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
-    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
-    private readonly VSInternalCompletionSetting _completionCapability;
-    private readonly VSInternalClientCapabilities _defaultClientCapability;
-    private readonly VSInternalClientCapabilities _vsClientCapability;
-    private readonly AggregateBoundAttributeDescription _attributeDescription;
-    private readonly AggregateBoundElementDescription _elementDescription;
+    private LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
+    private VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
+    private VSInternalCompletionSetting _completionCapability;
+    private VSInternalClientCapabilities _defaultClientCapability;
+    private VSInternalClientCapabilities _vsClientCapability;
+    private AggregateBoundAttributeDescription _attributeDescription;
+    private AggregateBoundElementDescription _elementDescription;
 
-    public RazorCompletionItemResolverTest(ITestOutputHelper testOutput)
-        : base(testOutput)
+    protected async override Task InitializeAsync()
     {
         var snapshotResolver = new TestSnapshotResolver();
+        await snapshotResolver.InitializeAsync(DisposalToken);
+
         _lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         _vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         _completionCapability = new VSInternalCompletionSetting()

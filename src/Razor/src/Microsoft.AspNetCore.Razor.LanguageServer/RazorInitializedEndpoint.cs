@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,6 +20,9 @@ internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams
     {
         var onStartedItems = requestContext.LspServices.GetRequiredServices<IOnInitialized>();
         var capabilitiesService = requestContext.GetRequiredService<IClientCapabilitiesService>();
+
+        var snapshotResolver = requestContext.LspServices.GetRequiredService<ISnapshotResolver>();
+        await snapshotResolver.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
         var fileChangeDetectorManager = requestContext.LspServices.GetRequiredService<RazorFileChangeDetectorManager>();
         await fileChangeDetectorManager.InitializedAsync(cancellationToken).ConfigureAwait(false);

@@ -39,6 +39,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var normalizedFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         await projectManager.UpdateAsync(async updater =>
         {
@@ -65,6 +66,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = @"C:\path\to\document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
         var document = await snapshotResolver.ResolveDocumentInAnyProjectAsync(documentFilePath, DisposalToken);
@@ -80,6 +82,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
         var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
@@ -95,6 +98,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
 
@@ -111,6 +115,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         // Arrange
         var documentFilePath = Path.Combine(TempDirectory.Instance.DirectoryPath, "document.cshtml");
         var snapshotResolver = await CreateSnapshotResolverAsync(documentFilePath, addToMiscellaneous: true);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
         var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
@@ -127,6 +132,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -147,6 +153,9 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
 
+        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
+
         var expectedProject = await projectManager.UpdateAsync(updater =>
         {
             var expectedProject = updater.CreateAndAddProject("C:/path/to/project.csproj");
@@ -155,8 +164,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
             return expectedProject;
         });
-
-        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
 
         // Act
         var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
@@ -175,6 +182,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         var miscProject = await projectManager.UpdateAsync(async updater =>
         {
@@ -200,6 +208,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "c:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         var ownerProject = await projectManager.UpdateAsync(updater =>
         {
@@ -223,6 +232,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
         var project = await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
@@ -238,6 +248,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
         var project = await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
@@ -253,6 +264,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
         if (addToMiscellaneous)
         {

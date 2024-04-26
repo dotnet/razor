@@ -24,20 +24,23 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class RazorProjectServiceTest : LanguageServerTestBase
+public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     private static readonly SourceText s_emptyText = SourceText.From("");
 
-    private readonly TestProjectSnapshotManager _projectManager;
-    private readonly SnapshotResolver _snapshotResolver;
-    private readonly DocumentVersionCache _documentVersionCache;
-    private readonly RazorProjectService _projectService;
+    // Each of these is initialized by InitializeAsync() below.
+#nullable disable
+    private TestProjectSnapshotManager _projectManager;
+    private SnapshotResolver _snapshotResolver;
+    private DocumentVersionCache _documentVersionCache;
+    private RazorProjectService _projectService;
+#nullable enable
 
-    public RazorProjectServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
+    protected override async Task InitializeAsync()
     {
         _projectManager = CreateProjectSnapshotManager();
         _snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
+        await _snapshotResolver.InitializeAsync(DisposalToken);
         _documentVersionCache = new DocumentVersionCache(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();

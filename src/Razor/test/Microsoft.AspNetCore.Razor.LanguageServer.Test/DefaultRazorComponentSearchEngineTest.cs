@@ -47,6 +47,7 @@ public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
         _projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
         var documentVersionCache = new DocumentVersionCache(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();

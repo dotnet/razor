@@ -10,6 +10,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal interface ISnapshotResolver
 {
+    Task InitializeAsync(CancellationToken cancellationToken);
+
     /// <summary>
     /// Finds all the projects where the document path starts with the path of the folder that contains the project file.
     /// </summary>

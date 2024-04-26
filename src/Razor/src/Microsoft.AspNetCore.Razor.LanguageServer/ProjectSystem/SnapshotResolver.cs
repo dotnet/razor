@@ -33,6 +33,16 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null, "Miscellaneous Files");
     }
 
+    public Task InitializeAsync(CancellationToken cancellationToken)
+    {
+        // This is called when the language server is initialized.
+
+        return _projectManager.UpdateAsync(
+            (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
+            state: MiscellaneousHostProject,
+            cancellationToken);
+    }
+
     /// <inheritdoc/>
     public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
     {

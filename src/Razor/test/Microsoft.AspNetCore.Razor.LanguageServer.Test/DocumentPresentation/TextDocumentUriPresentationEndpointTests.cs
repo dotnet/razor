@@ -29,10 +29,14 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     public async Task Handle_SimpleComponent_ReturnsResult()
     {
         // Arrange
-        var manager = CreateProjectSnapshotManager();
-        var project = await manager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
-        await manager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
-        await manager.CreateAndAddDocumentAsync(project, "c:/path/MyTagHelper.razor");
+        var projectManager = CreateProjectSnapshotManager();
+
+        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
+
+        var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
+        await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
+        await projectManager.CreateAndAddDocumentAsync(project, "c:/path/MyTagHelper.razor");
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -42,17 +46,16 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         builder.SetMetadata(TypeNameIdentifier("MyTagHelper"), TypeNamespace("TestRootNamespace"));
         var tagHelperDescriptor = builder.Build();
 
-        await manager.UpdateAsync(updater => updater.ProjectWorkspaceStateChanged(project.Key, ProjectWorkspaceState.Create([tagHelperDescriptor])));
+        await projectManager.UpdateAsync(updater => updater.ProjectWorkspaceStateChanged(project.Key, ProjectWorkspaceState.Create([tagHelperDescriptor])));
 
         var razorFilePath = "c:/path/index.razor";
         var uri = new Uri(razorFilePath);
 
-        var snapshotResolver = new SnapshotResolver(manager, LoggerFactory);
-        var documentVersionCache = new DocumentVersionCache(manager);
-        await manager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
-        var documentSnapshot = manager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
+        var documentVersionCache = new DocumentVersionCache(projectManager);
+        await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
+        var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
-        var documentContextFactory = new DocumentContextFactory(manager, snapshotResolver, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
         var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, null, DisposalToken);
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
@@ -91,10 +94,14 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     public async Task Handle_SimpleComponentWithChildFile_ReturnsResult()
     {
         // Arrange
-        var manager = CreateProjectSnapshotManager();
-        var project = await manager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
-        await manager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
-        await manager.CreateAndAddDocumentAsync(project, "c:/path/MyTagHelper.razor");
+        var projectManager = CreateProjectSnapshotManager();
+
+        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
+
+        var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
+        await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
+        await projectManager.CreateAndAddDocumentAsync(project, "c:/path/MyTagHelper.razor");
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -104,17 +111,16 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         builder.SetMetadata(TypeNameIdentifier("MyTagHelper"), TypeNamespace("TestRootNamespace"));
         var tagHelperDescriptor = builder.Build();
 
-        await manager.UpdateAsync(updater => updater.ProjectWorkspaceStateChanged(project.Key, ProjectWorkspaceState.Create([tagHelperDescriptor])));
+        await projectManager.UpdateAsync(updater => updater.ProjectWorkspaceStateChanged(project.Key, ProjectWorkspaceState.Create([tagHelperDescriptor])));
 
         var razorFilePath = "c:/path/index.razor";
         var uri = new Uri(razorFilePath);
 
-        var snapshotResolver = new SnapshotResolver(manager, LoggerFactory);
-        var documentVersionCache = new DocumentVersionCache(manager);
-        await manager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
-        var documentSnapshot = manager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
+        var documentVersionCache = new DocumentVersionCache(projectManager);
+        await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
+        var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
-        var documentContextFactory = new DocumentContextFactory(manager, snapshotResolver, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
         var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, null, DisposalToken);
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
@@ -158,10 +164,14 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     public async Task Handle_ComponentWithRequiredAttribute_ReturnsResult()
     {
         // Arrange
-        var manager = CreateProjectSnapshotManager();
-        var project = await manager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
-        await manager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
-        await manager.CreateAndAddDocumentAsync(project, "c:/path/fetchdata.razor");
+        var projectManager = CreateProjectSnapshotManager();
+
+        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
+
+        var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
+        await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
+        await projectManager.CreateAndAddDocumentAsync(project, "c:/path/fetchdata.razor");
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -177,17 +187,16 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         builder.BindAttribute(b => b.Name = "MyNonRequiredAttribute");
         var tagHelperDescriptor = builder.Build();
 
-        await manager.UpdateAsync(updater => updater.ProjectWorkspaceStateChanged(project.Key, ProjectWorkspaceState.Create([tagHelperDescriptor])));
+        await projectManager.UpdateAsync(updater => updater.ProjectWorkspaceStateChanged(project.Key, ProjectWorkspaceState.Create([tagHelperDescriptor])));
 
         var razorFilePath = "c:/path/index.razor";
         var uri = new Uri(razorFilePath);
 
-        var snapshotResolver = new SnapshotResolver(manager, LoggerFactory);
-        var documentVersionCache = new DocumentVersionCache(manager);
-        await manager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
-        var documentSnapshot = manager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
+        var documentVersionCache = new DocumentVersionCache(projectManager);
+        await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
+        var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
-        var documentContextFactory = new DocumentContextFactory(manager, snapshotResolver, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
         var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, null, DisposalToken);
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
@@ -387,10 +396,14 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     public async Task Handle_ComponentWithNestedFiles_ReturnsResult()
     {
         // Arrange
-        var manager = CreateProjectSnapshotManager();
-        var project = await manager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
-        await manager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
-        await manager.CreateAndAddDocumentAsync(project, "c:/path/fetchdata.razor");
+        var projectManager = CreateProjectSnapshotManager();
+
+        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
+        await snapshotResolver.InitializeAsync(DisposalToken);
+
+        var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
+        await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
+        await projectManager.CreateAndAddDocumentAsync(project, "c:/path/fetchdata.razor");
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -401,17 +414,16 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         builder.SetMetadata(TypeNameIdentifier("FetchData"), TypeNamespace("TestRootNamespace"));
         var tagHelperDescriptor = builder.Build();
 
-        await manager.UpdateAsync(updater => updater.ProjectWorkspaceStateChanged(project.Key, ProjectWorkspaceState.Create([tagHelperDescriptor])));
+        await projectManager.UpdateAsync(updater => updater.ProjectWorkspaceStateChanged(project.Key, ProjectWorkspaceState.Create([tagHelperDescriptor])));
 
         var razorFilePath = "c:/path/index.razor";
         var uri = new Uri(razorFilePath);
 
-        var snapshotResolver = new SnapshotResolver(manager, LoggerFactory);
-        var documentVersionCache = new DocumentVersionCache(manager);
-        await manager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
-        var documentSnapshot = manager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
+        var documentVersionCache = new DocumentVersionCache(projectManager);
+        await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
+        var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
-        var documentContextFactory = new DocumentContextFactory(manager, snapshotResolver, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
         var documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, null, DisposalToken);
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);

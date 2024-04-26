@@ -612,8 +612,9 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        var documentVersionCache = new DocumentVersionCache(projectManager);
+        await snapshotResolver.InitializeAsync(DisposalToken);
 
+        var documentVersionCache = new DocumentVersionCache(projectManager);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
