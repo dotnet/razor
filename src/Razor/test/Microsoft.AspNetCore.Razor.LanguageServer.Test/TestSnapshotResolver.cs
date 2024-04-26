@@ -35,8 +35,8 @@ internal class TestSnapshotResolver : ISnapshotResolver
             ? _projects
             : [];
 
-    public Task<IProjectSnapshot> GetMiscellaneousProjectAsync(CancellationToken cancellationToken)
-        => Task.FromResult(_miscProject);
+    public IProjectSnapshot GetMiscellaneousProject()
+        => _miscProject;
 
     public Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken)
         => Task.FromResult<IDocumentSnapshot?>(null);

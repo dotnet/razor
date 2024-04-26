@@ -41,9 +41,9 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
         await snapshotResolver.InitializeAsync(DisposalToken);
 
-        await projectManager.UpdateAsync(async updater =>
+        await projectManager.UpdateAsync(updater =>
         {
-            var miscProject = await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+            var miscProject = snapshotResolver.GetMiscellaneousProject();
             var hostProject = new HostProject(miscProject.FilePath, miscProject.IntermediateOutputPath, FallbackRazorConfiguration.Latest, miscProject.RootNamespace);
             updater.DocumentAdded(
                 hostProject.Key,
@@ -100,8 +100,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
         await snapshotResolver.InitializeAsync(DisposalToken);
 
-        await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
-
         // Act
         var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
 
@@ -121,7 +119,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var projects = await snapshotResolver.TryResolveAllProjectsAsync(documentFilePath, DisposalToken);
 
         // Assert
-        var miscFilesProject = await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+        var miscFilesProject = snapshotResolver.GetMiscellaneousProject();
         Assert.Single(projects, miscFilesProject);
     }
 
@@ -184,9 +182,9 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
         await snapshotResolver.InitializeAsync(DisposalToken);
 
-        var miscProject = await projectManager.UpdateAsync(async updater =>
+        var miscProject = await projectManager.UpdateAsync(updater =>
         {
-            var miscProject = (ProjectSnapshot)await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+            var miscProject = (ProjectSnapshot)snapshotResolver.GetMiscellaneousProject();
             updater.CreateAndAddDocument(miscProject, documentFilePath);
             updater.CreateAndAddProject("C:/path/to/project.csproj");
 
@@ -235,7 +233,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
-        var project = await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+        var project = snapshotResolver.GetMiscellaneousProject();
         var inManager = projectManager.GetLoadedProject(snapshotResolver.MiscellaneousHostProject.Key);
 
         // Assert
@@ -251,7 +249,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(DisposalToken);
 
         // Act
-        var project = await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+        var project = snapshotResolver.GetMiscellaneousProject();
 
         // Assert
         Assert.Single(projectManager.GetProjects());
@@ -268,9 +266,9 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         if (addToMiscellaneous)
         {
-            await projectManager.UpdateAsync(async updater =>
+            await projectManager.UpdateAsync(updater =>
             {
-                var miscProject = (ProjectSnapshot)await snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+                var miscProject = (ProjectSnapshot)snapshotResolver.GetMiscellaneousProject();
                 updater.CreateAndAddDocument(miscProject, filePath);
             });
         }

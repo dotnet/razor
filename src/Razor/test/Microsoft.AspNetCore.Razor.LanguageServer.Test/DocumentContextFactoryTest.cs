@@ -214,7 +214,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
             => throw new NotImplementedException();
 
-        public Task<IProjectSnapshot> GetMiscellaneousProjectAsync(CancellationToken cancellationToken)
+        public IProjectSnapshot GetMiscellaneousProject()
             => throw new NotImplementedException();
 
         public Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken)

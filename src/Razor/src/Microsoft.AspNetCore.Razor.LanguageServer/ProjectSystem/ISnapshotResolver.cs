@@ -17,7 +17,7 @@ internal interface ISnapshotResolver
     /// </summary>
     ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath);
 
-    Task<IProjectSnapshot> GetMiscellaneousProjectAsync(CancellationToken cancellationToken);
+    IProjectSnapshot GetMiscellaneousProject();
 
     /// <summary>
     /// Finds a <see cref="IDocumentSnapshot"/> for the given document path that is contained within any project, and returns the first

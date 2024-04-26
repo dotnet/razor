@@ -30,7 +30,7 @@ internal static class ISnapshotResolverExtensions
         }
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-        var miscProject = await snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
+        var miscProject = snapshotResolver.GetMiscellaneousProject();
         if (miscProject.GetDocument(normalizedDocumentPath) is not null)
         {
             projects.Add(miscProject);

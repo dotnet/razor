@@ -73,21 +73,9 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         return projects.DrainToImmutable();
     }
 
-    public async Task<IProjectSnapshot> GetMiscellaneousProjectAsync(CancellationToken cancellationToken)
+    public IProjectSnapshot GetMiscellaneousProject()
     {
-        if (!_projectManager.TryGetLoadedProject(MiscellaneousHostProject.Key, out var miscellaneousProject))
-        {
-            await _projectManager
-                .UpdateAsync(
-                    static (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
-                    state: MiscellaneousHostProject,
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            miscellaneousProject = _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
-        }
-
-        return miscellaneousProject;
+        return _projectManager.GetLoadedProject(MiscellaneousHostProject.Key);
     }
 
     public async Task<IDocumentSnapshot?> ResolveDocumentInAnyProjectAsync(string documentFilePath, CancellationToken cancellationToken)
@@ -112,7 +100,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         }
 
         _logger.LogTrace($"Looking for {documentFilePath} in miscellaneous project.");
-        var miscellaneousProject = await GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
+        var miscellaneousProject = GetMiscellaneousProject();
 
         if (miscellaneousProject.GetDocument(normalizedDocumentPath) is { } miscDocument)
         {
