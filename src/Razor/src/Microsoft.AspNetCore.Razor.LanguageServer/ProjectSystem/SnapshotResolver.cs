@@ -47,11 +47,6 @@ internal sealed class SnapshotResolver : ISnapshotResolver
     /// <inheritdoc/>
     public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
     {
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
-
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
 
         using var projects = new PooledArrayBuilder<IProjectSnapshot>();
