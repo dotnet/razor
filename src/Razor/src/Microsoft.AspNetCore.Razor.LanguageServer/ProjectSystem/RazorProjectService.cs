@@ -46,14 +46,14 @@ internal class RazorProjectService(
         _gate.Dispose();
     }
 
-    public async Task AddDocumentAsync(string filePath, CancellationToken cancellationToken)
+    public async Task AddDocumentToMiscProjectAsync(string filePath, CancellationToken cancellationToken)
     {
         using var _ = await _gate.EnterAsync(cancellationToken).ConfigureAwait(false);
 
-        await AddDocumentNeedsLocksAsync(filePath, cancellationToken).ConfigureAwait(false);
+        await AddDocumentToMiscProjectNeedsLocksAsync(filePath, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task AddDocumentNeedsLocksAsync(string filePath, CancellationToken cancellationToken)
+    private async Task AddDocumentToMiscProjectNeedsLocksAsync(string filePath, CancellationToken cancellationToken)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
@@ -122,7 +122,7 @@ internal class RazorProjectService(
         {
             // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
             // processes and pre-initializes already open documents.
-            await AddDocumentNeedsLocksAsync(filePath, cancellationToken).ConfigureAwait(false);
+            await AddDocumentToMiscProjectNeedsLocksAsync(filePath, cancellationToken).ConfigureAwait(false);
         }
 
         await ActOnDocumentInMultipleProjectsAsync(

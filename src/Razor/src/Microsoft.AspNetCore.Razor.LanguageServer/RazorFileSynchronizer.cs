@@ -17,7 +17,7 @@ internal class RazorFileSynchronizer(IRazorProjectService projectService) : IRaz
     public Task RazorFileChangedAsync(string filePath, RazorFileChangeKind kind, CancellationToken cancellationToken)
         => kind switch
         {
-            RazorFileChangeKind.Added => _projectService.AddDocumentAsync(filePath, cancellationToken),
+            RazorFileChangeKind.Added => _projectService.AddDocumentToMiscProjectAsync(filePath, cancellationToken),
             RazorFileChangeKind.Removed => _projectService.RemoveDocumentAsync(filePath, cancellationToken),
             _ => Task.CompletedTask
         };
