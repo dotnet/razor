@@ -85,8 +85,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            var documentContext = _documentContextFactory.TryCreateForOpenDocument(mapping.TextDocument.Uri);
-            if (documentContext is null)
+            if (!_documentContextFactory.TryCreateForOpenDocument(mapping.TextDocument.Uri, out var documentContext))
             {
                 continue;
             }
@@ -356,8 +355,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                var documentContext = _documentContextFactory.TryCreateForOpenDocument(potentialLocation.Uri);
-                if (documentContext is null)
+                if (!_documentContextFactory.TryCreateForOpenDocument(potentialLocation.Uri, out var documentContext))
                 {
                     continue;
                 }

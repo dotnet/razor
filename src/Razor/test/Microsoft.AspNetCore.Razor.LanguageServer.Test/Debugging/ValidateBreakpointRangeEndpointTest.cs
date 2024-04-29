@@ -152,8 +152,7 @@ public class ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput) :
             Range = breakpointSpan.ToRange(codeDocument.GetSourceText())
         };
 
-        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
-        Assert.NotNull(documentContext);
+        Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
         var requestContext = CreateValidateBreakpointRangeRequestContext(documentContext);
 
         return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);

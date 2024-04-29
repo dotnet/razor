@@ -73,8 +73,7 @@ internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
             throw new ArgumentNullException(nameof(codeAction));
         }
 
-        var documentContext = _documentContextFactory.TryCreateForOpenDocument(csharpParams.RazorFileIdentifier);
-        if (documentContext is null)
+        if (!_documentContextFactory.TryCreateForOpenDocument(csharpParams.RazorFileIdentifier, out var documentContext))
         {
             return codeAction;
         }

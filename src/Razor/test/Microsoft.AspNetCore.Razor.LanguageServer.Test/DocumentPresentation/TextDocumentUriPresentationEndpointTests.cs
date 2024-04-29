@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Copilot;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -58,7 +59,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
-        var documentContext = documentContextFactory.TryCreateForOpenDocument(uri, null);
+        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -123,7 +124,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
-        var documentContext = documentContextFactory.TryCreateForOpenDocument(uri, null);
+        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -199,7 +200,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
-        var documentContext = documentContextFactory.TryCreateForOpenDocument(uri, null);
+        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -426,7 +427,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
-        var documentContext = documentContextFactory.TryCreateForOpenDocument(uri, null);
+        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 

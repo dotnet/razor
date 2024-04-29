@@ -116,8 +116,7 @@ internal class TextDocumentUriPresentationEndpoint(
     {
         Logger.LogInformation($"Trying to find document info for dropped uri {uri}.");
 
-        var documentContext = _documentContextFactory.TryCreate(uri);
-        if (documentContext is null)
+        if (!_documentContextFactory.TryCreate(uri, out var documentContext))
         {
             Logger.LogInformation($"Failed to find document for component {uri}.");
             return null;

@@ -100,8 +100,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
         }
 
         var identifier = context.OriginalRequestParams.Identifier.TextDocumentIdentifier;
-        var documentContext = _documentContextFactory.TryCreateForOpenDocument(identifier);
-        if (documentContext is null)
+        if (!_documentContextFactory.TryCreateForOpenDocument(identifier, out var documentContext))
         {
             return resolvedCompletionItem;
         }

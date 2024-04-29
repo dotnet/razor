@@ -83,7 +83,7 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
             Position = new Position(line, offset),
             NewName = newName
         };
-        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
+        Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act

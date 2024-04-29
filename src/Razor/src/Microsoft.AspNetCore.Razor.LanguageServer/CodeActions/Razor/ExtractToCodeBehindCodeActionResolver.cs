@@ -60,8 +60,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
 
         var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
 
-        var documentContext = _documentContextFactory.TryCreate(actionParams.Uri);
-        if (documentContext is null)
+        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
         {
             return null;
         }

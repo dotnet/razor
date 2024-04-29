@@ -183,10 +183,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                     delegatedResponse.Value.TryGetFirst(out var fullDiagnostics) &&
                     fullDiagnostics.Items is not null)
                 {
-                    var documentContext = _documentContextFactory.Value
-                        .TryCreate(delegatedParams.TextDocument.Uri, projectContext: null);
-
-                    if (documentContext is not null)
+                    if (_documentContextFactory.Value.TryCreate(delegatedParams.TextDocument.Uri, projectContext: null, out var documentContext))
                     {
                         return await _translateDiagnosticsService.Value
                             .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, token)

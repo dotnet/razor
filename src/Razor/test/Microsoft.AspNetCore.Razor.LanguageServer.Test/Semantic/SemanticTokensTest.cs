@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1201,9 +1202,14 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     private class TestDocumentContextFactory(VersionedDocumentContext? documentContext = null) : IDocumentContextFactory
     {
-        public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+        public bool TryCreate(
+            Uri documentUri,
+            VSProjectContext? projectContext,
+            bool versioned,
+            [NotNullWhen(true)] out DocumentContext? context)
         {
-            return documentContext;
+            context = documentContext;
+            return context is not null;
         }
     }
 }

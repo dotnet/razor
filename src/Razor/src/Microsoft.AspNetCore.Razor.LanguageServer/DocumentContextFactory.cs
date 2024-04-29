@@ -28,21 +28,27 @@ internal sealed class DocumentContextFactory(
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentContextFactory>();
 
-    public DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+    public bool TryCreate(
+        Uri documentUri,
+        VSProjectContext? projectContext,
+        bool versioned,
+        [NotNullWhen(true)] out DocumentContext? context)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
 
         if (!TryGetDocumentAndVersion(filePath, projectContext, versioned, out var documentAndVersion))
         {
             // Stale request or misbehaving client, see above comment.
-            return null;
+            context = null;
+            return false;
         }
 
         var (documentSnapshot, version) = documentAndVersion;
         if (documentSnapshot is null)
         {
             Debug.Fail($"Document snapshot should never be null here for '{filePath}'. This indicates that our acquisition of documents / versions did not behave as expected.");
-            return null;
+            context = null;
+            return false;
         }
 
         if (versioned)
@@ -50,13 +56,16 @@ internal sealed class DocumentContextFactory(
             // If we were asked for a versioned document, but have no version info, then we didn't find the document
             if (version is null)
             {
-                return null;
+                context = null;
+                return false;
             }
 
-            return new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value);
+            context = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value);
+            return true;
         }
 
-        return new DocumentContext(documentUri, documentSnapshot, projectContext);
+        context = new DocumentContext(documentUri, documentSnapshot, projectContext);
+        return true;
     }
 
     private bool TryGetDocumentAndVersion(

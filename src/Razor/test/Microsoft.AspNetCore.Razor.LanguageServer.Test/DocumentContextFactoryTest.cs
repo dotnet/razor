@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Copilot;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,10 +46,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreate(uri);
-
-        // Assert
-        Assert.Null(documentContext);
+        Assert.False(factory.TryCreate(uri, out _));
     }
 
     [Fact]
@@ -63,10 +61,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreateForOpenDocument(uri);
-
-        // Assert
-        Assert.Null(documentContext);
+        Assert.False(factory.TryCreateForOpenDocument(uri, out _));
     }
 
     [Fact]
@@ -81,10 +76,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreateForOpenDocument(uri);
-
-        // Assert
-        Assert.Null(documentContext);
+        Assert.False(factory.TryCreateForOpenDocument(uri, out _));
     }
 
     [Fact]
@@ -101,10 +93,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreate(uri);
+        Assert.True(factory.TryCreate(uri, out var documentContext));
 
         // Assert
-        Assert.NotNull(documentContext);
         Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }
@@ -134,10 +125,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         });
 
         // Act
-        var documentContext = factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id });
+        Assert.True(factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id }, out var documentContext));
 
         // Assert
-        Assert.NotNull(documentContext);
         Assert.Equal(uri, documentContext.Uri);
     }
 
@@ -166,10 +156,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         });
 
         // Act
-        var documentContext = factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id });
+        Assert.True(factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id }, out var documentContext));
 
         // Assert
-        Assert.NotNull(documentContext);
         Assert.Equal(uri, documentContext.Uri);
         documentResolverMock.Verify();
     }
@@ -189,10 +178,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreateForOpenDocument(uri);
+        Assert.True(factory.TryCreateForOpenDocument(uri, out var documentContext));
 
         // Assert
-        Assert.NotNull(documentContext);
         Assert.Equal(1337, documentContext.Version);
         Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);

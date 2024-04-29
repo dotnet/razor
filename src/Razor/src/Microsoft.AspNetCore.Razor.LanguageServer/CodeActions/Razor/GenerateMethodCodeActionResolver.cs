@@ -72,8 +72,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             return null;
         }
 
-        var documentContext = _documentContextFactory.TryCreateForOpenDocument(actionParams.Uri);
-        if (documentContext is null)
+        if (!_documentContextFactory.TryCreateForOpenDocument(actionParams.Uri, out var documentContext))
         {
             return null;
         }
