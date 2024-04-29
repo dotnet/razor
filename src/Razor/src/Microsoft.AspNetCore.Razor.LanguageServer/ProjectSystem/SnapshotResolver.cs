@@ -35,7 +35,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver, IOnInitialized
         MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null, "Miscellaneous Files");
     }
 
-    public Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
+    public Task InitializeAsync(ILspServices services, CancellationToken cancellationToken)
     {
         // This is called when the language server is initialized.
 

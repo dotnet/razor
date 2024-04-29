@@ -34,7 +34,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
@@ -99,7 +99,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
@@ -169,7 +169,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
@@ -401,7 +401,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");

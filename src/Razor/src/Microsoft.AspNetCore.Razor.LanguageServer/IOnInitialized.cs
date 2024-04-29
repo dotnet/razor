@@ -10,5 +10,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal interface IOnInitialized
 {
-    Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken);
+    Task InitializeAsync(ILspServices services, CancellationToken cancellationToken);
 }
