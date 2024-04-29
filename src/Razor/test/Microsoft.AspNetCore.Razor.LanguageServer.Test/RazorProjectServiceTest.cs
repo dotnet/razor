@@ -606,7 +606,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task OpenDocument_OpensAndAddsDocumentToOwnerProject()
+    public async Task OpenDocument_OpensAndAddsDocumentToMiscellaneousProject()
     {
         // Arrange
         const string ProjectFilePath = "C:/path/to/project.csproj";
@@ -617,7 +617,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         var ownerProjectKey = await _projectService.AddProjectAsync(
             ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
 
-        var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
+        var miscProject = await _snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
 
         using var listener = _projectManager.ListenToNotifications();
 
@@ -626,8 +626,8 @@ public class RazorProjectServiceTest : LanguageServerTestBase
 
         // Assert
         listener.AssertNotifications(
-            x => x.DocumentAdded(DocumentFilePath, ownerProject.Key),
-            x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
+            x => x.DocumentAdded(DocumentFilePath, miscProject.Key),
+            x => x.DocumentChanged(DocumentFilePath, miscProject.Key));
 
         Assert.True(_projectManager.IsDocumentOpen(DocumentFilePath));
     }
@@ -678,7 +678,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task AddDocument_AddsDocumentToMiscellaneousProject()
+    public async Task AddDocumentToMiscProjectAsync_AddsDocumentToMiscellaneousProject()
     {
         // Arrange
         const string DocumentFilePath = "document.cshtml";
@@ -688,7 +688,7 @@ public class RazorProjectServiceTest : LanguageServerTestBase
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
+        await _projectService.AddDocumentToMiscProjectAsync(DocumentFilePath, DisposalToken);
 
         // Assert
         listener.AssertNotifications(
