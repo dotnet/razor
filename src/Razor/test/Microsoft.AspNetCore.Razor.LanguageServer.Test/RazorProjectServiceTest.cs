@@ -183,6 +183,44 @@ public class RazorProjectServiceTest : LanguageServerTestBase
     }
 
     [Fact]
+    public async Task UpdateProject_MovesDocumentsFromMisc_ViaService()
+    {
+        // Arrange
+        const string DocumentFilePath = "C:/path/to/file.cshtml";
+        const string ProjectFilePath = "C:/path/to/project.csproj";
+        const string IntermediateOutputPath = "C:/path/to/obj";
+        const string RootNamespace = "TestRootNamespace";
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(
+            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+
+        await _projectService.AddDocumentToMiscProjectAsync(DocumentFilePath, DisposalToken);
+
+        var miscProject = await _snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+
+        var project = _projectManager.GetLoadedProject(ownerProjectKey);
+
+        var addedDocument = new DocumentSnapshotHandle(DocumentFilePath, DocumentFilePath, FileKinds.Legacy);
+
+        // Act
+        await _projectService.UpdateProjectAsync(
+            project.Key,
+            project.Configuration,
+            project.RootNamespace,
+            project.DisplayName,
+            ProjectWorkspaceState.Default,
+            [addedDocument],
+            DisposalToken);
+
+        // Assert
+        project = _projectManager.GetLoadedProject(ownerProjectKey);
+        var projectFilePaths = project.DocumentFilePaths.OrderBy(path => path);
+        Assert.Equal(projectFilePaths, [addedDocument.FilePath]);
+        miscProject = _projectManager.GetLoadedProject(miscProject.Key);
+        Assert.Empty(miscProject.DocumentFilePaths);
+    }
+
+    [Fact]
     public async Task UpdateProject_MovesExistingDocumentToMisc()
     {
         // Arrange
