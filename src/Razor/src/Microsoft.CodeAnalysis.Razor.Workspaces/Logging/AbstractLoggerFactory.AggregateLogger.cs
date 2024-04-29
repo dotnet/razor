@@ -8,15 +8,15 @@ namespace Microsoft.CodeAnalysis.Razor.Logging;
 
 internal abstract partial class AbstractLoggerFactory
 {
-    private class AggregateLogger(ImmutableArray<ILogger> loggers) : ILogger
+    private class AggregateLogger(ImmutableArray<Lazy<ILogger>> lazyLoggers) : ILogger
     {
-        private ImmutableArray<ILogger> _loggers = loggers;
+        private ImmutableArray<Lazy<ILogger>> _lazyLoggers = lazyLoggers;
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            foreach (var logger in _loggers)
+            foreach (var lazyLogger in _lazyLoggers)
             {
-                if (logger.IsEnabled(logLevel))
+                if (lazyLogger.Value.IsEnabled(logLevel))
                 {
                     return true;
                 }
@@ -27,8 +27,10 @@ internal abstract partial class AbstractLoggerFactory
 
         public void Log(LogLevel logLevel, string message, Exception? exception)
         {
-            foreach (var logger in _loggers)
+            foreach (var lazyLogger in _lazyLoggers)
             {
+                var logger = lazyLogger.Value;
+
                 if (logger.IsEnabled(logLevel))
                 {
                     logger.Log(logLevel, message, exception);
@@ -36,9 +38,9 @@ internal abstract partial class AbstractLoggerFactory
             }
         }
 
-        internal void AddLogger(ILogger logger)
+        internal void AddLogger(Lazy<ILogger> lazyLogger)
         {
-            ImmutableInterlocked.Update(ref _loggers, (set, l) => set.Add(l), logger);
+            ImmutableInterlocked.Update(ref _lazyLoggers, (set, l) => set.Add(l), lazyLogger);
         }
     }
 }

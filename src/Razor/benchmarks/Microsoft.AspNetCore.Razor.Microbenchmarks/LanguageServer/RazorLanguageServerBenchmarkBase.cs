@@ -108,7 +108,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         }
     }
 
-    internal class NoopLoggerFactory() : AbstractLoggerFactory([new NoopLoggerProvider()]);
+    internal class NoopLoggerFactory() : AbstractLoggerFactory([new(() => new NoopLoggerProvider())]);
 
     internal class NoopLoggerProvider : ILoggerProvider
     {
