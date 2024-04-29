@@ -22,7 +22,7 @@ internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams
 
         foreach (var onStartedItem in onStartedItems)
         {
-            await onStartedItem.InitializeAsync(requestContext.LspServices, cancellationToken).ConfigureAwait(false);
+            await onStartedItem.OnInitializedAsync(requestContext.LspServices, cancellationToken).ConfigureAwait(false);
         }
     }
 }

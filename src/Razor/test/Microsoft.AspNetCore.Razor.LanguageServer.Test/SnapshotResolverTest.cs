@@ -40,7 +40,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var normalizedFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -66,7 +66,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = @"C:\path\to\document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         Assert.False(snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document));
@@ -82,7 +82,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
@@ -95,7 +95,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
@@ -107,7 +107,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         // Arrange
         var documentFilePath = Path.Combine(TempDirectory.Instance.DirectoryPath, "document.cshtml");
         var snapshotResolver = await CreateSnapshotResolverAsync(documentFilePath, addToMiscellaneous: true);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
@@ -124,7 +124,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -143,7 +143,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var expectedProject = await projectManager.UpdateAsync(updater =>
         {
@@ -171,7 +171,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var miscProject = await projectManager.UpdateAsync(updater =>
         {
@@ -197,7 +197,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "c:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var ownerProject = await projectManager.UpdateAsync(updater =>
         {
@@ -221,7 +221,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         var project = snapshotResolver.GetMiscellaneousProject();
@@ -237,7 +237,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         var project = snapshotResolver.GetMiscellaneousProject();
@@ -253,7 +253,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         if (addToMiscellaneous)
         {

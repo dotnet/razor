@@ -20,7 +20,7 @@ internal class RazorFileChangeDetectorManager(
     private readonly object _disposeLock = new();
     private bool _disposed;
 
-    public async Task InitializeAsync(ILspServices services, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
     {
         // Initialized request, this occurs once the server and client have agreed on what sort of features they both support. It only happens once.
 

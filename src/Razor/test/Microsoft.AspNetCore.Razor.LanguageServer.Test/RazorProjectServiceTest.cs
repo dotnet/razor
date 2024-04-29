@@ -41,7 +41,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     {
         _projectManager = CreateProjectSnapshotManager();
         _snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
-        await _snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await _snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
         _documentVersionCache = new DocumentVersionCache(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();

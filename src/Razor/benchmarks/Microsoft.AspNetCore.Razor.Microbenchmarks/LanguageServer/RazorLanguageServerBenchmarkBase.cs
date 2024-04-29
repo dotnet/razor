@@ -87,7 +87,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     private class NoopClientNotifierService : IClientConnection, IOnInitialized
     {
-        public Task InitializeAsync(ILspServices services, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }

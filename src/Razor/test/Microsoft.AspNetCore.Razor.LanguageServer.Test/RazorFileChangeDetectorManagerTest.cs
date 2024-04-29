@@ -60,7 +60,7 @@ public class RazorFileChangeDetectorManagerTest(ITestOutputHelper testOutput) : 
         using (var detectorManager = new RazorFileChangeDetectorManager(workspaceDirectoryPathResolver, [detectorMock1.Object, detectorMock2.Object]))
         {
             // Act
-            await detectorManager.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+            await detectorManager.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
         }
 
         // Assert
@@ -98,7 +98,7 @@ public class RazorFileChangeDetectorManagerTest(ITestOutputHelper testOutput) : 
         using var detectorManager = new RazorFileChangeDetectorManager(workspaceDirectoryPathResolver, [detectorMock.Object]);
 
         // Act
-        var initializeTask = detectorManager.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        var initializeTask = detectorManager.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
         detectorManager.Dispose();
 
         // Unblock the detector start

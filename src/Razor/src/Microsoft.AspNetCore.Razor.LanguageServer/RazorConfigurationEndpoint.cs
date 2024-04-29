@@ -27,7 +27,7 @@ internal class RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor,
         await _optionsMonitor.UpdateAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task InitializeAsync(ILspServices services, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
     {
         var capabilitiesService = services.GetRequiredService<IClientCapabilitiesService>();
         var clientCapabilities = capabilitiesService.ClientCapabilities;

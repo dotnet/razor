@@ -613,7 +613,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
+        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var documentVersionCache = new DocumentVersionCache(projectManager);
         var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
