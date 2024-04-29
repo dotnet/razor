@@ -67,16 +67,8 @@ internal class RazorProjectService(
             return;
         }
 
-        var targetFilePath = textDocumentPath;
-        var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(miscFilesProject.FilePath);
-        if (targetFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
-        {
-            // Make relative
-            targetFilePath = textDocumentPath[projectDirectory.Length..];
-        }
-
         // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
-        var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
+        var normalizedTargetFilePath = textDocumentPath.Replace('/', '\\').TrimStart('\\');
 
         var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
         var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
