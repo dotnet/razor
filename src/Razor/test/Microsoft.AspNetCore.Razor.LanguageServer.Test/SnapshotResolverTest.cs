@@ -85,10 +85,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
-        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
-
-        // Assert
-        Assert.Empty(projects);
+        Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
     }
 
     [Fact]
@@ -101,10 +98,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
-        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
-
-        // Assert
-        Assert.Empty(projects);
+        Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
     }
 
     [Fact]
@@ -116,7 +110,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         await snapshotResolver.InitializeAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
-        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
+        Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
         var miscFilesProject = snapshotResolver.GetMiscellaneousProject();
@@ -138,10 +132,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
-
-        // Assert
-        Assert.Empty(projects);
+        Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
     }
 
     [Fact]
@@ -164,7 +155,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
+        Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
         var project = Assert.Single(projects);
@@ -192,7 +183,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
+        Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
         var project = Assert.Single(projects);
@@ -217,7 +208,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        var projects = snapshotResolver.TryResolveAllProjects(documentFilePath);
+        Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
         var project = Assert.Single(projects);

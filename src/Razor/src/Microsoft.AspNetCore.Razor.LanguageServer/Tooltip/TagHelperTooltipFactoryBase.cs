@@ -31,8 +31,7 @@ internal abstract class TagHelperTooltipFactoryBase
 
     internal async Task<string?> GetProjectAvailabilityAsync(string documentFilePath, string tagHelperTypeName, CancellationToken cancellationToken)
     {
-        var projectSnapshots = _snapshotResolver.TryResolveAllProjects(documentFilePath);
-        if (projectSnapshots.IsEmpty)
+        if (!_snapshotResolver.TryResolveAllProjects(documentFilePath, out var projectSnapshots))
         {
             return null;
         }
