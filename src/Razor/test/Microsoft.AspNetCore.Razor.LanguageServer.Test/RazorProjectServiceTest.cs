@@ -36,7 +36,9 @@ public class RazorProjectServiceTest : LanguageServerTestBase
     public RazorProjectServiceTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = CreateProjectSnapshotManager();
+        var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
+        var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsMonitor);
+        _projectManager = CreateProjectSnapshotManager(projectEngineFactoryProvider);
         _snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
         _documentVersionCache = new DocumentVersionCache(_projectManager);
 
