@@ -3,8 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -27,9 +25,6 @@ internal class TestSnapshotResolver : ISnapshotResolver
         _filePath = filePath;
         _projects = [.. projects];
     }
-
-    public Task InitializeAsync(CancellationToken cancellationToken)
-        => Task.CompletedTask;
 
     public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
         => documentFilePath == _filePath

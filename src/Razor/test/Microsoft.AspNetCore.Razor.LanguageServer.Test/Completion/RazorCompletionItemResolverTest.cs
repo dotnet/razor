@@ -17,20 +17,20 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-public class RazorCompletionItemResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class RazorCompletionItemResolverTest : LanguageServerTestBase
 {
-    private LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
-    private VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
-    private VSInternalCompletionSetting _completionCapability;
-    private VSInternalClientCapabilities _defaultClientCapability;
-    private VSInternalClientCapabilities _vsClientCapability;
-    private AggregateBoundAttributeDescription _attributeDescription;
-    private AggregateBoundElementDescription _elementDescription;
+    private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
+    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
+    private readonly VSInternalCompletionSetting _completionCapability;
+    private readonly VSInternalClientCapabilities _defaultClientCapability;
+    private readonly VSInternalClientCapabilities _vsClientCapability;
+    private readonly AggregateBoundAttributeDescription _attributeDescription;
+    private readonly AggregateBoundElementDescription _elementDescription;
 
-    protected async override Task InitializeAsync()
+    public RazorCompletionItemResolverTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
 
         _lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         _vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
@@ -38,7 +38,7 @@ public class RazorCompletionItemResolverTest(ITestOutputHelper testOutput) : Lan
         {
             CompletionItem = new CompletionItemSetting()
             {
-                DocumentationFormat = new[] { MarkupKind.PlainText, MarkupKind.Markdown },
+                DocumentationFormat = [MarkupKind.PlainText, MarkupKind.Markdown],
             }
         };
 
@@ -60,9 +60,9 @@ public class RazorCompletionItemResolverTest(ITestOutputHelper testOutput) : Lan
         };
 
         var attributeDescriptionInfo = new BoundAttributeDescriptionInfo("System.DateTime", "System.DateTime", "DateTime", "Returns the time.");
-        _attributeDescription = new AggregateBoundAttributeDescription(ImmutableArray.Create(attributeDescriptionInfo));
+        _attributeDescription = new AggregateBoundAttributeDescription([attributeDescriptionInfo]);
         var elementDescriptionInfo = new BoundElementDescriptionInfo("System.SomeTagHelper", "This is some TagHelper.");
-        _elementDescription = new AggregateBoundElementDescription(ImmutableArray.Create(elementDescriptionInfo));
+        _elementDescription = new AggregateBoundElementDescription([elementDescriptionInfo]);
     }
 
     [Fact]

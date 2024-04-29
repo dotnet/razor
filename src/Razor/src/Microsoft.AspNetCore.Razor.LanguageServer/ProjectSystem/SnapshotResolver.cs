@@ -13,10 +13,11 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal sealed class SnapshotResolver : ISnapshotResolver
+internal sealed class SnapshotResolver : ISnapshotResolver, IOnInitialized
 {
     private readonly IProjectSnapshotManager _projectManager;
     private readonly ILogger _logger;
@@ -34,7 +35,7 @@ internal sealed class SnapshotResolver : ISnapshotResolver
         MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null, "Miscellaneous Files");
     }
 
-    public Task InitializeAsync(CancellationToken cancellationToken)
+    public Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
     {
         // This is called when the language server is initialized.
 

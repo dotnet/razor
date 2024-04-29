@@ -171,7 +171,6 @@ End summary description.";
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var elementDescription = AggregateBoundElementDescription.Empty;
 
@@ -187,7 +186,6 @@ End summary description.";
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedTagHelperInfos = new[]
         {
@@ -229,7 +227,6 @@ End summary description.";
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedTagHelperInfos = new[]
         {
@@ -270,7 +267,6 @@ End summary description.";
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedTagHelperInfos = new[]
         {
@@ -321,11 +317,10 @@ End summary description.";
     }
 
     [Fact]
-    public async Task TryCreateTooltip_ClassifiedTextElement_NoAssociatedAttributeDescriptions_ReturnsFalse()
+    public void TryCreateTooltip_ClassifiedTextElement_NoAssociatedAttributeDescriptions_ReturnsFalse()
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var elementDescription = AggregateBoundAttributeDescription.Empty;
 
@@ -338,11 +333,10 @@ End summary description.";
     }
 
     [Fact]
-    public async Task TryCreateTooltip_ClassifiedTextElement_Attribute_SingleAssociatedAttribute_ReturnsTrue_NestedTypes()
+    public void TryCreateTooltip_ClassifiedTextElement_Attribute_SingleAssociatedAttribute_ReturnsTrue_NestedTypes()
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedAttributeDescriptions = new[]
         {
@@ -388,11 +382,10 @@ End summary description.";
     }
 
     [Fact]
-    public async Task TryCreateTooltip_ClassifiedTextElement_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
+    public void TryCreateTooltip_ClassifiedTextElement_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedAttributeDescriptions = new[]
         {
@@ -468,7 +461,6 @@ End summary description.";
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var elementDescription = AggregateBoundElementDescription.Empty;
 
@@ -484,7 +476,6 @@ End summary description.";
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedTagHelperInfos = new[]
         {
@@ -565,11 +556,10 @@ End summary description.";
     }
 
     [Fact]
-    public async Task TryCreateTooltip_ContainerElement_NoAssociatedAttributeDescriptions_ReturnsFalse()
+    public void TryCreateTooltip_ContainerElement_NoAssociatedAttributeDescriptions_ReturnsFalse()
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var elementDescription = AggregateBoundAttributeDescription.Empty;
 
@@ -582,11 +572,10 @@ End summary description.";
     }
 
     [Fact]
-    public async Task TryCreateTooltip_ContainerElement_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
+    public void TryCreateTooltip_ContainerElement_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
         var associatedAttributeDescriptions = new[]
         {

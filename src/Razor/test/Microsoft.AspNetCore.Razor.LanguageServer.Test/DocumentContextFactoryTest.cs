@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -35,14 +34,13 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task TryCreateAsync_CanNotResolveDocument_ReturnsNull()
+    public void TryCreateAsync_CanNotResolveDocument_ReturnsNull()
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
 
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
@@ -54,14 +52,13 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task TryCreateForOpenDocumentAsync_CanNotResolveDocument_ReturnsNull()
+    public void TryCreateForOpenDocumentAsync_CanNotResolveDocument_ReturnsNull()
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
 
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
@@ -73,7 +70,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task TryCreateForOpenDocumentAsync_CanNotResolveVersion_ReturnsNull()
+    public void TryCreateForOpenDocumentAsync_CanNotResolveVersion_ReturnsNull()
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
@@ -81,7 +78,6 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
         var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
@@ -92,7 +88,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task TryCreateAsync_ResolvesContent()
+    public void TryCreateAsync_ResolvesContent()
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
@@ -102,7 +98,6 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
         var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
@@ -127,7 +122,6 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
         var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
@@ -181,7 +175,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task TryCreateForOpenDocumentAsync_ResolvesContent()
+    public void TryCreateForOpenDocumentAsync_ResolvesContent()
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
@@ -191,7 +185,6 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
         var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
-        await snapshotResolver.InitializeAsync(DisposalToken);
         _documentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337);
         var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
@@ -208,9 +201,6 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     private sealed class TestSnapshotResolver(IDocumentSnapshot? documentSnapshot = null) : ISnapshotResolver
     {
         private readonly IDocumentSnapshot? _documentSnapshot = documentSnapshot;
-
-        public Task InitializeAsync(CancellationToken cancellationToken)
-            => Task.CompletedTask;
 
         public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
             => throw new NotImplementedException();

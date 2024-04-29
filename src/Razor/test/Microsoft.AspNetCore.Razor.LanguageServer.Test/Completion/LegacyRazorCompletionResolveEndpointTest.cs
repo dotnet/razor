@@ -20,18 +20,18 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-public class LegacyRazorCompletionResolveEndpointTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class LegacyRazorCompletionResolveEndpointTest : LanguageServerTestBase
 {
-    private LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
-    private VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
-    private CompletionListCache _completionListCache;
-    private VSInternalCompletionSetting _completionCapability;
-    private VSInternalClientCapabilities _defaultClientCapability;
+    private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
+    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
+    private readonly CompletionListCache _completionListCache;
+    private readonly VSInternalCompletionSetting _completionCapability;
+    private readonly VSInternalClientCapabilities _defaultClientCapability;
 
-    protected async override Task InitializeAsync()
+    public LegacyRazorCompletionResolveEndpointTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         _lspTagHelperTooltipFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver).Object;
         _vsLspTagHelperTooltipFactory = new Mock<VSLSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver).Object;
         _completionListCache = new CompletionListCache();
@@ -39,7 +39,7 @@ public class LegacyRazorCompletionResolveEndpointTest(ITestOutputHelper testOutp
         {
             CompletionItem = new CompletionItemSetting()
             {
-                DocumentationFormat = new[] { MarkupKind.PlainText, MarkupKind.Markdown },
+                DocumentationFormat = [MarkupKind.PlainText, MarkupKind.Markdown],
             }
         };
 
@@ -97,7 +97,6 @@ public class LegacyRazorCompletionResolveEndpointTest(ITestOutputHelper testOutp
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver);
         var markdown = new MarkupContent
         {
@@ -127,7 +126,6 @@ public class LegacyRazorCompletionResolveEndpointTest(ITestOutputHelper testOutp
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var descriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver);
         var markdown = new MarkupContent
         {
@@ -157,7 +155,6 @@ public class LegacyRazorCompletionResolveEndpointTest(ITestOutputHelper testOutp
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver);
         var markdown = new MarkupContent
         {
@@ -187,7 +184,6 @@ public class LegacyRazorCompletionResolveEndpointTest(ITestOutputHelper testOutp
     {
         // Arrange
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, snapshotResolver);
         var markdown = new MarkupContent
         {

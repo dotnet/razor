@@ -48,7 +48,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
             {
                 Hover = new()
                 {
-                    ContentFormat = new[] { markupKind },
+                    ContentFormat = [markupKind],
                 }
             }
         };
@@ -64,7 +64,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -94,7 +94,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -124,7 +124,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPositionAndSpan(txt, out txt, out var cursorPosition, out var span);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -148,7 +148,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -176,7 +176,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -205,7 +205,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var edgeLocation = cursorPosition;
         var location = new SourceLocation(edgeLocation, 0, edgeLocation);
@@ -235,7 +235,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -257,7 +257,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -279,7 +279,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -301,7 +301,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -334,7 +334,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, "text.razor", DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -363,7 +363,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -391,7 +391,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -420,7 +420,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -443,7 +443,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
-        var service = await GetHoverServiceAsync();
+        var service =  GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -473,7 +473,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -502,7 +502,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: true, DefaultTagHelpers);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -533,7 +533,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: true, DefaultTagHelpers);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -565,7 +565,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: true, DefaultTagHelpers);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -592,7 +592,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: true, DefaultTagHelpers);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -622,7 +622,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -653,7 +653,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
 
@@ -676,7 +676,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
 
         var location = new SourceLocation(cursorPosition, -1, -1);
@@ -699,7 +699,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         TestFileMarkupParser.GetPosition(txt, out txt, out var cursorPosition);
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
         var clientCapabilities = CreateMarkDownCapabilities();
@@ -744,7 +744,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
         var location = new SourceLocation(cursorPosition, -1, -1);
         var clientCapabilities = CreateMarkDownCapabilities();
@@ -810,7 +810,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
             c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
             .Returns(true);
 
-        var endpoint = await CreateEndpointAsync(languageServerFeatureOptions, documentMappingServiceMock.Object, clientConnectionMock.Object);
+        var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, clientConnectionMock.Object);
 
         var request = new TextDocumentPositionParams
         {
@@ -959,7 +959,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
         var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
-        var service = await GetHoverServiceAsync(documentMappingService);
+        var service = GetHoverService(documentMappingService);
 
         var endpoint = new HoverEndpoint(
             service,
@@ -1012,7 +1012,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         return documentContext;
     }
 
-    private async Task<HoverEndpoint> CreateEndpointAsync(
+    private HoverEndpoint CreateEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions = null,
         IRazorDocumentMappingService documentMappingService = null,
         IClientConnection clientConnection = null)
@@ -1027,7 +1027,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         clientConnection ??= Mock.Of<IClientConnection>(MockBehavior.Strict);
 
-        var service = await GetHoverServiceAsync();
+        var service = GetHoverService();
 
         var endpoint = new HoverEndpoint(
             service,
@@ -1039,10 +1039,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         return endpoint;
     }
 
-    private async Task<HoverService> GetHoverServiceAsync(IRazorDocumentMappingService mappingService = null)
+    private HoverService GetHoverService(IRazorDocumentMappingService mappingService = null)
     {
         var snapshotResolver = new TestSnapshotResolver();
-        await snapshotResolver.InitializeAsync(DisposalToken);
         var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(snapshotResolver);
         var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(snapshotResolver);
 

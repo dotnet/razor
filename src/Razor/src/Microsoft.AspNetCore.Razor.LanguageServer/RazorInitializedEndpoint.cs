@@ -20,9 +20,6 @@ internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams
     {
         var onStartedItems = requestContext.LspServices.GetRequiredServices<IOnInitialized>();
 
-        var snapshotResolver = requestContext.LspServices.GetRequiredService<ISnapshotResolver>();
-        await snapshotResolver.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
         var fileChangeDetectorManager = requestContext.LspServices.GetRequiredService<RazorFileChangeDetectorManager>();
         await fileChangeDetectorManager.InitializedAsync(cancellationToken).ConfigureAwait(false);
 
