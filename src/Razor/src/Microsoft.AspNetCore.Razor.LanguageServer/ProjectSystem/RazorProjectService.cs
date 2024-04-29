@@ -59,49 +59,45 @@ internal class RazorProjectService(
 
         _logger.LogDebug($"Adding {filePath} to the miscellaneous files project, because we don't have project info (yet?)");
         var miscFilesProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
-        await AddDocumentToProjectAsync(miscFilesProject, textDocumentPath, cancellationToken).ConfigureAwait(false);
 
-        async Task AddDocumentToProjectAsync(IProjectSnapshot projectSnapshot, string textDocumentPath, CancellationToken cancellationToken)
+        if (miscFilesProject.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not null)
         {
-            if (projectSnapshot.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not null)
-            {
-                // Document already added. This usually occurs when VSCode has already pre-initialized
-                // open documents and then we try to manually add all known razor documents.
-                return;
-            }
+            // Document already added. This usually occurs when VSCode has already pre-initialized
+            // open documents and then we try to manually add all known razor documents.
+            return;
+        }
 
-            var targetFilePath = textDocumentPath;
-            var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(projectSnapshot.FilePath);
-            if (targetFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
-            {
-                // Make relative
-                targetFilePath = textDocumentPath[projectDirectory.Length..];
-            }
+        var targetFilePath = textDocumentPath;
+        var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(miscFilesProject.FilePath);
+        if (targetFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
+        {
+            // Make relative
+            targetFilePath = textDocumentPath[projectDirectory.Length..];
+        }
 
-            // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
-            var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
+        // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
+        var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
 
-            var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
-            var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
+        var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
+        var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
 
-            _logger.LogInformation($"Adding document '{filePath}' to project '{projectSnapshot.Key}'.");
+        _logger.LogInformation($"Adding document '{filePath}' to project '{miscFilesProject.Key}'.");
 
-            await _projectManager
-                .UpdateAsync(
-                    static (updater, state) => updater.DocumentAdded(state.key, state.hostDocument, state.textLoader),
-                    state: (key: projectSnapshot.Key, hostDocument, textLoader),
-                    cancellationToken)
-                .ConfigureAwait(false);
+        await _projectManager
+            .UpdateAsync(
+                static (updater, state) => updater.DocumentAdded(state.key, state.hostDocument, state.textLoader),
+                state: (key: miscFilesProject.Key, hostDocument, textLoader),
+                cancellationToken)
+            .ConfigureAwait(false);
 
-            // Adding a document to a project could also happen because a target was added to a project, or we're moving a document
-            // from Misc Project to a real one, and means the newly added document could actually already be open.
-            // If it is, we need to make sure we start generating it so we're ready to handle requests that could start coming in.
-            if (_projectManager.IsDocumentOpen(textDocumentPath) &&
-                _projectManager.TryGetLoadedProject(projectSnapshot.Key, out var project) &&
-                project.GetDocument(textDocumentPath) is { } document)
-            {
-                _ = document.GetGeneratedOutputAsync();
-            }
+        // Adding a document to a project could also happen because a target was added to a project, or we're moving a document
+        // from Misc Project to a real one, and means the newly added document could actually already be open.
+        // If it is, we need to make sure we start generating it so we're ready to handle requests that could start coming in.
+        if (_projectManager.IsDocumentOpen(textDocumentPath) &&
+            _projectManager.TryGetLoadedProject(miscFilesProject.Key, out var project) &&
+            project.GetDocument(textDocumentPath) is { } document)
+        {
+            _ = document.GetGeneratedOutputAsync();
         }
     }
 
