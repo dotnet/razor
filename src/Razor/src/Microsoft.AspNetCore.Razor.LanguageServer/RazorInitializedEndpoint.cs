@@ -19,7 +19,6 @@ internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams
     public async Task HandleNotificationAsync(InitializedParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         var onStartedItems = requestContext.LspServices.GetRequiredServices<IOnInitialized>();
-        var capabilitiesService = requestContext.GetRequiredService<IClientCapabilitiesService>();
 
         var snapshotResolver = requestContext.LspServices.GetRequiredService<ISnapshotResolver>();
         await snapshotResolver.InitializeAsync(cancellationToken).ConfigureAwait(false);
@@ -29,7 +28,7 @@ internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams
 
         foreach (var onStartedItem in onStartedItems)
         {
-            await onStartedItem.OnInitializedAsync(capabilitiesService.ClientCapabilities, cancellationToken).ConfigureAwait(false);
+            await onStartedItem.OnInitializedAsync(requestContext.LspServices, cancellationToken).ConfigureAwait(false);
         }
     }
 }
