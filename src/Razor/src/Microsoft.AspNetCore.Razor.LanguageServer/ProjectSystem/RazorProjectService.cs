@@ -57,18 +57,9 @@ internal class RazorProjectService(
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
-        var added = false;
-        foreach (var projectSnapshot in _snapshotResolver.FindPotentialProjects(textDocumentPath))
-        {
-            added = true;
-            await AddDocumentToProjectAsync(projectSnapshot, textDocumentPath, cancellationToken).ConfigureAwait(false);
-        }
-
-        if (!added)
-        {
-            var miscFilesProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
-            await AddDocumentToProjectAsync(miscFilesProject, textDocumentPath, cancellationToken).ConfigureAwait(false);
-        }
+        _logger.LogDebug($"Adding {filePath} to the miscellaneous files project, because we don't have project info (yet?)");
+        var miscFilesProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
+        await AddDocumentToProjectAsync(miscFilesProject, textDocumentPath, cancellationToken).ConfigureAwait(false);
 
         async Task AddDocumentToProjectAsync(IProjectSnapshot projectSnapshot, string textDocumentPath, CancellationToken cancellationToken)
         {
