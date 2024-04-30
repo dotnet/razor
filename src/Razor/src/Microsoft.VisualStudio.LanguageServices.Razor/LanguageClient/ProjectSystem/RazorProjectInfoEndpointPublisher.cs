@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -157,35 +158,38 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
 
     private void RemovePublishingData(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
-        ImmediatePublish(projectSnapshot.Key, encodedProjectInfo: null, cancellationToken);
+        var parameter = new ProjectInfoParams
+        {
+            ProjectKeyId = projectSnapshot.Key.Id,
+        };
+
+        _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
+            LanguageServerConstants.RazorProjectInfoEndpoint,
+            RazorLSPConstants.RazorLanguageServerName,
+            parameter,
+            cancellationToken).Forget();
     }
 
     private void ImmediatePublish(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
-        var base64ProjectInfo = projectSnapshot.ToBase64EncodedProjectInfo(projectSnapshot.IntermediateOutputPath);
+        var filePath = Path.GetTempFileName();
+        var projectInfo = projectSnapshot.ToRazorProjectInfo(filePath);
 
-        ImmediatePublish(projectSnapshot.Key, base64ProjectInfo, cancellationToken);
-    }
-
-    private void ImmediatePublish(ProjectKey projectKey, string? encodedProjectInfo, CancellationToken cancellationToken)
-    {
-        // This might be getting called after getting dequeued from work queue,
-        // check if the work got cancelled before doing anything.
-        if (cancellationToken.IsCancellationRequested)
+        using (var stream = File.OpenWrite(filePath))
         {
-            return;
+            projectInfo.SerializeTo(stream);
         }
 
-        var parameter = new ProjectInfoParams()
+        var parameter = new ProjectInfoParams
         {
-            ProjectKeyId = projectKey.Id,
-            ProjectInfo = encodedProjectInfo
+            ProjectKeyId = projectSnapshot.Key.Id,
+            FilePath = filePath
         };
 
         _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
-                LanguageServerConstants.RazorProjectInfoEndpoint,
-                RazorLSPConstants.RazorLanguageServerName,
-                parameter,
-                cancellationToken).Forget();
+            LanguageServerConstants.RazorProjectInfoEndpoint,
+            RazorLSPConstants.RazorLanguageServerName,
+            parameter,
+            cancellationToken).Forget();
     }
 }

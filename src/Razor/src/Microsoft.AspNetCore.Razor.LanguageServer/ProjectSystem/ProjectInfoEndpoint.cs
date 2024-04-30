@@ -17,24 +17,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 /// Used to receive project system info updates from the client that were discovered OOB.
 /// </summary>
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorProjectInfoEndpoint)]
-internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams>
+internal class ProjectInfoEndpoint(ProjectConfigurationStateManager stateManager) : IRazorNotificationHandler<ProjectInfoParams>
 {
-    private readonly ProjectConfigurationStateManager _projectConfigurationStateManager;
-
-    public ProjectInfoEndpoint(ProjectConfigurationStateManager projectConfigurationStateManager)
-    {
-        _projectConfigurationStateManager = projectConfigurationStateManager;
-    }
+    private readonly ProjectConfigurationStateManager _stateManager = stateManager;
 
     public bool MutatesSolutionState => false;
 
     public Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        var razorProjectInfo =
-            RazorProjectInfoDeserializer.Instance.DeserializeFromString(request.ProjectInfo);
-
         var projectKey = ProjectKey.FromString(request.ProjectKeyId);
 
-        return _projectConfigurationStateManager.ProjectInfoUpdatedAsync(projectKey, razorProjectInfo, cancellationToken);
+        RazorProjectInfo? projectInfo = null;
+
+        if (request.FilePath is string filePath)
+        {
+            projectInfo = RazorProjectInfoDeserializer.Instance.DeserializeFromFile(filePath);
+            File.Delete(filePath);
+        }
+
+        return _stateManager.ProjectInfoUpdatedAsync(projectKey, projectInfo, cancellationToken);
     }
 }
