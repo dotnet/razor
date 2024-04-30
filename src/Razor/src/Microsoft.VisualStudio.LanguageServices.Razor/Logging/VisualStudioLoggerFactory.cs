@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Razor.Logging;
 
 [Export(typeof(ILoggerFactory))]
 [method: ImportingConstructor]
-internal sealed class VisualStudioLoggerFactory([ImportMany] IEnumerable<Lazy<ILoggerProvider>> providers)
+internal sealed class VisualStudioLoggerFactory([ImportMany] IEnumerable<Lazy<ILoggerProvider, LoggerProviderMetadata>> providers)
     : AbstractLoggerFactory(providers.ToImmutableArray())
 {
 }

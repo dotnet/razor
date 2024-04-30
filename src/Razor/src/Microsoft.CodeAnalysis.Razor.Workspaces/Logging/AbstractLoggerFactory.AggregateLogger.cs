@@ -8,15 +8,35 @@ namespace Microsoft.CodeAnalysis.Razor.Logging;
 
 internal abstract partial class AbstractLoggerFactory
 {
-    private class AggregateLogger(ImmutableArray<Lazy<ILogger>> lazyLoggers) : ILogger
+    private sealed class LazyLogger(Lazy<ILoggerProvider, LoggerProviderMetadata> lazyProvider, string categoryName)
     {
-        private ImmutableArray<Lazy<ILogger>> _lazyLoggers = lazyLoggers;
+        private readonly LoggerProviderMetadata _metadata = lazyProvider.Metadata;
+        private readonly Lazy<ILogger> _lazyLogger = new(() => lazyProvider.Value.CreateLogger(categoryName));
+
+        public ILogger Instance => _lazyLogger.Value;
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            // If the ILoggerProvider's metadata has a minimum log level, we can use that
+            // rather than forcing the ILoggerProvider to be created.
+            if (_metadata.MinimumLogLevel is LogLevel minimumLogLevel)
+            {
+                return logLevel.IsAtLeast(minimumLogLevel);
+            }
+
+            return Instance.IsEnabled(logLevel);
+        }
+    }
+
+    private class AggregateLogger(ImmutableArray<LazyLogger> lazyLoggers) : ILogger
+    {
+        private ImmutableArray<LazyLogger> _lazyLoggers = lazyLoggers;
 
         public bool IsEnabled(LogLevel logLevel)
         {
             foreach (var lazyLogger in _lazyLoggers)
             {
-                if (lazyLogger.Value.IsEnabled(logLevel))
+                if (lazyLogger.IsEnabled(logLevel))
                 {
                     return true;
                 }
@@ -29,16 +49,14 @@ internal abstract partial class AbstractLoggerFactory
         {
             foreach (var lazyLogger in _lazyLoggers)
             {
-                var logger = lazyLogger.Value;
-
-                if (logger.IsEnabled(logLevel))
+                if (lazyLogger.IsEnabled(logLevel))
                 {
-                    logger.Log(logLevel, message, exception);
+                    lazyLogger.Instance.Log(logLevel, message, exception);
                 }
             }
         }
 
-        internal void AddLogger(Lazy<ILogger> lazyLogger)
+        internal void AddLogger(LazyLogger lazyLogger)
         {
             ImmutableInterlocked.Update(ref _lazyLoggers, (set, l) => set.Add(l), lazyLogger);
         }

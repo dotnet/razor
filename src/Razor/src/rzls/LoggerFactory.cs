@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class LoggerFactory(ImmutableArray<Lazy<ILoggerProvider>> providers)
+internal sealed class LoggerFactory(ImmutableArray<Lazy<ILoggerProvider, LoggerProviderMetadata>> providers)
     : AbstractLoggerFactory(providers)
 {
 }
