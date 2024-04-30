@@ -19,9 +19,10 @@ internal abstract partial class AbstractLoggerFactory
         {
             // If the ILoggerProvider's metadata has a minimum log level, we can use that
             // rather than forcing the ILoggerProvider to be created.
-            if (_metadata.MinimumLogLevel is LogLevel minimumLogLevel)
+            if (_metadata.MinimumLogLevel is LogLevel minimumLogLevel &&
+                !logLevel.IsAtLeast(minimumLogLevel))
             {
-                return logLevel.IsAtLeast(minimumLogLevel);
+                return false;
             }
 
             return Instance.IsEnabled(logLevel);
