@@ -93,7 +93,8 @@ internal class RazorProjectService(
                 if (!_snapshotResolver.TryResolveDocumentInAnyProject(textDocumentPath, out var document))
                 {
                     // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
-                    // processes and pre-initializes already open documents.
+                    // processes and pre-initializes already open documents. We add this to the misc project, and
+                    // if/when we get project info from the client, it will be migrated to a real project.
                     AddDocumentToMiscProjectCore(updater, filePath);
                 }
 
