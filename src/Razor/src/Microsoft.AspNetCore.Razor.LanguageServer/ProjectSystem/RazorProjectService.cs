@@ -50,7 +50,7 @@ internal class RazorProjectService(
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
         _logger.LogDebug($"Adding {filePath} to the miscellaneous files project, because we don't have project info (yet?)");
-        var miscFilesProject = await _snapshotResolver.GetMiscellaneousProjectAsync(cancellationToken).ConfigureAwait(false);
+        var miscFilesProject = _snapshotResolver.GetMiscellaneousProject();
 
         if (miscFilesProject.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not null)
         {
@@ -67,13 +67,13 @@ internal class RazorProjectService(
 
         _logger.LogInformation($"Adding document '{filePath}' to project '{miscFilesProject.Key}'.");
 
-        updater.DocumentAdded(projectSnapshot.Key, hostDocument, textLoader);
+        updater.DocumentAdded(miscFilesProject.Key, hostDocument, textLoader);
 
         // Adding a document to a project could also happen because a target was added to a project, or we're moving a document
         // from Misc Project to a real one, and means the newly added document could actually already be open.
         // If it is, we need to make sure we start generating it so we're ready to handle requests that could start coming in.
         if (_projectManager.IsDocumentOpen(textDocumentPath) &&
-            _projectManager.TryGetLoadedProject(projectSnapshot.Key, out var project) &&
+            _projectManager.TryGetLoadedProject(miscFilesProject.Key, out var project) &&
             project.GetDocument(textDocumentPath) is { } document)
         {
             document.GetGeneratedOutputAsync().Forget();

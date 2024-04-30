@@ -34,7 +34,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     private TestProjectSnapshotManager _projectManager;
     private SnapshotResolver _snapshotResolver;
     private DocumentVersionCache _documentVersionCache;
-    private RazorProjectService _projectService;
+    private TestRazorProjectService _projectService;
 #nullable enable
 
     protected override async Task InitializeAsync()
@@ -202,7 +202,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         await _projectService.AddDocumentToMiscProjectAsync(DocumentFilePath, DisposalToken);
 
-        var miscProject = await _snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+        var miscProject = _snapshotResolver.GetMiscellaneousProject();
 
         var project = _projectManager.GetLoadedProject(ownerProjectKey);
 
@@ -657,7 +657,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var ownerProjectKey = await _projectService.AddProjectAsync(
             ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
 
-        var miscProject = await _snapshotResolver.GetMiscellaneousProjectAsync(DisposalToken);
+        var miscProject = _snapshotResolver.GetMiscellaneousProject();
 
         using var listener = _projectManager.ListenToNotifications();
 
