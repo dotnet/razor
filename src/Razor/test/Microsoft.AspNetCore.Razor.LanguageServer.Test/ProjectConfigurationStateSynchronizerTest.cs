@@ -548,8 +548,278 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
         projectServiceMock.VerifyAll();
     }
 
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_AddThenRemove_AddsAndRemoves()
+    {
+        // Arrange
+        var projectInfo = new RazorProjectInfo(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            displayName: "project",
+            ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
+            documents: []);
+        var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
+        var projectKey = TestProjectKey.Create(intermediateOutputPath);
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
+           .Setup(p => p.AddProjectAsync(
+               projectInfo.FilePath,
+               intermediateOutputPath,
+               It.IsAny<RazorConfiguration>(),
+               projectInfo.RootNamespace,
+               projectInfo.DisplayName,
+               It.IsAny<CancellationToken>()))
+           .ReturnsAsync(projectKey);
+        projectServiceMock
+            .Setup(p => p.UpdateProjectAsync(
+                projectKey,
+                It.IsAny<RazorConfiguration>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<ProjectWorkspaceState>(),
+                It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
+        var synchronizerAccessor = synchronizer.GetTestAccessor();
+
+        var deserializer = CreateDeserializer(projectInfo);
+        var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Added, deserializer);
+        var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Removed, deserializer);
+
+        // Act
+        synchronizer.ProjectConfigurationFileChanged(addedArgs);
+        synchronizer.ProjectConfigurationFileChanged(removedArgs);
+
+        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+
+        // Assert
+        projectServiceMock.Verify(p => p.UpdateProjectAsync(
+            projectKey,
+            It.IsAny<RazorConfiguration>(),
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<ProjectWorkspaceState>(),
+            It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+            It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+
+        projectServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_AddThenRemoveThenAdd_AddsAndUpdates()
+    {
+        // Arrange
+        var projectInfo = new RazorProjectInfo(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            displayName: "project",
+            ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
+            documents: []);
+        var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
+        var projectKey = TestProjectKey.Create(intermediateOutputPath);
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
+           .Setup(p => p.AddProjectAsync(
+               projectInfo.FilePath,
+               intermediateOutputPath,
+               It.IsAny<RazorConfiguration>(),
+               projectInfo.RootNamespace,
+               projectInfo.DisplayName,
+               It.IsAny<CancellationToken>()))
+           .ReturnsAsync(projectKey);
+        projectServiceMock
+            .Setup(p => p.UpdateProjectAsync(
+                projectKey,
+                It.IsAny<RazorConfiguration>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<ProjectWorkspaceState>(),
+                It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
+        var synchronizerAccessor = synchronizer.GetTestAccessor();
+
+        var deserializer = CreateDeserializer(projectInfo);
+        var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Added, deserializer);
+        var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Removed, deserializer);
+
+        // Act
+        synchronizer.ProjectConfigurationFileChanged(addedArgs);
+        synchronizer.ProjectConfigurationFileChanged(removedArgs);
+        synchronizer.ProjectConfigurationFileChanged(addedArgs);
+
+        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+
+        // Assert
+        projectServiceMock.Verify(p => p.UpdateProjectAsync(
+            projectKey,
+            It.IsAny<RazorConfiguration>(),
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<ProjectWorkspaceState>(),
+            It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+            It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+
+        projectServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_AddThenRemoveThenAddThenUpdate_AddsAndUpdates()
+    {
+        // Arrange
+        var projectInfo = new RazorProjectInfo(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            displayName: "project",
+            ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
+            documents: []);
+        var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
+        var projectKey = TestProjectKey.Create(intermediateOutputPath);
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
+           .Setup(p => p.AddProjectAsync(
+               projectInfo.FilePath,
+               intermediateOutputPath,
+               It.IsAny<RazorConfiguration>(),
+               projectInfo.RootNamespace,
+               projectInfo.DisplayName,
+               It.IsAny<CancellationToken>()))
+           .ReturnsAsync(projectKey);
+        projectServiceMock
+            .Setup(p => p.UpdateProjectAsync(
+                projectKey,
+                It.IsAny<RazorConfiguration>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<ProjectWorkspaceState>(),
+                It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
+        var synchronizerAccessor = synchronizer.GetTestAccessor();
+
+        var deserializer = CreateDeserializer(projectInfo);
+        var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Added, deserializer);
+        var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Removed, deserializer);
+        var changedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo.SerializedFilePath, RazorFileChangeKind.Changed, deserializer);
+
+        // Act
+        synchronizer.ProjectConfigurationFileChanged(addedArgs);
+        synchronizer.ProjectConfigurationFileChanged(removedArgs);
+        synchronizer.ProjectConfigurationFileChanged(addedArgs);
+        synchronizer.ProjectConfigurationFileChanged(changedArgs);
+        synchronizer.ProjectConfigurationFileChanged(changedArgs);
+        synchronizer.ProjectConfigurationFileChanged(changedArgs);
+
+        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+
+        // Assert
+        // Update is only called twice because the Remove-then-Add is changed to an Update,
+        // then that Update is deduped with the one following
+        projectServiceMock.Verify(p => p.UpdateProjectAsync(
+            projectKey,
+            It.IsAny<RazorConfiguration>(),
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<ProjectWorkspaceState>(),
+            It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+            It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+
+        projectServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_RemoveThenAddDifferentProjects_RemovesAndAdds()
+    {
+        // Arrange
+        var projectInfo1 = new RazorProjectInfo(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            displayName: "project",
+            ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
+            documents: []);
+        var intermediateOutputPath1 = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo1.SerializedFilePath);
+        var projectKey1 = TestProjectKey.Create(intermediateOutputPath1);
+
+        var projectInfo2 = new RazorProjectInfo(
+           "/path/other/obj/project.razor.json",
+           "path/other/project.csproj",
+           RazorConfiguration.Default,
+           rootNamespace: "TestRootNamespace",
+           displayName: "project",
+           ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
+           documents: []);
+        var intermediateOutputPath2 = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo2.SerializedFilePath);
+        var projectKey2 = TestProjectKey.Create(intermediateOutputPath2);
+
+        var projectServiceMock = new StrictMock<IRazorProjectService>();
+        projectServiceMock
+            .Setup(p => p.UpdateProjectAsync(
+                projectKey1,
+                It.IsAny<RazorConfiguration>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<ProjectWorkspaceState>(),
+                It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        projectServiceMock
+            .Setup(p => p.AddProjectAsync(
+                projectInfo2.FilePath,
+                intermediateOutputPath2,
+                It.IsAny<RazorConfiguration>(),
+                projectInfo2.RootNamespace,
+                projectInfo2.DisplayName,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(projectKey2);
+        projectServiceMock
+            .Setup(p => p.UpdateProjectAsync(
+                projectKey2,
+                It.IsAny<RazorConfiguration>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<ProjectWorkspaceState>(),
+                It.IsAny<ImmutableArray<DocumentSnapshotHandle>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        using var synchronizer = GetSynchronizer(projectServiceMock.Object);
+        var synchronizerAccessor = synchronizer.GetTestAccessor();
+
+        var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo1.SerializedFilePath, RazorFileChangeKind.Removed, CreateDeserializer(projectInfo1));
+        var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectInfo2.SerializedFilePath, RazorFileChangeKind.Added, CreateDeserializer(projectInfo2));
+
+        // Act
+        synchronizer.ProjectConfigurationFileChanged(removedArgs);
+        synchronizer.ProjectConfigurationFileChanged(addedArgs);
+
+        await synchronizerAccessor.WaitUntilCurrentBatchCompletesAsync();
+
+        // Assert
+        projectServiceMock.VerifyAll();
+    }
+
     private TestProjectConfigurationStateSynchronizer GetSynchronizer(IRazorProjectService razorProjectService)
-        => new(razorProjectService, LoggerFactory, TestLanguageServerFeatureOptions.Instance, TimeSpan.FromMilliseconds(5));
+        => new(razorProjectService, LoggerFactory, TestLanguageServerFeatureOptions.Instance, TimeSpan.FromMilliseconds(50));
 
     private static IRazorProjectInfoDeserializer CreateDeserializer(RazorProjectInfo? projectInfo)
     {

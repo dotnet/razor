@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -13,8 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
@@ -40,7 +37,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
 
     private readonly Dictionary<ProjectKey, (ResetProject work, int index)> _resetProjectMap = new();
-    private readonly HashSet<int> _indicesToSkip = new();
+    private readonly List<int> _indicesToSkip = new();
 
     public ProjectConfigurationStateSynchronizer(
         IRazorProjectService projectService,
@@ -78,7 +75,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
         using var itemsToProcess = new PooledArrayBuilder<Work>(items.Length);
         var index = 0;
 
-        foreach (var item in items.GetMostRecentUniqueItems(Comparer.Instance))
+        foreach (var item in items)
         {
             if (token.IsCancellationRequested)
             {
@@ -113,21 +110,21 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
             index++;
         }
 
-        // Now, loop through all of the file paths we collected and notify listeners of changes,
-        // taking care of to skip any indices that we noted earlier.
-        for (var i = 0; i < itemsToProcess.Count; i++)
+        // Now that we've got the real items we want to process, we remove the items we want to skip
+        // and then we can process the most recent unique items as normal
+        for (var i = _indicesToSkip.Count - 1; i >= 0; i--)
+        {
+            itemsToProcess.RemoveAt(_indicesToSkip[i]);
+        }
+
+        var finalItems = itemsToProcess.DrainToImmutable();
+
+        foreach (var item in finalItems.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (token.IsCancellationRequested)
             {
                 return;
             }
-
-            if (_indicesToSkip.Contains(i))
-            {
-                continue;
-            }
-
-            var item = itemsToProcess[i];
 
             var itemTask = item switch
             {
@@ -156,9 +153,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
                     token)
                 .ConfigureAwait(false);
 
-            _logger.LogInformation($"Added {projectKey.Id}.");
-
-            _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{projectInfo.SerializedFilePath}'");
+            _logger.LogInformation($"Project configuration file added for project key {projectKey.Id}, file '{projectFilePath}': '{projectInfo.SerializedFilePath}'");
 
             await UpdateProjectAsync(projectKey, projectInfo, token).ConfigureAwait(false);
         }
