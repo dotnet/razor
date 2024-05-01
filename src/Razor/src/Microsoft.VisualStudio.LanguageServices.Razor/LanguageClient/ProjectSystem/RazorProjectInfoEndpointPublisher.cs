@@ -145,17 +145,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
             filePaths.Add(filePath);
         }
 
-        var parameter = new ProjectInfoParams
-        {
-            ProjectKeyIds = projectKeyIds.ToArray(),
-            FilePaths = filePaths.ToArray()
-        };
-
-        await _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
-            LanguageServerConstants.RazorProjectInfoEndpoint,
-            RazorLSPConstants.RazorLanguageServerName,
-            parameter,
-            cancellationToken);
+        await SendRequestAsync(projectKeyIds.ToArray(), filePaths.ToArray(), cancellationToken);
     }
 
     private async Task PublishProjectsAsync(ImmutableArray<IProjectSnapshot> projects, CancellationToken cancellationToken)
@@ -172,13 +162,18 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
             filePaths.Add(filePath);
         }
 
+        await SendRequestAsync(projectKeyIds.ToArray(), filePaths.ToArray(), cancellationToken);
+    }
+
+    private Task SendRequestAsync(string[] projectKeyIds, string?[] filePaths, CancellationToken cancellationToken)
+    {
         var parameter = new ProjectInfoParams
         {
-            ProjectKeyIds = projectKeyIds.ToArray(),
-            FilePaths = filePaths.ToArray()
+            ProjectKeyIds = projectKeyIds,
+            FilePaths = filePaths
         };
 
-        await _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
+        return _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
             LanguageServerConstants.RazorProjectInfoEndpoint,
             RazorLSPConstants.RazorLanguageServerName,
             parameter,

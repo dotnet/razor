@@ -480,6 +480,7 @@ public class ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOut
             displayName: "project",
             ProjectWorkspaceState.Create(LanguageVersion.CSharp5),
             documents: []);
+        Assert.NotNull(projectInfo.SerializedFilePath);
         var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(projectInfo.SerializedFilePath);
         var projectKey = TestProjectKey.Create(intermediateOutputPath);
 
