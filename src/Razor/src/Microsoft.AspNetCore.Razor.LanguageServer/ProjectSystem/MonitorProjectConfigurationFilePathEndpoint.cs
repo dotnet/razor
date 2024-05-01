@@ -180,7 +180,7 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationH
                 {
                     updater.ProjectRemoved(projectKey);
                 },
-                state: ProjectKey.FromString(projectKeyId),
+                state: ProjectKey.From(projectKeyId),
                 cancellationToken);
         }
 

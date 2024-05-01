@@ -70,7 +70,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
                 await UpdateAsync(
                     updater =>
                     {
-                        var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                        var beforeProjectKey = ProjectKey.From(beforeIntermediateOutputPath);
                         updater.ProjectRemoved(beforeProjectKey);
                     },
                     CancellationToken.None)

@@ -24,7 +24,10 @@ internal readonly record struct ProjectKey
         return new(intermediateOutputPath);
     }
 
-    internal static ProjectKey FromString(string projectKeyId) => new(projectKeyId);
+    /// <summary>
+    /// Creates a <see cref="ProjectKey"/> from a <see cref="string"/> representing a project's intermediate output path.
+    /// </summary>
+    public static ProjectKey From(string id) => new(id);
 
     public string Id { get; }
 

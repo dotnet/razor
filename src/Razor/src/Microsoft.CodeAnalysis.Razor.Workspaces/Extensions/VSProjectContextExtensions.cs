@@ -10,6 +10,6 @@ internal static class VSProjectContextExtensions
 {
     internal static ProjectKey ToProjectKey(this VSProjectContext projectContext)
     {
-        return ProjectKey.FromString(projectContext.Id);
+        return ProjectKey.From(projectContext.Id);
     }
 }

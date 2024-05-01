@@ -33,7 +33,7 @@ internal class ProjectInfoEndpoint : IRazorNotificationHandler<ProjectInfoParams
         var razorProjectInfo =
             RazorProjectInfoDeserializer.Instance.DeserializeFromString(request.ProjectInfo);
 
-        var projectKey = ProjectKey.FromString(request.ProjectKeyId);
+        var projectKey = ProjectKey.From(request.ProjectKeyId);
 
         return _projectConfigurationStateManager.ProjectInfoUpdatedAsync(projectKey, razorProjectInfo, cancellationToken);
     }

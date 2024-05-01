@@ -120,7 +120,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             await UpdateAsync(
                 updater =>
                 {
-                    var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                    var beforeProjectKey = ProjectKey.From(beforeIntermediateOutputPath);
                     RemoveProject(updater, beforeProjectKey);
                 },
                 CancellationToken.None)

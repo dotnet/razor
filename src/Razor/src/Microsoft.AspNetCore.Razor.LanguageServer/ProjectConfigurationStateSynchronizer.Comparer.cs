@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -17,38 +18,13 @@ internal partial class ProjectConfigurationStateSynchronizer
         }
 
         public bool Equals(Work? x, Work? y)
-        {
-            if (x is null)
+            => (x, y) switch
             {
-                return y is null;
-            }
-            else if (y is null)
-            {
-                return x is null;
-            }
+                (Work(var keyX), Work(var keyY)) => keyX == keyY,
+                (null, null) => true,
 
-            // For purposes of removing duplicates from batches, two Work instances
-            // are equal only if their identifying properties are equal. So, only
-            // configuration file paths and project keys.
-
-            if (!FilePathComparer.Instance.Equals(x.ConfigurationFilePath, y.ConfigurationFilePath))
-            {
-                return false;
-            }
-
-            return (x, y) switch
-            {
-                (ResetProject { ProjectKey: var keyX },
-                 ResetProject { ProjectKey: var keyY })
-                    => keyX == keyY,
-
-                (UpdateProject { ProjectKey: var keyX },
-                 UpdateProject { ProjectKey: var keyY })
-                    => keyX == keyY,
-
-                _ => false,
+                _ => false
             };
-        }
 
         public int GetHashCode(Work obj)
             => obj.GetHashCode();

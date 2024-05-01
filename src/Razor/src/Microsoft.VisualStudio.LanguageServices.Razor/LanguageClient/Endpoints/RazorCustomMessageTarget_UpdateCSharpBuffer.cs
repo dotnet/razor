@@ -77,7 +77,7 @@ internal partial class RazorCustomMessageTarget
 
             foreach (var virtualDocument in virtualDocuments)
             {
-                if (virtualDocument.ProjectKey.Equals(ProjectKey.FromString(request.ProjectKeyId)))
+                if (virtualDocument.ProjectKey.Equals(ProjectKey.From(request.ProjectKeyId)))
                 {
                     _logger.LogDebug($"UpdateCSharpBuffer virtual doc for {request.HostDocumentVersion} of {virtualDocument.Uri}");
 
