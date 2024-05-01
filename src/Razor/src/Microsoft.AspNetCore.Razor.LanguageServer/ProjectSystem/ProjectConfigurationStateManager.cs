@@ -67,9 +67,9 @@ internal partial class ProjectConfigurationStateManager : IDisposable
         _disposalTokenSource.Dispose();
     }
 
-    private async ValueTask ProcessBatchAsync(ImmutableArray<(ProjectKey ProjectKey, RazorProjectInfo? ProjectInfo)> workItems, CancellationToken cancellationToken)
+    private async ValueTask ProcessBatchAsync(ImmutableArray<(ProjectKey, RazorProjectInfo?)> items, CancellationToken cancellationToken)
     {
-        foreach (var (projectKey, projectInfo) in workItems.GetMostRecentUniqueItems(Comparer.Instance))
+        foreach (var (projectKey, projectInfo) in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (cancellationToken.IsCancellationRequested)
             {

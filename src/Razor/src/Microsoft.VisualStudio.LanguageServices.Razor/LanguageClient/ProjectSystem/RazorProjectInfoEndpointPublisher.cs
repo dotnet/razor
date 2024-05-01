@@ -91,12 +91,7 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
             case ProjectChangeKind.ProjectChanged:
             case ProjectChangeKind.DocumentRemoved:
             case ProjectChangeKind.DocumentAdded:
-                if (args.Newer is null)
-                {
-                    break;
-                }
-
-                EnqueuePublish(args.Newer);
+                EnqueuePublish(args.Newer.AssumeNotNull());
 
                 break;
 
