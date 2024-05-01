@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
@@ -69,12 +70,8 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         _projectManager.Changed += ProjectManager_Changed;
 
         var projects = _projectManager.GetProjects();
-        foreach (var project in projects)
-        {
-            // Don't enqueue project addition as those are unlikely to come through in large batches.
-            // Also ensures that we won't get project removal go through the queue without project addition.
-            ImmediatePublish(project, _disposeTokenSource.Token);
-        }
+
+        ImmediatePublishAsync(projects, _disposeTokenSource.Token).Forget();
     }
 
     private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
@@ -100,13 +97,9 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
                 break;
 
             case ProjectChangeKind.ProjectAdded:
-
-                if (args.Newer is not null)
-                {
-                    // Don't enqueue project addition as those are unlikely to come through in large batches.
-                    // Also ensures that we won't get project removal go through the queue without project addition.
-                    ImmediatePublish(args.Newer, _disposeTokenSource.Token);
-                }
+                // Don't enqueue project addition as those are unlikely to come through in large batches.
+                // Also ensures that we won't get project removal go through the queue without project addition.
+                ImmediatePublishAsync([args.Newer.AssumeNotNull()], _disposeTokenSource.Token).Forget();
 
                 break;
 
@@ -134,62 +127,70 @@ internal partial class RazorProjectInfoEndpointPublisher : IDisposable
         _workQueue.AddWork((Project: projectSnapshot, Removal: true));
     }
 
-    private ValueTask ProcessBatchAsync(ImmutableArray<(IProjectSnapshot Project, bool Removal)> workItems, CancellationToken cancellationToken)
+    private async ValueTask ProcessBatchAsync(ImmutableArray<(IProjectSnapshot Project, bool Removal)> workItems, CancellationToken cancellationToken)
     {
-        foreach (var workItem in workItems.GetMostRecentUniqueItems(Comparer.Instance))
+        foreach (var (project, removal) in workItems.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                return default;
+                return;
             }
 
-            if (workItem.Removal)
+            if (removal)
             {
-                RemovePublishingData(workItem.Project, cancellationToken);
+                await RemovePublishingDataAsync(project, cancellationToken);
             }
             else
             {
-                ImmediatePublish(workItem.Project, cancellationToken);
+                await ImmediatePublishAsync([project], cancellationToken);
             }
         }
-
-        return default;
     }
 
-    private void RemovePublishingData(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    private Task RemovePublishingDataAsync(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         var parameter = new ProjectInfoParams
         {
-            ProjectKeyId = projectSnapshot.Key.Id,
+            ProjectKeyIds = [projectSnapshot.Key.Id],
+            FilePaths = [null]
         };
 
-        _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
+        return _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
             LanguageServerConstants.RazorProjectInfoEndpoint,
             RazorLSPConstants.RazorLanguageServerName,
             parameter,
-            cancellationToken).Forget();
+            cancellationToken);
     }
 
-    private void ImmediatePublish(IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    private Task ImmediatePublishAsync(ImmutableArray<IProjectSnapshot> projects, CancellationToken cancellationToken)
     {
-        var filePath = Path.GetTempFileName();
-        var projectInfo = projectSnapshot.ToRazorProjectInfo(filePath);
+        using var projectKeyIds = new PooledArrayBuilder<string>(capacity: projects.Length);
+        using var filePaths = new PooledArrayBuilder<string>(capacity: projects.Length);
 
-        using (var stream = File.OpenWrite(filePath))
+        foreach (var project in projects)
         {
-            projectInfo.SerializeTo(stream);
+            var filePath = Path.GetTempFileName();
+            var projectInfo = project.ToRazorProjectInfo(filePath);
+
+            using (var stream = File.OpenWrite(filePath))
+            {
+                projectInfo.SerializeTo(stream);
+            }
+
+            projectKeyIds.Add(project.Key.Id);
+            filePaths.Add(filePath);
         }
 
         var parameter = new ProjectInfoParams
         {
-            ProjectKeyId = projectSnapshot.Key.Id,
-            FilePath = filePath
+            ProjectKeyIds = projectKeyIds.ToArray(),
+            FilePaths = filePaths.ToArray()
         };
 
-        _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
+        return _requestInvoker.ReinvokeRequestOnServerAsync<ProjectInfoParams, object>(
             LanguageServerConstants.RazorProjectInfoEndpoint,
             RazorLSPConstants.RazorLanguageServerName,
             parameter,
-            cancellationToken).Forget();
+            cancellationToken);
     }
 }

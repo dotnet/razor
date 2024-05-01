@@ -23,18 +23,23 @@ internal class ProjectInfoEndpoint(ProjectConfigurationStateManager stateManager
 
     public bool MutatesSolutionState => false;
 
-    public Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(ProjectInfoParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        var projectKey = ProjectKey.FromString(request.ProjectKeyId);
+        var count = request.ProjectKeyIds.Length;
 
-        RazorProjectInfo? projectInfo = null;
-
-        if (request.FilePath is string filePath)
+        for (var i = 0; i < count; i++)
         {
-            projectInfo = RazorProjectInfoDeserializer.Instance.DeserializeFromFile(filePath);
-            File.Delete(filePath);
-        }
+            var projectKey = ProjectKey.FromString(request.ProjectKeyIds[i]);
 
-        return _stateManager.ProjectInfoUpdatedAsync(projectKey, projectInfo, cancellationToken);
+            RazorProjectInfo? projectInfo = null;
+
+            if (request.FilePaths[i] is string filePath)
+            {
+                projectInfo = RazorProjectInfoDeserializer.Instance.DeserializeFromFile(filePath);
+                File.Delete(filePath);
+            }
+
+            await _stateManager.ProjectInfoUpdatedAsync(projectKey, projectInfo, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

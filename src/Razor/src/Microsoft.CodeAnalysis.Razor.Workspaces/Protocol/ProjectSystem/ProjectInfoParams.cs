@@ -5,6 +5,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ProjectSystem;
 
 internal class ProjectInfoParams
 {
-    public required string ProjectKeyId { get; init; }
-    public string? FilePath { get; init; }
+    public required string[] ProjectKeyIds { get; init; }
+    public required string?[] FilePaths { get; init; }
 }
