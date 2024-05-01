@@ -27,7 +27,7 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var serializedFilePath = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var serializedFilePath = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var filePath = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var configuration = reader.DeserializeOrNull<RazorConfiguration>(options) ?? RazorConfiguration.Default;
         var projectWorkspaceState = reader.DeserializeOrNull<ProjectWorkspaceState>(options) ?? ProjectWorkspaceState.Default;

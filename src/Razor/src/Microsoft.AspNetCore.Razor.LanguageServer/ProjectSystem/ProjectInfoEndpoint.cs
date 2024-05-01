@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -17,9 +18,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 /// Used to receive project system info updates from the client that were discovered OOB.
 /// </summary>
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorProjectInfoEndpoint)]
-internal class ProjectInfoEndpoint(ProjectConfigurationStateManager stateManager) : IRazorNotificationHandler<ProjectInfoParams>
+internal class ProjectInfoEndpoint(
+    ProjectConfigurationStateManager stateManager,
+    IRazorProjectInfoFileSerializer serializer)
+    : IRazorNotificationHandler<ProjectInfoParams>
 {
     private readonly ProjectConfigurationStateManager _stateManager = stateManager;
+    private readonly IRazorProjectInfoFileSerializer _serializer = serializer;
 
     public bool MutatesSolutionState => false;
 
@@ -35,8 +40,7 @@ internal class ProjectInfoEndpoint(ProjectConfigurationStateManager stateManager
 
             if (request.FilePaths[i] is string filePath)
             {
-                projectInfo = RazorProjectInfoDeserializer.Instance.DeserializeFromFile(filePath);
-                File.Delete(filePath);
+                projectInfo = await _serializer.DeserializeFromFileAndDeleteAsync(filePath, cancellationToken).ConfigureAwait(false);
             }
 
             await _stateManager.ProjectInfoUpdatedAsync(projectKey, projectInfo, cancellationToken).ConfigureAwait(false);

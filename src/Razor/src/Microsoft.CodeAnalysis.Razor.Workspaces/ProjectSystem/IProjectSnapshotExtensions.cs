@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal static class IProjectSnapshotExtensions
 {
-    public static RazorProjectInfo ToRazorProjectInfo(this IProjectSnapshot project, string serializedFilePath)
+    public static RazorProjectInfo ToRazorProjectInfo(this IProjectSnapshot project, string? serializedFilePath = null)
     {
         using var documents = new PooledArrayBuilder<DocumentSnapshotHandle>();
 

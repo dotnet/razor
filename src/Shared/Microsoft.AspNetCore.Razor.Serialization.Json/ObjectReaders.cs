@@ -341,7 +341,7 @@ internal static partial class ObjectReaders
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var serializedFilePath = reader.ReadNonNullString(nameof(RazorProjectInfo.SerializedFilePath));
+        var serializedFilePath = reader.ReadString(nameof(RazorProjectInfo.SerializedFilePath));
         var filePath = reader.ReadNonNullString(nameof(RazorProjectInfo.FilePath));
         var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties) ?? RazorConfiguration.Default;
         var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties) ?? ProjectWorkspaceState.Default;
