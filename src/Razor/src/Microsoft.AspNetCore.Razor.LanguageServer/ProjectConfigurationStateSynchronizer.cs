@@ -16,17 +16,11 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener, IDisposable
 {
-    private abstract record Work(ProjectKey ProjectKey);
-    private sealed record AddProject(RazorProjectInfo ProjectInfo) : Work(ProjectKey.From(ProjectInfo));
-    private sealed record ResetProject(ProjectKey ProjectKey) : Work(ProjectKey);
-    private sealed record UpdateProject(ProjectKey ProjectKey, RazorProjectInfo ProjectInfo) : Work(ProjectKey);
-
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(250);
 
     private readonly IRazorProjectService _projectService;
@@ -36,8 +30,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
 
-    private readonly Dictionary<ProjectKey, (ResetProject work, int index)> _resetProjectMap = new();
-    private readonly List<int> _indicesToSkip = new();
+    private readonly Dictionary<ProjectKey, ResetProject> _resetProjectMap = new();
 
     public ProjectConfigurationStateSynchronizer(
         IRazorProjectService projectService,
@@ -70,60 +63,24 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
     {
         // Clear out our helper collections.
         _resetProjectMap.Clear();
-        _indicesToSkip.Clear();
 
-        using var itemsToProcess = new PooledArrayBuilder<Work>(items.Length);
-        var index = 0;
+        var combinedItems = ConvertRemoveThenAddToUpdate(items, token);
 
-        foreach (var item in items)
+        if (token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        foreach (var item in combinedItems.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (token.IsCancellationRequested)
             {
                 return;
             }
 
-            if (item is ResetProject reset)
+            if (item.Skip)
             {
-                // We shouldn't ever get two resets for the same project, due to GetMostRecentUniqueItems, so the dictionary Add
-                // should always be safe
-                Debug.Assert(!_resetProjectMap.ContainsKey(reset.ProjectKey));
-
-                _resetProjectMap.Add(reset.ProjectKey, (reset, index));
-                itemsToProcess.Add(reset);
-            }
-            else if (item is AddProject add &&
-                _resetProjectMap.TryGetValue(add.ProjectKey, out var previousReset))
-            {
-                // We've already seen a Reset for this file path and now we have an Add, so let's convert to an Update
-                // and skip the Reset.
-                _indicesToSkip.Add(previousReset.index);
-
-                var update = new UpdateProject(previousReset.work.ProjectKey, add.ProjectInfo);
-                itemsToProcess.Add(update);
-                _resetProjectMap.Remove(add.ProjectKey);
-            }
-            else
-            {
-                itemsToProcess.Add(item);
-            }
-
-            index++;
-        }
-
-        // Now that we've got the real items we want to process, we remove the items we want to skip
-        // and then we can process the most recent unique items as normal
-        for (var i = _indicesToSkip.Count - 1; i >= 0; i--)
-        {
-            itemsToProcess.RemoveAt(_indicesToSkip[i]);
-        }
-
-        var finalItems = itemsToProcess.DrainToImmutable();
-
-        foreach (var item in finalItems.GetMostRecentUniqueItems(Comparer.Instance))
-        {
-            if (token.IsCancellationRequested)
-            {
-                return;
+                continue;
             }
 
             var itemTask = item switch
@@ -187,6 +144,61 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
                     projectInfo.Documents,
                     token);
         }
+
+        ImmutableArray<Work> ConvertRemoveThenAddToUpdate(ImmutableArray<Work> items, CancellationToken token)
+        {
+            using var itemsToProcess = new PooledArrayBuilder<Work>(items.Length);
+
+            var skippedAny = false;
+            foreach (var item in items)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    return ImmutableArray<Work>.Empty;
+                }
+
+                switch (item)
+                {
+                    case ResetProject(var projectKey) reset:
+                        // If there was a previous Reset for this project, we want to remove it from the map
+                        // so it can't be skipped, because it must be genuine for there to be another reset
+                        // after it (though realistically this would be an odd set of file events to get)
+                        _resetProjectMap[projectKey] = reset;
+                        itemsToProcess.Add(reset);
+
+                        break;
+
+                    case AddProject(var projectKey, var projectInfo)
+                    when _resetProjectMap.TryGetValue(projectKey, out var previousReset):
+                        // We've already seen a Reset for this file path and now we have an Add, so let's convert to an Update
+                        // and skip the Reset.
+                        previousReset.Skip = true;
+
+                        skippedAny = true;
+
+                        var update = new UpdateProject(projectKey, projectInfo);
+                        itemsToProcess.Add(update);
+
+                        // Remove from the project map in case we see another Remove-Add set later
+                        _resetProjectMap.Remove(projectKey);
+
+                        break;
+
+                    default:
+                        itemsToProcess.Add(item);
+
+                        break;
+                }
+            }
+
+            // If there is nothing to skip, we did nothing, so return the original list
+            if (!skippedAny)
+            {
+                return items;
+            }
+
+            return itemsToProcess.DrainToImmutable();
+        }
     }
 
     public void ProjectConfigurationFileChanged(ProjectConfigurationFileChangeEventArgs args)
@@ -205,7 +217,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
                     }
                     else
                     {
-                        var projectKey = ProjectKey.FromString(FilePathNormalizer.GetNormalizedDirectoryName(args.ConfigurationFilePath));
+                        var projectKey = args.GetProjectKey();
                         _logger.LogWarning($"Failed to deserialize after change to configuration file for project '{projectKey.Id}'.");
 
                         // We found the last associated project file for the configuration file. Reset the project since we can't
@@ -234,7 +246,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
 
             case RazorFileChangeKind.Removed:
                 {
-                    var projectKey = ProjectKey.FromString(FilePathNormalizer.GetNormalizedDirectoryName(args.ConfigurationFilePath));
+                    var projectKey = args.GetProjectKey();
                     _logger.LogInformation($"Configuration file removed for project '{projectKey}'.");
 
                     _workQueue.AddWork(new ResetProject(projectKey));

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -36,6 +37,13 @@ internal partial class ProjectConfigurationStateSynchronizer
                 return false;
             }
 
+            // If we're skipping an item, then it's never equal to an item that isn't being skipped so a more recent skipped item
+            // won't cause a previous item to be de-duped when it should be processed.
+            if (x.Skip ^ y.Skip)
+            {
+                return false;
+            }
+
             return (x, y) switch
             {
                 (AddProject, AddProject) => true,
@@ -53,6 +61,12 @@ internal partial class ProjectConfigurationStateSynchronizer
         }
 
         public int GetHashCode(Work obj)
-            => obj.GetHashCode();
+        {
+            var hash = HashCodeCombiner.Start();
+            hash.Add(obj.Skip);
+            hash.Add(obj.ProjectKey.GetHashCode());
+            hash.Add(obj.GetType().GetHashCode());
+            return hash.CombinedHash;
+        }
     }
 }
