@@ -38,8 +38,6 @@ internal partial class ProjectConfigurationStateSynchronizer
 
             return (x, y) switch
             {
-                (AddProject, AddProject) => true,
-
                 (ResetProject { ProjectKey: var keyX },
                  ResetProject { ProjectKey: var keyY })
                     => keyX == keyY,

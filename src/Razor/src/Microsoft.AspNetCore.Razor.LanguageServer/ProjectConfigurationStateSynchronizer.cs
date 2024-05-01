@@ -24,7 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener, IDisposable
 {
     private abstract record Work(string ConfigurationFilePath);
-    private sealed record AddProject(string ConfigurationFilePath, RazorProjectInfo ProjectInfo) : Work(ConfigurationFilePath);
     private sealed record ResetProject(string ConfigurationFilePath, ProjectKey ProjectKey) : Work(ConfigurationFilePath);
     private sealed record UpdateProject(string ConfigurationFilePath, ProjectKey ProjectKey, RazorProjectInfo ProjectInfo) : Work(ConfigurationFilePath);
 
@@ -73,36 +72,12 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
         {
             var itemTask = item switch
             {
-                AddProject(var configurationFilePath, var projectInfo) => AddProjectAsync(configurationFilePath, projectInfo, token),
                 ResetProject(_, var projectKey) => ResetProjectAsync(projectKey, token),
                 UpdateProject(_, var projectKey, var projectInfo) => UpdateProjectAsync(projectKey, projectInfo, token),
                 _ => Assumed.Unreachable<Task>()
             };
 
             await itemTask.ConfigureAwait(false);
-        }
-
-        async Task AddProjectAsync(string configurationFilePath, RazorProjectInfo projectInfo, CancellationToken token)
-        {
-            var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
-            var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(configurationFilePath);
-
-            var projectKey = await _projectService
-                .AddProjectAsync(
-                    projectFilePath,
-                    intermediateOutputPath,
-                    projectInfo.Configuration,
-                    projectInfo.RootNamespace,
-                    projectInfo.DisplayName,
-                    token)
-                .ConfigureAwait(false);
-
-            _logger.LogInformation($"Added {projectKey.Id}.");
-
-            ImmutableInterlocked.AddOrUpdate(ref _filePathToProjectKeyMap, configurationFilePath, projectKey, static (k, v) => v);
-            _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{configurationFilePath}'");
-
-            await UpdateProjectAsync(projectKey, projectInfo, token).ConfigureAwait(false);
         }
 
         Task ResetProjectAsync(ProjectKey projectKey, CancellationToken token)
@@ -162,7 +137,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
                                 Configuration file path: '{configurationFilePath}'
                                 """);
 
-                            _workQueue.AddWork(new AddProject(configurationFilePath, projectInfo));
+                            AddProjectAsync(configurationFilePath, projectInfo, _disposeTokenSource.Token).Forget();
                         }
                     }
                     else
@@ -196,7 +171,7 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
                 {
                     if (args.TryDeserialize(_options, out var projectInfo))
                     {
-                        _workQueue.AddWork(new AddProject(configurationFilePath, projectInfo));
+                        AddProjectAsync(configurationFilePath, projectInfo, _disposeTokenSource.Token).Forget();
                     }
                     else
                     {
@@ -233,5 +208,28 @@ internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigura
 
                 break;
         }
+    }
+
+    private async Task AddProjectAsync(string configurationFilePath, RazorProjectInfo projectInfo, CancellationToken token)
+    {
+        var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
+        var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(configurationFilePath);
+
+        var projectKey = await _projectService
+            .AddProjectAsync(
+                projectFilePath,
+                intermediateOutputPath,
+                projectInfo.Configuration,
+                projectInfo.RootNamespace,
+                projectInfo.DisplayName,
+                token)
+            .ConfigureAwait(false);
+
+        _logger.LogInformation($"Added {projectKey.Id}.");
+
+        ImmutableInterlocked.AddOrUpdate(ref _filePathToProjectKeyMap, configurationFilePath, projectKey, static (k, v) => v);
+        _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{configurationFilePath}'");
+
+        _workQueue.AddWork(new UpdateProject(configurationFilePath, projectKey, projectInfo));
     }
 }
