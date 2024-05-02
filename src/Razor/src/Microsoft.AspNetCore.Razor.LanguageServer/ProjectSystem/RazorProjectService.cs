@@ -68,16 +68,6 @@ internal class RazorProjectService(
         _logger.LogInformation($"Adding document '{filePath}' to project '{miscFilesProject.Key}'.");
 
         updater.DocumentAdded(miscFilesProject.Key, hostDocument, textLoader);
-
-        // Adding a document to a project could also happen because a target was added to a project, or we're moving a document
-        // from Misc Project to a real one, and means the newly added document could actually already be open.
-        // If it is, we need to make sure we start generating it so we're ready to handle requests that could start coming in.
-        if (_projectManager.IsDocumentOpen(textDocumentPath) &&
-            _projectManager.TryGetLoadedProject(miscFilesProject.Key, out var project) &&
-            project.GetDocument(textDocumentPath) is { } document)
-        {
-            document.GetGeneratedOutputAsync().Forget();
-        }
     }
 
     public Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
