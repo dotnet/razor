@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -74,5 +75,11 @@ internal sealed class ProjectConfigurationFileChangeEventArgs(
         }
 
         return projectInfo is not null;
+    }
+
+    internal ProjectKey GetProjectKey()
+    {
+        var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(ConfigurationFilePath);
+        return new ProjectKey(intermediateOutputPath);
     }
 }
