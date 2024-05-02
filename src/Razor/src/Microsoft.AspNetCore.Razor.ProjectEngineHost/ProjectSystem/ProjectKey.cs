@@ -4,8 +4,9 @@
 using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 /// <summary>
 /// A very light wrapper around a file path, used to ensure consistency across the code base for what constitutes the unique

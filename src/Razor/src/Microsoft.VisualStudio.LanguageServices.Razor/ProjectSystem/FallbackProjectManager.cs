@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
