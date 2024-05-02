@@ -15,13 +15,13 @@ internal static class UriPresentationHelper
     {
         if (languageKind is not RazorLanguageKind.Html)
         {
-            // We don't do anything for HTML
+            // Component tags can only be inserted into Html contexts, so if this isn't Html there is nothing we can do.
             return null;
         }
 
         if (uris is null || uris.Length == 0)
         {
-            logger.LogInformation($"No URIs were included in the request?");
+            logger.LogDebug($"No URIs were included in the request?");
             return null;
         }
 
@@ -33,14 +33,14 @@ internal static class UriPresentationHelper
         // thinks they're just dragging the parent one, so we have to be a little bit clever with the filter here
         if (razorFileUri == null)
         {
-            logger.LogInformation($"No file in the drop was a razor file URI.");
+            logger.LogDebug($"No file in the drop was a razor file URI.");
             return null;
         }
 
         var fileName = Path.GetFileName(razorFileUri.GetAbsoluteOrUNCPath());
         if (uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
         {
-            logger.LogInformation($"One or more URIs were not a child file of the main .razor file.");
+            logger.LogDebug($"One or more URIs were not a child file of the main .razor file.");
             return null;
         }
 

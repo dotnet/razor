@@ -68,7 +68,7 @@ internal sealed class RemoteUriPresentationService(
         }
 
         // We assume linked documents would produce the same component tag so just take the first
-        var otherDocument = razorDocument.Project.Solution.GetAdditionalDocument(ids.First());
+        var otherDocument = razorDocument.Project.Solution.GetAdditionalDocument(ids[0]);
         if (otherDocument is null)
         {
             return null;
