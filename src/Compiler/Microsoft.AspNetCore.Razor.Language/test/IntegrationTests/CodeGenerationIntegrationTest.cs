@@ -7,19 +7,39 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-public class CodeGenerationIntegrationTest(bool designTime = false)
-    : IntegrationTestBase(layer: TestProject.Layer.Compiler)
+public class CodeGenerationIntegrationTest : IntegrationTestBase
 {
+    private readonly bool designTime;
+
+    public CodeGenerationIntegrationTest(bool designTime = false)
+        : base(layer: TestProject.Layer.Compiler)
+    {
+        this.designTime = designTime;
+        BaseCompilation = BaseCompilation.AddReferences(
+            MetadataReference.CreateFromFile(typeof(TestTagHelperDescriptors).Assembly.Location));
+    }
+
     [IntegrationTestFact]
     public void SingleLineControlFlowStatements() => RunTest();
 
     [IntegrationTestFact]
-    public void CSharp8() => RunTest();
+    public void CSharp8()
+    {
+        // C# 8 features are not available in .NET Framework without polyfills
+        // so the C# diagnostics would be different between .NET Framework and .NET Core.
+        SkipVerifyingCSharpDiagnostics = ExecutionConditionUtil.IsDesktop;
+
+        NullableEnable = true;
+
+        RunTest();
+    }
 
     [IntegrationTestFact]
     public void IncompleteDirectives() => RunTest();
@@ -64,7 +84,13 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
     public void NoLinePragmas() => RunTest();
 
     [IntegrationTestFact]
-    public void NestedCSharp() => RunTest();
+    public void NestedCSharp()
+    {
+        // Trying to load the DLL results in "System.BadImageFormatException: Bad IL format."
+        SkipLoadingDll = true;
+
+        RunTest();
+    }
 
     [IntegrationTestFact]
     public void NestedCodeBlocks() => RunTest();
@@ -178,7 +204,13 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
     public void IncompleteTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
     [IntegrationTestFact]
-    public void BasicTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
+    public void BasicTagHelpers()
+    {
+        // Trying to load the DLL results in "System.BadImageFormatException: Bad IL format."
+        SkipLoadingDll = true;
+
+        RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
+    }
 
     [IntegrationTestFact]
     public void BasicTagHelpers_Prefixed() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
@@ -220,7 +252,13 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
     public void MinimizedTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.MinimizedTagHelpers_Descriptors);
 
     [IntegrationTestFact]
-    public void NestedScriptTagTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
+    public void NestedScriptTagTagHelpers()
+    {
+        // Trying to load the DLL results in "System.BadImageFormatException: Bad IL format."
+        SkipLoadingDll = true;
+
+        RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
+    }
 
     [IntegrationTestFact]
     public void SymbolBoundAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.SymbolBoundTagHelperDescriptors);
@@ -244,7 +282,14 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
     public void AttributeDirective() => RunTest();
 
     [IntegrationTestFact]
-    public void SwitchExpression_RecursivePattern() => RunTest();
+    public void SwitchExpression_RecursivePattern()
+    {
+        // System.Index is not available in .NET Framework without polyfills
+        // so the C# diagnostics would be different between .NET Framework and .NET Core.
+        SkipVerifyingCSharpDiagnostics = ExecutionConditionUtil.IsDesktop;
+
+        RunTest();
+    }
 
     [IntegrationTestFact]
     public new void DesignTime() => RunTest();
@@ -275,15 +320,7 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
     private void DesignTimeTest(string testName)
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(builder =>
-        {
-            builder.ConfigureDocumentClassifier(GetTestFileName(testName));
-
-            // Some of these tests use templates
-            builder.AddTargetExtension(new TemplateTargetExtension());
-
-            SectionDirective.Register(builder);
-        });
+        var projectEngine = CreateProjectEngine(RazorExtensions.Register);
 
         var projectItem = CreateProjectItemFromFile(testName: testName);
 
@@ -297,20 +334,13 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
         AssertSourceMappingsMatchBaseline(codeDocument, testName);
         AssertHtmlSourceMappingsMatchBaseline(codeDocument, testName);
         AssertLinePragmas(codeDocument, designTime: true);
+        AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
 
     private void RunTimeTest(string testName)
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(builder =>
-        {
-            builder.ConfigureDocumentClassifier(GetTestFileName(testName));
-
-            // Some of these tests use templates
-            builder.AddTargetExtension(new TemplateTargetExtension());
-
-            SectionDirective.Register(builder);
-        });
+        var projectEngine = CreateProjectEngine(RazorExtensions.Register);
 
         var projectItem = CreateProjectItemFromFile(testName: testName);
 
@@ -321,6 +351,7 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
         AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode(), testName);
         AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
         AssertLinePragmas(codeDocument, designTime: false);
+        AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
 
     private void RunTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, [CallerMemberName] string testName = "")
@@ -338,18 +369,12 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
     private void RunRuntimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, string testName)
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(builder =>
-        {
-            builder.ConfigureDocumentClassifier(GetTestFileName(testName));
-
-            // Some of these tests use templates
-            builder.AddTargetExtension(new TemplateTargetExtension());
-
-            SectionDirective.Register(builder);
-        });
+        var projectEngine = CreateProjectEngine(RazorExtensions.Register);
 
         var projectItem = CreateProjectItemFromFile(testName: testName);
         var imports = GetImports(projectEngine, projectItem);
+
+        AddTagHelperStubs(descriptors);
 
         // Act
         var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, imports, descriptors.ToList());
@@ -357,23 +382,18 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode(), testName);
         AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
+        AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
 
     private void RunDesignTimeTagHelpersTest(IEnumerable<TagHelperDescriptor> descriptors, string testName)
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(builder =>
-        {
-            builder.ConfigureDocumentClassifier(GetTestFileName(testName));
-
-            // Some of these tests use templates
-            builder.AddTargetExtension(new TemplateTargetExtension());
-
-            SectionDirective.Register(builder);
-        });
+        var projectEngine = CreateProjectEngine(RazorExtensions.Register);
 
         var projectItem = CreateProjectItemFromFile(testName: testName);
         var imports = GetImports(projectEngine, projectItem);
+
+        AddTagHelperStubs(descriptors);
 
         // Act
         var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, imports, descriptors.ToList());
@@ -384,6 +404,7 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
         AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument(), testName);
         AssertHtmlSourceMappingsMatchBaseline(codeDocument, testName);
         AssertSourceMappingsMatchBaseline(codeDocument, testName);
+        AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
 
     private static ImmutableArray<RazorSourceDocument> GetImports(RazorProjectEngine projectEngine, RazorProjectItem projectItem)
@@ -396,5 +417,50 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
             .ToImmutableArray();
 
         return importSourceDocuments;
+    }
+
+    private void AddTagHelperStubs(IEnumerable<TagHelperDescriptor> descriptors)
+    {
+        var tagHelperClasses = descriptors.Select(descriptor =>
+        {
+            var typeName = descriptor.GetTypeName();
+            var namespaceSeparatorIndex = typeName.LastIndexOf('.');
+            if (namespaceSeparatorIndex >= 0)
+            {
+                var ns = typeName[..namespaceSeparatorIndex];
+                var c = typeName[(namespaceSeparatorIndex + 1)..];
+
+                return $$"""
+                    namespace {{ns}}
+                    {
+                        class {{c}} {{getTagHelperBody(descriptor)}}
+                    }
+                    """;
+            }
+
+            return $$"""
+                class {{typeName}} {{getTagHelperBody(descriptor)}}
+                """;
+
+            static string getTagHelperBody(TagHelperDescriptor descriptor)
+            {
+                var attributes = descriptor.BoundAttributes.Select(attribute => $$"""
+                    public {{attribute.TypeName}} {{attribute.GetPropertyName()}}
+                    {
+                        get => throw new System.NotImplementedException();
+                        set { }
+                    }
+                    """);
+
+                return $$"""
+                    : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+                    {
+                        {{string.Join("\n", attributes)}}
+                    }
+                    """;
+            }
+        });
+
+        AddCSharpSyntaxTree(string.Join("\n", tagHelperClasses));
     }
 }
