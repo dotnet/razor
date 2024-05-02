@@ -15,6 +15,9 @@ namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 [DebuggerDisplay("id: {Id}")]
 internal readonly record struct ProjectKey
 {
+    public static ProjectKey Unknown { get; } = default;
+    public bool IsUnknown => Id is null;
+
     public string Id { get; }
 
     public ProjectKey(string id)
