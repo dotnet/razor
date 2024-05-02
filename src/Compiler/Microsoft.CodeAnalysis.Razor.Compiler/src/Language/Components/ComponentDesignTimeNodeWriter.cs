@@ -74,10 +74,46 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         if (node.Source is { FilePath: not null } sourceSpan)
         {
+            // Write in the form of
+            // using
+            // #line ...
+            // Content
+            //
+            // This makes it so the spacing is avoided for any formatting that happens on the generated code.
+            var usingLength = "using ".Length;
             using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
-                context.AddSourceMappingFor(node);
-                context.CodeWriter.WriteUsing(node.Content);
+                context.AddSourceMappingFor(new SourceSpan(
+                    sourceSpan.FilePath,
+                    sourceSpan.AbsoluteIndex,
+                    sourceSpan.LineIndex,
+                    sourceSpan.CharacterIndex,
+                    usingLength));
+                context.CodeWriter.WriteLine("using");
+            }
+
+            using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            {
+                var semicolonLength = node.HasExplicitSemicolon ? 0 : 1;
+
+                var modifiedSpan = new SourceSpan(
+                    sourceSpan.FilePath,
+                    sourceSpan.AbsoluteIndex + usingLength,
+                    sourceSpan.LineIndex,
+                    sourceSpan.CharacterIndex + usingLength,
+                    node.Content.Length + semicolonLength);
+
+                context.AddSourceMappingFor(modifiedSpan);
+                context.CodeWriter.Write(node.Content);
+
+                if (!node.HasExplicitSemicolon)
+                {
+                    context.CodeWriter.WriteLine("");
+                }
+                else
+                {
+                    context.CodeWriter.WriteLine();
+                }
             }
         }
         else
@@ -1237,7 +1273,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})(" 
+                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})("
                 },
                 new CSharpCodeIntermediateNode
                 {
