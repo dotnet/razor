@@ -29,11 +29,11 @@ internal sealed class RemoteUriPresentationService(
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RemoteUriPresentationService>();
 
     public ValueTask<TextChange?> GetPresentationAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan span, Uri[]? uris, CancellationToken cancellationToken)
-    => RazorBrokeredServiceImplementation.RunServiceAsync(
-        solutionInfo,
-        ServiceBrokerClient,
-        solution => GetPresentationAsync(solution, razorDocumentId, span, uris, cancellationToken),
-        cancellationToken);
+        => RazorBrokeredServiceImplementation.RunServiceAsync(
+            solutionInfo,
+            ServiceBrokerClient,
+            solution => GetPresentationAsync(solution, razorDocumentId, span, uris, cancellationToken),
+            cancellationToken);
 
     private async ValueTask<TextChange?> GetPresentationAsync(Solution solution, DocumentId razorDocumentId, LinePositionSpan span, Uri[]? uris, CancellationToken cancellationToken)
     {
