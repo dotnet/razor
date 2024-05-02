@@ -454,7 +454,18 @@ internal class RazorProjectService(
         var currentHostDocument = documentSnapshot.State.HostDocument;
 
         var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-        var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
+
+        // If we're moving from the misc files project to a real project, then target path will be the full path to the file
+        // and the next update to the project will update it to be a relative path. To save a bunch of busy work if that is
+        // the only change necessary, we can proactively do that work here.
+        var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(toProject.FilePath);
+        var newTargetPath = documentSnapshot.TargetPath;
+        if (FilePathNormalizer.Normalize(newTargetPath).StartsWith(projectDirectory))
+        {
+            newTargetPath = newTargetPath[projectDirectory.Length..];
+        }
+
+        var newHostDocument = new HostDocument(documentSnapshot.FilePath, newTargetPath, documentSnapshot.FileKind);
 
         _logger.LogInformation($"Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.");
 
