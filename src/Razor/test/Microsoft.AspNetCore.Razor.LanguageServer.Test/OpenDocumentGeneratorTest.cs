@@ -33,7 +33,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var listener = new TestDocumentProcessedListener();
-        using var generator = new TestOpenDocumentGenerator(projectManager, listener);
+        using var generator = CreateOpenDocumentGenerator(projectManager, listener);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -54,7 +54,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var listener = new TestDocumentProcessedListener();
-        using var generator = new TestOpenDocumentGenerator(projectManager, listener);
+        using var generator = CreateOpenDocumentGenerator(projectManager, listener);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -76,7 +76,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var listener = new TestDocumentProcessedListener();
-        using var generator = new TestOpenDocumentGenerator(projectManager, listener);
+        using var generator = CreateOpenDocumentGenerator(projectManager, listener);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -101,7 +101,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var listener = new TestDocumentProcessedListener();
-        using var generator = new TestOpenDocumentGenerator(projectManager, listener);
+        using var generator = CreateOpenDocumentGenerator(projectManager, listener);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -124,7 +124,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var listener = new TestDocumentProcessedListener();
-        using var generator = new TestOpenDocumentGenerator(projectManager, listener);
+        using var generator = CreateOpenDocumentGenerator(projectManager, listener);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -143,10 +143,12 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         Assert.Equal(document.FilePath, _documents[0].FilePath);
     }
 
-    private class TestOpenDocumentGenerator(
+    private OpenDocumentGenerator CreateOpenDocumentGenerator(
         IProjectSnapshotManager projectManager,
         params IDocumentProcessedListener[] listeners)
-        : OpenDocumentGenerator(listeners, projectManager, TestLanguageServerFeatureOptions.Instance);
+    {
+        return new OpenDocumentGenerator(listeners, projectManager, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
+    }
 
     private class TestDocumentProcessedListener : IDocumentProcessedListener
     {
