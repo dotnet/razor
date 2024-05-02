@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -39,17 +37,6 @@ internal static class IProjectSnapshotExtensions
             documents: documents.DrainToImmutable());
     }
 
-    public static string ToBase64EncodedProjectInfo(this IProjectSnapshot project)
-    {
-        var projectInfo = project.ToRazorProjectInfo();
-
-        using var stream = new MemoryStream();
-        projectInfo.SerializeTo(stream);
-        var base64ProjectInfo = Convert.ToBase64String(stream.ToArray());
-
-        return base64ProjectInfo;
-    }
-
     public static ImmutableArray<TagHelperDescriptor> GetTagHelpersSynchronously(this IProjectSnapshot projectSnapshot)
     {
         var canResolveTagHelpersSynchronously = projectSnapshot is ProjectSnapshot ||
@@ -58,6 +45,9 @@ internal static class IProjectSnapshotExtensions
         Debug.Assert(canResolveTagHelpersSynchronously, "The ProjectSnapshot in the VisualStudioDocumentTracker should not be a cohosted project.");
         var tagHelperTask = projectSnapshot.GetTagHelpersAsync(CancellationToken.None);
         Debug.Assert(tagHelperTask.IsCompleted, "GetTagHelpersAsync should be synchronous for non-cohosted projects.");
+
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
         return tagHelperTask.Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
     }
 }
