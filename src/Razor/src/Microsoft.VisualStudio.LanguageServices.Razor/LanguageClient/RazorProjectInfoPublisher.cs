@@ -264,7 +264,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
         // by the time we move the tempfile into its place
         using (var stream = tempFileInfo.Create())
         {
-            var projectInfo = projectSnapshot.ToRazorProjectInfo(configurationFilePath);
+            var projectInfo = projectSnapshot.ToRazorProjectInfo();
             projectInfo.SerializeTo(stream);
         }
 

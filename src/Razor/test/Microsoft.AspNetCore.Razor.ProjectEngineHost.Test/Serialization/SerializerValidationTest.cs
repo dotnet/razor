@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,7 +39,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(bytes, options);
 
         // Assert
-        Assert.Equal(originalProjectInfo.SerializedFilePath, actualProjectInfo.SerializedFilePath);
+        Assert.Equal(originalProjectInfo.ProjectKey, actualProjectInfo.ProjectKey);
         Assert.Equal(originalProjectInfo.FilePath, actualProjectInfo.FilePath);
         Assert.Equal(originalProjectInfo.Configuration, actualProjectInfo.Configuration);
         Assert.Equal(originalProjectInfo.RootNamespace, actualProjectInfo.RootNamespace);
@@ -93,7 +92,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         Assert.NotNull(actualProjectInfo);
 
         // Assert
-        Assert.Equal(originalProjectInfo.SerializedFilePath, actualProjectInfo.SerializedFilePath);
+        Assert.Equal(originalProjectInfo.ProjectKey, actualProjectInfo.ProjectKey);
         Assert.Equal(originalProjectInfo.FilePath, actualProjectInfo.FilePath);
         Assert.Equal(originalProjectInfo.Configuration, actualProjectInfo.Configuration);
         Assert.Equal(originalProjectInfo.RootNamespace, actualProjectInfo.RootNamespace);
@@ -128,7 +127,6 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         Assert.Equal<TagHelperDescriptor>(originalTagHelpers, actualTagHelpers);
     }
 
-
     /// <summary>
     /// Verifies that a previous generated file is able to be serialized. If this
     /// fails make sure to do ONE of the following:
@@ -140,7 +138,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
     /// </summary>
     [Theory]
     [InlineData("project.razor.bin")]
-    public void VerifyMessagePack_DeserializeMessagepack(string resourceName)
+    public void VerifyMessagePack_DeserializeMessagePack(string resourceName)
     {
         // Arrange
         var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");

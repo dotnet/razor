@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal static class IProjectSnapshotExtensions
 {
-    public static RazorProjectInfo ToRazorProjectInfo(this IProjectSnapshot project, string? serializedFilePath = null)
+    public static RazorProjectInfo ToRazorProjectInfo(this IProjectSnapshot project)
     {
         using var documents = new PooledArrayBuilder<DocumentSnapshotHandle>();
 
@@ -30,7 +30,7 @@ internal static class IProjectSnapshotExtensions
         }
 
         return new RazorProjectInfo(
-            serializedFilePath: serializedFilePath,
+            projectKey: project.Key,
             filePath: project.FilePath,
             configuration: project.Configuration,
             rootNamespace: project.RootNamespace,
@@ -39,9 +39,9 @@ internal static class IProjectSnapshotExtensions
             documents: documents.DrainToImmutable());
     }
 
-    public static string ToBase64EncodedProjectInfo(this IProjectSnapshot project, string serializedFilePath)
+    public static string ToBase64EncodedProjectInfo(this IProjectSnapshot project)
     {
-        var projectInfo = project.ToRazorProjectInfo(serializedFilePath);
+        var projectInfo = project.ToRazorProjectInfo();
 
         using var stream = new MemoryStream();
         projectInfo.SerializeTo(stream);

@@ -23,7 +23,7 @@ internal sealed record class RazorProjectInfo
             RazorProjectInfoResolver.Instance,
             StandardResolver.Instance));
 
-    public string? SerializedFilePath { get; init; }
+    public ProjectKey ProjectKey { get; init; }
     public string FilePath { get; init; }
     public RazorConfiguration Configuration { get; init; }
     public string? RootNamespace { get; init; }
@@ -32,7 +32,7 @@ internal sealed record class RazorProjectInfo
     public ImmutableArray<DocumentSnapshotHandle> Documents { get; init; }
 
     public RazorProjectInfo(
-        string? serializedFilePath,
+        ProjectKey projectKey,
         string filePath,
         RazorConfiguration configuration,
         string? rootNamespace,
@@ -40,7 +40,7 @@ internal sealed record class RazorProjectInfo
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<DocumentSnapshotHandle> documents)
     {
-        SerializedFilePath = serializedFilePath;
+        ProjectKey = projectKey;
         FilePath = filePath;
         Configuration = configuration;
         RootNamespace = rootNamespace;
@@ -51,7 +51,7 @@ internal sealed record class RazorProjectInfo
 
     public bool Equals(RazorProjectInfo? other)
         => other is not null &&
-           SerializedFilePath == other.SerializedFilePath &&
+           ProjectKey == other.ProjectKey &&
            FilePath == other.FilePath &&
            Configuration.Equals(other.Configuration) &&
            RootNamespace == other.RootNamespace &&
@@ -63,7 +63,7 @@ internal sealed record class RazorProjectInfo
     {
         var hash = HashCodeCombiner.Start();
 
-        hash.Add(SerializedFilePath);
+        hash.Add(ProjectKey);
         hash.Add(FilePath);
         hash.Add(Configuration);
         hash.Add(RootNamespace);
