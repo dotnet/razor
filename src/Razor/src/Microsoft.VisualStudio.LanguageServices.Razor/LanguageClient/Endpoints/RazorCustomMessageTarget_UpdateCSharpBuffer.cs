@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
@@ -77,7 +77,7 @@ internal partial class RazorCustomMessageTarget
 
             foreach (var virtualDocument in virtualDocuments)
             {
-                if (virtualDocument.ProjectKey.Equals(ProjectKey.FromString(request.ProjectKeyId)))
+                if (virtualDocument.ProjectKey.Equals(new ProjectKey(request.ProjectKeyId)))
                 {
                     _logger.LogDebug($"UpdateCSharpBuffer virtual doc for {request.HostDocumentVersion} of {virtualDocument.Uri}");
 

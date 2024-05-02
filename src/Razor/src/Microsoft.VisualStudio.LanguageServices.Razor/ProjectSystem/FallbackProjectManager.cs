@@ -167,7 +167,7 @@ internal sealed class FallbackProjectManager(
             return;
         }
 
-        var projectKey = ProjectKey.From(project);
+        var projectKey = project.ToProjectKey();
 
         var hostDocument = CreateHostDocument(filePath, projectFilePath);
         if (hostDocument is null)

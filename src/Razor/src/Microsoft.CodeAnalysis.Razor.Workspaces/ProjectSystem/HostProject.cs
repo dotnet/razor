@@ -17,7 +17,7 @@ internal class HostProject
         RootNamespace = rootNamespace;
         DisplayName = displayName ?? Path.GetFileNameWithoutExtension(projectFilePath);
 
-        Key = ProjectKey.From(this);
+        Key = new ProjectKey(intermediateOutputPath);
     }
 
     public RazorConfiguration Configuration { get; }

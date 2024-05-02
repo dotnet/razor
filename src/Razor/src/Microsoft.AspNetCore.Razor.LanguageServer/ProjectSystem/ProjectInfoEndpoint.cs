@@ -34,7 +34,7 @@ internal class ProjectInfoEndpoint(
 
         for (var i = 0; i < count; i++)
         {
-            var projectKey = ProjectKey.FromString(request.ProjectKeyIds[i]);
+            var projectKey = new ProjectKey(request.ProjectKeyIds[i]);
 
             RazorProjectInfo? projectInfo = null;
 

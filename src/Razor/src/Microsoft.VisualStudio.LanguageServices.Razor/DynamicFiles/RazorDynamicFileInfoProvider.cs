@@ -367,7 +367,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         var workspace = _workspaceProvider.GetWorkspace();
 
         return workspace.CurrentSolution.GetProject(projectId) is { Language: LanguageNames.CSharp } project
-            ? ProjectKey.From(project)
+            ? project.ToProjectKey()
             : null;
     }
 
