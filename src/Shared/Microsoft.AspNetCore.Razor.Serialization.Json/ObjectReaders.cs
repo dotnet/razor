@@ -341,22 +341,7 @@ internal static partial class ObjectReaders
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        ProjectKey projectKey;
-
-        // BACKCOMPAT: To avoid having to update the razor.project.json files in tests and benchmarks,
-        // we still support the old "SerializedFilePath" property. If we ever update those files,
-        // this can be removed.
-        if (reader.TryReadString("SerializedFilePath", out var serializedFilePath))
-        {
-            var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(serializedFilePath);
-            projectKey = new ProjectKey(intermediateOutputPath);
-        }
-        else
-        {
-            var projectKeyId = reader.ReadNonNullString(nameof(RazorProjectInfo.ProjectKey));
-            projectKey = new ProjectKey(projectKeyId);
-        }
-
+        var projectKeyId = reader.ReadNonNullString(nameof(RazorProjectInfo.ProjectKey));
         var filePath = reader.ReadNonNullString(nameof(RazorProjectInfo.FilePath));
         var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties) ?? RazorConfiguration.Default;
         var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties) ?? ProjectWorkspaceState.Default;
@@ -365,7 +350,7 @@ internal static partial class ObjectReaders
 
         var displayName = Path.GetFileNameWithoutExtension(filePath);
 
-        return new RazorProjectInfo(projectKey, filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
+        return new RazorProjectInfo(new ProjectKey(projectKeyId), filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
     }
 
     public static Checksum ReadChecksum(JsonDataReader reader)

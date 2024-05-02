@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
 using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Language;
@@ -11,14 +12,16 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Xunit;
 using Xunit.Abstractions;
+using MessagePackSerializationFormat = Microsoft.AspNetCore.Razor.Serialization.MessagePack.SerializationFormat;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 
 public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    [Theory(Skip = "https://github.com/dotnet/razor/issues/8202")]
+    [Theory]
     [InlineData("Kendo.Mvc.Examples.project.razor.json")]
     [InlineData("project.razor.json")]
     public void VerifyMessagePack_RazorProjectInfo(string resourceName)
@@ -39,12 +42,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(bytes, options);
 
         // Assert
-        Assert.Equal(originalProjectInfo.ProjectKey, actualProjectInfo.ProjectKey);
-        Assert.Equal(originalProjectInfo.FilePath, actualProjectInfo.FilePath);
-        Assert.Equal(originalProjectInfo.Configuration, actualProjectInfo.Configuration);
-        Assert.Equal(originalProjectInfo.RootNamespace, actualProjectInfo.RootNamespace);
-        Assert.Equal(originalProjectInfo.ProjectWorkspaceState, actualProjectInfo.ProjectWorkspaceState);
-        Assert.Equal<DocumentSnapshotHandle>(originalProjectInfo.Documents, actualProjectInfo.Documents);
+        Assert.Equal(originalProjectInfo, actualProjectInfo);
     }
 
     [Theory]
@@ -133,7 +131,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
     ///
     /// 1. Update the deserializer to be lenient on the previous version
     /// 2. Bump the Microsoft.AspNetCore.Razor.Serialization.MessagePack.SerializationFormat.Version
-    ///     a. Generate a new file to replace project.razor.bin with the new format. As of writing this was made from the base blazorserver template
+    ///     a. Generate a new file to replace project.razor.bin with the new format. This can be achieved by calling GenerateProjectRazorBin below.
     ///     b. This will require a dual insertion with Roslyn do use the correct version number
     /// </summary>
     [Theory]
@@ -148,12 +146,44 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
                 StandardResolver.Instance));
 
         // Act
-        var actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(resourceBytes, options);
+        RazorProjectInfo actualProjectInfo;
+        try
+        {
+            actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(resourceBytes, options);
+        }
+        catch (MessagePackSerializationException ex) when (ex.InnerException is RazorProjectInfoSerializationException)
+        {
+            Assert.Fail($"{typeof(MessagePackSerializationFormat).FullName}.{nameof(MessagePackSerializationFormat.Version)} has changed. Re-generate the project.razor.bin for this test.");
+            return;
+        }
 
         // Assert
         Assert.NotNull(actualProjectInfo);
         Assert.NotNull(actualProjectInfo.DisplayName);
     }
+
+#pragma warning disable IDE0051 // Remove unused private members
+    private void GenerateProjectRazorBin()
+    {
+        var resourceBytes = RazorTestResources.GetResourceBytes("project.razor.json", "Benchmarking");
+        var projectInfo = DeserializeProjectInfoFromJsonBytes(resourceBytes);
+
+        var options = MessagePackSerializerOptions.Standard
+            .WithResolver(CompositeResolver.Create(
+                RazorProjectInfoResolver.Instance,
+                StandardResolver.Instance));
+
+        var filePath = Assembly.GetExecutingAssembly().Location;
+        var binFilePath = Path.Combine(Path.GetDirectoryName(filePath).AssumeNotNull(), "project.razor.bin");
+
+        using (var stream = File.OpenWrite(binFilePath))
+        {
+            MessagePackSerializer.Serialize(stream, projectInfo, options);
+        }
+
+        Logger.LogInformation($"New project.razor.bin written to '{binFilePath}'");
+    }
+#pragma warning restore IDE0051 // Remove unused private members
 
     private static RazorProjectInfo DeserializeProjectInfoFromJsonBytes(byte[] resourceBytes)
     {
