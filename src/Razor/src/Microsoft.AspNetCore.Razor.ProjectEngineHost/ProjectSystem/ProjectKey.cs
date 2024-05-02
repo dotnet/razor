@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -16,6 +17,8 @@ namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 internal readonly record struct ProjectKey
 {
     public static ProjectKey Unknown { get; } = default;
+
+    [MemberNotNullWhen(false, nameof(Id))]
     public bool IsUnknown => Id is null;
 
     public string Id { get; }
@@ -31,5 +34,5 @@ internal readonly record struct ProjectKey
         => FilePathComparer.Instance.Equals(Id, other.Id);
 
     public override int GetHashCode()
-        => FilePathComparer.Instance.GetHashCode(Id);
+        => IsUnknown ? 0 : FilePathComparer.Instance.GetHashCode(Id);
 }

@@ -146,7 +146,7 @@ internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget
 
         var virtualDocument = FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, hostDocument.GetProjectContext());
 
-        if (virtualDocument is { ProjectKey.Id: null })
+        if (virtualDocument is { ProjectKey.IsUnknown: true })
         {
             _logger.LogDebug($"Trying to sync to a doc with no project Id. Waiting for document add.");
             if (await _csharpVirtualDocumentAddListener.WaitForDocumentAddAsync(cancellationToken).ConfigureAwait(false))
@@ -248,7 +248,7 @@ internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget
             // If the request doesn't have project context, then we can't reason about which project we're asked about
             // so return true.
             // In both cases we'll just return the first virtual document we find.
-            return projectKey.Id is null ||
+            return projectKey.IsUnknown ||
                 projectContext is null ||
                 projectKey.Equals(projectContext.ToProjectKey());
         }

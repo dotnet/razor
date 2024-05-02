@@ -48,7 +48,7 @@ internal partial class RazorCustomMessageTarget
             _documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot) &&
             documentSnapshot.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out var virtualDocuments))
         {
-            if (virtualDocuments is [{ ProjectKey.Id: null }])
+            if (virtualDocuments is [{ ProjectKey.IsUnknown: true }])
             {
                 // If there is only a single virtual document, and its got a null id, then that means it's in our "misc files" project
                 // but the server clearly knows about it in a real project. That means its probably new, as Visual Studio opens a buffer
