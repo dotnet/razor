@@ -282,6 +282,9 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     [IntegrationTestFact]
     public void AddTagHelperDirective() => RunTest();
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10186")]
+    public void EscapedIdentifier() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
+
     public override string GetTestFileName(string testName)
     {
         return base.GetTestFileName(testName) + (designTime ? "_DesignTime" : "_Runtime");
