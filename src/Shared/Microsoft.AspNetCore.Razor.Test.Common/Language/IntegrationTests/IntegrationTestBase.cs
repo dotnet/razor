@@ -675,10 +675,7 @@ public abstract class IntegrationTestBase
             baselineDiagnostics = diagnosticsFile.ReadAllText();
         }
 
-        // Normalize newlines to match those in the baseline.
-        var actual = actualDiagnosticsText.Replace("\r", "").Replace("\n", "\r\n");
-
-        AssertEx.Equal(baselineDiagnostics, actual);
+        AssertEx.EqualOrDiff(baselineDiagnostics, NormalizeNewLines(actualDiagnosticsText));
 
         static string getActualDiagnosticsText(IEnumerable<Diagnostic> diagnostics)
         {
