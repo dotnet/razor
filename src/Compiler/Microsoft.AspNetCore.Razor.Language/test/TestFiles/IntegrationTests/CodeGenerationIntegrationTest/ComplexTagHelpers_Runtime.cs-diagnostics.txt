@@ -21,18 +21,6 @@ Diagnostic(ErrorCode.ERR_IllegalStatement, @"(
 #nullable restore
 #line (8,24)-(8,25) ""TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml""
 )").WithLocation(8, 20),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(26,24): error CS1525: Invalid expression term ''
-//  +
-Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(26, 24),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(26,24): error CS1002: ; expected
-//  +
-Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(26, 24),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(26,25): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-// @
-Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(26, 25),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(26,26): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-// DateTimeOffset.Now.Year
-Diagnostic(ErrorCode.ERR_IllegalStatement, "DateTimeOffset.Now.Year").WithLocation(26, 26),
 // TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(33,32): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
 // @
 Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(33, 32),
@@ -91,12 +79,12 @@ Diagnostic(ErrorCode.WRN_UnreachableCode, "WriteLiteral").WithLocation(144, 17),
 // TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(296,17): warning CS0162: Unreachable code detected
 //                 WriteLiteral("anything");
 Diagnostic(ErrorCode.WRN_UnreachableCode, "WriteLiteral").WithLocation(296, 17),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(590,58): error CS1525: Invalid expression term ''
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(583,58): error CS1525: Invalid expression term ''
 //                 __TestNamespace_InputTagHelper2.Checked = 
-Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(590, 58),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(590,58): error CS1002: ; expected
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(583, 58),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(583,58): error CS1002: ; expected
 //                 __TestNamespace_InputTagHelper2.Checked = 
-Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(590, 58),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(767,46): error CS1525: Invalid expression term ';'
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(583, 58),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(760,46): error CS1525: Invalid expression term ';'
 //             __TestNamespace_PTagHelper.Age = ;
-Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(767, 46)
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(760, 46)

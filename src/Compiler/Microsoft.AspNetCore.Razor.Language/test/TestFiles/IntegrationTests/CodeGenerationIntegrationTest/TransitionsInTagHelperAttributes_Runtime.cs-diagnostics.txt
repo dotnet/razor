@@ -1,16 +1,4 @@
-﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(9,26): error CS1525: Invalid expression term ''
-//  +
-Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(9, 26),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(9,26): error CS1002: ; expected
-//  +
-Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(9, 26),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(9,27): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-// @
-Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(9, 27),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(9,31): error CS1001: Identifier expected
-// int
-Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(9, 31),
-// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(10,23): error CS1525: Invalid expression term 'int'
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(10,23): error CS1525: Invalid expression term 'int'
 // int
 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 23),
 // TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(12,37): error CS1525: Invalid expression term ''

@@ -4,12 +4,12 @@ Generated Location: (1772:32,37 [17] )
 |"*, TestAssembly"|
 
 Source Location: (35:1,2 [59] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml)
-|
+| 
     var @class = "container-fluid";
     var @int = 1;
 |
 Generated Location: (2295:49,2 [59] )
-|
+| 
     var @class = "container-fluid";
     var @int = 1;
 |
@@ -46,7 +46,7 @@ Generated Location: (3635:84,37 [1] )
 
 Source Location: (207:8,26 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml)
 |@int|
-Generated Location: (2906:70,38 [4] )
+Generated Location: (3636:84,38 [4] )
 |@int|
 
 Source Location: (241:9,22 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml)

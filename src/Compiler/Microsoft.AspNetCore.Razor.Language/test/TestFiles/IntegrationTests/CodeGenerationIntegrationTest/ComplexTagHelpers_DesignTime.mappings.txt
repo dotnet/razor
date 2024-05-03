@@ -191,7 +191,7 @@ Generated Location: (9969:227,40 [1] )
 
 Source Location: (936:25,24 [24] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml)
 |@DateTimeOffset.Now.Year|
-Generated Location: (9255:213,41 [24] )
+Generated Location: (9970:227,41 [24] )
 |@DateTimeOffset.Now.Year|
 
 Source Location: (1155:29,28 [30] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml)
