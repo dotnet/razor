@@ -37,6 +37,7 @@ public abstract class IntegrationTestBase
         {
             typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
             typeof(System.Console).Assembly,
+            typeof(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo).Assembly,
             typeof(Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute).Assembly, // Microsoft.AspNetCore.Razor shims
         };
 
