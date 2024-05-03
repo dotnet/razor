@@ -84,13 +84,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void NoLinePragmas() => RunTest();
 
     [IntegrationTestFact]
-    public void NestedCSharp()
-    {
-        // Trying to load the DLL results in "System.BadImageFormatException: Bad IL format."
-        SkipLoadingDll = true;
-
-        RunTest();
-    }
+    public void NestedCSharp() => RunTest();
 
     [IntegrationTestFact]
     public void NestedCodeBlocks() => RunTest();
@@ -204,13 +198,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void IncompleteTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
     [IntegrationTestFact]
-    public void BasicTagHelpers()
-    {
-        // Trying to load the DLL results in "System.BadImageFormatException: Bad IL format."
-        SkipLoadingDll = true;
-
-        RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
-    }
+    public void BasicTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
     [IntegrationTestFact]
     public void BasicTagHelpers_Prefixed() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
@@ -252,13 +240,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void MinimizedTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.MinimizedTagHelpers_Descriptors);
 
     [IntegrationTestFact]
-    public void NestedScriptTagTagHelpers()
-    {
-        // Trying to load the DLL results in "System.BadImageFormatException: Bad IL format."
-        SkipLoadingDll = true;
-
-        RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
-    }
+    public void NestedScriptTagTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
     [IntegrationTestFact]
     public void SymbolBoundAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.SymbolBoundTagHelperDescriptors);

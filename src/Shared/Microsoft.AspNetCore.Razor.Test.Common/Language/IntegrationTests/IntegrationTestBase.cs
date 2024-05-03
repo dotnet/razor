@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -85,8 +86,6 @@ public abstract class IntegrationTestBase
     protected virtual bool DesignTime { get; } = false;
 
     protected bool SkipVerifyingCSharpDiagnostics { get; set; }
-
-    protected bool SkipLoadingDll { get; set; }
 
     protected bool NullableEnable { get; set; }
 
@@ -260,7 +259,7 @@ public abstract class IntegrationTestBase
         {
             throw new CompilationFailedException(compilation, diagnostics);
         }
-        else if (SkipLoadingDll || diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+        else if (diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
         {
             return new CompiledAssembly(compilation, code.CodeDocument, assembly: null);
         }
@@ -275,6 +274,13 @@ public abstract class IntegrationTestBase
             if (diagnostics.Length > 0 && throwOnFailure)
             {
                 throw new CompilationFailedException(compilation, diagnostics);
+            }
+            else if (diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+            {
+                return new CompiledAssembly(compilation, code.CodeDocument, assembly: null)
+                {
+                    EmitDiagnostics = diagnostics.ToImmutableArray(),
+                };
             }
 
             return new CompiledAssembly(compilation, code.CodeDocument, Assembly.Load(peStream.ToArray()));
@@ -650,7 +656,10 @@ public abstract class IntegrationTestBase
             new CompiledCSharpCode(compilation, codeDocument),
             ignoreRazorDiagnostics: true,
             throwOnFailure: false);
-        var cSharpDiagnostics = compiled.Compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
+        var cSharpAllDiagnostics = !compiled.EmitDiagnostics.IsDefault
+            ? compiled.EmitDiagnostics
+            : compiled.Compilation.GetDiagnostics();
+        var cSharpDiagnostics = cSharpAllDiagnostics.Where(d => d.Severity != DiagnosticSeverity.Hidden);
         var actualDiagnosticsText = getActualDiagnosticsText(cSharpDiagnostics);
 
         if (GenerateBaselines.ShouldGenerate)
