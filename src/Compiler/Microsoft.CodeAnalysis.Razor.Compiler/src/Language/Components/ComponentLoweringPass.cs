@@ -221,9 +221,11 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             // IntParam="@x" has unnecessary `@`, can just use IntParam="x" -> warn
             // StrParam="@x" is different than StrParam="x" -> don't warn
             if (!attribute.BoundAttribute.IsStringProperty &&
+                attribute.Source is { } originalSource &&
                 attribute.Children is [CSharpExpressionIntermediateNode])
             {
-                attribute.Diagnostics.Add(RazorDiagnosticFactory.CreateComponentParameter_UnnecessaryAt(attribute.Source));
+                var source = originalSource.With(length: 1, endCharacterIndex: originalSource.CharacterIndex + 1);
+                attribute.Diagnostics.Add(RazorDiagnosticFactory.CreateComponentParameter_UnnecessaryAt(source));
             }
         }
     }

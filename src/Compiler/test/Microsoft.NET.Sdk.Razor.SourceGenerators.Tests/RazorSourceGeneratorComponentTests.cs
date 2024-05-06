@@ -289,16 +289,21 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
                     var x = 21;
                 }
                 <Component2 IntParam="42" StrParam="hi" />
-                <Component2 IntParam="@(43)" StrParam="@hi" />
-                <Component2 IntParam="@x" StrParam="@("lit")" />
+                <Component2
+                    IntParam="@(43)"
+                    StrParam="@hi" />
+                <Component2
+                    IntParam="@x"
+                    StrParam="@("lit")" />
                 <Component2 IntParam="x * 3" StrParam="@(hi + "hey")" />
+                <Component2 IntParam=@x />
                 """,
             ["Shared/Component2.razor"] = """
-                I: @(IntParam + 1), S: @StrParam.ToUpperInvariant()
+                I: @(IntParam + 1), S: @StrParam?.ToUpperInvariant()
 
                 @code {
                     [Parameter] public int IntParam { get; set; }
-                    [Parameter] public required string StrParam { get; set; }
+                    [Parameter] public string? StrParam { get; set; }
                 }
                 """
         });
@@ -310,12 +315,15 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.VerifyRazor(project,
-            // Shared/Component1.razor(6,23): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
-            // <Component2 IntParam="@(43)" StrParam="@hi" />
-            Diagnostic("RZ2013", "@(43)").WithLocation(6, 23),
-            // Shared/Component1.razor(7,23): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
-            // <Component2 IntParam="@x" StrParam="@("lit")" />
-            Diagnostic("RZ2013", "@x").WithLocation(7, 23));
+            // Shared/Component1.razor(7,15): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
+            //     IntParam="@(43)"
+            Diagnostic("RZ2013", "@").WithLocation(7, 15),
+            // Shared/Component1.razor(10,15): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
+            //     IntParam="@x"
+            Diagnostic("RZ2013", "@").WithLocation(10, 15),
+            // Shared/Component1.razor(13,22): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
+            // <Component2 IntParam=@x />
+            Diagnostic("RZ2013", "@").WithLocation(13, 22));
         Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
