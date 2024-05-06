@@ -274,6 +274,46 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.DoesNotContain("AddComponentParameter", source.SourceText.ToString());
     }
 
+    [Fact]
+    public async Task ComponentParameter_UnnecessaryAt()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = """
+                @{
+                    var hi = "str";
+                    var x = 21;
+                }
+                <Component2 IntParam="42" StrParam="hi" />
+                <Component2 IntParam="@(43)" StrParam="@hi" />
+                <Component2 IntParam="@x" StrParam="@("lit")" />
+                <Component2 IntParam="x * 3" StrParam="@(hi + "hey")" />
+                """,
+            ["Shared/Component2.razor"] = """
+                I: @(IntParam + 1), S: @StrParam.ToUpperInvariant()
+
+                @code {
+                    [Parameter] public int IntParam { get; set; }
+                    [Parameter] public required string StrParam { get; set; }
+                }
+                """
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal(3, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8660")]
     public async Task TypeArgumentsCannotBeInferred()
     {
