@@ -163,6 +163,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
         }
 
         ValidateRequiredAttributes(node, tagHelper, component);
+        WarnForUnnecessaryAt(component);
 
         return component;
     }
@@ -210,6 +211,20 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             }
 
             return false;
+        }
+    }
+
+    private static void WarnForUnnecessaryAt(ComponentIntermediateNode component)
+    {
+        foreach (var attribute in component.Attributes)
+        {
+            // IntParam="@x" has unnecessary `@`, can just use IntParam="x" -> warn
+            // StrParam="@x" is different than StrParam="x" -> don't warn
+            if (!attribute.BoundAttribute.IsStringProperty &&
+                attribute.Children is [CSharpExpressionIntermediateNode])
+            {
+                attribute.Diagnostics.Add(RazorDiagnosticFactory.CreateComponentParameter_UnnecessaryAt(attribute.Source));
+            }
         }
     }
 

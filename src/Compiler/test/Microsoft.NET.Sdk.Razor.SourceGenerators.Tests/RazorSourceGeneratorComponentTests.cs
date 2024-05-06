@@ -309,7 +309,13 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
-        Assert.Empty(result.Diagnostics);
+        result.Diagnostics.VerifyRazor(project,
+            // Shared/Component1.razor(6,23): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
+            // <Component2 IntParam="@(43)" StrParam="@hi" />
+            Diagnostic("RZ2013", "@(43)").WithLocation(6, 23),
+            // Shared/Component1.razor(7,23): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
+            // <Component2 IntParam="@x" StrParam="@("lit")" />
+            Diagnostic("RZ2013", "@x").WithLocation(7, 23));
         Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }

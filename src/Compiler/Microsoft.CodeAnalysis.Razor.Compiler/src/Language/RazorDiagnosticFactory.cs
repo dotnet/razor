@@ -480,6 +480,14 @@ internal static class RazorDiagnosticFactory
     public static RazorDiagnostic CreateComponent_EditorRequiredParameterNotSpecified(SourceSpan? location, string tagName, string parameterName)
         => RazorDiagnostic.Create(Component_EditorRequiredParameterNotSpecified, location, tagName, parameterName);
 
+    internal static readonly RazorDiagnosticDescriptor ComponentParameter_UnnecessaryAt =
+        new($"{DiagnosticPrefix}2013",
+            Resources.ComponentParameter_UnnecessaryAt,
+            RazorDiagnosticSeverity.Warning);
+
+    public static RazorDiagnostic CreateComponentParameter_UnnecessaryAt(SourceSpan? location)
+        => RazorDiagnostic.Create(ComponentParameter_UnnecessaryAt, location);
+
     #endregion
 
     #region TagHelper Errors
