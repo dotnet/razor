@@ -20,7 +20,6 @@ internal sealed class RemoteLinkedEditingRangeServiceFactory : RazorServiceFacto
 
     protected override IRemoteLinkedEditingRangeService CreateService(IServiceBroker serviceBroker, ExportProvider exportProvider)
     {
-        var documentMappingService = exportProvider.GetExportedValue<IRazorDocumentMappingService>();
         var documentSnapshotFactory = exportProvider.GetExportedValue<DocumentSnapshotFactory>();
         var loggerFactory = exportProvider.GetExportedValue<ILoggerFactory>();
 

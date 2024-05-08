@@ -32,7 +32,6 @@ internal class CohostLinkedEditingRangeEndpoint(IRemoteClientProvider remoteClie
 
     protected override bool MutatesSolutionState => false;
 
-    // TODO: is this right?
     protected override bool RequiresLSPSolution => true;
 
     public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
