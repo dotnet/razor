@@ -18,10 +18,9 @@ internal sealed class RemoteLinkedEditingRangeService(
     IServiceBroker serviceBroker,
     DocumentSnapshotFactory documentSnapshotFactory,
     ILoggerFactory loggerFactory)
-    : RazorServiceBase(serviceBroker), IRemoteLinkedEditingRangeService
+    : RazorDocumentServiceBase(serviceBroker, documentSnapshotFactory), IRemoteLinkedEditingRangeService
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RemoteLinkedEditingRangeService>();
-    private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
 
     public ValueTask<LinePositionSpan[]?> GetRangesAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePosition linePosition, CancellationToken cancellationToken)
         => RazorBrokeredServiceImplementation.RunServiceAsync(
@@ -32,14 +31,15 @@ internal sealed class RemoteLinkedEditingRangeService(
 
     public async ValueTask<LinePositionSpan[]?> GetRangesAsync(Solution solution, DocumentId razorDocumentId, LinePosition linePosition, CancellationToken cancellationToken)
     {
-        var razorDocument = solution.GetAdditionalDocument(razorDocumentId);
-        if (razorDocument is null)
+        if (cancellationToken.IsCancellationRequested)
         {
             return null;
         }
 
-        var snapshot = _documentSnapshotFactory.GetOrCreate(razorDocument);
-        var codeDocument = await snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        if (await GetRazorCodeDocumentAsync(solution, razorDocumentId).ConfigureAwait(false) is not { } codeDocument)
+        {
+            return null;
+        }
 
         return LinkedEditingRangeHelper.GetLinkedSpans(linePosition, codeDocument, _logger);
     }
