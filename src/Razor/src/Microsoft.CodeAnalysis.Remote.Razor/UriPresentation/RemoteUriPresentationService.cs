@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.DocumentPresentation;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -69,7 +70,9 @@ internal sealed class RemoteUriPresentationService(
             return null;
         }
 
-        var ids = razorDocument.Project.Solution.GetDocumentIdsWithFilePath(GetDocumentFilePathFromUri(razorFileUri));
+        // Make sure we go through Roslyn to go from the Uri the client sent us, to one that it has a chance of finding in the solution
+        var uriToFind = RazorUri.GetDocumentFilePathFromUri(razorFileUri);
+        var ids = razorDocument.Project.Solution.GetDocumentIdsWithFilePath(uriToFind);
         if (ids.Length == 0)
         {
             return null;
@@ -98,8 +101,4 @@ internal sealed class RemoteUriPresentationService(
 
         return new TextChange(span.ToTextSpan(sourceText), tag);
     }
-
-    // TODO: Call the real Roslyn API once https://github.com/dotnet/roslyn/pull/73289 is merged
-    public static string GetDocumentFilePathFromUri(Uri uri)
-        => uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
 }
