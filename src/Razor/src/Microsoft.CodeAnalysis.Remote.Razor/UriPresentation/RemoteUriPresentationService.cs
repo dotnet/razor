@@ -54,7 +54,16 @@ internal sealed class RemoteUriPresentationService(
 
         var languageKind = _documentMappingService.GetLanguageKind(codeDocument, index, rightAssociative: true);
 
-        var razorFileUri = UriPresentationHelper.GetComponentFileNameFromUriPresentationRequest(languageKind, uris, _logger);
+        if (languageKind is not RazorLanguageKind.Html)
+        {
+            // Roslyn doesn't currently support Uri presentation, and whilst it might seem counter intuitive,
+            // our support for Uri presentation is to insert a Html tag, so we only support Html
+
+            // If Roslyn add support in future then this is where it would go.
+            return null;
+        }
+
+        var razorFileUri = UriPresentationHelper.GetComponentFileNameFromUriPresentationRequest(uris, _logger);
         if (razorFileUri is null)
         {
             return null;
