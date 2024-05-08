@@ -37,12 +37,12 @@ internal sealed class RemoteUriPresentationService(
 
     private async ValueTask<TextChange?> GetPresentationAsync(Solution solution, DocumentId razorDocumentId, LinePositionSpan span, Uri[]? uris, CancellationToken cancellationToken)
     {
-        if (await GetRazorCodeDocumentAsync(solution, razorDocumentId).ConfigureAwait(false) is not { } codeDocument)
+        var (razorDocument, codeDocument) = await GetRazorTextAndCodeDocumentsAsync(solution, razorDocumentId).ConfigureAwait(false);
+
+        if (razorDocument == null || codeDocument == null)
         {
             return null;
         }
-
-        var razorDocument = solution.GetAdditionalDocument(razorDocumentId);
 
         // If razorDocument was null, codeDocument above would've been null as well
         var sourceText = await razorDocument.AssumeNotNull().GetTextAsync(cancellationToken);

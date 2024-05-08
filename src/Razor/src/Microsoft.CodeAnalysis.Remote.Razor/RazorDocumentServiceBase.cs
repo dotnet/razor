@@ -17,16 +17,23 @@ internal abstract class RazorDocumentServiceBase(
 {
     protected DocumentSnapshotFactory DocumentSnapshotFactory { get; } = documentSnapshotFactory;
 
-    protected async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(Solution solution, DocumentId razorDocumentId)
+    protected async Task<(TextDocument?, RazorCodeDocument?)> GetRazorTextAndCodeDocumentsAsync(Solution solution, DocumentId razorDocumentId)
     {
         var razorDocument = solution.GetAdditionalDocument(razorDocumentId);
         if (razorDocument is null)
         {
-            return null;
+            return (null, null);
         }
 
         var snapshot = DocumentSnapshotFactory.GetOrCreate(razorDocument);
         var codeDocument = await snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+
+        return (razorDocument, codeDocument);
+    }
+
+    protected async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(Solution solution, DocumentId razorDocumentId)
+    {
+        var (_, codeDocument) = await GetRazorTextAndCodeDocumentsAsync(solution, razorDocumentId);
 
         return codeDocument;
     }
