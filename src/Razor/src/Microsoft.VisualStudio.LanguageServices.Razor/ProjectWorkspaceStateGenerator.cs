@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -95,10 +96,15 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
     public void CancelUpdates()
     {
-        _logger.LogTrace($"Cancelling all previously enqueued updates.");
-
         lock (_updates)
         {
+            if (_updates.Count == 0)
+            {
+                return;
+            }
+
+            _logger.LogTrace($"Cancelling all previously enqueued updates.");
+
             foreach (var (_, updateItem) in _updates)
             {
                 updateItem.CancelWorkAndCleanUp();
