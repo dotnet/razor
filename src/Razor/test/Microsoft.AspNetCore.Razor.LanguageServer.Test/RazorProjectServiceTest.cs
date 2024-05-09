@@ -1138,7 +1138,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             x => x.DocumentRemoved(DocumentFilePath2, miscProject.Key));
     }
 
-    private static TextLoader CreateEmptyTextLoader()
     [Fact]
     public async Task AddProject_MigratesMiscellaneousDocumentsToNewOwnerProject_FixesTargetPath()
     {
@@ -1170,12 +1169,49 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         Assert.Equal("document2.cshtml", newProject.GetDocument(DocumentFilePath2)!.TargetPath);
     }
 
+    [Fact]
+    public async Task AddOrUpdateProjectAsync_MigratesMiscellaneousDocumentsToNewOwnerProject_MaintainsTextState()
+    {
+        // Arrange
+        const string ProjectFilePath = "C:/path/to/project.csproj";
+        const string IntermediateOutputPath = "C:/path/to/obj";
+        const string DocumentFilePath1 = "C:/path/to/document1.cshtml";
+
+        var miscProject = _snapshotResolver.GetMiscellaneousProject();
+
+        await _projectManager.UpdateAsync(updater =>
+        {
+            updater.DocumentAdded(miscProject.Key,
+                new HostDocument(DocumentFilePath1, "other/document1.cshtml"), CreateTextLoader(SourceText.From("Hello")));
+        });
+
+        using var listener = _projectManager.ListenToNotifications();
+        var projectKey = new ProjectKey(IntermediateOutputPath);
+
+        var documentHandles = ImmutableArray.Create(new DocumentSnapshotHandle(DocumentFilePath1, "document1.cshtml", "mvc"));
+
+        // Act
+        await _projectService.AddOrUpdateProjectAsync(
+            projectKey, ProjectFilePath, RazorConfiguration.Default, rootNamespace: null, displayName: null, ProjectWorkspaceState.Default, documentHandles, DisposalToken);
+
+        // Assert
+        var newProject = _projectManager.GetLoadedProject(projectKey);
+        var documentText = await newProject.GetDocument(DocumentFilePath1)!.GetTextAsync();
+        Assert.Equal("Hello", documentText.ToString());
+    }
+
+    private static TextLoader CreateTextLoader(SourceText text)
     {
         var textLoaderMock = new StrictMock<TextLoader>();
         textLoaderMock
             .Setup(x => x.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TextAndVersion.Create(s_emptyText, VersionStamp.Create()));
+            .ReturnsAsync(TextAndVersion.Create(text, VersionStamp.Create()));
 
         return textLoaderMock.Object;
+    }
+
+    private static TextLoader CreateEmptyTextLoader()
+    {
+        return CreateTextLoader(s_emptyText);
     }
 }
