@@ -391,10 +391,15 @@ internal class RazorProjectService(
 
             _logger.LogTrace($"Updating document '{newHostDocument.FilePath}''s file kind to '{newHostDocument.FileKind}' and target path to '{newHostDocument.TargetPath}'.");
 
-            var remoteTextLoader = _remoteTextLoaderFactory.Create(newFilePath);
+            // If the physical file name hasn't changed, we use the current document snapshot as the source of truth for text, in case
+            // it has received text change info from LSP. eg, if someone changes the TargetPath of the file while its open in the editor
+            // with unsaved changes, we don't want to reload it from disk.
+            var textLoader = FilePathComparer.Instance.Equals(currentHostDocument.FilePath, newHostDocument.FilePath)
+                ? new DocumentSnapshotTextLoader(documentSnapshot)
+                : _remoteTextLoaderFactory.Create(newFilePath);
 
             updater.DocumentRemoved(currentProjectKey, currentHostDocument);
-            updater.DocumentAdded(currentProjectKey, newHostDocument, remoteTextLoader);
+            updater.DocumentAdded(currentProjectKey, newHostDocument, textLoader);
         }
 
         project = _projectManager.GetLoadedProject(project.Key);

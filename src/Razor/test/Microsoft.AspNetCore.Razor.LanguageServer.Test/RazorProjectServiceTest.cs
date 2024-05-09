@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1138,6 +1139,37 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     private static TextLoader CreateEmptyTextLoader()
+    [Fact]
+    public async Task AddProject_MigratesMiscellaneousDocumentsToNewOwnerProject_FixesTargetPath()
+    {
+        // Arrange
+        const string ProjectFilePath = "C:/path/to/project.csproj";
+        const string IntermediateOutputPath = "C:/path/to/obj";
+        const string DocumentFilePath1 = "C:/path/to/document1.cshtml";
+        const string DocumentFilePath2 = "C:/path/to/document2.cshtml";
+
+        var miscProject = _snapshotResolver.GetMiscellaneousProject();
+
+        await _projectManager.UpdateAsync(updater =>
+        {
+            updater.DocumentAdded(miscProject.Key,
+                new HostDocument(DocumentFilePath1, "C:/path/to/document1.cshtml"), CreateEmptyTextLoader());
+            updater.DocumentAdded(miscProject.Key,
+                new HostDocument(DocumentFilePath2, "C:/path/to/document2.cshtml"), CreateEmptyTextLoader());
+        });
+
+        using var listener = _projectManager.ListenToNotifications();
+
+        // Act
+        var newProjectKey = await _projectService.AddProjectAsync(
+            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: null, DisposalToken);
+
+        // Assert
+        var newProject = _projectManager.GetLoadedProject(newProjectKey);
+        Assert.Equal("document1.cshtml", newProject.GetDocument(DocumentFilePath1)!.TargetPath);
+        Assert.Equal("document2.cshtml", newProject.GetDocument(DocumentFilePath2)!.TargetPath);
+    }
+
     {
         var textLoaderMock = new StrictMock<TextLoader>();
         textLoaderMock
