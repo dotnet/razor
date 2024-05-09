@@ -10771,7 +10771,7 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp($"""
                 <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
-                """, throwOnFailure: true);
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10791,7 +10791,7 @@ Time: @DateTime.Now
                         public string Extra {get;set;}
                     }
                 }
-                """, throwOnFailure: true);
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10811,7 +10811,7 @@ Time: @DateTime.Now
 
                     [Parameter]public string P2 {get; set;}
                 }
-                """, throwOnFailure: true);
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
