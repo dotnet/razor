@@ -1157,8 +1157,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
                 new HostDocument(DocumentFilePath2, "C:/path/to/document2.cshtml"), CreateEmptyTextLoader());
         });
 
-        using var listener = _projectManager.ListenToNotifications();
-
         // Act
         var newProjectKey = await _projectService.AddProjectAsync(
             ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: null, DisposalToken);
@@ -1185,7 +1183,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
                 new HostDocument(DocumentFilePath1, "other/document1.cshtml"), CreateTextLoader(SourceText.From("Hello")));
         });
 
-        using var listener = _projectManager.ListenToNotifications();
         var projectKey = new ProjectKey(IntermediateOutputPath);
 
         var documentHandles = ImmutableArray.Create(new DocumentSnapshotHandle(DocumentFilePath1, "document1.cshtml", "mvc"));
