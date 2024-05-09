@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
@@ -29,6 +30,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -36,9 +38,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
-    private readonly IRazorLoggerFactory _loggerFactory;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly LanguageServerFeatureOptions? _featureOptions;
-    private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
     private readonly RazorLSPOptions _lspOptions;
     private readonly ILspServerActivationTracker? _lspServerActivationTracker;
@@ -50,19 +51,18 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
-        IRazorLoggerFactory loggerFactory,
-        ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
+        JsonSerializer serializer,
+        ILoggerFactory loggerFactory,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer,
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
         ITelemetryReporter telemetryReporter)
-        : base(jsonRpc, CreateILspLogger(loggerFactory, telemetryReporter))
+        : base(jsonRpc, serializer, CreateILspLogger(loggerFactory, telemetryReporter))
     {
         _jsonRpc = jsonRpc;
         _loggerFactory = loggerFactory;
         _featureOptions = featureOptions;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
         _lspServerActivationTracker = lspServerActivationTracker;
@@ -73,7 +73,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         Initialize();
     }
 
-    private static ILspLogger CreateILspLogger(IRazorLoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)
+    private static ILspLogger CreateILspLogger(ILoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)
     {
         return new ClaspLoggingBridge(loggerFactory, telemetryReporter);
     }
@@ -89,12 +89,11 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
     protected override ILspServices ConstructLspServices()
     {
-        var services = new ServiceCollection()
-            .AddOptions();
+        var services = new ServiceCollection();
 
         var loggerFactoryWrapper = new LoggerFactoryWrapper(_loggerFactory);
         // Wrap the logger factory so that we can add [LSP] to the start of all the categories
-        services.AddSingleton<IRazorLoggerFactory>(loggerFactoryWrapper);
+        services.AddSingleton<ILoggerFactory>(loggerFactoryWrapper);
 
         if (_configureServer is not null)
         {
@@ -105,17 +104,6 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
         services.AddSingleton<ILspLogger>(_logger);
-
-        services.AddSingleton<IErrorReporter, LanguageServerErrorReporter>();
-
-        if (_projectSnapshotManagerDispatcher is null)
-        {
-            services.AddSingleton<ProjectSnapshotManagerDispatcher, LSPProjectSnapshotManagerDispatcher>();
-        }
-        else
-        {
-            services.AddSingleton<ProjectSnapshotManagerDispatcher>(_projectSnapshotManagerDispatcher);
-        }
 
         services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
         services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
@@ -135,7 +123,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
         services.AddHoverServices();
-        services.AddTextDocumentServices();
+        services.AddTextDocumentServices(featureOptions);
 
         // Auto insert
         services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
@@ -143,6 +131,8 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
         // Folding Range Providers
         services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
+        services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
+        services.AddSingleton<IRazorFoldingRangeProvider, SectionDirectiveFoldingProvider>();
         services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
         // Other
@@ -175,10 +165,23 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
             services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
             services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
-            services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
+
+            // Project system info handler
+            if (featureOptions.UseProjectConfigurationEndpoint)
+            {
+                services.AddHandler<ProjectInfoEndpoint>();
+            }
+            else
+            {
+                services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
+            }
+
             services.AddHandlerWithCapabilities<RenameEndpoint>();
             services.AddHandlerWithCapabilities<DefinitionEndpoint>();
-            services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
+            if (!featureOptions.UseRazorCohostServer)
+            {
+                services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
+            }
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();
             services.AddHandler<RazorProximityExpressionsEndpoint>();
@@ -219,12 +222,12 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     }
 
     // Internal for testing
-    internal TestAccessor GetTestAccessor()
+    internal new TestAccessor GetTestAccessor()
     {
         return new TestAccessor(this);
     }
 
-    internal class TestAccessor
+    internal new class TestAccessor
     {
         private RazorLanguageServer _server;
 

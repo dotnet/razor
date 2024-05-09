@@ -19,290 +19,328 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal class RazorProjectService(
-    ProjectSnapshotManagerDispatcher dispatcher,
     RemoteTextLoaderFactory remoteTextLoaderFactory,
     ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
     IProjectSnapshotManager projectManager,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IRazorProjectService
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory = remoteTextLoaderFactory;
     private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorProjectService>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorProjectService>();
 
-    public void AddDocument(string filePath)
+    public Task AddDocumentToMiscProjectAsync(string filePath, CancellationToken cancellationToken)
     {
-        _dispatcher.AssertRunningOnDispatcher();
+        return _projectManager.UpdateAsync(
+            updater: AddDocumentToMiscProjectCore,
+            state: filePath,
+            cancellationToken);
+    }
 
+    private void AddDocumentToMiscProjectCore(ProjectSnapshotManager.Updater updater, string filePath)
+    {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
-        var added = false;
-        foreach (var projectSnapshot in _snapshotResolver.FindPotentialProjects(textDocumentPath))
+        _logger.LogDebug($"Adding {filePath} to the miscellaneous files project, because we don't have project info (yet?)");
+        var miscFilesProject = _snapshotResolver.GetMiscellaneousProject();
+
+        if (miscFilesProject.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not null)
         {
-            added = true;
-            AddDocumentToProject(projectSnapshot, textDocumentPath);
+            // Document already added. This usually occurs when VSCode has already pre-initialized
+            // open documents and then we try to manually add all known razor documents.
+            return;
         }
 
-        if (!added)
-        {
-            AddDocumentToProject(_snapshotResolver.GetMiscellaneousProject(), textDocumentPath);
-        }
+        // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
+        var normalizedTargetFilePath = textDocumentPath.Replace('/', '\\').TrimStart('\\');
 
-        void AddDocumentToProject(IProjectSnapshot projectSnapshot, string textDocumentPath)
-        {
-            if (projectSnapshot.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not null)
-            {
-                // Document already added. This usually occurs when VSCode has already pre-initialized
-                // open documents and then we try to manually add all known razor documents.
-                return;
-            }
+        var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
+        var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
 
-            var targetFilePath = textDocumentPath;
-            var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(projectSnapshot.FilePath);
-            if (targetFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
-            {
-                // Make relative
-                targetFilePath = textDocumentPath[projectDirectory.Length..];
-            }
+        _logger.LogInformation($"Adding document '{filePath}' to project '{miscFilesProject.Key}'.");
 
-            // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
-            var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
-
-            var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
-            var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
-
-            _logger.LogInformation("Adding document '{filePath}' to project '{projectKey}'.", filePath, projectSnapshot.Key);
-
-            _projectManager.Update(
-                static (updater, state) => updater.DocumentAdded(state.key, state.hostDocument, state.textLoader),
-                state: (key: projectSnapshot.Key, hostDocument, textLoader));
-
-            // Adding a document to a project could also happen because a target was added to a project, or we're moving a document
-            // from Misc Project to a real one, and means the newly added document could actually already be open.
-            // If it is, we need to make sure we start generating it so we're ready to handle requests that could start coming in.
-            if (_projectManager.IsDocumentOpen(textDocumentPath) &&
-                _projectManager.TryGetLoadedProject(projectSnapshot.Key, out var project) &&
-                project.GetDocument(textDocumentPath) is { } document)
-            {
-                _ = document.GetGeneratedOutputAsync();
-            }
-        }
+        updater.DocumentAdded(miscFilesProject.Key, hostDocument, textLoader);
     }
 
-    public void OpenDocument(string filePath, SourceText sourceText, int version)
+    public Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
     {
-        _dispatcher.AssertRunningOnDispatcher();
-
-        var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-
-        // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
-        // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
-        // we process them all too
-        if (!_snapshotResolver.TryResolveDocumentInAnyProject(textDocumentPath, out _))
-        {
-            // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
-            // processes and pre-initializes already open documents.
-            AddDocument(filePath);
-        }
-
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
-        {
-            _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
-
-            _projectManager.Update(
-                static (updater, state) => updater.DocumentOpened(state.key, state.textDocumentPath, state.sourceText),
-                state: (key: projectSnapshot.Key, textDocumentPath, sourceText));
-        });
-
-        // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
-        {
-            TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: true);
-        });
-    }
-
-    public void CloseDocument(string filePath)
-    {
-        _dispatcher.AssertRunningOnDispatcher();
-
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
-        {
-            var textLoader = _remoteTextLoaderFactory.Create(filePath);
-            _logger.LogInformation("Closing document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
-
-            _projectManager.Update(
-                static (updater, state) => updater.DocumentClosed(state.key, state.textDocumentPath, state.textLoader),
-                state: (key: projectSnapshot.Key, textDocumentPath, textLoader));
-        });
-    }
-
-    public void RemoveDocument(string filePath)
-    {
-        _dispatcher.AssertRunningOnDispatcher();
-
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
-        {
-            if (!projectSnapshot.DocumentFilePaths.Contains(textDocumentPath, FilePathComparer.Instance))
+        return _projectManager.UpdateAsync(
+            updater =>
             {
-                _logger.LogInformation("Containing project is not tracking document '{filePath}'", textDocumentPath);
-                return;
-            }
+                var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
-            if (projectSnapshot.GetDocument(textDocumentPath) is not DocumentSnapshot documentSnapshot)
-            {
-                _logger.LogError("Containing project does not contain document '{filePath}'", textDocumentPath);
-                return;
-            }
-
-            // If the document is open, we can't remove it, because we could still get a request for it, and that
-            // request would fail. Instead we move it to the miscellaneous project, just like if we got notified of
-            // a remove via the project.razor.bin
-            if (_projectManager.IsDocumentOpen(textDocumentPath))
-            {
-                _logger.LogInformation("Moving document '{textDocumentPath}' from project '{projectKey}' to misc files because it is open.", textDocumentPath, projectSnapshot.Key);
-                var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
-                if (projectSnapshot != miscellaneousProject)
+                // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
+                // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
+                // we process them all too
+                if (!_snapshotResolver.TryResolveDocumentInAnyProject(textDocumentPath, out var document))
                 {
-                    MoveDocument(textDocumentPath, projectSnapshot, miscellaneousProject);
+                    // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
+                    // processes and pre-initializes already open documents. We add this to the misc project, and
+                    // if/when we get project info from the client, it will be migrated to a real project.
+                    AddDocumentToMiscProjectCore(updater, filePath);
                 }
-            }
-            else
-            {
-                _logger.LogInformation("Removing document '{textDocumentPath}' from project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
 
-                _projectManager.Update(
-                    static (updater, state) => updater.DocumentRemoved(state.Key, state.HostDocument),
-                    state: (projectSnapshot.Key, documentSnapshot.State.HostDocument));
-            }
-        });
+                ActOnDocumentInMultipleProjects(
+                    filePath,
+                    (projectSnapshot, textDocumentPath) =>
+                    {
+                        _logger.LogInformation($"Opening document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
+                        updater.DocumentOpened(projectSnapshot.Key, textDocumentPath, sourceText);
+                    });
+
+                // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
+                ActOnDocumentInMultipleProjects(
+                    filePath,
+                    (projectSnapshot, textDocumentPath) =>
+                    {
+                        TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: true);
+                    });
+            },
+            cancellationToken);
     }
 
-    public void UpdateDocument(string filePath, SourceText sourceText, int version)
+    public Task CloseDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
-        _dispatcher.AssertRunningOnDispatcher();
+        return _projectManager.UpdateAsync(
+            updater =>
+            {
+                ActOnDocumentInMultipleProjects(
+                    filePath,
+                    (projectSnapshot, textDocumentPath) =>
+                    {
+                        var textLoader = _remoteTextLoaderFactory.Create(filePath);
+                        _logger.LogInformation($"Closing document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
 
-        ActOnDocumentInMultipleProjects(filePath, (project, textDocumentPath) =>
-        {
-            _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
+                        updater.DocumentClosed(projectSnapshot.Key, textDocumentPath, textLoader);
+                    });
+            },
+            cancellationToken);
+    }
 
-            _projectManager.Update(
-                static (updater, state) => updater.DocumentChanged(state.key, state.textDocumentPath, state.sourceText),
-                state: (key: project.Key, textDocumentPath, sourceText));
-        });
+    public Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
+    {
+        return _projectManager.UpdateAsync(
+            updater =>
+            {
+                ActOnDocumentInMultipleProjects(
+                    filePath,
+                    (projectSnapshot, textDocumentPath) =>
+                    {
+                        if (!projectSnapshot.DocumentFilePaths.Contains(textDocumentPath, FilePathComparer.Instance))
+                        {
+                            _logger.LogInformation($"Containing project is not tracking document '{textDocumentPath}'");
+                            return;
+                        }
 
-        // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
-        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
-        {
-            TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: false);
-        });
+                        if (projectSnapshot.GetDocument(textDocumentPath) is not DocumentSnapshot documentSnapshot)
+                        {
+                            _logger.LogError($"Containing project does not contain document '{textDocumentPath}'");
+                            return;
+                        }
+
+                        // If the document is open, we can't remove it, because we could still get a request for it, and that
+                        // request would fail. Instead we move it to the miscellaneous project, just like if we got notified of
+                        // a remove via the project.razor.bin
+                        if (_projectManager.IsDocumentOpen(textDocumentPath))
+                        {
+                            _logger.LogInformation($"Moving document '{textDocumentPath}' from project '{projectSnapshot.Key}' to misc files because it is open.");
+                            var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+                            if (projectSnapshot != miscellaneousProject)
+                            {
+                                MoveDocument(updater, textDocumentPath, fromProject: projectSnapshot, toProject: miscellaneousProject);
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInformation($"Removing document '{textDocumentPath}' from project '{projectSnapshot.Key}'.");
+
+                            updater.DocumentRemoved(projectSnapshot.Key, documentSnapshot.State.HostDocument);
+                        }
+                    });
+            },
+            cancellationToken);
+    }
+
+    public Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    {
+        return _projectManager.UpdateAsync(
+            updater =>
+            {
+                ActOnDocumentInMultipleProjects(
+                    filePath,
+                    (project, textDocumentPath) =>
+                    {
+                        _logger.LogTrace($"Updating document '{textDocumentPath}' in {project.Key}.");
+
+                        updater.DocumentChanged(project.Key, textDocumentPath, sourceText);
+                    });
+
+                // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
+                ActOnDocumentInMultipleProjects(
+                    filePath,
+                    (projectSnapshot, textDocumentPath) =>
+                    {
+                        TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: false);
+                    });
+            },
+            cancellationToken);
     }
 
     private void ActOnDocumentInMultipleProjects(string filePath, Action<IProjectSnapshot, string> action)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projectSnapshots))
+        if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projects))
         {
-            projectSnapshots = new[] { _snapshotResolver.GetMiscellaneousProject() };
+            var miscFilesProject = _snapshotResolver.GetMiscellaneousProject();
+            projects = [miscFilesProject];
         }
 
-        foreach (var project in projectSnapshots)
+        foreach (var project in projects)
         {
             action(project, textDocumentPath);
         }
     }
 
-    public ProjectKey AddProject(string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string? displayName = null)
+    public Task<ProjectKey> AddProjectAsync(
+        string filePath,
+        string intermediateOutputPath,
+        RazorConfiguration? configuration,
+        string? rootNamespace,
+        string? displayName,
+        CancellationToken cancellationToken)
     {
-        _dispatcher.AssertRunningOnDispatcher();
+        return _projectManager.UpdateAsync(
+            updater => AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName),
+            cancellationToken);
+    }
 
+    private ProjectKey AddProjectCore(ProjectSnapshotManager.Updater updater, string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string? displayName)
+    {
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var hostProject = new HostProject(normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
+        var hostProject = new HostProject(
+            normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
 
         // ProjectAdded will no-op if the project already exists
-        _projectManager.Update(
-            static (updater, hostProject) => updater.ProjectAdded(hostProject),
-            state: hostProject);
+        updater.ProjectAdded(hostProject);
 
-        _logger.LogInformation("Added project '{filePath}' with key {key} to project system.", filePath, hostProject.Key);
+        _logger.LogInformation($"Added project '{filePath}' with key {hostProject.Key} to project system.");
 
-        TryMigrateMiscellaneousDocumentsToProject();
+        TryMigrateMiscellaneousDocumentsToProject(updater);
 
         return hostProject.Key;
     }
 
-    public void UpdateProject(
+    public Task UpdateProjectAsync(
         ProjectKey projectKey,
         RazorConfiguration? configuration,
         string? rootNamespace,
         string? displayName,
         ProjectWorkspaceState projectWorkspaceState,
-        ImmutableArray<DocumentSnapshotHandle> documents)
+        ImmutableArray<DocumentSnapshotHandle> documents,
+        CancellationToken cancellationToken)
     {
-        _dispatcher.AssertRunningOnDispatcher();
-
-        if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
-        {
-            // Never tracked the project to begin with, noop.
-            _logger.LogInformation("Failed to update untracked project '{projectKey}'.", projectKey);
-            return;
-        }
-
-        UpdateProjectDocuments(documents, project.Key);
-
-        if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
-        {
-            _logger.LogInformation("Updating project '{key}' TagHelpers ({projectWorkspaceState.TagHelpers.Count}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).",
-                project.Key, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
-        }
-
-        _projectManager.Update(
-            static (updater, state) => updater.ProjectWorkspaceStateChanged(state.key, state.projectWorkspaceState),
-            state: (key: project.Key, projectWorkspaceState));
-
-        var currentConfiguration = project.Configuration;
-        var currentRootNamespace = project.RootNamespace;
-        if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
-            currentRootNamespace == rootNamespace)
-        {
-            _logger.LogTrace("Updating project '{key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.",
-                project.Key, configuration.ConfigurationName, rootNamespace);
-            return;
-        }
-
-        if (configuration is null)
-        {
-            configuration = FallbackRazorConfiguration.Latest;
-            _logger.LogInformation("Updating project '{key}' to use the latest configuration ('{configuration.ConfigurationName}')'.", project.Key, configuration.ConfigurationName);
-        }
-        else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
-        {
-            _logger.LogInformation("Updating project '{key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.",
-                project.Key, configuration.ConfigurationName, configuration.LanguageVersion);
-        }
-
-        if (currentRootNamespace != rootNamespace)
-        {
-            _logger.LogInformation("Updating project '{key}''s root namespace to '{rootNamespace}'.", project.Key, rootNamespace);
-        }
-
-        var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
-        _projectManager.Update(
-            static (updater, hostProject) => updater.ProjectConfigurationChanged(hostProject),
-            state: hostProject);
+        return AddOrUpdateProjectCoreAsync(projectKey, filePath: null, configuration, rootNamespace, displayName, projectWorkspaceState, documents, cancellationToken);
     }
 
-    private void UpdateProjectDocuments(ImmutableArray<DocumentSnapshotHandle> documents, ProjectKey projectKey)
+    public Task AddOrUpdateProjectAsync(
+       ProjectKey projectKey,
+       string filePath,
+       RazorConfiguration? configuration,
+       string? rootNamespace,
+       string? displayName,
+       ProjectWorkspaceState projectWorkspaceState,
+       ImmutableArray<DocumentSnapshotHandle> documents,
+       CancellationToken cancellationToken)
     {
-        _logger.LogDebug("UpdateProjectDocuments for {projectKey} with {documentCount} documents.", projectKey, documents.Length);
+        return AddOrUpdateProjectCoreAsync(projectKey, filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents, cancellationToken);
+    }
+
+    private Task AddOrUpdateProjectCoreAsync(
+        ProjectKey projectKey,
+        string? filePath,
+        RazorConfiguration? configuration,
+        string? rootNamespace,
+        string? displayName,
+        ProjectWorkspaceState projectWorkspaceState,
+        ImmutableArray<DocumentSnapshotHandle> documents,
+        CancellationToken cancellationToken)
+    {
+        return _projectManager.UpdateAsync(
+                    updater =>
+                    {
+                        if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
+                        {
+                            if (filePath is null)
+                            {
+                                // Never tracked the project to begin with, noop.
+                                _logger.LogInformation($"Failed to update untracked project '{projectKey}'.");
+                                return;
+
+                            }
+
+                            // If we've been given a project file path, then we have enough info to add the project ourselves, because we know
+                            // the intermediate output path from the id
+                            var intermediateOutputPath = projectKey.Id;
+
+                            var newKey = AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName);
+                            Debug.Assert(newKey == projectKey);
+
+                            project = _projectManager.GetLoadedProject(projectKey);
+                        }
+
+                        UpdateProjectDocuments(updater, documents, project.Key);
+
+                        if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
+                        {
+                            _logger.LogInformation($"Updating project '{project.Key}' TagHelpers ({projectWorkspaceState.TagHelpers.Length}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).");
+                        }
+
+                        updater.ProjectWorkspaceStateChanged(project.Key, projectWorkspaceState);
+
+                        var currentConfiguration = project.Configuration;
+                        var currentRootNamespace = project.RootNamespace;
+                        if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
+                            currentRootNamespace == rootNamespace)
+                        {
+                            _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
+                            return;
+                        }
+
+                        if (configuration is null)
+                        {
+                            configuration = FallbackRazorConfiguration.Latest;
+                            _logger.LogInformation($"Updating project '{project.Key}' to use the latest configuration ('{configuration.ConfigurationName}')'.");
+                        }
+                        else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
+                        {
+                            _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.");
+                        }
+
+                        if (currentRootNamespace != rootNamespace)
+                        {
+                            _logger.LogInformation($"Updating project '{project.Key}''s root namespace to '{rootNamespace}'.");
+                        }
+
+                        var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
+                        updater.ProjectConfigurationChanged(hostProject);
+                    },
+                    cancellationToken);
+    }
+
+    private void UpdateProjectDocuments(
+        ProjectSnapshotManager.Updater updater,
+        ImmutableArray<DocumentSnapshotHandle> documents,
+        ProjectKey projectKey)
+    {
+        _logger.LogDebug($"UpdateProjectDocuments for {projectKey} with {documents.Length} documents: {string.Join(", ", documents.Select(d => d.FilePath))}");
 
         var project = _projectManager.GetLoadedProject(projectKey);
         var currentProjectKey = project.Key;
@@ -319,9 +357,9 @@ internal class RazorProjectService(
                 continue;
             }
 
-            _logger.LogDebug("Document '{documentFilePath}' no longer exists in project '{projectKey}'. Moving to miscellaneous project.", documentFilePath, projectKey);
+            _logger.LogDebug($"Document '{documentFilePath}' no longer exists in project '{projectKey}'. Moving to miscellaneous project.");
 
-            MoveDocument(documentFilePath, project, miscellaneousProject);
+            MoveDocument(updater, documentFilePath, fromProject: project, toProject: miscellaneousProject);
         }
 
         project = _projectManager.GetLoadedProject(projectKey);
@@ -351,18 +389,12 @@ internal class RazorProjectService(
                 continue;
             }
 
-            _logger.LogTrace("Updating document '{newHostDocument.FilePath}''s file kind to '{newHostDocument.FileKind}' and target path to '{newHostDocument.TargetPath}'.",
-                newHostDocument.FilePath, newHostDocument.FileKind, newHostDocument.TargetPath);
+            _logger.LogTrace($"Updating document '{newHostDocument.FilePath}''s file kind to '{newHostDocument.FileKind}' and target path to '{newHostDocument.TargetPath}'.");
 
             var remoteTextLoader = _remoteTextLoaderFactory.Create(newFilePath);
 
-            _projectManager.Update(
-                static (updater, state) =>
-                {
-                    updater.DocumentRemoved(state.currentProjectKey, state.currentHostDocument);
-                    updater.DocumentAdded(state.currentProjectKey, state.newHostDocument, state.remoteTextLoader);
-                },
-                state: (currentProjectKey, currentHostDocument, newHostDocument, remoteTextLoader));
+            updater.DocumentRemoved(currentProjectKey, currentHostDocument);
+            updater.DocumentAdded(currentProjectKey, newHostDocument, remoteTextLoader);
         }
 
         project = _projectManager.GetLoadedProject(project.Key);
@@ -380,7 +412,7 @@ internal class RazorProjectService(
 
             if (miscellaneousProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance))
             {
-                MoveDocument(documentFilePath, miscellaneousProject, project);
+                MoveDocument(updater, documentFilePath, fromProject: miscellaneousProject, toProject: project);
             }
             else
             {
@@ -388,16 +420,18 @@ internal class RazorProjectService(
                 var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
                 var newHostDocument = new HostDocument(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
 
-                _logger.LogInformation("Adding new document '{documentFilePath}' to project '{key}'.", documentFilePath, currentProjectKey);
+                _logger.LogInformation($"Adding new document '{documentFilePath}' to project '{currentProjectKey}'.");
 
-                _projectManager.Update(
-                    static (updater, state) => updater.DocumentAdded(state.currentProjectKey, state.newHostDocument, state.remoteTextLoader),
-                    state: (currentProjectKey, newHostDocument, remoteTextLoader));
+                updater.DocumentAdded(currentProjectKey, newHostDocument, remoteTextLoader);
             }
         }
     }
 
-    private void MoveDocument(string documentFilePath, IProjectSnapshot fromProject, IProjectSnapshot toProject)
+    private void MoveDocument(
+        ProjectSnapshotManager.Updater updater,
+        string documentFilePath,
+        IProjectSnapshot fromProject,
+        IProjectSnapshot toProject)
     {
         Debug.Assert(fromProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
         Debug.Assert(!toProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
@@ -410,18 +444,23 @@ internal class RazorProjectService(
         var currentHostDocument = documentSnapshot.State.HostDocument;
 
         var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-        var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
 
-        _logger.LogInformation("Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.",
-            documentFilePath, fromProject.Key, toProject.Key);
+        // If we're moving from the misc files project to a real project, then target path will be the full path to the file
+        // and the next update to the project will update it to be a relative path. To save a bunch of busy work if that is
+        // the only change necessary, we can proactively do that work here.
+        var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(toProject.FilePath);
+        var newTargetPath = documentSnapshot.TargetPath;
+        if (FilePathNormalizer.Normalize(newTargetPath).StartsWith(projectDirectory))
+        {
+            newTargetPath = newTargetPath[projectDirectory.Length..];
+        }
 
-        _projectManager.Update(
-            static (updater, state) =>
-            {
-                updater.DocumentRemoved(state.fromProject.Key, state.currentHostDocument);
-                updater.DocumentAdded(state.toProject.Key, state.newHostDocument, state.textLoader);
-            },
-            state: (fromProject, currentHostDocument, toProject, newHostDocument, textLoader));
+        var newHostDocument = new HostDocument(documentSnapshot.FilePath, newTargetPath, documentSnapshot.FileKind);
+
+        _logger.LogInformation($"Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.");
+
+        updater.DocumentRemoved(fromProject.Key, currentHostDocument);
+        updater.DocumentAdded(toProject.Key, newHostDocument, textLoader);
     }
 
     private static string EnsureFullPath(string filePath, string projectDirectory)
@@ -436,10 +475,8 @@ internal class RazorProjectService(
         return normalizedFilePath;
     }
 
-    private void TryMigrateMiscellaneousDocumentsToProject()
+    private void TryMigrateMiscellaneousDocumentsToProject(ProjectSnapshotManager.Updater updater)
     {
-        _dispatcher.AssertRunningOnDispatcher();
-
         var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
 
         foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
@@ -457,21 +494,17 @@ internal class RazorProjectService(
 
             // Remove from miscellaneous project
             var defaultMiscProject = miscellaneousProject;
-            _projectManager.Update(
-                static (updater, state) => updater.DocumentRemoved(state.Key, state.HostDocument),
-                state: (defaultMiscProject.Key, documentSnapshot.State.HostDocument));
+
+            updater.DocumentRemoved(defaultMiscProject.Key, documentSnapshot.State.HostDocument);
 
             // Add to new project
 
             var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
             var defaultProject = projectSnapshot;
             var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath);
-            _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.",
-                documentFilePath, miscellaneousProject.Key, projectSnapshot.Key);
+            _logger.LogInformation($"Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.");
 
-            _projectManager.Update(
-                static (updater, state) => updater.DocumentAdded(state.key, state.newHostDocument, state.textLoader),
-                state: (key: defaultProject.Key, newHostDocument, textLoader));
+            updater.DocumentAdded(defaultProject.Key, newHostDocument, textLoader);
         }
     }
 
@@ -487,25 +520,7 @@ internal class RazorProjectService(
         if (startGenerating)
         {
             // Start generating the C# for the document so it can immediately be ready for incoming requests.
-            _ = documentSnapshot.GetGeneratedOutputAsync();
-        }
-    }
-
-    private class DelegatingTextLoader : TextLoader
-    {
-        private readonly IDocumentSnapshot _fromDocument;
-        public DelegatingTextLoader(IDocumentSnapshot fromDocument)
-        {
-            _fromDocument = fromDocument ?? throw new ArgumentNullException(nameof(fromDocument));
-        }
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(
-           LoadTextOptions options,
-           CancellationToken cancellationToken)
-        {
-            var sourceText = await _fromDocument.GetTextAsync().ConfigureAwait(false);
-            var version = await _fromDocument.GetTextVersionAsync().ConfigureAwait(false);
-            var textAndVersion = TextAndVersion.Create(sourceText, version.GetNewerVersion());
-            return textAndVersion;
+            documentSnapshot.GetGeneratedOutputAsync().Forget();
         }
     }
 }

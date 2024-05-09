@@ -7,16 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
@@ -32,8 +31,8 @@ internal sealed class DefinitionEndpoint(
     IRazorDocumentMappingService documentMappingService,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
-    IRazorLoggerFactory loggerFactory)
-    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<DefinitionEndpoint>()), ICapabilitiesProvider
+    ILoggerFactory loggerFactory)
+    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<DefinitionEndpoint>()), ICapabilitiesProvider
 {
     private readonly RazorComponentSearchEngine _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
@@ -51,12 +50,16 @@ internal sealed class DefinitionEndpoint(
 
     protected async override Task<DefinitionResult?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        Logger.LogInformation("Starting go-to-def endpoint request.");
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        Logger.LogInformation($"Starting go-to-def endpoint request.");
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return null;
+        }
 
         if (!FileKinds.IsComponent(documentContext.FileKind))
         {
-            Logger.LogInformation("FileKind '{fileKind}' is not a component type.", documentContext.FileKind);
+            Logger.LogInformation($"FileKind '{documentContext.FileKind}' is not a component type.");
             return default;
         }
 
@@ -64,20 +67,20 @@ internal sealed class DefinitionEndpoint(
         var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, positionInfo.HostDocumentIndex, SingleServerSupport, Logger, cancellationToken).ConfigureAwait(false);
         if (originTagDescriptor is null)
         {
-            Logger.LogInformation("Origin TagHelper descriptor is null.");
+            Logger.LogInformation($"Origin TagHelper descriptor is null.");
             return default;
         }
 
         var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(originTagDescriptor).ConfigureAwait(false);
         if (originComponentDocumentSnapshot is null)
         {
-            Logger.LogInformation("Origin TagHelper document snapshot is null.");
+            Logger.LogInformation($"Origin TagHelper document snapshot is null.");
             return default;
         }
 
         var originComponentDocumentFilePath = originComponentDocumentSnapshot.FilePath.AssumeNotNull();
 
-        Logger.LogInformation("Definition found at file path: {filePath}", originComponentDocumentFilePath);
+        Logger.LogInformation($"Definition found at file path: {originComponentDocumentFilePath}");
 
         var range = await GetNavigateRangeAsync(originComponentDocumentSnapshot, attributeDescriptor, cancellationToken).ConfigureAwait(false);
 
@@ -100,7 +103,12 @@ internal sealed class DefinitionEndpoint(
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return Task.FromResult<IDelegatedParams?>(null);
+        }
+
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
                 positionInfo.Position,
@@ -149,7 +157,7 @@ internal sealed class DefinitionEndpoint(
         var owner = await documentContext.GetSyntaxNodeAsync(absoluteIndex, cancellationToken).ConfigureAwait(false);
         if (owner is null)
         {
-            logger.LogInformation("Could not locate owner.");
+            logger.LogInformation($"Could not locate owner.");
             return (null, null);
         }
 
@@ -158,14 +166,14 @@ internal sealed class DefinitionEndpoint(
             n.Kind == SyntaxKind.MarkupTagHelperEndTag);
         if (node is null)
         {
-            logger.LogInformation("Could not locate ancestor of type MarkupTagHelperStartTag or MarkupTagHelperEndTag.");
+            logger.LogInformation($"Could not locate ancestor of type MarkupTagHelperStartTag or MarkupTagHelperEndTag.");
             return (null, null);
         }
 
         var name = GetStartOrEndTagName(node);
         if (name is null)
         {
-            logger.LogInformation("Could not retrieve name of start or end tag.");
+            logger.LogInformation($"Could not retrieve name of start or end tag.");
             return (null, null);
         }
 
@@ -195,26 +203,26 @@ internal sealed class DefinitionEndpoint(
 
         if (!name.Span.IntersectsWith(absoluteIndex))
         {
-            logger.LogInformation("Tag name or attributes' span does not intersect with location's absolute index ({absoluteIndex}).", absoluteIndex);
+            logger.LogInformation($"Tag name or attributes' span does not intersect with location's absolute index ({absoluteIndex}).");
             return (null, null);
         }
 
         if (node.Parent is not MarkupTagHelperElementSyntax tagHelperElement)
         {
-            logger.LogInformation("Parent of start or end tag is not a MarkupTagHelperElement.");
+            logger.LogInformation($"Parent of start or end tag is not a MarkupTagHelperElement.");
             return (null, null);
         }
 
         if (tagHelperElement.TagHelperInfo?.BindingResult is not TagHelperBinding binding)
         {
-            logger.LogInformation("MarkupTagHelperElement does not contain TagHelperInfo.");
+            logger.LogInformation($"MarkupTagHelperElement does not contain TagHelperInfo.");
             return (null, null);
         }
 
         var originTagDescriptor = binding.Descriptors.FirstOrDefault(static d => !d.IsAttributeDescriptor());
         if (originTagDescriptor is null)
         {
-            logger.LogInformation("Origin TagHelper descriptor is null.");
+            logger.LogInformation($"Origin TagHelper descriptor is null.");
             return (null, null);
         }
 
@@ -239,7 +247,7 @@ internal sealed class DefinitionEndpoint(
     {
         if (attributeDescriptor is not null)
         {
-            Logger.LogInformation("Attempting to get definition from an attribute directly.");
+            Logger.LogInformation($"Attempting to get definition from an attribute directly.");
 
             var originCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             var range = await TryGetPropertyRangeAsync(originCodeDocument, attributeDescriptor.GetPropertyName(), _documentMappingService, Logger, cancellationToken).ConfigureAwait(false);
@@ -290,7 +298,7 @@ internal sealed class DefinitionEndpoint(
             if (property is null)
             {
                 // The property probably exists in a partial class
-                logger.LogInformation("Could not find property in the generated source. Comes from partial?");
+                logger.LogInformation($"Could not find property in the generated source. Comes from partial?");
                 return null;
             }
 
@@ -300,10 +308,10 @@ internal sealed class DefinitionEndpoint(
                 return originalRange;
             }
 
-            logger.LogInformation("Property found but couldn't map its location.");
+            logger.LogInformation($"Property found but couldn't map its location.");
         }
 
-        logger.LogInformation("Generated C# was not in expected shape (CompilationUnit -> Namespace -> Class)");
+        logger.LogInformation($"Generated C# was not in expected shape (CompilationUnit -> Namespace -> Class)");
 
         return null;
     }

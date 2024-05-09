@@ -13,7 +13,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+namespace Microsoft.VisualStudio.Razor.Documents;
 
 public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : VisualStudioTestBase(testOutput)
 {
@@ -28,13 +28,12 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
             .Verifiable();
         var tracker = new VisualStudioFileChangeTracker(
             TestProjectData.SomeProjectImportFile.FilePath,
-            ErrorReporter,
+            LoggerFactory,
             fileChangeService.Object,
-            Dispatcher,
             JoinableTaskFactory.Context);
 
         // Act
-        await RunOnDispatcherAsync(tracker.StartListening);
+        tracker.StartListening();
 
         await tracker._fileChangeAdviseTask!;
 
@@ -54,15 +53,14 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
             .Callback(() => callCount++);
         var tracker = new VisualStudioFileChangeTracker(
             TestProjectData.SomeProjectImportFile.FilePath,
-            ErrorReporter,
+            LoggerFactory,
             fileChangeService.Object,
-            Dispatcher,
             JoinableTaskFactory.Context);
 
-        await RunOnDispatcherAsync(tracker.StartListening);
+        tracker.StartListening();
 
         // Act
-        await RunOnDispatcherAsync(tracker.StartListening);
+        tracker.StartListening();
 
         await tracker._fileChangeAdviseTask!;
 
@@ -84,17 +82,16 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
             .Verifiable();
         var tracker = new VisualStudioFileChangeTracker(
             TestProjectData.SomeProjectImportFile.FilePath,
-            ErrorReporter,
+            LoggerFactory,
             fileChangeService.Object,
-            Dispatcher,
             JoinableTaskFactory.Context);
 
-        await RunOnDispatcherAsync(tracker.StartListening);
+        tracker.StartListening();
 
         await tracker._fileChangeAdviseTask!;
 
         // Act
-        await RunOnDispatcherAsync(tracker.StopListening);
+        tracker.StopListening();
 
         await tracker._fileChangeUnadviseTask!;
 
@@ -103,7 +100,7 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task StopListening_NotListening_DoesNothing()
+    public void StopListening_NotListening_DoesNothing()
     {
         // Arrange
         var fileChangeService = new StrictMock<IVsAsyncFileChangeEx>();
@@ -112,13 +109,12 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
             .Throws(new InvalidOperationException());
         var tracker = new VisualStudioFileChangeTracker(
             TestProjectData.SomeProjectImportFile.FilePath,
-            ErrorReporter,
+            LoggerFactory,
             fileChangeService.Object,
-            Dispatcher,
             JoinableTaskFactory.Context);
 
         // Act
-        await RunOnDispatcherAsync(tracker.StopListening);
+        tracker.StopListening();
 
         // Assert
         Assert.Null(tracker._fileChangeUnadviseTask);
@@ -134,7 +130,7 @@ public class VisualStudioFileChangeTrackerTest(ITestOutputHelper testOutput) : V
         // Arrange
         var filePath = TestProjectData.SomeProjectImportFile.FilePath;
         var fileChangeService = Mock.Of<IVsAsyncFileChangeEx>(MockBehavior.Strict);
-        var tracker = new VisualStudioFileChangeTracker(filePath, ErrorReporter, fileChangeService, Dispatcher, JoinableTaskFactory.Context);
+        var tracker = new VisualStudioFileChangeTracker(filePath, LoggerFactory, fileChangeService, JoinableTaskFactory.Context);
 
         var called = false;
         tracker.Changed += (sender, args) =>

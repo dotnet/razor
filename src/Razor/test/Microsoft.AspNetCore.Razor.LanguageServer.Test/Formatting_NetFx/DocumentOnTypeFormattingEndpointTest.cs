@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -193,9 +193,9 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var codeDocument = CreateCodeDocument(content, sourceMappings);
         var uri = new Uri("file://path/test.razor");
 
-        var documentResolver = CreateDocumentContextFactory(uri, codeDocument);
+        var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentResolver, LoggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentOnTypeFormattingEndpoint(
@@ -207,8 +207,8 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
             Position = new Position(2, 11),
             Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 }
         };
-        var documentContext = documentResolver.TryCreateForOpenDocument(uri);
-        var requestContext = CreateRazorRequestContext(documentContext!);
+        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);

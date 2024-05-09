@@ -3,8 +3,10 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -130,5 +132,15 @@ internal static class RazorCodeDocumentExtensions
 
         csharpRange = default;
         return false;
+    }
+
+    public static bool ComponentNamespaceMatches(this RazorCodeDocument razorCodeDocument, string fullyQualifiedNamespace)
+    {
+        var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
+            .GetDocumentIntermediateNode()
+            .FindDescendantNodes<IntermediateNode>()
+            .First(n => n is NamespaceDeclarationIntermediateNode);
+
+        return namespaceNode.Content == fullyQualifiedNamespace;
     }
 }

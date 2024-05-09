@@ -4,13 +4,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -20,12 +19,12 @@ internal class ValidateBreakpointRangeEndpoint(
     IRazorDocumentMappingService documentMappingService,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<ValidateBreakpointRangeParams, Range?>(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
-        loggerFactory.CreateLogger<ValidateBreakpointRangeEndpoint>()), ICapabilitiesProvider
+        loggerFactory.GetOrCreateLogger<ValidateBreakpointRangeEndpoint>()), ICapabilitiesProvider
 {
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
 
@@ -52,7 +51,12 @@ internal class ValidateBreakpointRangeEndpoint(
             return null;
         }
 
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return null;
+        }
+
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         // We've already mapped the position, but sadly we need a range for breakpoints, so we have to do it again
@@ -74,7 +78,12 @@ internal class ValidateBreakpointRangeEndpoint(
             return null;
         }
 
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return null;
+        }
+
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), delegatedResponse, MappingBehavior.Inclusive, out var projectedRange))

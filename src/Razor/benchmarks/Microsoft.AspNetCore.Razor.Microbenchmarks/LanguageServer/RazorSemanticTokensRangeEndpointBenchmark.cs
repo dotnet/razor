@@ -42,8 +42,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private Range Range { get; set; }
 
-    private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
-
     private string PagesDirectory { get; set; }
 
     private string ProjectFilePath { get; set; }
@@ -64,7 +62,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     {
         EnsureServicesInitialized();
 
-        var loggerFactory = RazorLanguageServer.GetRequiredService<IRazorLoggerFactory>();
+        var loggerFactory = RazorLanguageServer.GetRequiredService<ILoggerFactory>();
 
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         ProjectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
@@ -90,8 +88,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         };
 
         var documentVersion = 1;
-        CancellationToken = CancellationToken.None;
-        await UpdateDocumentAsync(documentVersion, DocumentSnapshot, CancellationToken).ConfigureAwait(false);
+        VersionCache.TrackDocumentVersion(DocumentSnapshot, documentVersion);
 
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         RequestContext = new RazorRequestContext(DocumentContext, languageServer.GetLspServices(), "lsp/method", uri: null);
@@ -124,14 +121,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         await SemanticTokensRangeEndpoint.HandleRequestAsync(request, RequestContext, CancellationToken);
     }
 
-    private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot,
-        CancellationToken cancellationToken)
-    {
-        await ProjectSnapshotManagerDispatcher.RunAsync(
-                () => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), cancellationToken)
-            .ConfigureAwait(false);
-    }
-
     [GlobalCleanup]
     public async Task CleanupServerAsync()
     {
@@ -150,7 +139,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<IDocumentVersionCache>();
-        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
     }
 
     internal class TestCustomizableRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
@@ -159,7 +147,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             LanguageServerFeatureOptions languageServerFeatureOptions,
             IRazorDocumentMappingService documentMappingService,
             RazorSemanticTokensLegendService razorSemanticTokensLegendService,
-            IRazorLoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory)
             : base(documentMappingService, razorSemanticTokensLegendService, csharpSemanticTokensProvider: null!, languageServerFeatureOptions, loggerFactory)
         {
         }

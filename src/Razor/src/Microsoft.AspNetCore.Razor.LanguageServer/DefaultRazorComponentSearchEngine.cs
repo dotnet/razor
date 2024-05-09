@@ -12,64 +12,16 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultRazorComponentSearchEngine(
     IProjectSnapshotManager projectManager,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : RazorComponentSearchEngine
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
-
-    public async override Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
-    {
-        // No point doing anything if its not a component
-        if (documentSnapshot.FileKind != FileKinds.Component)
-        {
-            return null;
-        }
-
-        var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-        if (razorCodeDocument is null)
-        {
-            return null;
-        }
-
-        var projects = _projectManager.GetProjects();
-
-        foreach (var project in projects)
-        {
-            // If the document is an import document, then it can't be a component
-            if (project.IsImportDocument(documentSnapshot))
-            {
-                return null;
-            }
-
-            // If the document isn't in this project, then no point searching for components
-            // This also avoids the issue of duplicate components
-            if (!project.DocumentFilePaths.Contains(documentSnapshot.FilePath))
-            {
-                return null;
-            }
-
-            // If we got this far, we can check for tag helpers
-            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var tagHelper in tagHelpers)
-            {
-                // Check the typename and namespace match
-                if (IsPathCandidateForComponent(documentSnapshot, tagHelper.GetTypeNameIdentifier().AsMemory()) &&
-                    ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, tagHelper.GetTypeNamespace().AsSpan()))
-                {
-                    return tagHelper;
-                }
-            }
-        }
-
-        return null;
-    }
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DefaultRazorComponentSearchEngine>();
 
     /// <summary>Search for a component in a project based on its tag name and fully qualified name.</summary>
     /// <remarks>
@@ -92,7 +44,7 @@ internal class DefaultRazorComponentSearchEngine(
         var namespaceName = tagHelper.GetTypeNamespace();
         if (typeName == null || namespaceName == null)
         {
-            _logger.LogWarning("Could not split namespace and type for name {tagHelperName}.", tagHelper.Name);
+            _logger.LogWarning($"Could not split namespace and type for name {tagHelper.Name}.");
             return null;
         }
 
@@ -111,7 +63,7 @@ internal class DefaultRazorComponentSearchEngine(
                 }
 
                 // Rule out if not Razor component with correct name
-                if (!IsPathCandidateForComponent(documentSnapshot, lookupSymbolName))
+                if (!documentSnapshot.IsPathCandidateForComponent(lookupSymbolName))
                 {
                     continue;
                 }
@@ -123,7 +75,7 @@ internal class DefaultRazorComponentSearchEngine(
                 }
 
                 // Make sure we have the right namespace of the fully qualified name
-                if (!ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, namespaceName.AsSpan()))
+                if (!razorCodeDocument.ComponentNamespaceMatches(namespaceName))
                 {
                     continue;
                 }
@@ -142,32 +94,5 @@ internal class DefaultRazorComponentSearchEngine(
         return genericSeparatorStart > 0
             ? typeName[..genericSeparatorStart]
             : typeName;
-    }
-
-    private static bool IsPathCandidateForComponent(IDocumentSnapshot documentSnapshot, ReadOnlyMemory<char> path)
-    {
-        if (documentSnapshot.FileKind != FileKinds.Component)
-        {
-            return false;
-        }
-
-        var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
-        return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
-    }
-
-    private bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, ReadOnlySpan<char> namespaceName)
-    {
-        var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
-            .GetDocumentIntermediateNode()
-            .FindDescendantNodes<IntermediateNode>()
-            .First(n => n is NamespaceDeclarationIntermediateNode);
-
-        var namespacesMatch = namespaceNode.Content.AsSpan().Equals(namespaceName, StringComparison.Ordinal);
-        if (!namespacesMatch)
-        {
-            _logger.LogInformation("Namespace name {namespaceNodeContent} does not match namespace name {namespaceName}.", namespaceNode.Content, namespaceName.ToString());
-        }
-
-        return namespacesMatch;
     }
 }

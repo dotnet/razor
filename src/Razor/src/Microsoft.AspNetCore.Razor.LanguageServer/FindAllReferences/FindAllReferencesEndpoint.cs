@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -28,9 +27,9 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         IFilePathService filePathService)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<FindAllReferencesEndpoint>())
     {
         _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
@@ -59,7 +58,12 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
             return Task.FromResult<IDelegatedParams?>(null);
         }
 
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return Task.FromResult<IDelegatedParams?>(null);
+        }
+
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
                 positionInfo.Position,
@@ -84,7 +88,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
             // Indicates the reference item is directly available in the code
             referenceItem.Origin = VSInternalItemOrigin.Exact;
-            
+
             if (!_filePathService.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
                 !_filePathService.IsVirtualHtmlFile(referenceItem.Location.Uri))
             {

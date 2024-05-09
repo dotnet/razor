@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -27,23 +27,22 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
     // a document for each keystroke.
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(10);
 
-    private readonly ImmutableArray<DocumentProcessedListener> _listeners;
+    private readonly ImmutableArray<IDocumentProcessedListener> _listeners;
     private readonly IProjectSnapshotManager _projectManager;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly LanguageServerFeatureOptions _options;
+    private readonly ILogger _logger;
 
     private readonly AsyncBatchingWorkQueue<IDocumentSnapshot> _workQueue;
     private readonly CancellationTokenSource _disposeTokenSource;
 
     public OpenDocumentGenerator(
-        IEnumerable<DocumentProcessedListener> listeners,
+        IEnumerable<IDocumentProcessedListener> listeners,
         IProjectSnapshotManager projectManager,
-        ProjectSnapshotManagerDispatcher dispatcher,
-        LanguageServerFeatureOptions options)
+        LanguageServerFeatureOptions options,
+        ILoggerFactory loggerFactory)
     {
         _listeners = listeners.ToImmutableArray();
         _projectManager = projectManager;
-        _dispatcher = dispatcher;
         _options = options;
 
         _disposeTokenSource = new();
@@ -53,11 +52,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
             _disposeTokenSource.Token);
 
         _projectManager.Changed += ProjectManager_Changed;
-
-        foreach (var listener in _listeners)
-        {
-            listener.Initialize(_projectManager);
-        }
+        _logger = loggerFactory.GetOrCreateLogger<OpenDocumentGenerator>();
     }
 
     public void Dispose()
@@ -77,25 +72,15 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
             var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
-            await _dispatcher
-                .RunAsync(
-                    static state =>
-                    {
-                        var (codeDocument, document, listeners, token) = state;
+            foreach (var listener in _listeners)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
 
-                        foreach (var listener in listeners)
-                        {
-                            if (token.IsCancellationRequested)
-                            {
-                                return;
-                            }
-
-                            listener.DocumentProcessed(codeDocument, document);
-                        }
-                    },
-                    state: (codeDocument, document, _listeners, token),
-                    token)
-                .ConfigureAwait(false);
+                listener.DocumentProcessed(codeDocument, document);
+            }
         }
     }
 
@@ -106,6 +91,8 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
         {
             return;
         }
+
+        _logger.LogDebug($"Got a project change of type {args.Kind} for {args.ProjectKey.Id}");
 
         switch (args.Kind)
         {
@@ -125,25 +112,11 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 }
 
             case ProjectChangeKind.DocumentAdded:
-                {
-                    var newProject = args.Newer.AssumeNotNull();
-                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
-
-                    if (newProject.TryGetDocument(documentFilePath, out var document))
-                    {
-                        // We don't enqueue the current document because added documents are initially closed.
-
-                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
-                        {
-                            EnqueueIfNecessary(relatedDocument);
-                        }
-                    }
-
-                    break;
-                }
-
             case ProjectChangeKind.DocumentChanged:
                 {
+                    // Most of the time Add will be called on closed files, but when migrating files to/from the misc files
+                    // project they could already be open, but with a different generated C# path
+
                     var newProject = args.Newer.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
@@ -196,6 +169,8 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
             {
                 return;
             }
+
+            _logger.LogDebug($"Enqueuing generation of {document.FilePath} in {document.Project.Key.Id}");
 
             _workQueue.AddWork(document);
         }

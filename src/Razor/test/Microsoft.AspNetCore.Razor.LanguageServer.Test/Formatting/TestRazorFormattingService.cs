@@ -5,6 +5,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -16,7 +17,7 @@ internal static class TestRazorFormattingService
 #pragma warning disable IDE0060 // Remove unused parameter
 
     public static Task<IRazorFormattingService> CreateWithFullSupportAsync(
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         RazorCodeDocument? codeDocument = null,
         IDocumentSnapshot? documentSnapshot = null,
         RazorLSPOptions? razorLSPOptions = null)

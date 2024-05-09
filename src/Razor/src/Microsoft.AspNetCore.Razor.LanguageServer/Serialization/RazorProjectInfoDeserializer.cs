@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 
@@ -18,6 +19,11 @@ internal sealed class RazorProjectInfoDeserializer : IRazorProjectInfoDeserializ
     {
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 
+        return DeserializeFromStream(stream);
+    }
+
+    public RazorProjectInfo? DeserializeFromStream(Stream stream)
+    {
         try
         {
             return RazorProjectInfo.DeserializeFrom(stream);

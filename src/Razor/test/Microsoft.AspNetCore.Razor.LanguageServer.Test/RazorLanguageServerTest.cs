@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -12,6 +13,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using Xunit;
 using Xunit.Abstractions;
+
+using RazorLanguageServerConstants = Microsoft.CodeAnalysis.Razor.Protocol.LanguageServerConstants;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
@@ -38,11 +41,11 @@ public class RazorLanguageServerTest : ToolingTestBase
             Locale = "de-DE"
         };
 
-        await queue.ExecuteAsync<InitializeParams, InitializeResult>(initializeParams, Methods.InitializeName, innerServer.GetLspServices(), DisposalToken);
+        await queue.ExecuteAsync<InitializeParams, InitializeResult>(initializeParams, Methods.InitializeName, LanguageServerConstants.DefaultLanguageName, innerServer.GetLspServices(), DisposalToken);
 
         // We have to send one more request, because culture is set before any request starts, but the first initialize request has to
         // be started in order to set the culture.
-        await queue.ExecuteAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(new(), VSInternalMethods.WorkspacePullDiagnosticName, innerServer.GetLspServices(), DisposalToken);
+        await queue.ExecuteAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(new(), VSInternalMethods.WorkspacePullDiagnosticName, LanguageServerConstants.DefaultLanguageName, innerServer.GetLspServices(), DisposalToken);
 
         var cultureInfo = queue.GetTestAccessor().GetCultureInfo();
 
@@ -66,6 +69,9 @@ public class RazorLanguageServerTest : ToolingTestBase
         // We turn this into a Set to handle cases like Completion where we have two handlers, only one of which will be registered
         // CLaSP will throw if two handlers register for the same method, so if THAT doesn't hold it's a CLaSP bug, not a Razor bug.
         var typeMethods = handlerTypes.Select(t => GetMethodFromType(t)).ToHashSet();
+
+        // razor/projectInfo is currently behind a feature flag, so ignore it for now
+        typeMethods.Remove(RazorLanguageServerConstants.RazorProjectInfoEndpoint);
 
         if (registeredMethods.Length != typeMethods.Count)
         {

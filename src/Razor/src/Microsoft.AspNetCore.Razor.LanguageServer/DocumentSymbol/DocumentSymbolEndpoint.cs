@@ -5,18 +5,18 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbol;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentDocumentSymbolName)]
-internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SymbolInformation[]>, ICapabilitiesProvider
+internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SymbolInformation[]?>, ICapabilitiesProvider
 {
     private readonly IClientConnection _clientConnection;
     private readonly IRazorDocumentMappingService _documentMappingService;
@@ -52,14 +52,14 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request)
         => request.TextDocument;
 
-    public async Task<SymbolInformation[]> HandleRequestAsync(DocumentSymbolParams request, RazorRequestContext context, CancellationToken cancellationToken)
+    public async Task<SymbolInformation[]?> HandleRequestAsync(DocumentSymbolParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
-        if (request is null)
+        var documentContext = context.DocumentContext;
+        if (documentContext is null)
         {
-            throw new ArgumentNullException(nameof(request));
+            return null;
         }
 
-        var documentContext = context.GetRequiredDocumentContext();
         var delegatedParams = new DelegatedDocumentSymbolParams(documentContext.Identifier);
 
         var symbolInformations = await _clientConnection.SendRequestAsync<DelegatedDocumentSymbolParams, SymbolInformation[]?>(

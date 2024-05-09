@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -15,11 +14,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 internal class DocumentRangeFormattingEndpoint : IRazorRequestHandler<DocumentRangeFormattingParams, TextEdit[]?>, ICapabilitiesProvider
 {
     private readonly IRazorFormattingService _razorFormattingService;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
     public DocumentRangeFormattingEndpoint(
         IRazorFormattingService razorFormattingService,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        RazorLSPOptionsMonitor optionsMonitor)
     {
         _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
         _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));

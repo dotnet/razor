@@ -9,12 +9,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LiveShare.Razor.Test;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
+namespace Microsoft.VisualStudio.Razor.LiveShare.Host;
 
 public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : VisualStudioTestBase(testOutput)
 {
@@ -54,7 +53,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
-            Dispatcher,
             JoinableTaskFactory);
 
         // Act
@@ -85,7 +83,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
-            Dispatcher,
             JoinableTaskFactory);
 
         var proxyAccessor = proxy.GetTestAccessor();
@@ -134,7 +131,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
-            Dispatcher,
             JoinableTaskFactory);
 
         var proxyAccessor = proxy.GetTestAccessor();
@@ -174,7 +170,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
-            Dispatcher,
             JoinableTaskFactory);
 
         // Act
@@ -210,7 +205,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
-            Dispatcher,
             JoinableTaskFactory);
 
         // Act
@@ -241,7 +235,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         using var proxy = new ProjectSnapshotManagerProxy(
             new TestCollaborationSession(true),
             projectManager,
-            Dispatcher,
             JoinableTaskFactory);
 
         // Act

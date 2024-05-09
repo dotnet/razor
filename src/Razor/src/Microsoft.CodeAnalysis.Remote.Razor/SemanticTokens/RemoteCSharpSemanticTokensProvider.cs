@@ -32,6 +32,11 @@ internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathServi
         // We have a razor document, lets find the generated C# document
         var generatedDocument = GetGeneratedDocument(documentContext);
 
+        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
+        // HACK: We're not in the same solution fork as the LSP server that provides content for this document
+        generatedDocument = generatedDocument.WithText(csharpSourceText);
+
         var data = await SemanticTokensRange.GetSemanticTokensAsync(
             generatedDocument,
             csharpRanges,
@@ -49,7 +54,7 @@ internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathServi
 
         // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
 
-        var projectKey = ProjectKey.From(razorDocument.Project);
+        var projectKey = razorDocument.Project.ToProjectKey();
         var generatedFilePath = _filePathService.GetRazorCSharpFilePath(projectKey, razorDocument.FilePath.AssumeNotNull());
         var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == razorDocument.Project.Id);
         var generatedDocument = solution.GetDocument(generatedDocumentId).AssumeNotNull();

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
@@ -23,20 +24,20 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 internal static class IServiceCollectionExtensions
 {
-    public static void AddLifeCycleServices(this IServiceCollection services, RazorLanguageServer razorLanguageServer, ClientConnection serverManager, ILspServerActivationTracker? lspServerActivationTracker)
+    public static void AddLifeCycleServices(this IServiceCollection services, RazorLanguageServer razorLanguageServer, ClientConnection clientConnection, ILspServerActivationTracker? lspServerActivationTracker)
     {
         services.AddHandler<RazorInitializeEndpoint>();
         services.AddHandler<RazorInitializedEndpoint>();
@@ -51,7 +52,7 @@ internal static class IServiceCollectionExtensions
 
         services.AddSingleton<ICapabilitiesProvider, RazorLanguageServerCapability>();
 
-        services.AddSingleton<IOnInitialized>(serverManager);
+        services.AddSingleton<IOnInitialized>(clientConnection);
     }
 
     public static void AddFormattingServices(this IServiceCollection services)
@@ -111,7 +112,6 @@ internal static class IServiceCollectionExtensions
 
     public static void AddDiagnosticServices(this IServiceCollection services)
     {
-        services.AddHandler<RazorTranslateDiagnosticsEndpoint>();
         services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
         services.AddHandler<WorkspacePullDiagnosticsEndpoint>();
         services.AddSingleton<RazorTranslateDiagnosticsService>();
@@ -168,10 +168,13 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<HtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
     }
 
-    public static void AddTextDocumentServices(this IServiceCollection services)
+    public static void AddTextDocumentServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
         services.AddHandlerWithCapabilities<TextDocumentTextPresentationEndpoint>();
-        services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
+        if (!featureOptions.UseRazorCohostServer)
+        {
+            services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
+        }
 
         services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
         services.AddHandler<WorkspaceSpellCheckEndpoint>();
@@ -181,7 +184,6 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<DocumentDidOpenEndpoint>();
         services.AddHandler<DocumentDidSaveEndpoint>();
 
-        services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
         services.AddHandler<RazorLanguageQueryEndpoint>();
     }
@@ -193,11 +195,8 @@ internal static class IServiceCollectionExtensions
         {
             return new RazorLSPOptionsMonitor(
                 s.GetRequiredService<IConfigurationSyncService>(),
-                s.GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>(),
                 currentOptions);
         });
-
-        services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>(s => s.GetRequiredService<RazorLSPOptionsMonitor>());
     }
 
     public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
@@ -212,13 +211,23 @@ internal static class IServiceCollectionExtensions
 
         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
         services.AddSingleton<ISnapshotResolver, SnapshotResolver>();
+        services.AddSingleton<IOnInitialized>(sp => (SnapshotResolver)sp.GetRequiredService<ISnapshotResolver>());
         services.AddSingleton<IRazorProjectService, RazorProjectService>();
         services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
+        services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<RazorFileChangeDetectorManager>());
 
-        // File change listeners
-        services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
+        if (featureOptions.UseProjectConfigurationEndpoint)
+        {
+            services.AddSingleton<IRazorProjectInfoFileSerializer, RazorProjectInfoFileSerializer>();
+            services.AddSingleton<ProjectConfigurationStateManager>();
+        }
+        else 
+        {
+            services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
+        }
+
         services.AddSingleton<IRazorFileChangeListener, RazorFileSynchronizer>();
 
         // If we're not monitoring the whole workspace folder for configuration changes, then we don't actually need the the file change
@@ -236,11 +245,11 @@ internal static class IServiceCollectionExtensions
         {
             // If single server is on, then we don't want to publish diagnostics, so best to just not hook up to any
             // events etc.
-            services.AddSingleton<DocumentProcessedListener, RazorDiagnosticsPublisher>();
+            services.AddSingleton<IDocumentProcessedListener, RazorDiagnosticsPublisher>();
         }
 
-        services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
-        services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
+        services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
+        services.AddSingleton<IDocumentProcessedListener, CodeDocumentReferenceHolder>();
 
         services.AddSingleton<LSPTagHelperTooltipFactory, DefaultLSPTagHelperTooltipFactory>();
         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();

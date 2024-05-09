@@ -13,13 +13,11 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(IRazorStartupService))]
 internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisposable
@@ -29,9 +27,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
     private readonly IProjectWorkspaceStateGenerator _generator;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _options;
-    private readonly Workspace _workspace;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-    private readonly ILogger _logger;
+    private readonly CodeAnalysis.Workspace _workspace;
 
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)> _workQueue;
@@ -43,19 +39,25 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         IProjectWorkspaceStateGenerator generator,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
+        IWorkspaceProvider workspaceProvider)
+        : this(generator, projectManager, options, workspaceProvider, s_delay)
+    {
+    }
+
+    public WorkspaceProjectStateChangeDetector(
+        IProjectWorkspaceStateGenerator generator,
+        IProjectSnapshotManager projectManager,
+        LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider,
-        ProjectSnapshotManagerDispatcher dispatcher,
-        IRazorLoggerFactory loggerFactory)
+        TimeSpan delay)
     {
         _generator = generator;
         _projectManager = projectManager;
         _options = options;
-        _dispatcher = dispatcher;
-        _logger = loggerFactory.CreateLogger<WorkspaceProjectStateChangeDetector>();
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)>(
-            s_delay,
+            delay,
             ProcessBatchAsync,
             _disposeTokenSource.Token);
 
@@ -78,32 +80,23 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         _disposeTokenSource.Dispose();
     }
 
-    private async ValueTask ProcessBatchAsync(ImmutableArray<(Project? Project, IProjectSnapshot ProjectSnapshot)> items, CancellationToken token)
+    private ValueTask ProcessBatchAsync(ImmutableArray<(Project? Project, IProjectSnapshot ProjectSnapshot)> items, CancellationToken token)
     {
         foreach (var (project, projectSnapshot) in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (token.IsCancellationRequested)
             {
-                return;
+                return default;
             }
 
-            _logger.LogTrace("Process update: {DisplayName}", projectSnapshot.DisplayName);
-
-            await _dispatcher.RunAsync(
-               static state =>
-               {
-                   var (generator, project, projectSnapshot, token) = state;
-                   generator.Update(project, projectSnapshot, token);
-               },
-               state: (_generator, project, projectSnapshot, token),
-               token);
+            _generator.EnqueueUpdate(project, projectSnapshot);
         }
+
+        return default;
     }
 
     private void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {
-        _logger.LogTrace("Workspace change: {Kind}", e.Kind);
-
         switch (e.Kind)
         {
             case WorkspaceChangeKind.ProjectAdded:
@@ -351,7 +344,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
             case ProjectChangeKind.DocumentAdded:
                 var currentSolution = _workspace.CurrentSolution;
                 var associatedWorkspaceProject = currentSolution.Projects
-                    .FirstOrDefault(project => e.ProjectKey == ProjectKey.From(project));
+                    .FirstOrDefault(project => e.ProjectKey == project.ToProjectKey());
 
                 if (associatedWorkspaceProject is not null)
                 {
@@ -398,19 +391,18 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
 
     private void EnqueueUpdate(Project? project, IProjectSnapshot projectSnapshot)
     {
-        _logger.LogTrace("Enqueue update: {DisplayName}", projectSnapshot.DisplayName);
         _workQueue.AddWork((project, projectSnapshot));
     }
 
     private bool TryGetProjectSnapshot(Project? project, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
     {
-        if (project is null)
+        if (project?.CompilationOutputInfo.AssemblyPath is null)
         {
             projectSnapshot = null;
             return false;
         }
 
-        var projectKey = ProjectKey.From(project);
+        var projectKey = project.ToProjectKey();
 
         return _projectManager.TryGetLoadedProject(projectKey, out projectSnapshot);
     }

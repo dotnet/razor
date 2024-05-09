@@ -4,7 +4,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 
@@ -48,7 +49,7 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
         _disposeTokenSource.Dispose();
     }
 
-    private void HandleOptionsChange(RazorLSPOptions options, string _)
+    private void HandleOptionsChange(RazorLSPOptions options)
     {
         if (options.ColorBackground != _isColoringBackground)
         {
@@ -69,6 +70,12 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
             if (_waitingToRefresh)
             {
                 // We're going to refresh shortly.
+                return;
+            }
+
+            // We could have been called before the LSP server has even been initialized
+            if (!_clientCapabilitiesService.CanGetClientCapabilities)
+            {
                 return;
             }
 

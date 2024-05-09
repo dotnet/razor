@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Copilot;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,13 +41,12 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
-        var factory = new DocumentContextFactory(_projectManager, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver();
+
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreate(uri);
-
-        // Assert
-        Assert.Null(documentContext);
+        Assert.False(factory.TryCreate(uri, out _));
     }
 
     [Fact]
@@ -56,13 +56,12 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
-        var factory = new DocumentContextFactory(_projectManager, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver();
+
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreateForOpenDocument(uri);
-
-        // Assert
-        Assert.Null(documentContext);
+        Assert.False(factory.TryCreateForOpenDocument(uri, out _));
     }
 
     [Fact]
@@ -73,14 +72,11 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var uri = new Uri(filePath);
 
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
-        var factory = new DocumentContextFactory(_projectManager, documentResolver, _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreateForOpenDocument(uri);
-
-        // Assert
-        Assert.Null(documentContext);
+        Assert.False(factory.TryCreateForOpenDocument(uri, out _));
     }
 
     [Fact]
@@ -93,14 +89,13 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
-        var factory = new DocumentContextFactory(_projectManager, documentResolver, _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreate(uri);
+        Assert.True(factory.TryCreate(uri, out var documentContext));
 
         // Assert
-        Assert.NotNull(documentContext);
         Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }
@@ -117,8 +112,8 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
-        var factory = new DocumentContextFactory(_projectManager, documentResolver, _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         var hostDocument = new HostDocument(filePath, "file.cshtml");
@@ -130,10 +125,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         });
 
         // Act
-        var documentContext = factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id });
+        Assert.True(factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id }, out var documentContext));
 
         // Assert
-        Assert.NotNull(documentContext);
         Assert.Equal(uri, documentContext.Uri);
     }
 
@@ -162,16 +156,15 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         });
 
         // Act
-        var documentContext = factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id });
+        Assert.True(factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id }, out var documentContext));
 
         // Assert
-        Assert.NotNull(documentContext);
         Assert.Equal(uri, documentContext.Uri);
         documentResolverMock.Verify();
     }
 
     [Fact]
-    public async Task TryCreateForOpenDocumentAsync_ResolvesContent()
+    public void TryCreateForOpenDocumentAsync_ResolvesContent()
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
@@ -180,52 +173,38 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = TestDocumentSnapshot.Create(filePath);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
-        await Dispatcher.RunAsync(() => _documentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337), DisposalToken);
-        var factory = new DocumentContextFactory(_projectManager, documentResolver, _documentVersionCache, LoggerFactory);
+        var snapshotResolver = new TestSnapshotResolver(documentSnapshot);
+        _documentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337);
+        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = factory.TryCreateForOpenDocument(uri);
+        Assert.True(factory.TryCreateForOpenDocument(uri, out var documentContext));
 
         // Assert
-        Assert.NotNull(documentContext);
         Assert.Equal(1337, documentContext.Version);
         Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }
 
-    private class TestDocumentResolver : ISnapshotResolver
+    private sealed class TestSnapshotResolver(IDocumentSnapshot? documentSnapshot = null) : ISnapshotResolver
     {
-        private readonly IDocumentSnapshot? _documentSnapshot;
+        private readonly IDocumentSnapshot? _documentSnapshot = documentSnapshot;
 
-        public TestDocumentResolver()
-        {
-        }
-
-        public TestDocumentResolver(IDocumentSnapshot documentSnapshot)
-        {
-            _documentSnapshot = documentSnapshot;
-        }
-
-        public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
-        {
-            throw new NotImplementedException();
-        }
+        public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
+            => throw new NotImplementedException();
 
         public IProjectSnapshot GetMiscellaneousProject()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
-        public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+        public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
         {
             if (documentFilePath == _documentSnapshot?.FilePath)
             {
-                documentSnapshot = _documentSnapshot;
+                document = _documentSnapshot;
                 return true;
             }
 
-            documentSnapshot = null;
+            document = null;
             return false;
         }
     }
