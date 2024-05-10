@@ -57,7 +57,7 @@ internal class TextDocumentUriPresentationEndpoint(
             return null;
         }
 
-        var razorFileUri = UriPresentationHelper.GetComponentFileNameFromUriPresentationRequest( request.Uris, Logger);
+        var razorFileUri = UriPresentationHelper.GetComponentFileNameFromUriPresentationRequest(request.Uris, Logger);
         if (razorFileUri == null)
         {
             return null;
