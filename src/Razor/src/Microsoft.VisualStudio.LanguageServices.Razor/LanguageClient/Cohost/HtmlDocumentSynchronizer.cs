@@ -40,18 +40,20 @@ internal sealed partial class HtmlDocumentSynchronizer(
 
         if (!_documentManager.TryGetDocument(razorDocument.CreateUri(), out var snapshot))
         {
+            _logger.LogError($"Couldn't find document in LSPDocumentManager for {razorDocument.FilePath}");
             return null;
         }
 
         if (!snapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var document))
         {
+            _logger.LogError($"Couldn't find virtual document snapshot for {snapshot.Uri}");
             return null;
         }
 
         return new HtmlDocumentResult(document.Uri, document.Snapshot.TextBuffer);
     }
 
-    private async Task<bool> TrySynchronizeAsync(TextDocument document, CancellationToken cancellationToken)
+    public async Task<bool> TrySynchronizeAsync(TextDocument document, CancellationToken cancellationToken)
     {
         var requestedVersion = await GetDocumentVersionAsync(document, cancellationToken).ConfigureAwait(false);
 

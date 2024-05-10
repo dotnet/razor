@@ -10,4 +10,5 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal interface IHtmlDocumentSynchronizer
 {
     Task<HtmlDocumentResult?> TryGetSynchronizedHtmlDocumentAsync(TextDocument razorDocument, CancellationToken cancellationToken);
+    Task<bool> TrySynchronizeAsync(TextDocument document, CancellationToken cancellationToken);
 }
