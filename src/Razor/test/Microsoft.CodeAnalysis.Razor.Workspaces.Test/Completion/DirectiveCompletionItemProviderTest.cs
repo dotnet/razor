@@ -218,7 +218,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
     }
 
     [Fact]
-    public void GetDirectiveCompletionItems_ComponentDocument_DoesNotReturnsDefaultDirectivesAsCompletionItems()
+    public void GetDirectiveCompletionItems_ComponentDocument_ReturnsDefaultComponentDirectivesAsCompletionItems()
     {
         // Arrange
         var syntaxTree = CreateSyntaxTree("@addTag", FileKinds.Component);
