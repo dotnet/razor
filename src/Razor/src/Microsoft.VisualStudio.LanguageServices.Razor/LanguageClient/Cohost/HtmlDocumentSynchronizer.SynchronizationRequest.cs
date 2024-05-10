@@ -53,7 +53,7 @@ internal sealed partial class HtmlDocumentSynchronizer
         {
             _cts.Cancel();
             _cts.Dispose();
-            _tcs.SetResult(false);
+            _tcs.TrySetResult(false);
         }
     }
 }
