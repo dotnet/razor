@@ -55,7 +55,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
 
     public async Task<bool> TrySynchronizeAsync(TextDocument document, CancellationToken cancellationToken)
     {
-        var requestedVersion = await GetDocumentVersionAsync(document, cancellationToken).ConfigureAwait(false);
+        var requestedVersion = await RazorDocumentVersion.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         _logger.LogDebug($"TrySynchronize for {document.FilePath} as at {requestedVersion}");
 
