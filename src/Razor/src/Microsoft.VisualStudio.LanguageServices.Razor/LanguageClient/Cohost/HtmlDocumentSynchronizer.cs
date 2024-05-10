@@ -129,12 +129,21 @@ internal sealed partial class HtmlDocumentSynchronizer(
         await _htmlDocumentPublisher.PublishAsync(document, htmlText, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<RazorDocumentVersion> GetDocumentVersionAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    internal TestAccessor GetTestAccessor()
     {
-        var workspaceVersion = razorDocument.Project.Solution.GetWorkspaceVersion();
+        return new TestAccessor(this);
+    }
 
-        var checksum = await razorDocument.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+    internal readonly struct TestAccessor
+    {
+        private readonly HtmlDocumentSynchronizer _instance;
 
-        return new RazorDocumentVersion(workspaceVersion, checksum);
+        internal TestAccessor(HtmlDocumentSynchronizer instance)
+        {
+            _instance = instance;
+        }
+
+        public Task<bool> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion)
+            => _instance.GetSynchronizationRequestTaskAsync(document, requestedVersion);
     }
 }
