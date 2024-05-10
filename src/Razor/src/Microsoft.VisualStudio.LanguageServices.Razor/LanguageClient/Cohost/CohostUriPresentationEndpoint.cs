@@ -114,14 +114,14 @@ internal class CohostUriPresentationEndpoint(
             return null;
         }
 
-        var presentationParams = new UriPresentationParams
+        var presentationParams = new VSInternalUriPresentationParams
         {
             Range = request.Range,
             Uris = request.Uris,
             TextDocument = new TextDocumentIdentifier { Uri = htmlDocument.Uri }
         };
 
-        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<UriPresentationParams, WorkspaceEdit?>(
+        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalUriPresentationParams, WorkspaceEdit?>(
             htmlDocument.Buffer,
             VSInternalMethods.TextDocumentUriPresentationName,
             RazorLSPConstants.HtmlLanguageServerName,
