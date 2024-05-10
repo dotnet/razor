@@ -114,14 +114,15 @@ internal sealed partial class HtmlDocumentSynchronizer(
     {
         var htmlText = await _htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, cancellationToken).ConfigureAwait(false);
 
-        if (htmlText is null)
+        if (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogError($"Couldn't get Html text for {document.FilePath}. Html document contents will be stale");
+            // Checking cancellation before logging, as a new request coming in doesn't count as "Couldn't get Html"
             return;
         }
 
-        if (cancellationToken.IsCancellationRequested)
+        if (htmlText is null)
         {
+            _logger.LogError($"Couldn't get Html text for {document.FilePath}. Html document contents will be stale");
             return;
         }
 
