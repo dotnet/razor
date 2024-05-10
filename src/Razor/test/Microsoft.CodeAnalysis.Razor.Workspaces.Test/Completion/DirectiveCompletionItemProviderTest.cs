@@ -19,18 +19,25 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 public class DirectiveCompletionItemProviderTest : ToolingTestBase
 {
     private static readonly Action<RazorCompletionItem>[] s_defaultDirectiveCollectionVerifiers;
+    private static readonly Action<RazorCompletionItem>[] s_componentDirectiveCollectionVerifiers;
 
     static DirectiveCompletionItemProviderTest()
     {
-        var defaultDirectiveList = new List<Action<RazorCompletionItem>>(DirectiveCompletionItemProvider.DefaultDirectives.Count() * 2);
+        s_defaultDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.DefaultDirectives);
+        s_componentDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.ComponentDefaultDirectives);
+    }
 
-        foreach (var directive in DirectiveCompletionItemProvider.DefaultDirectives)
+    private static Action<RazorCompletionItem>[] GetDirectiveVerifies(IEnumerable<DirectiveDescriptor> directiveDescriptors)
+    {
+        var directiveList = new List<Action<RazorCompletionItem>>(directiveDescriptors.Count() * 2);
+
+        foreach (var directive in directiveDescriptors)
         {
-            defaultDirectiveList.Add(item => AssertRazorCompletionItem(directive, item, isSnippet: false));
-            defaultDirectiveList.Add(item => AssertRazorCompletionItem(directive, item, isSnippet: true));
+            directiveList.Add(item => AssertRazorCompletionItem(directive, item, isSnippet: false));
+            directiveList.Add(item => AssertRazorCompletionItem(directive, item, isSnippet: true));
         }
 
-        s_defaultDirectiveCollectionVerifiers = defaultDirectiveList.ToArray();
+        return directiveList.ToArray();
     }
 
     public DirectiveCompletionItemProviderTest(ITestOutputHelper testOutput)
@@ -164,6 +171,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
     public void GetDirectiveCompletionItems_ReturnsKnownDirectivesAsSnippets_SingleLine_Component(string knownDirective)
     {
         // Arrange
+        var usingDirective = DirectiveCompletionItemProvider.ComponentDefaultDirectives.First();
         var customDirective = DirectiveDescriptor.CreateRazorBlockDirective(knownDirective, builder =>
         {
             builder.DisplayName = knownDirective;
@@ -178,7 +186,9 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
         Assert.Collection(
             completionItems,
             item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: false),
-            item => AssertRazorCompletionItem(knownDirective + " directive ...", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
+            item => AssertRazorCompletionItem(knownDirective + " directive ...", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true),
+            item => AssertRazorCompletionItem(usingDirective.Directive, usingDirective, item, commitCharacters: DirectiveCompletionItemProvider.SingleLineDirectiveCommitCharacters, isSnippet: false),
+            item => AssertRazorCompletionItem(usingDirective.Directive + " directive ...", usingDirective, item, commitCharacters: DirectiveCompletionItemProvider.SingleLineDirectiveCommitCharacters, isSnippet: true));
     }
 
     [Fact]
@@ -217,7 +227,11 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
         var completionItems = DirectiveCompletionItemProvider.GetDirectiveCompletionItems(syntaxTree);
 
         // Assert
-        Assert.Empty(completionItems);
+        // Assert
+        Assert.Collection(
+            completionItems,
+            s_componentDirectiveCollectionVerifiers
+        );
     }
 
     [Fact]
