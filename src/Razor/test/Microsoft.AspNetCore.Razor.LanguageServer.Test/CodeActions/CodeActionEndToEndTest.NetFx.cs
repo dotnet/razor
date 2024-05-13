@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -1044,7 +1045,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             var codeActionToRun = GetCodeActionToRun(codeAction, childActionIndex, result);
             Assert.NotNull(codeActionToRun);
 
-            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher);
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
             var changes = await GetEditsAsync(
                 codeActionToRun,
                 requestContext,
@@ -1130,7 +1131,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
         Assert.NotNull(codeActionToRun);
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
         var changes = await GetEditsAsync(
             codeActionToRun,
             requestContext,
@@ -1211,7 +1212,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         IClientConnection clientConnection,
         IRazorCodeActionResolver[] razorResolvers)
     {
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
 
         var csharpResolvers = new CSharpCodeActionResolver[]
         {
@@ -1243,7 +1244,6 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             int? version = null)
             : base(filePath, codeDocument, version)
         {
-
             _tagHelperDescriptors = CreateTagHelperDescriptors();
             if (tagHelpers is not null)
             {
@@ -1251,18 +1251,24 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             }
         }
 
-        public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+        public override bool TryCreate(
+            Uri documentUri,
+            VSProjectContext? projectContext,
+            bool versioned,
+            [NotNullWhen(true)] out DocumentContext? context)
         {
             if (FilePath is null || CodeDocument is null)
             {
-                return Task.FromResult<DocumentContext?>(null);
+                context = null;
+                return false;
             }
 
             var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
             var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
             testDocumentSnapshot.With(CodeDocument);
 
-            return Task.FromResult<DocumentContext?>(CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot));
+            context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
+            return true;
         }
 
         private static List<TagHelperDescriptor> CreateTagHelperDescriptors()

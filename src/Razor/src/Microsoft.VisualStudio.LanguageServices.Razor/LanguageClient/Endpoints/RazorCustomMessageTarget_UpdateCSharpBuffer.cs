@@ -6,8 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 using StreamJsonRpc;
@@ -40,7 +40,7 @@ internal partial class RazorCustomMessageTarget
 
         var hostDocumentUri = new Uri(request.HostDocumentFilePath);
 
-        _logger?.LogDebug($"UpdateCSharpBuffer for {request.HostDocumentVersion} of {hostDocumentUri} in {request.ProjectKeyId}");
+        _logger.LogDebug($"UpdateCSharpBuffer for {request.HostDocumentVersion} of {hostDocumentUri} in {request.ProjectKeyId}");
 
         // If we're generating unique file paths for virtual documents, then we have to take a different path here, and do more work
         if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
@@ -48,13 +48,13 @@ internal partial class RazorCustomMessageTarget
             _documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot) &&
             documentSnapshot.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out var virtualDocuments))
         {
-            if (virtualDocuments is [{ ProjectKey.Id: null }])
+            if (virtualDocuments is [{ ProjectKey.IsUnknown: true }])
             {
                 // If there is only a single virtual document, and its got a null id, then that means it's in our "misc files" project
                 // but the server clearly knows about it in a real project. That means its probably new, as Visual Studio opens a buffer
                 // for a document before we get the notifications about it being added to any projects. Lets try refreshing before
                 // we worry.
-                _logger?.LogDebug($"Refreshing virtual documents, and waiting for them, (for {hostDocumentUri})");
+                _logger.LogDebug($"Refreshing virtual documents, and waiting for them, (for {hostDocumentUri})");
 
                 var task = _csharpVirtualDocumentAddListener.WaitForDocumentAddAsync(cancellationToken);
                 _documentManager.RefreshVirtualDocuments();
@@ -70,16 +70,16 @@ internal partial class RazorCustomMessageTarget
                     // sync with their understanding of the document contents, and since changes come in as a list of changes,
                     // the user experience is broken. All we can do is hope the user closes and re-opens the document.
                     Debug.Fail($"Server wants to update {hostDocumentUri} in {request.ProjectKeyId} but we don't know about the document being in any projects");
-                    _logger?.LogError($"Server wants to update {hostDocumentUri} in {request.ProjectKeyId} by we only know about that document in misc files. Server and client are now out of sync.");
+                    _logger.LogError($"Server wants to update {hostDocumentUri} in {request.ProjectKeyId} by we only know about that document in misc files. Server and client are now out of sync.");
                     return;
                 }
             }
 
             foreach (var virtualDocument in virtualDocuments)
             {
-                if (virtualDocument.ProjectKey.Equals(ProjectKey.FromString(request.ProjectKeyId)))
+                if (virtualDocument.ProjectKey.Equals(new ProjectKey(request.ProjectKeyId)))
                 {
-                    _logger?.LogDebug($"UpdateCSharpBuffer virtual doc for {request.HostDocumentVersion} of {virtualDocument.Uri}");
+                    _logger.LogDebug($"UpdateCSharpBuffer virtual doc for {request.HostDocumentVersion} of {virtualDocument.Uri}");
 
                     _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                         hostDocumentUri,
@@ -93,20 +93,23 @@ internal partial class RazorCustomMessageTarget
 
             if (virtualDocuments.Length > 1)
             {
-                // If the particular document supports multiple virtual documents, we don't want to try to update a single one
-                // TODO: Remove this eventually, as it is a possibly valid state (see comment below) but this assert will help track
-                // down bugs for now.
-                Debug.Fail("Multiple virtual documents seem to be supported, but none were updated, which is not impossible, but surprising.");
+                // If the particular document supports multiple virtual documents, we don't want to try to update a single one. The server could
+                // be sending C# for a Misc Files file, but once the server knows about the real project, it will start sending C# for that, and
+                // that needs to be a brand new buffer.
+                _logger.LogDebug($"""
+                    Was looking for {request.ProjectKeyId} but found only:
+                    {string.Join(Environment.NewLine, virtualDocuments.Select(d => $"[{d.ProjectKey}] {d.Uri}"))}
+                    """);
             }
 
-            _logger?.LogDebug($"UpdateCSharpBuffer couldn't find any virtual docs for {request.HostDocumentVersion} of {hostDocumentUri}");
+            _logger.LogDebug($"UpdateCSharpBuffer couldn't find any virtual docs for {request.HostDocumentVersion} of {hostDocumentUri}");
 
             // Don't know about document, no-op. This can happen if the language server found a project.razor.bin from an old build
             // and is sending us updates.
             return;
         }
 
-        _logger?.LogDebug($"UpdateCSharpBuffer fallback for {request.HostDocumentVersion} of {hostDocumentUri}");
+        _logger.LogDebug($"UpdateCSharpBuffer fallback for {request.HostDocumentVersion} of {hostDocumentUri}");
 
         _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
             hostDocumentUri,

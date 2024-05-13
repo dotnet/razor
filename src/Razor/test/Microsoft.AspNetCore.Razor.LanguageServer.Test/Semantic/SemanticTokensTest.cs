@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -56,12 +57,6 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
     private static partial Regex MyRegex();
 #else
     private static Regex MyRegex() => new Regex("\r\n|\r|\n");
-#endif
-
-#if GENERATE_BASELINES
-    private bool GenerateBaselines { get; set; } = true;
-#else
-    private bool GenerateBaselines { get; set; } = false;
 #endif
 
     [Theory]
@@ -1087,7 +1082,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
         var actualFileContents = GetFileRepresentationOfTokens(sourceText, actualSemanticTokens);
 
-        if (GenerateBaselines)
+        if (GenerateBaselines.ShouldGenerate)
         {
             GenerateSemanticBaseline(actualFileContents, baselineFileName);
         }
@@ -1207,9 +1202,14 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     private class TestDocumentContextFactory(VersionedDocumentContext? documentContext = null) : IDocumentContextFactory
     {
-        public Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+        public bool TryCreate(
+            Uri documentUri,
+            VSProjectContext? projectContext,
+            bool versioned,
+            [NotNullWhen(true)] out DocumentContext? context)
         {
-            return Task.FromResult<DocumentContext?>(documentContext);
+            context = documentContext;
+            return context is not null;
         }
     }
 }

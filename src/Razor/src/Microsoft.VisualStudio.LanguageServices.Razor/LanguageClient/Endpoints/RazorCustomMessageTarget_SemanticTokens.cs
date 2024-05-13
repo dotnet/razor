@@ -76,6 +76,11 @@ internal partial class RazorCustomMessageTarget
             semanticTokensParams.TextDocument,
             cancellationToken);
 
+        if (csharpDoc is null)
+        {
+            return null;
+        }
+
         if (synchronized && csharpDoc.HostDocumentSyncVersion == 1)
         {
             // HACK: Workaround for https://github.com/dotnet/razor/issues/9197 to stop Roslyn NFWs
@@ -96,11 +101,6 @@ internal partial class RazorCustomMessageTarget
                 // more content.
                 return new ProvideSemanticTokensResponse(tokens: null, -1);
             }
-        }
-
-        if (csharpDoc is null)
-        {
-            return null;
         }
 
         if (!synchronized)
@@ -132,12 +132,12 @@ internal partial class RazorCustomMessageTarget
 
         if (response?.Data is null)
         {
-            _logger?.LogDebug($"Made one semantic token request to Roslyn for {semanticTokensParams.Ranges.Length} ranges but got null result back, due to sync issues");
+            _logger.LogDebug($"Made one semantic token request to Roslyn for {semanticTokensParams.Ranges.Length} ranges but got null result back, due to sync issues");
             // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion ?? -1);
         }
 
-        _logger?.LogDebug($"Made one semantic token requests to Roslyn for {semanticTokensParams.Ranges.Length} ranges");
+        _logger.LogDebug($"Made one semantic token requests to Roslyn for {semanticTokensParams.Ranges.Length} ranges");
         return new ProvideSemanticTokensResponse(response.Data, semanticTokensParams.RequiredHostDocumentVersion);
     }
 

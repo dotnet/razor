@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -20,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
+using Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Threading;
@@ -37,10 +37,10 @@ internal class RazorLanguageServerClient(
     RazorLanguageClientMiddleLayer middleLayer,
     LSPRequestInvoker requestInvoker,
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+    RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
     ILoggerFactory loggerFactory,
     RazorLogHubTraceProvider traceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
     ILanguageClientBroker languageClientBroker,
     ILanguageServiceBroker2 languageServiceBroker,
     ITelemetryReporter telemetryReporter,
@@ -58,9 +58,9 @@ internal class RazorLanguageServerClient(
     private readonly RazorLanguageClientMiddleLayer _middleLayer = middleLayer ?? throw new ArgumentNullException(nameof(middleLayer));
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker ?? throw new ArgumentNullException(nameof(requestInvoker));
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+    private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher ?? throw new ArgumentNullException(nameof(projectInfoEndpointPublisher));
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
     private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider ?? throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
     private readonly ILoggerFactory _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
     private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
 
@@ -110,7 +110,6 @@ internal class RazorLanguageServerClient(
             serverStream,
             _loggerFactory,
             _telemetryReporter,
-            _projectSnapshotManagerDispatcher,
             ConfigureLanguageServer,
             _languageServerFeatureOptions,
             lspOptions,
@@ -213,7 +212,7 @@ internal class RazorLanguageServerClient(
 
     private async Task ProjectConfigurationFilePathStore_ChangedAsync(ProjectConfigurationFilePathChangedEventArgs args, CancellationToken cancellationToken)
     {
-        if (_languageServerFeatureOptions.DisableRazorLanguageServer)
+        if (_languageServerFeatureOptions.DisableRazorLanguageServer || _languageServerFeatureOptions.UseProjectConfigurationEndpoint)
         {
             return;
         }
@@ -282,13 +281,20 @@ internal class RazorLanguageServerClient(
 
     private void ServerStarted()
     {
-        _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
-
-        var mappings = _projectConfigurationFilePathStore.GetMappings();
-        foreach (var mapping in mappings)
+        if (_languageServerFeatureOptions.UseProjectConfigurationEndpoint)
         {
-            var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
-            ProjectConfigurationFilePathStore_Changed(this, args);
+            _projectInfoEndpointPublisher.StartSending();
+        }
+        else
+        {
+            _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
+
+            var mappings = _projectConfigurationFilePathStore.GetMappings();
+            foreach (var mapping in mappings)
+            {
+                var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
+                ProjectConfigurationFilePathStore_Changed(this, args);
+            }
         }
     }
 

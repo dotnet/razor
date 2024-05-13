@@ -3,216 +3,172 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
+internal partial class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener, IDisposable
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private abstract record Work(ProjectKey ProjectKey);
+    private sealed record ResetProject(ProjectKey ProjectKey) : Work(ProjectKey);
+    private sealed record UpdateProject(ProjectKey ProjectKey, RazorProjectInfo ProjectInfo) : Work(ProjectKey);
+
+    private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(250);
+
     private readonly IRazorProjectService _projectService;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly LanguageServerFeatureOptions _options;
     private readonly ILogger _logger;
-    private readonly Dictionary<string, ProjectKey> _configurationToProjectMap;
-    internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
+
+    private readonly CancellationTokenSource _disposeTokenSource;
+    private readonly AsyncBatchingWorkQueue<Work> _workQueue;
+
+    private readonly Dictionary<ProjectKey, ResetProject> _resetProjectMap = new();
 
     public ProjectConfigurationStateSynchronizer(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IRazorProjectService projectService,
         ILoggerFactory loggerFactory,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
+        LanguageServerFeatureOptions options)
+        : this(projectService, loggerFactory, options, s_delay)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _projectService = projectService;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-        _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateSynchronizer>();
-        _configurationToProjectMap = new Dictionary<string, ProjectKey>(FilePathComparer.Instance);
-        ProjectInfoMap = new Dictionary<ProjectKey, DelayedProjectInfo>();
     }
 
-    internal int EnqueueDelay { get; set; } = 250;
+    protected ProjectConfigurationStateSynchronizer(
+        IRazorProjectService projectService,
+        ILoggerFactory loggerFactory,
+        LanguageServerFeatureOptions options,
+        TimeSpan delay)
+    {
+        _projectService = projectService;
+        _options = options;
+        _logger = loggerFactory.GetOrCreateLogger<ProjectConfigurationStateSynchronizer>();
+
+        _disposeTokenSource = new();
+        _workQueue = new(delay, ProcessBatchAsync, _disposeTokenSource.Token);
+    }
+
+    public void Dispose()
+    {
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
+    }
+
+    private async ValueTask ProcessBatchAsync(ImmutableArray<Work> items, CancellationToken token)
+    {
+        foreach (var item in items.GetMostRecentUniqueItems(Comparer.Instance))
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var itemTask = item switch
+            {
+                ResetProject(var projectKey) => ResetProjectAsync(projectKey, token),
+                UpdateProject(var projectKey, var projectInfo) => UpdateProjectAsync(projectKey, projectInfo, token),
+                _ => Assumed.Unreachable<Task>()
+            };
+
+            await itemTask.ConfigureAwait(false);
+        }
+
+        Task ResetProjectAsync(ProjectKey projectKey, CancellationToken token)
+        {
+            _logger.LogInformation($"Resetting {projectKey.Id}.");
+
+            return _projectService
+                .UpdateProjectAsync(
+                    projectKey,
+                    configuration: null,
+                    rootNamespace: null,
+                    displayName: "",
+                    ProjectWorkspaceState.Default,
+                    documents: [],
+                    token);
+        }
+
+        Task UpdateProjectAsync(ProjectKey projectKey, RazorProjectInfo projectInfo, CancellationToken token)
+        {
+            _logger.LogInformation($"Updating {projectKey.Id}.");
+
+            return _projectService
+                .AddOrUpdateProjectAsync(
+                    projectKey,
+                    projectInfo.FilePath,
+                    projectInfo.Configuration,
+                    projectInfo.RootNamespace,
+                    projectInfo.DisplayName,
+                    projectInfo.ProjectWorkspaceState,
+                    projectInfo.Documents,
+                    token);
+        }
+    }
 
     public void ProjectConfigurationFileChanged(ProjectConfigurationFileChangeEventArgs args)
     {
-        if (args is null)
-        {
-            throw new ArgumentNullException(nameof(args));
-        }
-
-        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
-
         switch (args.Kind)
         {
             case RazorFileChangeKind.Changed:
                 {
-                    var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-                    if (!args.TryDeserialize(_languageServerFeatureOptions, out var projectInfo))
+                    if (args.TryDeserialize(_options, out var projectInfo))
                     {
-                        if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var lastAssociatedProjectKey))
-                        {
-                            // Could not resolve an associated project file, noop.
-                            _logger.LogWarning($"Failed to deserialize configuration file after change for an unknown project. Configuration file path: '{configurationFilePath}'");
-                            return;
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"Failed to deserialize configuration file after change for project '{lastAssociatedProjectKey.Id}': '{configurationFilePath}'");
-                        }
+                        var projectKey = projectInfo.ProjectKey;
+                        _logger.LogInformation($"Configuration file changed for project '{projectKey.Id}'.");
+
+                        _workQueue.AddWork(new UpdateProject(projectKey, projectInfo));
+                    }
+                    else
+                    {
+                        var projectKey = args.GetProjectKey();
+                        _logger.LogWarning($"Failed to deserialize after change to configuration file for project '{projectKey.Id}'.");
 
                         // We found the last associated project file for the configuration file. Reset the project since we can't
                         // accurately determine its configurations.
-
-                        EnqueueUpdateProject(lastAssociatedProjectKey, projectInfo: null, CancellationToken.None);
-                        return;
+                        _workQueue.AddWork(new ResetProject(projectKey));
                     }
-
-                    if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var associatedProjectKey))
-                    {
-                        _logger.LogWarning($"Found no project key for configuration file. Assuming new project. Configuration file path: '{configurationFilePath}'");
-
-                        AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
-                        return;
-                    }
-
-                    _logger.LogInformation($"Project configuration file changed for project '{associatedProjectKey.Id}': '{configurationFilePath}'");
-
-                    EnqueueUpdateProject(associatedProjectKey, projectInfo, CancellationToken.None);
-                    break;
                 }
+
+                break;
+
             case RazorFileChangeKind.Added:
                 {
-                    var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-                    if (!args.TryDeserialize(_languageServerFeatureOptions, out var projectInfo))
+                    if (args.TryDeserialize(_options, out var projectInfo))
                     {
-                        // Given that this is the first time we're seeing this configuration file if we can't deserialize it
-                        // then we have to noop.
-                        _logger.LogWarning($"Failed to deserialize configuration file on configuration added event. Configuration file path: '{configurationFilePath}'");
-                        return;
-                    }
+                        var projectKey = projectInfo.ProjectKey;
+                        _logger.LogInformation($"Configuration file added for project '{projectKey.Id}'.");
 
-                    AddProjectAsync(configurationFilePath, projectInfo, CancellationToken.None).Forget();
-                    break;
+                        // Update will add the project if it doesn't exist
+                        _workQueue.AddWork(new UpdateProject(projectKey, projectInfo));
+                    }
+                    else
+                    {
+                        // This is the first time we've seen this configuration file, but we can't deserialize it.
+                        // The only thing we can really do is issue a warning.
+                        _logger.LogWarning($"Failed to deserialize previously unseen configuration file '{args.ConfigurationFilePath}'");
+                    }
                 }
+
+                break;
+
             case RazorFileChangeKind.Removed:
                 {
-                    var configurationFilePath = FilePathNormalizer.Normalize(args.ConfigurationFilePath);
-                    if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var projectFilePath))
-                    {
-                        // Failed to deserialize the initial project configuration file on add so we can't remove the configuration file because it doesn't exist in the list.
-                        _logger.LogWarning($"Failed to resolve associated project on configuration removed event. Configuration file path: '{configurationFilePath}'");
-                        return;
-                    }
+                    var projectKey = args.GetProjectKey();
+                    _logger.LogInformation($"Configuration file removed for project '{projectKey}'.");
 
-                    _configurationToProjectMap.Remove(configurationFilePath);
-
-                    _logger.LogInformation($"Project configuration file removed for project '{projectFilePath}': '{configurationFilePath}'");
-
-                    EnqueueUpdateProject(projectFilePath, projectInfo: null, CancellationToken.None);
-                    break;
+                    _workQueue.AddWork(new ResetProject(projectKey));
                 }
+
+                break;
         }
-
-        async Task AddProjectAsync(string configurationFilePath, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var projectFilePath = FilePathNormalizer.Normalize(projectInfo.FilePath);
-                var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
-                var rootNamespace = projectInfo.RootNamespace;
-
-                var projectKey = await _projectService
-                    .AddProjectAsync(
-                        projectFilePath,
-                        intermediateOutputPath,
-                        projectInfo.Configuration,
-                        rootNamespace,
-                        projectInfo.DisplayName,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-                _configurationToProjectMap[configurationFilePath] = projectKey;
-
-                _logger.LogInformation($"Project configuration file added for project '{projectFilePath}': '{configurationFilePath}'");
-                EnqueueUpdateProject(projectKey, projectInfo, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error occurred while adding project: {projectInfo.FilePath}");
-            }
-        }
-
-        Task UpdateProjectAsync(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
-        {
-            if (projectInfo is null)
-            {
-                return ResetProjectAsync(projectKey, cancellationToken);
-            }
-
-            _logger.LogInformation($"Actually updating {projectKey} with a real projectInfo");
-
-            var projectWorkspaceState = projectInfo.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
-            var documents = projectInfo.Documents;
-            return _projectService.UpdateProjectAsync(
-                projectKey,
-                projectInfo.Configuration,
-                projectInfo.RootNamespace,
-                projectInfo.DisplayName,
-                projectWorkspaceState,
-                documents,
-                cancellationToken);
-        }
-
-        async Task UpdateAfterDelayAsync(ProjectKey projectKey, CancellationToken cancellationToken)
-        {
-            await Task.Delay(EnqueueDelay).ConfigureAwait(true);
-
-            var delayedProjectInfo = ProjectInfoMap[projectKey];
-            await UpdateProjectAsync(projectKey, delayedProjectInfo.ProjectInfo, cancellationToken).ConfigureAwait(false);
-        }
-
-        void EnqueueUpdateProject(ProjectKey projectKey, RazorProjectInfo? projectInfo, CancellationToken cancellationToken)
-        {
-            if (!ProjectInfoMap.ContainsKey(projectKey))
-            {
-                ProjectInfoMap[projectKey] = new DelayedProjectInfo();
-            }
-
-            var delayedProjectInfo = ProjectInfoMap[projectKey];
-            delayedProjectInfo.ProjectInfo = projectInfo;
-
-            if (delayedProjectInfo.ProjectUpdateTask is null || delayedProjectInfo.ProjectUpdateTask.IsCompleted)
-            {
-                delayedProjectInfo.ProjectUpdateTask = UpdateAfterDelayAsync(projectKey, cancellationToken);
-            }
-        }
-
-        Task ResetProjectAsync(ProjectKey projectKey, CancellationToken cancellationToken)
-        {
-            return _projectService.UpdateProjectAsync(
-                projectKey,
-                configuration: null,
-                rootNamespace: null,
-                displayName: "",
-                ProjectWorkspaceState.Default,
-                documents: [],
-                cancellationToken);
-        }
-    }
-
-    internal class DelayedProjectInfo
-    {
-        public Task? ProjectUpdateTask { get; set; }
-
-        public RazorProjectInfo? ProjectInfo { get; set; }
     }
 }

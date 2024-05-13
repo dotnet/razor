@@ -40,6 +40,16 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider)
+        : this(generator, projectManager, options, workspaceProvider, s_delay)
+    {
+    }
+
+    public WorkspaceProjectStateChangeDetector(
+        IProjectWorkspaceStateGenerator generator,
+        IProjectSnapshotManager projectManager,
+        LanguageServerFeatureOptions options,
+        IWorkspaceProvider workspaceProvider,
+        TimeSpan delay)
     {
         _generator = generator;
         _projectManager = projectManager;
@@ -47,7 +57,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)>(
-            s_delay,
+            delay,
             ProcessBatchAsync,
             _disposeTokenSource.Token);
 
@@ -70,17 +80,19 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         _disposeTokenSource.Dispose();
     }
 
-    private async ValueTask ProcessBatchAsync(ImmutableArray<(Project? Project, IProjectSnapshot ProjectSnapshot)> items, CancellationToken token)
+    private ValueTask ProcessBatchAsync(ImmutableArray<(Project? Project, IProjectSnapshot ProjectSnapshot)> items, CancellationToken token)
     {
         foreach (var (project, projectSnapshot) in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (token.IsCancellationRequested)
             {
-                return;
+                return default;
             }
 
-            await _generator.UpdateAsync(project, projectSnapshot, token);
+            _generator.EnqueueUpdate(project, projectSnapshot);
         }
+
+        return default;
     }
 
     private void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
@@ -332,7 +344,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
             case ProjectChangeKind.DocumentAdded:
                 var currentSolution = _workspace.CurrentSolution;
                 var associatedWorkspaceProject = currentSolution.Projects
-                    .FirstOrDefault(project => e.ProjectKey == ProjectKey.From(project));
+                    .FirstOrDefault(project => e.ProjectKey == project.ToProjectKey());
 
                 if (associatedWorkspaceProject is not null)
                 {
@@ -390,7 +402,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
             return false;
         }
 
-        var projectKey = ProjectKey.From(project);
+        var projectKey = project.ToProjectKey();
 
         return _projectManager.TryGetLoadedProject(projectKey, out projectSnapshot);
     }
