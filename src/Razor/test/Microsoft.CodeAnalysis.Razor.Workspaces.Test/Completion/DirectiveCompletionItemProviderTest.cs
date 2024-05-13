@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 public class DirectiveCompletionItemProviderTest : ToolingTestBase
 {
-    private static readonly Action<RazorCompletionItem>[] s_defaultDirectiveCollectionVerifiers;
+    private static readonly Action<RazorCompletionItem>[] s_mvcDirectiveCollectionVerifiers;
     private static readonly Action<RazorCompletionItem>[] s_componentDirectiveCollectionVerifiers;
 
     static DirectiveCompletionItemProviderTest()
     {
-        s_defaultDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.DefaultDirectives);
+        s_mvcDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.MvcDefaultDirectives);
         s_componentDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.ComponentDefaultDirectives);
     }
 
@@ -58,7 +58,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
         // Assert
         Assert.Collection(
             completionItems,
-            s_defaultDirectiveCollectionVerifiers
+            s_mvcDirectiveCollectionVerifiers
         );
     }
 
@@ -78,7 +78,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
             completionItems,
             [
                 item => AssertRazorCompletionItem(customDirective, item), ..
-                s_defaultDirectiveCollectionVerifiers
+                s_mvcDirectiveCollectionVerifiers
             ]
         );
     }
@@ -103,7 +103,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
             completionItems,
             [
                 item => AssertRazorCompletionItem("different", customDirective, item), ..
-                s_defaultDirectiveCollectionVerifiers
+                s_mvcDirectiveCollectionVerifiers
             ]
         );
     }
@@ -128,7 +128,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
             completionItems,
             [
                 item => AssertRazorCompletionItem("code", customDirective, item, DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters), ..
-                s_defaultDirectiveCollectionVerifiers
+                s_mvcDirectiveCollectionVerifiers
             ]
         );
     }
@@ -152,7 +152,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
             completionItems,
             [
                 item => AssertRazorCompletionItem("section", customDirective, item, DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters), ..
-                s_defaultDirectiveCollectionVerifiers
+                s_mvcDirectiveCollectionVerifiers
             ]
         );
     }
@@ -212,7 +212,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
             [
                 item => AssertRazorCompletionItem("model", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: false),
                 item => AssertRazorCompletionItem("model directive ...", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true), ..
-                s_defaultDirectiveCollectionVerifiers
+                s_mvcDirectiveCollectionVerifiers
             ]
         );
     }
