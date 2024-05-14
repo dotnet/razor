@@ -50,7 +50,7 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
     [Obsolete]
     public override Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
     {
-        return RequestMultipleServerCoreAsync<TIn, TOut>(method,  parameters, cancellationToken);
+        return RequestMultipleServerCoreAsync<TIn, TOut>(method, parameters, cancellationToken);
     }
 
     [Obsolete]
@@ -82,12 +82,12 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
         }
 
         var serializedParams = JToken.FromObject(parameters);
-        var response  = await _languageServiceBroker.RequestAsync(
+        var response = await _languageServiceBroker.RequestAsync(
             new GeneralRequest<TIn, TOut> { LanguageServerName = languageServerName, Method = method, Request = parameters },
             cancellationToken);
 
         // No callers actually use the languageClient when handling the response.
-        var result = response is not null ? new ReinvokeResponse<TOut>(languageClient:null!, response) : default;
+        var result = response is not null ? new ReinvokeResponse<TOut>(languageClient: null!, response) : default;
         return result;
     }
 
@@ -133,14 +133,14 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
         }
 
         var reinvokeResponses = _languageServiceBroker.RequestAllAsync(
-            new GeneralRequest<TIn, TOut>() { LanguageServerName = null, Method = method, Request = parameters},
+            new GeneralRequest<TIn, TOut>() { LanguageServerName = null, Method = method, Request = parameters },
             cancellationToken).ConfigureAwait(false);
 
-        using var _ = ListPool<ReinvokeResponse<TOut>>.GetPooledObject(out var responses);
+        using var responses = new PooledArrayBuilder<ReinvokeResponse<TOut>>();
         await foreach (var reinvokeResponse in reinvokeResponses)
         {
             // No callers actually use the languageClient when handling the response.
-            responses.Add(new ReinvokeResponse<TOut>(languageClient:null!, reinvokeResponse.response!));
+            responses.Add(new ReinvokeResponse<TOut>(languageClient: null!, reinvokeResponse.response!));
         }
 
         return responses.ToArray();

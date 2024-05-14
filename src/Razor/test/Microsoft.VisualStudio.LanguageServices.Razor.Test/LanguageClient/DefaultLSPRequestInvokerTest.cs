@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -108,7 +107,7 @@ public class DefaultLSPRequestInvokerTest : ToolingTestBase
 
         // Assert
         Assert.True(called);
-    } 
+    }
 
     [Fact]
     public async Task CustomRequestServerAsync_InvokesHtmlLanguageClient()
@@ -156,9 +155,9 @@ public class DefaultLSPRequestInvokerTest : ToolingTestBase
     {
         var broker = new StrictMock<ILanguageServiceBroker2>();
 #pragma warning disable CS0618 // Type or member is obsolete
-        broker.Setup(b => b.RequestAsync(It.IsAny<Request<object,object>>(), It.IsAny<CancellationToken>()))
+        broker.Setup(b => b.RequestAsync(It.IsAny<Request<object, object>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((null))
-            .Callback((Request<object,object> request, CancellationToken _) => callback(request.Method));
+            .Callback((Request<object, object> request, CancellationToken _) => callback(request.Method));
 #pragma warning restore CS0618 // Type or member is obsolete
 
         return broker.Object;
