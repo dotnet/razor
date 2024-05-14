@@ -178,10 +178,12 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
             services.AddHandlerWithCapabilities<RenameEndpoint>();
             services.AddHandlerWithCapabilities<DefinitionEndpoint>();
+
             if (!featureOptions.UseRazorCohostServer)
             {
                 services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
             }
+
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();
             services.AddHandler<RazorProximityExpressionsEndpoint>();
@@ -227,14 +229,9 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         return new TestAccessor(this);
     }
 
-    internal new class TestAccessor
+    internal new class TestAccessor(RazorLanguageServer server)
     {
-        private RazorLanguageServer _server;
-
-        public TestAccessor(RazorLanguageServer server)
-        {
-            _server = server;
-        }
+        private readonly RazorLanguageServer _server = server;
 
         public AbstractHandlerProvider HandlerProvider => _server.HandlerProvider;
 
