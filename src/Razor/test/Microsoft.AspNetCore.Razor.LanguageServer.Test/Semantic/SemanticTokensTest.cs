@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -884,7 +885,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         else
         {
             // Note that the expected lengths are different on Windows vs. Unix.
-            var expectedCsharpRangeLength = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 1016 : 982;
+            var expectedCsharpRangeLength = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 945 : 911;
             Assert.True(codeDocument.TryGetMinimalCSharpRange(razorRange, out var csharpRange));
             var textSpan = csharpRange.ToTextSpan(csharpSourceText);
             Assert.Equal(expectedCsharpRangeLength, textSpan.Length);
@@ -1201,9 +1202,14 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     private class TestDocumentContextFactory(VersionedDocumentContext? documentContext = null) : IDocumentContextFactory
     {
-        public Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+        public bool TryCreate(
+            Uri documentUri,
+            VSProjectContext? projectContext,
+            bool versioned,
+            [NotNullWhen(true)] out DocumentContext? context)
         {
-            return Task.FromResult<DocumentContext?>(documentContext);
+            context = documentContext;
+            return context is not null;
         }
     }
 }

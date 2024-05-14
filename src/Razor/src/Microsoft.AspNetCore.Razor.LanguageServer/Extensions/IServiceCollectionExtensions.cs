@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 internal static class IServiceCollectionExtensions
 {
-    public static void AddLifeCycleServices(this IServiceCollection services, RazorLanguageServer razorLanguageServer, ClientConnection serverManager, ILspServerActivationTracker? lspServerActivationTracker)
+    public static void AddLifeCycleServices(this IServiceCollection services, RazorLanguageServer razorLanguageServer, ClientConnection clientConnection, ILspServerActivationTracker? lspServerActivationTracker)
     {
         services.AddHandler<RazorInitializeEndpoint>();
         services.AddHandler<RazorInitializedEndpoint>();
@@ -51,7 +52,7 @@ internal static class IServiceCollectionExtensions
 
         services.AddSingleton<ICapabilitiesProvider, RazorLanguageServerCapability>();
 
-        services.AddSingleton<IOnInitialized>(serverManager);
+        services.AddSingleton<IOnInitialized>(clientConnection);
     }
 
     public static void AddFormattingServices(this IServiceCollection services)
@@ -167,10 +168,13 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<HtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
     }
 
-    public static void AddTextDocumentServices(this IServiceCollection services)
+    public static void AddTextDocumentServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
         services.AddHandlerWithCapabilities<TextDocumentTextPresentationEndpoint>();
-        services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
+        if (!featureOptions.UseRazorCohostServer)
+        {
+            services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
+        }
 
         services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
         services.AddHandler<WorkspaceSpellCheckEndpoint>();
@@ -207,13 +211,16 @@ internal static class IServiceCollectionExtensions
 
         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
         services.AddSingleton<ISnapshotResolver, SnapshotResolver>();
+        services.AddSingleton<IOnInitialized>(sp => (SnapshotResolver)sp.GetRequiredService<ISnapshotResolver>());
         services.AddSingleton<IRazorProjectService, RazorProjectService>();
         services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
+        services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<RazorFileChangeDetectorManager>());
 
         if (featureOptions.UseProjectConfigurationEndpoint)
         {
+            services.AddSingleton<IRazorProjectInfoFileSerializer, RazorProjectInfoFileSerializer>();
             services.AddSingleton<ProjectConfigurationStateManager>();
         }
         else 
