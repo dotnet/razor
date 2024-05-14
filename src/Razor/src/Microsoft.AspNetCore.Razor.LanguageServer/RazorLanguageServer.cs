@@ -81,7 +81,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()
     {
         var handlerProvider = this.HandlerProvider;
-        var queue = new RazorRequestExecutionQueue(this, _logger, handlerProvider);
+        var queue = new RazorRequestExecutionQueue(this, Logger, handlerProvider);
         queue.Start();
 
         return queue;
@@ -103,7 +103,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         services.AddSingleton<IClientConnection>(_clientConnection);
 
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
-        services.AddSingleton<ILspLogger>(_logger);
+        services.AddSingleton<ILspLogger>(Logger);
 
         services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
         services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
