@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
 
 internal sealed class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
 {
