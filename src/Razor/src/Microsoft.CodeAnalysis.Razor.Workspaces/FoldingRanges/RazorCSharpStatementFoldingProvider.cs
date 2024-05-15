@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
 
-internal sealed class RazorCSharpStatementFoldingProvider : AbstractSyntaxNodeFoldingProvider<CSharpStatementSyntax>
+internal class RazorCSharpStatementFoldingProvider : AbstractSyntaxNodeFoldingProvider<CSharpStatementSyntax>
 {
     protected override string GetCollapsedText(CSharpStatementSyntax node)
     {

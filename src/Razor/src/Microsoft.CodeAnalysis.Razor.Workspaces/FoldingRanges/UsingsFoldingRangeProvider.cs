@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
 
-internal sealed class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
+internal class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
 {
     public async Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
     {
