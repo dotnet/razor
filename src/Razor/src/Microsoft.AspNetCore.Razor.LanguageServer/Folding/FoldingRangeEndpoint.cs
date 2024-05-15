@@ -122,7 +122,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
 
         foreach (var provider in _foldingRangeProviders)
         {
-            var ranges = await provider.GetFoldingRangesAsync(documentContext, cancellationToken).ConfigureAwait(false);
+            var ranges = provider.GetFoldingRanges(codeDocument);
             mappedRanges.AddRange(ranges);
         }
 

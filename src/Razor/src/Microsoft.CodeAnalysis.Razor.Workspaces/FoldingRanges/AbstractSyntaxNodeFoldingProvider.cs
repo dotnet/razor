@@ -2,12 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
 internal abstract class AbstractSyntaxNodeFoldingProvider<TNode> : IRazorFoldingRangeProvider
     where TNode : RazorSyntaxNode
 {
-    public async Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
+    public ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument)
     {
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.GetSourceText();
+        var syntaxTree = codeDocument.GetSyntaxTree();
         var nodes = GetFoldableNodes(syntaxTree);
 
         using var builder = new PooledArrayBuilder<FoldingRange>(nodes.Length);
