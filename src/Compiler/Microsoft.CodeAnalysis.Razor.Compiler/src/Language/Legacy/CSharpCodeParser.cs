@@ -740,32 +740,9 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             kind == SyntaxKind.LessThan ||
             (kind == SyntaxKind.Transition && NextIs(SyntaxKind.LessThan));
 
-        if (Context.DesignTimeMode || !isMarkup)
+        if (lastWhitespace != null)
         {
-            // CODE owns whitespace, MARKUP owns it ONLY in DesignTimeMode.
-            if (lastWhitespace != null)
-            {
-                Accept(lastWhitespace);
-            }
-        }
-        else
-        {
-            var nextToken = Lookahead(1);
-
-            // MARKUP owns whitespace EXCEPT in DesignTimeMode.
-            PutCurrentBack();
-
-            // Put back the whitespace unless it precedes a '<text>' tag.
-            if (nextToken != null &&
-                !string.Equals(nextToken.Content, SyntaxConstants.TextTagName, StringComparison.Ordinal))
-            {
-                PutBack(lastWhitespace);
-            }
-            else
-            {
-                // If it precedes a '<text>' tag, it should be accepted as code.
-                Accept(lastWhitespace);
-            }
+            Accept(lastWhitespace);
         }
 
         if (isMarkup)
@@ -779,7 +756,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
             // Markup block
             builder.Add(OutputTokensAsStatementLiteral());
-            if (Context.DesignTimeMode && CurrentToken != null &&
+            if (CurrentToken != null &&
                 (CurrentToken.Kind == SyntaxKind.LessThan || CurrentToken.Kind == SyntaxKind.Transition))
             {
                 PutCurrentBack();
@@ -2645,34 +2622,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         if (insertMarkerIfNecessary)
         {
             AcceptMarkerTokenIfNecessary();
-        }
-
-        EnsureCurrent();
-
-        // Read whitespace, but not newlines
-        // If we're not inserting a marker span, we don't need to capture whitespace
-        if (!Context.WhiteSpaceIsSignificantToAncestorBlock &&
-            captureWhitespaceToEndOfLine &&
-            !Context.DesignTimeMode &&
-            !IsNested)
-        {
-            using var whitespace = new PooledArrayBuilder<SyntaxToken>();
-            ReadWhile(static token => token.Kind == SyntaxKind.Whitespace, ref whitespace.AsRef());
-            if (At(SyntaxKind.NewLine))
-            {
-                Accept(in whitespace);
-                AcceptAndMoveNext();
-                PutCurrentBack();
-            }
-            else
-            {
-                PutCurrentBack();
-                PutBack(in whitespace);
-            }
-        }
-        else
-        {
-            PutCurrentBack();
         }
     }
 
