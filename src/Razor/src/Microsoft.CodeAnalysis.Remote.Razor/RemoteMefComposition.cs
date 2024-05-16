@@ -9,9 +9,9 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal static class MEFComposition
+internal static class RemoteMefComposition
 {
-    internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies = [typeof(MEFComposition).Assembly];
+    internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies = [typeof(RemoteMefComposition).Assembly];
 
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
     private static readonly AsyncLazy<ExportProvider> s_exportProviderLazy = new(CreateExportProviderAsync);

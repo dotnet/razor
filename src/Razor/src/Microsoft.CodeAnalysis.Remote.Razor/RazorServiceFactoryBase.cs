@@ -51,7 +51,7 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
         var descriptor = _razorServiceDescriptors.GetDescriptorForServiceFactory(typeof(TService));
         var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
 
-        var exportProvider = await MEFComposition.GetExportProviderAsync().ConfigureAwait(false);
+        var exportProvider = await RemoteMefComposition.GetExportProviderAsync().ConfigureAwait(false);
 
         var service = CreateService(serviceBroker, exportProvider);
 
