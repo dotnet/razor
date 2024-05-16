@@ -59,7 +59,7 @@ internal sealed class RemoteServiceProvider(
 
             return result.Value;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogError(ex, $"Error calling remote method for {typeof(TService).Name} service, invocation: ${invocation.ToString()}");
             _telemetryReporter.ReportFault(ex, "Exception calling remote method for {service}", typeof(TService).FullName);
