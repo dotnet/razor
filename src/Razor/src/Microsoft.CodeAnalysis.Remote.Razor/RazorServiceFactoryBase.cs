@@ -2,9 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
@@ -36,7 +34,7 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
         _razorServiceDescriptors = razorServiceDescriptors;
     }
 
-    public Task<object> CreateAsync(
+    public async Task<object> CreateAsync(
        Stream stream,
        IServiceProvider hostProvidedServices,
        ServiceActivationOptions serviceActivationOptions,
@@ -46,16 +44,12 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
         // Dispose the AuthorizationServiceClient since we won't be using it
         authorizationServiceClient?.Dispose();
 
-        var traceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
-        RemoteLoggerFactory.Initialize(traceSource);
+        var traceSource = RemoteLoggerFactory.Initialize(hostProvidedServices);
 
-        return CreateAsync(stream.UsePipe(), serviceBroker);
-    }
+        var pipe = stream.UsePipe();
 
-    private async Task<object> CreateAsync(IDuplexPipe pipe, IServiceBroker serviceBroker)
-    {
         var descriptor = _razorServiceDescriptors.GetDescriptorForServiceFactory(typeof(TService));
-        var serverConnection = descriptor.ConstructRpcConnection(pipe);
+        var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
 
         var exportProvider = await MEFComposition.GetExportProviderAsync().ConfigureAwait(false);
 
