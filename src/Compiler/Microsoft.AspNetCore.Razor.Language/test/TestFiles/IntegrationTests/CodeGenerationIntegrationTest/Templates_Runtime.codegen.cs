@@ -24,7 +24,7 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
 #nullable restore
 #line (11,3)-(12,33) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml"
 

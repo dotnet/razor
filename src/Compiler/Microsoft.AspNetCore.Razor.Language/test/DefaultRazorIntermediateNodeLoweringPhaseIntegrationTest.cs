@@ -204,6 +204,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                 SyntaxConstants.CSharp.AddTagHelperKeyword,
                 n,
                 v => DirectiveToken(DirectiveTokenKind.String, "*, TestAssembly", v)),
+            n => Assert.IsType<HtmlContentIntermediateNode>(n),
             n => TagHelper(
                 "span",
                 TagMode.StartTagAndEndTag,
@@ -242,10 +243,12 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                 SyntaxConstants.CSharp.AddTagHelperKeyword,
                 n,
                 v => DirectiveToken(DirectiveTokenKind.String, "*, TestAssembly", v)),
+            n => Assert.IsType<HtmlContentIntermediateNode>(n),
             n => Directive(
                 SyntaxConstants.CSharp.TagHelperPrefixKeyword,
                 n,
                 v => DirectiveToken(DirectiveTokenKind.String, "cool:", v)),
+            n => Assert.IsType<HtmlContentIntermediateNode>(n),
             n => TagHelper(
                 "span",  // Note: this is span not cool:span
                 TagMode.StartTagAndEndTag,
@@ -286,6 +289,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                 SyntaxConstants.CSharp.AddTagHelperKeyword,
                 n,
                 v => DirectiveToken(DirectiveTokenKind.String, "*, TestAssembly", v)),
+            n => Assert.IsType<HtmlContentIntermediateNode>(n),
             n => Directive(
                 "section",
                 n,
@@ -337,6 +341,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                 SyntaxConstants.CSharp.AddTagHelperKeyword,
                 n,
                 v => DirectiveToken(DirectiveTokenKind.String, "*, TestAssembly", v)),
+            n => Assert.IsType<HtmlContentIntermediateNode>(n),
             n => TagHelper(
                 "input",
                 TagMode.SelfClosing,
@@ -372,7 +377,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
             n => Using("System.Globalization", n),
             n => Using("System.Text", n),
             n => Using("System.Threading.Tasks", n),
-            n => Html("<p>Hi!</p>", n));
+            n => Html(Environment.NewLine + "<p>Hi!</p>", n));
     }
 
     [Fact]
@@ -393,7 +398,8 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         Children(
             documentNode,
             n => Using("System.Threading.Tasks", n),
-            n => Using("System.Threading.Tasks", n));
+            n => Using("System.Threading.Tasks", n),
+            n => Assert.IsType<HtmlContentIntermediateNode>(n));
     }
 
     [Fact]

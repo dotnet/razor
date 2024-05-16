@@ -1,0 +1,90 @@
+﻿RazorDocument - [0..216) - FullWidth: 216 - [@rendermode @(new TestComponent.MyRenderMode("This is some text"))LFLF@codeLF{LF#pragma warning disable CS9113LF    public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }LF}]
+    MarkupBlock - [0..216) - FullWidth: 216
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..68) - FullWidth: 68
+            RazorDirective - [0..68) - FullWidth: 68 - Directive:{rendermode;SingleLine;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..68) - FullWidth: 67
+                    RazorMetaCode - [1..11) - FullWidth: 10 - Gen<None>
+                        Identifier;[rendermode];
+                    CSharpCodeBlock - [11..68) - FullWidth: 57
+                        CSharpStatementLiteral - [11..12) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [12..13) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpExplicitExpressionBody - [13..66) - FullWidth: 53
+                            RazorMetaCode - [13..14) - FullWidth: 1 - Gen<None>
+                                LeftParenthesis;[(];
+                            CSharpCodeBlock - [14..65) - FullWidth: 51
+                                CSharpExpressionLiteral - [14..65) - FullWidth: 51 - [new TestComponent.MyRenderMode("This is some text")] - Gen<Expr>
+                                    Keyword;[new];
+                                    Whitespace;[ ];
+                                    Identifier;[TestComponent];
+                                    Dot;[.];
+                                    Identifier;[MyRenderMode];
+                                    LeftParenthesis;[(];
+                                    StringLiteral;["This is some text"];
+                                    RightParenthesis;[)];
+                            RazorMetaCode - [65..66) - FullWidth: 1 - Gen<None>
+                                RightParenthesis;[)];
+                        MarkupEphemeralTextLiteral - [66..68) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [68..70) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [70..216) - FullWidth: 146
+            RazorDirective - [70..216) - FullWidth: 146 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [70..71) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [71..216) - FullWidth: 145
+                    RazorMetaCode - [71..75) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [75..216) - FullWidth: 141
+                        UnclassifiedTextLiteral - [75..77) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+                        RazorMetaCode - [77..78) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [78..215) - FullWidth: 137
+                            CSharpStatementLiteral - [78..215) - FullWidth: 137 - [LF#pragma warning disable CS9113LF    public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Hash;[#];
+                                Identifier;[pragma];
+                                Whitespace;[ ];
+                                Identifier;[warning];
+                                Whitespace;[ ];
+                                Identifier;[disable];
+                                Whitespace;[ ];
+                                Identifier;[CS9113];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[class];
+                                Whitespace;[ ];
+                                Identifier;[MyRenderMode];
+                                LeftParenthesis;[(];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[Text];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                Colon;[:];
+                                Whitespace;[ ];
+                                Identifier;[Microsoft];
+                                Dot;[.];
+                                Identifier;[AspNetCore];
+                                Dot;[.];
+                                Identifier;[Components];
+                                Dot;[.];
+                                Identifier;[IComponentRenderMode];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [215..216) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [216..216) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

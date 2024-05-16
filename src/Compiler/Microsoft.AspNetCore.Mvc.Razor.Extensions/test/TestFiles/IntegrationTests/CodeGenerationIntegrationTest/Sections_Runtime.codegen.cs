@@ -46,7 +46,7 @@ namespace AspNetCore
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
 #nullable restore
 #line (5,3)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
  

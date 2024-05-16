@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -20,6 +20,8 @@
             FieldDeclaration -  - private - global::DivTagHelper - __DivTagHelper
             FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (29:0,29 [2] NestedTagHelpers.cshtml)
+                    LazyIntermediateToken - (29:0,29 [2] NestedTagHelpers.cshtml) - Html - \n
                 TagHelper - (31:1,0 [26] NestedTagHelpers.cshtml) - span - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                         HtmlContent - (46:1,15 [4] NestedTagHelpers.cshtml)

@@ -1,0 +1,27 @@
+﻿RazorDocument - [0..73) - FullWidth: 73 - [<!NotAComponent />LF<!DefinitelyNotAComponent></!DefinitelyNotAComponent>]
+    MarkupBlock - [0..73) - FullWidth: 73
+        MarkupElement - [0..18) - FullWidth: 18
+            MarkupStartTag - [0..18) - FullWidth: 18 - [<!NotAComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Bang;[!];
+                Text;[NotAComponent];
+                MarkupMiscAttributeContent - [15..16) - FullWidth: 1
+                    MarkupTextLiteral - [15..16) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [18..20) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [20..73) - FullWidth: 53
+            MarkupStartTag - [20..46) - FullWidth: 26 - [<!DefinitelyNotAComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Bang;[!];
+                Text;[DefinitelyNotAComponent];
+                CloseAngle;[>];
+            MarkupEndTag - [46..73) - FullWidth: 27 - [</!DefinitelyNotAComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Bang;[!];
+                Text;[DefinitelyNotAComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

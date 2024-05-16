@@ -1,0 +1,161 @@
+﻿RazorDocument - [0..249) - FullWidth: 249 - [@typeparam TDomain where TDomain : structLF@typeparam TValue where TValue : structLFLF<TestComponent Data="null" TDomain="decimal" TValue="decimal" />LFLF@code {LF    [Parameter]LF    public List<(TDomain Domain, TValue Value)> Data { get; set; }LF}]
+    MarkupBlock - [0..249) - FullWidth: 249
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..43) - FullWidth: 43
+            RazorDirective - [0..43) - FullWidth: 43 - Directive:{typeparam;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..43) - FullWidth: 42
+                    RazorMetaCode - [1..10) - FullWidth: 9 - Gen<None>
+                        Identifier;[typeparam];
+                    CSharpCodeBlock - [10..43) - FullWidth: 33
+                        CSharpStatementLiteral - [10..11) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [11..18) - FullWidth: 7 - [TDomain] - Gen<DirectiveToken {type parameter;Member;Opt:False}>
+                            Identifier;[TDomain];
+                        CSharpStatementLiteral - [18..19) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [19..41) - FullWidth: 22 - [where TDomain : struct] - Gen<DirectiveToken {type parameter constraint;GenericTypeConstraint;Opt:True}>
+                            Keyword;[where];
+                            Whitespace;[ ];
+                            Identifier;[TDomain];
+                            Whitespace;[ ];
+                            Colon;[:];
+                            Whitespace;[ ];
+                            Keyword;[struct];
+                        MarkupEphemeralTextLiteral - [41..43) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [43..43) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [43..84) - FullWidth: 41
+            RazorDirective - [43..84) - FullWidth: 41 - Directive:{typeparam;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [43..44) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [44..84) - FullWidth: 40
+                    RazorMetaCode - [44..53) - FullWidth: 9 - Gen<None>
+                        Identifier;[typeparam];
+                    CSharpCodeBlock - [53..84) - FullWidth: 31
+                        CSharpStatementLiteral - [53..54) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [54..60) - FullWidth: 6 - [TValue] - Gen<DirectiveToken {type parameter;Member;Opt:False}>
+                            Identifier;[TValue];
+                        CSharpStatementLiteral - [60..61) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [61..82) - FullWidth: 21 - [where TValue : struct] - Gen<DirectiveToken {type parameter constraint;GenericTypeConstraint;Opt:True}>
+                            Keyword;[where];
+                            Whitespace;[ ];
+                            Identifier;[TValue];
+                            Whitespace;[ ];
+                            Colon;[:];
+                            Whitespace;[ ];
+                            Keyword;[struct];
+                        MarkupEphemeralTextLiteral - [82..84) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [84..86) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [86..150) - FullWidth: 64 - TestComponent[SelfClosing] - TestComponent<TDomain, TValue>
+            MarkupTagHelperStartTag - [86..150) - FullWidth: 64 - [<TestComponent Data="null" TDomain="decimal" TValue="decimal" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperAttribute - [100..112) - FullWidth: 12 - Data - DoubleQuotes - Bound - [ Data="null"]
+                    MarkupTextLiteral - [100..101) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [101..105) - FullWidth: 4 - [Data] - Gen<Markup>
+                        Text;[Data];
+                    Equals;[=];
+                    MarkupTextLiteral - [106..107) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [107..111) - FullWidth: 4
+                        CSharpExpressionLiteral - [107..111) - FullWidth: 4 - [null] - Gen<None>
+                            Text;[null];
+                    MarkupTextLiteral - [111..112) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [112..130) - FullWidth: 18 - TDomain - DoubleQuotes - Bound - [ TDomain="decimal"]
+                    MarkupTextLiteral - [112..113) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [113..120) - FullWidth: 7 - [TDomain] - Gen<Markup>
+                        Text;[TDomain];
+                    Equals;[=];
+                    MarkupTextLiteral - [121..122) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [122..129) - FullWidth: 7
+                        CSharpExpressionLiteral - [122..129) - FullWidth: 7 - [decimal] - Gen<None>
+                            Text;[decimal];
+                    MarkupTextLiteral - [129..130) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [130..147) - FullWidth: 17 - TValue - DoubleQuotes - Bound - [ TValue="decimal"]
+                    MarkupTextLiteral - [130..131) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [131..137) - FullWidth: 6 - [TValue] - Gen<Markup>
+                        Text;[TValue];
+                    Equals;[=];
+                    MarkupTextLiteral - [138..139) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [139..146) - FullWidth: 7
+                        CSharpExpressionLiteral - [139..146) - FullWidth: 7 - [decimal] - Gen<None>
+                            Text;[decimal];
+                    MarkupTextLiteral - [146..147) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [147..148) - FullWidth: 1
+                    MarkupTextLiteral - [147..148) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [150..154) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [154..249) - FullWidth: 95
+            RazorDirective - [154..249) - FullWidth: 95 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [154..155) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [155..249) - FullWidth: 94
+                    RazorMetaCode - [155..159) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [159..249) - FullWidth: 90
+                        UnclassifiedTextLiteral - [159..160) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [160..161) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [161..248) - FullWidth: 87
+                            CSharpStatementLiteral - [161..248) - FullWidth: 87 - [LF    [Parameter]LF    public List<(TDomain Domain, TValue Value)> Data { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[List];
+                                LessThan;[<];
+                                LeftParenthesis;[(];
+                                Identifier;[TDomain];
+                                Whitespace;[ ];
+                                Identifier;[Domain];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Identifier;[TValue];
+                                Whitespace;[ ];
+                                Identifier;[Value];
+                                RightParenthesis;[)];
+                                GreaterThan;[>];
+                                Whitespace;[ ];
+                                Identifier;[Data];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [248..249) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [249..249) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

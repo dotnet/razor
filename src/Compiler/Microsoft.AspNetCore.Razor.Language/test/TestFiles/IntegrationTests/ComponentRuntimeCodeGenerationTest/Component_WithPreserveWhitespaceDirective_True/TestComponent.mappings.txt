@@ -1,21 +1,19 @@
-﻿Source Location: (39:3,5 [55] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (39:3,5 [63] x:\dir\subdir\Test\TestComponent.cshtml)
 |foreach (var item in Enumerable.Range(1, 100))
     {
-|
-Generated Location: (883:24,0 [55] )
+        |
+Generated Location: (883:24,0 [63] )
 |foreach (var item in Enumerable.Range(1, 100))
     {
-|
+        |
 
 Source Location: (121:6,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |item|
-Generated Location: (1269:37,0 [4] )
+Generated Location: (1229:37,0 [4] )
 |item|
 
-Source Location: (142:8,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
-|    }
-|
-Generated Location: (1573:48,0 [7] )
-|    }
-|
+Source Location: (142:8,0 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|    }|
+Generated Location: (1532:48,0 [5] )
+|    }|
 

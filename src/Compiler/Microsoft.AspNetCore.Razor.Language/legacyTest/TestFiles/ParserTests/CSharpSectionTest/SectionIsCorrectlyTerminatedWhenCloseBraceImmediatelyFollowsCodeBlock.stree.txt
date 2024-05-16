@@ -21,10 +21,10 @@
                         MarkupBlock - [14..32)::18
                             MarkupTextLiteral - [14..16)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
                                 NewLine;[LF];
-                            CSharpCodeBlock - [16..32)::16
+                            CSharpCodeBlock - [16..30)::14
                                 CSharpTransition - [16..17)::1 - Gen<None> - SpanEditHandler;Accepts:None
                                     Transition;[@];
-                                CSharpStatementLiteral - [17..32)::15 - [if(true) {LF}LF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                                CSharpStatementLiteral - [17..30)::13 - [if(true) {LF}] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                                     Keyword;[if];
                                     LeftParenthesis;[(];
                                     Keyword;[true];
@@ -33,7 +33,8 @@
                                     LeftBrace;[{];
                                     NewLine;[LF];
                                     RightBrace;[}];
-                                    NewLine;[LF];
+                            MarkupTextLiteral - [30..32)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                NewLine;[LF];
                         RazorMetaCode - [32..33)::1 - Gen<None> - SpanEditHandler;Accepts:None
                             RightBrace;[}];
         MarkupTextLiteral - [33..33)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any

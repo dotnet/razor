@@ -13,7 +13,7 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
 #nullable restore
-#line (4,2)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
+#line (4,2)-(4,43) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
 using Microsoft.AspNetCore.Mvc.RazorPages
 
 #line default
@@ -41,8 +41,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
-            WriteLiteral("\r\n");
-            WriteLiteral("\r\n<h1>New Customer ");
+            WriteLiteral("\r\n\r\n");
+            WriteLiteral("\r\n\r\n<h1>New Customer ");
             Write(
 #nullable restore
 #line (13,19)-(13,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"

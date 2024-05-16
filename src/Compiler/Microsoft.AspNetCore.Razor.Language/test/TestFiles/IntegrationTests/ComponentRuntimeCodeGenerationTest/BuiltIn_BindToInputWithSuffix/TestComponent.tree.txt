@@ -1,0 +1,128 @@
+﻿RazorDocument - [0..194) - FullWidth: 194 - [@using Microsoft.AspNetCore.Components.WebLF<input @bind-value="@CurrentDate" @bind-value:format="MM/dd" />LF@code {LF    public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);LF}]
+    MarkupBlock - [0..194) - FullWidth: 194
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42) - FullWidth: 42
+            RazorDirective - [0..42) - FullWidth: 42
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..42) - FullWidth: 41
+                    CSharpStatementLiteral - [1..42) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [44..107) - FullWidth: 63 - input[SelfClosing] - Bind_value - Bind
+            MarkupTagHelperStartTag - [44..107) - FullWidth: 63 - [<input @bind-value="@CurrentDate" @bind-value:format="MM/dd" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTagHelperDirectiveAttribute - [50..77) - FullWidth: 27
+                    MarkupTextLiteral - [50..51) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [51..52) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [52..62) - FullWidth: 10 - [bind-value]
+                        Text;[bind-value];
+                    Equals;[=];
+                    MarkupTextLiteral - [63..64) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [64..76) - FullWidth: 12
+                        MarkupBlock - [64..76) - FullWidth: 12
+                            CSharpCodeBlock - [64..76) - FullWidth: 12
+                                CSharpImplicitExpression - [64..76) - FullWidth: 12
+                                    CSharpTransition - [64..65) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [65..76) - FullWidth: 11
+                                        CSharpCodeBlock - [65..76) - FullWidth: 11
+                                            CSharpExpressionLiteral - [65..76) - FullWidth: 11 - [CurrentDate] - Gen<Expr>
+                                                Identifier;[CurrentDate];
+                    MarkupTextLiteral - [76..77) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [77..104) - FullWidth: 27
+                    MarkupTextLiteral - [77..78) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [78..79) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [79..89) - FullWidth: 10 - [bind-value]
+                        Text;[bind-value];
+                    RazorMetaCode - [89..90) - FullWidth: 1
+                        Colon;[:];
+                    MarkupTextLiteral - [90..96) - FullWidth: 6 - [format]
+                        Text;[format];
+                    Equals;[=];
+                    MarkupTextLiteral - [97..98) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [98..103) - FullWidth: 5
+                        MarkupTextLiteral - [98..103) - FullWidth: 5 - [MM/dd] - Gen<Markup>
+                            Text;[MM];
+                            ForwardSlash;[/];
+                            Text;[dd];
+                    MarkupTextLiteral - [103..104) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [104..105) - FullWidth: 1
+                    MarkupTextLiteral - [104..105) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [107..109) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [109..194) - FullWidth: 85
+            RazorDirective - [109..194) - FullWidth: 85 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [109..110) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [110..194) - FullWidth: 84
+                    RazorMetaCode - [110..114) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [114..194) - FullWidth: 80
+                        UnclassifiedTextLiteral - [114..115) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [115..116) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [116..193) - FullWidth: 77
+                            CSharpStatementLiteral - [116..193) - FullWidth: 77 - [LF    public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[DateTime];
+                                Whitespace;[ ];
+                                Identifier;[CurrentDate];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[new];
+                                Whitespace;[ ];
+                                Identifier;[DateTime];
+                                LeftParenthesis;[(];
+                                IntegerLiteral;[2018];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                IntegerLiteral;[1];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                IntegerLiteral;[1];
+                                RightParenthesis;[)];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [193..194) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [194..194) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

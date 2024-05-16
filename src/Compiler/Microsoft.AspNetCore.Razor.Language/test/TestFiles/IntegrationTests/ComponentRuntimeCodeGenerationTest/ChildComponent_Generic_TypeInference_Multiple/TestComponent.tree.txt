@@ -1,0 +1,97 @@
+﻿RazorDocument - [0..103) - FullWidth: 103 - [<MyComponent Item="@("hi")"/>LF<MyComponent Item="@("how are you?")"/>LF<MyComponent Item="@("bye!")"/>]
+    MarkupBlock - [0..103) - FullWidth: 103
+        MarkupTagHelperElement - [0..29) - FullWidth: 29 - MyComponent[SelfClosing] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [0..29) - FullWidth: 29 - [<MyComponent Item="@("hi")"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..27) - FullWidth: 15 - Item - DoubleQuotes - Bound - [ Item="@("hi")"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..17) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..26) - FullWidth: 7
+                        MarkupBlock - [19..26) - FullWidth: 7
+                            CSharpCodeBlock - [19..26) - FullWidth: 7
+                                CSharpImplicitExpression - [19..26) - FullWidth: 7
+                                    CSharpTransition - [19..20) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [20..26) - FullWidth: 6
+                                        CSharpCodeBlock - [20..26) - FullWidth: 6
+                                            CSharpExpressionLiteral - [20..21) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [21..25) - FullWidth: 4 - ["hi"] - Gen<Expr>
+                                                StringLiteral;["hi"];
+                                            CSharpExpressionLiteral - [25..26) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [26..27) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [29..31) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [31..70) - FullWidth: 39 - MyComponent[SelfClosing] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [31..70) - FullWidth: 39 - [<MyComponent Item="@("how are you?")"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [43..68) - FullWidth: 25 - Item - DoubleQuotes - Bound - [ Item="@("how are you?")"]
+                    MarkupTextLiteral - [43..44) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [44..48) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [49..50) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [50..67) - FullWidth: 17
+                        MarkupBlock - [50..67) - FullWidth: 17
+                            CSharpCodeBlock - [50..67) - FullWidth: 17
+                                CSharpImplicitExpression - [50..67) - FullWidth: 17
+                                    CSharpTransition - [50..51) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [51..67) - FullWidth: 16
+                                        CSharpCodeBlock - [51..67) - FullWidth: 16
+                                            CSharpExpressionLiteral - [51..52) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [52..66) - FullWidth: 14 - ["how are you?"] - Gen<Expr>
+                                                StringLiteral;["how are you?"];
+                                            CSharpExpressionLiteral - [66..67) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [67..68) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [70..72) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [72..103) - FullWidth: 31 - MyComponent[SelfClosing] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [72..103) - FullWidth: 31 - [<MyComponent Item="@("bye!")"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [84..101) - FullWidth: 17 - Item - DoubleQuotes - Bound - [ Item="@("bye!")"]
+                    MarkupTextLiteral - [84..85) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [85..89) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [90..91) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [91..100) - FullWidth: 9
+                        MarkupBlock - [91..100) - FullWidth: 9
+                            CSharpCodeBlock - [91..100) - FullWidth: 9
+                                CSharpImplicitExpression - [91..100) - FullWidth: 9
+                                    CSharpTransition - [91..92) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [92..100) - FullWidth: 8
+                                        CSharpCodeBlock - [92..100) - FullWidth: 8
+                                            CSharpExpressionLiteral - [92..93) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [93..99) - FullWidth: 6 - ["bye!"] - Gen<Expr>
+                                                StringLiteral;["bye!"];
+                                            CSharpExpressionLiteral - [99..100) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [100..101) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

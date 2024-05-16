@@ -1,0 +1,85 @@
+﻿RazorDocument - [0..163) - FullWidth: 163 - [@using Microsoft.AspNetCore.Components.RenderTree;LF@{LF    void RenderChildComponent()LF    {LF        <MyComponent />LF    }LF}LFLF@{ RenderChildComponent(); }LF]
+    MarkupBlock - [0..163) - FullWidth: 163
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..50) - FullWidth: 50
+            RazorDirective - [0..50) - FullWidth: 50
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..50) - FullWidth: 49
+                    CSharpStatementLiteral - [1..50) - FullWidth: 49 - [using Microsoft.AspNetCore.Components.RenderTree;] - Gen<Import: Microsoft.AspNetCore.Components.RenderTree;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[RenderTree];
+                        Semicolon;[;];
+        MarkupTextLiteral - [50..52) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [52..129) - FullWidth: 77
+            CSharpStatement - [52..129) - FullWidth: 77
+                CSharpTransition - [52..53) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [53..129) - FullWidth: 76
+                    RazorMetaCode - [53..54) - FullWidth: 1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [54..128) - FullWidth: 74
+                        CSharpStatementLiteral - [54..104) - FullWidth: 50 - [LF    void RenderChildComponent()LF    {LF        ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[void];
+                            Whitespace;[ ];
+                            Identifier;[RenderChildComponent];
+                            LeftParenthesis;[(];
+                            RightParenthesis;[)];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                        MarkupBlock - [104..121) - FullWidth: 17
+                            MarkupTagHelperElement - [104..119) - FullWidth: 15 - MyComponent[SelfClosing] - MyComponent
+                                MarkupTagHelperStartTag - [104..119) - FullWidth: 15 - [<MyComponent />] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[MyComponent];
+                                    MarkupMiscAttributeContent - [116..117) - FullWidth: 1
+                                        MarkupTextLiteral - [116..117) - FullWidth: 1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                            MarkupTextLiteral - [119..121) - FullWidth: 2 - [LF] - Gen<Markup>
+                                NewLine;[LF];
+                        CSharpStatementLiteral - [121..128) - FullWidth: 7 - [    }LF] - Gen<Stmt>
+                            Whitespace;[    ];
+                            RightBrace;[}];
+                            NewLine;[LF];
+                    RazorMetaCode - [128..129) - FullWidth: 1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [129..131) - FullWidth: 2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTextLiteral - [131..133) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [133..161) - FullWidth: 28
+            CSharpStatement - [133..161) - FullWidth: 28
+                CSharpTransition - [133..134) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [134..161) - FullWidth: 27
+                    RazorMetaCode - [134..135) - FullWidth: 1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [135..160) - FullWidth: 25
+                        CSharpStatementLiteral - [135..160) - FullWidth: 25 - [ RenderChildComponent(); ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Identifier;[RenderChildComponent];
+                            LeftParenthesis;[(];
+                            RightParenthesis;[)];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                    RazorMetaCode - [160..161) - FullWidth: 1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [161..163) - FullWidth: 2 - [LF] - Gen<None>
+            NewLine;[LF];
+    EndOfFile;[];

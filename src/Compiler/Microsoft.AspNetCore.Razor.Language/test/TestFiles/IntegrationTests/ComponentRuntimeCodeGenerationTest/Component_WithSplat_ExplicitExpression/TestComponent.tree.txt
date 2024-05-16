@@ -1,0 +1,116 @@
+﻿RazorDocument - [0..202) - FullWidth: 202 - [<MyComponent AttributeBefore="before" @attributes="@(someAttributes)" AttributeAfter="after" />LFLF@code {LF    private Dictionary<string, object> someAttributes = new Dictionary<string, object>();LF}LF]
+    MarkupBlock - [0..202) - FullWidth: 202
+        MarkupTagHelperElement - [0..95) - FullWidth: 95 - MyComponent[SelfClosing] - MyComponent - Attributes
+            MarkupTagHelperStartTag - [0..95) - FullWidth: 95 - [<MyComponent AttributeBefore="before" @attributes="@(someAttributes)" AttributeAfter="after" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..37) - FullWidth: 25 - AttributeBefore - DoubleQuotes - Unbound - [ AttributeBefore="before"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..28) - FullWidth: 15 - [AttributeBefore] - Gen<Markup>
+                        Text;[AttributeBefore];
+                    Equals;[=];
+                    MarkupTextLiteral - [29..30) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [30..36) - FullWidth: 6
+                        MarkupLiteralAttributeValue - [30..36) - FullWidth: 6 - [before]
+                            MarkupTextLiteral - [30..36) - FullWidth: 6 - [before] - Gen<Markup>
+                                Text;[before];
+                    MarkupTextLiteral - [36..37) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [37..69) - FullWidth: 32
+                    MarkupTextLiteral - [37..38) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [38..39) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [39..49) - FullWidth: 10 - [attributes]
+                        Text;[attributes];
+                    Equals;[=];
+                    MarkupTextLiteral - [50..51) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [51..68) - FullWidth: 17
+                        MarkupBlock - [51..68) - FullWidth: 17
+                            CSharpCodeBlock - [51..68) - FullWidth: 17
+                                CSharpImplicitExpression - [51..68) - FullWidth: 17
+                                    CSharpTransition - [51..52) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [52..68) - FullWidth: 16
+                                        CSharpCodeBlock - [52..68) - FullWidth: 16
+                                            CSharpExpressionLiteral - [52..53) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [53..67) - FullWidth: 14 - [someAttributes] - Gen<Expr>
+                                                Identifier;[someAttributes];
+                                            CSharpExpressionLiteral - [67..68) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [68..69) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [69..92) - FullWidth: 23 - AttributeAfter - DoubleQuotes - Unbound - [ AttributeAfter="after"]
+                    MarkupTextLiteral - [69..70) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [70..84) - FullWidth: 14 - [AttributeAfter] - Gen<Markup>
+                        Text;[AttributeAfter];
+                    Equals;[=];
+                    MarkupTextLiteral - [85..86) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [86..91) - FullWidth: 5
+                        MarkupLiteralAttributeValue - [86..91) - FullWidth: 5 - [after]
+                            MarkupTextLiteral - [86..91) - FullWidth: 5 - [after] - Gen<Markup>
+                                Text;[after];
+                    MarkupTextLiteral - [91..92) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [92..93) - FullWidth: 1
+                    MarkupTextLiteral - [92..93) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [95..99) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [99..200) - FullWidth: 101
+            RazorDirective - [99..200) - FullWidth: 101 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [99..100) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [100..200) - FullWidth: 100
+                    RazorMetaCode - [100..104) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [104..200) - FullWidth: 96
+                        UnclassifiedTextLiteral - [104..105) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [105..106) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [106..199) - FullWidth: 93
+                            CSharpStatementLiteral - [106..199) - FullWidth: 93 - [LF    private Dictionary<string, object> someAttributes = new Dictionary<string, object>();LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[private];
+                                Whitespace;[ ];
+                                Identifier;[Dictionary];
+                                LessThan;[<];
+                                Keyword;[string];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Keyword;[object];
+                                GreaterThan;[>];
+                                Whitespace;[ ];
+                                Identifier;[someAttributes];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[new];
+                                Whitespace;[ ];
+                                Identifier;[Dictionary];
+                                LessThan;[<];
+                                Keyword;[string];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Keyword;[object];
+                                GreaterThan;[>];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [199..200) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [200..202) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

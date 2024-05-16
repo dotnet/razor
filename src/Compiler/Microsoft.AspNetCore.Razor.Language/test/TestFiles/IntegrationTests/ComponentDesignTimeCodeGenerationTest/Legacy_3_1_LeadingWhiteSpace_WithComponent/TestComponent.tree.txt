@@ -1,0 +1,88 @@
+﻿RazorDocument - [0..133) - FullWidth: 133 - [<SomeOtherComponent>LF    <h1>Child content at @DateTime.Now</h1>LF    <p>Very @("good")</p>LF</SomeOtherComponent>LFLF<h1>Hello</h1>]
+    MarkupBlock - [0..133) - FullWidth: 133
+        MarkupTagHelperElement - [0..115) - FullWidth: 115 - SomeOtherComponent[StartTagAndEndTag] - SomeOtherComponent
+            MarkupTagHelperStartTag - [0..20) - FullWidth: 20 - [<SomeOtherComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[SomeOtherComponent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [20..26) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupElement - [26..65) - FullWidth: 39
+                MarkupStartTag - [26..30) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[h1];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [30..47) - FullWidth: 17 - [Child content at ] - Gen<Markup>
+                    Text;[Child];
+                    Whitespace;[ ];
+                    Text;[content];
+                    Whitespace;[ ];
+                    Text;[at];
+                    Whitespace;[ ];
+                CSharpCodeBlock - [47..60) - FullWidth: 13
+                    CSharpImplicitExpression - [47..60) - FullWidth: 13
+                        CSharpTransition - [47..48) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [48..60) - FullWidth: 12
+                            CSharpCodeBlock - [48..60) - FullWidth: 12
+                                CSharpExpressionLiteral - [48..60) - FullWidth: 12 - [DateTime.Now] - Gen<Expr>
+                                    Identifier;[DateTime];
+                                    Dot;[.];
+                                    Identifier;[Now];
+                MarkupEndTag - [60..65) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[h1];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [65..71) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupElement - [71..92) - FullWidth: 21
+                MarkupStartTag - [71..74) - FullWidth: 3 - [<p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[p];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [74..79) - FullWidth: 5 - [Very ] - Gen<Markup>
+                    Text;[Very];
+                    Whitespace;[ ];
+                CSharpCodeBlock - [79..88) - FullWidth: 9
+                    CSharpExplicitExpression - [79..88) - FullWidth: 9
+                        CSharpTransition - [79..80) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpExplicitExpressionBody - [80..88) - FullWidth: 8
+                            RazorMetaCode - [80..81) - FullWidth: 1 - Gen<None>
+                                LeftParenthesis;[(];
+                            CSharpCodeBlock - [81..87) - FullWidth: 6
+                                CSharpExpressionLiteral - [81..87) - FullWidth: 6 - ["good"] - Gen<Expr>
+                                    StringLiteral;["good"];
+                            RazorMetaCode - [87..88) - FullWidth: 1 - Gen<None>
+                                RightParenthesis;[)];
+                MarkupEndTag - [88..92) - FullWidth: 4 - [</p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[p];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [92..94) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [94..115) - FullWidth: 21 - [</SomeOtherComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[SomeOtherComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [115..119) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupElement - [119..133) - FullWidth: 14
+            MarkupStartTag - [119..123) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [123..128) - FullWidth: 5 - [Hello] - Gen<Markup>
+                Text;[Hello];
+            MarkupEndTag - [128..133) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+    EndOfFile;[];

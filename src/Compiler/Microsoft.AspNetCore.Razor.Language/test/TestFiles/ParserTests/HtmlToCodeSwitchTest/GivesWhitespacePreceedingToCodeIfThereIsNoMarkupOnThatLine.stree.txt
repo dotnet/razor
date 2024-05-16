@@ -10,9 +10,9 @@
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..97)::95
-                        MarkupBlock - [2..97)::95
-                            MarkupTextLiteral - [2..5)::3 - [   ] - Gen<Markup>
-                                Whitespace;[   ];
+                        CSharpStatementLiteral - [2..5)::3 - [   ] - Gen<Stmt>
+                            Whitespace;[   ];
+                        MarkupBlock - [5..97)::92
                             MarkupElement - [5..97)::92
                                 MarkupStartTag - [5..9)::4 - [<ul>] - Gen<Markup>
                                     OpenAngle;[<];
@@ -20,12 +20,12 @@
                                     CloseAngle;[>];
                                 MarkupTextLiteral - [9..11)::2 - [LF] - Gen<Markup>
                                     NewLine;[LF];
-                                CSharpCodeBlock - [11..88)::77
+                                CSharpCodeBlock - [11..86)::75
                                     CSharpStatementLiteral - [11..15)::4 - [    ] - Gen<Stmt>
                                         Whitespace;[    ];
                                     CSharpTransition - [15..16)::1 - Gen<None>
                                         Transition;[@];
-                                    CSharpStatementLiteral - [16..46)::30 - [foreach(var p in Products) {LF] - Gen<Stmt>
+                                    CSharpStatementLiteral - [16..54)::38 - [foreach(var p in Products) {LF        ] - Gen<Stmt>
                                         Keyword;[foreach];
                                         LeftParenthesis;[(];
                                         Identifier;[var];
@@ -39,9 +39,8 @@
                                         Whitespace;[ ];
                                         LeftBrace;[{];
                                         NewLine;[LF];
-                                    MarkupBlock - [46..81)::35
-                                        MarkupTextLiteral - [46..54)::8 - [        ] - Gen<Markup>
-                                            Whitespace;[        ];
+                                        Whitespace;[        ];
+                                    MarkupBlock - [54..81)::27
                                         MarkupElement - [54..79)::25
                                             MarkupStartTag - [54..58)::4 - [<li>] - Gen<Markup>
                                                 OpenAngle;[<];
@@ -67,11 +66,11 @@
                                                 CloseAngle;[>];
                                         MarkupTextLiteral - [79..81)::2 - [LF] - Gen<Markup>
                                             NewLine;[LF];
-                                    CSharpStatementLiteral - [81..88)::7 - [    }LF] - Gen<Stmt>
+                                    CSharpStatementLiteral - [81..86)::5 - [    }] - Gen<Stmt>
                                         Whitespace;[    ];
                                         RightBrace;[}];
-                                        NewLine;[LF];
-                                MarkupTextLiteral - [88..92)::4 - [    ] - Gen<Markup>
+                                MarkupTextLiteral - [86..92)::6 - [LF    ] - Gen<Markup>
+                                    NewLine;[LF];
                                     Whitespace;[    ];
                                 MarkupEndTag - [92..97)::5 - [</ul>] - Gen<Markup>
                                     OpenAngle;[<];

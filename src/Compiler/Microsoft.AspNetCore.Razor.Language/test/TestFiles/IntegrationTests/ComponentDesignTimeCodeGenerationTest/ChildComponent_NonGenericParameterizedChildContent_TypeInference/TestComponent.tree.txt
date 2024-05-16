@@ -1,0 +1,85 @@
+﻿RazorDocument - [0..140) - FullWidth: 140 - [<MyComponent Item="@("hi")">LF  <GenericFragment>@context.ToLower()</GenericFragment>LF  <IntFragment>@context</IntFragment>LF</MyComponent>]
+    MarkupBlock - [0..140) - FullWidth: 140
+        MarkupTagHelperElement - [0..140) - FullWidth: 140 - MyComponent[StartTagAndEndTag] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [0..28) - FullWidth: 28 - [<MyComponent Item="@("hi")">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..27) - FullWidth: 15 - Item - DoubleQuotes - Bound - [ Item="@("hi")"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..17) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..26) - FullWidth: 7
+                        MarkupBlock - [19..26) - FullWidth: 7
+                            CSharpCodeBlock - [19..26) - FullWidth: 7
+                                CSharpImplicitExpression - [19..26) - FullWidth: 7
+                                    CSharpTransition - [19..20) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [20..26) - FullWidth: 6
+                                        CSharpCodeBlock - [20..26) - FullWidth: 6
+                                            CSharpExpressionLiteral - [20..21) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [21..25) - FullWidth: 4 - ["hi"] - Gen<Expr>
+                                                StringLiteral;["hi"];
+                                            CSharpExpressionLiteral - [25..26) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [26..27) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [28..32) - FullWidth: 4 - [LF  ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[  ];
+            MarkupTagHelperElement - [32..85) - FullWidth: 53 - GenericFragment[StartTagAndEndTag] - GenericFragment
+                MarkupTagHelperStartTag - [32..49) - FullWidth: 17 - [<GenericFragment>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[GenericFragment];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [49..67) - FullWidth: 18
+                    CSharpImplicitExpression - [49..67) - FullWidth: 18
+                        CSharpTransition - [49..50) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [50..67) - FullWidth: 17
+                            CSharpCodeBlock - [50..67) - FullWidth: 17
+                                CSharpExpressionLiteral - [50..67) - FullWidth: 17 - [context.ToLower()] - Gen<Expr>
+                                    Identifier;[context];
+                                    Dot;[.];
+                                    Identifier;[ToLower];
+                                    LeftParenthesis;[(];
+                                    RightParenthesis;[)];
+                MarkupTagHelperEndTag - [67..85) - FullWidth: 18 - [</GenericFragment>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[GenericFragment];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [85..89) - FullWidth: 4 - [LF  ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[  ];
+            MarkupTagHelperElement - [89..124) - FullWidth: 35 - IntFragment[StartTagAndEndTag] - IntFragment
+                MarkupTagHelperStartTag - [89..102) - FullWidth: 13 - [<IntFragment>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[IntFragment];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [102..110) - FullWidth: 8
+                    CSharpImplicitExpression - [102..110) - FullWidth: 8
+                        CSharpTransition - [102..103) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [103..110) - FullWidth: 7
+                            CSharpCodeBlock - [103..110) - FullWidth: 7
+                                CSharpExpressionLiteral - [103..110) - FullWidth: 7 - [context] - Gen<Expr>
+                                    Identifier;[context];
+                MarkupTagHelperEndTag - [110..124) - FullWidth: 14 - [</IntFragment>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[IntFragment];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [124..126) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [126..140) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -1,0 +1,130 @@
+﻿RazorDocument - [0..208) - FullWidth: 208 - [@using System.GlobalizationLF<div @bind-value="@ParentValue" @bind-value:event="onchange" @bind-value:culture="CultureInfo.InvariantCulture" />LF@code {LF    public string ParentValue { get; set; } = "hi";LF}]
+    MarkupBlock - [0..208) - FullWidth: 208
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..27) - FullWidth: 27
+            RazorDirective - [0..27) - FullWidth: 27
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..27) - FullWidth: 26
+                    CSharpStatementLiteral - [1..27) - FullWidth: 26 - [using System.Globalization] - Gen<Import: System.Globalization;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[System];
+                        Dot;[.];
+                        Identifier;[Globalization];
+        MarkupTextLiteral - [27..29) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [29..143) - FullWidth: 114 - div[SelfClosing] - Bind
+            MarkupTagHelperStartTag - [29..143) - FullWidth: 114 - [<div @bind-value="@ParentValue" @bind-value:event="onchange" @bind-value:culture="CultureInfo.InvariantCulture" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                MarkupTagHelperDirectiveAttribute - [33..60) - FullWidth: 27
+                    MarkupTextLiteral - [33..34) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [34..35) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [35..45) - FullWidth: 10 - [bind-value]
+                        Text;[bind-value];
+                    Equals;[=];
+                    MarkupTextLiteral - [46..47) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [47..59) - FullWidth: 12
+                        MarkupBlock - [47..59) - FullWidth: 12
+                            CSharpCodeBlock - [47..59) - FullWidth: 12
+                                CSharpImplicitExpression - [47..59) - FullWidth: 12
+                                    CSharpTransition - [47..48) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [48..59) - FullWidth: 11
+                                        CSharpCodeBlock - [48..59) - FullWidth: 11
+                                            CSharpExpressionLiteral - [48..59) - FullWidth: 11 - [ParentValue] - Gen<Expr>
+                                                Identifier;[ParentValue];
+                    MarkupTextLiteral - [59..60) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [60..89) - FullWidth: 29
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [61..62) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [62..72) - FullWidth: 10 - [bind-value]
+                        Text;[bind-value];
+                    RazorMetaCode - [72..73) - FullWidth: 1
+                        Colon;[:];
+                    MarkupTextLiteral - [73..78) - FullWidth: 5 - [event]
+                        Text;[event];
+                    Equals;[=];
+                    MarkupTextLiteral - [79..80) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [80..88) - FullWidth: 8
+                        MarkupTextLiteral - [80..88) - FullWidth: 8 - [onchange] - Gen<Markup>
+                            Text;[onchange];
+                    MarkupTextLiteral - [88..89) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [89..140) - FullWidth: 51
+                    MarkupTextLiteral - [89..90) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [90..91) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [91..101) - FullWidth: 10 - [bind-value]
+                        Text;[bind-value];
+                    RazorMetaCode - [101..102) - FullWidth: 1
+                        Colon;[:];
+                    MarkupTextLiteral - [102..109) - FullWidth: 7 - [culture]
+                        Text;[culture];
+                    Equals;[=];
+                    MarkupTextLiteral - [110..111) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [111..139) - FullWidth: 28
+                        CSharpExpressionLiteral - [111..139) - FullWidth: 28 - [CultureInfo.InvariantCulture] - Gen<None>
+                            Text;[CultureInfo.InvariantCulture];
+                    MarkupTextLiteral - [139..140) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [140..141) - FullWidth: 1
+                    MarkupTextLiteral - [140..141) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [143..145) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [145..208) - FullWidth: 63
+            RazorDirective - [145..208) - FullWidth: 63 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [145..146) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [146..208) - FullWidth: 62
+                    RazorMetaCode - [146..150) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [150..208) - FullWidth: 58
+                        UnclassifiedTextLiteral - [150..151) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [151..152) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [152..207) - FullWidth: 55
+                            CSharpStatementLiteral - [152..207) - FullWidth: 55 - [LF    public string ParentValue { get; set; } = "hi";LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[ParentValue];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["hi"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [207..208) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [208..208) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

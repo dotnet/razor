@@ -9,7 +9,7 @@ namespace Test
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (1,2)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,2)-(1,51) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components.RenderTree;
 
 #line default
@@ -23,11 +23,12 @@ using Microsoft.AspNetCore.Components.RenderTree;
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (3,3)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (3,3)-(7,5) "x:\dir\subdir\Test\TestComponent.cshtml"
 
     var output = string.Empty;
     if (__builder == null) output = "Builder is null!";
     else output = "Builder is not null!";
+    
 
 #line default
 #line hidden

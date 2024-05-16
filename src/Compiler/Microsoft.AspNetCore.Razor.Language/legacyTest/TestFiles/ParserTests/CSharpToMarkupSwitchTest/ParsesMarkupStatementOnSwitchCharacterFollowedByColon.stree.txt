@@ -5,16 +5,15 @@
         CSharpCodeBlock - [0..19)::19
             CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
                 Transition;[@];
-            CSharpStatementLiteral - [1..10)::9 - [if(foo) {] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [1..11)::10 - [if(foo) { ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Keyword;[if];
                 LeftParenthesis;[(];
                 Identifier;[foo];
                 RightParenthesis;[)];
                 Whitespace;[ ];
                 LeftBrace;[{];
-            MarkupBlock - [10..18)::8
-                MarkupTextLiteral - [10..11)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[ ];
+                Whitespace;[ ];
+            MarkupBlock - [11..18)::7
                 MarkupTransition - [11..12)::1 - Gen<None> - SpanEditHandler;Accepts:None
                     Transition;[@];
                 RazorMetaCode - [12..13)::1 - Gen<None> - SpanEditHandler;Accepts:Any

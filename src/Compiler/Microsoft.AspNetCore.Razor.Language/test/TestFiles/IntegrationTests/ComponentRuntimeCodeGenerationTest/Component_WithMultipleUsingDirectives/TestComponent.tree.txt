@@ -1,0 +1,50 @@
+﻿RazorDocument - [0..85) - FullWidth: 85 - [@using System.IO ;@using Microsoft.AspNetCore.ComponentsLF; @using System.Reflection;]
+    MarkupBlock - [0..85) - FullWidth: 85
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..16) - FullWidth: 16
+            RazorDirective - [0..16) - FullWidth: 16
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..16) - FullWidth: 15
+                    CSharpStatementLiteral - [1..16) - FullWidth: 15 - [using System.IO] - Gen<Import: System.IO;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[System];
+                        Dot;[.];
+                        Identifier;[IO];
+        MarkupTextLiteral - [16..18) - FullWidth: 2 - [ ;] - Gen<Markup>
+            Whitespace;[ ];
+            Text;[;];
+        CSharpCodeBlock - [18..56) - FullWidth: 38
+            RazorDirective - [18..56) - FullWidth: 38
+                CSharpTransition - [18..19) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [19..56) - FullWidth: 37
+                    CSharpStatementLiteral - [19..56) - FullWidth: 37 - [using Microsoft.AspNetCore.Components] - Gen<Import: Microsoft.AspNetCore.Components;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+        MarkupTextLiteral - [56..60) - FullWidth: 4 - [LF; ] - Gen<Markup>
+            NewLine;[LF];
+            Text;[;];
+            Whitespace;[ ];
+        CSharpCodeBlock - [60..85) - FullWidth: 25
+            RazorDirective - [60..85) - FullWidth: 25
+                CSharpTransition - [60..61) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [61..85) - FullWidth: 24
+                    CSharpStatementLiteral - [61..85) - FullWidth: 24 - [using System.Reflection;] - Gen<Import: System.Reflection;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[System];
+                        Dot;[.];
+                        Identifier;[Reflection];
+                        Semicolon;[;];
+        MarkupTextLiteral - [85..85) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

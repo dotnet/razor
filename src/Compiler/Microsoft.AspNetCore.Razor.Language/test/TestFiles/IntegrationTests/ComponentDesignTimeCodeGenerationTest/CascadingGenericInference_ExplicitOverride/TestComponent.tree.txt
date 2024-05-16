@@ -1,0 +1,79 @@
+﻿RazorDocument - [0..103) - FullWidth: 103 - [<Grid TItem="DateTime" Items="@(Array.Empty<DateTime>())"><Column TItem="System.TimeZoneInfo" /></Grid>]
+    MarkupBlock - [0..103) - FullWidth: 103
+        MarkupTagHelperElement - [0..103) - FullWidth: 103 - Grid[StartTagAndEndTag] - Grid<TItem>
+            MarkupTagHelperStartTag - [0..58) - FullWidth: 58 - [<Grid TItem="DateTime" Items="@(Array.Empty<DateTime>())">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Grid];
+                MarkupTagHelperAttribute - [5..22) - FullWidth: 17 - TItem - DoubleQuotes - Bound - [ TItem="DateTime"]
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..11) - FullWidth: 5 - [TItem] - Gen<Markup>
+                        Text;[TItem];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [13..21) - FullWidth: 8
+                        CSharpExpressionLiteral - [13..21) - FullWidth: 8 - [DateTime] - Gen<None>
+                            Text;[DateTime];
+                    MarkupTextLiteral - [21..22) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [22..57) - FullWidth: 35 - Items - DoubleQuotes - Bound - [ Items="@(Array.Empty<DateTime>())"]
+                    MarkupTextLiteral - [22..23) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [23..28) - FullWidth: 5 - [Items] - Gen<Markup>
+                        Text;[Items];
+                    Equals;[=];
+                    MarkupTextLiteral - [29..30) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [30..56) - FullWidth: 26
+                        MarkupBlock - [30..56) - FullWidth: 26
+                            CSharpCodeBlock - [30..56) - FullWidth: 26
+                                CSharpImplicitExpression - [30..56) - FullWidth: 26
+                                    CSharpTransition - [30..31) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [31..56) - FullWidth: 25
+                                        CSharpCodeBlock - [31..56) - FullWidth: 25
+                                            CSharpExpressionLiteral - [31..32) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [32..55) - FullWidth: 23 - [Array.Empty<DateTime>()] - Gen<Expr>
+                                                Identifier;[Array];
+                                                Dot;[.];
+                                                Identifier;[Empty];
+                                                LessThan;[<];
+                                                Identifier;[DateTime];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [55..56) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [56..57) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTagHelperElement - [58..96) - FullWidth: 38 - Column[SelfClosing] - Column<TItem>
+                MarkupTagHelperStartTag - [58..96) - FullWidth: 38 - [<Column TItem="System.TimeZoneInfo" />] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Column];
+                    MarkupTagHelperAttribute - [65..93) - FullWidth: 28 - TItem - DoubleQuotes - Bound - [ TItem="System.TimeZoneInfo"]
+                        MarkupTextLiteral - [65..66) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [66..71) - FullWidth: 5 - [TItem] - Gen<Markup>
+                            Text;[TItem];
+                        Equals;[=];
+                        MarkupTextLiteral - [72..73) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [73..92) - FullWidth: 19
+                            CSharpExpressionLiteral - [73..92) - FullWidth: 19 - [System.TimeZoneInfo] - Gen<None>
+                                Text;[System.TimeZoneInfo];
+                        MarkupTextLiteral - [92..93) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupMiscAttributeContent - [93..94) - FullWidth: 1
+                        MarkupTextLiteral - [93..94) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [96..103) - FullWidth: 7 - [</Grid>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Grid];
+                CloseAngle;[>];
+    EndOfFile;[];

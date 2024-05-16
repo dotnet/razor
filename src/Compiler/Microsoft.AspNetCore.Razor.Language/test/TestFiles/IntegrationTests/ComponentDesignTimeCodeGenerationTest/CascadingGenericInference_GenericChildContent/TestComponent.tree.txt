@@ -1,0 +1,64 @@
+﻿RazorDocument - [0..78) - FullWidth: 78 - [<Grid Items="@(Array.Empty<DateTime>())"><Column>@context.Year</Column></Grid>]
+    MarkupBlock - [0..78) - FullWidth: 78
+        MarkupTagHelperElement - [0..78) - FullWidth: 78 - Grid[StartTagAndEndTag] - Grid<TItem>
+            MarkupTagHelperStartTag - [0..41) - FullWidth: 41 - [<Grid Items="@(Array.Empty<DateTime>())">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Grid];
+                MarkupTagHelperAttribute - [5..40) - FullWidth: 35 - Items - DoubleQuotes - Bound - [ Items="@(Array.Empty<DateTime>())"]
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..11) - FullWidth: 5 - [Items] - Gen<Markup>
+                        Text;[Items];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [13..39) - FullWidth: 26
+                        MarkupBlock - [13..39) - FullWidth: 26
+                            CSharpCodeBlock - [13..39) - FullWidth: 26
+                                CSharpImplicitExpression - [13..39) - FullWidth: 26
+                                    CSharpTransition - [13..14) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [14..39) - FullWidth: 25
+                                        CSharpCodeBlock - [14..39) - FullWidth: 25
+                                            CSharpExpressionLiteral - [14..15) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [15..38) - FullWidth: 23 - [Array.Empty<DateTime>()] - Gen<Expr>
+                                                Identifier;[Array];
+                                                Dot;[.];
+                                                Identifier;[Empty];
+                                                LessThan;[<];
+                                                Identifier;[DateTime];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [38..39) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [39..40) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTagHelperElement - [41..71) - FullWidth: 30 - Column[StartTagAndEndTag] - Column<TItem>
+                MarkupTagHelperStartTag - [41..49) - FullWidth: 8 - [<Column>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Column];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [49..62) - FullWidth: 13
+                    CSharpImplicitExpression - [49..62) - FullWidth: 13
+                        CSharpTransition - [49..50) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [50..62) - FullWidth: 12
+                            CSharpCodeBlock - [50..62) - FullWidth: 12
+                                CSharpExpressionLiteral - [50..62) - FullWidth: 12 - [context.Year] - Gen<Expr>
+                                    Identifier;[context];
+                                    Dot;[.];
+                                    Identifier;[Year];
+                MarkupTagHelperEndTag - [62..71) - FullWidth: 9 - [</Column>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Column];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [71..78) - FullWidth: 7 - [</Grid>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Grid];
+                CloseAngle;[>];
+    EndOfFile;[];

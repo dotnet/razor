@@ -1,0 +1,61 @@
+﻿RazorDocument - [0..125) - FullWidth: 125 - [<ComponentWithEditorRequiredParameters @bind-Property1="myField" />LFLF@code {LF    private string myField = "Some Value";LF}]
+    MarkupBlock - [0..125) - FullWidth: 125
+        MarkupTagHelperElement - [0..67) - FullWidth: 67 - ComponentWithEditorRequiredParameters[SelfClosing] - ComponentWithEditorRequiredParameters - Bind
+            MarkupTagHelperStartTag - [0..67) - FullWidth: 67 - [<ComponentWithEditorRequiredParameters @bind-Property1="myField" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ComponentWithEditorRequiredParameters];
+                MarkupTagHelperDirectiveAttribute - [38..64) - FullWidth: 26
+                    MarkupTextLiteral - [38..39) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [39..40) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [40..54) - FullWidth: 14 - [bind-Property1]
+                        Text;[bind-Property1];
+                    Equals;[=];
+                    MarkupTextLiteral - [55..56) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [56..63) - FullWidth: 7
+                        CSharpExpressionLiteral - [56..63) - FullWidth: 7 - [myField] - Gen<None>
+                            Text;[myField];
+                    MarkupTextLiteral - [63..64) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [64..65) - FullWidth: 1
+                    MarkupTextLiteral - [64..65) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [67..71) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [71..125) - FullWidth: 54
+            RazorDirective - [71..125) - FullWidth: 54 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [71..72) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [72..125) - FullWidth: 53
+                    RazorMetaCode - [72..76) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [76..125) - FullWidth: 49
+                        UnclassifiedTextLiteral - [76..77) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [77..78) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [78..124) - FullWidth: 46
+                            CSharpStatementLiteral - [78..124) - FullWidth: 46 - [LF    private string myField = "Some Value";LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[private];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[myField];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["Some Value"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [124..125) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [125..125) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

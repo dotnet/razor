@@ -1,0 +1,37 @@
+﻿RazorDocument - [0..57) - FullWidth: 57 - [<MyComponent TItem="CustomType" Item="new CustomType()"/>]
+    MarkupBlock - [0..57) - FullWidth: 57
+        MarkupTagHelperElement - [0..57) - FullWidth: 57 - MyComponent[SelfClosing] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [0..57) - FullWidth: 57 - [<MyComponent TItem="CustomType" Item="new CustomType()"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..31) - FullWidth: 19 - TItem - DoubleQuotes - Bound - [ TItem="CustomType"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..18) - FullWidth: 5 - [TItem] - Gen<Markup>
+                        Text;[TItem];
+                    Equals;[=];
+                    MarkupTextLiteral - [19..20) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [20..30) - FullWidth: 10
+                        CSharpExpressionLiteral - [20..30) - FullWidth: 10 - [CustomType] - Gen<None>
+                            Text;[CustomType];
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [31..55) - FullWidth: 24 - Item - DoubleQuotes - Bound - [ Item="new CustomType()"]
+                    MarkupTextLiteral - [31..32) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [32..36) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [37..38) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [38..54) - FullWidth: 16
+                        CSharpExpressionLiteral - [38..54) - FullWidth: 16 - [new CustomType()] - Gen<None>
+                            Text;[new];
+                            Whitespace;[ ];
+                            Text;[CustomType()];
+                    MarkupTextLiteral - [54..55) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

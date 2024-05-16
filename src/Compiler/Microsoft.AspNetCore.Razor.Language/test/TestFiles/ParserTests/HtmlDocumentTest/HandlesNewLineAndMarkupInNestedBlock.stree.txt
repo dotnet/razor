@@ -23,9 +23,9 @@
                                 LeftBrace;[{];
                                 NewLine;[LF];
                                 RightBrace;[}];
-                        MarkupBlock - [17..26)::9
-                            MarkupTextLiteral - [17..18)::1 - [ ] - Gen<Markup>
-                                Whitespace;[ ];
+                        CSharpStatementLiteral - [17..18)::1 - [ ] - Gen<Stmt>
+                            Whitespace;[ ];
+                        MarkupBlock - [18..26)::8
                             MarkupElement - [18..25)::7
                                 MarkupStartTag - [18..25)::7 - [<input>] - Gen<Markup>
                                     OpenAngle;[<];

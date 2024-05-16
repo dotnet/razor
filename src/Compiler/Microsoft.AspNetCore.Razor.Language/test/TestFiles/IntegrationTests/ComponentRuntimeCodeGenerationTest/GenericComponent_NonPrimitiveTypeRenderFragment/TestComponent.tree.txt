@@ -1,0 +1,40 @@
+﻿RazorDocument - [0..70) - FullWidth: 70 - [<MyComponent Item="new CustomType()">@context.ToString()</MyComponent>]
+    MarkupBlock - [0..70) - FullWidth: 70
+        MarkupTagHelperElement - [0..70) - FullWidth: 70 - MyComponent[StartTagAndEndTag] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [0..37) - FullWidth: 37 - [<MyComponent Item="new CustomType()">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..36) - FullWidth: 24 - Item - DoubleQuotes - Bound - [ Item="new CustomType()"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..17) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..35) - FullWidth: 16
+                        CSharpExpressionLiteral - [19..35) - FullWidth: 16 - [new CustomType()] - Gen<None>
+                            Text;[new];
+                            Whitespace;[ ];
+                            Text;[CustomType()];
+                    MarkupTextLiteral - [35..36) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            CSharpCodeBlock - [37..56) - FullWidth: 19
+                CSharpImplicitExpression - [37..56) - FullWidth: 19
+                    CSharpTransition - [37..38) - FullWidth: 1 - Gen<None>
+                        Transition;[@];
+                    CSharpImplicitExpressionBody - [38..56) - FullWidth: 18
+                        CSharpCodeBlock - [38..56) - FullWidth: 18
+                            CSharpExpressionLiteral - [38..56) - FullWidth: 18 - [context.ToString()] - Gen<Expr>
+                                Identifier;[context];
+                                Dot;[.];
+                                Identifier;[ToString];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+            MarkupTagHelperEndTag - [56..70) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

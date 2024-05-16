@@ -1,0 +1,71 @@
+﻿RazorDocument - [0..82) - FullWidth: 82 - [@{LF  var myValue = "Expression value";LF}LF<div>@myValue <!-- @myValue --> </div>]
+    MarkupBlock - [0..82) - FullWidth: 82
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42) - FullWidth: 42
+            CSharpStatement - [0..42) - FullWidth: 42
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..42) - FullWidth: 41
+                    RazorMetaCode - [1..2) - FullWidth: 1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..41) - FullWidth: 39
+                        CSharpStatementLiteral - [2..41) - FullWidth: 39 - [LF  var myValue = "Expression value";LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[  ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[myValue];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["Expression value"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [41..42) - FullWidth: 1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupElement - [44..82) - FullWidth: 38
+            MarkupStartTag - [44..49) - FullWidth: 5 - [<div>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            CSharpCodeBlock - [49..57) - FullWidth: 8
+                CSharpImplicitExpression - [49..57) - FullWidth: 8
+                    CSharpTransition - [49..50) - FullWidth: 1 - Gen<None>
+                        Transition;[@];
+                    CSharpImplicitExpressionBody - [50..57) - FullWidth: 7
+                        CSharpCodeBlock - [50..57) - FullWidth: 7
+                            CSharpExpressionLiteral - [50..57) - FullWidth: 7 - [myValue] - Gen<Expr>
+                                Identifier;[myValue];
+            MarkupTextLiteral - [57..58) - FullWidth: 1 - [ ] - Gen<Markup>
+                Whitespace;[ ];
+            MarkupCommentBlock - [58..75) - FullWidth: 17
+                MarkupTextLiteral - [58..62) - FullWidth: 4 - [<!--] - Gen<Markup>
+                    OpenAngle;[<];
+                    Bang;[!];
+                    DoubleHyphen;[--];
+                MarkupTextLiteral - [62..63) - FullWidth: 1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                CSharpCodeBlock - [63..71) - FullWidth: 8
+                    CSharpImplicitExpression - [63..71) - FullWidth: 8
+                        CSharpTransition - [63..64) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [64..71) - FullWidth: 7
+                            CSharpCodeBlock - [64..71) - FullWidth: 7
+                                CSharpExpressionLiteral - [64..71) - FullWidth: 7 - [myValue] - Gen<Expr>
+                                    Identifier;[myValue];
+                MarkupTextLiteral - [71..72) - FullWidth: 1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupTextLiteral - [72..75) - FullWidth: 3 - [-->] - Gen<Markup>
+                    DoubleHyphen;[--];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [75..76) - FullWidth: 1 - [ ] - Gen<Markup>
+                Whitespace;[ ];
+            MarkupEndTag - [76..82) - FullWidth: 6 - [</div>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -1,0 +1,61 @@
+﻿RazorDocument - [0..85) - FullWidth: 85 - [<MyComponent />LF<mycomponent />LF<MyComponent intproperty='1' BoolProperty='true' />]
+    MarkupBlock - [0..85) - FullWidth: 85
+        MarkupTagHelperElement - [0..15) - FullWidth: 15 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..15) - FullWidth: 15 - [<MyComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupMiscAttributeContent - [12..13) - FullWidth: 1
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [15..17) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [17..32) - FullWidth: 15
+            MarkupStartTag - [17..32) - FullWidth: 15 - [<mycomponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[mycomponent];
+                MarkupMiscAttributeContent - [29..30) - FullWidth: 1
+                    MarkupTextLiteral - [29..30) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [32..34) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [34..85) - FullWidth: 51 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [34..85) - FullWidth: 51 - [<MyComponent intproperty='1' BoolProperty='true' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [46..62) - FullWidth: 16 - intproperty - SingleQuotes - Unbound - [ intproperty='1']
+                    MarkupTextLiteral - [46..47) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [47..58) - FullWidth: 11 - [intproperty] - Gen<Markup>
+                        Text;[intproperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [59..60) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [60..61) - FullWidth: 1
+                        MarkupLiteralAttributeValue - [60..61) - FullWidth: 1 - [1]
+                            MarkupTextLiteral - [60..61) - FullWidth: 1 - [1] - Gen<Markup>
+                                Text;[1];
+                    MarkupTextLiteral - [61..62) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupTagHelperAttribute - [62..82) - FullWidth: 20 - BoolProperty - SingleQuotes - Bound - [ BoolProperty='true']
+                    MarkupTextLiteral - [62..63) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [63..75) - FullWidth: 12 - [BoolProperty] - Gen<Markup>
+                        Text;[BoolProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [76..77) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [77..81) - FullWidth: 4
+                        CSharpExpressionLiteral - [77..81) - FullWidth: 4 - [true] - Gen<None>
+                            Text;[true];
+                    MarkupTextLiteral - [81..82) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [82..83) - FullWidth: 1
+                    MarkupTextLiteral - [82..83) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

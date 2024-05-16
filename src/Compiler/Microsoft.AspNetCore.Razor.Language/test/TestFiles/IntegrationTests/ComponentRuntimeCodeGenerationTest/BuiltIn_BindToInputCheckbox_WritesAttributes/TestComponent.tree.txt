@@ -1,0 +1,86 @@
+﻿RazorDocument - [0..93) - FullWidth: 93 - [<input type="checkbox" @bind="@Enabled" />LF@code {LF    public bool Enabled { get; set; }LF}]
+    MarkupBlock - [0..93) - FullWidth: 93
+        MarkupElement - [0..42) - FullWidth: 42
+            MarkupStartTag - [0..42) - FullWidth: 42 - [<input type="checkbox" @bind="@Enabled" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupAttributeBlock - [6..22) - FullWidth: 16 - [ type="checkbox"]
+                    MarkupTextLiteral - [6..7) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [7..11) - FullWidth: 4 - [type] - Gen<Markup>
+                        Text;[type];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [13..21) - FullWidth: 8
+                        MarkupLiteralAttributeValue - [13..21) - FullWidth: 8 - [checkbox]
+                            MarkupTextLiteral - [13..21) - FullWidth: 8 - [checkbox] - Gen<Markup>
+                                Text;[checkbox];
+                    MarkupTextLiteral - [21..22) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupAttributeBlock - [22..39) - FullWidth: 17 - [ @bind="@Enabled"]
+                    MarkupTextLiteral - [22..23) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [23..28) - FullWidth: 5 - [@bind] - Gen<Markup>
+                        Transition;[@];
+                        Text;[bind];
+                    Equals;[=];
+                    MarkupTextLiteral - [29..30) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [30..38) - FullWidth: 8
+                        MarkupDynamicAttributeValue - [30..38) - FullWidth: 8 - [@Enabled]
+                            GenericBlock - [30..38) - FullWidth: 8
+                                CSharpCodeBlock - [30..38) - FullWidth: 8
+                                    CSharpImplicitExpression - [30..38) - FullWidth: 8
+                                        CSharpTransition - [30..31) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [31..38) - FullWidth: 7
+                                            CSharpCodeBlock - [31..38) - FullWidth: 7
+                                                CSharpExpressionLiteral - [31..38) - FullWidth: 7 - [Enabled] - Gen<Expr>
+                                                    Identifier;[Enabled];
+                    MarkupTextLiteral - [38..39) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [39..40) - FullWidth: 1
+                    MarkupTextLiteral - [39..40) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [44..93) - FullWidth: 49
+            RazorDirective - [44..93) - FullWidth: 49 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [44..45) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [45..93) - FullWidth: 48
+                    RazorMetaCode - [45..49) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [49..93) - FullWidth: 44
+                        UnclassifiedTextLiteral - [49..50) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [50..51) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [51..92) - FullWidth: 41
+                            CSharpStatementLiteral - [51..92) - FullWidth: 41 - [LF    public bool Enabled { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[bool];
+                                Whitespace;[ ];
+                                Identifier;[Enabled];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [92..93) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [93..93) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -24,7 +24,7 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("\r\n<section>\r\n    <h1>Basic Asynchronous Expression Test</h1>\r\n    <p>Basic Asynchronous Expression: ");
+            WriteLiteral("\r\n\r\n<section>\r\n    <h1>Basic Asynchronous Expression Test</h1>\r\n    <p>Basic Asynchronous Expression: ");
             Write(
 #nullable restore
 #line (10,40)-(10,51) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml"
@@ -54,7 +54,7 @@ await Foo()
 #nullable disable
 
             WriteLiteral("</p>\r\n    <p>Basic Asynchronous Statement Nested: ");
-            WriteLiteral(" <b>");
+            WriteLiteral("<b>");
             Write(
 #nullable restore
 #line (13,52)-(13,63) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml"
@@ -124,7 +124,7 @@ await Foo("bob", true)
 #nullable disable
 
             WriteLiteral("</p>\r\n    <p>Advanced Asynchronous Statement Nested: ");
-            WriteLiteral(" <b>");
+            WriteLiteral("<b>");
             Write(
 #nullable restore
 #line (24,55)-(24,82) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml"

@@ -1,0 +1,108 @@
+﻿RazorDocument - [0..219) - FullWidth: 219 - [<TestComponent @rendermode="@(new MyRenderMode() { Extra = "Hello" })" />LF@codeLF{LF    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderModeLF    {LF        public string Extra {get;set;}LF    }LF}]
+    MarkupBlock - [0..219) - FullWidth: 219
+        MarkupTagHelperElement - [0..73) - FullWidth: 73 - TestComponent[SelfClosing] - TestComponent - RenderMode
+            MarkupTagHelperStartTag - [0..73) - FullWidth: 73 - [<TestComponent @rendermode="@(new MyRenderMode() { Extra = "Hello" })" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperDirectiveAttribute - [14..70) - FullWidth: 56
+                    MarkupTextLiteral - [14..15) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [15..16) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [16..26) - FullWidth: 10 - [rendermode]
+                        Text;[rendermode];
+                    Equals;[=];
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [28..69) - FullWidth: 41
+                        MarkupBlock - [28..69) - FullWidth: 41
+                            CSharpCodeBlock - [28..69) - FullWidth: 41
+                                CSharpImplicitExpression - [28..69) - FullWidth: 41
+                                    CSharpTransition - [28..29) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [29..69) - FullWidth: 40
+                                        CSharpCodeBlock - [29..69) - FullWidth: 40
+                                            CSharpExpressionLiteral - [29..30) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [30..68) - FullWidth: 38 - [new MyRenderMode() { Extra = "Hello" }] - Gen<Expr>
+                                                Keyword;[new];
+                                                Whitespace;[ ];
+                                                Identifier;[MyRenderMode];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                                Whitespace;[ ];
+                                                LeftBrace;[{];
+                                                Whitespace;[ ];
+                                                Identifier;[Extra];
+                                                Whitespace;[ ];
+                                                Assign;[=];
+                                                Whitespace;[ ];
+                                                StringLiteral;["Hello"];
+                                                Whitespace;[ ];
+                                                RightBrace;[}];
+                                            CSharpExpressionLiteral - [68..69) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [69..70) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [70..71) - FullWidth: 1
+                    MarkupTextLiteral - [70..71) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [73..75) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [75..219) - FullWidth: 144
+            RazorDirective - [75..219) - FullWidth: 144 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [75..76) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [76..219) - FullWidth: 143
+                    RazorMetaCode - [76..80) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [80..219) - FullWidth: 139
+                        UnclassifiedTextLiteral - [80..82) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+                        RazorMetaCode - [82..83) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [83..218) - FullWidth: 135
+                            CSharpStatementLiteral - [83..218) - FullWidth: 135 - [LF    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderModeLF    {LF        public string Extra {get;set;}LF    }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[class];
+                                Whitespace;[ ];
+                                Identifier;[MyRenderMode];
+                                Whitespace;[ ];
+                                Colon;[:];
+                                Whitespace;[ ];
+                                Identifier;[Microsoft];
+                                Dot;[.];
+                                Identifier;[AspNetCore];
+                                Dot;[.];
+                                Identifier;[Components];
+                                Dot;[.];
+                                Identifier;[IComponentRenderMode];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[Extra];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [218..219) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [219..219) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -14,7 +14,7 @@ using System.IO
 #nullable disable
     ;
 #nullable restore
-#line (1,20)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,20)-(1,57) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components
 
 #nullable disable
@@ -33,7 +33,7 @@ using System.Reflection;
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __builder.AddMarkupContent(0, " ;; ");
+            __builder.AddMarkupContent(0, " ;\r\n; ");
         }
         #pragma warning restore 1998
     }

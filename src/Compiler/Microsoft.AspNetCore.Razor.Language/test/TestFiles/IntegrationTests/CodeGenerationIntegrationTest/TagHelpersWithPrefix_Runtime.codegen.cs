@@ -46,7 +46,8 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("<form>\r\n    ");
+            WriteLiteral("\r\n");
+            WriteLiteral("\r\n<form>\r\n    ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
             }
             );

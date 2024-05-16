@@ -1,0 +1,117 @@
+﻿RazorDocument - [0..226) - FullWidth: 226 - [@using Microsoft.AspNetCore.Components.WebLF<input @onfocus="OnFocus" @onfocus:preventDefault="ShouldPreventDefault()" />LF@code {LF    void OnFocus(FocusEventArgs e) { }LFLF    bool ShouldPreventDefault() { return false; }LF}]
+    MarkupBlock - [0..226) - FullWidth: 226
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42) - FullWidth: 42
+            RazorDirective - [0..42) - FullWidth: 42
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..42) - FullWidth: 41
+                    CSharpStatementLiteral - [1..42) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [44..121) - FullWidth: 77 - input[SelfClosing] - onfocus
+            MarkupTagHelperStartTag - [44..121) - FullWidth: 77 - [<input @onfocus="OnFocus" @onfocus:preventDefault="ShouldPreventDefault()" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTagHelperDirectiveAttribute - [50..69) - FullWidth: 19
+                    MarkupTextLiteral - [50..51) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [51..52) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [52..59) - FullWidth: 7 - [onfocus]
+                        Text;[onfocus];
+                    Equals;[=];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [61..68) - FullWidth: 7
+                        CSharpExpressionLiteral - [61..68) - FullWidth: 7 - [OnFocus] - Gen<None>
+                            Text;[OnFocus];
+                    MarkupTextLiteral - [68..69) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [69..118) - FullWidth: 49
+                    MarkupTextLiteral - [69..70) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [70..71) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [71..78) - FullWidth: 7 - [onfocus]
+                        Text;[onfocus];
+                    RazorMetaCode - [78..79) - FullWidth: 1
+                        Colon;[:];
+                    MarkupTextLiteral - [79..93) - FullWidth: 14 - [preventDefault]
+                        Text;[preventDefault];
+                    Equals;[=];
+                    MarkupTextLiteral - [94..95) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [95..117) - FullWidth: 22
+                        CSharpExpressionLiteral - [95..117) - FullWidth: 22 - [ShouldPreventDefault()] - Gen<None>
+                            Text;[ShouldPreventDefault()];
+                    MarkupTextLiteral - [117..118) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [118..119) - FullWidth: 1
+                    MarkupTextLiteral - [118..119) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [121..123) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [123..226) - FullWidth: 103
+            RazorDirective - [123..226) - FullWidth: 103 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [123..124) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [124..226) - FullWidth: 102
+                    RazorMetaCode - [124..128) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [128..226) - FullWidth: 98
+                        UnclassifiedTextLiteral - [128..129) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [129..130) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [130..225) - FullWidth: 95
+                            CSharpStatementLiteral - [130..225) - FullWidth: 95 - [LF    void OnFocus(FocusEventArgs e) { }LFLF    bool ShouldPreventDefault() { return false; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[void];
+                                Whitespace;[ ];
+                                Identifier;[OnFocus];
+                                LeftParenthesis;[(];
+                                Identifier;[FocusEventArgs];
+                                Whitespace;[ ];
+                                Identifier;[e];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[bool];
+                                Whitespace;[ ];
+                                Identifier;[ShouldPreventDefault];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Keyword;[return];
+                                Whitespace;[ ];
+                                Keyword;[false];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [225..226) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [226..226) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

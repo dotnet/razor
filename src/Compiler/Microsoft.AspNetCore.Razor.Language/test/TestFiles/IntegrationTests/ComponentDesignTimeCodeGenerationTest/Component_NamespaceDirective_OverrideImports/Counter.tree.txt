@@ -1,0 +1,32 @@
+﻿RazorDocument - [0..35) - FullWidth: 35 - [@namespace New.TestLF<Counter2 />LF]
+    MarkupBlock - [0..35) - FullWidth: 35
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..21) - FullWidth: 21
+            RazorDirective - [0..21) - FullWidth: 21 - Directive:{namespace;SingleLine;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..21) - FullWidth: 20
+                    RazorMetaCode - [1..10) - FullWidth: 9 - Gen<None>
+                        Keyword;[namespace];
+                    CSharpCodeBlock - [10..21) - FullWidth: 11
+                        CSharpStatementLiteral - [10..11) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [11..19) - FullWidth: 8 - [New.Test] - Gen<DirectiveToken {Namespace;Namespace;Opt:False}>
+                            Identifier;[New];
+                            Dot;[.];
+                            Identifier;[Test];
+                        MarkupEphemeralTextLiteral - [19..21) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTagHelperElement - [21..33) - FullWidth: 12 - Counter2[SelfClosing] - Counter2
+            MarkupTagHelperStartTag - [21..33) - FullWidth: 12 - [<Counter2 />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Counter2];
+                MarkupMiscAttributeContent - [30..31) - FullWidth: 1
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [33..35) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

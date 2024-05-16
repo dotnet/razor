@@ -1,0 +1,114 @@
+﻿RazorDocument - [0..305) - FullWidth: 305 - [@codeLF{LF    public class RenderModeContainerLF    {LF        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.Server;LF    }LFLF    RenderModeContainer? Container => null;LF}LF<TestComponent @rendermode="@(Container.RenderMode)" />]
+    MarkupBlock - [0..305) - FullWidth: 305
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..248) - FullWidth: 248
+            RazorDirective - [0..248) - FullWidth: 248 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..248) - FullWidth: 247
+                    RazorMetaCode - [1..5) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [5..248) - FullWidth: 243
+                        UnclassifiedTextLiteral - [5..7) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+                        RazorMetaCode - [7..8) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [8..247) - FullWidth: 239
+                            CSharpStatementLiteral - [8..247) - FullWidth: 239 - [LF    public class RenderModeContainerLF    {LF        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.Server;LF    }LFLF    RenderModeContainer? Container => null;LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[class];
+                                Whitespace;[ ];
+                                Identifier;[RenderModeContainer];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[Microsoft];
+                                Dot;[.];
+                                Identifier;[AspNetCore];
+                                Dot;[.];
+                                Identifier;[Components];
+                                Dot;[.];
+                                Identifier;[IComponentRenderMode];
+                                Whitespace;[ ];
+                                Identifier;[RenderMode];
+                                Whitespace;[ ];
+                                GreaterThanEqual;[=>];
+                                Whitespace;[ ];
+                                Identifier;[Microsoft];
+                                Dot;[.];
+                                Identifier;[AspNetCore];
+                                Dot;[.];
+                                Identifier;[Components];
+                                Dot;[.];
+                                Identifier;[Web];
+                                Dot;[.];
+                                Identifier;[RenderMode];
+                                Dot;[.];
+                                Identifier;[Server];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Identifier;[RenderModeContainer];
+                                QuestionMark;[?];
+                                Whitespace;[ ];
+                                Identifier;[Container];
+                                Whitespace;[ ];
+                                GreaterThanEqual;[=>];
+                                Whitespace;[ ];
+                                Keyword;[null];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [247..248) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [248..250) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [250..305) - FullWidth: 55 - TestComponent[SelfClosing] - TestComponent - RenderMode
+            MarkupTagHelperStartTag - [250..305) - FullWidth: 55 - [<TestComponent @rendermode="@(Container.RenderMode)" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperDirectiveAttribute - [264..302) - FullWidth: 38
+                    MarkupTextLiteral - [264..265) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [265..266) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [266..276) - FullWidth: 10 - [rendermode]
+                        Text;[rendermode];
+                    Equals;[=];
+                    MarkupTextLiteral - [277..278) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [278..301) - FullWidth: 23
+                        MarkupBlock - [278..301) - FullWidth: 23
+                            CSharpCodeBlock - [278..301) - FullWidth: 23
+                                CSharpImplicitExpression - [278..301) - FullWidth: 23
+                                    CSharpTransition - [278..279) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [279..301) - FullWidth: 22
+                                        CSharpCodeBlock - [279..301) - FullWidth: 22
+                                            CSharpExpressionLiteral - [279..280) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [280..300) - FullWidth: 20 - [Container.RenderMode] - Gen<Expr>
+                                                Identifier;[Container];
+                                                Dot;[.];
+                                                Identifier;[RenderMode];
+                                            CSharpExpressionLiteral - [300..301) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [301..302) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [302..303) - FullWidth: 1
+                    MarkupTextLiteral - [302..303) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -1,0 +1,70 @@
+﻿RazorDocument - [0..98) - FullWidth: 98 - [<div @bind-value="ParentValue" />LF@code {LF    public string ParentValue { get; set; } = "hi";LF}]
+    MarkupBlock - [0..98) - FullWidth: 98
+        MarkupTagHelperElement - [0..33) - FullWidth: 33 - div[SelfClosing] - Bind_value - Bind
+            MarkupTagHelperStartTag - [0..33) - FullWidth: 33 - [<div @bind-value="ParentValue" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                MarkupTagHelperDirectiveAttribute - [4..30) - FullWidth: 26
+                    MarkupTextLiteral - [4..5) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [5..6) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [6..16) - FullWidth: 10 - [bind-value]
+                        Text;[bind-value];
+                    Equals;[=];
+                    MarkupTextLiteral - [17..18) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [18..29) - FullWidth: 11
+                        CSharpExpressionLiteral - [18..29) - FullWidth: 11 - [ParentValue] - Gen<None>
+                            Text;[ParentValue];
+                    MarkupTextLiteral - [29..30) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [30..31) - FullWidth: 1
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [33..35) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [35..98) - FullWidth: 63
+            RazorDirective - [35..98) - FullWidth: 63 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [35..36) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [36..98) - FullWidth: 62
+                    RazorMetaCode - [36..40) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [40..98) - FullWidth: 58
+                        UnclassifiedTextLiteral - [40..41) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [41..42) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [42..97) - FullWidth: 55
+                            CSharpStatementLiteral - [42..97) - FullWidth: 55 - [LF    public string ParentValue { get; set; } = "hi";LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[ParentValue];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["hi"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [97..98) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [98..98) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

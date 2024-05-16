@@ -1,14 +1,14 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
-        UsingDirective - (38:3,1 [43] RazorPagesWithoutModel.cshtml) - Microsoft.AspNetCore.Mvc.RazorPages
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (38:3,1 [41] RazorPagesWithoutModel.cshtml) - Microsoft.AspNetCore.Mvc.RazorPages
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -22,10 +22,12 @@
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (7:1,0 [2] RazorPagesWithoutModel.cshtml)
                     LazyIntermediateToken - (7:1,0 [2] RazorPagesWithoutModel.cshtml) - Html - \n
-                HtmlContent - (81:4,0 [2] RazorPagesWithoutModel.cshtml)
-                    LazyIntermediateToken - (81:4,0 [2] RazorPagesWithoutModel.cshtml) - Html - \n
-                HtmlContent - (381:19,0 [75] RazorPagesWithoutModel.cshtml)
-                    LazyIntermediateToken - (381:19,0 [2] RazorPagesWithoutModel.cshtml) - Html - \n
+                HtmlContent - (35:2,26 [2] RazorPagesWithoutModel.cshtml)
+                    LazyIntermediateToken - (35:2,26 [2] RazorPagesWithoutModel.cshtml) - Html - \n
+                HtmlContent - (79:3,42 [4] RazorPagesWithoutModel.cshtml)
+                    LazyIntermediateToken - (79:3,42 [4] RazorPagesWithoutModel.cshtml) - Html - \n\n
+                HtmlContent - (379:18,1 [77] RazorPagesWithoutModel.cshtml)
+                    LazyIntermediateToken - (379:18,1 [4] RazorPagesWithoutModel.cshtml) - Html - \n\n
                     LazyIntermediateToken - (383:20,0 [3] RazorPagesWithoutModel.cshtml) - Html - <h1
                     LazyIntermediateToken - (386:20,3 [1] RazorPagesWithoutModel.cshtml) - Html - >
                     LazyIntermediateToken - (387:20,4 [12] RazorPagesWithoutModel.cshtml) - Html - New Customer

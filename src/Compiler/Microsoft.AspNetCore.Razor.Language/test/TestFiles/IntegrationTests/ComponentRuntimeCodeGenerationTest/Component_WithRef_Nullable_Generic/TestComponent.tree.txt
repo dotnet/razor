@@ -1,0 +1,101 @@
+﻿RazorDocument - [0..176) - FullWidth: 176 - [<MyComponent @ref="myComponent" MyParameter="1" />LFLF@code {LF    private MyComponent<int> myComponent = null!;LF    public void Use() { System.GC.KeepAlive(myComponent); }LF}]
+    MarkupBlock - [0..176) - FullWidth: 176
+        MarkupTagHelperElement - [0..50) - FullWidth: 50 - MyComponent[SelfClosing] - MyComponent<T> - Ref
+            MarkupTagHelperStartTag - [0..50) - FullWidth: 50 - [<MyComponent @ref="myComponent" MyParameter="1" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperDirectiveAttribute - [12..31) - FullWidth: 19
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [13..14) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [14..17) - FullWidth: 3 - [ref]
+                        Text;[ref];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..30) - FullWidth: 11
+                        CSharpExpressionLiteral - [19..30) - FullWidth: 11 - [myComponent] - Gen<None>
+                            Text;[myComponent];
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [31..47) - FullWidth: 16 - MyParameter - DoubleQuotes - Bound - [ MyParameter="1"]
+                    MarkupTextLiteral - [31..32) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [32..43) - FullWidth: 11 - [MyParameter] - Gen<Markup>
+                        Text;[MyParameter];
+                    Equals;[=];
+                    MarkupTextLiteral - [44..45) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [45..46) - FullWidth: 1
+                        CSharpExpressionLiteral - [45..46) - FullWidth: 1 - [1] - Gen<None>
+                            Text;[1];
+                    MarkupTextLiteral - [46..47) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [47..48) - FullWidth: 1
+                    MarkupTextLiteral - [47..48) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [50..54) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [54..176) - FullWidth: 122
+            RazorDirective - [54..176) - FullWidth: 122 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [54..55) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [55..176) - FullWidth: 121
+                    RazorMetaCode - [55..59) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [59..176) - FullWidth: 117
+                        UnclassifiedTextLiteral - [59..60) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [60..61) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [61..175) - FullWidth: 114
+                            CSharpStatementLiteral - [61..175) - FullWidth: 114 - [LF    private MyComponent<int> myComponent = null!;LF    public void Use() { System.GC.KeepAlive(myComponent); }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[private];
+                                Whitespace;[ ];
+                                Identifier;[MyComponent];
+                                LessThan;[<];
+                                Keyword;[int];
+                                GreaterThan;[>];
+                                Whitespace;[ ];
+                                Identifier;[myComponent];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[null];
+                                Not;[!];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[void];
+                                Whitespace;[ ];
+                                Identifier;[Use];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[System];
+                                Dot;[.];
+                                Identifier;[GC];
+                                Dot;[.];
+                                Identifier;[KeepAlive];
+                                LeftParenthesis;[(];
+                                Identifier;[myComponent];
+                                RightParenthesis;[)];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [175..176) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [176..176) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -5,16 +5,15 @@
         CSharpCodeBlock - [0..29)::29
             CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..14)::13 - [while(true) {] - Gen<Stmt>
+            CSharpStatementLiteral - [1..15)::14 - [while(true) { ] - Gen<Stmt>
                 Keyword;[while];
                 LeftParenthesis;[(];
                 Keyword;[true];
                 RightParenthesis;[)];
                 Whitespace;[ ];
                 LeftBrace;[{];
-            MarkupBlock - [14..28)::14
-                MarkupTextLiteral - [14..15)::1 - [ ] - Gen<Markup>
-                    Whitespace;[ ];
+                Whitespace;[ ];
+            MarkupBlock - [15..28)::13
                 MarkupElement - [15..27)::12
                     MarkupStartTag - [15..18)::3 - [<p>] - Gen<Markup>
                         OpenAngle;[<];

@@ -7,12 +7,10 @@ Generated Location: (838:23,0 [18] )
 {
     |
 
-Source Location: (66:3,38 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+Source Location: (66:3,38 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |
-}
+}|
+Generated Location: (1054:34,0 [3] )
 |
-Generated Location: (1054:34,0 [5] )
-|
-}
-|
+}|
 

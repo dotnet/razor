@@ -50,18 +50,19 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("\r\n<script type=\"text/html\">\r\n    <div data-animation=\"fade\" class=\"randomNonTagHelperAttribute\">\r\n        ");
+            WriteLiteral("\r\n\r\n<script type=\"text/html\">\r\n    <div data-animation=\"fade\" class=\"randomNonTagHelperAttribute\">\r\n        ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 WriteLiteral("\r\n");
 #nullable restore
-#line (6,14)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
+#line (6,14)-(7,17) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
 for(var i = 0; i < 5; i++) {
+                
 
 #line default
 #line hidden
 #nullable disable
 
-                WriteLiteral("                <script id=\"nestedScriptTag\" type=\"text/html\">\r\n                    ");
+                WriteLiteral("<script id=\"nestedScriptTag\" type=\"text/html\">\r\n                    ");
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagOnly, "test", async() => {
                 }
                 );
@@ -106,14 +107,14 @@ true
                 __tagHelperExecutionContext = __tagHelperScopeManager.End();
                 WriteLiteral("\r\n                </script>\r\n");
 #nullable restore
-#line (10,1)-(11,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
+#line (10,1)-(10,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedScriptTagTagHelpers.cshtml"
             }
 
 #line default
 #line hidden
 #nullable disable
 
-                WriteLiteral("            <script type=\"text/javascript\">\r\n                var tag = \'<input checked=\"true\">\';\r\n            </script>\r\n        ");
+                WriteLiteral("\r\n            <script type=\"text/javascript\">\r\n                var tag = \'<input checked=\"true\">\';\r\n            </script>\r\n        ");
             }
             );
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();

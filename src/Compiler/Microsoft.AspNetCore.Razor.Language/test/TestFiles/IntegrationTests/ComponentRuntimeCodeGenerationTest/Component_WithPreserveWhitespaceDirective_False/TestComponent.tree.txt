@@ -1,0 +1,99 @@
+﻿RazorDocument - [0..159) - FullWidth: 159 - [@preservewhitespace falseLFLF<ul>LF    @foreach (var item in Enumerable.Range(1, 100))LF    {LF        <li>LF            @itemLF        </li>LF    }LF</ul>LFLF]
+    MarkupBlock - [0..159) - FullWidth: 159
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..27) - FullWidth: 27
+            RazorDirective - [0..27) - FullWidth: 27 - Directive:{preservewhitespace;SingleLine;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..27) - FullWidth: 26
+                    RazorMetaCode - [1..19) - FullWidth: 18 - Gen<None>
+                        Identifier;[preservewhitespace];
+                    CSharpCodeBlock - [19..27) - FullWidth: 8
+                        CSharpStatementLiteral - [19..20) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [20..25) - FullWidth: 5 - [false] - Gen<DirectiveToken {Preserve;Boolean;Opt:False}>
+                            Keyword;[false];
+                        MarkupEphemeralTextLiteral - [25..27) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [27..29) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [29..155) - FullWidth: 126
+            MarkupStartTag - [29..33) - FullWidth: 4 - [<ul>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ul];
+                CloseAngle;[>];
+            MarkupTextLiteral - [33..35) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            CSharpCodeBlock - [35..148) - FullWidth: 113
+                CSharpStatementLiteral - [35..39) - FullWidth: 4 - [    ] - Gen<Stmt>
+                    Whitespace;[    ];
+                CSharpTransition - [39..40) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementLiteral - [40..103) - FullWidth: 63 - [foreach (var item in Enumerable.Range(1, 100))LF    {LF        ] - Gen<Stmt>
+                    Keyword;[foreach];
+                    Whitespace;[ ];
+                    LeftParenthesis;[(];
+                    Identifier;[var];
+                    Whitespace;[ ];
+                    Identifier;[item];
+                    Whitespace;[ ];
+                    Keyword;[in];
+                    Whitespace;[ ];
+                    Identifier;[Enumerable];
+                    Dot;[.];
+                    Identifier;[Range];
+                    LeftParenthesis;[(];
+                    IntegerLiteral;[1];
+                    Comma;[,];
+                    Whitespace;[ ];
+                    IntegerLiteral;[100];
+                    RightParenthesis;[)];
+                    RightParenthesis;[)];
+                    NewLine;[LF];
+                    Whitespace;[    ];
+                    LeftBrace;[{];
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                MarkupBlock - [103..143) - FullWidth: 40
+                    MarkupElement - [103..141) - FullWidth: 38
+                        MarkupStartTag - [103..107) - FullWidth: 4 - [<li>] - Gen<Markup>
+                            OpenAngle;[<];
+                            Text;[li];
+                            CloseAngle;[>];
+                        MarkupTextLiteral - [107..109) - FullWidth: 2 - [LF] - Gen<Markup>
+                            NewLine;[LF];
+                        MarkupTextLiteral - [109..121) - FullWidth: 12 - [            ]
+                            Whitespace;[            ];
+                        CSharpCodeBlock - [121..126) - FullWidth: 5
+                            CSharpImplicitExpression - [121..126) - FullWidth: 5
+                                CSharpTransition - [121..122) - FullWidth: 1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [122..126) - FullWidth: 4
+                                    CSharpCodeBlock - [122..126) - FullWidth: 4
+                                        CSharpExpressionLiteral - [122..126) - FullWidth: 4 - [item] - Gen<Expr>
+                                            Identifier;[item];
+                        MarkupTextLiteral - [126..136) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                        MarkupEndTag - [136..141) - FullWidth: 5 - [</li>] - Gen<Markup>
+                            OpenAngle;[<];
+                            ForwardSlash;[/];
+                            Text;[li];
+                            CloseAngle;[>];
+                    MarkupTextLiteral - [141..143) - FullWidth: 2 - [LF] - Gen<Markup>
+                        NewLine;[LF];
+                CSharpStatementLiteral - [143..148) - FullWidth: 5 - [    }] - Gen<Stmt>
+                    Whitespace;[    ];
+                    RightBrace;[}];
+            MarkupTextLiteral - [148..150) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupEndTag - [150..155) - FullWidth: 5 - [</ul>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[ul];
+                CloseAngle;[>];
+        MarkupTextLiteral - [155..159) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+    EndOfFile;[];

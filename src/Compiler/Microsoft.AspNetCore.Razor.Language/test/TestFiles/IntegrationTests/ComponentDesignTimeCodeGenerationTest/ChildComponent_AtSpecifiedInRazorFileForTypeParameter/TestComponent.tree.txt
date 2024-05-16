@@ -1,0 +1,45 @@
+﻿RazorDocument - [0..26) - FullWidth: 26 - [<C T="@string" Item="1" />]
+    MarkupBlock - [0..26) - FullWidth: 26
+        MarkupTagHelperElement - [0..26) - FullWidth: 26 - C[SelfClosing] - C<T>
+            MarkupTagHelperStartTag - [0..26) - FullWidth: 26 - [<C T="@string" Item="1" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[C];
+                MarkupTagHelperAttribute - [2..14) - FullWidth: 12 - T - DoubleQuotes - Bound - [ T="@string"]
+                    MarkupTextLiteral - [2..3) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..4) - FullWidth: 1 - [T] - Gen<Markup>
+                        Text;[T];
+                    Equals;[=];
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [6..13) - FullWidth: 7
+                        MarkupBlock - [6..13) - FullWidth: 7
+                            CSharpCodeBlock - [6..13) - FullWidth: 7
+                                CSharpImplicitExpression - [6..13) - FullWidth: 7
+                                    CSharpTransition - [6..7) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [7..13) - FullWidth: 6
+                                        CSharpCodeBlock - [7..13) - FullWidth: 6
+                                            CSharpExpressionLiteral - [7..13) - FullWidth: 6 - [string] - Gen<Expr>
+                                                Keyword;[string];
+                    MarkupTextLiteral - [13..14) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [14..23) - FullWidth: 9 - Item - DoubleQuotes - Bound - [ Item="1"]
+                    MarkupTextLiteral - [14..15) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [15..19) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [20..21) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [21..22) - FullWidth: 1
+                        CSharpExpressionLiteral - [21..22) - FullWidth: 1 - [1] - Gen<None>
+                            Text;[1];
+                    MarkupTextLiteral - [22..23) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [23..24) - FullWidth: 1
+                    MarkupTextLiteral - [23..24) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

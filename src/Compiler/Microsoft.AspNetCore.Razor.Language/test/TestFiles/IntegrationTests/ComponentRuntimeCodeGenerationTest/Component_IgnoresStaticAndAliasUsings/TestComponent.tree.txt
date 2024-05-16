@@ -1,0 +1,75 @@
+﻿RazorDocument - [0..114) - FullWidth: 114 - [@using static Test2.SomeComponentLF@using Foo = Test3LF<MyComponent />LF<SomeComponent /> <!-- Not a component -->]
+    MarkupBlock - [0..114) - FullWidth: 114
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..33) - FullWidth: 33
+            RazorDirective - [0..33) - FullWidth: 33
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..33) - FullWidth: 32
+                    CSharpStatementLiteral - [1..33) - FullWidth: 32 - [using static Test2.SomeComponent] - Gen<Import: static Test2.SomeComponent;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Keyword;[static];
+                        Whitespace;[ ];
+                        Identifier;[Test2];
+                        Dot;[.];
+                        Identifier;[SomeComponent];
+        MarkupTextLiteral - [33..35) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [35..53) - FullWidth: 18
+            RazorDirective - [35..53) - FullWidth: 18
+                CSharpTransition - [35..36) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [36..53) - FullWidth: 17
+                    CSharpStatementLiteral - [36..53) - FullWidth: 17 - [using Foo = Test3] - Gen<Import: Foo = Test3;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Foo];
+                        Whitespace;[ ];
+                        Assign;[=];
+                        Whitespace;[ ];
+                        Identifier;[Test3];
+        MarkupTextLiteral - [53..55) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [55..70) - FullWidth: 15 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [55..70) - FullWidth: 15 - [<MyComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupMiscAttributeContent - [67..68) - FullWidth: 1
+                    MarkupTextLiteral - [67..68) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [70..72) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [72..89) - FullWidth: 17
+            MarkupStartTag - [72..89) - FullWidth: 17 - [<SomeComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[SomeComponent];
+                MarkupMiscAttributeContent - [86..87) - FullWidth: 1
+                    MarkupTextLiteral - [86..87) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [89..90) - FullWidth: 1 - [ ] - Gen<Markup>
+            Whitespace;[ ];
+        MarkupCommentBlock - [90..114) - FullWidth: 24
+            MarkupTextLiteral - [90..94) - FullWidth: 4 - [<!--] - Gen<Markup>
+                OpenAngle;[<];
+                Bang;[!];
+                DoubleHyphen;[--];
+            MarkupTextLiteral - [94..111) - FullWidth: 17 - [ Not a component ] - Gen<Markup>
+                Whitespace;[ ];
+                Text;[Not];
+                Whitespace;[ ];
+                Text;[a];
+                Whitespace;[ ];
+                Text;[component];
+                Whitespace;[ ];
+            MarkupTextLiteral - [111..114) - FullWidth: 3 - [-->] - Gen<Markup>
+                DoubleHyphen;[--];
+                CloseAngle;[>];
+        MarkupTextLiteral - [114..114) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

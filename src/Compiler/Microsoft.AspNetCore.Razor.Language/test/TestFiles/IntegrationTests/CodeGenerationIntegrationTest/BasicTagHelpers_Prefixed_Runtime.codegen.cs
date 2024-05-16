@@ -49,7 +49,8 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("\r\n<THSdiv class=\"randomNonTagHelperAttribute\">\r\n    ");
+            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n<THSdiv class=\"randomNonTagHelperAttribute\">\r\n    ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("p", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 WriteLiteral("\r\n        <p></p>\r\n        <input type=\"text\">\r\n        ");
                 __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagOnly, "test", async() => {

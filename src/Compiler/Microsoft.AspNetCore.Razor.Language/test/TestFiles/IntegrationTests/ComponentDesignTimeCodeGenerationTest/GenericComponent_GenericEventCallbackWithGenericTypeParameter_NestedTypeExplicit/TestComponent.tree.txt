@@ -1,0 +1,76 @@
+﻿RazorDocument - [0..91) - FullWidth: 91 - [@typeparam TChildLF@using TestLF<MyComponent TItem="TChild" MyEvent="(TChild x) => {}" />LF]
+    MarkupBlock - [0..91) - FullWidth: 91
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..19) - FullWidth: 19
+            RazorDirective - [0..19) - FullWidth: 19 - Directive:{typeparam;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..19) - FullWidth: 18
+                    RazorMetaCode - [1..10) - FullWidth: 9 - Gen<None>
+                        Identifier;[typeparam];
+                    CSharpCodeBlock - [10..19) - FullWidth: 9
+                        CSharpStatementLiteral - [10..11) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [11..17) - FullWidth: 6 - [TChild] - Gen<DirectiveToken {type parameter;Member;Opt:False}>
+                            Identifier;[TChild];
+                        MarkupEphemeralTextLiteral - [17..19) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [19..19) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [19..30) - FullWidth: 11
+            RazorDirective - [19..30) - FullWidth: 11
+                CSharpTransition - [19..20) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [20..30) - FullWidth: 10
+                    CSharpStatementLiteral - [20..30) - FullWidth: 10 - [using Test] - Gen<Import: Test;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Test];
+        MarkupTextLiteral - [30..32) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [32..89) - FullWidth: 57 - MyComponent[SelfClosing] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [32..89) - FullWidth: 57 - [<MyComponent TItem="TChild" MyEvent="(TChild x) => {}" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [44..59) - FullWidth: 15 - TItem - DoubleQuotes - Bound - [ TItem="TChild"]
+                    MarkupTextLiteral - [44..45) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [45..50) - FullWidth: 5 - [TItem] - Gen<Markup>
+                        Text;[TItem];
+                    Equals;[=];
+                    MarkupTextLiteral - [51..52) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [52..58) - FullWidth: 6
+                        CSharpExpressionLiteral - [52..58) - FullWidth: 6 - [TChild] - Gen<None>
+                            Text;[TChild];
+                    MarkupTextLiteral - [58..59) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [59..86) - FullWidth: 27 - MyEvent - DoubleQuotes - Bound - [ MyEvent="(TChild x) => {}"]
+                    MarkupTextLiteral - [59..60) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [60..67) - FullWidth: 7 - [MyEvent] - Gen<Markup>
+                        Text;[MyEvent];
+                    Equals;[=];
+                    MarkupTextLiteral - [68..69) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [69..85) - FullWidth: 16
+                        CSharpExpressionLiteral - [69..85) - FullWidth: 16 - [(TChild x) => {}] - Gen<None>
+                            Text;[(TChild];
+                            Whitespace;[ ];
+                            Text;[x)];
+                            Whitespace;[ ];
+                            Equals;[=];
+                            CloseAngle;[>];
+                            Whitespace;[ ];
+                            Text;[{}];
+                    MarkupTextLiteral - [85..86) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [86..87) - FullWidth: 1
+                    MarkupTextLiteral - [86..87) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [89..91) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

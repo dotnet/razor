@@ -26,7 +26,7 @@
                                     Whitespace;[    ];
                                 CSharpTransition - [22..23)::1 - Gen<None>
                                     Transition;[@];
-                                CSharpStatementLiteral - [23..40)::17 - [if(true)LF    {LF] - Gen<Stmt>
+                                CSharpStatementLiteral - [23..48)::25 - [if(true)LF    {LF        ] - Gen<Stmt>
                                     Keyword;[if];
                                     LeftParenthesis;[(];
                                     Keyword;[true];
@@ -35,9 +35,8 @@
                                     Whitespace;[    ];
                                     LeftBrace;[{];
                                     NewLine;[LF];
-                                MarkupBlock - [40..68)::28
-                                    MarkupTextLiteral - [40..48)::8 - [        ] - Gen<Markup>
-                                        Whitespace;[        ];
+                                    Whitespace;[        ];
+                                MarkupBlock - [48..68)::20
                                     MarkupElement - [48..66)::18
                                         MarkupStartTag - [48..51)::3 - [<p>] - Gen<Markup>
                                             OpenAngle;[<];

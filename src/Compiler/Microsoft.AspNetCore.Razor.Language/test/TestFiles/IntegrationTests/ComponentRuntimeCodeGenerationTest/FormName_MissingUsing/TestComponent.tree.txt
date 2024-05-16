@@ -1,0 +1,156 @@
+﻿RazorDocument - [0..167) - FullWidth: 167 - [<form method="post" @onsubmit="() => { }" @formname="named-form-handler"></form>LF<form method="post" @onsubmit="() => { }" @formname="@("named-form-handler")"></form>]
+    MarkupBlock - [0..167) - FullWidth: 167
+        MarkupTagHelperElement - [0..80) - FullWidth: 80 - form[StartTagAndEndTag] - FormName
+            MarkupTagHelperStartTag - [0..73) - FullWidth: 73 - [<form method="post" @onsubmit="() => { }" @formname="named-form-handler">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[form];
+                MarkupTagHelperAttribute - [5..19) - FullWidth: 14 - method - DoubleQuotes - Unbound - [ method="post"]
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..12) - FullWidth: 6 - [method] - Gen<Markup>
+                        Text;[method];
+                    Equals;[=];
+                    MarkupTextLiteral - [13..14) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [14..18) - FullWidth: 4
+                        MarkupLiteralAttributeValue - [14..18) - FullWidth: 4 - [post]
+                            MarkupTextLiteral - [14..18) - FullWidth: 4 - [post] - Gen<Markup>
+                                Text;[post];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [19..41) - FullWidth: 22 - @onsubmit - DoubleQuotes - Unbound - [ @onsubmit="() => { }"]
+                    MarkupTextLiteral - [19..20) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [20..29) - FullWidth: 9 - [@onsubmit] - Gen<Markup>
+                        Transition;[@];
+                        Text;[onsubmit];
+                    Equals;[=];
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [31..40) - FullWidth: 9
+                        MarkupLiteralAttributeValue - [31..33) - FullWidth: 2 - [()]
+                            MarkupTextLiteral - [31..33) - FullWidth: 2 - [()] - Gen<Markup>
+                                Text;[()];
+                        MarkupLiteralAttributeValue - [33..36) - FullWidth: 3 - [ =>]
+                            MarkupTextLiteral - [33..34) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [34..36) - FullWidth: 2 - [=>] - Gen<Markup>
+                                Equals;[=];
+                                CloseAngle;[>];
+                        MarkupLiteralAttributeValue - [36..38) - FullWidth: 2 - [ {]
+                            MarkupTextLiteral - [36..37) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [37..38) - FullWidth: 1 - [{] - Gen<Markup>
+                                Text;[{];
+                        MarkupLiteralAttributeValue - [38..40) - FullWidth: 2 - [ }]
+                            MarkupTextLiteral - [38..39) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [39..40) - FullWidth: 1 - [}] - Gen<Markup>
+                                Text;[}];
+                    MarkupTextLiteral - [40..41) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [41..72) - FullWidth: 31
+                    MarkupTextLiteral - [41..42) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [42..43) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [43..51) - FullWidth: 8 - [formname]
+                        Text;[formname];
+                    Equals;[=];
+                    MarkupTextLiteral - [52..53) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [53..71) - FullWidth: 18
+                        MarkupTextLiteral - [53..71) - FullWidth: 18 - [named-form-handler] - Gen<Markup>
+                            Text;[named-form-handler];
+                    MarkupTextLiteral - [71..72) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTagHelperEndTag - [73..80) - FullWidth: 7 - [</form>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[form];
+                CloseAngle;[>];
+        MarkupTextLiteral - [80..82) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [82..167) - FullWidth: 85 - form[StartTagAndEndTag] - FormName
+            MarkupTagHelperStartTag - [82..160) - FullWidth: 78 - [<form method="post" @onsubmit="() => { }" @formname="@("named-form-handler")">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[form];
+                MarkupTagHelperAttribute - [87..101) - FullWidth: 14 - method - DoubleQuotes - Unbound - [ method="post"]
+                    MarkupTextLiteral - [87..88) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [88..94) - FullWidth: 6 - [method] - Gen<Markup>
+                        Text;[method];
+                    Equals;[=];
+                    MarkupTextLiteral - [95..96) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [96..100) - FullWidth: 4
+                        MarkupLiteralAttributeValue - [96..100) - FullWidth: 4 - [post]
+                            MarkupTextLiteral - [96..100) - FullWidth: 4 - [post] - Gen<Markup>
+                                Text;[post];
+                    MarkupTextLiteral - [100..101) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [101..123) - FullWidth: 22 - @onsubmit - DoubleQuotes - Unbound - [ @onsubmit="() => { }"]
+                    MarkupTextLiteral - [101..102) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [102..111) - FullWidth: 9 - [@onsubmit] - Gen<Markup>
+                        Transition;[@];
+                        Text;[onsubmit];
+                    Equals;[=];
+                    MarkupTextLiteral - [112..113) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [113..122) - FullWidth: 9
+                        MarkupLiteralAttributeValue - [113..115) - FullWidth: 2 - [()]
+                            MarkupTextLiteral - [113..115) - FullWidth: 2 - [()] - Gen<Markup>
+                                Text;[()];
+                        MarkupLiteralAttributeValue - [115..118) - FullWidth: 3 - [ =>]
+                            MarkupTextLiteral - [115..116) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [116..118) - FullWidth: 2 - [=>] - Gen<Markup>
+                                Equals;[=];
+                                CloseAngle;[>];
+                        MarkupLiteralAttributeValue - [118..120) - FullWidth: 2 - [ {]
+                            MarkupTextLiteral - [118..119) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [119..120) - FullWidth: 1 - [{] - Gen<Markup>
+                                Text;[{];
+                        MarkupLiteralAttributeValue - [120..122) - FullWidth: 2 - [ }]
+                            MarkupTextLiteral - [120..121) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [121..122) - FullWidth: 1 - [}] - Gen<Markup>
+                                Text;[}];
+                    MarkupTextLiteral - [122..123) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [123..159) - FullWidth: 36
+                    MarkupTextLiteral - [123..124) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [124..125) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [125..133) - FullWidth: 8 - [formname]
+                        Text;[formname];
+                    Equals;[=];
+                    MarkupTextLiteral - [134..135) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [135..158) - FullWidth: 23
+                        MarkupBlock - [135..158) - FullWidth: 23
+                            CSharpCodeBlock - [135..158) - FullWidth: 23
+                                CSharpImplicitExpression - [135..158) - FullWidth: 23
+                                    CSharpTransition - [135..136) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [136..158) - FullWidth: 22
+                                        CSharpCodeBlock - [136..158) - FullWidth: 22
+                                            RazorMetaCode - [136..137) - FullWidth: 1 - Gen<None>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [137..157) - FullWidth: 20 - ["named-form-handler"] - Gen<Expr>
+                                                StringLiteral;["named-form-handler"];
+                                            RazorMetaCode - [157..158) - FullWidth: 1 - Gen<None>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [158..159) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTagHelperEndTag - [160..167) - FullWidth: 7 - [</form>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[form];
+                CloseAngle;[>];
+    EndOfFile;[];

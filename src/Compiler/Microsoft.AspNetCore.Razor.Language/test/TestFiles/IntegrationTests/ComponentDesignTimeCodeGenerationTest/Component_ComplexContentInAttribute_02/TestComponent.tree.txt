@@ -1,0 +1,76 @@
+﻿RazorDocument - [0..120) - FullWidth: 120 - [<MyComponent StringProperty="@MyEnum+" />LFLF@code {LF    public enum MyEnumLF    {LF        One,LF        TwoLF    }LF}]
+    MarkupBlock - [0..120) - FullWidth: 120
+        MarkupTagHelperElement - [0..41) - FullWidth: 41 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..41) - FullWidth: 41 - [<MyComponent StringProperty="@MyEnum+" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..38) - FullWidth: 26 - StringProperty - DoubleQuotes - Bound - [ StringProperty="@MyEnum+"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..27) - FullWidth: 14 - [StringProperty] - Gen<Markup>
+                        Text;[StringProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [28..29) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [29..37) - FullWidth: 8
+                        MarkupBlock - [29..36) - FullWidth: 7
+                            CSharpCodeBlock - [29..36) - FullWidth: 7
+                                CSharpImplicitExpression - [29..36) - FullWidth: 7
+                                    CSharpTransition - [29..30) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [30..36) - FullWidth: 6
+                                        CSharpCodeBlock - [30..36) - FullWidth: 6
+                                            CSharpExpressionLiteral - [30..36) - FullWidth: 6 - [MyEnum] - Gen<Expr>
+                                                Identifier;[MyEnum];
+                        MarkupTextLiteral - [36..37) - FullWidth: 1 - [+] - Gen<Markup>
+                            Text;[+];
+                    MarkupTextLiteral - [37..38) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [38..39) - FullWidth: 1
+                    MarkupTextLiteral - [38..39) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [41..45) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [45..120) - FullWidth: 75
+            RazorDirective - [45..120) - FullWidth: 75 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [45..46) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [46..120) - FullWidth: 74
+                    RazorMetaCode - [46..50) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [50..120) - FullWidth: 70
+                        UnclassifiedTextLiteral - [50..51) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [51..52) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [52..119) - FullWidth: 67
+                            CSharpStatementLiteral - [52..119) - FullWidth: 67 - [LF    public enum MyEnumLF    {LF        One,LF        TwoLF    }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[enum];
+                                Whitespace;[ ];
+                                Identifier;[MyEnum];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Identifier;[One];
+                                Comma;[,];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Identifier;[Two];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [119..120) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [120..120) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

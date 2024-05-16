@@ -1,0 +1,245 @@
+﻿RazorDocument - [0..423) - FullWidth: 423 - [@using Microsoft.AspNetCore.Components;LF@typeparam TItem1LF@typeparam TItem2LFLF<h1>Item</h1>LFLF<p>@ChildContent(Item1)</p>LFLF@foreach (var item in Items2)LF{LF    <p>@ChildContent(item)</p>LF}LFLF@code {LF    [Parameter] public (TItem1, TItem2) Item1 { get; set; }LF    [Parameter] public List<(TItem1, TItem2)> Items2 { get; set; }LF    [Parameter] public RenderFragment<(TItem1, TItem2)> ChildContent { get; set; }LF}]
+    MarkupBlock - [0..423) - FullWidth: 423
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..39) - FullWidth: 39
+            RazorDirective - [0..39) - FullWidth: 39
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..39) - FullWidth: 38
+                    CSharpStatementLiteral - [1..39) - FullWidth: 38 - [using Microsoft.AspNetCore.Components;] - Gen<Import: Microsoft.AspNetCore.Components;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Semicolon;[;];
+        MarkupTextLiteral - [39..41) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [41..60) - FullWidth: 19
+            RazorDirective - [41..60) - FullWidth: 19 - Directive:{typeparam;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [41..42) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [42..60) - FullWidth: 18
+                    RazorMetaCode - [42..51) - FullWidth: 9 - Gen<None>
+                        Identifier;[typeparam];
+                    CSharpCodeBlock - [51..60) - FullWidth: 9
+                        CSharpStatementLiteral - [51..52) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [52..58) - FullWidth: 6 - [TItem1] - Gen<DirectiveToken {type parameter;Member;Opt:False}>
+                            Identifier;[TItem1];
+                        MarkupEphemeralTextLiteral - [58..60) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [60..60) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [60..79) - FullWidth: 19
+            RazorDirective - [60..79) - FullWidth: 19 - Directive:{typeparam;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [60..61) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [61..79) - FullWidth: 18
+                    RazorMetaCode - [61..70) - FullWidth: 9 - Gen<None>
+                        Identifier;[typeparam];
+                    CSharpCodeBlock - [70..79) - FullWidth: 9
+                        CSharpStatementLiteral - [70..71) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [71..77) - FullWidth: 6 - [TItem2] - Gen<DirectiveToken {type parameter;Member;Opt:False}>
+                            Identifier;[TItem2];
+                        MarkupEphemeralTextLiteral - [77..79) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [79..81) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [81..94) - FullWidth: 13
+            MarkupStartTag - [81..85) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [85..89) - FullWidth: 4 - [Item] - Gen<Markup>
+                Text;[Item];
+            MarkupEndTag - [89..94) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [94..98) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupElement - [98..125) - FullWidth: 27
+            MarkupStartTag - [98..101) - FullWidth: 3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            CSharpCodeBlock - [101..121) - FullWidth: 20
+                CSharpImplicitExpression - [101..121) - FullWidth: 20
+                    CSharpTransition - [101..102) - FullWidth: 1 - Gen<None>
+                        Transition;[@];
+                    CSharpImplicitExpressionBody - [102..121) - FullWidth: 19
+                        CSharpCodeBlock - [102..121) - FullWidth: 19
+                            CSharpExpressionLiteral - [102..121) - FullWidth: 19 - [ChildContent(Item1)] - Gen<Expr>
+                                Identifier;[ChildContent];
+                                LeftParenthesis;[(];
+                                Identifier;[Item1];
+                                RightParenthesis;[)];
+            MarkupEndTag - [121..125) - FullWidth: 4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [125..129) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [129..196) - FullWidth: 67
+            CSharpTransition - [129..130) - FullWidth: 1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [130..167) - FullWidth: 37 - [foreach (var item in Items2)LF{LF    ] - Gen<Stmt>
+                Keyword;[foreach];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Identifier;[var];
+                Whitespace;[ ];
+                Identifier;[item];
+                Whitespace;[ ];
+                Keyword;[in];
+                Whitespace;[ ];
+                Identifier;[Items2];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupBlock - [167..195) - FullWidth: 28
+                MarkupElement - [167..193) - FullWidth: 26
+                    MarkupStartTag - [167..170) - FullWidth: 3 - [<p>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[p];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [170..170) - FullWidth: 0 - [] - Gen<Markup>
+                        Marker;[];
+                    CSharpCodeBlock - [170..189) - FullWidth: 19
+                        CSharpImplicitExpression - [170..189) - FullWidth: 19
+                            CSharpTransition - [170..171) - FullWidth: 1 - Gen<None>
+                                Transition;[@];
+                            CSharpImplicitExpressionBody - [171..189) - FullWidth: 18
+                                CSharpCodeBlock - [171..189) - FullWidth: 18
+                                    CSharpExpressionLiteral - [171..189) - FullWidth: 18 - [ChildContent(item)] - Gen<Expr>
+                                        Identifier;[ChildContent];
+                                        LeftParenthesis;[(];
+                                        Identifier;[item];
+                                        RightParenthesis;[)];
+                    MarkupEndTag - [189..193) - FullWidth: 4 - [</p>] - Gen<Markup>
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[p];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [193..195) - FullWidth: 2 - [LF] - Gen<Markup>
+                    NewLine;[LF];
+            CSharpStatementLiteral - [195..196) - FullWidth: 1 - [}] - Gen<Stmt>
+                RightBrace;[}];
+        MarkupTextLiteral - [196..200) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [200..423) - FullWidth: 223
+            RazorDirective - [200..423) - FullWidth: 223 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [200..201) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [201..423) - FullWidth: 222
+                    RazorMetaCode - [201..205) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [205..423) - FullWidth: 218
+                        UnclassifiedTextLiteral - [205..206) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [206..207) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [207..422) - FullWidth: 215
+                            CSharpStatementLiteral - [207..422) - FullWidth: 215 - [LF    [Parameter] public (TItem1, TItem2) Item1 { get; set; }LF    [Parameter] public List<(TItem1, TItem2)> Items2 { get; set; }LF    [Parameter] public RenderFragment<(TItem1, TItem2)> ChildContent { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                Whitespace;[ ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                LeftParenthesis;[(];
+                                Identifier;[TItem1];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Identifier;[TItem2];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                Identifier;[Item1];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                Whitespace;[ ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[List];
+                                LessThan;[<];
+                                LeftParenthesis;[(];
+                                Identifier;[TItem1];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Identifier;[TItem2];
+                                RightParenthesis;[)];
+                                GreaterThan;[>];
+                                Whitespace;[ ];
+                                Identifier;[Items2];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                Whitespace;[ ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[RenderFragment];
+                                LessThan;[<];
+                                LeftParenthesis;[(];
+                                Identifier;[TItem1];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Identifier;[TItem2];
+                                RightParenthesis;[)];
+                                GreaterThan;[>];
+                                Whitespace;[ ];
+                                Identifier;[ChildContent];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [422..423) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [423..423) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

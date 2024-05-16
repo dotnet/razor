@@ -9,12 +9,12 @@
                 CloseAngle;[>];
             MarkupTextLiteral - [7..9)::2 - [LF] - Gen<Markup>
                 NewLine;[LF];
-            CSharpCodeBlock - [9..86)::77
+            CSharpCodeBlock - [9..84)::75
                 CSharpStatementLiteral - [9..13)::4 - [    ] - Gen<Stmt>
                     Whitespace;[    ];
                 CSharpTransition - [13..14)::1 - Gen<None>
                     Transition;[@];
-                CSharpStatementLiteral - [14..44)::30 - [foreach(var p in Products) {LF] - Gen<Stmt>
+                CSharpStatementLiteral - [14..52)::38 - [foreach(var p in Products) {LF        ] - Gen<Stmt>
                     Keyword;[foreach];
                     LeftParenthesis;[(];
                     Identifier;[var];
@@ -28,9 +28,8 @@
                     Whitespace;[ ];
                     LeftBrace;[{];
                     NewLine;[LF];
-                MarkupBlock - [44..79)::35
-                    MarkupTextLiteral - [44..52)::8 - [        ] - Gen<Markup>
-                        Whitespace;[        ];
+                    Whitespace;[        ];
+                MarkupBlock - [52..79)::27
                     MarkupElement - [52..77)::25
                         MarkupStartTag - [52..56)::4 - [<li>] - Gen<Markup>
                             OpenAngle;[<];
@@ -56,11 +55,11 @@
                             CloseAngle;[>];
                     MarkupTextLiteral - [77..79)::2 - [LF] - Gen<Markup>
                         NewLine;[LF];
-                CSharpStatementLiteral - [79..86)::7 - [    }LF] - Gen<Stmt>
+                CSharpStatementLiteral - [79..84)::5 - [    }] - Gen<Stmt>
                     Whitespace;[    ];
                     RightBrace;[}];
-                    NewLine;[LF];
-            MarkupTextLiteral - [86..90)::4 - [    ] - Gen<Markup>
+            MarkupTextLiteral - [84..90)::6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
                 Whitespace;[    ];
             MarkupEndTag - [90..95)::5 - [</ul>] - Gen<Markup>
                 OpenAngle;[<];

@@ -1,0 +1,159 @@
+﻿RazorDocument - [0..221) - FullWidth: 221 - [@using Models;LF<Grid TItem="WeatherForecast" Items="@(Array.Empty<WeatherForecast>())">LF    <ColumnsTemplate>LF        <Column Title="Date" FieldName="Date" Format="d" Width="10rem" />LF    </ColumnsTemplate>LF</Grid>LF]
+    MarkupBlock - [0..221) - FullWidth: 221
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..14) - FullWidth: 14
+            RazorDirective - [0..14) - FullWidth: 14
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..14) - FullWidth: 13
+                    CSharpStatementLiteral - [1..14) - FullWidth: 13 - [using Models;] - Gen<Import: Models;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Models];
+                        Semicolon;[;];
+        MarkupTextLiteral - [14..16) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [16..219) - FullWidth: 203 - Grid[StartTagAndEndTag] - Grid<TItem>
+            MarkupTagHelperStartTag - [16..88) - FullWidth: 72 - [<Grid TItem="WeatherForecast" Items="@(Array.Empty<WeatherForecast>())">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Grid];
+                MarkupTagHelperAttribute - [21..45) - FullWidth: 24 - TItem - DoubleQuotes - Bound - [ TItem="WeatherForecast"]
+                    MarkupTextLiteral - [21..22) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [22..27) - FullWidth: 5 - [TItem] - Gen<Markup>
+                        Text;[TItem];
+                    Equals;[=];
+                    MarkupTextLiteral - [28..29) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [29..44) - FullWidth: 15
+                        CSharpExpressionLiteral - [29..44) - FullWidth: 15 - [WeatherForecast] - Gen<None>
+                            Text;[WeatherForecast];
+                    MarkupTextLiteral - [44..45) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [45..87) - FullWidth: 42 - Items - DoubleQuotes - Unbound - [ Items="@(Array.Empty<WeatherForecast>())"]
+                    MarkupTextLiteral - [45..46) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [46..51) - FullWidth: 5 - [Items] - Gen<Markup>
+                        Text;[Items];
+                    Equals;[=];
+                    MarkupTextLiteral - [52..53) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [53..86) - FullWidth: 33
+                        MarkupDynamicAttributeValue - [53..86) - FullWidth: 33 - [@(Array.Empty<WeatherForecast>())]
+                            GenericBlock - [53..86) - FullWidth: 33
+                                CSharpCodeBlock - [53..86) - FullWidth: 33
+                                    CSharpExplicitExpression - [53..86) - FullWidth: 33
+                                        CSharpTransition - [53..54) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpExplicitExpressionBody - [54..86) - FullWidth: 32
+                                            RazorMetaCode - [54..55) - FullWidth: 1 - Gen<None>
+                                                LeftParenthesis;[(];
+                                            CSharpCodeBlock - [55..85) - FullWidth: 30
+                                                CSharpExpressionLiteral - [55..85) - FullWidth: 30 - [Array.Empty<WeatherForecast>()] - Gen<Expr>
+                                                    Identifier;[Array];
+                                                    Dot;[.];
+                                                    Identifier;[Empty];
+                                                    LessThan;[<];
+                                                    Identifier;[WeatherForecast];
+                                                    GreaterThan;[>];
+                                                    LeftParenthesis;[(];
+                                                    RightParenthesis;[)];
+                                            RazorMetaCode - [85..86) - FullWidth: 1 - Gen<None>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [86..87) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [88..94) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [94..210) - FullWidth: 116 - ColumnsTemplate[StartTagAndEndTag] - ColumnsTemplate
+                MarkupTagHelperStartTag - [94..111) - FullWidth: 17 - [<ColumnsTemplate>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[ColumnsTemplate];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [111..121) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                MarkupTagHelperElement - [121..186) - FullWidth: 65 - Column[SelfClosing] - Column<TItem>
+                    MarkupTagHelperStartTag - [121..186) - FullWidth: 65 - [<Column Title="Date" FieldName="Date" Format="d" Width="10rem" />] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[Column];
+                        MarkupTagHelperAttribute - [128..141) - FullWidth: 13 - Title - DoubleQuotes - Unbound - [ Title="Date"]
+                            MarkupTextLiteral - [128..129) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [129..134) - FullWidth: 5 - [Title] - Gen<Markup>
+                                Text;[Title];
+                            Equals;[=];
+                            MarkupTextLiteral - [135..136) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                            MarkupTagHelperAttributeValue - [136..140) - FullWidth: 4
+                                MarkupLiteralAttributeValue - [136..140) - FullWidth: 4 - [Date]
+                                    MarkupTextLiteral - [136..140) - FullWidth: 4 - [Date] - Gen<Markup>
+                                        Text;[Date];
+                            MarkupTextLiteral - [140..141) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                        MarkupTagHelperAttribute - [141..158) - FullWidth: 17 - FieldName - DoubleQuotes - Bound - [ FieldName="Date"]
+                            MarkupTextLiteral - [141..142) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [142..151) - FullWidth: 9 - [FieldName] - Gen<Markup>
+                                Text;[FieldName];
+                            Equals;[=];
+                            MarkupTextLiteral - [152..153) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                            MarkupTagHelperAttributeValue - [153..157) - FullWidth: 4
+                                MarkupTextLiteral - [153..157) - FullWidth: 4 - [Date] - Gen<Markup>
+                                    Text;[Date];
+                            MarkupTextLiteral - [157..158) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                        MarkupTagHelperAttribute - [158..169) - FullWidth: 11 - Format - DoubleQuotes - Unbound - [ Format="d"]
+                            MarkupTextLiteral - [158..159) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [159..165) - FullWidth: 6 - [Format] - Gen<Markup>
+                                Text;[Format];
+                            Equals;[=];
+                            MarkupTextLiteral - [166..167) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                            MarkupTagHelperAttributeValue - [167..168) - FullWidth: 1
+                                MarkupLiteralAttributeValue - [167..168) - FullWidth: 1 - [d]
+                                    MarkupTextLiteral - [167..168) - FullWidth: 1 - [d] - Gen<Markup>
+                                        Text;[d];
+                            MarkupTextLiteral - [168..169) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                        MarkupTagHelperAttribute - [169..183) - FullWidth: 14 - Width - DoubleQuotes - Unbound - [ Width="10rem"]
+                            MarkupTextLiteral - [169..170) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [170..175) - FullWidth: 5 - [Width] - Gen<Markup>
+                                Text;[Width];
+                            Equals;[=];
+                            MarkupTextLiteral - [176..177) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                            MarkupTagHelperAttributeValue - [177..182) - FullWidth: 5
+                                MarkupLiteralAttributeValue - [177..182) - FullWidth: 5 - [10rem]
+                                    MarkupTextLiteral - [177..182) - FullWidth: 5 - [10rem] - Gen<Markup>
+                                        Text;[10rem];
+                            MarkupTextLiteral - [182..183) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                        MarkupMiscAttributeContent - [183..184) - FullWidth: 1
+                            MarkupTextLiteral - [183..184) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        ForwardSlash;[/];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [186..192) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[    ];
+                MarkupTagHelperEndTag - [192..210) - FullWidth: 18 - [</ColumnsTemplate>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[ColumnsTemplate];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [210..212) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [212..219) - FullWidth: 7 - [</Grid>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Grid];
+                CloseAngle;[>];
+        MarkupTextLiteral - [219..221) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

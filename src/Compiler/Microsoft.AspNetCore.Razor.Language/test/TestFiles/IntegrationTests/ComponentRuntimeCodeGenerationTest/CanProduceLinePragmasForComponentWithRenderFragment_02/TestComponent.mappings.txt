@@ -3,39 +3,37 @@
 Generated Location: (1094:28,0 [10] )
 |ActionText|
 
-Source Location: (84:2,3 [22] x:\dir\subdir\Test\TestComponent.cshtml)
+Source Location: (84:2,3 [26] x:\dir\subdir\Test\TestComponent.cshtml)
 |if (!Collapsed)
   {
-|
-Generated Location: (1291:37,0 [22] )
+    |
+Generated Location: (1291:37,0 [26] )
 |if (!Collapsed)
   {
-|
+    |
 
 Source Location: (154:5,7 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |ChildContent|
-Generated Location: (1604:49,0 [12] )
+Generated Location: (1610:50,0 [12] )
 |ChildContent|
 
-Source Location: (180:7,0 [5] x:\dir\subdir\Test\TestComponent.cshtml)
-|  }
-|
-Generated Location: (1803:58,0 [5] )
-|  }
-|
+Source Location: (180:7,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|  }|
+Generated Location: (1809:59,0 [3] )
+|  }|
 
 Source Location: (201:10,1 [91] x:\dir\subdir\Test\TestComponent.cshtml)
 |
   [Parameter]
   public RenderFragment<string> ChildContent { get; set; } = (context) => |
-Generated Location: (2031:69,0 [91] )
+Generated Location: (2037:70,0 [91] )
 |
   [Parameter]
   public RenderFragment<string> ChildContent { get; set; } = (context) => |
 
 Source Location: (297:12,79 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |context|
-Generated Location: (2373:82,0 [7] )
+Generated Location: (2379:83,0 [7] )
 |context|
 
 Source Location: (308:12,90 [180] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -48,7 +46,7 @@ Source Location: (308:12,90 [180] x:\dir\subdir\Test\TestComponent.cshtml)
     Collapsed = !Collapsed;
   }
 |
-Generated Location: (2582:92,0 [180] )
+Generated Location: (2588:93,0 [180] )
 |;
   [Parameter]
   public bool Collapsed { get; set; }

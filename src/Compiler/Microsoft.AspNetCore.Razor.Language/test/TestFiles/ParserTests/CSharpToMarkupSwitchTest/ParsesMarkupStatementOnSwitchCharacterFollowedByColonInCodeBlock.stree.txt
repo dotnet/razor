@@ -10,7 +10,7 @@
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..22)::20
-                        CSharpStatementLiteral - [2..12)::10 - [ if(foo) {] - Gen<Stmt>
+                        CSharpStatementLiteral - [2..13)::11 - [ if(foo) { ] - Gen<Stmt>
                             Whitespace;[ ];
                             Keyword;[if];
                             LeftParenthesis;[(];
@@ -18,9 +18,8 @@
                             RightParenthesis;[)];
                             Whitespace;[ ];
                             LeftBrace;[{];
-                        MarkupBlock - [12..20)::8
-                            MarkupTextLiteral - [12..13)::1 - [ ] - Gen<Markup>
-                                Whitespace;[ ];
+                            Whitespace;[ ];
+                        MarkupBlock - [13..20)::7
                             MarkupTransition - [13..14)::1 - Gen<None>
                                 Transition;[@];
                             RazorMetaCode - [14..15)::1 - Gen<None>

@@ -1,0 +1,56 @@
+﻿RazorDocument - [0..102) - FullWidth: 102 - [<TestComponent @rendermode="@(true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null)" />]
+    MarkupBlock - [0..102) - FullWidth: 102
+        MarkupTagHelperElement - [0..102) - FullWidth: 102 - TestComponent[SelfClosing] - TestComponent - RenderMode
+            MarkupTagHelperStartTag - [0..102) - FullWidth: 102 - [<TestComponent @rendermode="@(true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null)" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperDirectiveAttribute - [14..99) - FullWidth: 85
+                    MarkupTextLiteral - [14..15) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [15..16) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [16..26) - FullWidth: 10 - [rendermode]
+                        Text;[rendermode];
+                    Equals;[=];
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [28..98) - FullWidth: 70
+                        MarkupBlock - [28..98) - FullWidth: 70
+                            CSharpCodeBlock - [28..98) - FullWidth: 70
+                                CSharpImplicitExpression - [28..98) - FullWidth: 70
+                                    CSharpTransition - [28..29) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [29..98) - FullWidth: 69
+                                        CSharpCodeBlock - [29..98) - FullWidth: 69
+                                            CSharpExpressionLiteral - [29..30) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [30..97) - FullWidth: 67 - [true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null] - Gen<Expr>
+                                                Keyword;[true];
+                                                Whitespace;[ ];
+                                                QuestionMark;[?];
+                                                Whitespace;[ ];
+                                                Identifier;[Microsoft];
+                                                Dot;[.];
+                                                Identifier;[AspNetCore];
+                                                Dot;[.];
+                                                Identifier;[Components];
+                                                Dot;[.];
+                                                Identifier;[Web];
+                                                Dot;[.];
+                                                Identifier;[RenderMode];
+                                                Dot;[.];
+                                                Identifier;[Server];
+                                                Whitespace;[ ];
+                                                Colon;[:];
+                                                Whitespace;[ ];
+                                                Keyword;[null];
+                                            CSharpExpressionLiteral - [97..98) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [98..99) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [99..100) - FullWidth: 1
+                    MarkupTextLiteral - [99..100) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

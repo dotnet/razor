@@ -1,0 +1,41 @@
+﻿RazorDocument - [0..47) - FullWidth: 47 - [<MyComponent Message="test" mESSAGE="test" />LF]
+    MarkupBlock - [0..47) - FullWidth: 47
+        MarkupTagHelperElement - [0..45) - FullWidth: 45 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..45) - FullWidth: 45 - [<MyComponent Message="test" mESSAGE="test" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..27) - FullWidth: 15 - Message - DoubleQuotes - Bound - [ Message="test"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..20) - FullWidth: 7 - [Message] - Gen<Markup>
+                        Text;[Message];
+                    Equals;[=];
+                    MarkupTextLiteral - [21..22) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [22..26) - FullWidth: 4
+                        MarkupTextLiteral - [22..26) - FullWidth: 4 - [test] - Gen<Markup>
+                            Text;[test];
+                    MarkupTextLiteral - [26..27) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [27..42) - FullWidth: 15 - mESSAGE - DoubleQuotes - Unbound - [ mESSAGE="test"]
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [28..35) - FullWidth: 7 - [mESSAGE] - Gen<Markup>
+                        Text;[mESSAGE];
+                    Equals;[=];
+                    MarkupTextLiteral - [36..37) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [37..41) - FullWidth: 4
+                        MarkupLiteralAttributeValue - [37..41) - FullWidth: 4 - [test]
+                            MarkupTextLiteral - [37..41) - FullWidth: 4 - [test] - Gen<Markup>
+                                Text;[test];
+                    MarkupTextLiteral - [41..42) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [42..43) - FullWidth: 1
+                    MarkupTextLiteral - [42..43) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [45..47) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

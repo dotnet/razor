@@ -1,0 +1,34 @@
+﻿RazorDocument - [0..37) - FullWidth: 37 - [<div class="first second">Hello</div>]
+    MarkupBlock - [0..37) - FullWidth: 37
+        MarkupElement - [0..37) - FullWidth: 37
+            MarkupStartTag - [0..26) - FullWidth: 26 - [<div class="first second">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                MarkupAttributeBlock - [4..25) - FullWidth: 21 - [ class="first second"]
+                    MarkupTextLiteral - [4..5) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [5..10) - FullWidth: 5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [11..12) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [12..24) - FullWidth: 12
+                        MarkupLiteralAttributeValue - [12..17) - FullWidth: 5 - [first]
+                            MarkupTextLiteral - [12..17) - FullWidth: 5 - [first] - Gen<Markup>
+                                Text;[first];
+                        MarkupLiteralAttributeValue - [17..24) - FullWidth: 7 - [ second]
+                            MarkupTextLiteral - [17..18) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [18..24) - FullWidth: 6 - [second] - Gen<Markup>
+                                Text;[second];
+                    MarkupTextLiteral - [24..25) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [26..31) - FullWidth: 5 - [Hello] - Gen<Markup>
+                Text;[Hello];
+            MarkupEndTag - [31..37) - FullWidth: 6 - [</div>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+    EndOfFile;[];

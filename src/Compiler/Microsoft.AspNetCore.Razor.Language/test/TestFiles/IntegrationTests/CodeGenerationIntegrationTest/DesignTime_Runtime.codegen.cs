@@ -26,14 +26,15 @@ namespace AspNetCore
         {
             WriteLiteral("<div>\r\n");
 #nullable restore
-#line (2,14)-(3,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml"
+#line (2,14)-(3,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml"
 for(int i = 1; i <= 10; i++) {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>This is item #");
+            WriteLiteral("<p>This is item #");
             Write(
 #nullable restore
 #line (3,23)-(3,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml"
@@ -45,14 +46,14 @@ i
             );
             WriteLiteral("</p>\r\n");
 #nullable restore
-#line (4,1)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml"
+#line (4,1)-(4,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml"
             }
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("</div>\r\n\r\n<p>\r\n");
+            WriteLiteral("\r\n</div>\r\n\r\n<p>\r\n");
             Write(
 #nullable restore
 #line (8,3)-(8,15) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml"

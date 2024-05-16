@@ -1,0 +1,113 @@
+﻿RazorDocument - [0..248) - FullWidth: 248 - [<h1>Single line statement</h1>LFLFTime: @DateTime.NowLFLF<h1>Multiline block statement</h1>LFLF@JsonToHtml(@"{LF  'key1': 'value1'LF  'key2': 'value2'LF}")LFLF@code {LF    public string JsonToHtml(string foo)LF    {LF        return foo;LF    }LF}LF]
+    MarkupBlock - [0..248) - FullWidth: 248
+        MarkupElement - [0..30) - FullWidth: 30
+            MarkupStartTag - [0..4) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [4..25) - FullWidth: 21 - [Single line statement] - Gen<Markup>
+                Text;[Single];
+                Whitespace;[ ];
+                Text;[line];
+                Whitespace;[ ];
+                Text;[statement];
+            MarkupEndTag - [25..30) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [30..40) - FullWidth: 10 - [LFLFTime: ] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+            Text;[Time:];
+            Whitespace;[ ];
+        CSharpCodeBlock - [40..53) - FullWidth: 13
+            CSharpImplicitExpression - [40..53) - FullWidth: 13
+                CSharpTransition - [40..41) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [41..53) - FullWidth: 12
+                    CSharpCodeBlock - [41..53) - FullWidth: 12
+                        CSharpExpressionLiteral - [41..53) - FullWidth: 12 - [DateTime.Now] - Gen<Expr>
+                            Identifier;[DateTime];
+                            Dot;[.];
+                            Identifier;[Now];
+        MarkupTextLiteral - [53..57) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupElement - [57..91) - FullWidth: 34
+            MarkupStartTag - [57..61) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [61..86) - FullWidth: 25 - [Multiline block statement] - Gen<Markup>
+                Text;[Multiline];
+                Whitespace;[ ];
+                Text;[block];
+                Whitespace;[ ];
+                Text;[statement];
+            MarkupEndTag - [86..91) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [91..95) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [95..155) - FullWidth: 60
+            CSharpImplicitExpression - [95..155) - FullWidth: 60
+                CSharpTransition - [95..96) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [96..155) - FullWidth: 59
+                    CSharpCodeBlock - [96..155) - FullWidth: 59
+                        CSharpExpressionLiteral - [96..155) - FullWidth: 59 - [JsonToHtml(@"{LF  'key1': 'value1'LF  'key2': 'value2'LF}")] - Gen<Expr>
+                            Identifier;[JsonToHtml];
+                            LeftParenthesis;[(];
+                            StringLiteral;[@"{LF  'key1': 'value1'LF  'key2': 'value2'LF}"];
+                            RightParenthesis;[)];
+        MarkupTextLiteral - [155..159) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [159..246) - FullWidth: 87
+            RazorDirective - [159..246) - FullWidth: 87 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [159..160) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [160..246) - FullWidth: 86
+                    RazorMetaCode - [160..164) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [164..246) - FullWidth: 82
+                        UnclassifiedTextLiteral - [164..165) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [165..166) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [166..245) - FullWidth: 79
+                            CSharpStatementLiteral - [166..245) - FullWidth: 79 - [LF    public string JsonToHtml(string foo)LF    {LF        return foo;LF    }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[JsonToHtml];
+                                LeftParenthesis;[(];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[foo];
+                                RightParenthesis;[)];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Keyword;[return];
+                                Whitespace;[ ];
+                                Identifier;[foo];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [245..246) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [246..248) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

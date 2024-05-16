@@ -1,0 +1,43 @@
+﻿RazorDocument - [0..126) - FullWidth: 126 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server"LF                   @rendermode="Value2" />]
+    MarkupBlock - [0..126) - FullWidth: 126
+        MarkupTagHelperElement - [0..126) - FullWidth: 126 - TestComponent[SelfClosing] - TestComponent - RenderMode
+            MarkupTagHelperStartTag - [0..126) - FullWidth: 126 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server"LF                   @rendermode="Value2" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperDirectiveAttribute - [14..82) - FullWidth: 68
+                    MarkupTextLiteral - [14..15) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [15..16) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [16..26) - FullWidth: 10 - [rendermode]
+                        Text;[rendermode];
+                    Equals;[=];
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [28..81) - FullWidth: 53
+                        CSharpExpressionLiteral - [28..81) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<None>
+                            Text;[Microsoft.AspNetCore.Components.Web.RenderMode.Server];
+                    MarkupTextLiteral - [81..82) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [82..123) - FullWidth: 41
+                    MarkupTextLiteral - [82..103) - FullWidth: 21 - [LF                   ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[                   ];
+                    RazorMetaCode - [103..104) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [104..114) - FullWidth: 10 - [rendermode]
+                        Text;[rendermode];
+                    Equals;[=];
+                    MarkupTextLiteral - [115..116) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [116..122) - FullWidth: 6
+                        CSharpExpressionLiteral - [116..122) - FullWidth: 6 - [Value2] - Gen<None>
+                            Text;[Value2];
+                    MarkupTextLiteral - [122..123) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [123..124) - FullWidth: 1
+                    MarkupTextLiteral - [123..124) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -1,20 +1,20 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
-        UsingDirective - (1:0,1 [34] CSharp8.cshtml) - System.Collections.Generic
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [32] CSharp8.cshtml) - System.Collections.Generic
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
         ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_CSharp8 - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
-                HtmlContent - (35:1,0 [2] CSharp8.cshtml)
-                    LazyIntermediateToken - (35:1,0 [2] CSharp8.cshtml) - Html - \n
+                HtmlContent - (33:0,33 [4] CSharp8.cshtml)
+                    LazyIntermediateToken - (33:0,33 [4] CSharp8.cshtml) - Html - \n\n
                 CSharpCode - (39:2,2 [396] CSharp8.cshtml)
                     LazyIntermediateToken - (39:2,2 [396] CSharp8.cshtml) - CSharp - \n    IAsyncEnumerable<bool> GetAsyncEnumerable()\n    {\n        return null;\n    }\n\n    await foreach (var val in GetAsyncEnumerable())\n    {\n\n    }\n\n    Range range = 1..5;\n    using var disposable = GetLastDisposableInRange(range);\n\n    var words = Array.Empty<string>();\n    var testEnum = GetEnum();\n    static TestEnum GetEnum()\n    {\n        return TestEnum.First;\n    }\n
                 HtmlContent - (438:23,0 [2] CSharp8.cshtml)
@@ -35,10 +35,10 @@
                     LazyIntermediateToken - (603:34,1 [56] CSharp8.cshtml) - CSharp - await foreach (var val in GetAsyncEnumerable())\n{\n    
                 CSharpExpression - (660:36,5 [3] CSharp8.cshtml)
                     LazyIntermediateToken - (660:36,5 [3] CSharp8.cshtml) - CSharp - val
-                CSharpCode - (663:36,8 [5] CSharp8.cshtml)
-                    LazyIntermediateToken - (663:36,8 [5] CSharp8.cshtml) - CSharp - \n}\n
-                HtmlContent - (668:38,0 [2] CSharp8.cshtml)
-                    LazyIntermediateToken - (668:38,0 [2] CSharp8.cshtml) - Html - \n
+                CSharpCode - (663:36,8 [3] CSharp8.cshtml)
+                    LazyIntermediateToken - (663:36,8 [3] CSharp8.cshtml) - CSharp - \n}
+                HtmlContent - (666:37,1 [4] CSharp8.cshtml)
+                    LazyIntermediateToken - (666:37,1 [4] CSharp8.cshtml) - Html - \n\n
                 CSharpExpression - (671:39,1 [12] CSharp8.cshtml)
                     LazyIntermediateToken - (671:39,1 [12] CSharp8.cshtml) - CSharp - Person!.Name
                 HtmlContent - (683:39,13 [2] CSharp8.cshtml)

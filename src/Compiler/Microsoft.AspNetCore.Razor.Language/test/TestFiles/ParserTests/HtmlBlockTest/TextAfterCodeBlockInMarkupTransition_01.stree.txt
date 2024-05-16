@@ -10,11 +10,10 @@
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..54)::52
-                        CSharpStatementLiteral - [2..4)::2 - [LF] - Gen<Stmt>
+                        CSharpStatementLiteral - [2..8)::6 - [LF    ] - Gen<Stmt>
                             NewLine;[LF];
-                        MarkupBlock - [4..30)::26
-                            MarkupTextLiteral - [4..8)::4 - [    ] - Gen<Markup>
-                                Whitespace;[    ];
+                            Whitespace;[    ];
+                        MarkupBlock - [8..30)::22
                             MarkupTransition - [8..9)::1 - Gen<None>
                                 Transition;[@];
                             RazorMetaCode - [9..10)::1 - Gen<None>
@@ -27,9 +26,9 @@
                                         RazorMetaCode - [11..12)::1 - Gen<None>
                                             LeftBrace;[{];
                                         CSharpCodeBlock - [12..27)::15
-                                            MarkupBlock - [12..27)::15
-                                                MarkupTextLiteral - [12..13)::1 - [ ] - Gen<Markup>
-                                                    Whitespace;[ ];
+                                            CSharpStatementLiteral - [12..13)::1 - [ ] - Gen<Stmt>
+                                                Whitespace;[ ];
+                                            MarkupBlock - [13..27)::14
                                                 MarkupElement - [13..26)::13
                                                     MarkupStartTag - [13..16)::3 - [<i>] - Gen<Markup>
                                                         OpenAngle;[<];

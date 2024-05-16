@@ -12,7 +12,7 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
 #nullable restore
-#line (1,2)-(2,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml"
+#line (1,2)-(1,34) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml"
 using System.Collections.Generic
 
 #line default
@@ -29,7 +29,7 @@ using System.Collections.Generic
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
 #nullable restore
 #line (3,3)-(23,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml"
 
@@ -113,7 +113,7 @@ val
 #nullable disable
             );
 #nullable restore
-#line (37,9)-(39,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml"
+#line (37,9)-(38,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml"
 
 }
 
@@ -121,7 +121,7 @@ val
 #line hidden
 #nullable disable
 
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
             Write(
 #nullable restore
 #line (40,2)-(40,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml"

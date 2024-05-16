@@ -2,10 +2,10 @@
     MarkupBlock - [0..26)::26
         MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
-        CSharpCodeBlock - [0..23)::23
+        CSharpCodeBlock - [0..21)::21
             CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..23)::22 - [do { } while(foo barLF] - Gen<Stmt>
+            CSharpStatementLiteral - [1..21)::20 - [do { } while(foo bar] - Gen<Stmt>
                 Keyword;[do];
                 Whitespace;[ ];
                 LeftBrace;[{];
@@ -17,7 +17,7 @@
                 Identifier;[foo];
                 Whitespace;[ ];
                 Identifier;[bar];
-                NewLine;[LF];
-        MarkupTextLiteral - [23..26)::3 - [baz] - Gen<Markup>
+        MarkupTextLiteral - [21..26)::5 - [LFbaz] - Gen<Markup>
+            NewLine;[LF];
             Text;[baz];
     EndOfFile;[];

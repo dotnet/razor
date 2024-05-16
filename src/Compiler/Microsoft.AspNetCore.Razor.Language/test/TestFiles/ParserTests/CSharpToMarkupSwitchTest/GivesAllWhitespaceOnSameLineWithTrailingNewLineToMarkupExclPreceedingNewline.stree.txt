@@ -5,7 +5,7 @@
         CSharpCodeBlock - [0..162)::162
             CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..81)::80 - [if(foo) {LF    var foo = "After this statement there are 10 spaces";          LF] - Gen<Stmt>
+            CSharpStatementLiteral - [1..85)::84 - [if(foo) {LF    var foo = "After this statement there are 10 spaces";          LF    ] - Gen<Stmt>
                 Keyword;[if];
                 LeftParenthesis;[(];
                 Identifier;[foo];
@@ -24,9 +24,8 @@
                 Semicolon;[;];
                 Whitespace;[          ];
                 NewLine;[LF];
-            MarkupBlock - [81..127)::46
-                MarkupTextLiteral - [81..85)::4 - [    ] - Gen<Markup>
-                    Whitespace;[    ];
+                Whitespace;[    ];
+            MarkupBlock - [85..127)::42
                 MarkupElement - [85..125)::40
                     MarkupStartTag - [85..88)::3 - [<p>] - Gen<Markup>
                         OpenAngle;[<];
@@ -57,9 +56,9 @@
                         CloseAngle;[>];
                 MarkupTextLiteral - [125..127)::2 - [LF] - Gen<Markup>
                     NewLine;[LF];
-            MarkupBlock - [127..141)::14
-                MarkupTextLiteral - [127..131)::4 - [    ] - Gen<Markup>
-                    Whitespace;[    ];
+            CSharpStatementLiteral - [127..131)::4 - [    ] - Gen<Stmt>
+                Whitespace;[    ];
+            MarkupBlock - [131..141)::10
                 MarkupTransition - [131..132)::1 - Gen<None>
                     Transition;[@];
                 RazorMetaCode - [132..133)::1 - Gen<None>

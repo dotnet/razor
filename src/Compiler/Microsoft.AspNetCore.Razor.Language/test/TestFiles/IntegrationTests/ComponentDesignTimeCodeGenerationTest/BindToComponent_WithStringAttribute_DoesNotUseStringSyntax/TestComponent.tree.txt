@@ -1,0 +1,63 @@
+﻿RazorDocument - [0..94) - FullWidth: 94 - [<InputText @bind-Value="person.Name" />LFLF@functionsLF{LF    Person person = new Person();LF}]
+    MarkupBlock - [0..94) - FullWidth: 94
+        MarkupTagHelperElement - [0..39) - FullWidth: 39 - InputText[SelfClosing] - InputText - InputText - Bind
+            MarkupTagHelperStartTag - [0..39) - FullWidth: 39 - [<InputText @bind-Value="person.Name" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[InputText];
+                MarkupTagHelperDirectiveAttribute - [10..36) - FullWidth: 26
+                    MarkupTextLiteral - [10..11) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [11..12) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [12..22) - FullWidth: 10 - [bind-Value]
+                        Text;[bind-Value];
+                    Equals;[=];
+                    MarkupTextLiteral - [23..24) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [24..35) - FullWidth: 11
+                        CSharpExpressionLiteral - [24..35) - FullWidth: 11 - [person.Name] - Gen<None>
+                            Text;[person.Name];
+                    MarkupTextLiteral - [35..36) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [36..37) - FullWidth: 1
+                    MarkupTextLiteral - [36..37) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [39..43) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [43..94) - FullWidth: 51
+            RazorDirective - [43..94) - FullWidth: 51 - Directive:{functions;CodeBlock;Unrestricted}
+                CSharpTransition - [43..44) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [44..94) - FullWidth: 50
+                    RazorMetaCode - [44..53) - FullWidth: 9 - Gen<None>
+                        Identifier;[functions];
+                    CSharpCodeBlock - [53..94) - FullWidth: 41
+                        UnclassifiedTextLiteral - [53..55) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+                        RazorMetaCode - [55..56) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [56..93) - FullWidth: 37
+                            CSharpStatementLiteral - [56..93) - FullWidth: 37 - [LF    Person person = new Person();LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Identifier;[Person];
+                                Whitespace;[ ];
+                                Identifier;[person];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[new];
+                                Whitespace;[ ];
+                                Identifier;[Person];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [93..94) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [94..94) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

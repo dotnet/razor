@@ -1,0 +1,56 @@
+﻿RazorDocument - [0..87) - FullWidth: 87 - [<MyComponent>LF    <Header>Hi!</Header>LF    <Footer>@("bye!")</Footer>LF</MyComponent>]
+    MarkupBlock - [0..87) - FullWidth: 87
+        MarkupTagHelperElement - [0..87) - FullWidth: 87 - MyComponent[StartTagAndEndTag] - MyComponent
+            MarkupTagHelperStartTag - [0..13) - FullWidth: 13 - [<MyComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [13..19) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [19..39) - FullWidth: 20 - Header[StartTagAndEndTag] - Header
+                MarkupTagHelperStartTag - [19..27) - FullWidth: 8 - [<Header>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Header];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [27..30) - FullWidth: 3 - [Hi!] - Gen<Markup>
+                    Text;[Hi];
+                    Bang;[!];
+                MarkupTagHelperEndTag - [30..39) - FullWidth: 9 - [</Header>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Header];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [39..45) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [45..71) - FullWidth: 26 - Footer[StartTagAndEndTag] - Footer
+                MarkupTagHelperStartTag - [45..53) - FullWidth: 8 - [<Footer>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Footer];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [53..62) - FullWidth: 9
+                    CSharpExplicitExpression - [53..62) - FullWidth: 9
+                        CSharpTransition - [53..54) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpExplicitExpressionBody - [54..62) - FullWidth: 8
+                            RazorMetaCode - [54..55) - FullWidth: 1 - Gen<None>
+                                LeftParenthesis;[(];
+                            CSharpCodeBlock - [55..61) - FullWidth: 6
+                                CSharpExpressionLiteral - [55..61) - FullWidth: 6 - ["bye!"] - Gen<Expr>
+                                    StringLiteral;["bye!"];
+                            RazorMetaCode - [61..62) - FullWidth: 1 - Gen<None>
+                                RightParenthesis;[)];
+                MarkupTagHelperEndTag - [62..71) - FullWidth: 9 - [</Footer>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Footer];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [71..73) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [73..87) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

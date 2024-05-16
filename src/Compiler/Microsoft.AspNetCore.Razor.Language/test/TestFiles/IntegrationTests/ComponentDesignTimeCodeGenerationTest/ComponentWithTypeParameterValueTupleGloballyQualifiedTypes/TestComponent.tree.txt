@@ -1,0 +1,186 @@
+﻿RazorDocument - [0..349) - FullWidth: 349 - [@using NLF@typeparam TParamLFLF@code {LF    [Parameter]LF    public TParam InferParam { get; set; }LFLF    [Parameter]LF    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }LF}LFLF<TestComponent InferParam="1">LF    <Template>LF        @context.I1.MyClassId - @context.I2.MyStructIdLF    </Template>LF</TestComponent>]
+    MarkupBlock - [0..349) - FullWidth: 349
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..8) - FullWidth: 8
+            RazorDirective - [0..8) - FullWidth: 8
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..8) - FullWidth: 7
+                    CSharpStatementLiteral - [1..8) - FullWidth: 7 - [using N] - Gen<Import: N;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[N];
+        MarkupTextLiteral - [8..10) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [10..29) - FullWidth: 19
+            RazorDirective - [10..29) - FullWidth: 19 - Directive:{typeparam;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [10..11) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [11..29) - FullWidth: 18
+                    RazorMetaCode - [11..20) - FullWidth: 9 - Gen<None>
+                        Identifier;[typeparam];
+                    CSharpCodeBlock - [20..29) - FullWidth: 9
+                        CSharpStatementLiteral - [20..21) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [21..27) - FullWidth: 6 - [TParam] - Gen<DirectiveToken {type parameter;Member;Opt:False}>
+                            Identifier;[TParam];
+                        MarkupEphemeralTextLiteral - [27..29) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [29..31) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [31..208) - FullWidth: 177
+            RazorDirective - [31..208) - FullWidth: 177 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [31..32) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [32..208) - FullWidth: 176
+                    RazorMetaCode - [32..36) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [36..208) - FullWidth: 172
+                        UnclassifiedTextLiteral - [36..37) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [37..38) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [38..207) - FullWidth: 169
+                            CSharpStatementLiteral - [38..207) - FullWidth: 169 - [LF    [Parameter]LF    public TParam InferParam { get; set; }LFLF    [Parameter]LF    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[TParam];
+                                Whitespace;[ ];
+                                Identifier;[InferParam];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[RenderFragment];
+                                LessThan;[<];
+                                LeftParenthesis;[(];
+                                Identifier;[MyClass];
+                                Whitespace;[ ];
+                                Identifier;[I1];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Identifier;[MyStruct];
+                                Whitespace;[ ];
+                                Identifier;[I2];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Identifier;[TParam];
+                                Whitespace;[ ];
+                                Identifier;[P];
+                                RightParenthesis;[)];
+                                GreaterThan;[>];
+                                Whitespace;[ ];
+                                Identifier;[Template];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [207..208) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [208..212) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupTagHelperElement - [212..349) - FullWidth: 137 - TestComponent[StartTagAndEndTag] - TestComponent<TParam>
+            MarkupTagHelperStartTag - [212..242) - FullWidth: 30 - [<TestComponent InferParam="1">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperAttribute - [226..241) - FullWidth: 15 - InferParam - DoubleQuotes - Bound - [ InferParam="1"]
+                    MarkupTextLiteral - [226..227) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [227..237) - FullWidth: 10 - [InferParam] - Gen<Markup>
+                        Text;[InferParam];
+                    Equals;[=];
+                    MarkupTextLiteral - [238..239) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [239..240) - FullWidth: 1
+                        CSharpExpressionLiteral - [239..240) - FullWidth: 1 - [1] - Gen<None>
+                            Text;[1];
+                    MarkupTextLiteral - [240..241) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [242..248) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [248..331) - FullWidth: 83 - Template[StartTagAndEndTag] - Template
+                MarkupTagHelperStartTag - [248..258) - FullWidth: 10 - [<Template>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Template];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [258..268) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                CSharpCodeBlock - [268..289) - FullWidth: 21
+                    CSharpImplicitExpression - [268..289) - FullWidth: 21
+                        CSharpTransition - [268..269) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [269..289) - FullWidth: 20
+                            CSharpCodeBlock - [269..289) - FullWidth: 20
+                                CSharpExpressionLiteral - [269..289) - FullWidth: 20 - [context.I1.MyClassId] - Gen<Expr>
+                                    Identifier;[context];
+                                    Dot;[.];
+                                    Identifier;[I1];
+                                    Dot;[.];
+                                    Identifier;[MyClassId];
+                MarkupTextLiteral - [289..292) - FullWidth: 3 - [ - ] - Gen<Markup>
+                    Whitespace;[ ];
+                    Text;[-];
+                    Whitespace;[ ];
+                CSharpCodeBlock - [292..314) - FullWidth: 22
+                    CSharpImplicitExpression - [292..314) - FullWidth: 22
+                        CSharpTransition - [292..293) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [293..314) - FullWidth: 21
+                            CSharpCodeBlock - [293..314) - FullWidth: 21
+                                CSharpExpressionLiteral - [293..314) - FullWidth: 21 - [context.I2.MyStructId] - Gen<Expr>
+                                    Identifier;[context];
+                                    Dot;[.];
+                                    Identifier;[I2];
+                                    Dot;[.];
+                                    Identifier;[MyStructId];
+                MarkupTextLiteral - [314..320) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[    ];
+                MarkupTagHelperEndTag - [320..331) - FullWidth: 11 - [</Template>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Template];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [331..333) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [333..349) - FullWidth: 16 - [</TestComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[TestComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

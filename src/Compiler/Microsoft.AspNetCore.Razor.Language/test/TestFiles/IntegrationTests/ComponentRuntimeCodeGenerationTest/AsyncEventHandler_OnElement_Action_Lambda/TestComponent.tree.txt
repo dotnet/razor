@@ -1,0 +1,88 @@
+﻿RazorDocument - [0..133) - FullWidth: 133 - [@using System.Threading.TasksLF@using Microsoft.AspNetCore.Components.WebLF<input @onclick="@(async () => await Task.Delay(10))" />LF]
+    MarkupBlock - [0..133) - FullWidth: 133
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..29) - FullWidth: 29
+            RazorDirective - [0..29) - FullWidth: 29
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..29) - FullWidth: 28
+                    CSharpStatementLiteral - [1..29) - FullWidth: 28 - [using System.Threading.Tasks] - Gen<Import: System.Threading.Tasks;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[System];
+                        Dot;[.];
+                        Identifier;[Threading];
+                        Dot;[.];
+                        Identifier;[Tasks];
+        MarkupTextLiteral - [29..31) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [31..73) - FullWidth: 42
+            RazorDirective - [31..73) - FullWidth: 42
+                CSharpTransition - [31..32) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [32..73) - FullWidth: 41
+                    CSharpStatementLiteral - [32..73) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [73..75) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [75..131) - FullWidth: 56 - input[SelfClosing] - onclick
+            MarkupTagHelperStartTag - [75..131) - FullWidth: 56 - [<input @onclick="@(async () => await Task.Delay(10))" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTagHelperDirectiveAttribute - [81..128) - FullWidth: 47
+                    MarkupTextLiteral - [81..82) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [82..83) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [83..90) - FullWidth: 7 - [onclick]
+                        Text;[onclick];
+                    Equals;[=];
+                    MarkupTextLiteral - [91..92) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [92..127) - FullWidth: 35
+                        MarkupBlock - [92..127) - FullWidth: 35
+                            CSharpCodeBlock - [92..127) - FullWidth: 35
+                                CSharpImplicitExpression - [92..127) - FullWidth: 35
+                                    CSharpTransition - [92..93) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [93..127) - FullWidth: 34
+                                        CSharpCodeBlock - [93..127) - FullWidth: 34
+                                            CSharpExpressionLiteral - [93..94) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [94..126) - FullWidth: 32 - [async () => await Task.Delay(10)] - Gen<Expr>
+                                                Identifier;[async];
+                                                Whitespace;[ ];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                                Whitespace;[ ];
+                                                GreaterThanEqual;[=>];
+                                                Whitespace;[ ];
+                                                Keyword;[await];
+                                                Whitespace;[ ];
+                                                Identifier;[Task];
+                                                Dot;[.];
+                                                Identifier;[Delay];
+                                                LeftParenthesis;[(];
+                                                IntegerLiteral;[10];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [126..127) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [127..128) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [128..129) - FullWidth: 1
+                    MarkupTextLiteral - [128..129) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [131..133) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

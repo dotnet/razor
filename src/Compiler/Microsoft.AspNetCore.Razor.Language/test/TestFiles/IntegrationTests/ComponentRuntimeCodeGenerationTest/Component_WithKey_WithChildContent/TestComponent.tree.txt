@@ -1,0 +1,69 @@
+﻿RazorDocument - [0..98) - FullWidth: 98 - [<MyComponent @key="123 + 456" SomeProp="val">LF    Some <el>further</el> contentLF</MyComponent>LF]
+    MarkupBlock - [0..98) - FullWidth: 98
+        MarkupTagHelperElement - [0..96) - FullWidth: 96 - MyComponent[StartTagAndEndTag] - MyComponent - Key
+            MarkupTagHelperStartTag - [0..45) - FullWidth: 45 - [<MyComponent @key="123 + 456" SomeProp="val">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperDirectiveAttribute - [12..29) - FullWidth: 17
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [13..14) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [14..17) - FullWidth: 3 - [key]
+                        Text;[key];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..28) - FullWidth: 9
+                        CSharpExpressionLiteral - [19..28) - FullWidth: 9 - [123 + 456] - Gen<None>
+                            Text;[123];
+                            Whitespace;[ ];
+                            Text;[+];
+                            Whitespace;[ ];
+                            Text;[456];
+                    MarkupTextLiteral - [28..29) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [29..44) - FullWidth: 15 - SomeProp - DoubleQuotes - Unbound - [ SomeProp="val"]
+                    MarkupTextLiteral - [29..30) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [30..38) - FullWidth: 8 - [SomeProp] - Gen<Markup>
+                        Text;[SomeProp];
+                    Equals;[=];
+                    MarkupTextLiteral - [39..40) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [40..43) - FullWidth: 3
+                        MarkupLiteralAttributeValue - [40..43) - FullWidth: 3 - [val]
+                            MarkupTextLiteral - [40..43) - FullWidth: 3 - [val] - Gen<Markup>
+                                Text;[val];
+                    MarkupTextLiteral - [43..44) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [45..56) - FullWidth: 11 - [LF    Some ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+                Text;[Some];
+                Whitespace;[ ];
+            MarkupElement - [56..72) - FullWidth: 16
+                MarkupStartTag - [56..60) - FullWidth: 4 - [<el>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[el];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [60..67) - FullWidth: 7 - [further] - Gen<Markup>
+                    Text;[further];
+                MarkupEndTag - [67..72) - FullWidth: 5 - [</el>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[el];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [72..82) - FullWidth: 10 - [ contentLF] - Gen<Markup>
+                Whitespace;[ ];
+                Text;[content];
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [82..96) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [96..98) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

@@ -10,7 +10,7 @@
                     RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..46)::44
-                        CSharpStatementLiteral - [2..32)::30 - [ for(int i = 0; i < 10; i++) {] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                        CSharpStatementLiteral - [2..33)::31 - [ for(int i = 0; i < 10; i++) { ] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
                             Whitespace;[ ];
                             Keyword;[for];
                             LeftParenthesis;[(];
@@ -35,9 +35,8 @@
                             RightParenthesis;[)];
                             Whitespace;[ ];
                             LeftBrace;[{];
-                        MarkupBlock - [32..44)::12
-                            MarkupTextLiteral - [32..33)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                                Whitespace;[ ];
+                            Whitespace;[ ];
+                        MarkupBlock - [33..44)::11
                             MarkupElement - [33..43)::10
                                 MarkupStartTag - [33..36)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                                     OpenAngle;[<];

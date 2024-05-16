@@ -45,8 +45,8 @@ namespace AspNetCore
             BeginContext(17, 2, true);
             WriteLiteral("\r\n");
             EndContext();
-            BeginContext(64, 2, true);
-            WriteLiteral("\r\n");
+            BeginContext(62, 4, true);
+            WriteLiteral("\r\n\r\n");
             EndContext();
             BeginContext(66, 25, false);
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input-test", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {

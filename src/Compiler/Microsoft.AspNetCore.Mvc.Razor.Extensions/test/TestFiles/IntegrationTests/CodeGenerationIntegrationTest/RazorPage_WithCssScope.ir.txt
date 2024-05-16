@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -19,6 +19,8 @@
             FieldDeclaration -  - private - global::AllTagHelper - __AllTagHelper
             FieldDeclaration -  - private - global::FormTagHelper - __FormTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (31:1,24 [2] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
+                    LazyIntermediateToken - (31:1,24 [2] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n
                 CSharpCode - (35:2,2 [40] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
                     LazyIntermediateToken - (35:2,2 [40] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - \n    ViewData["Title"] = "Home page";\n
                 HtmlContent - (78:5,0 [191] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)

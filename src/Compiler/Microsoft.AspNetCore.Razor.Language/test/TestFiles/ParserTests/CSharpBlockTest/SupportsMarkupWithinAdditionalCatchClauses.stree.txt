@@ -5,7 +5,7 @@
         CSharpCodeBlock - [0..142)::142
             CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..129)::128 - [try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) {] - Gen<Stmt>
+            CSharpStatementLiteral - [1..130)::129 - [try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { ] - Gen<Stmt>
                 Keyword;[try];
                 Whitespace;[ ];
                 LeftBrace;[{];
@@ -84,9 +84,8 @@
                 RightParenthesis;[)];
                 Whitespace;[ ];
                 LeftBrace;[{];
-            MarkupBlock - [129..141)::12
-                MarkupTextLiteral - [129..130)::1 - [ ] - Gen<Markup>
-                    Whitespace;[ ];
+                Whitespace;[ ];
+            MarkupBlock - [130..141)::11
                 MarkupElement - [130..140)::10
                     MarkupStartTag - [130..133)::3 - [<p>] - Gen<Markup>
                         OpenAngle;[<];

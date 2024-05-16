@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -19,10 +19,9 @@
                     LazyIntermediateToken - (5:0,5 [2] DesignTime.cshtml) - Html - \n
                 CSharpCode - (7:1,0 [12] DesignTime.cshtml)
                     LazyIntermediateToken - (7:1,0 [12] DesignTime.cshtml) - CSharp -             
-                CSharpCode - (20:1,13 [32] DesignTime.cshtml)
-                    LazyIntermediateToken - (20:1,13 [32] DesignTime.cshtml) - CSharp - for(int i = 1; i <= 10; i++) {\n
-                HtmlContent - (52:2,0 [21] DesignTime.cshtml)
-                    LazyIntermediateToken - (52:2,0 [4] DesignTime.cshtml) - Html -     
+                CSharpCode - (20:1,13 [36] DesignTime.cshtml)
+                    LazyIntermediateToken - (20:1,13 [36] DesignTime.cshtml) - CSharp - for(int i = 1; i <= 10; i++) {\n    
+                HtmlContent - (56:2,4 [17] DesignTime.cshtml)
                     LazyIntermediateToken - (56:2,4 [2] DesignTime.cshtml) - Html - <p
                     LazyIntermediateToken - (58:2,6 [1] DesignTime.cshtml) - Html - >
                     LazyIntermediateToken - (59:2,7 [14] DesignTime.cshtml) - Html - This is item #
@@ -31,9 +30,10 @@
                 HtmlContent - (75:2,23 [6] DesignTime.cshtml)
                     LazyIntermediateToken - (75:2,23 [4] DesignTime.cshtml) - Html - </p>
                     LazyIntermediateToken - (79:2,27 [2] DesignTime.cshtml) - Html - \n
-                CSharpCode - (81:3,0 [15] DesignTime.cshtml)
-                    LazyIntermediateToken - (81:3,0 [15] DesignTime.cshtml) - CSharp -             }\n
-                HtmlContent - (96:4,0 [15] DesignTime.cshtml)
+                CSharpCode - (81:3,0 [13] DesignTime.cshtml)
+                    LazyIntermediateToken - (81:3,0 [13] DesignTime.cshtml) - CSharp -             }
+                HtmlContent - (94:3,13 [17] DesignTime.cshtml)
+                    LazyIntermediateToken - (94:3,13 [2] DesignTime.cshtml) - Html - \n
                     LazyIntermediateToken - (96:4,0 [6] DesignTime.cshtml) - Html - </div>
                     LazyIntermediateToken - (102:4,6 [4] DesignTime.cshtml) - Html - \n\n
                     LazyIntermediateToken - (106:6,0 [2] DesignTime.cshtml) - Html - <p

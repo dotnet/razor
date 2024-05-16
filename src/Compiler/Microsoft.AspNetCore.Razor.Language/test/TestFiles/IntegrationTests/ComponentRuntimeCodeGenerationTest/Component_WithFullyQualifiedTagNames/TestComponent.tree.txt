@@ -1,0 +1,34 @@
+﻿RazorDocument - [0..61) - FullWidth: 61 - [<MyComponent />LF<Test.MyComponent />LF<Test2.MyComponent2 />]
+    MarkupBlock - [0..61) - FullWidth: 61
+        MarkupTagHelperElement - [0..15) - FullWidth: 15 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..15) - FullWidth: 15 - [<MyComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupMiscAttributeContent - [12..13) - FullWidth: 1
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [15..17) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [17..37) - FullWidth: 20 - Test.MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [17..37) - FullWidth: 20 - [<Test.MyComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Test.MyComponent];
+                MarkupMiscAttributeContent - [34..35) - FullWidth: 1
+                    MarkupTextLiteral - [34..35) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [37..39) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [39..61) - FullWidth: 22 - Test2.MyComponent2[SelfClosing] - MyComponent2
+            MarkupTagHelperStartTag - [39..61) - FullWidth: 22 - [<Test2.MyComponent2 />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Test2.MyComponent2];
+                MarkupMiscAttributeContent - [58..59) - FullWidth: 1
+                    MarkupTextLiteral - [58..59) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

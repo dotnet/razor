@@ -1,0 +1,19 @@
+﻿RazorDocument - [0..32) - FullWidth: 32 - [<script>alert("Hello");</script>]
+    MarkupBlock - [0..32) - FullWidth: 32
+        MarkupElement - [0..32) - FullWidth: 32
+            MarkupStartTag - [0..8) - FullWidth: 8 - [<script>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[script];
+                CloseAngle;[>];
+            MarkupTextLiteral - [8..23) - FullWidth: 15 - [alert("Hello");] - Gen<Markup>
+                Text;[alert(];
+                DoubleQuote;["];
+                Text;[Hello];
+                DoubleQuote;["];
+                Text;[);];
+            MarkupEndTag - [23..32) - FullWidth: 9 - [</script>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[script];
+                CloseAngle;[>];
+    EndOfFile;[];

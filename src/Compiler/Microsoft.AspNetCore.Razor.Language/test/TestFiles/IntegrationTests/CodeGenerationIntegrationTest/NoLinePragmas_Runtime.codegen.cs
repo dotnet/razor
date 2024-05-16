@@ -35,14 +35,15 @@ namespace AspNetCore
 
             WriteLiteral("\r\n");
 #nullable restore
-#line (5,2)-(6,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (5,2)-(6,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 while(i <= 10) {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>Hello from C#, #");
+            WriteLiteral("<p>Hello from C#, #");
             Write(
 #nullable restore
 #line (6,26)-(6,27) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
@@ -54,7 +55,7 @@ i
             );
             WriteLiteral("</p>\r\n");
 #nullable restore
-#line (7,1)-(9,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (7,1)-(8,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
     i += 1;
 }
 
@@ -62,47 +63,50 @@ i
 #line hidden
 #nullable disable
 
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
 #nullable restore
-#line (10,2)-(11,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (10,2)-(11,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 if(i == 11) {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>We wrote 10 lines!</p>\r\n");
+            WriteLiteral("<p>We wrote 10 lines!</p>\r\n");
 #nullable restore
-#line (12,1)-(13,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (12,1)-(12,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 }
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
 #nullable restore
-#line (14,2)-(16,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (14,2)-(16,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 switch(i) {
     case 11:
+        
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("        <p>No really, we wrote 10 lines!</p>\r\n");
+            WriteLiteral("<p>No really, we wrote 10 lines!</p>\r\n");
 #nullable restore
-#line (17,1)-(19,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (17,1)-(19,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
         break;
     default:
+        
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("        <p>Actually, we didn\'t...</p>\r\n");
+            WriteLiteral("<p>Actually, we didn\'t...</p>\r\n");
 #nullable restore
-#line (20,1)-(22,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (20,1)-(21,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
         break;
 }
 
@@ -110,16 +114,17 @@ switch(i) {
 #line hidden
 #nullable disable
 
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
 #nullable restore
-#line (23,2)-(24,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (23,2)-(24,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 for(int j = 1; j <= 10; j += 2) {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>Hello again from C#, #");
+            WriteLiteral("<p>Hello again from C#, #");
             Write(
 #nullable restore
 #line (24,32)-(24,33) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
@@ -131,32 +136,34 @@ j
             );
             WriteLiteral("</p>\r\n");
 #nullable restore
-#line (25,1)-(26,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (25,1)-(25,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 }
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
 #nullable restore
-#line (27,2)-(28,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (27,2)-(28,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 try {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>That time, we wrote 5 lines!</p>\r\n");
+            WriteLiteral("<p>That time, we wrote 5 lines!</p>\r\n");
 #nullable restore
-#line (29,1)-(30,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (29,1)-(30,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 } catch(Exception ex) {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>Oh no! An error occurred: ");
+            WriteLiteral("<p>Oh no! An error occurred: ");
             Write(
 #nullable restore
 #line (30,36)-(30,46) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
@@ -176,7 +183,7 @@ ex.Message
 #line hidden
 #nullable disable
 
-            WriteLiteral("<p>i is now ");
+            WriteLiteral("\r\n<p>i is now ");
             Write(
 #nullable restore
 #line (34,14)-(34,15) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
@@ -188,14 +195,15 @@ i
             );
             WriteLiteral("</p>\r\n\r\n");
 #nullable restore
-#line (36,2)-(37,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
+#line (36,2)-(37,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 lock(new object()) {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>This block is locked, for your security!</p>\r\n");
+            WriteLiteral("<p>This block is locked, for your security!</p>\r\n");
 #nullable restore
 #line (38,1)-(38,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NoLinePragmas.cshtml"
 }

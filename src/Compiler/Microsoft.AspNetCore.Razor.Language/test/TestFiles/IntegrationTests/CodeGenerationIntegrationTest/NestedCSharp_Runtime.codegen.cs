@@ -25,15 +25,16 @@ namespace AspNetCore
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line (2,6)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
+#line (2,6)-(4,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
 foreach (var result in (dynamic)Url)
     {
+        
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("        <div>\r\n            ");
+            WriteLiteral("<div>\r\n            ");
             Write(
 #nullable restore
 #line (5,14)-(5,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"

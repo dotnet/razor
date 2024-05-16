@@ -1,0 +1,86 @@
+﻿RazorDocument - [0..117) - FullWidth: 117 - [@using Microsoft.AspNetCore.Components.WebLF<form @formname="myform" class="nice">LF    <p>@DateTime.Now</p>LF</form>]
+    MarkupBlock - [0..117) - FullWidth: 117
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42) - FullWidth: 42
+            RazorDirective - [0..42) - FullWidth: 42
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..42) - FullWidth: 41
+                    CSharpStatementLiteral - [1..42) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [44..117) - FullWidth: 73 - form[StartTagAndEndTag] - FormName
+            MarkupTagHelperStartTag - [44..82) - FullWidth: 38 - [<form @formname="myform" class="nice">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[form];
+                MarkupTagHelperDirectiveAttribute - [49..68) - FullWidth: 19
+                    MarkupTextLiteral - [49..50) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [50..51) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [51..59) - FullWidth: 8 - [formname]
+                        Text;[formname];
+                    Equals;[=];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [61..67) - FullWidth: 6
+                        MarkupTextLiteral - [61..67) - FullWidth: 6 - [myform] - Gen<Markup>
+                            Text;[myform];
+                    MarkupTextLiteral - [67..68) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [68..81) - FullWidth: 13 - class - DoubleQuotes - Unbound - [ class="nice"]
+                    MarkupTextLiteral - [68..69) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [69..74) - FullWidth: 5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [75..76) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [76..80) - FullWidth: 4
+                        MarkupLiteralAttributeValue - [76..80) - FullWidth: 4 - [nice]
+                            MarkupTextLiteral - [76..80) - FullWidth: 4 - [nice] - Gen<Markup>
+                                Text;[nice];
+                    MarkupTextLiteral - [80..81) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [82..88) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupElement - [88..108) - FullWidth: 20
+                MarkupStartTag - [88..91) - FullWidth: 3 - [<p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[p];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [91..104) - FullWidth: 13
+                    CSharpImplicitExpression - [91..104) - FullWidth: 13
+                        CSharpTransition - [91..92) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [92..104) - FullWidth: 12
+                            CSharpCodeBlock - [92..104) - FullWidth: 12
+                                CSharpExpressionLiteral - [92..104) - FullWidth: 12 - [DateTime.Now] - Gen<Expr>
+                                    Identifier;[DateTime];
+                                    Dot;[.];
+                                    Identifier;[Now];
+                MarkupEndTag - [104..108) - FullWidth: 4 - [</p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[p];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [108..110) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [110..117) - FullWidth: 7 - [</form>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[form];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -13,7 +13,7 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
-#line (4,2)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
+#line (4,2)-(4,43) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
 using Microsoft.AspNetCore.Mvc.RazorPages
 
 #line default
@@ -53,11 +53,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             BeginContext(7, 2, true);
             WriteLiteral("\r\n");
             EndContext();
-            BeginContext(81, 2, true);
+            BeginContext(35, 2, true);
             WriteLiteral("\r\n");
             EndContext();
-            BeginContext(381, 75, true);
-            WriteLiteral("\r\n<h1>New Customer</h1>\r\n<form method=\"post\" class=\"form-horizontal\">\r\n    ");
+            BeginContext(79, 4, true);
+            WriteLiteral("\r\n\r\n");
+            EndContext();
+            BeginContext(379, 77, true);
+            WriteLiteral("\r\n\r\n<h1>New Customer</h1>\r\n<form method=\"post\" class=\"form-horizontal\">\r\n    ");
             EndContext();
             BeginContext(456, 31, false);
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {

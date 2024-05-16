@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -19,8 +19,8 @@
             FieldDeclaration -  - private - global::TestNamespace.InputTagHelper2 - __TestNamespace_InputTagHelper2
             FieldDeclaration -  - private - global::TestNamespace.PTagHelper - __TestNamespace_PTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
-                HtmlContent - (31:1,0 [13] EmptyAttributeTagHelpers.cshtml)
-                    LazyIntermediateToken - (31:1,0 [2] EmptyAttributeTagHelpers.cshtml) - Html - \n
+                HtmlContent - (29:0,29 [15] EmptyAttributeTagHelpers.cshtml)
+                    LazyIntermediateToken - (29:0,29 [4] EmptyAttributeTagHelpers.cshtml) - Html - \n\n
                     LazyIntermediateToken - (33:2,0 [4] EmptyAttributeTagHelpers.cshtml) - Html - <div
                     LazyIntermediateToken - (37:2,4 [1] EmptyAttributeTagHelpers.cshtml) - Html - >
                     LazyIntermediateToken - (38:2,5 [6] EmptyAttributeTagHelpers.cshtml) - Html - \n    

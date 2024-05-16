@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -16,8 +16,8 @@
             DefaultTagHelperRuntime - 
             FieldDeclaration -  - private - global::TestNamespace.PTagHelper - __TestNamespace_PTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
-                HtmlContent - (33:1,0 [2] SingleTagHelper.cshtml)
-                    LazyIntermediateToken - (33:1,0 [2] SingleTagHelper.cshtml) - Html - \n
+                HtmlContent - (31:0,31 [4] SingleTagHelper.cshtml)
+                    LazyIntermediateToken - (31:0,31 [4] SingleTagHelper.cshtml) - Html - \n\n
                 TagHelper - (35:2,0 [49] SingleTagHelper.cshtml) - p - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                         HtmlContent - (69:2,34 [11] SingleTagHelper.cshtml)

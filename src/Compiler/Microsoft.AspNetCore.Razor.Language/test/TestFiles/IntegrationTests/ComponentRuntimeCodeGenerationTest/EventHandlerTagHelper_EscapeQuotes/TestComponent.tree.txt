@@ -1,0 +1,149 @@
+﻿RazorDocument - [0..201) - FullWidth: 201 - [<input onfocus='alert("Test");' />LF<input onfocus="alert("Test");" />LF<input onfocus="alert('Test');" />LF<p data-options='{direction: "fromtop", animation_duration: 25, direction: "reverse"}'></p>LF]
+    MarkupBlock - [0..201) - FullWidth: 201
+        MarkupElement - [0..34) - FullWidth: 34
+            MarkupStartTag - [0..34) - FullWidth: 34 - [<input onfocus='alert("Test");' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupAttributeBlock - [6..31) - FullWidth: 25 - [ onfocus='alert("Test");']
+                    MarkupTextLiteral - [6..7) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [7..14) - FullWidth: 7 - [onfocus] - Gen<Markup>
+                        Text;[onfocus];
+                    Equals;[=];
+                    MarkupTextLiteral - [15..16) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    GenericBlock - [16..30) - FullWidth: 14
+                        MarkupLiteralAttributeValue - [16..30) - FullWidth: 14 - [alert("Test");]
+                            MarkupTextLiteral - [16..30) - FullWidth: 14 - [alert("Test");] - Gen<Markup>
+                                Text;[alert(];
+                                DoubleQuote;["];
+                                Text;[Test];
+                                DoubleQuote;["];
+                                Text;[);];
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [31..32) - FullWidth: 1
+                    MarkupTextLiteral - [31..32) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [34..36) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [36..70) - FullWidth: 34
+            MarkupStartTag - [36..70) - FullWidth: 34 - [<input onfocus="alert("Test");" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupAttributeBlock - [42..59) - FullWidth: 17 - [ onfocus="alert("]
+                    MarkupTextLiteral - [42..43) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [43..50) - FullWidth: 7 - [onfocus] - Gen<Markup>
+                        Text;[onfocus];
+                    Equals;[=];
+                    MarkupTextLiteral - [51..52) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [52..58) - FullWidth: 6
+                        MarkupLiteralAttributeValue - [52..58) - FullWidth: 6 - [alert(]
+                            MarkupTextLiteral - [52..58) - FullWidth: 6 - [alert(] - Gen<Markup>
+                                Text;[alert(];
+                    MarkupTextLiteral - [58..59) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMinimizedAttributeBlock - [59..67) - FullWidth: 8 - [Test");"]
+                    MarkupTextLiteral - [59..67) - FullWidth: 8 - [Test");"] - Gen<Markup>
+                        Text;[Test];
+                        DoubleQuote;["];
+                        Text;[);];
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [67..68) - FullWidth: 1
+                    MarkupTextLiteral - [67..68) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [70..72) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [72..106) - FullWidth: 34
+            MarkupStartTag - [72..106) - FullWidth: 34 - [<input onfocus="alert('Test');" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupAttributeBlock - [78..103) - FullWidth: 25 - [ onfocus="alert('Test');"]
+                    MarkupTextLiteral - [78..79) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [79..86) - FullWidth: 7 - [onfocus] - Gen<Markup>
+                        Text;[onfocus];
+                    Equals;[=];
+                    MarkupTextLiteral - [87..88) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [88..102) - FullWidth: 14
+                        MarkupLiteralAttributeValue - [88..102) - FullWidth: 14 - [alert('Test');]
+                            MarkupTextLiteral - [88..102) - FullWidth: 14 - [alert('Test');] - Gen<Markup>
+                                Text;[alert(];
+                                SingleQuote;['];
+                                Text;[Test];
+                                SingleQuote;['];
+                                Text;[);];
+                    MarkupTextLiteral - [102..103) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [103..104) - FullWidth: 1
+                    MarkupTextLiteral - [103..104) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [106..108) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [108..199) - FullWidth: 91
+            MarkupStartTag - [108..195) - FullWidth: 87 - [<p data-options='{direction: "fromtop", animation_duration: 25, direction: "reverse"}'>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupAttributeBlock - [110..194) - FullWidth: 84 - [ data-options='{direction: "fromtop", animation_duration: 25, direction: "reverse"}']
+                    MarkupTextLiteral - [110..111) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [111..123) - FullWidth: 12 - [data-options] - Gen<Markup>
+                        Text;[data-options];
+                    Equals;[=];
+                    MarkupTextLiteral - [124..125) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    GenericBlock - [125..193) - FullWidth: 68
+                        MarkupLiteralAttributeValue - [125..136) - FullWidth: 11 - [{direction:]
+                            MarkupTextLiteral - [125..136) - FullWidth: 11 - [{direction:] - Gen<Markup>
+                                Text;[{direction:];
+                        MarkupLiteralAttributeValue - [136..147) - FullWidth: 11 - [ "fromtop",]
+                            MarkupTextLiteral - [136..137) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [137..147) - FullWidth: 10 - ["fromtop",] - Gen<Markup>
+                                DoubleQuote;["];
+                                Text;[fromtop];
+                                DoubleQuote;["];
+                                Text;[,];
+                        MarkupLiteralAttributeValue - [147..167) - FullWidth: 20 - [ animation_duration:]
+                            MarkupTextLiteral - [147..148) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [148..167) - FullWidth: 19 - [animation_duration:] - Gen<Markup>
+                                Text;[animation_duration:];
+                        MarkupLiteralAttributeValue - [167..171) - FullWidth: 4 - [ 25,]
+                            MarkupTextLiteral - [167..168) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [168..171) - FullWidth: 3 - [25,] - Gen<Markup>
+                                Text;[25,];
+                        MarkupLiteralAttributeValue - [171..182) - FullWidth: 11 - [ direction:]
+                            MarkupTextLiteral - [171..172) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [172..182) - FullWidth: 10 - [direction:] - Gen<Markup>
+                                Text;[direction:];
+                        MarkupLiteralAttributeValue - [182..193) - FullWidth: 11 - [ "reverse"}]
+                            MarkupTextLiteral - [182..183) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [183..193) - FullWidth: 10 - ["reverse"}] - Gen<Markup>
+                                DoubleQuote;["];
+                                Text;[reverse];
+                                DoubleQuote;["];
+                                Text;[}];
+                    MarkupTextLiteral - [193..194) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                CloseAngle;[>];
+            MarkupEndTag - [195..199) - FullWidth: 4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [199..201) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

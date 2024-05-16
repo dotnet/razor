@@ -44,6 +44,9 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
+            BeginContext(26, 2, true);
+            WriteLiteral("\r\n");
+            EndContext();
 #line (2,3)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelper.cshtml"
 
     var foo = "Hello";

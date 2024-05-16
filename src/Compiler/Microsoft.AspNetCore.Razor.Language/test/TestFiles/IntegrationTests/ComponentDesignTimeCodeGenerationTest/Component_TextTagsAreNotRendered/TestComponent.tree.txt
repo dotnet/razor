@@ -1,0 +1,51 @@
+﻿RazorDocument - [0..71) - FullWidth: 71 - [<Counter />LF@if (true)LF{LF    <text>This text is rendered</text>LF}LF]
+    MarkupBlock - [0..71) - FullWidth: 71
+        MarkupTagHelperElement - [0..11) - FullWidth: 11 - Counter[SelfClosing] - Counter
+            MarkupTagHelperStartTag - [0..11) - FullWidth: 11 - [<Counter />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Counter];
+                MarkupMiscAttributeContent - [8..9) - FullWidth: 1
+                    MarkupTextLiteral - [8..9) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [11..13) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [13..69) - FullWidth: 56
+            CSharpTransition - [13..14) - FullWidth: 1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [14..32) - FullWidth: 18 - [if (true)LF{LF    ] - Gen<Stmt>
+                Keyword;[if];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Keyword;[true];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupBlock - [32..66) - FullWidth: 34
+                MarkupElement - [32..66) - FullWidth: 34
+                    MarkupStartTag - [32..38) - FullWidth: 6 - MarkupTransition - [<text>] - Gen<None>
+                        OpenAngle;[<];
+                        Text;[text];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [38..59) - FullWidth: 21 - [This text is rendered] - Gen<Markup>
+                        Text;[This];
+                        Whitespace;[ ];
+                        Text;[text];
+                        Whitespace;[ ];
+                        Text;[is];
+                        Whitespace;[ ];
+                        Text;[rendered];
+                    MarkupEndTag - [59..66) - FullWidth: 7 - MarkupTransition - [</text>] - Gen<None>
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[text];
+                        CloseAngle;[>];
+            CSharpStatementLiteral - [66..69) - FullWidth: 3 - [LF}] - Gen<Stmt>
+                NewLine;[LF];
+                RightBrace;[}];
+        MarkupTextLiteral - [69..71) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

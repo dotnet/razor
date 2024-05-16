@@ -46,7 +46,7 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
 #nullable restore
 #line (3,3)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml"
 

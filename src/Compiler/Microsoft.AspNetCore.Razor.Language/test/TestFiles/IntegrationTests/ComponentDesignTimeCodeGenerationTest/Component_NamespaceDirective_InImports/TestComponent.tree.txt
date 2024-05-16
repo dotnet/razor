@@ -1,0 +1,14 @@
+﻿RazorDocument - [0..13) - FullWidth: 13 - [<Counter />LF]
+    MarkupBlock - [0..13) - FullWidth: 13
+        MarkupTagHelperElement - [0..11) - FullWidth: 11 - Counter[SelfClosing] - Counter
+            MarkupTagHelperStartTag - [0..11) - FullWidth: 11 - [<Counter />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Counter];
+                MarkupMiscAttributeContent - [8..9) - FullWidth: 1
+                    MarkupTextLiteral - [8..9) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [11..13) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

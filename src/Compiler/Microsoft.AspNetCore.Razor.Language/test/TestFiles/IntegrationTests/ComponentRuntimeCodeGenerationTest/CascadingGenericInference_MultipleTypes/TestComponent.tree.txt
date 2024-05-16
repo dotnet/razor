@@ -1,0 +1,127 @@
+﻿RazorDocument - [0..172) - FullWidth: 172 - [<Parent Data="@(new System.Collections.Generic.Dictionary<int, string>())" Other="@DateTime.MinValue">LF    <Child ChildOnlyItems="@(new[] { 'a', 'b', 'c' })" />LF</Parent>]
+    MarkupBlock - [0..172) - FullWidth: 172
+        MarkupTagHelperElement - [0..172) - FullWidth: 172 - Parent[StartTagAndEndTag] - Parent<TKey, TValue, TOther>
+            MarkupTagHelperStartTag - [0..102) - FullWidth: 102 - [<Parent Data="@(new System.Collections.Generic.Dictionary<int, string>())" Other="@DateTime.MinValue">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Parent];
+                MarkupTagHelperAttribute - [7..74) - FullWidth: 67 - Data - DoubleQuotes - Bound - [ Data="@(new System.Collections.Generic.Dictionary<int, string>())"]
+                    MarkupTextLiteral - [7..8) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [8..12) - FullWidth: 4 - [Data] - Gen<Markup>
+                        Text;[Data];
+                    Equals;[=];
+                    MarkupTextLiteral - [13..14) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [14..73) - FullWidth: 59
+                        MarkupBlock - [14..73) - FullWidth: 59
+                            CSharpCodeBlock - [14..73) - FullWidth: 59
+                                CSharpImplicitExpression - [14..73) - FullWidth: 59
+                                    CSharpTransition - [14..15) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [15..73) - FullWidth: 58
+                                        CSharpCodeBlock - [15..73) - FullWidth: 58
+                                            CSharpExpressionLiteral - [15..16) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [16..72) - FullWidth: 56 - [new System.Collections.Generic.Dictionary<int, string>()] - Gen<Expr>
+                                                Keyword;[new];
+                                                Whitespace;[ ];
+                                                Identifier;[System];
+                                                Dot;[.];
+                                                Identifier;[Collections];
+                                                Dot;[.];
+                                                Identifier;[Generic];
+                                                Dot;[.];
+                                                Identifier;[Dictionary];
+                                                LessThan;[<];
+                                                Keyword;[int];
+                                                Comma;[,];
+                                                Whitespace;[ ];
+                                                Keyword;[string];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [72..73) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [73..74) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [74..101) - FullWidth: 27 - Other - DoubleQuotes - Bound - [ Other="@DateTime.MinValue"]
+                    MarkupTextLiteral - [74..75) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [75..80) - FullWidth: 5 - [Other] - Gen<Markup>
+                        Text;[Other];
+                    Equals;[=];
+                    MarkupTextLiteral - [81..82) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [82..100) - FullWidth: 18
+                        MarkupBlock - [82..100) - FullWidth: 18
+                            CSharpCodeBlock - [82..100) - FullWidth: 18
+                                CSharpImplicitExpression - [82..100) - FullWidth: 18
+                                    CSharpTransition - [82..83) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [83..100) - FullWidth: 17
+                                        CSharpCodeBlock - [83..100) - FullWidth: 17
+                                            CSharpExpressionLiteral - [83..100) - FullWidth: 17 - [DateTime.MinValue] - Gen<Expr>
+                                                Identifier;[DateTime];
+                                                Dot;[.];
+                                                Identifier;[MinValue];
+                    MarkupTextLiteral - [100..101) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [102..108) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [108..161) - FullWidth: 53 - Child[SelfClosing] - Child<TOther, TValue, TKey, TChildOnly>
+                MarkupTagHelperStartTag - [108..161) - FullWidth: 53 - [<Child ChildOnlyItems="@(new[] { 'a', 'b', 'c' })" />] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Child];
+                    MarkupTagHelperAttribute - [114..158) - FullWidth: 44 - ChildOnlyItems - DoubleQuotes - Bound - [ ChildOnlyItems="@(new[] { 'a', 'b', 'c' })"]
+                        MarkupTextLiteral - [114..115) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [115..129) - FullWidth: 14 - [ChildOnlyItems] - Gen<Markup>
+                            Text;[ChildOnlyItems];
+                        Equals;[=];
+                        MarkupTextLiteral - [130..131) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [131..157) - FullWidth: 26
+                            MarkupBlock - [131..157) - FullWidth: 26
+                                CSharpCodeBlock - [131..157) - FullWidth: 26
+                                    CSharpImplicitExpression - [131..157) - FullWidth: 26
+                                        CSharpTransition - [131..132) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [132..157) - FullWidth: 25
+                                            CSharpCodeBlock - [132..157) - FullWidth: 25
+                                                CSharpExpressionLiteral - [132..133) - FullWidth: 1 - [(] - Gen<Expr>
+                                                    LeftParenthesis;[(];
+                                                CSharpExpressionLiteral - [133..156) - FullWidth: 23 - [new[] { 'a', 'b', 'c' }] - Gen<Expr>
+                                                    Keyword;[new];
+                                                    LeftBracket;[[];
+                                                    RightBracket;[]];
+                                                    Whitespace;[ ];
+                                                    LeftBrace;[{];
+                                                    Whitespace;[ ];
+                                                    CharacterLiteral;['a'];
+                                                    Comma;[,];
+                                                    Whitespace;[ ];
+                                                    CharacterLiteral;['b'];
+                                                    Comma;[,];
+                                                    Whitespace;[ ];
+                                                    CharacterLiteral;['c'];
+                                                    Whitespace;[ ];
+                                                    RightBrace;[}];
+                                                CSharpExpressionLiteral - [156..157) - FullWidth: 1 - [)] - Gen<Expr>
+                                                    RightParenthesis;[)];
+                        MarkupTextLiteral - [157..158) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupMiscAttributeContent - [158..159) - FullWidth: 1
+                        MarkupTextLiteral - [158..159) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [161..163) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [163..172) - FullWidth: 9 - [</Parent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Parent];
+                CloseAngle;[>];
+    EndOfFile;[];

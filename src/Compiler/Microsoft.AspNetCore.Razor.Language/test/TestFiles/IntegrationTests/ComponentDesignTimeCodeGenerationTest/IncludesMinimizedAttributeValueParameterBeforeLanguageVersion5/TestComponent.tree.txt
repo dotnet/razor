@@ -1,0 +1,53 @@
+﻿RazorDocument - [0..73) - FullWidth: 73 - [<elem normal-attr="@("val")" minimized-attr empty-string-atttr=""></elem>]
+    MarkupBlock - [0..73) - FullWidth: 73
+        MarkupElement - [0..73) - FullWidth: 73
+            MarkupStartTag - [0..66) - FullWidth: 66 - [<elem normal-attr="@("val")" minimized-attr empty-string-atttr="">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[elem];
+                MarkupAttributeBlock - [5..28) - FullWidth: 23 - [ normal-attr="@("val")"]
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..17) - FullWidth: 11 - [normal-attr] - Gen<Markup>
+                        Text;[normal-attr];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [19..27) - FullWidth: 8
+                        MarkupDynamicAttributeValue - [19..27) - FullWidth: 8 - [@("val")]
+                            GenericBlock - [19..27) - FullWidth: 8
+                                CSharpCodeBlock - [19..27) - FullWidth: 8
+                                    CSharpExplicitExpression - [19..27) - FullWidth: 8
+                                        CSharpTransition - [19..20) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpExplicitExpressionBody - [20..27) - FullWidth: 7
+                                            RazorMetaCode - [20..21) - FullWidth: 1 - Gen<None>
+                                                LeftParenthesis;[(];
+                                            CSharpCodeBlock - [21..26) - FullWidth: 5
+                                                CSharpExpressionLiteral - [21..26) - FullWidth: 5 - ["val"] - Gen<Expr>
+                                                    StringLiteral;["val"];
+                                            RazorMetaCode - [26..27) - FullWidth: 1 - Gen<None>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMinimizedAttributeBlock - [28..43) - FullWidth: 15 - [ minimized-attr]
+                    MarkupTextLiteral - [28..29) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [29..43) - FullWidth: 14 - [minimized-attr] - Gen<Markup>
+                        Text;[minimized-attr];
+                MarkupAttributeBlock - [43..65) - FullWidth: 22 - [ empty-string-atttr=""]
+                    MarkupTextLiteral - [43..44) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [44..62) - FullWidth: 18 - [empty-string-atttr] - Gen<Markup>
+                        Text;[empty-string-atttr];
+                    Equals;[=];
+                    MarkupTextLiteral - [63..64) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTextLiteral - [64..65) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupEndTag - [66..73) - FullWidth: 7 - [</elem>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[elem];
+                CloseAngle;[>];
+    EndOfFile;[];

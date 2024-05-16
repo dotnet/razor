@@ -1,0 +1,53 @@
+﻿RazorDocument - [0..73) - FullWidth: 73 - [@using Microsoft.AspNetCore.Components.WebLF<input @onclick="x => { }" />]
+    MarkupBlock - [0..73) - FullWidth: 73
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42) - FullWidth: 42
+            RazorDirective - [0..42) - FullWidth: 42
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..42) - FullWidth: 41
+                    CSharpStatementLiteral - [1..42) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [44..73) - FullWidth: 29 - input[SelfClosing] - onclick
+            MarkupTagHelperStartTag - [44..73) - FullWidth: 29 - [<input @onclick="x => { }" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTagHelperDirectiveAttribute - [50..70) - FullWidth: 20
+                    MarkupTextLiteral - [50..51) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [51..52) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [52..59) - FullWidth: 7 - [onclick]
+                        Text;[onclick];
+                    Equals;[=];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [61..69) - FullWidth: 8
+                        CSharpExpressionLiteral - [61..69) - FullWidth: 8 - [x => { }] - Gen<None>
+                            Text;[x];
+                            Whitespace;[ ];
+                            Equals;[=];
+                            CloseAngle;[>];
+                            Whitespace;[ ];
+                            Text;[{];
+                            Whitespace;[ ];
+                            Text;[}];
+                    MarkupTextLiteral - [69..70) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [70..71) - FullWidth: 1
+                    MarkupTextLiteral - [70..71) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -5,13 +5,12 @@
         CSharpCodeBlock - [0..19)::19
             CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
                 Transition;[@];
-            CSharpStatementLiteral - [1..6)::5 - [try {] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [1..7)::6 - [try { ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Keyword;[try];
                 Whitespace;[ ];
                 LeftBrace;[{];
-            MarkupBlock - [6..18)::12
-                MarkupTextLiteral - [6..7)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[ ];
+                Whitespace;[ ];
+            MarkupBlock - [7..18)::11
                 MarkupElement - [7..17)::10
                     MarkupStartTag - [7..10)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                         OpenAngle;[<];

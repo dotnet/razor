@@ -1,0 +1,147 @@
+﻿RazorDocument - [0..326) - FullWidth: 326 - [@using AnotherTestLFLF<HeaderComponent>LF    <Header>Hi!</Header>LF</HeaderComponent>LF<FooterComponent>LF    <Footer>@context</Footer>LF</FooterComponent>LF<Test.HeaderComponent>LF    <Header>Hi!</Header>LF</Test.HeaderComponent>LF<AnotherTest.FooterComponent>LF    <Footer>@context</Footer>LF</AnotherTest.FooterComponent>LF]
+    MarkupBlock - [0..326) - FullWidth: 326
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..18) - FullWidth: 18
+            RazorDirective - [0..18) - FullWidth: 18
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..18) - FullWidth: 17
+                    CSharpStatementLiteral - [1..18) - FullWidth: 17 - [using AnotherTest] - Gen<Import: AnotherTest;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[AnotherTest];
+        MarkupTextLiteral - [18..22) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupTagHelperElement - [22..85) - FullWidth: 63 - HeaderComponent[StartTagAndEndTag] - HeaderComponent
+            MarkupTagHelperStartTag - [22..39) - FullWidth: 17 - [<HeaderComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[HeaderComponent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [39..45) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [45..65) - FullWidth: 20 - Header[StartTagAndEndTag] - Header
+                MarkupTagHelperStartTag - [45..53) - FullWidth: 8 - [<Header>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Header];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [53..56) - FullWidth: 3 - [Hi!] - Gen<Markup>
+                    Text;[Hi];
+                    Bang;[!];
+                MarkupTagHelperEndTag - [56..65) - FullWidth: 9 - [</Header>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Header];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [65..67) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [67..85) - FullWidth: 18 - [</HeaderComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[HeaderComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [85..87) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [87..155) - FullWidth: 68 - FooterComponent[StartTagAndEndTag] - FooterComponent
+            MarkupTagHelperStartTag - [87..104) - FullWidth: 17 - [<FooterComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[FooterComponent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [104..110) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [110..135) - FullWidth: 25 - Footer[StartTagAndEndTag] - Footer
+                MarkupTagHelperStartTag - [110..118) - FullWidth: 8 - [<Footer>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Footer];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [118..126) - FullWidth: 8
+                    CSharpImplicitExpression - [118..126) - FullWidth: 8
+                        CSharpTransition - [118..119) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [119..126) - FullWidth: 7
+                            CSharpCodeBlock - [119..126) - FullWidth: 7
+                                CSharpExpressionLiteral - [119..126) - FullWidth: 7 - [context] - Gen<Expr>
+                                    Identifier;[context];
+                MarkupTagHelperEndTag - [126..135) - FullWidth: 9 - [</Footer>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Footer];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [135..137) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [137..155) - FullWidth: 18 - [</FooterComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[FooterComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [155..157) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [157..230) - FullWidth: 73 - Test.HeaderComponent[StartTagAndEndTag] - HeaderComponent
+            MarkupTagHelperStartTag - [157..179) - FullWidth: 22 - [<Test.HeaderComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Test.HeaderComponent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [179..185) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [185..205) - FullWidth: 20 - Header[StartTagAndEndTag] - Header
+                MarkupTagHelperStartTag - [185..193) - FullWidth: 8 - [<Header>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Header];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [193..196) - FullWidth: 3 - [Hi!] - Gen<Markup>
+                    Text;[Hi];
+                    Bang;[!];
+                MarkupTagHelperEndTag - [196..205) - FullWidth: 9 - [</Header>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Header];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [205..207) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [207..230) - FullWidth: 23 - [</Test.HeaderComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Test.HeaderComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [230..232) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [232..324) - FullWidth: 92 - AnotherTest.FooterComponent[StartTagAndEndTag] - FooterComponent
+            MarkupTagHelperStartTag - [232..261) - FullWidth: 29 - [<AnotherTest.FooterComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[AnotherTest.FooterComponent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [261..267) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [267..292) - FullWidth: 25 - Footer[StartTagAndEndTag] - Footer
+                MarkupTagHelperStartTag - [267..275) - FullWidth: 8 - [<Footer>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Footer];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [275..283) - FullWidth: 8
+                    CSharpImplicitExpression - [275..283) - FullWidth: 8
+                        CSharpTransition - [275..276) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [276..283) - FullWidth: 7
+                            CSharpCodeBlock - [276..283) - FullWidth: 7
+                                CSharpExpressionLiteral - [276..283) - FullWidth: 7 - [context] - Gen<Expr>
+                                    Identifier;[context];
+                MarkupTagHelperEndTag - [283..292) - FullWidth: 9 - [</Footer>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Footer];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [292..294) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [294..324) - FullWidth: 30 - [</AnotherTest.FooterComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[AnotherTest.FooterComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [324..326) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

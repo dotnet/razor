@@ -54,24 +54,25 @@ foo
 #nullable disable
             );
 #nullable restore
-#line (7,9)-(9,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+#line (7,9)-(9,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
 
 } else {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>Foo is Null!</p>\r\n");
+            WriteLiteral("<p>Foo is Null!</p>\r\n");
 #nullable restore
-#line (10,1)-(11,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+#line (10,1)-(10,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
 }
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("\r\n<p>\r\n");
+            WriteLiteral("\r\n\r\n<p>\r\n");
 #nullable restore
 #line (13,2)-(14,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
 if(!String.IsNullOrEmpty(bar)) {
@@ -91,7 +92,7 @@ bar.Replace("F", "B")
 #nullable disable
             );
 #nullable restore
-#line (14,29)-(16,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+#line (14,29)-(15,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
 
 }
 
@@ -99,7 +100,7 @@ bar.Replace("F", "B")
 #line hidden
 #nullable disable
 
-            WriteLiteral("</p>");
+            WriteLiteral("\r\n</p>");
         }
         #pragma warning restore 1998
         #nullable restore

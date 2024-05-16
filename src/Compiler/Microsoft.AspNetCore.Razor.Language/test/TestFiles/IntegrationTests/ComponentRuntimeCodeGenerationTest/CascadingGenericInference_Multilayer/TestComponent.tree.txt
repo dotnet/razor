@@ -1,0 +1,63 @@
+﻿RazorDocument - [0..92) - FullWidth: 92 - [<Ancestor Items="@(Array.Empty<DateTime>())"><Passthrough><Child /></Passthrough></Ancestor>]
+    MarkupBlock - [0..92) - FullWidth: 92
+        MarkupTagHelperElement - [0..92) - FullWidth: 92 - Ancestor[StartTagAndEndTag] - Ancestor<TItem>
+            MarkupTagHelperStartTag - [0..45) - FullWidth: 45 - [<Ancestor Items="@(Array.Empty<DateTime>())">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Ancestor];
+                MarkupTagHelperAttribute - [9..44) - FullWidth: 35 - Items - DoubleQuotes - Bound - [ Items="@(Array.Empty<DateTime>())"]
+                    MarkupTextLiteral - [9..10) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [10..15) - FullWidth: 5 - [Items] - Gen<Markup>
+                        Text;[Items];
+                    Equals;[=];
+                    MarkupTextLiteral - [16..17) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [17..43) - FullWidth: 26
+                        MarkupBlock - [17..43) - FullWidth: 26
+                            CSharpCodeBlock - [17..43) - FullWidth: 26
+                                CSharpImplicitExpression - [17..43) - FullWidth: 26
+                                    CSharpTransition - [17..18) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [18..43) - FullWidth: 25
+                                        CSharpCodeBlock - [18..43) - FullWidth: 25
+                                            CSharpExpressionLiteral - [18..19) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [19..42) - FullWidth: 23 - [Array.Empty<DateTime>()] - Gen<Expr>
+                                                Identifier;[Array];
+                                                Dot;[.];
+                                                Identifier;[Empty];
+                                                LessThan;[<];
+                                                Identifier;[DateTime];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [42..43) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [43..44) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTagHelperElement - [45..81) - FullWidth: 36 - Passthrough[StartTagAndEndTag] - Passthrough
+                MarkupTagHelperStartTag - [45..58) - FullWidth: 13 - [<Passthrough>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Passthrough];
+                    CloseAngle;[>];
+                MarkupTagHelperElement - [58..67) - FullWidth: 9 - Child[SelfClosing] - Child<TItem>
+                    MarkupTagHelperStartTag - [58..67) - FullWidth: 9 - [<Child />] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[Child];
+                        MarkupMiscAttributeContent - [64..65) - FullWidth: 1
+                            MarkupTextLiteral - [64..65) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        ForwardSlash;[/];
+                        CloseAngle;[>];
+                MarkupTagHelperEndTag - [67..81) - FullWidth: 14 - [</Passthrough>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Passthrough];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [81..92) - FullWidth: 11 - [</Ancestor>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Ancestor];
+                CloseAngle;[>];
+    EndOfFile;[];

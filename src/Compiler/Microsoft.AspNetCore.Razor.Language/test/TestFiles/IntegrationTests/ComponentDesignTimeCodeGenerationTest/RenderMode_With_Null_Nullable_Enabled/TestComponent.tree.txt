@@ -1,0 +1,27 @@
+﻿RazorDocument - [0..36) - FullWidth: 36 - [<TestComponent @rendermode="null" />]
+    MarkupBlock - [0..36) - FullWidth: 36
+        MarkupTagHelperElement - [0..36) - FullWidth: 36 - TestComponent[SelfClosing] - TestComponent - RenderMode
+            MarkupTagHelperStartTag - [0..36) - FullWidth: 36 - [<TestComponent @rendermode="null" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperDirectiveAttribute - [14..33) - FullWidth: 19
+                    MarkupTextLiteral - [14..15) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [15..16) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [16..26) - FullWidth: 10 - [rendermode]
+                        Text;[rendermode];
+                    Equals;[=];
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [28..32) - FullWidth: 4
+                        CSharpExpressionLiteral - [28..32) - FullWidth: 4 - [null] - Gen<None>
+                            Text;[null];
+                    MarkupTextLiteral - [32..33) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [33..34) - FullWidth: 1
+                    MarkupTextLiteral - [33..34) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

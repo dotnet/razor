@@ -51,12 +51,12 @@ thing
                 WriteLiteral(">This is in Section 2</div>\r\n");
             }
             );
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
             DefineSection("Section1", async() => {
                 WriteLiteral("\r\n    <div>This is in Section 1</div>\r\n");
             }
             );
-            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
             DefineSection("NestedDelegates", async() => {
                 WriteLiteral("\r\n");
 #nullable restore

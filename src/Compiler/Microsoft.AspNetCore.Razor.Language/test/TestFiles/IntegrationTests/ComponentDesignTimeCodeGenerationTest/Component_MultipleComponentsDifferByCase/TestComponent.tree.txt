@@ -1,0 +1,49 @@
+﻿RazorDocument - [0..64) - FullWidth: 64 - [<MyComponent IntProperty='1' />LF<Mycomponent IntProperty='2' />]
+    MarkupBlock - [0..64) - FullWidth: 64
+        MarkupTagHelperElement - [0..31) - FullWidth: 31 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..31) - FullWidth: 31 - [<MyComponent IntProperty='1' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..28) - FullWidth: 16 - IntProperty - SingleQuotes - Bound - [ IntProperty='1']
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..24) - FullWidth: 11 - [IntProperty] - Gen<Markup>
+                        Text;[IntProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [25..26) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [26..27) - FullWidth: 1
+                        CSharpExpressionLiteral - [26..27) - FullWidth: 1 - [1] - Gen<None>
+                            Text;[1];
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [28..29) - FullWidth: 1
+                    MarkupTextLiteral - [28..29) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [31..33) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [33..64) - FullWidth: 31 - Mycomponent[SelfClosing] - Mycomponent
+            MarkupTagHelperStartTag - [33..64) - FullWidth: 31 - [<Mycomponent IntProperty='2' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Mycomponent];
+                MarkupTagHelperAttribute - [45..61) - FullWidth: 16 - IntProperty - SingleQuotes - Bound - [ IntProperty='2']
+                    MarkupTextLiteral - [45..46) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [46..57) - FullWidth: 11 - [IntProperty] - Gen<Markup>
+                        Text;[IntProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [58..59) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [59..60) - FullWidth: 1
+                        CSharpExpressionLiteral - [59..60) - FullWidth: 1 - [2] - Gen<None>
+                            Text;[2];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [61..62) - FullWidth: 1
+                    MarkupTextLiteral - [61..62) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

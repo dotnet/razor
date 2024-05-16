@@ -1,0 +1,80 @@
+﻿RazorDocument - [0..136) - FullWidth: 136 - [@rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)LFLF@codeLF{LF    [Parameter]LF    public int Count { get; set; }LF}]
+    MarkupBlock - [0..136) - FullWidth: 136
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..70) - FullWidth: 70
+            RazorDirective - [0..70) - FullWidth: 70 - Directive:{rendermode;SingleLine;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..70) - FullWidth: 69
+                    RazorMetaCode - [1..11) - FullWidth: 10 - Gen<None>
+                        Identifier;[rendermode];
+                    CSharpCodeBlock - [11..70) - FullWidth: 59
+                        CSharpStatementLiteral - [11..12) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [12..13) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpExplicitExpressionBody - [13..68) - FullWidth: 55
+                            RazorMetaCode - [13..14) - FullWidth: 1 - Gen<None>
+                                LeftParenthesis;[(];
+                            CSharpCodeBlock - [14..67) - FullWidth: 53
+                                CSharpExpressionLiteral - [14..67) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<Expr>
+                                    Identifier;[Microsoft];
+                                    Dot;[.];
+                                    Identifier;[AspNetCore];
+                                    Dot;[.];
+                                    Identifier;[Components];
+                                    Dot;[.];
+                                    Identifier;[Web];
+                                    Dot;[.];
+                                    Identifier;[RenderMode];
+                                    Dot;[.];
+                                    Identifier;[Server];
+                            RazorMetaCode - [67..68) - FullWidth: 1 - Gen<None>
+                                RightParenthesis;[)];
+                        MarkupEphemeralTextLiteral - [68..70) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [70..72) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [72..136) - FullWidth: 64
+            RazorDirective - [72..136) - FullWidth: 64 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [72..73) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [73..136) - FullWidth: 63
+                    RazorMetaCode - [73..77) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [77..136) - FullWidth: 59
+                        UnclassifiedTextLiteral - [77..79) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+                        RazorMetaCode - [79..80) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [80..135) - FullWidth: 55
+                            CSharpStatementLiteral - [80..135) - FullWidth: 55 - [LF    [Parameter]LF    public int Count { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[int];
+                                Whitespace;[ ];
+                                Identifier;[Count];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [135..136) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [136..136) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

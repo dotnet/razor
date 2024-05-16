@@ -45,8 +45,9 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
+            WriteLiteral("\r\n");
 #nullable restore
-#line (2,3)-(10,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
+#line (2,3)-(10,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
 
     var people = new Person[]
     {
@@ -55,12 +56,12 @@ namespace AspNetCore
 
     void PrintName(Person person)
     {
+        
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("        ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
                 Write(
 #nullable restore
@@ -112,17 +113,17 @@ person.Name
         }
         #pragma warning restore 1998
 #nullable restore
-#line (17,13)-(21,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
+#line (17,13)-(21,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
 
     Task AnnounceBirthday(Person person)
     {
         var formatted = $"Mr. {person.Name}";
+        
 
 #line default
 #line hidden
 #nullable disable
 
-        WriteLiteral("        ");
         __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
             WriteLiteral("\r\n            <h3>Happy birthday ");
             Write(
@@ -147,17 +148,18 @@ formatted
         Write(__tagHelperExecutionContext.Output);
         __tagHelperExecutionContext = __tagHelperScopeManager.End();
         WriteLiteral("\r\n");
-        WriteLiteral("        <ul>\r\n");
+        WriteLiteral("<ul>\r\n");
 #nullable restore
-#line (26,10)-(28,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
+#line (26,10)-(28,13) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
 for (var i = 0; i < person.Age / 10; i++)
         {
+            
 
 #line default
 #line hidden
 #nullable disable
 
-        WriteLiteral("            <li>");
+        WriteLiteral("<li>");
         Write(
 #nullable restore
 #line (28,19)-(28,20) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
@@ -169,28 +171,29 @@ i
         );
         WriteLiteral(" Happy birthday!</li>\r\n");
 #nullable restore
-#line (29,1)-(30,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
+#line (29,1)-(29,10) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
         }
 
 #line default
 #line hidden
 #nullable disable
 
-        WriteLiteral("        </ul>\r\n");
+        WriteLiteral("\r\n        </ul>\r\n");
 #nullable restore
-#line (31,1)-(37,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
+#line (31,1)-(37,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
 
         if (person.Age < 20)
         {
             return Task.CompletedTask;
         }
 
+        
 
 #line default
 #line hidden
 #nullable disable
 
-        WriteLiteral("        <h4>Secret message</h4>\r\n");
+        WriteLiteral("<h4>Secret message</h4>\r\n");
 #nullable restore
 #line (38,1)-(47,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
         return Task.CompletedTask;

@@ -5,7 +5,7 @@
         CSharpCodeBlock - [0..60)::60
             CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
                 Transition;[@];
-            CSharpStatementLiteral - [1..47)::46 - [try { var foo = new { } } catch(Foo Bar Baz) {] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [1..48)::47 - [try { var foo = new { } } catch(Foo Bar Baz) { ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Keyword;[try];
                 Whitespace;[ ];
                 LeftBrace;[{];
@@ -34,9 +34,8 @@
                 RightParenthesis;[)];
                 Whitespace;[ ];
                 LeftBrace;[{];
-            MarkupBlock - [47..59)::12
-                MarkupTextLiteral - [47..48)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[ ];
+                Whitespace;[ ];
+            MarkupBlock - [48..59)::11
                 MarkupElement - [48..58)::10
                     MarkupStartTag - [48..51)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                         OpenAngle;[<];

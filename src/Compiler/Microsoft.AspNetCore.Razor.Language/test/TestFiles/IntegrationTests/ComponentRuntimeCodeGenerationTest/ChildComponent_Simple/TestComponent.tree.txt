@@ -1,0 +1,12 @@
+﻿RazorDocument - [0..15) - FullWidth: 15 - [<MyComponent />]
+    MarkupBlock - [0..15) - FullWidth: 15
+        MarkupTagHelperElement - [0..15) - FullWidth: 15 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..15) - FullWidth: 15 - [<MyComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupMiscAttributeContent - [12..13) - FullWidth: 1
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

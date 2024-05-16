@@ -1,0 +1,34 @@
+﻿RazorDocument - [0..37) - FullWidth: 37 - [<h1>Hello</h1>LFLF@page "/my/url"LFLF]
+    MarkupBlock - [0..37) - FullWidth: 37
+        MarkupElement - [0..14) - FullWidth: 14
+            MarkupStartTag - [0..4) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [4..9) - FullWidth: 5 - [Hello] - Gen<Markup>
+                Text;[Hello];
+            MarkupEndTag - [9..14) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [14..18) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [18..35) - FullWidth: 17
+            RazorDirective - [18..35) - FullWidth: 17 - Directive:{page;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [18..19) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [19..35) - FullWidth: 16
+                    RazorMetaCode - [19..23) - FullWidth: 4 - Gen<None>
+                        Identifier;[page];
+                    CSharpCodeBlock - [23..35) - FullWidth: 12
+                        MarkupEphemeralTextLiteral - [23..24) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [24..33) - FullWidth: 9 - ["/my/url"] - Gen<DirectiveToken {route template;String;Opt:False}>
+                            StringLiteral;["/my/url"];
+                        MarkupEphemeralTextLiteral - [33..35) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [35..37) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

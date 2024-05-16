@@ -2,16 +2,16 @@
     MarkupBlock - [0..21)::21
         MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
             Marker;[];
-        CSharpCodeBlock - [0..18)::18
+        CSharpCodeBlock - [0..16)::16
             CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
                 Transition;[@];
-            CSharpStatementLiteral - [1..18)::17 - [foreach(foo barLF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [1..16)::15 - [foreach(foo bar] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Keyword;[foreach];
                 LeftParenthesis;[(];
                 Identifier;[foo];
                 Whitespace;[ ];
                 Identifier;[bar];
-                NewLine;[LF];
-        MarkupTextLiteral - [18..21)::3 - [baz] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [16..21)::5 - [LFbaz] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
             Text;[baz];
     EndOfFile;[];

@@ -1,0 +1,58 @@
+﻿RazorDocument - [0..57) - FullWidth: 57 - [@using TestLF<MyComponent Item="3" MyEvent="x => {}" />LF]
+    MarkupBlock - [0..57) - FullWidth: 57
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..11) - FullWidth: 11
+            RazorDirective - [0..11) - FullWidth: 11
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..11) - FullWidth: 10
+                    CSharpStatementLiteral - [1..11) - FullWidth: 10 - [using Test] - Gen<Import: Test;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Test];
+        MarkupTextLiteral - [11..13) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [13..55) - FullWidth: 42 - MyComponent[SelfClosing] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [13..55) - FullWidth: 42 - [<MyComponent Item="3" MyEvent="x => {}" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [25..34) - FullWidth: 9 - Item - DoubleQuotes - Bound - [ Item="3"]
+                    MarkupTextLiteral - [25..26) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [26..30) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [31..32) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [32..33) - FullWidth: 1
+                        CSharpExpressionLiteral - [32..33) - FullWidth: 1 - [3] - Gen<None>
+                            Text;[3];
+                    MarkupTextLiteral - [33..34) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [34..52) - FullWidth: 18 - MyEvent - DoubleQuotes - Bound - [ MyEvent="x => {}"]
+                    MarkupTextLiteral - [34..35) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [35..42) - FullWidth: 7 - [MyEvent] - Gen<Markup>
+                        Text;[MyEvent];
+                    Equals;[=];
+                    MarkupTextLiteral - [43..44) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [44..51) - FullWidth: 7
+                        CSharpExpressionLiteral - [44..51) - FullWidth: 7 - [x => {}] - Gen<None>
+                            Text;[x];
+                            Whitespace;[ ];
+                            Equals;[=];
+                            CloseAngle;[>];
+                            Whitespace;[ ];
+                            Text;[{}];
+                    MarkupTextLiteral - [51..52) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [52..53) - FullWidth: 1
+                    MarkupTextLiteral - [52..53) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [55..57) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

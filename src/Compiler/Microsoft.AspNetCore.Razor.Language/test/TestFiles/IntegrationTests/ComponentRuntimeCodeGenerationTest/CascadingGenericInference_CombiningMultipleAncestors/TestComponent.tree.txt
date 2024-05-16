@@ -1,0 +1,89 @@
+﻿RazorDocument - [0..120) - FullWidth: 120 - [<ParentOne Value="@int.MaxValue">LF    <ParentTwo Value="@("Hello")">LF        <Child />LF    </ParentTwo>LF</ParentOne>]
+    MarkupBlock - [0..120) - FullWidth: 120
+        MarkupTagHelperElement - [0..120) - FullWidth: 120 - ParentOne[StartTagAndEndTag] - ParentOne<TOne>
+            MarkupTagHelperStartTag - [0..33) - FullWidth: 33 - [<ParentOne Value="@int.MaxValue">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ParentOne];
+                MarkupTagHelperAttribute - [10..32) - FullWidth: 22 - Value - DoubleQuotes - Bound - [ Value="@int.MaxValue"]
+                    MarkupTextLiteral - [10..11) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [11..16) - FullWidth: 5 - [Value] - Gen<Markup>
+                        Text;[Value];
+                    Equals;[=];
+                    MarkupTextLiteral - [17..18) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [18..31) - FullWidth: 13
+                        MarkupBlock - [18..31) - FullWidth: 13
+                            CSharpCodeBlock - [18..31) - FullWidth: 13
+                                CSharpImplicitExpression - [18..31) - FullWidth: 13
+                                    CSharpTransition - [18..19) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [19..31) - FullWidth: 12
+                                        CSharpCodeBlock - [19..31) - FullWidth: 12
+                                            CSharpExpressionLiteral - [19..31) - FullWidth: 12 - [int.MaxValue] - Gen<Expr>
+                                                Keyword;[int];
+                                                Dot;[.];
+                                                Identifier;[MaxValue];
+                    MarkupTextLiteral - [31..32) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [33..39) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [39..106) - FullWidth: 67 - ParentTwo[StartTagAndEndTag] - ParentTwo<TTwo>
+                MarkupTagHelperStartTag - [39..69) - FullWidth: 30 - [<ParentTwo Value="@("Hello")">] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[ParentTwo];
+                    MarkupTagHelperAttribute - [49..68) - FullWidth: 19 - Value - DoubleQuotes - Bound - [ Value="@("Hello")"]
+                        MarkupTextLiteral - [49..50) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [50..55) - FullWidth: 5 - [Value] - Gen<Markup>
+                            Text;[Value];
+                        Equals;[=];
+                        MarkupTextLiteral - [56..57) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [57..67) - FullWidth: 10
+                            MarkupBlock - [57..67) - FullWidth: 10
+                                CSharpCodeBlock - [57..67) - FullWidth: 10
+                                    CSharpImplicitExpression - [57..67) - FullWidth: 10
+                                        CSharpTransition - [57..58) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [58..67) - FullWidth: 9
+                                            CSharpCodeBlock - [58..67) - FullWidth: 9
+                                                CSharpExpressionLiteral - [58..59) - FullWidth: 1 - [(] - Gen<Expr>
+                                                    LeftParenthesis;[(];
+                                                CSharpExpressionLiteral - [59..66) - FullWidth: 7 - ["Hello"] - Gen<Expr>
+                                                    StringLiteral;["Hello"];
+                                                CSharpExpressionLiteral - [66..67) - FullWidth: 1 - [)] - Gen<Expr>
+                                                    RightParenthesis;[)];
+                        MarkupTextLiteral - [67..68) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [69..79) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                MarkupTagHelperElement - [79..88) - FullWidth: 9 - Child[SelfClosing] - Child<TOne, TTwo>
+                    MarkupTagHelperStartTag - [79..88) - FullWidth: 9 - [<Child />] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[Child];
+                        MarkupMiscAttributeContent - [85..86) - FullWidth: 1
+                            MarkupTextLiteral - [85..86) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        ForwardSlash;[/];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [88..94) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[    ];
+                MarkupTagHelperEndTag - [94..106) - FullWidth: 12 - [</ParentTwo>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[ParentTwo];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [106..108) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [108..120) - FullWidth: 12 - [</ParentOne>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[ParentOne];
+                CloseAngle;[>];
+    EndOfFile;[];

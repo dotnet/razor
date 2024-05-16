@@ -25,18 +25,19 @@ namespace AspNetCore
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line (1,2)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml"
+#line (1,2)-(4,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml"
 switch (DateTimeOffset.UtcNow)
 {
     case { Year: 2022 }:
+        
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>\r\n");
+            WriteLiteral("<strong>Property expressions are supported by the razor syntax in the year 2022.</strong>\r\n");
 #nullable restore
-#line (5,1)-(13,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml"
+#line (5,1)-(12,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml"
         break;
     case [{ Test: true }]:
         break;
@@ -50,6 +51,7 @@ switch (DateTimeOffset.UtcNow)
 #line hidden
 #nullable disable
 
+            WriteLiteral("\r\n");
         }
         #pragma warning restore 1998
         #nullable restore

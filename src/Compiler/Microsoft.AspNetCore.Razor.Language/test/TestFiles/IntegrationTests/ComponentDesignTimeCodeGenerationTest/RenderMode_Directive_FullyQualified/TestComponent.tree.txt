@@ -1,0 +1,29 @@
+﻿RazorDocument - [0..65) - FullWidth: 65 - [@rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server]
+    MarkupBlock - [0..65) - FullWidth: 65
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..65) - FullWidth: 65
+            RazorDirective - [0..65) - FullWidth: 65 - Directive:{rendermode;SingleLine;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..65) - FullWidth: 64
+                    RazorMetaCode - [1..11) - FullWidth: 10 - Gen<None>
+                        Identifier;[rendermode];
+                    CSharpCodeBlock - [11..65) - FullWidth: 54
+                        CSharpStatementLiteral - [11..12) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [12..65) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<DirectiveToken {Render mode;IdentifierOrExpression;Opt:False}>
+                            Identifier;[Microsoft];
+                            Dot;[.];
+                            Identifier;[AspNetCore];
+                            Dot;[.];
+                            Identifier;[Components];
+                            Dot;[.];
+                            Identifier;[Web];
+                            Dot;[.];
+                            Identifier;[RenderMode];
+                            Dot;[.];
+                            Identifier;[Server];
+        MarkupTextLiteral - [65..65) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

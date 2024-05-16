@@ -1,0 +1,26 @@
+﻿RazorDocument - [0..16) - FullWidth: 16 - [@code {LFLF}LFLF]
+    MarkupBlock - [0..16) - FullWidth: 16
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..12) - FullWidth: 12
+            RazorDirective - [0..12) - FullWidth: 12 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..12) - FullWidth: 11
+                    RazorMetaCode - [1..5) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [5..12) - FullWidth: 7
+                        UnclassifiedTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [6..7) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [7..11) - FullWidth: 4
+                            CSharpStatementLiteral - [7..11) - FullWidth: 4 - [LFLF] - Gen<Stmt>
+                                NewLine;[LF];
+                                NewLine;[LF];
+                        RazorMetaCode - [11..12) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [12..16) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+    EndOfFile;[];

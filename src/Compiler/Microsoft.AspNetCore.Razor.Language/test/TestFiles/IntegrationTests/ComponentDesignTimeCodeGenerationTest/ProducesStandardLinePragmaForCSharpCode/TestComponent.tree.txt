@@ -1,0 +1,188 @@
+﻿RazorDocument - [0..292) - FullWidth: 292 - [<h1>Conditional statement</h1>LF@for (var i = 0; i < 10; i++)LF{LF    <p>@i</p>LF}LFLF<h1>Statements inside code block</h1>LF@{System.Console.WriteLine(1);System.Console.WriteLine(2);}LFLF<h1>Full-on code block</h1>LF@code {LF    [Parameter]LF    public int IncrementAmount { get; set; }LF}LF]
+    MarkupBlock - [0..292) - FullWidth: 292
+        MarkupElement - [0..30) - FullWidth: 30
+            MarkupStartTag - [0..4) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [4..25) - FullWidth: 21 - [Conditional statement] - Gen<Markup>
+                Text;[Conditional];
+                Whitespace;[ ];
+                Text;[statement];
+            MarkupEndTag - [25..30) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [30..32) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [32..82) - FullWidth: 50
+            CSharpTransition - [32..33) - FullWidth: 1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [33..70) - FullWidth: 37 - [for (var i = 0; i < 10; i++)LF{LF    ] - Gen<Stmt>
+                Keyword;[for];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Identifier;[var];
+                Whitespace;[ ];
+                Identifier;[i];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                IntegerLiteral;[0];
+                Semicolon;[;];
+                Whitespace;[ ];
+                Identifier;[i];
+                Whitespace;[ ];
+                LessThan;[<];
+                Whitespace;[ ];
+                IntegerLiteral;[10];
+                Semicolon;[;];
+                Whitespace;[ ];
+                Identifier;[i];
+                Increment;[++];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupBlock - [70..79) - FullWidth: 9
+                MarkupElement - [70..79) - FullWidth: 9
+                    MarkupStartTag - [70..73) - FullWidth: 3 - [<p>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[p];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [73..73) - FullWidth: 0 - [] - Gen<Markup>
+                        Marker;[];
+                    CSharpCodeBlock - [73..75) - FullWidth: 2
+                        CSharpImplicitExpression - [73..75) - FullWidth: 2
+                            CSharpTransition - [73..74) - FullWidth: 1 - Gen<None>
+                                Transition;[@];
+                            CSharpImplicitExpressionBody - [74..75) - FullWidth: 1
+                                CSharpCodeBlock - [74..75) - FullWidth: 1
+                                    CSharpExpressionLiteral - [74..75) - FullWidth: 1 - [i] - Gen<Expr>
+                                        Identifier;[i];
+                    MarkupEndTag - [75..79) - FullWidth: 4 - [</p>] - Gen<Markup>
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[p];
+                        CloseAngle;[>];
+            CSharpStatementLiteral - [79..82) - FullWidth: 3 - [LF}] - Gen<Stmt>
+                NewLine;[LF];
+                RightBrace;[}];
+        MarkupTextLiteral - [82..86) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupElement - [86..123) - FullWidth: 37
+            MarkupStartTag - [86..90) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [90..118) - FullWidth: 28 - [Statements inside code block] - Gen<Markup>
+                Text;[Statements];
+                Whitespace;[ ];
+                Text;[inside];
+                Whitespace;[ ];
+                Text;[code];
+                Whitespace;[ ];
+                Text;[block];
+            MarkupEndTag - [118..123) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [123..125) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [125..184) - FullWidth: 59
+            CSharpStatement - [125..184) - FullWidth: 59
+                CSharpTransition - [125..126) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [126..184) - FullWidth: 58
+                    RazorMetaCode - [126..127) - FullWidth: 1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [127..183) - FullWidth: 56
+                        CSharpStatementLiteral - [127..183) - FullWidth: 56 - [System.Console.WriteLine(1);System.Console.WriteLine(2);] - Gen<Stmt>
+                            Identifier;[System];
+                            Dot;[.];
+                            Identifier;[Console];
+                            Dot;[.];
+                            Identifier;[WriteLine];
+                            LeftParenthesis;[(];
+                            IntegerLiteral;[1];
+                            RightParenthesis;[)];
+                            Semicolon;[;];
+                            Identifier;[System];
+                            Dot;[.];
+                            Identifier;[Console];
+                            Dot;[.];
+                            Identifier;[WriteLine];
+                            LeftParenthesis;[(];
+                            IntegerLiteral;[2];
+                            RightParenthesis;[)];
+                            Semicolon;[;];
+                    RazorMetaCode - [183..184) - FullWidth: 1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [184..186) - FullWidth: 2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTextLiteral - [186..188) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [188..215) - FullWidth: 27
+            MarkupStartTag - [188..192) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [192..210) - FullWidth: 18 - [Full-on code block] - Gen<Markup>
+                Text;[Full-on];
+                Whitespace;[ ];
+                Text;[code];
+                Whitespace;[ ];
+                Text;[block];
+            MarkupEndTag - [210..215) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [215..217) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [217..290) - FullWidth: 73
+            RazorDirective - [217..290) - FullWidth: 73 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [217..218) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [218..290) - FullWidth: 72
+                    RazorMetaCode - [218..222) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [222..290) - FullWidth: 68
+                        UnclassifiedTextLiteral - [222..223) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [223..224) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [224..289) - FullWidth: 65
+                            CSharpStatementLiteral - [224..289) - FullWidth: 65 - [LF    [Parameter]LF    public int IncrementAmount { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[int];
+                                Whitespace;[ ];
+                                Identifier;[IncrementAmount];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [289..290) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [290..292) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

@@ -2,16 +2,16 @@
     MarkupBlock - [0..16)::16
         MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
-        CSharpCodeBlock - [0..13)::13
+        CSharpCodeBlock - [0..11)::11
             CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..13)::12 - [if(foo barLF] - Gen<Stmt>
+            CSharpStatementLiteral - [1..11)::10 - [if(foo bar] - Gen<Stmt>
                 Keyword;[if];
                 LeftParenthesis;[(];
                 Identifier;[foo];
                 Whitespace;[ ];
                 Identifier;[bar];
-                NewLine;[LF];
-        MarkupTextLiteral - [13..16)::3 - [baz] - Gen<Markup>
+        MarkupTextLiteral - [11..16)::5 - [LFbaz] - Gen<Markup>
+            NewLine;[LF];
             Text;[baz];
     EndOfFile;[];

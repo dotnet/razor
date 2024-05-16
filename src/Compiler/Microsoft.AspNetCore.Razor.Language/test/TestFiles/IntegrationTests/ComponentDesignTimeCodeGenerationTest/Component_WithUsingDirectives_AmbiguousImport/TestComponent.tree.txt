@@ -1,0 +1,47 @@
+﻿RazorDocument - [0..62) - FullWidth: 62 - [@using Test2LF@using Test3LF<MyComponent />LF<SomeComponent />]
+    MarkupBlock - [0..62) - FullWidth: 62
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..12) - FullWidth: 12
+            RazorDirective - [0..12) - FullWidth: 12
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..12) - FullWidth: 11
+                    CSharpStatementLiteral - [1..12) - FullWidth: 11 - [using Test2] - Gen<Import: Test2;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Test2];
+        MarkupTextLiteral - [12..14) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [14..26) - FullWidth: 12
+            RazorDirective - [14..26) - FullWidth: 12
+                CSharpTransition - [14..15) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [15..26) - FullWidth: 11
+                    CSharpStatementLiteral - [15..26) - FullWidth: 11 - [using Test3] - Gen<Import: Test3;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Test3];
+        MarkupTextLiteral - [26..28) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [28..43) - FullWidth: 15 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [28..43) - FullWidth: 15 - [<MyComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupMiscAttributeContent - [40..41) - FullWidth: 1
+                    MarkupTextLiteral - [40..41) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [43..45) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [45..62) - FullWidth: 17 - SomeComponent[SelfClosing] - SomeComponent - SomeComponent
+            MarkupTagHelperStartTag - [45..62) - FullWidth: 17 - [<SomeComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[SomeComponent];
+                MarkupMiscAttributeContent - [59..60) - FullWidth: 1
+                    MarkupTextLiteral - [59..60) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

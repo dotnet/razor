@@ -55,7 +55,7 @@ namespace AspNetCore
 
             WriteLiteral("\r\n");
 #nullable restore
-#line (16,6)-(23,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml"
+#line (16,6)-(22,6) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml"
 if (nameLookup.TryGetValue("John Doe", out var entry))
     {
         if (entry.Extra is bool alive)
@@ -68,7 +68,7 @@ if (nameLookup.TryGetValue("John Doe", out var entry))
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>\r\n        Here\'s a very unique number: ");
+            WriteLiteral("\r\n    <p>\r\n        Here\'s a very unique number: ");
             Write(
 #nullable restore
 #line (24,40)-(24,102) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml"
@@ -91,7 +91,7 @@ if (nameLookup.TryGetValue("John Doe", out var entry))
             WriteLiteral(" ");
             WriteLiteral("\r\n    </div>\r\n\r\n");
 #nullable restore
-#line (31,6)-(43,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml"
+#line (31,6)-(42,6) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml"
 switch (entry.Extra)
     {
         case int age:
@@ -109,7 +109,7 @@ switch (entry.Extra)
 #line hidden
 #nullable disable
 
-            WriteLiteral("</body>");
+            WriteLiteral("\r\n</body>");
         }
         #pragma warning restore 1998
         #nullable restore

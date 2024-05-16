@@ -1,0 +1,30 @@
+﻿RazorDocument - [0..66) - FullWidth: 66 - [<ComponentWithEditorRequiredParameters Property1="Some Value" />LF]
+    MarkupBlock - [0..66) - FullWidth: 66
+        MarkupTagHelperElement - [0..64) - FullWidth: 64 - ComponentWithEditorRequiredParameters[SelfClosing] - ComponentWithEditorRequiredParameters
+            MarkupTagHelperStartTag - [0..64) - FullWidth: 64 - [<ComponentWithEditorRequiredParameters Property1="Some Value" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ComponentWithEditorRequiredParameters];
+                MarkupTagHelperAttribute - [38..61) - FullWidth: 23 - Property1 - DoubleQuotes - Bound - [ Property1="Some Value"]
+                    MarkupTextLiteral - [38..39) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [39..48) - FullWidth: 9 - [Property1] - Gen<Markup>
+                        Text;[Property1];
+                    Equals;[=];
+                    MarkupTextLiteral - [49..50) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [50..60) - FullWidth: 10
+                        MarkupTextLiteral - [50..54) - FullWidth: 4 - [Some] - Gen<Markup>
+                            Text;[Some];
+                        MarkupTextLiteral - [54..60) - FullWidth: 6 - [ Value] - Gen<Markup>
+                            Whitespace;[ ];
+                            Text;[Value];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [61..62) - FullWidth: 1
+                    MarkupTextLiteral - [61..62) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [64..66) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

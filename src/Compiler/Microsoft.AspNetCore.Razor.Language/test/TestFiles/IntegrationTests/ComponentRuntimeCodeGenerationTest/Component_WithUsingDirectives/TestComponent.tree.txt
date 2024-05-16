@@ -1,0 +1,68 @@
+﻿RazorDocument - [0..92) - FullWidth: 92 - [@page "/MyPage"LF@page "/AnotherRoute/{id}"LF@using Test2LF<MyComponent />LF<MyComponent2 />]
+    MarkupBlock - [0..92) - FullWidth: 92
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..17) - FullWidth: 17
+            RazorDirective - [0..17) - FullWidth: 17 - Directive:{page;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..17) - FullWidth: 16
+                    RazorMetaCode - [1..5) - FullWidth: 4 - Gen<None>
+                        Identifier;[page];
+                    CSharpCodeBlock - [5..17) - FullWidth: 12
+                        MarkupEphemeralTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [6..15) - FullWidth: 9 - ["/MyPage"] - Gen<DirectiveToken {route template;String;Opt:False}>
+                            StringLiteral;["/MyPage"];
+                        MarkupEphemeralTextLiteral - [15..17) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [17..17) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [17..45) - FullWidth: 28
+            RazorDirective - [17..45) - FullWidth: 28 - Directive:{page;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [17..18) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [18..45) - FullWidth: 27
+                    RazorMetaCode - [18..22) - FullWidth: 4 - Gen<None>
+                        Identifier;[page];
+                    CSharpCodeBlock - [22..45) - FullWidth: 23
+                        MarkupEphemeralTextLiteral - [22..23) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [23..43) - FullWidth: 20 - ["/AnotherRoute/{id}"] - Gen<DirectiveToken {route template;String;Opt:False}>
+                            StringLiteral;["/AnotherRoute/{id}"];
+                        MarkupEphemeralTextLiteral - [43..45) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [45..45) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [45..57) - FullWidth: 12
+            RazorDirective - [45..57) - FullWidth: 12
+                CSharpTransition - [45..46) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [46..57) - FullWidth: 11
+                    CSharpStatementLiteral - [46..57) - FullWidth: 11 - [using Test2] - Gen<Import: Test2;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Test2];
+        MarkupTextLiteral - [57..59) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [59..74) - FullWidth: 15 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [59..74) - FullWidth: 15 - [<MyComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupMiscAttributeContent - [71..72) - FullWidth: 1
+                    MarkupTextLiteral - [71..72) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [74..76) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [76..92) - FullWidth: 16 - MyComponent2[SelfClosing] - MyComponent2
+            MarkupTagHelperStartTag - [76..92) - FullWidth: 16 - [<MyComponent2 />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent2];
+                MarkupMiscAttributeContent - [89..90) - FullWidth: 1
+                    MarkupTextLiteral - [89..90) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

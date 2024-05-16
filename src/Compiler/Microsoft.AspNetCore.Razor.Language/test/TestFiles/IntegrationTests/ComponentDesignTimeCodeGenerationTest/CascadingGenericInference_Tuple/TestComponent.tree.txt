@@ -1,0 +1,42 @@
+﻿RazorDocument - [0..80) - FullWidth: 80 - [<ParentComponent Parameter="(1, 2)">LF    <ChildComponent />LF</ParentComponent>]
+    MarkupBlock - [0..80) - FullWidth: 80
+        MarkupTagHelperElement - [0..80) - FullWidth: 80 - ParentComponent[StartTagAndEndTag] - ParentComponent<T>
+            MarkupTagHelperStartTag - [0..36) - FullWidth: 36 - [<ParentComponent Parameter="(1, 2)">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ParentComponent];
+                MarkupTagHelperAttribute - [16..35) - FullWidth: 19 - Parameter - DoubleQuotes - Bound - [ Parameter="(1, 2)"]
+                    MarkupTextLiteral - [16..17) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [17..26) - FullWidth: 9 - [Parameter] - Gen<Markup>
+                        Text;[Parameter];
+                    Equals;[=];
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [28..34) - FullWidth: 6
+                        CSharpExpressionLiteral - [28..34) - FullWidth: 6 - [(1, 2)] - Gen<None>
+                            Text;[(1,];
+                            Whitespace;[ ];
+                            Text;[2)];
+                    MarkupTextLiteral - [34..35) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [36..42) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [42..60) - FullWidth: 18 - ChildComponent[SelfClosing] - ChildComponent<T>
+                MarkupTagHelperStartTag - [42..60) - FullWidth: 18 - [<ChildComponent />] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[ChildComponent];
+                    MarkupMiscAttributeContent - [57..58) - FullWidth: 1
+                        MarkupTextLiteral - [57..58) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [60..62) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [62..80) - FullWidth: 18 - [</ParentComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[ParentComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

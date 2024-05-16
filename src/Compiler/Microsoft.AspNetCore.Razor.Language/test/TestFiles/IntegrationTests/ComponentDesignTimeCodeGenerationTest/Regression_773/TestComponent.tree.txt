@@ -1,0 +1,82 @@
+﻿RazorDocument - [0..110) - FullWidth: 110 - [@page "/"LFLF<h1>Hello, world!</h1>LFLFWelcome to your new app.LFLF<SurveyPrompt Title="<div>Test!</div>" />LF]
+    MarkupBlock - [0..110) - FullWidth: 110
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..11) - FullWidth: 11
+            RazorDirective - [0..11) - FullWidth: 11 - Directive:{page;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..11) - FullWidth: 10
+                    RazorMetaCode - [1..5) - FullWidth: 4 - Gen<None>
+                        Identifier;[page];
+                    CSharpCodeBlock - [5..11) - FullWidth: 6
+                        MarkupEphemeralTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [6..9) - FullWidth: 3 - ["/"] - Gen<DirectiveToken {route template;String;Opt:False}>
+                            StringLiteral;["/"];
+                        MarkupEphemeralTextLiteral - [9..11) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [11..13) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [13..35) - FullWidth: 22
+            MarkupStartTag - [13..17) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [17..30) - FullWidth: 13 - [Hello, world!] - Gen<Markup>
+                Text;[Hello,];
+                Whitespace;[ ];
+                Text;[world];
+                Bang;[!];
+            MarkupEndTag - [30..35) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [35..67) - FullWidth: 32 - [LFLFWelcome to your new app.LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+            Text;[Welcome];
+            Whitespace;[ ];
+            Text;[to];
+            Whitespace;[ ];
+            Text;[your];
+            Whitespace;[ ];
+            Text;[new];
+            Whitespace;[ ];
+            Text;[app.];
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupTagHelperElement - [67..108) - FullWidth: 41 - SurveyPrompt[SelfClosing] - SurveyPrompt
+            MarkupTagHelperStartTag - [67..108) - FullWidth: 41 - [<SurveyPrompt Title="<div>Test!</div>" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[SurveyPrompt];
+                MarkupTagHelperAttribute - [80..105) - FullWidth: 25 - Title - DoubleQuotes - Bound - [ Title="<div>Test!</div>"]
+                    MarkupTextLiteral - [80..81) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [81..86) - FullWidth: 5 - [Title] - Gen<Markup>
+                        Text;[Title];
+                    Equals;[=];
+                    MarkupTextLiteral - [87..88) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [88..104) - FullWidth: 16
+                        MarkupTextLiteral - [88..104) - FullWidth: 16 - [<div>Test!</div>] - Gen<Markup>
+                            OpenAngle;[<];
+                            Text;[div];
+                            CloseAngle;[>];
+                            Text;[Test];
+                            Bang;[!];
+                            OpenAngle;[<];
+                            ForwardSlash;[/];
+                            Text;[div];
+                            CloseAngle;[>];
+                    MarkupTextLiteral - [104..105) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [105..106) - FullWidth: 1
+                    MarkupTextLiteral - [105..106) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [108..110) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

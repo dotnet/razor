@@ -1,0 +1,78 @@
+﻿RazorDocument - [0..114) - FullWidth: 114 - [<MyComponent @bind-Value="Selected" />LFLF@code {LF    string[] Selected { get; set; } = Array.Empty<string>();LF}]
+    MarkupBlock - [0..114) - FullWidth: 114
+        MarkupTagHelperElement - [0..38) - FullWidth: 38 - MyComponent[SelfClosing] - MyComponent<TItem> - MyComponent<TItem> - Bind
+            MarkupTagHelperStartTag - [0..38) - FullWidth: 38 - [<MyComponent @bind-Value="Selected" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperDirectiveAttribute - [12..35) - FullWidth: 23
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [13..14) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [14..24) - FullWidth: 10 - [bind-Value]
+                        Text;[bind-Value];
+                    Equals;[=];
+                    MarkupTextLiteral - [25..26) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [26..34) - FullWidth: 8
+                        CSharpExpressionLiteral - [26..34) - FullWidth: 8 - [Selected] - Gen<None>
+                            Text;[Selected];
+                    MarkupTextLiteral - [34..35) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [35..36) - FullWidth: 1
+                    MarkupTextLiteral - [35..36) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [38..42) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [42..114) - FullWidth: 72
+            RazorDirective - [42..114) - FullWidth: 72 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [42..43) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [43..114) - FullWidth: 71
+                    RazorMetaCode - [43..47) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [47..114) - FullWidth: 67
+                        UnclassifiedTextLiteral - [47..48) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [48..49) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [49..113) - FullWidth: 64
+                            CSharpStatementLiteral - [49..113) - FullWidth: 64 - [LF    string[] Selected { get; set; } = Array.Empty<string>();LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[string];
+                                LeftBracket;[[];
+                                RightBracket;[]];
+                                Whitespace;[ ];
+                                Identifier;[Selected];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Identifier;[Array];
+                                Dot;[.];
+                                Identifier;[Empty];
+                                LessThan;[<];
+                                Keyword;[string];
+                                GreaterThan;[>];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [113..114) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [114..114) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

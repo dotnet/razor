@@ -1,0 +1,70 @@
+﻿RazorDocument - [0..131) - FullWidth: 131 - [<MyComponentLF    IntProperty="123"LF    BoolProperty="true"LF    StringProperty="My string"LF    ObjectProperty="new SomeType()"/>]
+    MarkupBlock - [0..131) - FullWidth: 131
+        MarkupTagHelperElement - [0..131) - FullWidth: 131 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..131) - FullWidth: 131 - [<MyComponentLF    IntProperty="123"LF    BoolProperty="true"LF    StringProperty="My string"LF    ObjectProperty="new SomeType()"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..35) - FullWidth: 23 - IntProperty - DoubleQuotes - Bound - [LF    IntProperty="123"]
+                    MarkupTextLiteral - [12..18) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[    ];
+                    MarkupTextLiteral - [18..29) - FullWidth: 11 - [IntProperty] - Gen<Markup>
+                        Text;[IntProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [31..34) - FullWidth: 3
+                        CSharpExpressionLiteral - [31..34) - FullWidth: 3 - [123] - Gen<None>
+                            Text;[123];
+                    MarkupTextLiteral - [34..35) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [35..60) - FullWidth: 25 - BoolProperty - DoubleQuotes - Bound - [LF    BoolProperty="true"]
+                    MarkupTextLiteral - [35..41) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[    ];
+                    MarkupTextLiteral - [41..53) - FullWidth: 12 - [BoolProperty] - Gen<Markup>
+                        Text;[BoolProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [54..55) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [55..59) - FullWidth: 4
+                        CSharpExpressionLiteral - [55..59) - FullWidth: 4 - [true] - Gen<None>
+                            Text;[true];
+                    MarkupTextLiteral - [59..60) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [60..92) - FullWidth: 32 - StringProperty - DoubleQuotes - Bound - [LF    StringProperty="My string"]
+                    MarkupTextLiteral - [60..66) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[    ];
+                    MarkupTextLiteral - [66..80) - FullWidth: 14 - [StringProperty] - Gen<Markup>
+                        Text;[StringProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [81..82) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [82..91) - FullWidth: 9
+                        MarkupTextLiteral - [82..84) - FullWidth: 2 - [My] - Gen<Markup>
+                            Text;[My];
+                        MarkupTextLiteral - [84..91) - FullWidth: 7 - [ string] - Gen<Markup>
+                            Whitespace;[ ];
+                            Text;[string];
+                    MarkupTextLiteral - [91..92) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [92..129) - FullWidth: 37 - ObjectProperty - DoubleQuotes - Bound - [LF    ObjectProperty="new SomeType()"]
+                    MarkupTextLiteral - [92..98) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[    ];
+                    MarkupTextLiteral - [98..112) - FullWidth: 14 - [ObjectProperty] - Gen<Markup>
+                        Text;[ObjectProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [113..114) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [114..128) - FullWidth: 14
+                        CSharpExpressionLiteral - [114..128) - FullWidth: 14 - [new SomeType()] - Gen<None>
+                            Text;[new];
+                            Whitespace;[ ];
+                            Text;[SomeType()];
+                    MarkupTextLiteral - [128..129) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

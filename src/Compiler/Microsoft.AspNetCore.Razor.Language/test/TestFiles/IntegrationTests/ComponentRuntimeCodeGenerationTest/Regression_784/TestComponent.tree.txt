@@ -1,0 +1,137 @@
+﻿RazorDocument - [0..259) - FullWidth: 259 - [@using Microsoft.AspNetCore.Components.WebLF<p @onmouseover="OnComponentHover" style="background: @ParentBgColor;" />LF@code {LF    public string ParentBgColor { get; set; } = "#FFFFFF";LFLF    public void OnComponentHover(MouseEventArgs e)LF    {LF    }LF}LF]
+    MarkupBlock - [0..259) - FullWidth: 259
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42) - FullWidth: 42
+            RazorDirective - [0..42) - FullWidth: 42
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..42) - FullWidth: 41
+                    CSharpStatementLiteral - [1..42) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [44..117) - FullWidth: 73 - p[SelfClosing] - onmouseover
+            MarkupTagHelperStartTag - [44..117) - FullWidth: 73 - [<p @onmouseover="OnComponentHover" style="background: @ParentBgColor;" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTagHelperDirectiveAttribute - [46..78) - FullWidth: 32
+                    MarkupTextLiteral - [46..47) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [47..48) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [48..59) - FullWidth: 11 - [onmouseover]
+                        Text;[onmouseover];
+                    Equals;[=];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [61..77) - FullWidth: 16
+                        CSharpExpressionLiteral - [61..77) - FullWidth: 16 - [OnComponentHover] - Gen<None>
+                            Text;[OnComponentHover];
+                    MarkupTextLiteral - [77..78) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [78..114) - FullWidth: 36 - style - DoubleQuotes - Unbound - [ style="background: @ParentBgColor;"]
+                    MarkupTextLiteral - [78..79) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [79..84) - FullWidth: 5 - [style] - Gen<Markup>
+                        Text;[style];
+                    Equals;[=];
+                    MarkupTextLiteral - [85..86) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [86..113) - FullWidth: 27
+                        MarkupLiteralAttributeValue - [86..97) - FullWidth: 11 - [background:]
+                            MarkupTextLiteral - [86..97) - FullWidth: 11 - [background:] - Gen<Markup>
+                                Text;[background:];
+                        MarkupDynamicAttributeValue - [97..112) - FullWidth: 15 - [ @ParentBgColor]
+                            MarkupTextLiteral - [97..98) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            GenericBlock - [98..112) - FullWidth: 14
+                                CSharpCodeBlock - [98..112) - FullWidth: 14
+                                    CSharpImplicitExpression - [98..112) - FullWidth: 14
+                                        CSharpTransition - [98..99) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [99..112) - FullWidth: 13
+                                            CSharpCodeBlock - [99..112) - FullWidth: 13
+                                                CSharpExpressionLiteral - [99..112) - FullWidth: 13 - [ParentBgColor] - Gen<Expr>
+                                                    Identifier;[ParentBgColor];
+                        MarkupLiteralAttributeValue - [112..113) - FullWidth: 1 - [;]
+                            MarkupTextLiteral - [112..113) - FullWidth: 1 - [;] - Gen<Markup>
+                                Text;[;];
+                    MarkupTextLiteral - [113..114) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [114..115) - FullWidth: 1
+                    MarkupTextLiteral - [114..115) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [117..119) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [119..257) - FullWidth: 138
+            RazorDirective - [119..257) - FullWidth: 138 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [119..120) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [120..257) - FullWidth: 137
+                    RazorMetaCode - [120..124) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [124..257) - FullWidth: 133
+                        UnclassifiedTextLiteral - [124..125) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [125..126) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [126..256) - FullWidth: 130
+                            CSharpStatementLiteral - [126..256) - FullWidth: 130 - [LF    public string ParentBgColor { get; set; } = "#FFFFFF";LFLF    public void OnComponentHover(MouseEventArgs e)LF    {LF    }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[ParentBgColor];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["#FFFFFF"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[void];
+                                Whitespace;[ ];
+                                Identifier;[OnComponentHover];
+                                LeftParenthesis;[(];
+                                Identifier;[MouseEventArgs];
+                                Whitespace;[ ];
+                                Identifier;[e];
+                                RightParenthesis;[)];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [256..257) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [257..259) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

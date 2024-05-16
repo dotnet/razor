@@ -8,7 +8,7 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
 #nullable restore
-#line (1,2)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,2)-(1,40) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components;
 
 #line default
@@ -42,9 +42,10 @@ ChildContent(Items1)
             );
             __builder.CloseElement();
 #nullable restore
-#line (8,2)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (8,2)-(10,5) "x:\dir\subdir\Test\TestComponent.cshtml"
 foreach (var item in Items2)
 {
+    
 
 #line default
 #line hidden
@@ -62,7 +63,7 @@ ChildContent(item)
             );
             __builder.CloseElement();
 #nullable restore
-#line (11,1)-(12,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (11,1)-(11,2) "x:\dir\subdir\Test\TestComponent.cshtml"
 }
 
 #line default

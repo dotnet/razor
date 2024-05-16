@@ -1,0 +1,45 @@
+﻿RazorDocument - [0..67) - FullWidth: 67 - [@using Microsoft.AspNetCore.Components.WebLF<input onclick="foo" />]
+    MarkupBlock - [0..67) - FullWidth: 67
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42) - FullWidth: 42
+            RazorDirective - [0..42) - FullWidth: 42
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..42) - FullWidth: 41
+                    CSharpStatementLiteral - [1..42) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [44..67) - FullWidth: 23
+            MarkupStartTag - [44..67) - FullWidth: 23 - [<input onclick="foo" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupAttributeBlock - [50..64) - FullWidth: 14 - [ onclick="foo"]
+                    MarkupTextLiteral - [50..51) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [51..58) - FullWidth: 7 - [onclick] - Gen<Markup>
+                        Text;[onclick];
+                    Equals;[=];
+                    MarkupTextLiteral - [59..60) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [60..63) - FullWidth: 3
+                        MarkupLiteralAttributeValue - [60..63) - FullWidth: 3 - [foo]
+                            MarkupTextLiteral - [60..63) - FullWidth: 3 - [foo] - Gen<Markup>
+                                Text;[foo];
+                    MarkupTextLiteral - [63..64) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [64..65) - FullWidth: 1
+                    MarkupTextLiteral - [64..65) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

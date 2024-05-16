@@ -5,7 +5,7 @@
         CSharpCodeBlock - [0..233)::233
             CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
                 Transition;[@];
-            CSharpStatementLiteral - [1..29)::28 - [switch(foo) {LF    case 0:LF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [1..37)::36 - [switch(foo) {LF    case 0:LF        ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Keyword;[switch];
                 LeftParenthesis;[(];
                 Identifier;[foo];
@@ -19,9 +19,8 @@
                 IntegerLiteral;[0];
                 Colon;[:];
                 NewLine;[LF];
-            MarkupBlock - [29..49)::20
-                MarkupTextLiteral - [29..37)::8 - [        ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[        ];
+                Whitespace;[        ];
+            MarkupBlock - [37..49)::12
                 MarkupElement - [37..47)::10
                     MarkupStartTag - [37..40)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                         OpenAngle;[<];
@@ -36,7 +35,7 @@
                         CloseAngle;[>];
                 MarkupTextLiteral - [47..49)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:None
                     NewLine;[LF];
-            CSharpStatementLiteral - [49..78)::29 - [        break;LF    case 1:LF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [49..86)::37 - [        break;LF    case 1:LF        ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Whitespace;[        ];
                 Keyword;[break];
                 Semicolon;[;];
@@ -47,9 +46,8 @@
                 IntegerLiteral;[1];
                 Colon;[:];
                 NewLine;[LF];
-            MarkupBlock - [78..98)::20
-                MarkupTextLiteral - [78..86)::8 - [        ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[        ];
+                Whitespace;[        ];
+            MarkupBlock - [86..98)::12
                 MarkupElement - [86..96)::10
                     MarkupStartTag - [86..89)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                         OpenAngle;[<];
@@ -64,7 +62,7 @@
                         CloseAngle;[>];
                 MarkupTextLiteral - [96..98)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:None
                     NewLine;[LF];
-            CSharpStatementLiteral - [98..139)::41 - [        return;LF    case 2:LF        {LF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [98..151)::53 - [        return;LF    case 2:LF        {LF            ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Whitespace;[        ];
                 Keyword;[return];
                 Semicolon;[;];
@@ -78,9 +76,8 @@
                 Whitespace;[        ];
                 LeftBrace;[{];
                 NewLine;[LF];
-            MarkupBlock - [139..163)::24
-                MarkupTextLiteral - [139..151)::12 - [            ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[            ];
+                Whitespace;[            ];
+            MarkupBlock - [151..163)::12
                 MarkupElement - [151..161)::10
                     MarkupStartTag - [151..154)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                         OpenAngle;[<];
@@ -95,9 +92,9 @@
                         CloseAngle;[>];
                 MarkupTextLiteral - [161..163)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:None
                     NewLine;[LF];
-            MarkupBlock - [163..187)::24
-                MarkupTextLiteral - [163..175)::12 - [            ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[            ];
+            CSharpStatementLiteral - [163..175)::12 - [            ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                Whitespace;[            ];
+            MarkupBlock - [175..187)::12
                 MarkupElement - [175..185)::10
                     MarkupStartTag - [175..178)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                         OpenAngle;[<];
@@ -112,7 +109,7 @@
                         CloseAngle;[>];
                 MarkupTextLiteral - [185..187)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:None
                     NewLine;[LF];
-            CSharpStatementLiteral - [187..212)::25 - [        }LF    default:LF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [187..220)::33 - [        }LF    default:LF        ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Whitespace;[        ];
                 RightBrace;[}];
                 NewLine;[LF];
@@ -120,9 +117,8 @@
                 Keyword;[default];
                 Colon;[:];
                 NewLine;[LF];
-            MarkupBlock - [212..232)::20
-                MarkupTextLiteral - [212..220)::8 - [        ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[        ];
+                Whitespace;[        ];
+            MarkupBlock - [220..232)::12
                 MarkupElement - [220..230)::10
                     MarkupStartTag - [220..223)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                         OpenAngle;[<];

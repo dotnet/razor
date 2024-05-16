@@ -7,7 +7,7 @@ Source Location: (95:6,11 [29] x:\dir\subdir\Test\TestComponent.cshtml)
 |
         int Foo = 18;
     |
-Generated Location: (1270:37,0 [29] )
+Generated Location: (1274:37,0 [29] )
 |
         int Foo = 18;
     |

@@ -9,7 +9,7 @@ namespace Test
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (1,2)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,2)-(1,50) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components.Rendering;
 
 #line default
@@ -25,13 +25,14 @@ using Microsoft.AspNetCore.Components.Rendering;
         }
         #pragma warning restore 1998
 #nullable restore
-#line (3,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (3,8)-(9,9) "x:\dir\subdir\Test\TestComponent.cshtml"
 
     void RenderChildComponent(RenderTreeBuilder __builder)
     {
         var output = string.Empty;
         if (__builder == null) output = "Builder is null!";
         else output = "Builder is not null!";
+        
 
 #line default
 #line hidden

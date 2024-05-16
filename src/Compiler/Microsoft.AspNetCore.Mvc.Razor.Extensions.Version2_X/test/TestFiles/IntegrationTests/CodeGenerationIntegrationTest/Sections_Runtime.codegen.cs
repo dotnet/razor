@@ -45,8 +45,8 @@ namespace AspNetCore
             BeginContext(17, 2, true);
             WriteLiteral("\r\n");
             EndContext();
-            BeginContext(64, 2, true);
-            WriteLiteral("\r\n");
+            BeginContext(62, 4, true);
+            WriteLiteral("\r\n\r\n");
             EndContext();
 #line (5,3)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
  

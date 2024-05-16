@@ -24,7 +24,7 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("    <script type=\"text/javascript\" ");
+            WriteLiteral("<script type=\"text/javascript\" ");
             WriteLiteral(" ></script @foo >\r\n");
             WriteLiteral("\r\n<script type=\"text/html\">\r\n    <%var");
             BeginWriteAttribute("x", " x =", 102, "", 106, 0);

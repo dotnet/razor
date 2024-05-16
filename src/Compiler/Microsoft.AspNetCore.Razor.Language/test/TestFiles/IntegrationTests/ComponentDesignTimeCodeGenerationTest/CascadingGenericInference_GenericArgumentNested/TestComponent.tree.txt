@@ -1,0 +1,63 @@
+﻿RazorDocument - [0..70) - FullWidth: 70 - [<Grid Data="@(() => new List<string>())">LF    <GridColumn />LF</Grid>]
+    MarkupBlock - [0..70) - FullWidth: 70
+        MarkupTagHelperElement - [0..70) - FullWidth: 70 - Grid[StartTagAndEndTag] - Grid<T>
+            MarkupTagHelperStartTag - [0..41) - FullWidth: 41 - [<Grid Data="@(() => new List<string>())">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Grid];
+                MarkupTagHelperAttribute - [5..40) - FullWidth: 35 - Data - DoubleQuotes - Bound - [ Data="@(() => new List<string>())"]
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..10) - FullWidth: 4 - [Data] - Gen<Markup>
+                        Text;[Data];
+                    Equals;[=];
+                    MarkupTextLiteral - [11..12) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [12..39) - FullWidth: 27
+                        MarkupBlock - [12..39) - FullWidth: 27
+                            CSharpCodeBlock - [12..39) - FullWidth: 27
+                                CSharpImplicitExpression - [12..39) - FullWidth: 27
+                                    CSharpTransition - [12..13) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [13..39) - FullWidth: 26
+                                        CSharpCodeBlock - [13..39) - FullWidth: 26
+                                            CSharpExpressionLiteral - [13..14) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [14..38) - FullWidth: 24 - [() => new List<string>()] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                                Whitespace;[ ];
+                                                GreaterThanEqual;[=>];
+                                                Whitespace;[ ];
+                                                Keyword;[new];
+                                                Whitespace;[ ];
+                                                Identifier;[List];
+                                                LessThan;[<];
+                                                Keyword;[string];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [38..39) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [39..40) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [41..47) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [47..61) - FullWidth: 14 - GridColumn[SelfClosing] - GridColumn<T>
+                MarkupTagHelperStartTag - [47..61) - FullWidth: 14 - [<GridColumn />] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[GridColumn];
+                    MarkupMiscAttributeContent - [58..59) - FullWidth: 1
+                        MarkupTextLiteral - [58..59) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [61..63) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [63..70) - FullWidth: 7 - [</Grid>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Grid];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -34,8 +34,8 @@
                         LazyIntermediateToken - (130:7,29 [20] Sections.cshtml) - Html - This is in Section 2
                         LazyIntermediateToken - (150:7,49 [6] Sections.cshtml) - Html - </div>
                         LazyIntermediateToken - (156:7,55 [2] Sections.cshtml) - Html - \n
-                HtmlContent - (161:9,0 [2] Sections.cshtml)
-                    LazyIntermediateToken - (161:9,0 [2] Sections.cshtml) - Html - \n
+                HtmlContent - (159:8,1 [4] Sections.cshtml)
+                    LazyIntermediateToken - (159:8,1 [4] Sections.cshtml) - Html - \n\n
                 Section -  - Section1
                     HtmlContent - (182:10,19 [39] Sections.cshtml)
                         LazyIntermediateToken - (182:10,19 [6] Sections.cshtml) - Html - \n    
@@ -44,8 +44,8 @@
                         LazyIntermediateToken - (193:11,9 [20] Sections.cshtml) - Html - This is in Section 1
                         LazyIntermediateToken - (213:11,29 [6] Sections.cshtml) - Html - </div>
                         LazyIntermediateToken - (219:11,35 [2] Sections.cshtml) - Html - \n
-                HtmlContent - (224:13,0 [2] Sections.cshtml)
-                    LazyIntermediateToken - (224:13,0 [2] Sections.cshtml) - Html - \n
+                HtmlContent - (222:12,1 [4] Sections.cshtml)
+                    LazyIntermediateToken - (222:12,1 [4] Sections.cshtml) - Html - \n\n
                 Section -  - NestedDelegates
                     HtmlContent - (252:14,26 [2] Sections.cshtml)
                         LazyIntermediateToken - (252:14,26 [2] Sections.cshtml) - Html - \n

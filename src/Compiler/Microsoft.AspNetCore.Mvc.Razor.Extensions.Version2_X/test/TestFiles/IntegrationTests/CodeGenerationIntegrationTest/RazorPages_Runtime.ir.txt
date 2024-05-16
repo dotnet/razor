@@ -3,14 +3,14 @@
     CSharpCode - 
         IntermediateToken -  - CSharp - [assembly:global::Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.RazorPageAttribute(@"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml", typeof(AspNetCore.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPages), null)]
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [14] ) - System
-        UsingDirective - (16:1,1 [34] ) - System.Collections.Generic
-        UsingDirective - (51:2,1 [19] ) - System.Linq
-        UsingDirective - (71:3,1 [30] ) - System.Threading.Tasks
-        UsingDirective - (102:4,1 [32] ) - Microsoft.AspNetCore.Mvc
-        UsingDirective - (135:5,1 [42] ) - Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (178:6,1 [45] ) - Microsoft.AspNetCore.Mvc.ViewFeatures
-        UsingDirective - (55:4,1 [43] RazorPages.cshtml) - Microsoft.AspNetCore.Mvc.RazorPages
+        UsingDirective - (1:0,1 [12] ) - System
+        UsingDirective - (16:1,1 [32] ) - System.Collections.Generic
+        UsingDirective - (51:2,1 [17] ) - System.Linq
+        UsingDirective - (71:3,1 [28] ) - System.Threading.Tasks
+        UsingDirective - (102:4,1 [30] ) - Microsoft.AspNetCore.Mvc
+        UsingDirective - (135:5,1 [40] ) - Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (178:6,1 [43] ) - Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (55:4,1 [41] RazorPages.cshtml) - Microsoft.AspNetCore.Mvc.RazorPages
         RazorSourceChecksumAttribute - 
         ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPages - global::Microsoft.AspNetCore.Mvc.RazorPages.Page - 
             PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_0 - class - text-danger - HtmlAttributeValueStyle.DoubleQuotes
@@ -27,15 +27,21 @@
                 CSharpCode - 
                     IntermediateToken -  - CSharp - EndContext();
                 CSharpCode - 
-                    IntermediateToken -  - CSharp - BeginContext(98, 2, true);
-                HtmlContent - (98:5,0 [2] RazorPages.cshtml)
-                    LazyIntermediateToken - (98:5,0 [2] RazorPages.cshtml) - Html - \n
+                    IntermediateToken -  - CSharp - BeginContext(52, 2, true);
+                HtmlContent - (52:3,26 [2] RazorPages.cshtml)
+                    LazyIntermediateToken - (52:3,26 [2] RazorPages.cshtml) - Html - \n
                 CSharpCode - 
                     IntermediateToken -  - CSharp - EndContext();
                 CSharpCode - 
-                    IntermediateToken -  - CSharp - BeginContext(475, 76, true);
-                HtmlContent - (475:23,0 [76] RazorPages.cshtml)
-                    LazyIntermediateToken - (475:23,0 [2] RazorPages.cshtml) - Html - \n
+                    IntermediateToken -  - CSharp - BeginContext(96, 4, true);
+                HtmlContent - (96:4,42 [4] RazorPages.cshtml)
+                    LazyIntermediateToken - (96:4,42 [4] RazorPages.cshtml) - Html - \n\n
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - EndContext();
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - BeginContext(473, 78, true);
+                HtmlContent - (473:22,1 [78] RazorPages.cshtml)
+                    LazyIntermediateToken - (473:22,1 [4] RazorPages.cshtml) - Html - \n\n
                     LazyIntermediateToken - (477:24,0 [3] RazorPages.cshtml) - Html - <h1
                     LazyIntermediateToken - (480:24,3 [1] RazorPages.cshtml) - Html - >
                     LazyIntermediateToken - (481:24,4 [12] RazorPages.cshtml) - Html - New Customer

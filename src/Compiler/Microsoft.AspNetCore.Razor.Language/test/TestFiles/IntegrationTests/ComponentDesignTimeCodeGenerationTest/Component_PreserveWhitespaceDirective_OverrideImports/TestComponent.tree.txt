@@ -1,0 +1,63 @@
+﻿RazorDocument - [0..88) - FullWidth: 88 - [@preservewhitespace falseLFLF<parent>LF    <child> @DateTime.Now </child>LF</parent>LFLF]
+    MarkupBlock - [0..88) - FullWidth: 88
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..27) - FullWidth: 27
+            RazorDirective - [0..27) - FullWidth: 27 - Directive:{preservewhitespace;SingleLine;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..27) - FullWidth: 26
+                    RazorMetaCode - [1..19) - FullWidth: 18 - Gen<None>
+                        Identifier;[preservewhitespace];
+                    CSharpCodeBlock - [19..27) - FullWidth: 8
+                        CSharpStatementLiteral - [19..20) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [20..25) - FullWidth: 5 - [false] - Gen<DirectiveToken {Preserve;Boolean;Opt:False}>
+                            Keyword;[false];
+                        MarkupEphemeralTextLiteral - [25..27) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [27..29) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [29..84) - FullWidth: 55
+            MarkupStartTag - [29..37) - FullWidth: 8 - [<parent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[parent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [37..43) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupElement - [43..73) - FullWidth: 30
+                MarkupStartTag - [43..50) - FullWidth: 7 - [<child>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[child];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [50..51) - FullWidth: 1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                CSharpCodeBlock - [51..64) - FullWidth: 13
+                    CSharpImplicitExpression - [51..64) - FullWidth: 13
+                        CSharpTransition - [51..52) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [52..64) - FullWidth: 12
+                            CSharpCodeBlock - [52..64) - FullWidth: 12
+                                CSharpExpressionLiteral - [52..64) - FullWidth: 12 - [DateTime.Now] - Gen<Expr>
+                                    Identifier;[DateTime];
+                                    Dot;[.];
+                                    Identifier;[Now];
+                MarkupTextLiteral - [64..65) - FullWidth: 1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEndTag - [65..73) - FullWidth: 8 - [</child>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[child];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [73..75) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupEndTag - [75..84) - FullWidth: 9 - [</parent>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[parent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [84..88) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+    EndOfFile;[];

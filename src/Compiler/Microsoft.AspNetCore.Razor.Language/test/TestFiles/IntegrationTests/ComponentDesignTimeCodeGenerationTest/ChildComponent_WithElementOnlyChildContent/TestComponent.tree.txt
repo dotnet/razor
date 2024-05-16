@@ -1,0 +1,25 @@
+﻿RazorDocument - [0..47) - FullWidth: 47 - [<MyComponent><child>hello</child></MyComponent>]
+    MarkupBlock - [0..47) - FullWidth: 47
+        MarkupTagHelperElement - [0..47) - FullWidth: 47 - MyComponent[StartTagAndEndTag] - MyComponent
+            MarkupTagHelperStartTag - [0..13) - FullWidth: 13 - [<MyComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                CloseAngle;[>];
+            MarkupElement - [13..33) - FullWidth: 20
+                MarkupStartTag - [13..20) - FullWidth: 7 - [<child>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[child];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [20..25) - FullWidth: 5 - [hello] - Gen<Markup>
+                    Text;[hello];
+                MarkupEndTag - [25..33) - FullWidth: 8 - [</child>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[child];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [33..47) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

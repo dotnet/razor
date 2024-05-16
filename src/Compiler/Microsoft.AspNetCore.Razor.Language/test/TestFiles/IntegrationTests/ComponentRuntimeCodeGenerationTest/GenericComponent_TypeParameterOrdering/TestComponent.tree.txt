@@ -1,0 +1,139 @@
+﻿RazorDocument - [0..238) - FullWidth: 238 - [<MyComponent TKey="string" TService="IComposedInterface" @bind-Value="_componentValue" />LF<MyComponent TService="IComposedInterface" TKey="string" @bind-Value="_componentValue" />LFLF@code {LF    string _componentValue = string.Empty;LF}]
+    MarkupBlock - [0..238) - FullWidth: 238
+        MarkupTagHelperElement - [0..89) - FullWidth: 89 - MyComponent[SelfClosing] - MyComponent<TService, TKey> - MyComponent<TService, TKey> - Bind
+            MarkupTagHelperStartTag - [0..89) - FullWidth: 89 - [<MyComponent TKey="string" TService="IComposedInterface" @bind-Value="_componentValue" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..26) - FullWidth: 14 - TKey - DoubleQuotes - Bound - [ TKey="string"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..17) - FullWidth: 4 - [TKey] - Gen<Markup>
+                        Text;[TKey];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..25) - FullWidth: 6
+                        CSharpExpressionLiteral - [19..25) - FullWidth: 6 - [string] - Gen<None>
+                            Text;[string];
+                    MarkupTextLiteral - [25..26) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [26..56) - FullWidth: 30 - TService - DoubleQuotes - Bound - [ TService="IComposedInterface"]
+                    MarkupTextLiteral - [26..27) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [27..35) - FullWidth: 8 - [TService] - Gen<Markup>
+                        Text;[TService];
+                    Equals;[=];
+                    MarkupTextLiteral - [36..37) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [37..55) - FullWidth: 18
+                        CSharpExpressionLiteral - [37..55) - FullWidth: 18 - [IComposedInterface] - Gen<None>
+                            Text;[IComposedInterface];
+                    MarkupTextLiteral - [55..56) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [56..86) - FullWidth: 30
+                    MarkupTextLiteral - [56..57) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [57..58) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [58..68) - FullWidth: 10 - [bind-Value]
+                        Text;[bind-Value];
+                    Equals;[=];
+                    MarkupTextLiteral - [69..70) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [70..85) - FullWidth: 15
+                        CSharpExpressionLiteral - [70..85) - FullWidth: 15 - [_componentValue] - Gen<None>
+                            Text;[_componentValue];
+                    MarkupTextLiteral - [85..86) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [86..87) - FullWidth: 1
+                    MarkupTextLiteral - [86..87) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [89..91) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [91..180) - FullWidth: 89 - MyComponent[SelfClosing] - MyComponent<TService, TKey> - MyComponent<TService, TKey> - Bind
+            MarkupTagHelperStartTag - [91..180) - FullWidth: 89 - [<MyComponent TService="IComposedInterface" TKey="string" @bind-Value="_componentValue" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [103..133) - FullWidth: 30 - TService - DoubleQuotes - Bound - [ TService="IComposedInterface"]
+                    MarkupTextLiteral - [103..104) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [104..112) - FullWidth: 8 - [TService] - Gen<Markup>
+                        Text;[TService];
+                    Equals;[=];
+                    MarkupTextLiteral - [113..114) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [114..132) - FullWidth: 18
+                        CSharpExpressionLiteral - [114..132) - FullWidth: 18 - [IComposedInterface] - Gen<None>
+                            Text;[IComposedInterface];
+                    MarkupTextLiteral - [132..133) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [133..147) - FullWidth: 14 - TKey - DoubleQuotes - Bound - [ TKey="string"]
+                    MarkupTextLiteral - [133..134) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [134..138) - FullWidth: 4 - [TKey] - Gen<Markup>
+                        Text;[TKey];
+                    Equals;[=];
+                    MarkupTextLiteral - [139..140) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [140..146) - FullWidth: 6
+                        CSharpExpressionLiteral - [140..146) - FullWidth: 6 - [string] - Gen<None>
+                            Text;[string];
+                    MarkupTextLiteral - [146..147) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [147..177) - FullWidth: 30
+                    MarkupTextLiteral - [147..148) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [148..149) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [149..159) - FullWidth: 10 - [bind-Value]
+                        Text;[bind-Value];
+                    Equals;[=];
+                    MarkupTextLiteral - [160..161) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [161..176) - FullWidth: 15
+                        CSharpExpressionLiteral - [161..176) - FullWidth: 15 - [_componentValue] - Gen<None>
+                            Text;[_componentValue];
+                    MarkupTextLiteral - [176..177) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [177..178) - FullWidth: 1
+                    MarkupTextLiteral - [177..178) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [180..184) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [184..238) - FullWidth: 54
+            RazorDirective - [184..238) - FullWidth: 54 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [184..185) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [185..238) - FullWidth: 53
+                    RazorMetaCode - [185..189) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [189..238) - FullWidth: 49
+                        UnclassifiedTextLiteral - [189..190) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [190..191) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [191..237) - FullWidth: 46
+                            CSharpStatementLiteral - [191..237) - FullWidth: 46 - [LF    string _componentValue = string.Empty;LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[_componentValue];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Dot;[.];
+                                Identifier;[Empty];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [237..238) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [238..238) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -9,13 +9,13 @@ namespace Test
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (1,2)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,2)-(1,43) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components.Web
 
 #nullable disable
     ;
 #nullable restore
-#line (2,2)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,2)-(2,49) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components.Rendering
 
 #line default
@@ -63,9 +63,10 @@ myComponentReference
             __builder.CloseComponent();
             __builder.CloseElement();
 #nullable restore
-#line (11,2)-(13,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (11,2)-(13,5) "x:\dir\subdir\Test\TestComponent.cshtml"
 if (DateTime.Now.Year > 1950)
 {
+    
 
 #line default
 #line hidden
@@ -87,11 +88,10 @@ myElementReference
             );
             __builder.AddContent(15, "Content");
             __builder.CloseElement();
-            __builder.AddMarkupContent(16, "\r\n    ");
-            __builder.OpenElement(17, "input");
-            __builder.AddAttribute(18, "id", "myElem");
-            __builder.AddAttribute(19, "another-attr", "Another attr value");
-            __builder.AddAttribute(20, "value", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
+            __builder.OpenElement(16, "input");
+            __builder.AddAttribute(17, "id", "myElem");
+            __builder.AddAttribute(18, "another-attr", "Another attr value");
+            __builder.AddAttribute(19, "value", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
 #nullable restore
 #line (14,31)-(14,41) "x:\dir\subdir\Test\TestComponent.cshtml"
 myVariable
@@ -100,12 +100,12 @@ myVariable
 #line hidden
 #nullable disable
             ));
-            __builder.AddAttribute(21, "onchange", global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => myVariable = __value, myVariable));
+            __builder.AddAttribute(20, "onchange", global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => myVariable = __value, myVariable));
             __builder.SetUpdatesAttributeName("value");
-            __builder.AddAttribute(22, "TestCssScope");
+            __builder.AddAttribute(21, "TestCssScope");
             __builder.CloseElement();
 #nullable restore
-#line (15,1)-(16,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (15,1)-(15,2) "x:\dir\subdir\Test\TestComponent.cshtml"
 }
 
 #line default
@@ -115,7 +115,7 @@ myVariable
         }
         #pragma warning restore 1998
 #nullable restore
-#line (17,8)-(26,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (17,8)-(26,13) "x:\dir\subdir\Test\TestComponent.cshtml"
 
     ElementReference myElementReference;
     TemplatedComponent myComponentReference;
@@ -125,13 +125,14 @@ myVariable
     {
         for (var i = 0; i < 10; i++)
         {
+            
 
 #line default
 #line hidden
 #nullable disable
 
-        __builder.OpenElement(23, "li");
-        __builder.AddAttribute(24, "data-index", 
+        __builder.OpenElement(22, "li");
+        __builder.AddAttribute(23, "data-index", 
 #nullable restore
 #line (26,29)-(26,30) "x:\dir\subdir\Test\TestComponent.cshtml"
 i
@@ -140,9 +141,9 @@ i
 #line hidden
 #nullable disable
         );
-        __builder.AddAttribute(25, "TestCssScope");
-        __builder.AddContent(26, "Something ");
-        __builder.AddContent(27, 
+        __builder.AddAttribute(24, "TestCssScope");
+        __builder.AddContent(25, "Something ");
+        __builder.AddContent(26, 
 #nullable restore
 #line (26,42)-(26,43) "x:\dir\subdir\Test\TestComponent.cshtml"
 i

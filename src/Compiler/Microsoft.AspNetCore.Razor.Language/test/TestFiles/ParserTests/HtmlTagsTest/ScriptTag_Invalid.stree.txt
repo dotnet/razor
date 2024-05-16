@@ -10,9 +10,9 @@
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..24)::22
-                        MarkupBlock - [2..24)::22
-                            MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
-                                Whitespace;[ ];
+                        CSharpStatementLiteral - [2..3)::1 - [ ] - Gen<Stmt>
+                            Whitespace;[ ];
+                        MarkupBlock - [3..24)::21
                             MarkupElement - [3..23)::20
                                 MarkupStartTag - [3..11)::8 - [<script>] - Gen<Markup>
                                     OpenAngle;[<];

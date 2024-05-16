@@ -1,0 +1,44 @@
+﻿RazorDocument - [0..60) - FullWidth: 60 - [@page "/MyPage"LF@page "/AnotherRoute/{id}"LF<MyComponent />]
+    MarkupBlock - [0..60) - FullWidth: 60
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..17) - FullWidth: 17
+            RazorDirective - [0..17) - FullWidth: 17 - Directive:{page;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..17) - FullWidth: 16
+                    RazorMetaCode - [1..5) - FullWidth: 4 - Gen<None>
+                        Identifier;[page];
+                    CSharpCodeBlock - [5..17) - FullWidth: 12
+                        MarkupEphemeralTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [6..15) - FullWidth: 9 - ["/MyPage"] - Gen<DirectiveToken {route template;String;Opt:False}>
+                            StringLiteral;["/MyPage"];
+                        MarkupEphemeralTextLiteral - [15..17) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [17..17) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [17..45) - FullWidth: 28
+            RazorDirective - [17..45) - FullWidth: 28 - Directive:{page;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [17..18) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [18..45) - FullWidth: 27
+                    RazorMetaCode - [18..22) - FullWidth: 4 - Gen<None>
+                        Identifier;[page];
+                    CSharpCodeBlock - [22..45) - FullWidth: 23
+                        MarkupEphemeralTextLiteral - [22..23) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [23..43) - FullWidth: 20 - ["/AnotherRoute/{id}"] - Gen<DirectiveToken {route template;String;Opt:False}>
+                            StringLiteral;["/AnotherRoute/{id}"];
+                        MarkupEphemeralTextLiteral - [43..45) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTagHelperElement - [45..60) - FullWidth: 15 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [45..60) - FullWidth: 15 - [<MyComponent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupMiscAttributeContent - [57..58) - FullWidth: 1
+                    MarkupTextLiteral - [57..58) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

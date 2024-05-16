@@ -1,0 +1,90 @@
+﻿RazorDocument - [0..143) - FullWidth: 143 - [<strong>@TestDecimal</strong>LFLF<TestComponent TestDecimal="4" />LFLF@code {LF    [Parameter]LF    public decimal TestDecimal { get; set; }LF}]
+    MarkupBlock - [0..143) - FullWidth: 143
+        MarkupElement - [0..29) - FullWidth: 29
+            MarkupStartTag - [0..8) - FullWidth: 8 - [<strong>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[strong];
+                CloseAngle;[>];
+            CSharpCodeBlock - [8..20) - FullWidth: 12
+                CSharpImplicitExpression - [8..20) - FullWidth: 12
+                    CSharpTransition - [8..9) - FullWidth: 1 - Gen<None>
+                        Transition;[@];
+                    CSharpImplicitExpressionBody - [9..20) - FullWidth: 11
+                        CSharpCodeBlock - [9..20) - FullWidth: 11
+                            CSharpExpressionLiteral - [9..20) - FullWidth: 11 - [TestDecimal] - Gen<Expr>
+                                Identifier;[TestDecimal];
+            MarkupEndTag - [20..29) - FullWidth: 9 - [</strong>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[strong];
+                CloseAngle;[>];
+        MarkupTextLiteral - [29..33) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupTagHelperElement - [33..66) - FullWidth: 33 - TestComponent[SelfClosing] - TestComponent
+            MarkupTagHelperStartTag - [33..66) - FullWidth: 33 - [<TestComponent TestDecimal="4" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperAttribute - [47..63) - FullWidth: 16 - TestDecimal - DoubleQuotes - Bound - [ TestDecimal="4"]
+                    MarkupTextLiteral - [47..48) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [48..59) - FullWidth: 11 - [TestDecimal] - Gen<Markup>
+                        Text;[TestDecimal];
+                    Equals;[=];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [61..62) - FullWidth: 1
+                        CSharpExpressionLiteral - [61..62) - FullWidth: 1 - [4] - Gen<None>
+                            Text;[4];
+                    MarkupTextLiteral - [62..63) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [63..64) - FullWidth: 1
+                    MarkupTextLiteral - [63..64) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [66..70) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [70..143) - FullWidth: 73
+            RazorDirective - [70..143) - FullWidth: 73 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [70..71) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [71..143) - FullWidth: 72
+                    RazorMetaCode - [71..75) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [75..143) - FullWidth: 68
+                        UnclassifiedTextLiteral - [75..76) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [76..77) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [77..142) - FullWidth: 65
+                            CSharpStatementLiteral - [77..142) - FullWidth: 65 - [LF    [Parameter]LF    public decimal TestDecimal { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[decimal];
+                                Whitespace;[ ];
+                                Identifier;[TestDecimal];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [142..143) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [143..143) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

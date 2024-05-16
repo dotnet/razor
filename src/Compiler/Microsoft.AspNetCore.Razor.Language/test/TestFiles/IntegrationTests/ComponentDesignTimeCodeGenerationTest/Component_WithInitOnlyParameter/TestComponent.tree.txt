@@ -1,0 +1,28 @@
+﻿RazorDocument - [0..38) - FullWidth: 38 - [<MyComponent Prop="1">LF</MyComponent>]
+    MarkupBlock - [0..38) - FullWidth: 38
+        MarkupTagHelperElement - [0..38) - FullWidth: 38 - MyComponent[StartTagAndEndTag] - MyComponent
+            MarkupTagHelperStartTag - [0..22) - FullWidth: 22 - [<MyComponent Prop="1">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..21) - FullWidth: 9 - Prop - DoubleQuotes - Bound - [ Prop="1"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..17) - FullWidth: 4 - [Prop] - Gen<Markup>
+                        Text;[Prop];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..20) - FullWidth: 1
+                        CSharpExpressionLiteral - [19..20) - FullWidth: 1 - [1] - Gen<None>
+                            Text;[1];
+                    MarkupTextLiteral - [20..21) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [22..24) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [24..38) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

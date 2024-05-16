@@ -13,7 +13,7 @@
             CSharpCodeBlock - [15..73)::58
                 CSharpTransition - [15..16)::1 - Gen<None> - SpanEditHandler;Accepts:None
                     Transition;[@];
-                CSharpStatementLiteral - [16..35)::19 - [do { var foo = bar;] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                CSharpStatementLiteral - [16..36)::20 - [do { var foo = bar; ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                     Keyword;[do];
                     Whitespace;[ ];
                     LeftBrace;[{];
@@ -26,9 +26,8 @@
                     Whitespace;[ ];
                     Identifier;[bar];
                     Semicolon;[;];
-                MarkupBlock - [35..47)::12
-                    MarkupTextLiteral - [35..36)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                        Whitespace;[ ];
+                    Whitespace;[ ];
+                MarkupBlock - [36..47)::11
                     MarkupTagHelperElement - [36..46)::10 - p[StartTagAndEndTag] - ptaghelper
                         MarkupTagHelperStartTag - [36..39)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                             OpenAngle;[<];

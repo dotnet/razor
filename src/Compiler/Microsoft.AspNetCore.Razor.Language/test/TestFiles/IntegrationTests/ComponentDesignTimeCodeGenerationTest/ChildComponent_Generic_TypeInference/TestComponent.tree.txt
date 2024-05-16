@@ -1,0 +1,33 @@
+﻿RazorDocument - [0..29) - FullWidth: 29 - [<MyComponent Item="@("hi")"/>]
+    MarkupBlock - [0..29) - FullWidth: 29
+        MarkupTagHelperElement - [0..29) - FullWidth: 29 - MyComponent[SelfClosing] - MyComponent<TItem>
+            MarkupTagHelperStartTag - [0..29) - FullWidth: 29 - [<MyComponent Item="@("hi")"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..27) - FullWidth: 15 - Item - DoubleQuotes - Bound - [ Item="@("hi")"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..17) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..26) - FullWidth: 7
+                        MarkupBlock - [19..26) - FullWidth: 7
+                            CSharpCodeBlock - [19..26) - FullWidth: 7
+                                CSharpImplicitExpression - [19..26) - FullWidth: 7
+                                    CSharpTransition - [19..20) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [20..26) - FullWidth: 6
+                                        CSharpCodeBlock - [20..26) - FullWidth: 6
+                                            CSharpExpressionLiteral - [20..21) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [21..25) - FullWidth: 4 - ["hi"] - Gen<Expr>
+                                                StringLiteral;["hi"];
+                                            CSharpExpressionLiteral - [25..26) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [26..27) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

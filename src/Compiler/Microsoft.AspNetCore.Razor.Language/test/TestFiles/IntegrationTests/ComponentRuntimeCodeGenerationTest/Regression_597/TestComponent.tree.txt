@@ -1,0 +1,58 @@
+﻿RazorDocument - [0..59) - FullWidth: 59 - [<Counter @bind-v="y" />LF@code {LF    string y = null;LF}LF]
+    MarkupBlock - [0..59) - FullWidth: 59
+        MarkupTagHelperElement - [0..23) - FullWidth: 23 - Counter[SelfClosing] - Counter - Bind
+            MarkupTagHelperStartTag - [0..23) - FullWidth: 23 - [<Counter @bind-v="y" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Counter];
+                MarkupTagHelperDirectiveAttribute - [8..20) - FullWidth: 12
+                    MarkupTextLiteral - [8..9) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [9..10) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [10..16) - FullWidth: 6 - [bind-v]
+                        Text;[bind-v];
+                    Equals;[=];
+                    MarkupTextLiteral - [17..18) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [18..19) - FullWidth: 1
+                        CSharpExpressionLiteral - [18..19) - FullWidth: 1 - [y] - Gen<None>
+                            Text;[y];
+                    MarkupTextLiteral - [19..20) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [20..21) - FullWidth: 1
+                    MarkupTextLiteral - [20..21) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [23..25) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [25..57) - FullWidth: 32
+            RazorDirective - [25..57) - FullWidth: 32 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [25..26) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [26..57) - FullWidth: 31
+                    RazorMetaCode - [26..30) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [30..57) - FullWidth: 27
+                        UnclassifiedTextLiteral - [30..31) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [31..32) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [32..56) - FullWidth: 24
+                            CSharpStatementLiteral - [32..56) - FullWidth: 24 - [LF    string y = null;LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[y];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[null];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [56..57) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [57..59) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

@@ -1,0 +1,62 @@
+﻿RazorDocument - [0..103) - FullWidth: 103 - [<MyComponent>LF  <Header>Hi!</Header>LF  <Footer>Bye!</Footer>LF</MyComponent>LF<Header>Hello!</Header>]
+    MarkupBlock - [0..103) - FullWidth: 103
+        MarkupTagHelperElement - [0..78) - FullWidth: 78 - MyComponent[StartTagAndEndTag] - MyComponent
+            MarkupTagHelperStartTag - [0..13) - FullWidth: 13 - [<MyComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [13..17) - FullWidth: 4 - [LF  ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[  ];
+            MarkupTagHelperElement - [17..37) - FullWidth: 20 - Header[StartTagAndEndTag] - Header - Header
+                MarkupTagHelperStartTag - [17..25) - FullWidth: 8 - [<Header>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Header];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [25..28) - FullWidth: 3 - [Hi!] - Gen<Markup>
+                    Text;[Hi];
+                    Bang;[!];
+                MarkupTagHelperEndTag - [28..37) - FullWidth: 9 - [</Header>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Header];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [37..41) - FullWidth: 4 - [LF  ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[  ];
+            MarkupTagHelperElement - [41..62) - FullWidth: 21 - Footer[StartTagAndEndTag] - Footer
+                MarkupTagHelperStartTag - [41..49) - FullWidth: 8 - [<Footer>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Footer];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [49..53) - FullWidth: 4 - [Bye!] - Gen<Markup>
+                    Text;[Bye];
+                    Bang;[!];
+                MarkupTagHelperEndTag - [53..62) - FullWidth: 9 - [</Footer>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[Footer];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [62..64) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [64..78) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [78..80) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [80..103) - FullWidth: 23 - Header[StartTagAndEndTag] - Header
+            MarkupTagHelperStartTag - [80..88) - FullWidth: 8 - [<Header>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Header];
+                CloseAngle;[>];
+            MarkupTextLiteral - [88..94) - FullWidth: 6 - [Hello!] - Gen<Markup>
+                Text;[Hello];
+                Bang;[!];
+            MarkupTagHelperEndTag - [94..103) - FullWidth: 9 - [</Header>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Header];
+                CloseAngle;[>];
+    EndOfFile;[];

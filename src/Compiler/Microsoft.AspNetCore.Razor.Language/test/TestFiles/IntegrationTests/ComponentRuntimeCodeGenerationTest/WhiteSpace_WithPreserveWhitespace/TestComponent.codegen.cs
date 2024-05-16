@@ -30,7 +30,7 @@ Foo
             );
             __builder.AddMarkupContent(3, "\r\n        <child></child>\r\n    ");
             __builder.CloseElement();
-            __builder.AddMarkupContent(4, "\r\n\r\n\r\n");
+            __builder.AddMarkupContent(4, "\r\n\r\n\r\n\r\n");
         }
         #pragma warning restore 1998
 #nullable restore

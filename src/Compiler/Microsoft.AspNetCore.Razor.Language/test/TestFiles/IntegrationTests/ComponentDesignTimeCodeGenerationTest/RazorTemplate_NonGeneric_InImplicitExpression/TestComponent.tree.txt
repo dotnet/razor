@@ -1,0 +1,68 @@
+﻿RazorDocument - [0..93) - FullWidth: 93 - [@RenderPerson(@<div>HI</div>)LF@code {LF    object RenderPerson(RenderFragment p) => null;LF}]
+    MarkupBlock - [0..93) - FullWidth: 93
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..29) - FullWidth: 29
+            CSharpImplicitExpression - [0..29) - FullWidth: 29
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [1..29) - FullWidth: 28
+                    CSharpCodeBlock - [1..29) - FullWidth: 28
+                        CSharpExpressionLiteral - [1..14) - FullWidth: 13 - [RenderPerson(] - Gen<Expr>
+                            Identifier;[RenderPerson];
+                            LeftParenthesis;[(];
+                        CSharpTemplateBlock - [14..28) - FullWidth: 14
+                            MarkupBlock - [14..28) - FullWidth: 14
+                                MarkupTransition - [14..15) - FullWidth: 1 - Gen<None>
+                                    Transition;[@];
+                                MarkupElement - [15..28) - FullWidth: 13
+                                    MarkupStartTag - [15..20) - FullWidth: 5 - [<div>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Text;[div];
+                                        CloseAngle;[>];
+                                    MarkupTextLiteral - [20..22) - FullWidth: 2 - [HI] - Gen<Markup>
+                                        Text;[HI];
+                                    MarkupEndTag - [22..28) - FullWidth: 6 - [</div>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        ForwardSlash;[/];
+                                        Text;[div];
+                                        CloseAngle;[>];
+                        CSharpExpressionLiteral - [28..29) - FullWidth: 1 - [)] - Gen<Expr>
+                            RightParenthesis;[)];
+        MarkupTextLiteral - [29..31) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [31..93) - FullWidth: 62
+            RazorDirective - [31..93) - FullWidth: 62 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [31..32) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [32..93) - FullWidth: 61
+                    RazorMetaCode - [32..36) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [36..93) - FullWidth: 57
+                        UnclassifiedTextLiteral - [36..37) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [37..38) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [38..92) - FullWidth: 54
+                            CSharpStatementLiteral - [38..92) - FullWidth: 54 - [LF    object RenderPerson(RenderFragment p) => null;LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[object];
+                                Whitespace;[ ];
+                                Identifier;[RenderPerson];
+                                LeftParenthesis;[(];
+                                Identifier;[RenderFragment];
+                                Whitespace;[ ];
+                                Identifier;[p];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                GreaterThanEqual;[=>];
+                                Whitespace;[ ];
+                                Keyword;[null];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [92..93) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [93..93) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

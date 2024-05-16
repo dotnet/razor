@@ -1,0 +1,38 @@
+﻿RazorDocument - [0..45) - FullWidth: 45 - [<CoolnessMeter Coolness="@("very-cool")" />LF]
+    MarkupBlock - [0..45) - FullWidth: 45
+        MarkupTagHelperElement - [0..43) - FullWidth: 43 - CoolnessMeter[SelfClosing] - CoolnessMeter
+            MarkupTagHelperStartTag - [0..43) - FullWidth: 43 - [<CoolnessMeter Coolness="@("very-cool")" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[CoolnessMeter];
+                MarkupTagHelperAttribute - [14..40) - FullWidth: 26 - Coolness - DoubleQuotes - Bound - [ Coolness="@("very-cool")"]
+                    MarkupTextLiteral - [14..15) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [15..23) - FullWidth: 8 - [Coolness] - Gen<Markup>
+                        Text;[Coolness];
+                    Equals;[=];
+                    MarkupTextLiteral - [24..25) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [25..39) - FullWidth: 14
+                        MarkupBlock - [25..39) - FullWidth: 14
+                            CSharpCodeBlock - [25..39) - FullWidth: 14
+                                CSharpImplicitExpression - [25..39) - FullWidth: 14
+                                    CSharpTransition - [25..26) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [26..39) - FullWidth: 13
+                                        CSharpCodeBlock - [26..39) - FullWidth: 13
+                                            CSharpExpressionLiteral - [26..27) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [27..38) - FullWidth: 11 - ["very-cool"] - Gen<Expr>
+                                                StringLiteral;["very-cool"];
+                                            CSharpExpressionLiteral - [38..39) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [39..40) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [40..41) - FullWidth: 1
+                    MarkupTextLiteral - [40..41) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [43..45) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

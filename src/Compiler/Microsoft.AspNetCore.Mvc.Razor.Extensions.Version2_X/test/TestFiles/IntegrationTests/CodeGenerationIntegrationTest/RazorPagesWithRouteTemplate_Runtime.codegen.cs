@@ -13,7 +13,7 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
-#line (4,2)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
+#line (4,2)-(4,43) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
 using Microsoft.AspNetCore.Mvc.RazorPages
 
 #line default
@@ -36,11 +36,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             BeginContext(16, 2, true);
             WriteLiteral("\r\n");
             EndContext();
-            BeginContext(79, 2, true);
-            WriteLiteral("\r\n");
+            BeginContext(77, 4, true);
+            WriteLiteral("\r\n\r\n");
             EndContext();
-            BeginContext(193, 19, true);
-            WriteLiteral("\r\n<h1>New Customer ");
+            BeginContext(191, 21, true);
+            WriteLiteral("\r\n\r\n<h1>New Customer ");
             EndContext();
             BeginContext(213, 10, false);
             Write(

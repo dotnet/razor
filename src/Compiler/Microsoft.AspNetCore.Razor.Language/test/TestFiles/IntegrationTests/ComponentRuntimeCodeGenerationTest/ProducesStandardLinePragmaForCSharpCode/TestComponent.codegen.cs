@@ -19,9 +19,10 @@ namespace Test
         {
             __builder.AddMarkupContent(0, "<h1>Conditional statement</h1>");
 #nullable restore
-#line (2,2)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,2)-(4,5) "x:\dir\subdir\Test\TestComponent.cshtml"
 for (var i = 0; i < 10; i++)
 {
+    
 
 #line default
 #line hidden
@@ -39,7 +40,7 @@ i
             );
             __builder.CloseElement();
 #nullable restore
-#line (5,1)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (5,1)-(5,2) "x:\dir\subdir\Test\TestComponent.cshtml"
 }
 
 #line default

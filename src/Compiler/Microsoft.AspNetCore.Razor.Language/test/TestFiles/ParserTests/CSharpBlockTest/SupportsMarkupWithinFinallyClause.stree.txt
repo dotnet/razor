@@ -5,7 +5,7 @@
         CSharpCodeBlock - [0..49)::49
             CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..36)::35 - [try { var foo = new { } } finally {] - Gen<Stmt>
+            CSharpStatementLiteral - [1..37)::36 - [try { var foo = new { } } finally { ] - Gen<Stmt>
                 Keyword;[try];
                 Whitespace;[ ];
                 LeftBrace;[{];
@@ -27,9 +27,8 @@
                 Keyword;[finally];
                 Whitespace;[ ];
                 LeftBrace;[{];
-            MarkupBlock - [36..48)::12
-                MarkupTextLiteral - [36..37)::1 - [ ] - Gen<Markup>
-                    Whitespace;[ ];
+                Whitespace;[ ];
+            MarkupBlock - [37..48)::11
                 MarkupElement - [37..47)::10
                     MarkupStartTag - [37..40)::3 - [<p>] - Gen<Markup>
                         OpenAngle;[<];

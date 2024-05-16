@@ -46,7 +46,7 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("\r\n<");
+            WriteLiteral("\r\n\r\n<");
             WriteLiteral("div class=\"randomNonTagHelperAttribute\">\r\n    <");
             WriteLiteral("p class=\"Hello World\" ");
             Write(

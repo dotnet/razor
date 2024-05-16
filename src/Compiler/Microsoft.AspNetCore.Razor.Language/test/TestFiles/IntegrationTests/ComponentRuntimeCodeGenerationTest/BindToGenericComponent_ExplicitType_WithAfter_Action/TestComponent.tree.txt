@@ -1,0 +1,120 @@
+﻿RazorDocument - [0..177) - FullWidth: 177 - [<MyComponent TValue="int" @bind-Value:get="ParentValue" @bind-Value:after="Update" />LF@code {LF    public int ParentValue { get; set; } = 42;LFLF    public void Update() { }LF}]
+    MarkupBlock - [0..177) - FullWidth: 177
+        MarkupTagHelperElement - [0..85) - FullWidth: 85 - MyComponent[SelfClosing] - MyComponent<TValue> - Bind
+            MarkupTagHelperStartTag - [0..85) - FullWidth: 85 - [<MyComponent TValue="int" @bind-Value:get="ParentValue" @bind-Value:after="Update" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..25) - FullWidth: 13 - TValue - DoubleQuotes - Bound - [ TValue="int"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..19) - FullWidth: 6 - [TValue] - Gen<Markup>
+                        Text;[TValue];
+                    Equals;[=];
+                    MarkupTextLiteral - [20..21) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [21..24) - FullWidth: 3
+                        CSharpExpressionLiteral - [21..24) - FullWidth: 3 - [int] - Gen<None>
+                            Text;[int];
+                    MarkupTextLiteral - [24..25) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [25..55) - FullWidth: 30
+                    MarkupTextLiteral - [25..26) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [26..27) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [27..37) - FullWidth: 10 - [bind-Value]
+                        Text;[bind-Value];
+                    RazorMetaCode - [37..38) - FullWidth: 1
+                        Colon;[:];
+                    MarkupTextLiteral - [38..41) - FullWidth: 3 - [get]
+                        Text;[get];
+                    Equals;[=];
+                    MarkupTextLiteral - [42..43) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [43..54) - FullWidth: 11
+                        CSharpExpressionLiteral - [43..54) - FullWidth: 11 - [ParentValue] - Gen<None>
+                            Text;[ParentValue];
+                    MarkupTextLiteral - [54..55) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [55..82) - FullWidth: 27
+                    MarkupTextLiteral - [55..56) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [56..57) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [57..67) - FullWidth: 10 - [bind-Value]
+                        Text;[bind-Value];
+                    RazorMetaCode - [67..68) - FullWidth: 1
+                        Colon;[:];
+                    MarkupTextLiteral - [68..73) - FullWidth: 5 - [after]
+                        Text;[after];
+                    Equals;[=];
+                    MarkupTextLiteral - [74..75) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [75..81) - FullWidth: 6
+                        CSharpExpressionLiteral - [75..81) - FullWidth: 6 - [Update] - Gen<None>
+                            Text;[Update];
+                    MarkupTextLiteral - [81..82) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [82..83) - FullWidth: 1
+                    MarkupTextLiteral - [82..83) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [85..87) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [87..177) - FullWidth: 90
+            RazorDirective - [87..177) - FullWidth: 90 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [87..88) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [88..177) - FullWidth: 89
+                    RazorMetaCode - [88..92) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [92..177) - FullWidth: 85
+                        UnclassifiedTextLiteral - [92..93) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [93..94) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [94..176) - FullWidth: 82
+                            CSharpStatementLiteral - [94..176) - FullWidth: 82 - [LF    public int ParentValue { get; set; } = 42;LFLF    public void Update() { }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[int];
+                                Whitespace;[ ];
+                                Identifier;[ParentValue];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                IntegerLiteral;[42];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[void];
+                                Whitespace;[ ];
+                                Identifier;[Update];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [176..177) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [177..177) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -159,6 +159,8 @@ public class FunctionsDirectivePassTest : RazorProjectEngineTestBase
         var method = @class.Children[0];
         Children(
             method,
+            node => Assert.IsType<HtmlContentIntermediateNode>(node),
+            node => Assert.IsType<HtmlContentIntermediateNode>(node),
             node => Assert.IsType<HtmlContentIntermediateNode>(node));
     }
 

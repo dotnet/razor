@@ -1,0 +1,85 @@
+﻿RazorDocument - [0..106) - FullWidth: 106 - [<MyComponent Message="@message" @bind-Message="@message" />LF@functions {LF    string message = "hi";LF}LF]
+    MarkupBlock - [0..106) - FullWidth: 106
+        MarkupTagHelperElement - [0..59) - FullWidth: 59 - MyComponent[SelfClosing] - MyComponent - MyComponent - Bind
+            MarkupTagHelperStartTag - [0..59) - FullWidth: 59 - [<MyComponent Message="@message" @bind-Message="@message" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..31) - FullWidth: 19 - Message - DoubleQuotes - Bound - [ Message="@message"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..20) - FullWidth: 7 - [Message] - Gen<Markup>
+                        Text;[Message];
+                    Equals;[=];
+                    MarkupTextLiteral - [21..22) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [22..30) - FullWidth: 8
+                        MarkupBlock - [22..30) - FullWidth: 8
+                            CSharpCodeBlock - [22..30) - FullWidth: 8
+                                CSharpImplicitExpression - [22..30) - FullWidth: 8
+                                    CSharpTransition - [22..23) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [23..30) - FullWidth: 7
+                                        CSharpCodeBlock - [23..30) - FullWidth: 7
+                                            CSharpExpressionLiteral - [23..30) - FullWidth: 7 - [message] - Gen<Expr>
+                                                Identifier;[message];
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperDirectiveAttribute - [31..56) - FullWidth: 25
+                    MarkupTextLiteral - [31..32) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [32..33) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [33..45) - FullWidth: 12 - [bind-Message]
+                        Text;[bind-Message];
+                    Equals;[=];
+                    MarkupTextLiteral - [46..47) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [47..55) - FullWidth: 8
+                        MarkupBlock - [47..55) - FullWidth: 8
+                            CSharpCodeBlock - [47..55) - FullWidth: 8
+                                CSharpImplicitExpression - [47..55) - FullWidth: 8
+                                    CSharpTransition - [47..48) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [48..55) - FullWidth: 7
+                                        CSharpCodeBlock - [48..55) - FullWidth: 7
+                                            CSharpExpressionLiteral - [48..55) - FullWidth: 7 - [message] - Gen<Expr>
+                                                Identifier;[message];
+                    MarkupTextLiteral - [55..56) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [56..57) - FullWidth: 1
+                    MarkupTextLiteral - [56..57) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [59..61) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [61..104) - FullWidth: 43
+            RazorDirective - [61..104) - FullWidth: 43 - Directive:{functions;CodeBlock;Unrestricted}
+                CSharpTransition - [61..62) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [62..104) - FullWidth: 42
+                    RazorMetaCode - [62..71) - FullWidth: 9 - Gen<None>
+                        Identifier;[functions];
+                    CSharpCodeBlock - [71..104) - FullWidth: 33
+                        UnclassifiedTextLiteral - [71..72) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [72..73) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [73..103) - FullWidth: 30
+                            CSharpStatementLiteral - [73..103) - FullWidth: 30 - [LF    string message = "hi";LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[message];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["hi"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [103..104) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [104..106) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

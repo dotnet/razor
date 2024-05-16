@@ -1,0 +1,119 @@
+﻿RazorDocument - [0..208) - FullWidth: 208 - [<TreeNode Item="@DateTime.Now">LF    <TreeNode Item="@System.Threading.Thread.CurrentThread">LF        <TreeNode>LF            <TreeNode />LF        </TreeNode>LF    </TreeNode>LF    <TreeNode />LF</TreeNode>]
+    MarkupBlock - [0..208) - FullWidth: 208
+        MarkupTagHelperElement - [0..208) - FullWidth: 208 - TreeNode[StartTagAndEndTag] - TreeNode<TItem>
+            MarkupTagHelperStartTag - [0..31) - FullWidth: 31 - [<TreeNode Item="@DateTime.Now">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TreeNode];
+                MarkupTagHelperAttribute - [9..30) - FullWidth: 21 - Item - DoubleQuotes - Bound - [ Item="@DateTime.Now"]
+                    MarkupTextLiteral - [9..10) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [10..14) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [15..16) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [16..29) - FullWidth: 13
+                        MarkupBlock - [16..29) - FullWidth: 13
+                            CSharpCodeBlock - [16..29) - FullWidth: 13
+                                CSharpImplicitExpression - [16..29) - FullWidth: 13
+                                    CSharpTransition - [16..17) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [17..29) - FullWidth: 12
+                                        CSharpCodeBlock - [17..29) - FullWidth: 12
+                                            CSharpExpressionLiteral - [17..29) - FullWidth: 12 - [DateTime.Now] - Gen<Expr>
+                                                Identifier;[DateTime];
+                                                Dot;[.];
+                                                Identifier;[Now];
+                    MarkupTextLiteral - [29..30) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [31..37) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [37..177) - FullWidth: 140 - TreeNode[StartTagAndEndTag] - TreeNode<TItem>
+                MarkupTagHelperStartTag - [37..93) - FullWidth: 56 - [<TreeNode Item="@System.Threading.Thread.CurrentThread">] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[TreeNode];
+                    MarkupTagHelperAttribute - [46..92) - FullWidth: 46 - Item - DoubleQuotes - Bound - [ Item="@System.Threading.Thread.CurrentThread"]
+                        MarkupTextLiteral - [46..47) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [47..51) - FullWidth: 4 - [Item] - Gen<Markup>
+                            Text;[Item];
+                        Equals;[=];
+                        MarkupTextLiteral - [52..53) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [53..91) - FullWidth: 38
+                            MarkupBlock - [53..91) - FullWidth: 38
+                                CSharpCodeBlock - [53..91) - FullWidth: 38
+                                    CSharpImplicitExpression - [53..91) - FullWidth: 38
+                                        CSharpTransition - [53..54) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [54..91) - FullWidth: 37
+                                            CSharpCodeBlock - [54..91) - FullWidth: 37
+                                                CSharpExpressionLiteral - [54..91) - FullWidth: 37 - [System.Threading.Thread.CurrentThread] - Gen<Expr>
+                                                    Identifier;[System];
+                                                    Dot;[.];
+                                                    Identifier;[Threading];
+                                                    Dot;[.];
+                                                    Identifier;[Thread];
+                                                    Dot;[.];
+                                                    Identifier;[CurrentThread];
+                        MarkupTextLiteral - [91..92) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [93..103) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                MarkupTagHelperElement - [103..160) - FullWidth: 57 - TreeNode[StartTagAndEndTag] - TreeNode<TItem>
+                    MarkupTagHelperStartTag - [103..113) - FullWidth: 10 - [<TreeNode>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[TreeNode];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [113..127) - FullWidth: 14 - [LF            ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[            ];
+                    MarkupTagHelperElement - [127..139) - FullWidth: 12 - TreeNode[SelfClosing] - TreeNode<TItem>
+                        MarkupTagHelperStartTag - [127..139) - FullWidth: 12 - [<TreeNode />] - Gen<Markup>
+                            OpenAngle;[<];
+                            Text;[TreeNode];
+                            MarkupMiscAttributeContent - [136..137) - FullWidth: 1
+                                MarkupTextLiteral - [136..137) - FullWidth: 1 - [ ] - Gen<Markup>
+                                    Whitespace;[ ];
+                            ForwardSlash;[/];
+                            CloseAngle;[>];
+                    MarkupTextLiteral - [139..149) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[        ];
+                    MarkupTagHelperEndTag - [149..160) - FullWidth: 11 - [</TreeNode>]
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[TreeNode];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [160..166) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[    ];
+                MarkupTagHelperEndTag - [166..177) - FullWidth: 11 - [</TreeNode>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[TreeNode];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [177..183) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [183..195) - FullWidth: 12 - TreeNode[SelfClosing] - TreeNode<TItem>
+                MarkupTagHelperStartTag - [183..195) - FullWidth: 12 - [<TreeNode />] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[TreeNode];
+                    MarkupMiscAttributeContent - [192..193) - FullWidth: 1
+                        MarkupTextLiteral - [192..193) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [195..197) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [197..208) - FullWidth: 11 - [</TreeNode>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[TreeNode];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -193,7 +193,8 @@ namespace AspNetCore
 ");
             }
             );
-            WriteLiteral(@"<p>This is line 1</p>
+            WriteLiteral(@"
+<p>This is line 1</p>
 <p>This is line 2</p>
 <p>This is line 3</p>
 <p>This is line 4</p>
@@ -235,8 +236,8 @@ namespace AspNetCore
 <p>This is line 40</p>
 <p>This is line 41</p>
 <p>This is line 42</p>
-<p>This is line 43</p>hi!");
-            WriteLiteral("\r\n");
+<p>This is line 43</p>h");
+            WriteLiteral("i!\r\n");
             DefineSection("WriteLiteralsToInHereAlso", async() => {
                 WriteLiteral(@"
     <p>This is line 1 nested</p>

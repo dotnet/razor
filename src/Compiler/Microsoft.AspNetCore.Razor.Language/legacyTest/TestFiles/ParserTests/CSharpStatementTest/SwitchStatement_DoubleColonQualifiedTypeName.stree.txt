@@ -2,10 +2,10 @@
     MarkupBlock - [0..169)::169
         MarkupTextLiteral - [0..2)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
             NewLine;[LF];
-        CSharpCodeBlock - [2..169)::167
+        CSharpCodeBlock - [2..167)::165
             CSharpTransition - [2..3)::1 - Gen<None> - SpanEditHandler;Accepts:None
                 Transition;[@];
-            CSharpStatementLiteral - [3..51)::48 - [switch (new int[0])LF{LF    case global::Test:LF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [3..59)::56 - [switch (new int[0])LF{LF    case global::Test:LF        ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                 Keyword;[switch];
                 Whitespace;[ ];
                 LeftParenthesis;[(];
@@ -27,9 +27,8 @@
                 Identifier;[Test];
                 Colon;[:];
                 NewLine;[LF];
-            MarkupBlock - [51..150)::99
-                MarkupTextLiteral - [51..59)::8 - [        ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                    Whitespace;[        ];
+                Whitespace;[        ];
+            MarkupBlock - [59..150)::91
                 MarkupElement - [59..148)::89
                     MarkupStartTag - [59..67)::8 - [<strong>] - Gen<Markup> - SpanEditHandler;Accepts:None
                         OpenAngle;[<];
@@ -66,13 +65,12 @@
                         CloseAngle;[>];
                 MarkupTextLiteral - [148..150)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:None
                     NewLine;[LF];
-            CSharpStatementLiteral - [150..169)::19 - [        break;LF}LF] - Gen<Stmt> - SpanEditHandler;Accepts:None
+            CSharpStatementLiteral - [150..167)::17 - [        break;LF}] - Gen<Stmt> - SpanEditHandler;Accepts:None
                 Whitespace;[        ];
                 Keyword;[break];
                 Semicolon;[;];
                 NewLine;[LF];
                 RightBrace;[}];
-                NewLine;[LF];
-        MarkupTextLiteral - [169..169)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
-            Marker;[];
+        MarkupTextLiteral - [167..169)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
     EndOfFile;[];

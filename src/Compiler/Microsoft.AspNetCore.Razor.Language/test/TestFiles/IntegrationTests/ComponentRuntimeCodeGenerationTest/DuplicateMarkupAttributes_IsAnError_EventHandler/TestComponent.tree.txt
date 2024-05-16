@@ -1,0 +1,102 @@
+﻿RazorDocument - [0..162) - FullWidth: 162 - [@using Microsoft.AspNetCore.Components.WebLF<div>LF  <a onclick="test()" @onclick="() => {}">Learn the ten cool tricks your compiler author will hate!</a>LF</div>]
+    MarkupBlock - [0..162) - FullWidth: 162
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42) - FullWidth: 42
+            RazorDirective - [0..42) - FullWidth: 42
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..42) - FullWidth: 41
+                    CSharpStatementLiteral - [1..42) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [42..44) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [44..162) - FullWidth: 118
+            MarkupStartTag - [44..49) - FullWidth: 5 - [<div>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupTextLiteral - [49..53) - FullWidth: 4 - [LF  ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[  ];
+            MarkupTagHelperElement - [53..154) - FullWidth: 101 - a[StartTagAndEndTag] - onclick
+                MarkupTagHelperStartTag - [53..93) - FullWidth: 40 - [<a onclick="test()" @onclick="() => {}">] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[a];
+                    MarkupTagHelperAttribute - [55..72) - FullWidth: 17 - onclick - DoubleQuotes - Unbound - [ onclick="test()"]
+                        MarkupTextLiteral - [55..56) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [56..63) - FullWidth: 7 - [onclick] - Gen<Markup>
+                            Text;[onclick];
+                        Equals;[=];
+                        MarkupTextLiteral - [64..65) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [65..71) - FullWidth: 6
+                            MarkupLiteralAttributeValue - [65..71) - FullWidth: 6 - [test()]
+                                MarkupTextLiteral - [65..71) - FullWidth: 6 - [test()] - Gen<Markup>
+                                    Text;[test()];
+                        MarkupTextLiteral - [71..72) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupTagHelperDirectiveAttribute - [72..92) - FullWidth: 20
+                        MarkupTextLiteral - [72..73) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        RazorMetaCode - [73..74) - FullWidth: 1
+                            Transition;[@];
+                        MarkupTextLiteral - [74..81) - FullWidth: 7 - [onclick]
+                            Text;[onclick];
+                        Equals;[=];
+                        MarkupTextLiteral - [82..83) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [83..91) - FullWidth: 8
+                            CSharpExpressionLiteral - [83..91) - FullWidth: 8 - [() => {}] - Gen<None>
+                                Text;[()];
+                                Whitespace;[ ];
+                                Equals;[=];
+                                CloseAngle;[>];
+                                Whitespace;[ ];
+                                Text;[{}];
+                        MarkupTextLiteral - [91..92) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [93..150) - FullWidth: 57 - [Learn the ten cool tricks your compiler author will hate!] - Gen<Markup>
+                    Text;[Learn];
+                    Whitespace;[ ];
+                    Text;[the];
+                    Whitespace;[ ];
+                    Text;[ten];
+                    Whitespace;[ ];
+                    Text;[cool];
+                    Whitespace;[ ];
+                    Text;[tricks];
+                    Whitespace;[ ];
+                    Text;[your];
+                    Whitespace;[ ];
+                    Text;[compiler];
+                    Whitespace;[ ];
+                    Text;[author];
+                    Whitespace;[ ];
+                    Text;[will];
+                    Whitespace;[ ];
+                    Text;[hate];
+                    Bang;[!];
+                MarkupTagHelperEndTag - [150..154) - FullWidth: 4 - [</a>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[a];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [154..156) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupEndTag - [156..162) - FullWidth: 6 - [</div>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+    EndOfFile;[];

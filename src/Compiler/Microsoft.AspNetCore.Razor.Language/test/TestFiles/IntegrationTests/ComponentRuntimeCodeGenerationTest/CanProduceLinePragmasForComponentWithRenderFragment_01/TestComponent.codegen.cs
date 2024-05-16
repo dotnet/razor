@@ -34,9 +34,10 @@ ActionText
             );
             __builder.CloseElement();
 #nullable restore
-#line (3,4)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (3,4)-(5,5) "x:\dir\subdir\Test\TestComponent.cshtml"
 if (!Collapsed)
   {
+    
 
 #line default
 #line hidden
@@ -55,7 +56,7 @@ ChildContent
             );
             __builder.CloseElement();
 #nullable restore
-#line (8,1)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (8,1)-(8,4) "x:\dir\subdir\Test\TestComponent.cshtml"
   }
 
 #line default

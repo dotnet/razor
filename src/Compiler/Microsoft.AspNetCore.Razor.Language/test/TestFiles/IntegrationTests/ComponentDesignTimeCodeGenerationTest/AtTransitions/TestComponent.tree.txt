@@ -1,0 +1,60 @@
+﻿RazorDocument - [0..59) - FullWidth: 59 - [@{  LF    var x = "hello";  LF    @x x = "world"; @x  LF}  ]
+    MarkupBlock - [0..59) - FullWidth: 59
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..57) - FullWidth: 57
+            CSharpStatement - [0..57) - FullWidth: 57
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..57) - FullWidth: 56
+                    RazorMetaCode - [1..2) - FullWidth: 1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..56) - FullWidth: 54
+                        CSharpStatementLiteral - [2..34) - FullWidth: 32 - [  LF    var x = "hello";  LF    ] - Gen<Stmt>
+                            Whitespace;[  ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["hello"];
+                            Semicolon;[;];
+                            Whitespace;[  ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                        CSharpCodeBlock - [34..36) - FullWidth: 2
+                            CSharpImplicitExpression - [34..36) - FullWidth: 2
+                                CSharpTransition - [34..35) - FullWidth: 1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [35..36) - FullWidth: 1
+                                    CSharpCodeBlock - [35..36) - FullWidth: 1
+                                        CSharpExpressionLiteral - [35..36) - FullWidth: 1 - [x] - Gen<Expr>
+                                            Identifier;[x];
+                        CSharpStatementLiteral - [36..50) - FullWidth: 14 - [ x = "world"; ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["world"];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                        CSharpCodeBlock - [50..52) - FullWidth: 2
+                            CSharpImplicitExpression - [50..52) - FullWidth: 2
+                                CSharpTransition - [50..51) - FullWidth: 1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [51..52) - FullWidth: 1
+                                    CSharpCodeBlock - [51..52) - FullWidth: 1
+                                        CSharpExpressionLiteral - [51..52) - FullWidth: 1 - [x] - Gen<Expr>
+                                            Identifier;[x];
+                        CSharpStatementLiteral - [52..56) - FullWidth: 4 - [  LF] - Gen<Stmt>
+                            Whitespace;[  ];
+                            NewLine;[LF];
+                    RazorMetaCode - [56..57) - FullWidth: 1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [57..59) - FullWidth: 2 - [  ] - Gen<Markup>
+            Whitespace;[  ];
+    EndOfFile;[];

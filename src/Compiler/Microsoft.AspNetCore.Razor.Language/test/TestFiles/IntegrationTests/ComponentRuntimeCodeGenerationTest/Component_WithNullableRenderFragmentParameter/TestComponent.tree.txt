@@ -1,0 +1,74 @@
+﻿RazorDocument - [0..127) - FullWidth: 127 - [<ComponentWithNullableRenderFragment Header="@Header" />LF@code {LF	[Parameter] public RenderFragment Header { get; set; }LF}LF]
+    MarkupBlock - [0..127) - FullWidth: 127
+        MarkupTagHelperElement - [0..56) - FullWidth: 56 - ComponentWithNullableRenderFragment[SelfClosing] - ComponentWithNullableRenderFragment
+            MarkupTagHelperStartTag - [0..56) - FullWidth: 56 - [<ComponentWithNullableRenderFragment Header="@Header" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ComponentWithNullableRenderFragment];
+                MarkupTagHelperAttribute - [36..53) - FullWidth: 17 - Header - DoubleQuotes - Bound - [ Header="@Header"]
+                    MarkupTextLiteral - [36..37) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [37..43) - FullWidth: 6 - [Header] - Gen<Markup>
+                        Text;[Header];
+                    Equals;[=];
+                    MarkupTextLiteral - [44..45) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [45..52) - FullWidth: 7
+                        MarkupBlock - [45..52) - FullWidth: 7
+                            CSharpCodeBlock - [45..52) - FullWidth: 7
+                                CSharpImplicitExpression - [45..52) - FullWidth: 7
+                                    CSharpTransition - [45..46) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [46..52) - FullWidth: 6
+                                        CSharpCodeBlock - [46..52) - FullWidth: 6
+                                            CSharpExpressionLiteral - [46..52) - FullWidth: 6 - [Header] - Gen<Expr>
+                                                Identifier;[Header];
+                    MarkupTextLiteral - [52..53) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [53..54) - FullWidth: 1
+                    MarkupTextLiteral - [53..54) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [56..58) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [58..125) - FullWidth: 67
+            RazorDirective - [58..125) - FullWidth: 67 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [58..59) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [59..125) - FullWidth: 66
+                    RazorMetaCode - [59..63) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [63..125) - FullWidth: 62
+                        UnclassifiedTextLiteral - [63..64) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [64..65) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [65..124) - FullWidth: 59
+                            CSharpStatementLiteral - [65..124) - FullWidth: 59 - [LF	[Parameter] public RenderFragment Header { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[	];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                Whitespace;[ ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[RenderFragment];
+                                Whitespace;[ ];
+                                Identifier;[Header];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [124..125) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [125..127) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

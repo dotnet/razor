@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -814,7 +814,8 @@
                         LazyIntermediateToken - (4635:160,7 [22] StringLiterals.cshtml) - Html - This is line 75 nested
                         LazyIntermediateToken - (4657:160,29 [4] StringLiterals.cshtml) - Html - </p>
                         LazyIntermediateToken - (4661:160,33 [2] StringLiterals.cshtml) - Html - \n
-                HtmlContent - (4666:162,0 [1026] StringLiterals.cshtml)
+                HtmlContent - (4664:161,1 [1028] StringLiterals.cshtml)
+                    LazyIntermediateToken - (4664:161,1 [2] StringLiterals.cshtml) - Html - \n
                     LazyIntermediateToken - (4666:162,0 [2] StringLiterals.cshtml) - Html - <p
                     LazyIntermediateToken - (4668:162,2 [1] StringLiterals.cshtml) - Html - >
                     LazyIntermediateToken - (4669:162,3 [14] StringLiterals.cshtml) - Html - This is line 1

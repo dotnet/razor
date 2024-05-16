@@ -1,0 +1,58 @@
+﻿RazorDocument - [0..80) - FullWidth: 80 - [<elem attributebefore="before" @rEF="myElem" attributeafter="after">Hello</elem>]
+    MarkupBlock - [0..80) - FullWidth: 80
+        MarkupElement - [0..80) - FullWidth: 80
+            MarkupStartTag - [0..68) - FullWidth: 68 - [<elem attributebefore="before" @rEF="myElem" attributeafter="after">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[elem];
+                MarkupAttributeBlock - [5..30) - FullWidth: 25 - [ attributebefore="before"]
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..21) - FullWidth: 15 - [attributebefore] - Gen<Markup>
+                        Text;[attributebefore];
+                    Equals;[=];
+                    MarkupTextLiteral - [22..23) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [23..29) - FullWidth: 6
+                        MarkupLiteralAttributeValue - [23..29) - FullWidth: 6 - [before]
+                            MarkupTextLiteral - [23..29) - FullWidth: 6 - [before] - Gen<Markup>
+                                Text;[before];
+                    MarkupTextLiteral - [29..30) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupAttributeBlock - [30..44) - FullWidth: 14 - [ @rEF="myElem"]
+                    MarkupTextLiteral - [30..31) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [31..35) - FullWidth: 4 - [@rEF] - Gen<Markup>
+                        Transition;[@];
+                        Text;[rEF];
+                    Equals;[=];
+                    MarkupTextLiteral - [36..37) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [37..43) - FullWidth: 6
+                        MarkupLiteralAttributeValue - [37..43) - FullWidth: 6 - [myElem]
+                            MarkupTextLiteral - [37..43) - FullWidth: 6 - [myElem] - Gen<Markup>
+                                Text;[myElem];
+                    MarkupTextLiteral - [43..44) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupAttributeBlock - [44..67) - FullWidth: 23 - [ attributeafter="after"]
+                    MarkupTextLiteral - [44..45) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [45..59) - FullWidth: 14 - [attributeafter] - Gen<Markup>
+                        Text;[attributeafter];
+                    Equals;[=];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [61..66) - FullWidth: 5
+                        MarkupLiteralAttributeValue - [61..66) - FullWidth: 5 - [after]
+                            MarkupTextLiteral - [61..66) - FullWidth: 5 - [after] - Gen<Markup>
+                                Text;[after];
+                    MarkupTextLiteral - [66..67) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [68..73) - FullWidth: 5 - [Hello] - Gen<Markup>
+                Text;[Hello];
+            MarkupEndTag - [73..80) - FullWidth: 7 - [</elem>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[elem];
+                CloseAngle;[>];
+    EndOfFile;[];

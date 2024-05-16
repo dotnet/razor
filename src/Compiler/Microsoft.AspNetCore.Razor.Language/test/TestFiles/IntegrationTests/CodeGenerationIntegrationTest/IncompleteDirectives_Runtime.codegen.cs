@@ -27,7 +27,13 @@ namespace AspNetCore
             WriteLiteral("\r\n");
             WriteLiteral("\r\n");
             WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
             WriteLiteral("\r\n");
+            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
+            WriteLiteral("\r\n");
+            WriteLiteral("\r\n");
+            WriteLiteral("\r\n\r\n");
             WriteLiteral("\r\n");
             WriteLiteral("\r\n\r\n");
             WriteLiteral("\r\n");

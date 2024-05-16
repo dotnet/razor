@@ -1,0 +1,14 @@
+﻿RazorDocument - [0..45) - FullWidth: 45 - [<ComponentWithEditorRequiredChildContent />LF]
+    MarkupBlock - [0..45) - FullWidth: 45
+        MarkupTagHelperElement - [0..43) - FullWidth: 43 - ComponentWithEditorRequiredChildContent[SelfClosing] - ComponentWithEditorRequiredChildContent
+            MarkupTagHelperStartTag - [0..43) - FullWidth: 43 - [<ComponentWithEditorRequiredChildContent />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ComponentWithEditorRequiredChildContent];
+                MarkupMiscAttributeContent - [40..41) - FullWidth: 1
+                    MarkupTextLiteral - [40..41) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [43..45) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

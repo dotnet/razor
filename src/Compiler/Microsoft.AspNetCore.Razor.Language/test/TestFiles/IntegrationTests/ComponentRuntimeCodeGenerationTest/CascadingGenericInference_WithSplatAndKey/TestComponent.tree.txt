@@ -1,0 +1,181 @@
+﻿RazorDocument - [0..209) - FullWidth: 209 - [@{ var parentKey = new object(); var childKey = new object(); }LF<Grid @key="@parentKey" Items="@(Array.Empty<DateTime>())">LF    <Column @key="@childKey" Title="Hello" Another="@DateTime.MinValue" />LF</Grid>]
+    MarkupBlock - [0..209) - FullWidth: 209
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..63) - FullWidth: 63
+            CSharpStatement - [0..63) - FullWidth: 63
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..63) - FullWidth: 62
+                    RazorMetaCode - [1..2) - FullWidth: 1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..62) - FullWidth: 60
+                        CSharpStatementLiteral - [2..62) - FullWidth: 60 - [ var parentKey = new object(); var childKey = new object(); ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[parentKey];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Keyword;[new];
+                            Whitespace;[ ];
+                            Keyword;[object];
+                            LeftParenthesis;[(];
+                            RightParenthesis;[)];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[childKey];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Keyword;[new];
+                            Whitespace;[ ];
+                            Keyword;[object];
+                            LeftParenthesis;[(];
+                            RightParenthesis;[)];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                    RazorMetaCode - [62..63) - FullWidth: 1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [63..65) - FullWidth: 2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [65..209) - FullWidth: 144 - Grid[StartTagAndEndTag] - Grid<TItem> - Key
+            MarkupTagHelperStartTag - [65..124) - FullWidth: 59 - [<Grid @key="@parentKey" Items="@(Array.Empty<DateTime>())">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Grid];
+                MarkupTagHelperDirectiveAttribute - [70..88) - FullWidth: 18
+                    MarkupTextLiteral - [70..71) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [71..72) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [72..75) - FullWidth: 3 - [key]
+                        Text;[key];
+                    Equals;[=];
+                    MarkupTextLiteral - [76..77) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [77..87) - FullWidth: 10
+                        MarkupBlock - [77..87) - FullWidth: 10
+                            CSharpCodeBlock - [77..87) - FullWidth: 10
+                                CSharpImplicitExpression - [77..87) - FullWidth: 10
+                                    CSharpTransition - [77..78) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [78..87) - FullWidth: 9
+                                        CSharpCodeBlock - [78..87) - FullWidth: 9
+                                            CSharpExpressionLiteral - [78..87) - FullWidth: 9 - [parentKey] - Gen<Expr>
+                                                Identifier;[parentKey];
+                    MarkupTextLiteral - [87..88) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [88..123) - FullWidth: 35 - Items - DoubleQuotes - Bound - [ Items="@(Array.Empty<DateTime>())"]
+                    MarkupTextLiteral - [88..89) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [89..94) - FullWidth: 5 - [Items] - Gen<Markup>
+                        Text;[Items];
+                    Equals;[=];
+                    MarkupTextLiteral - [95..96) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [96..122) - FullWidth: 26
+                        MarkupBlock - [96..122) - FullWidth: 26
+                            CSharpCodeBlock - [96..122) - FullWidth: 26
+                                CSharpImplicitExpression - [96..122) - FullWidth: 26
+                                    CSharpTransition - [96..97) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [97..122) - FullWidth: 25
+                                        CSharpCodeBlock - [97..122) - FullWidth: 25
+                                            CSharpExpressionLiteral - [97..98) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [98..121) - FullWidth: 23 - [Array.Empty<DateTime>()] - Gen<Expr>
+                                                Identifier;[Array];
+                                                Dot;[.];
+                                                Identifier;[Empty];
+                                                LessThan;[<];
+                                                Identifier;[DateTime];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [121..122) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [122..123) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [124..130) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [130..200) - FullWidth: 70 - Column[SelfClosing] - Column<TItem> - Key
+                MarkupTagHelperStartTag - [130..200) - FullWidth: 70 - [<Column @key="@childKey" Title="Hello" Another="@DateTime.MinValue" />] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Column];
+                    MarkupTagHelperDirectiveAttribute - [137..154) - FullWidth: 17
+                        MarkupTextLiteral - [137..138) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        RazorMetaCode - [138..139) - FullWidth: 1
+                            Transition;[@];
+                        MarkupTextLiteral - [139..142) - FullWidth: 3 - [key]
+                            Text;[key];
+                        Equals;[=];
+                        MarkupTextLiteral - [143..144) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [144..153) - FullWidth: 9
+                            MarkupBlock - [144..153) - FullWidth: 9
+                                CSharpCodeBlock - [144..153) - FullWidth: 9
+                                    CSharpImplicitExpression - [144..153) - FullWidth: 9
+                                        CSharpTransition - [144..145) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [145..153) - FullWidth: 8
+                                            CSharpCodeBlock - [145..153) - FullWidth: 8
+                                                CSharpExpressionLiteral - [145..153) - FullWidth: 8 - [childKey] - Gen<Expr>
+                                                    Identifier;[childKey];
+                        MarkupTextLiteral - [153..154) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupTagHelperAttribute - [154..168) - FullWidth: 14 - Title - DoubleQuotes - Unbound - [ Title="Hello"]
+                        MarkupTextLiteral - [154..155) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [155..160) - FullWidth: 5 - [Title] - Gen<Markup>
+                            Text;[Title];
+                        Equals;[=];
+                        MarkupTextLiteral - [161..162) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [162..167) - FullWidth: 5
+                            MarkupLiteralAttributeValue - [162..167) - FullWidth: 5 - [Hello]
+                                MarkupTextLiteral - [162..167) - FullWidth: 5 - [Hello] - Gen<Markup>
+                                    Text;[Hello];
+                        MarkupTextLiteral - [167..168) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupTagHelperAttribute - [168..197) - FullWidth: 29 - Another - DoubleQuotes - Unbound - [ Another="@DateTime.MinValue"]
+                        MarkupTextLiteral - [168..169) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [169..176) - FullWidth: 7 - [Another] - Gen<Markup>
+                            Text;[Another];
+                        Equals;[=];
+                        MarkupTextLiteral - [177..178) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [178..196) - FullWidth: 18
+                            MarkupDynamicAttributeValue - [178..196) - FullWidth: 18 - [@DateTime.MinValue]
+                                GenericBlock - [178..196) - FullWidth: 18
+                                    CSharpCodeBlock - [178..196) - FullWidth: 18
+                                        CSharpImplicitExpression - [178..196) - FullWidth: 18
+                                            CSharpTransition - [178..179) - FullWidth: 1 - Gen<None>
+                                                Transition;[@];
+                                            CSharpImplicitExpressionBody - [179..196) - FullWidth: 17
+                                                CSharpCodeBlock - [179..196) - FullWidth: 17
+                                                    CSharpExpressionLiteral - [179..196) - FullWidth: 17 - [DateTime.MinValue] - Gen<Expr>
+                                                        Identifier;[DateTime];
+                                                        Dot;[.];
+                                                        Identifier;[MinValue];
+                        MarkupTextLiteral - [196..197) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupMiscAttributeContent - [197..198) - FullWidth: 1
+                        MarkupTextLiteral - [197..198) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [200..202) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [202..209) - FullWidth: 7 - [</Grid>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Grid];
+                CloseAngle;[>];
+    EndOfFile;[];

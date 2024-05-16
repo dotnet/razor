@@ -24,8 +24,8 @@ namespace AspNetCore
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("\r\n");
-            WriteLiteral("\r\nHere\'s a random number: ");
+            WriteLiteral("\r\n\r\n");
+            WriteLiteral("\r\n\r\nHere\'s a random number: ");
             Write(
 #nullable restore
 #line (12,26)-(12,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlock.cshtml"

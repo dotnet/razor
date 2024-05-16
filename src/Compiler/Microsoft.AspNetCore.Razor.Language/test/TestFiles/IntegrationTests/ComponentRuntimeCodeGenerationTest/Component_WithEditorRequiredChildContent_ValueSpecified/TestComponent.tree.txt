@@ -1,0 +1,51 @@
+﻿RazorDocument - [0..160) - FullWidth: 160 - [<ComponentWithEditorRequiredChildContent>LF    <ChildContent>LF        <h1>Hello World</h1>LF    </ChildContent>LF</ComponentWithEditorRequiredChildContent>LFLF]
+    MarkupBlock - [0..160) - FullWidth: 160
+        MarkupTagHelperElement - [0..156) - FullWidth: 156 - ComponentWithEditorRequiredChildContent[StartTagAndEndTag] - ComponentWithEditorRequiredChildContent
+            MarkupTagHelperStartTag - [0..41) - FullWidth: 41 - [<ComponentWithEditorRequiredChildContent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ComponentWithEditorRequiredChildContent];
+                CloseAngle;[>];
+            MarkupTextLiteral - [41..47) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [47..112) - FullWidth: 65 - ChildContent[StartTagAndEndTag] - ChildContent
+                MarkupTagHelperStartTag - [47..61) - FullWidth: 14 - [<ChildContent>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[ChildContent];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [61..71) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                MarkupElement - [71..91) - FullWidth: 20
+                    MarkupStartTag - [71..75) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[h1];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [75..86) - FullWidth: 11 - [Hello World] - Gen<Markup>
+                        Text;[Hello];
+                        Whitespace;[ ];
+                        Text;[World];
+                    MarkupEndTag - [86..91) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[h1];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [91..97) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[    ];
+                MarkupTagHelperEndTag - [97..112) - FullWidth: 15 - [</ChildContent>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[ChildContent];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [112..114) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [114..156) - FullWidth: 42 - [</ComponentWithEditorRequiredChildContent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[ComponentWithEditorRequiredChildContent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [156..160) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+    EndOfFile;[];

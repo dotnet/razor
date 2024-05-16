@@ -1,0 +1,31 @@
+﻿RazorDocument - [0..64) - FullWidth: 64 - [<MyComponent><ChildContent>@context</ChildContent></MyComponent>]
+    MarkupBlock - [0..64) - FullWidth: 64
+        MarkupTagHelperElement - [0..64) - FullWidth: 64 - MyComponent[StartTagAndEndTag] - MyComponent
+            MarkupTagHelperStartTag - [0..13) - FullWidth: 13 - [<MyComponent>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                CloseAngle;[>];
+            MarkupTagHelperElement - [13..50) - FullWidth: 37 - ChildContent[StartTagAndEndTag] - ChildContent
+                MarkupTagHelperStartTag - [13..27) - FullWidth: 14 - [<ChildContent>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[ChildContent];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [27..35) - FullWidth: 8
+                    CSharpImplicitExpression - [27..35) - FullWidth: 8
+                        CSharpTransition - [27..28) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [28..35) - FullWidth: 7
+                            CSharpCodeBlock - [28..35) - FullWidth: 7
+                                CSharpExpressionLiteral - [28..35) - FullWidth: 7 - [context] - Gen<Expr>
+                                    Identifier;[context];
+                MarkupTagHelperEndTag - [35..50) - FullWidth: 15 - [</ChildContent>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[ChildContent];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [50..64) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

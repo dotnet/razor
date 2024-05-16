@@ -1,0 +1,66 @@
+﻿RazorDocument - [0..107) - FullWidth: 107 - [<MyComponent MyAttr="abc">Some text<some-child a='1'>@context.ToLowerInvariant()</some-child></MyComponent>]
+    MarkupBlock - [0..107) - FullWidth: 107
+        MarkupTagHelperElement - [0..107) - FullWidth: 107 - MyComponent[StartTagAndEndTag] - MyComponent
+            MarkupTagHelperStartTag - [0..26) - FullWidth: 26 - [<MyComponent MyAttr="abc">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..25) - FullWidth: 13 - MyAttr - DoubleQuotes - Bound - [ MyAttr="abc"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..19) - FullWidth: 6 - [MyAttr] - Gen<Markup>
+                        Text;[MyAttr];
+                    Equals;[=];
+                    MarkupTextLiteral - [20..21) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [21..24) - FullWidth: 3
+                        MarkupTextLiteral - [21..24) - FullWidth: 3 - [abc] - Gen<Markup>
+                            Text;[abc];
+                    MarkupTextLiteral - [24..25) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [26..35) - FullWidth: 9 - [Some text] - Gen<Markup>
+                Text;[Some];
+                Whitespace;[ ];
+                Text;[text];
+            MarkupElement - [35..93) - FullWidth: 58
+                MarkupStartTag - [35..53) - FullWidth: 18 - [<some-child a='1'>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[some-child];
+                    MarkupAttributeBlock - [46..52) - FullWidth: 6 - [ a='1']
+                        MarkupTextLiteral - [46..47) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [47..48) - FullWidth: 1 - [a] - Gen<Markup>
+                            Text;[a];
+                        Equals;[=];
+                        MarkupTextLiteral - [49..50) - FullWidth: 1 - ['] - Gen<Markup>
+                            SingleQuote;['];
+                        GenericBlock - [50..51) - FullWidth: 1
+                            MarkupLiteralAttributeValue - [50..51) - FullWidth: 1 - [1]
+                                MarkupTextLiteral - [50..51) - FullWidth: 1 - [1] - Gen<Markup>
+                                    Text;[1];
+                        MarkupTextLiteral - [51..52) - FullWidth: 1 - ['] - Gen<Markup>
+                            SingleQuote;['];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [53..80) - FullWidth: 27
+                    CSharpImplicitExpression - [53..80) - FullWidth: 27
+                        CSharpTransition - [53..54) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [54..80) - FullWidth: 26
+                            CSharpCodeBlock - [54..80) - FullWidth: 26
+                                CSharpExpressionLiteral - [54..80) - FullWidth: 26 - [context.ToLowerInvariant()] - Gen<Expr>
+                                    Identifier;[context];
+                                    Dot;[.];
+                                    Identifier;[ToLowerInvariant];
+                                    LeftParenthesis;[(];
+                                    RightParenthesis;[)];
+                MarkupEndTag - [80..93) - FullWidth: 13 - [</some-child>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[some-child];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [93..107) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

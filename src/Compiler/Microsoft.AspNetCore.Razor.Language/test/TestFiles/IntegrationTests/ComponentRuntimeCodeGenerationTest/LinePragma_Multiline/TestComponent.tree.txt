@@ -1,0 +1,20 @@
+﻿RazorDocument - [0..11) - FullWidth: 11 - [@("text"LF)]
+    MarkupBlock - [0..11) - FullWidth: 11
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..11) - FullWidth: 11
+            CSharpExplicitExpression - [0..11) - FullWidth: 11
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpExplicitExpressionBody - [1..11) - FullWidth: 10
+                    RazorMetaCode - [1..2) - FullWidth: 1 - Gen<None>
+                        LeftParenthesis;[(];
+                    CSharpCodeBlock - [2..10) - FullWidth: 8
+                        CSharpExpressionLiteral - [2..10) - FullWidth: 8 - ["text"LF] - Gen<Expr>
+                            StringLiteral;["text"];
+                            NewLine;[LF];
+                    RazorMetaCode - [10..11) - FullWidth: 1 - Gen<None>
+                        RightParenthesis;[)];
+        MarkupTextLiteral - [11..11) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

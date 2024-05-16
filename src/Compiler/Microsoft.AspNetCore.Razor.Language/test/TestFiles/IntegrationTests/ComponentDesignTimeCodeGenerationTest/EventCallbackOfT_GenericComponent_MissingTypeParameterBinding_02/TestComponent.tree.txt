@@ -1,0 +1,73 @@
+﻿RazorDocument - [0..93) - FullWidth: 93 - [<MyComponent OnClick="@((MyType arg) => counter++)"/>LFLF@code {LF    private int counter;LF}]
+    MarkupBlock - [0..93) - FullWidth: 93
+        MarkupTagHelperElement - [0..53) - FullWidth: 53 - MyComponent[SelfClosing] - MyComponent<T, T2>
+            MarkupTagHelperStartTag - [0..53) - FullWidth: 53 - [<MyComponent OnClick="@((MyType arg) => counter++)"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..51) - FullWidth: 39 - OnClick - DoubleQuotes - Unbound - [ OnClick="@((MyType arg) => counter++)"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..20) - FullWidth: 7 - [OnClick] - Gen<Markup>
+                        Text;[OnClick];
+                    Equals;[=];
+                    MarkupTextLiteral - [21..22) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [22..50) - FullWidth: 28
+                        MarkupDynamicAttributeValue - [22..50) - FullWidth: 28 - [@((MyType arg) => counter++)]
+                            GenericBlock - [22..50) - FullWidth: 28
+                                CSharpCodeBlock - [22..50) - FullWidth: 28
+                                    CSharpExplicitExpression - [22..50) - FullWidth: 28
+                                        CSharpTransition - [22..23) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpExplicitExpressionBody - [23..50) - FullWidth: 27
+                                            RazorMetaCode - [23..24) - FullWidth: 1 - Gen<None>
+                                                LeftParenthesis;[(];
+                                            CSharpCodeBlock - [24..49) - FullWidth: 25
+                                                CSharpExpressionLiteral - [24..49) - FullWidth: 25 - [(MyType arg) => counter++] - Gen<Expr>
+                                                    LeftParenthesis;[(];
+                                                    Identifier;[MyType];
+                                                    Whitespace;[ ];
+                                                    Identifier;[arg];
+                                                    RightParenthesis;[)];
+                                                    Whitespace;[ ];
+                                                    GreaterThanEqual;[=>];
+                                                    Whitespace;[ ];
+                                                    Identifier;[counter];
+                                                    Increment;[++];
+                                            RazorMetaCode - [49..50) - FullWidth: 1 - Gen<None>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [50..51) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [53..57) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [57..93) - FullWidth: 36
+            RazorDirective - [57..93) - FullWidth: 36 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [57..58) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [58..93) - FullWidth: 35
+                    RazorMetaCode - [58..62) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [62..93) - FullWidth: 31
+                        UnclassifiedTextLiteral - [62..63) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [63..64) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [64..92) - FullWidth: 28
+                            CSharpStatementLiteral - [64..92) - FullWidth: 28 - [LF    private int counter;LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[private];
+                                Whitespace;[ ];
+                                Keyword;[int];
+                                Whitespace;[ ];
+                                Identifier;[counter];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [92..93) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [93..93) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

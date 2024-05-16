@@ -7,7 +7,8 @@
             DefaultTagHelperRuntime - 
             FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
-                HtmlContent - (31:1,0 [12] TagHelpersWithBoundAttributes.cshtml)
+                HtmlContent - (29:0,29 [14] TagHelpersWithBoundAttributes.cshtml)
+                    LazyIntermediateToken - (29:0,29 [2] TagHelpersWithBoundAttributes.cshtml) - Html - \n
                     LazyIntermediateToken - (31:1,0 [5] TagHelpersWithBoundAttributes.cshtml) - Html - <form
                     LazyIntermediateToken - (36:1,5 [1] TagHelpersWithBoundAttributes.cshtml) - Html - >
                     LazyIntermediateToken - (37:1,6 [6] TagHelpersWithBoundAttributes.cshtml) - Html - \n    

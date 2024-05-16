@@ -1,0 +1,61 @@
+﻿RazorDocument - [0..73) - FullWidth: 73 - [<Grid Data="@(new Dictionary<X, string>())">LF    <GridColumn />LF</Grid>]
+    MarkupBlock - [0..73) - FullWidth: 73
+        MarkupTagHelperElement - [0..73) - FullWidth: 73 - Grid[StartTagAndEndTag] - Grid<T>
+            MarkupTagHelperStartTag - [0..44) - FullWidth: 44 - [<Grid Data="@(new Dictionary<X, string>())">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Grid];
+                MarkupTagHelperAttribute - [5..43) - FullWidth: 38 - Data - DoubleQuotes - Bound - [ Data="@(new Dictionary<X, string>())"]
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..10) - FullWidth: 4 - [Data] - Gen<Markup>
+                        Text;[Data];
+                    Equals;[=];
+                    MarkupTextLiteral - [11..12) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [12..42) - FullWidth: 30
+                        MarkupBlock - [12..42) - FullWidth: 30
+                            CSharpCodeBlock - [12..42) - FullWidth: 30
+                                CSharpImplicitExpression - [12..42) - FullWidth: 30
+                                    CSharpTransition - [12..13) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [13..42) - FullWidth: 29
+                                        CSharpCodeBlock - [13..42) - FullWidth: 29
+                                            CSharpExpressionLiteral - [13..14) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [14..41) - FullWidth: 27 - [new Dictionary<X, string>()] - Gen<Expr>
+                                                Keyword;[new];
+                                                Whitespace;[ ];
+                                                Identifier;[Dictionary];
+                                                LessThan;[<];
+                                                Identifier;[X];
+                                                Comma;[,];
+                                                Whitespace;[ ];
+                                                Keyword;[string];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [41..42) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [42..43) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [44..50) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [50..64) - FullWidth: 14 - GridColumn[SelfClosing] - GridColumn<T>
+                MarkupTagHelperStartTag - [50..64) - FullWidth: 14 - [<GridColumn />] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[GridColumn];
+                    MarkupMiscAttributeContent - [61..62) - FullWidth: 1
+                        MarkupTextLiteral - [61..62) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [64..66) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [66..73) - FullWidth: 7 - [</Grid>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Grid];
+                CloseAngle;[>];
+    EndOfFile;[];

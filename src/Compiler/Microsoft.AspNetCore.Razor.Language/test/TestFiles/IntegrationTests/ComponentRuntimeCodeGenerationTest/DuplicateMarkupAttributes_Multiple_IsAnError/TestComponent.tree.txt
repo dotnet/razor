@@ -1,0 +1,99 @@
+﻿RazorDocument - [0..145) - FullWidth: 145 - [<div>LF  <a href="/cool-url" style="" disabled href="/even-cooler-url" href>Learn the ten cool tricks your compiler author will hate!</a>LF</div>]
+    MarkupBlock - [0..145) - FullWidth: 145
+        MarkupElement - [0..145) - FullWidth: 145
+            MarkupStartTag - [0..5) - FullWidth: 5 - [<div>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupTextLiteral - [5..9) - FullWidth: 4 - [LF  ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[  ];
+            MarkupElement - [9..137) - FullWidth: 128
+                MarkupStartTag - [9..76) - FullWidth: 67 - [<a href="/cool-url" style="" disabled href="/even-cooler-url" href>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[a];
+                    MarkupAttributeBlock - [11..28) - FullWidth: 17 - [ href="/cool-url"]
+                        MarkupTextLiteral - [11..12) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [12..16) - FullWidth: 4 - [href] - Gen<Markup>
+                            Text;[href];
+                        Equals;[=];
+                        MarkupTextLiteral - [17..18) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        GenericBlock - [18..27) - FullWidth: 9
+                            MarkupLiteralAttributeValue - [18..27) - FullWidth: 9 - [/cool-url]
+                                MarkupTextLiteral - [18..27) - FullWidth: 9 - [/cool-url] - Gen<Markup>
+                                    ForwardSlash;[/];
+                                    Text;[cool-url];
+                        MarkupTextLiteral - [27..28) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupAttributeBlock - [28..37) - FullWidth: 9 - [ style=""]
+                        MarkupTextLiteral - [28..29) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [29..34) - FullWidth: 5 - [style] - Gen<Markup>
+                            Text;[style];
+                        Equals;[=];
+                        MarkupTextLiteral - [35..36) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTextLiteral - [36..37) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupMinimizedAttributeBlock - [37..46) - FullWidth: 9 - [ disabled]
+                        MarkupTextLiteral - [37..38) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [38..46) - FullWidth: 8 - [disabled] - Gen<Markup>
+                            Text;[disabled];
+                    MarkupAttributeBlock - [46..70) - FullWidth: 24 - [ href="/even-cooler-url"]
+                        MarkupTextLiteral - [46..47) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [47..51) - FullWidth: 4 - [href] - Gen<Markup>
+                            Text;[href];
+                        Equals;[=];
+                        MarkupTextLiteral - [52..53) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        GenericBlock - [53..69) - FullWidth: 16
+                            MarkupLiteralAttributeValue - [53..69) - FullWidth: 16 - [/even-cooler-url]
+                                MarkupTextLiteral - [53..69) - FullWidth: 16 - [/even-cooler-url] - Gen<Markup>
+                                    ForwardSlash;[/];
+                                    Text;[even-cooler-url];
+                        MarkupTextLiteral - [69..70) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupMinimizedAttributeBlock - [70..75) - FullWidth: 5 - [ href]
+                        MarkupTextLiteral - [70..71) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [71..75) - FullWidth: 4 - [href] - Gen<Markup>
+                            Text;[href];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [76..133) - FullWidth: 57 - [Learn the ten cool tricks your compiler author will hate!] - Gen<Markup>
+                    Text;[Learn];
+                    Whitespace;[ ];
+                    Text;[the];
+                    Whitespace;[ ];
+                    Text;[ten];
+                    Whitespace;[ ];
+                    Text;[cool];
+                    Whitespace;[ ];
+                    Text;[tricks];
+                    Whitespace;[ ];
+                    Text;[your];
+                    Whitespace;[ ];
+                    Text;[compiler];
+                    Whitespace;[ ];
+                    Text;[author];
+                    Whitespace;[ ];
+                    Text;[will];
+                    Whitespace;[ ];
+                    Text;[hate];
+                    Bang;[!];
+                MarkupEndTag - [133..137) - FullWidth: 4 - [</a>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[a];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [137..139) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupEndTag - [139..145) - FullWidth: 6 - [</div>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+    EndOfFile;[];

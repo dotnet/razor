@@ -1,0 +1,52 @@
+﻿RazorDocument - [0..72) - FullWidth: 72 - [<MyComponent some-attribute="foo" another-attribute="@(43.ToString())"/>]
+    MarkupBlock - [0..72) - FullWidth: 72
+        MarkupTagHelperElement - [0..72) - FullWidth: 72 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..72) - FullWidth: 72 - [<MyComponent some-attribute="foo" another-attribute="@(43.ToString())"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..33) - FullWidth: 21 - some-attribute - DoubleQuotes - Unbound - [ some-attribute="foo"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..27) - FullWidth: 14 - [some-attribute] - Gen<Markup>
+                        Text;[some-attribute];
+                    Equals;[=];
+                    MarkupTextLiteral - [28..29) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [29..32) - FullWidth: 3
+                        MarkupLiteralAttributeValue - [29..32) - FullWidth: 3 - [foo]
+                            MarkupTextLiteral - [29..32) - FullWidth: 3 - [foo] - Gen<Markup>
+                                Text;[foo];
+                    MarkupTextLiteral - [32..33) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [33..70) - FullWidth: 37 - another-attribute - DoubleQuotes - Unbound - [ another-attribute="@(43.ToString())"]
+                    MarkupTextLiteral - [33..34) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [34..51) - FullWidth: 17 - [another-attribute] - Gen<Markup>
+                        Text;[another-attribute];
+                    Equals;[=];
+                    MarkupTextLiteral - [52..53) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [53..69) - FullWidth: 16
+                        MarkupDynamicAttributeValue - [53..69) - FullWidth: 16 - [@(43.ToString())]
+                            GenericBlock - [53..69) - FullWidth: 16
+                                CSharpCodeBlock - [53..69) - FullWidth: 16
+                                    CSharpExplicitExpression - [53..69) - FullWidth: 16
+                                        CSharpTransition - [53..54) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpExplicitExpressionBody - [54..69) - FullWidth: 15
+                                            RazorMetaCode - [54..55) - FullWidth: 1 - Gen<None>
+                                                LeftParenthesis;[(];
+                                            CSharpCodeBlock - [55..68) - FullWidth: 13
+                                                CSharpExpressionLiteral - [55..68) - FullWidth: 13 - [43.ToString()] - Gen<Expr>
+                                                    IntegerLiteral;[43];
+                                                    Dot;[.];
+                                                    Identifier;[ToString];
+                                                    LeftParenthesis;[(];
+                                                    RightParenthesis;[)];
+                                            RazorMetaCode - [68..69) - FullWidth: 1 - Gen<None>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [69..70) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

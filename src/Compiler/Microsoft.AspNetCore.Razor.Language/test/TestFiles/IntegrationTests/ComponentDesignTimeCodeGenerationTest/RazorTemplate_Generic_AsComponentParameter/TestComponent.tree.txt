@@ -1,0 +1,91 @@
+﻿RazorDocument - [0..121) - FullWidth: 121 - [@{ RenderFragment<Person> template = (person) => @<div>@person.Name</div>; }LF<MyComponent PersonTemplate="@template"/>LF]
+    MarkupBlock - [0..121) - FullWidth: 121
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..76) - FullWidth: 76
+            CSharpStatement - [0..76) - FullWidth: 76
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..76) - FullWidth: 75
+                    RazorMetaCode - [1..2) - FullWidth: 1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..75) - FullWidth: 73
+                        CSharpStatementLiteral - [2..49) - FullWidth: 47 - [ RenderFragment<Person> template = (person) => ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Identifier;[RenderFragment];
+                            LessThan;[<];
+                            Identifier;[Person];
+                            GreaterThan;[>];
+                            Whitespace;[ ];
+                            Identifier;[template];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            Identifier;[person];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            GreaterThanEqual;[=>];
+                            Whitespace;[ ];
+                        CSharpTemplateBlock - [49..73) - FullWidth: 24
+                            MarkupBlock - [49..73) - FullWidth: 24
+                                MarkupTransition - [49..50) - FullWidth: 1 - Gen<None>
+                                    Transition;[@];
+                                MarkupElement - [50..73) - FullWidth: 23
+                                    MarkupStartTag - [50..55) - FullWidth: 5 - [<div>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Text;[div];
+                                        CloseAngle;[>];
+                                    MarkupTextLiteral - [55..55) - FullWidth: 0 - [] - Gen<Markup>
+                                        Marker;[];
+                                    CSharpCodeBlock - [55..67) - FullWidth: 12
+                                        CSharpImplicitExpression - [55..67) - FullWidth: 12
+                                            CSharpTransition - [55..56) - FullWidth: 1 - Gen<None>
+                                                Transition;[@];
+                                            CSharpImplicitExpressionBody - [56..67) - FullWidth: 11
+                                                CSharpCodeBlock - [56..67) - FullWidth: 11
+                                                    CSharpExpressionLiteral - [56..67) - FullWidth: 11 - [person.Name] - Gen<Expr>
+                                                        Identifier;[person];
+                                                        Dot;[.];
+                                                        Identifier;[Name];
+                                    MarkupEndTag - [67..73) - FullWidth: 6 - [</div>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        ForwardSlash;[/];
+                                        Text;[div];
+                                        CloseAngle;[>];
+                        CSharpStatementLiteral - [73..75) - FullWidth: 2 - [; ] - Gen<Stmt>
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                    RazorMetaCode - [75..76) - FullWidth: 1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [76..78) - FullWidth: 2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [78..119) - FullWidth: 41 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [78..119) - FullWidth: 41 - [<MyComponent PersonTemplate="@template"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [90..117) - FullWidth: 27 - PersonTemplate - DoubleQuotes - Bound - [ PersonTemplate="@template"]
+                    MarkupTextLiteral - [90..91) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [91..105) - FullWidth: 14 - [PersonTemplate] - Gen<Markup>
+                        Text;[PersonTemplate];
+                    Equals;[=];
+                    MarkupTextLiteral - [106..107) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [107..116) - FullWidth: 9
+                        MarkupBlock - [107..116) - FullWidth: 9
+                            CSharpCodeBlock - [107..116) - FullWidth: 9
+                                CSharpImplicitExpression - [107..116) - FullWidth: 9
+                                    CSharpTransition - [107..108) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [108..116) - FullWidth: 8
+                                        CSharpCodeBlock - [108..116) - FullWidth: 8
+                                            CSharpExpressionLiteral - [108..116) - FullWidth: 8 - [template] - Gen<Expr>
+                                                Identifier;[template];
+                    MarkupTextLiteral - [116..117) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [119..121) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

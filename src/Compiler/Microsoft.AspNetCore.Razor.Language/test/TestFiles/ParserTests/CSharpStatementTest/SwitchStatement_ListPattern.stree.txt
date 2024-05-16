@@ -2,10 +2,10 @@
     MarkupBlock - [0..167)::167
         MarkupTextLiteral - [0..2)::2 - [LF] - Gen<Markup>
             NewLine;[LF];
-        CSharpCodeBlock - [2..167)::165
+        CSharpCodeBlock - [2..165)::163
             CSharpTransition - [2..3)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [3..49)::46 - [switch (new int[0])LF{LF    case [.., 3, 4]:LF] - Gen<Stmt>
+            CSharpStatementLiteral - [3..57)::54 - [switch (new int[0])LF{LF    case [.., 3, 4]:LF        ] - Gen<Stmt>
                 Keyword;[switch];
                 Whitespace;[ ];
                 LeftParenthesis;[(];
@@ -34,9 +34,8 @@
                 RightBracket;[]];
                 Colon;[:];
                 NewLine;[LF];
-            MarkupBlock - [49..148)::99
-                MarkupTextLiteral - [49..57)::8 - [        ] - Gen<Markup>
-                    Whitespace;[        ];
+                Whitespace;[        ];
+            MarkupBlock - [57..148)::91
                 MarkupElement - [57..146)::89
                     MarkupStartTag - [57..65)::8 - [<strong>] - Gen<Markup>
                         OpenAngle;[<];
@@ -73,13 +72,12 @@
                         CloseAngle;[>];
                 MarkupTextLiteral - [146..148)::2 - [LF] - Gen<Markup>
                     NewLine;[LF];
-            CSharpStatementLiteral - [148..167)::19 - [        break;LF}LF] - Gen<Stmt>
+            CSharpStatementLiteral - [148..165)::17 - [        break;LF}] - Gen<Stmt>
                 Whitespace;[        ];
                 Keyword;[break];
                 Semicolon;[;];
                 NewLine;[LF];
                 RightBrace;[}];
-                NewLine;[LF];
-        MarkupTextLiteral - [167..167)::0 - [] - Gen<Markup>
-            Marker;[];
+        MarkupTextLiteral - [165..167)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
     EndOfFile;[];

@@ -1,0 +1,83 @@
+﻿RazorDocument - [0..86) - FullWidth: 86 - [<Grid Items="@(Array.Empty<DateTime>())"><Column SomeLambda="@(x => x.Year)" /></Grid>]
+    MarkupBlock - [0..86) - FullWidth: 86
+        MarkupTagHelperElement - [0..86) - FullWidth: 86 - Grid[StartTagAndEndTag] - Grid<TItem>
+            MarkupTagHelperStartTag - [0..41) - FullWidth: 41 - [<Grid Items="@(Array.Empty<DateTime>())">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Grid];
+                MarkupTagHelperAttribute - [5..40) - FullWidth: 35 - Items - DoubleQuotes - Bound - [ Items="@(Array.Empty<DateTime>())"]
+                    MarkupTextLiteral - [5..6) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..11) - FullWidth: 5 - [Items] - Gen<Markup>
+                        Text;[Items];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [13..39) - FullWidth: 26
+                        MarkupBlock - [13..39) - FullWidth: 26
+                            CSharpCodeBlock - [13..39) - FullWidth: 26
+                                CSharpImplicitExpression - [13..39) - FullWidth: 26
+                                    CSharpTransition - [13..14) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [14..39) - FullWidth: 25
+                                        CSharpCodeBlock - [14..39) - FullWidth: 25
+                                            CSharpExpressionLiteral - [14..15) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [15..38) - FullWidth: 23 - [Array.Empty<DateTime>()] - Gen<Expr>
+                                                Identifier;[Array];
+                                                Dot;[.];
+                                                Identifier;[Empty];
+                                                LessThan;[<];
+                                                Identifier;[DateTime];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [38..39) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [39..40) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTagHelperElement - [41..79) - FullWidth: 38 - Column[SelfClosing] - Column<TItem, TOutput>
+                MarkupTagHelperStartTag - [41..79) - FullWidth: 38 - [<Column SomeLambda="@(x => x.Year)" />] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[Column];
+                    MarkupTagHelperAttribute - [48..76) - FullWidth: 28 - SomeLambda - DoubleQuotes - Bound - [ SomeLambda="@(x => x.Year)"]
+                        MarkupTextLiteral - [48..49) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [49..59) - FullWidth: 10 - [SomeLambda] - Gen<Markup>
+                            Text;[SomeLambda];
+                        Equals;[=];
+                        MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [61..75) - FullWidth: 14
+                            MarkupBlock - [61..75) - FullWidth: 14
+                                CSharpCodeBlock - [61..75) - FullWidth: 14
+                                    CSharpImplicitExpression - [61..75) - FullWidth: 14
+                                        CSharpTransition - [61..62) - FullWidth: 1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [62..75) - FullWidth: 13
+                                            CSharpCodeBlock - [62..75) - FullWidth: 13
+                                                CSharpExpressionLiteral - [62..63) - FullWidth: 1 - [(] - Gen<Expr>
+                                                    LeftParenthesis;[(];
+                                                CSharpExpressionLiteral - [63..74) - FullWidth: 11 - [x => x.Year] - Gen<Expr>
+                                                    Identifier;[x];
+                                                    Whitespace;[ ];
+                                                    GreaterThanEqual;[=>];
+                                                    Whitespace;[ ];
+                                                    Identifier;[x];
+                                                    Dot;[.];
+                                                    Identifier;[Year];
+                                                CSharpExpressionLiteral - [74..75) - FullWidth: 1 - [)] - Gen<Expr>
+                                                    RightParenthesis;[)];
+                        MarkupTextLiteral - [75..76) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    MarkupMiscAttributeContent - [76..77) - FullWidth: 1
+                        MarkupTextLiteral - [76..77) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [79..86) - FullWidth: 7 - [</Grid>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[Grid];
+                CloseAngle;[>];
+    EndOfFile;[];

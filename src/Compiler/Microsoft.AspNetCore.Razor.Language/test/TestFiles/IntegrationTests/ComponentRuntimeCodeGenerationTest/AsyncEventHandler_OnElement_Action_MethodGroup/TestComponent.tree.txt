@@ -1,0 +1,103 @@
+﻿RazorDocument - [0..185) - FullWidth: 185 - [@using System.Threading.TasksLF@using Microsoft.AspNetCore.Components.WebLF<input @onclick="OnClick" />LF@code {LF    Task OnClick()LF    {LF        return Task.CompletedTask;LF    }LF}]
+    MarkupBlock - [0..185) - FullWidth: 185
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..29) - FullWidth: 29
+            RazorDirective - [0..29) - FullWidth: 29
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..29) - FullWidth: 28
+                    CSharpStatementLiteral - [1..29) - FullWidth: 28 - [using System.Threading.Tasks] - Gen<Import: System.Threading.Tasks;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[System];
+                        Dot;[.];
+                        Identifier;[Threading];
+                        Dot;[.];
+                        Identifier;[Tasks];
+        MarkupTextLiteral - [29..31) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [31..73) - FullWidth: 42
+            RazorDirective - [31..73) - FullWidth: 42
+                CSharpTransition - [31..32) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [32..73) - FullWidth: 41
+                    CSharpStatementLiteral - [32..73) - FullWidth: 41 - [using Microsoft.AspNetCore.Components.Web] - Gen<Import: Microsoft.AspNetCore.Components.Web;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Web];
+        MarkupTextLiteral - [73..75) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [75..103) - FullWidth: 28 - input[SelfClosing] - onclick
+            MarkupTagHelperStartTag - [75..103) - FullWidth: 28 - [<input @onclick="OnClick" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTagHelperDirectiveAttribute - [81..100) - FullWidth: 19
+                    MarkupTextLiteral - [81..82) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [82..83) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [83..90) - FullWidth: 7 - [onclick]
+                        Text;[onclick];
+                    Equals;[=];
+                    MarkupTextLiteral - [91..92) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [92..99) - FullWidth: 7
+                        CSharpExpressionLiteral - [92..99) - FullWidth: 7 - [OnClick] - Gen<None>
+                            Text;[OnClick];
+                    MarkupTextLiteral - [99..100) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [100..101) - FullWidth: 1
+                    MarkupTextLiteral - [100..101) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [103..105) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [105..185) - FullWidth: 80
+            RazorDirective - [105..185) - FullWidth: 80 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [105..106) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [106..185) - FullWidth: 79
+                    RazorMetaCode - [106..110) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [110..185) - FullWidth: 75
+                        UnclassifiedTextLiteral - [110..111) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [111..112) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [112..184) - FullWidth: 72
+                            CSharpStatementLiteral - [112..184) - FullWidth: 72 - [LF    Task OnClick()LF    {LF        return Task.CompletedTask;LF    }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Identifier;[Task];
+                                Whitespace;[ ];
+                                Identifier;[OnClick];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Keyword;[return];
+                                Whitespace;[ ];
+                                Identifier;[Task];
+                                Dot;[.];
+                                Identifier;[CompletedTask];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [184..185) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [185..185) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -1,0 +1,90 @@
+﻿RazorDocument - [0..134) - FullWidth: 134 - [<strong>@TestBool</strong>LFLF<TestComponent TestBool="true" />LFLF@code {LF    [Parameter]LF    public bool TestBool { get; set; }LF}]
+    MarkupBlock - [0..134) - FullWidth: 134
+        MarkupElement - [0..26) - FullWidth: 26
+            MarkupStartTag - [0..8) - FullWidth: 8 - [<strong>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[strong];
+                CloseAngle;[>];
+            CSharpCodeBlock - [8..17) - FullWidth: 9
+                CSharpImplicitExpression - [8..17) - FullWidth: 9
+                    CSharpTransition - [8..9) - FullWidth: 1 - Gen<None>
+                        Transition;[@];
+                    CSharpImplicitExpressionBody - [9..17) - FullWidth: 8
+                        CSharpCodeBlock - [9..17) - FullWidth: 8
+                            CSharpExpressionLiteral - [9..17) - FullWidth: 8 - [TestBool] - Gen<Expr>
+                                Identifier;[TestBool];
+            MarkupEndTag - [17..26) - FullWidth: 9 - [</strong>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[strong];
+                CloseAngle;[>];
+        MarkupTextLiteral - [26..30) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        MarkupTagHelperElement - [30..63) - FullWidth: 33 - TestComponent[SelfClosing] - TestComponent
+            MarkupTagHelperStartTag - [30..63) - FullWidth: 33 - [<TestComponent TestBool="true" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperAttribute - [44..60) - FullWidth: 16 - TestBool - DoubleQuotes - Bound - [ TestBool="true"]
+                    MarkupTextLiteral - [44..45) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [45..53) - FullWidth: 8 - [TestBool] - Gen<Markup>
+                        Text;[TestBool];
+                    Equals;[=];
+                    MarkupTextLiteral - [54..55) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [55..59) - FullWidth: 4
+                        CSharpExpressionLiteral - [55..59) - FullWidth: 4 - [true] - Gen<None>
+                            Text;[true];
+                    MarkupTextLiteral - [59..60) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [60..61) - FullWidth: 1
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [63..67) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [67..134) - FullWidth: 67
+            RazorDirective - [67..134) - FullWidth: 67 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [67..68) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [68..134) - FullWidth: 66
+                    RazorMetaCode - [68..72) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [72..134) - FullWidth: 62
+                        UnclassifiedTextLiteral - [72..73) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [73..74) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [74..133) - FullWidth: 59
+                            CSharpStatementLiteral - [74..133) - FullWidth: 59 - [LF    [Parameter]LF    public bool TestBool { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[bool];
+                                Whitespace;[ ];
+                                Identifier;[TestBool];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [133..134) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [134..134) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -5,7 +5,7 @@
         CSharpCodeBlock - [0..352)::352
             CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..36)::35 - [foreach(var c in db.Categories) {LF] - Gen<Stmt>
+            CSharpStatementLiteral - [1..48)::47 - [foreach(var c in db.Categories) {LF            ] - Gen<Stmt>
                 Keyword;[foreach];
                 LeftParenthesis;[(];
                 Identifier;[var];
@@ -21,9 +21,8 @@
                 Whitespace;[ ];
                 LeftBrace;[{];
                 NewLine;[LF];
-            MarkupBlock - [36..343)::307
-                MarkupTextLiteral - [36..48)::12 - [            ] - Gen<Markup>
-                    Whitespace;[            ];
+                Whitespace;[            ];
+            MarkupBlock - [48..343)::295
                 MarkupElement - [48..341)::293
                     MarkupStartTag - [48..53)::5 - [<div>] - Gen<Markup>
                         OpenAngle;[<];
@@ -64,12 +63,12 @@
                             CloseAngle;[>];
                         MarkupTextLiteral - [109..111)::2 - [LF] - Gen<Markup>
                             NewLine;[LF];
-                        CSharpCodeBlock - [111..300)::189
+                        CSharpCodeBlock - [111..298)::187
                             CSharpStatementLiteral - [111..131)::20 - [                    ] - Gen<Stmt>
                                 Whitespace;[                    ];
                             CSharpTransition - [131..132)::1 - Gen<None>
                                 Transition;[@];
-                            CSharpStatementLiteral - [132..164)::32 - [foreach(var p in c.Products) {LF] - Gen<Stmt>
+                            CSharpStatementLiteral - [132..188)::56 - [foreach(var p in c.Products) {LF                        ] - Gen<Stmt>
                                 Keyword;[foreach];
                                 LeftParenthesis;[(];
                                 Identifier;[var];
@@ -85,9 +84,8 @@
                                 Whitespace;[ ];
                                 LeftBrace;[{];
                                 NewLine;[LF];
-                            MarkupBlock - [164..277)::113
-                                MarkupTextLiteral - [164..188)::24 - [                        ] - Gen<Markup>
-                                    Whitespace;[                        ];
+                                Whitespace;[                        ];
+                            MarkupBlock - [188..277)::89
                                 MarkupElement - [188..275)::87
                                     MarkupStartTag - [188..192)::4 - [<li>] - Gen<Markup>
                                         OpenAngle;[<];
@@ -166,11 +164,11 @@
                                         CloseAngle;[>];
                                 MarkupTextLiteral - [275..277)::2 - [LF] - Gen<Markup>
                                     NewLine;[LF];
-                            CSharpStatementLiteral - [277..300)::23 - [                    }LF] - Gen<Stmt>
+                            CSharpStatementLiteral - [277..298)::21 - [                    }] - Gen<Stmt>
                                 Whitespace;[                    ];
                                 RightBrace;[}];
-                                NewLine;[LF];
-                        MarkupTextLiteral - [300..316)::16 - [                ] - Gen<Markup>
+                        MarkupTextLiteral - [298..316)::18 - [LF                ] - Gen<Markup>
+                            NewLine;[LF];
                             Whitespace;[                ];
                         MarkupEndTag - [316..321)::5 - [</ul>] - Gen<Markup>
                             OpenAngle;[<];

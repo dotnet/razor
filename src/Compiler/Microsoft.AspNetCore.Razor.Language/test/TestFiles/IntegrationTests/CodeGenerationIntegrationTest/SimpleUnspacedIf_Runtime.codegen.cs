@@ -25,15 +25,16 @@ namespace AspNetCore
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line (1,2)-(3,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SimpleUnspacedIf.cshtml"
+#line (1,2)-(3,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SimpleUnspacedIf.cshtml"
 if (true)
 {
+	
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("\t<div></div>\r\n");
+            WriteLiteral("<div></div>\r\n");
 #nullable restore
 #line (4,1)-(4,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SimpleUnspacedIf.cshtml"
 }

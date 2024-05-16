@@ -25,14 +25,15 @@ namespace AspNetCore
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line (1,2)-(2,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ImplicitExpression.cshtml"
+#line (1,2)-(2,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ImplicitExpression.cshtml"
 for(int i = 1; i <= 10; i++) {
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <p>This is item #");
+            WriteLiteral("<p>This is item #");
             Write(
 #nullable restore
 #line (2,23)-(2,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ImplicitExpression.cshtml"

@@ -1,0 +1,72 @@
+﻿RazorDocument - [0..92) - FullWidth: 92 - [@using System.TextLF@using System.ReflectionLFLF@layout MainLayoutLF@FooLF<div>Hello</div>LF]
+    MarkupBlock - [0..92) - FullWidth: 92
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..18) - FullWidth: 18
+            RazorDirective - [0..18) - FullWidth: 18
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..18) - FullWidth: 17
+                    CSharpStatementLiteral - [1..18) - FullWidth: 17 - [using System.Text] - Gen<Import: System.Text;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[System];
+                        Dot;[.];
+                        Identifier;[Text];
+        MarkupTextLiteral - [18..20) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [20..44) - FullWidth: 24
+            RazorDirective - [20..44) - FullWidth: 24
+                CSharpTransition - [20..21) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [21..44) - FullWidth: 23
+                    CSharpStatementLiteral - [21..44) - FullWidth: 23 - [using System.Reflection] - Gen<Import: System.Reflection;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[System];
+                        Dot;[.];
+                        Identifier;[Reflection];
+        MarkupTextLiteral - [44..48) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [48..68) - FullWidth: 20
+            RazorDirective - [48..68) - FullWidth: 20 - Directive:{layout;SingleLine;FileScopedSinglyOccurring}
+                CSharpTransition - [48..49) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [49..68) - FullWidth: 19
+                    RazorMetaCode - [49..55) - FullWidth: 6 - Gen<None>
+                        Identifier;[layout];
+                    CSharpCodeBlock - [55..68) - FullWidth: 13
+                        CSharpStatementLiteral - [55..56) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [56..66) - FullWidth: 10 - [MainLayout] - Gen<DirectiveToken {TypeName;Type;Opt:False}>
+                            Identifier;[MainLayout];
+                        MarkupEphemeralTextLiteral - [66..68) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [68..68) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [68..72) - FullWidth: 4
+            CSharpImplicitExpression - [68..72) - FullWidth: 4
+                CSharpTransition - [68..69) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [69..72) - FullWidth: 3
+                    CSharpCodeBlock - [69..72) - FullWidth: 3
+                        CSharpExpressionLiteral - [69..72) - FullWidth: 3 - [Foo] - Gen<Expr>
+                            Identifier;[Foo];
+        MarkupTextLiteral - [72..74) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [74..90) - FullWidth: 16
+            MarkupStartTag - [74..79) - FullWidth: 5 - [<div>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupTextLiteral - [79..84) - FullWidth: 5 - [Hello] - Gen<Markup>
+                Text;[Hello];
+            MarkupEndTag - [84..90) - FullWidth: 6 - [</div>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+        MarkupTextLiteral - [90..92) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

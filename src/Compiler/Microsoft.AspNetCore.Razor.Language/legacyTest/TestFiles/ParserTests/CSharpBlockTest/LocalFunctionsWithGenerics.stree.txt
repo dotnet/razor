@@ -10,7 +10,7 @@
                     RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..229)::227
-                        CSharpStatementLiteral - [2..27)::25 - [LF    void Foo()LF    {LF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                        CSharpStatementLiteral - [2..35)::33 - [LF    void Foo()LF    {LF        ] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
                             NewLine;[LF];
                             Whitespace;[    ];
                             Keyword;[void];
@@ -22,9 +22,8 @@
                             Whitespace;[    ];
                             LeftBrace;[{];
                             NewLine;[LF];
-                        MarkupBlock - [27..110)::83
-                            MarkupTextLiteral - [27..35)::8 - [        ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                                Whitespace;[        ];
+                            Whitespace;[        ];
+                        MarkupBlock - [35..110)::75
                             MarkupElement - [35..108)::73
                                 MarkupStartTag - [35..43)::8 - [<strong>] - Gen<Markup> - SpanEditHandler;Accepts:None
                                     OpenAngle;[<];

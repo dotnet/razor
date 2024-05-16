@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -25,12 +25,11 @@
             FieldDeclaration -  - private - global::TestNamespace.InputTagHelper - __TestNamespace_InputTagHelper
             FieldDeclaration -  - private - global::TestNamespace.InputTagHelper2 - __TestNamespace_InputTagHelper2
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
-                HtmlContent - (33:1,0 [2] ComplexTagHelpers.cshtml)
-                    LazyIntermediateToken - (33:1,0 [2] ComplexTagHelpers.cshtml) - Html - \n
-                CSharpCode - (36:2,1 [48] ComplexTagHelpers.cshtml)
-                    LazyIntermediateToken - (36:2,1 [48] ComplexTagHelpers.cshtml) - CSharp - if (true)\n{\n    var checkbox = "checkbox";\n\n
-                HtmlContent - (84:6,0 [55] ComplexTagHelpers.cshtml)
-                    LazyIntermediateToken - (84:6,0 [4] ComplexTagHelpers.cshtml) - Html -     
+                HtmlContent - (31:0,31 [4] ComplexTagHelpers.cshtml)
+                    LazyIntermediateToken - (31:0,31 [4] ComplexTagHelpers.cshtml) - Html - \n\n
+                CSharpCode - (36:2,1 [52] ComplexTagHelpers.cshtml)
+                    LazyIntermediateToken - (36:2,1 [52] ComplexTagHelpers.cshtml) - CSharp - if (true)\n{\n    var checkbox = "checkbox";\n\n    
+                HtmlContent - (88:6,4 [51] ComplexTagHelpers.cshtml)
                     LazyIntermediateToken - (88:6,4 [4] ComplexTagHelpers.cshtml) - Html - <div
                     LazyIntermediateToken - (92:6,8 [36] ComplexTagHelpers.cshtml) - Html -  class="randomNonTagHelperAttribute"
                     LazyIntermediateToken - (128:6,44 [1] ComplexTagHelpers.cshtml) - Html - >
@@ -65,10 +64,8 @@
                             LazyIntermediateToken - (258:9,30 [2] ComplexTagHelpers.cshtml) - Html - \n
                         CSharpCode - (260:10,0 [12] ComplexTagHelpers.cshtml)
                             LazyIntermediateToken - (260:10,0 [12] ComplexTagHelpers.cshtml) - CSharp -             
-                        CSharpCode - (273:10,13 [27] ComplexTagHelpers.cshtml)
-                            LazyIntermediateToken - (273:10,13 [27] ComplexTagHelpers.cshtml) - CSharp - if (false)\n            {\n
-                        HtmlContent - (300:12,0 [16] ComplexTagHelpers.cshtml)
-                            LazyIntermediateToken - (300:12,0 [16] ComplexTagHelpers.cshtml) - Html -                 
+                        CSharpCode - (273:10,13 [43] ComplexTagHelpers.cshtml)
+                            LazyIntermediateToken - (273:10,13 [43] ComplexTagHelpers.cshtml) - CSharp - if (false)\n            {\n                
                         TagHelper - (316:12,16 [83] ComplexTagHelpers.cshtml) - p - TagMode.StartTagAndEndTag
                             DefaultTagHelperBody - 
                                 HtmlContent - (319:12,19 [10] ComplexTagHelpers.cshtml)
@@ -86,10 +83,8 @@
                             DefaultTagHelperExecute - 
                         HtmlContent - (399:12,99 [2] ComplexTagHelpers.cshtml)
                             LazyIntermediateToken - (399:12,99 [2] ComplexTagHelpers.cshtml) - Html - \n
-                        CSharpCode - (401:13,0 [48] ComplexTagHelpers.cshtml)
-                            LazyIntermediateToken - (401:13,0 [48] ComplexTagHelpers.cshtml) - CSharp -             }\n            else\n            {\n
-                        HtmlContent - (449:16,0 [16] ComplexTagHelpers.cshtml)
-                            LazyIntermediateToken - (449:16,0 [16] ComplexTagHelpers.cshtml) - Html -                 
+                        CSharpCode - (401:13,0 [64] ComplexTagHelpers.cshtml)
+                            LazyIntermediateToken - (401:13,0 [64] ComplexTagHelpers.cshtml) - CSharp -             }\n            else\n            {\n                
                         TagHelper - (465:16,16 [58] ComplexTagHelpers.cshtml) - p - TagMode.StartTagAndEndTag
                             DefaultTagHelperBody - 
                                 HtmlContent - (468:16,19 [14] ComplexTagHelpers.cshtml)
@@ -109,9 +104,10 @@
                                     DefaultTagHelperExecute - 
                             DefaultTagHelperCreate -  - TestNamespace.PTagHelper
                             DefaultTagHelperExecute - 
-                        HtmlContent - (523:16,74 [18] ComplexTagHelpers.cshtml)
+                        HtmlContent - (523:16,74 [2] ComplexTagHelpers.cshtml)
                             LazyIntermediateToken - (523:16,74 [2] ComplexTagHelpers.cshtml) - Html - \n
-                            LazyIntermediateToken - (525:17,0 [16] ComplexTagHelpers.cshtml) - Html -                 
+                        CSharpCode - (525:17,0 [16] ComplexTagHelpers.cshtml)
+                            LazyIntermediateToken - (525:17,0 [16] ComplexTagHelpers.cshtml) - CSharp -                 
                         TagHelper - (541:17,16 [50] ComplexTagHelpers.cshtml) - input - TagMode.SelfClosing
                             DefaultTagHelperBody - 
                             DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
@@ -123,9 +119,10 @@
                                 CSharpExpression - (556:17,31 [30] ComplexTagHelpers.cshtml)
                                     LazyIntermediateToken - (556:17,31 [30] ComplexTagHelpers.cshtml) - CSharp - true ? "checkbox" : "anything"
                             DefaultTagHelperExecute - 
-                        HtmlContent - (591:17,66 [18] ComplexTagHelpers.cshtml)
+                        HtmlContent - (591:17,66 [2] ComplexTagHelpers.cshtml)
                             LazyIntermediateToken - (591:17,66 [2] ComplexTagHelpers.cshtml) - Html - \n
-                            LazyIntermediateToken - (593:18,0 [16] ComplexTagHelpers.cshtml) - Html -                 
+                        CSharpCode - (593:18,0 [16] ComplexTagHelpers.cshtml)
+                            LazyIntermediateToken - (593:18,0 [16] ComplexTagHelpers.cshtml) - CSharp -                 
                         TagHelper - (609:18,16 [81] ComplexTagHelpers.cshtml) - input - TagMode.StartTagOnly
                             DefaultTagHelperBody - 
                             DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
@@ -155,10 +152,10 @@
                             DefaultTagHelperExecute - 
                         HtmlContent - (690:18,97 [2] ComplexTagHelpers.cshtml)
                             LazyIntermediateToken - (690:18,97 [2] ComplexTagHelpers.cshtml) - Html - \n
-                        CSharpCode - (692:19,0 [15] ComplexTagHelpers.cshtml)
-                            LazyIntermediateToken - (692:19,0 [15] ComplexTagHelpers.cshtml) - CSharp -             }\n
-                        HtmlContent - (707:20,0 [8] ComplexTagHelpers.cshtml)
-                            LazyIntermediateToken - (707:20,0 [8] ComplexTagHelpers.cshtml) - Html -         
+                        CSharpCode - (692:19,0 [13] ComplexTagHelpers.cshtml)
+                            LazyIntermediateToken - (692:19,0 [13] ComplexTagHelpers.cshtml) - CSharp -             }
+                        HtmlContent - (705:19,13 [10] ComplexTagHelpers.cshtml)
+                            LazyIntermediateToken - (705:19,13 [10] ComplexTagHelpers.cshtml) - Html - \n        
                     DefaultTagHelperCreate -  - TestNamespace.PTagHelper
                     DefaultTagHelperHtmlAttribute -  - time - HtmlAttributeValueStyle.DoubleQuotes
                         HtmlAttributeValue - (197:8,17 [7] ComplexTagHelpers.cshtml) - 

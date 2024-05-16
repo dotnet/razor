@@ -1,0 +1,86 @@
+﻿RazorDocument - [0..145) - FullWidth: 145 - [@using TestLF@namespace AnotherTestLFLF<HeaderComponent Header='head'>LF</HeaderComponent>LF<FooterComponent Footer='feet'>LF</FooterComponent>LF]
+    MarkupBlock - [0..145) - FullWidth: 145
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..11) - FullWidth: 11
+            RazorDirective - [0..11) - FullWidth: 11
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..11) - FullWidth: 10
+                    CSharpStatementLiteral - [1..11) - FullWidth: 10 - [using Test] - Gen<Import: Test;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Test];
+        MarkupTextLiteral - [11..13) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [13..37) - FullWidth: 24
+            RazorDirective - [13..37) - FullWidth: 24 - Directive:{namespace;SingleLine;FileScopedSinglyOccurring}
+                CSharpTransition - [13..14) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [14..37) - FullWidth: 23
+                    RazorMetaCode - [14..23) - FullWidth: 9 - Gen<None>
+                        Keyword;[namespace];
+                    CSharpCodeBlock - [23..37) - FullWidth: 14
+                        CSharpStatementLiteral - [23..24) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [24..35) - FullWidth: 11 - [AnotherTest] - Gen<DirectiveToken {Namespace;Namespace;Opt:False}>
+                            Identifier;[AnotherTest];
+                        MarkupEphemeralTextLiteral - [35..37) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [37..39) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [39..90) - FullWidth: 51 - HeaderComponent[StartTagAndEndTag] - HeaderComponent
+            MarkupTagHelperStartTag - [39..70) - FullWidth: 31 - [<HeaderComponent Header='head'>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[HeaderComponent];
+                MarkupTagHelperAttribute - [55..69) - FullWidth: 14 - Header - SingleQuotes - Bound - [ Header='head']
+                    MarkupTextLiteral - [55..56) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [56..62) - FullWidth: 6 - [Header] - Gen<Markup>
+                        Text;[Header];
+                    Equals;[=];
+                    MarkupTextLiteral - [63..64) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [64..68) - FullWidth: 4
+                        MarkupTextLiteral - [64..68) - FullWidth: 4 - [head] - Gen<Markup>
+                            Text;[head];
+                    MarkupTextLiteral - [68..69) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                CloseAngle;[>];
+            MarkupTextLiteral - [70..72) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [72..90) - FullWidth: 18 - [</HeaderComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[HeaderComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [90..92) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [92..143) - FullWidth: 51 - FooterComponent[StartTagAndEndTag] - FooterComponent
+            MarkupTagHelperStartTag - [92..123) - FullWidth: 31 - [<FooterComponent Footer='feet'>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[FooterComponent];
+                MarkupTagHelperAttribute - [108..122) - FullWidth: 14 - Footer - SingleQuotes - Bound - [ Footer='feet']
+                    MarkupTextLiteral - [108..109) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [109..115) - FullWidth: 6 - [Footer] - Gen<Markup>
+                        Text;[Footer];
+                    Equals;[=];
+                    MarkupTextLiteral - [116..117) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [117..121) - FullWidth: 4
+                        MarkupTextLiteral - [117..121) - FullWidth: 4 - [feet] - Gen<Markup>
+                            Text;[feet];
+                    MarkupTextLiteral - [121..122) - FullWidth: 1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                CloseAngle;[>];
+            MarkupTextLiteral - [123..125) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [125..143) - FullWidth: 18 - [</FooterComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[FooterComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [143..145) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

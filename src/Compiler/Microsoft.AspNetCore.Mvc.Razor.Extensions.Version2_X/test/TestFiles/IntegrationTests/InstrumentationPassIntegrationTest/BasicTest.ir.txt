@@ -3,13 +3,13 @@
     CSharpCode - 
         IntermediateToken -  - CSharp - [assembly:global::Microsoft.AspNetCore.Mvc.Razor.Compilation.RazorViewAttribute(@"/TestFiles/IntegrationTests/InstrumentationPassIntegrationTest/BasicTest.cshtml", typeof(AspNetCore.TestFiles_IntegrationTests_InstrumentationPassIntegrationTest_BasicTest))]
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [14] ) - System
-        UsingDirective - (16:1,1 [34] ) - System.Collections.Generic
-        UsingDirective - (51:2,1 [19] ) - System.Linq
-        UsingDirective - (71:3,1 [30] ) - System.Threading.Tasks
-        UsingDirective - (102:4,1 [32] ) - Microsoft.AspNetCore.Mvc
-        UsingDirective - (135:5,1 [42] ) - Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (178:6,1 [45] ) - Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [12] ) - System
+        UsingDirective - (16:1,1 [32] ) - System.Collections.Generic
+        UsingDirective - (51:2,1 [17] ) - System.Linq
+        UsingDirective - (71:3,1 [28] ) - System.Threading.Tasks
+        UsingDirective - (102:4,1 [30] ) - Microsoft.AspNetCore.Mvc
+        UsingDirective - (135:5,1 [40] ) - Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (178:6,1 [43] ) - Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         ClassDeclaration -  - public - TestFiles_IntegrationTests_InstrumentationPassIntegrationTest_BasicTest - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
             PreallocatedTagHelperPropertyValue -  - __tagHelperAttribute_0 - value - Hello - HtmlAttributeValueStyle.DoubleQuotes
@@ -20,10 +20,11 @@
             FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 CSharpCode - 
-                    IntermediateToken -  - CSharp - BeginContext(31, 28, true);
+                    IntermediateToken -  - CSharp - BeginContext(29, 30, true);
                 CSharpCode - 
-                    IntermediateToken -  - CSharp - BeginContext(31, 28, true);
-                HtmlContent - (31:1,0 [28] BasicTest.cshtml)
+                    IntermediateToken -  - CSharp - BeginContext(29, 30, true);
+                HtmlContent - (29:0,29 [30] BasicTest.cshtml)
+                    LazyIntermediateToken - (29:0,29 [2] BasicTest.cshtml) - Html - \n
                     LazyIntermediateToken - (31:1,0 [5] BasicTest.cshtml) - Html - <span
                     LazyIntermediateToken - (36:1,5 [9] BasicTest.cshtml) - Html -  someattr
                     LazyIntermediateToken - (45:1,14 [1] BasicTest.cshtml) - Html - >

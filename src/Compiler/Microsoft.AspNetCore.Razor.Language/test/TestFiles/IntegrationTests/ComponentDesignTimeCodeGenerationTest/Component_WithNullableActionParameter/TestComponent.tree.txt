@@ -1,0 +1,75 @@
+﻿RazorDocument - [0..137) - FullWidth: 137 - [<ComponentWithNullableAction NullableAction="@NullableAction" />LF@code {LF	[Parameter]LF	public Action NullableAction { get; set; }LF}LF]
+    MarkupBlock - [0..137) - FullWidth: 137
+        MarkupTagHelperElement - [0..64) - FullWidth: 64 - ComponentWithNullableAction[SelfClosing] - ComponentWithNullableAction
+            MarkupTagHelperStartTag - [0..64) - FullWidth: 64 - [<ComponentWithNullableAction NullableAction="@NullableAction" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ComponentWithNullableAction];
+                MarkupTagHelperAttribute - [28..61) - FullWidth: 33 - NullableAction - DoubleQuotes - Bound - [ NullableAction="@NullableAction"]
+                    MarkupTextLiteral - [28..29) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [29..43) - FullWidth: 14 - [NullableAction] - Gen<Markup>
+                        Text;[NullableAction];
+                    Equals;[=];
+                    MarkupTextLiteral - [44..45) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [45..60) - FullWidth: 15
+                        MarkupBlock - [45..60) - FullWidth: 15
+                            CSharpCodeBlock - [45..60) - FullWidth: 15
+                                CSharpImplicitExpression - [45..60) - FullWidth: 15
+                                    CSharpTransition - [45..46) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [46..60) - FullWidth: 14
+                                        CSharpCodeBlock - [46..60) - FullWidth: 14
+                                            CSharpExpressionLiteral - [46..60) - FullWidth: 14 - [NullableAction] - Gen<Expr>
+                                                Identifier;[NullableAction];
+                    MarkupTextLiteral - [60..61) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [61..62) - FullWidth: 1
+                    MarkupTextLiteral - [61..62) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [64..66) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [66..135) - FullWidth: 69
+            RazorDirective - [66..135) - FullWidth: 69 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [66..67) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [67..135) - FullWidth: 68
+                    RazorMetaCode - [67..71) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [71..135) - FullWidth: 64
+                        UnclassifiedTextLiteral - [71..72) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [72..73) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [73..134) - FullWidth: 61
+                            CSharpStatementLiteral - [73..134) - FullWidth: 61 - [LF	[Parameter]LF	public Action NullableAction { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[	];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[	];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[Action];
+                                Whitespace;[ ];
+                                Identifier;[NullableAction];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [134..135) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [135..137) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

@@ -1,0 +1,111 @@
+﻿RazorDocument - [0..161) - FullWidth: 161 - [@{LF    RenderFragment<Person> p = (person) => @<div>@person.Name</div>;LF}LF@code {LF    class PersonLF    {LF        public string Name { get; set; }LF    }LF}]
+    MarkupBlock - [0..161) - FullWidth: 161
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..75) - FullWidth: 75
+            CSharpStatement - [0..75) - FullWidth: 75
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..75) - FullWidth: 74
+                    RazorMetaCode - [1..2) - FullWidth: 1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..74) - FullWidth: 72
+                        CSharpStatementLiteral - [2..47) - FullWidth: 45 - [LF    RenderFragment<Person> p = (person) => ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Identifier;[RenderFragment];
+                            LessThan;[<];
+                            Identifier;[Person];
+                            GreaterThan;[>];
+                            Whitespace;[ ];
+                            Identifier;[p];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            Identifier;[person];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            GreaterThanEqual;[=>];
+                            Whitespace;[ ];
+                        CSharpTemplateBlock - [47..71) - FullWidth: 24
+                            MarkupBlock - [47..71) - FullWidth: 24
+                                MarkupTransition - [47..48) - FullWidth: 1 - Gen<None>
+                                    Transition;[@];
+                                MarkupElement - [48..71) - FullWidth: 23
+                                    MarkupStartTag - [48..53) - FullWidth: 5 - [<div>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Text;[div];
+                                        CloseAngle;[>];
+                                    MarkupTextLiteral - [53..53) - FullWidth: 0 - [] - Gen<Markup>
+                                        Marker;[];
+                                    CSharpCodeBlock - [53..65) - FullWidth: 12
+                                        CSharpImplicitExpression - [53..65) - FullWidth: 12
+                                            CSharpTransition - [53..54) - FullWidth: 1 - Gen<None>
+                                                Transition;[@];
+                                            CSharpImplicitExpressionBody - [54..65) - FullWidth: 11
+                                                CSharpCodeBlock - [54..65) - FullWidth: 11
+                                                    CSharpExpressionLiteral - [54..65) - FullWidth: 11 - [person.Name] - Gen<Expr>
+                                                        Identifier;[person];
+                                                        Dot;[.];
+                                                        Identifier;[Name];
+                                    MarkupEndTag - [65..71) - FullWidth: 6 - [</div>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        ForwardSlash;[/];
+                                        Text;[div];
+                                        CloseAngle;[>];
+                        CSharpStatementLiteral - [71..74) - FullWidth: 3 - [;LF] - Gen<Stmt>
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [74..75) - FullWidth: 1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [75..77) - FullWidth: 2 - [LF] - Gen<None>
+            NewLine;[LF];
+        CSharpCodeBlock - [77..161) - FullWidth: 84
+            RazorDirective - [77..161) - FullWidth: 84 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [77..78) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [78..161) - FullWidth: 83
+                    RazorMetaCode - [78..82) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [82..161) - FullWidth: 79
+                        UnclassifiedTextLiteral - [82..83) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [83..84) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [84..160) - FullWidth: 76
+                            CSharpStatementLiteral - [84..160) - FullWidth: 76 - [LF    class PersonLF    {LF        public string Name { get; set; }LF    }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[class];
+                                Whitespace;[ ];
+                                Identifier;[Person];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[Name];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [160..161) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [161..161) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

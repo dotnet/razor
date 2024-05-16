@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -27,10 +27,10 @@
                     LazyIntermediateToken - (502:14,0 [2] CSharp7.cshtml) - Html - \n
                 CSharpCode - (504:15,0 [4] CSharp7.cshtml)
                     LazyIntermediateToken - (504:15,0 [4] CSharp7.cshtml) - CSharp -     
-                CSharpCode - (509:15,5 [161] CSharp7.cshtml)
-                    LazyIntermediateToken - (509:15,5 [161] CSharp7.cshtml) - CSharp - if (nameLookup.TryGetValue("John Doe", out var entry))\n    {\n        if (entry.Extra is bool alive)\n        {\n            // Do Something\n        }\n    }\n
-                HtmlContent - (670:22,0 [46] CSharp7.cshtml)
-                    LazyIntermediateToken - (670:22,0 [4] CSharp7.cshtml) - Html -     
+                CSharpCode - (509:15,5 [159] CSharp7.cshtml)
+                    LazyIntermediateToken - (509:15,5 [159] CSharp7.cshtml) - CSharp - if (nameLookup.TryGetValue("John Doe", out var entry))\n    {\n        if (entry.Extra is bool alive)\n        {\n            // Do Something\n        }\n    }
+                HtmlContent - (668:21,5 [48] CSharp7.cshtml)
+                    LazyIntermediateToken - (668:21,5 [6] CSharp7.cshtml) - Html - \n    
                     LazyIntermediateToken - (674:22,4 [2] CSharp7.cshtml) - Html - <p
                     LazyIntermediateToken - (676:22,6 [1] CSharp7.cshtml) - Html - >
                     LazyIntermediateToken - (677:22,7 [39] CSharp7.cshtml) - Html - \n        Here's a very unique number: 
@@ -54,9 +54,10 @@
                     LazyIntermediateToken - (882:28,10 [4] CSharp7.cshtml) - Html - \n\n
                 CSharpCode - (886:30,0 [4] CSharp7.cshtml)
                     LazyIntermediateToken - (886:30,0 [4] CSharp7.cshtml) - CSharp -     
-                CSharpCode - (891:30,5 [293] CSharp7.cshtml)
-                    LazyIntermediateToken - (891:30,5 [293] CSharp7.cshtml) - CSharp - switch (entry.Extra)\n    {\n        case int age:\n            // Do something\n            break;\n        case IEnumerable<string> childrenNames:\n            // Do more something\n            break;\n        case null:\n            // Do even more of something\n            break;\n    }\n
-                HtmlContent - (1184:42,0 [7] CSharp7.cshtml)
+                CSharpCode - (891:30,5 [291] CSharp7.cshtml)
+                    LazyIntermediateToken - (891:30,5 [291] CSharp7.cshtml) - CSharp - switch (entry.Extra)\n    {\n        case int age:\n            // Do something\n            break;\n        case IEnumerable<string> childrenNames:\n            // Do more something\n            break;\n        case null:\n            // Do even more of something\n            break;\n    }
+                HtmlContent - (1182:41,5 [9] CSharp7.cshtml)
+                    LazyIntermediateToken - (1182:41,5 [2] CSharp7.cshtml) - Html - \n
                     LazyIntermediateToken - (1184:42,0 [7] CSharp7.cshtml) - Html - </body>
             Inject - 
             Inject - 

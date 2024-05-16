@@ -1,0 +1,138 @@
+﻿RazorDocument - [0..186) - FullWidth: 186 - [@using System.TextLF@inject string Value1LF@inject       StringBuilder          Value2LF@inject int Value3;LF@inject double Value4LFLF<div>LF    ContentLF</div>LFLF@inject float Value5LF]
+    MarkupBlock - [0..186) - FullWidth: 186
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..18) - FullWidth: 18
+            RazorDirective - [0..18) - FullWidth: 18
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..18) - FullWidth: 17
+                    CSharpStatementLiteral - [1..18) - FullWidth: 17 - [using System.Text] - Gen<Import: System.Text;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[System];
+                        Dot;[.];
+                        Identifier;[Text];
+        MarkupTextLiteral - [18..20) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [20..43) - FullWidth: 23
+            RazorDirective - [20..43) - FullWidth: 23 - Directive:{inject;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [20..21) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [21..43) - FullWidth: 22
+                    RazorMetaCode - [21..27) - FullWidth: 6 - Gen<None>
+                        Identifier;[inject];
+                    CSharpCodeBlock - [27..43) - FullWidth: 16
+                        CSharpStatementLiteral - [27..28) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [28..34) - FullWidth: 6 - [string] - Gen<DirectiveToken {TypeName;Type;Opt:False}>
+                            Keyword;[string];
+                        CSharpStatementLiteral - [34..35) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [35..41) - FullWidth: 6 - [Value1] - Gen<DirectiveToken {PropertyName;Member;Opt:False}>
+                            Identifier;[Value1];
+                        MarkupEphemeralTextLiteral - [41..43) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [43..43) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [43..88) - FullWidth: 45
+            RazorDirective - [43..88) - FullWidth: 45 - Directive:{inject;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [43..44) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [44..88) - FullWidth: 44
+                    RazorMetaCode - [44..50) - FullWidth: 6 - Gen<None>
+                        Identifier;[inject];
+                    CSharpCodeBlock - [50..88) - FullWidth: 38
+                        CSharpStatementLiteral - [50..57) - FullWidth: 7 - [       ] - Gen<None>
+                            Whitespace;[       ];
+                        CSharpStatementLiteral - [57..70) - FullWidth: 13 - [StringBuilder] - Gen<DirectiveToken {TypeName;Type;Opt:False}>
+                            Identifier;[StringBuilder];
+                        CSharpStatementLiteral - [70..80) - FullWidth: 10 - [          ] - Gen<None>
+                            Whitespace;[          ];
+                        CSharpStatementLiteral - [80..86) - FullWidth: 6 - [Value2] - Gen<DirectiveToken {PropertyName;Member;Opt:False}>
+                            Identifier;[Value2];
+                        MarkupEphemeralTextLiteral - [86..88) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [88..88) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [88..109) - FullWidth: 21
+            RazorDirective - [88..109) - FullWidth: 21 - Directive:{inject;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [88..89) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [89..109) - FullWidth: 20
+                    RazorMetaCode - [89..95) - FullWidth: 6 - Gen<None>
+                        Identifier;[inject];
+                    CSharpCodeBlock - [95..109) - FullWidth: 14
+                        CSharpStatementLiteral - [95..96) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [96..99) - FullWidth: 3 - [int] - Gen<DirectiveToken {TypeName;Type;Opt:False}>
+                            Keyword;[int];
+                        CSharpStatementLiteral - [99..100) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [100..106) - FullWidth: 6 - [Value3] - Gen<DirectiveToken {PropertyName;Member;Opt:False}>
+                            Identifier;[Value3];
+                        RazorMetaCode - [106..107) - FullWidth: 1 - Gen<None>
+                            Semicolon;[;];
+                        MarkupEphemeralTextLiteral - [107..109) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [109..109) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [109..132) - FullWidth: 23
+            RazorDirective - [109..132) - FullWidth: 23 - Directive:{inject;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [109..110) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [110..132) - FullWidth: 22
+                    RazorMetaCode - [110..116) - FullWidth: 6 - Gen<None>
+                        Identifier;[inject];
+                    CSharpCodeBlock - [116..132) - FullWidth: 16
+                        CSharpStatementLiteral - [116..117) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [117..123) - FullWidth: 6 - [double] - Gen<DirectiveToken {TypeName;Type;Opt:False}>
+                            Keyword;[double];
+                        CSharpStatementLiteral - [123..124) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [124..130) - FullWidth: 6 - [Value4] - Gen<DirectiveToken {PropertyName;Member;Opt:False}>
+                            Identifier;[Value4];
+                        MarkupEphemeralTextLiteral - [130..132) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [132..134) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [134..160) - FullWidth: 26
+            MarkupStartTag - [134..139) - FullWidth: 5 - [<div>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupTextLiteral - [139..154) - FullWidth: 15 - [LF    ContentLF] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+                Text;[Content];
+                NewLine;[LF];
+            MarkupEndTag - [154..160) - FullWidth: 6 - [</div>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+        MarkupTextLiteral - [160..164) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [164..186) - FullWidth: 22
+            RazorDirective - [164..186) - FullWidth: 22 - Directive:{inject;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [164..165) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [165..186) - FullWidth: 21
+                    RazorMetaCode - [165..171) - FullWidth: 6 - Gen<None>
+                        Identifier;[inject];
+                    CSharpCodeBlock - [171..186) - FullWidth: 15
+                        CSharpStatementLiteral - [171..172) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [172..177) - FullWidth: 5 - [float] - Gen<DirectiveToken {TypeName;Type;Opt:False}>
+                            Keyword;[float];
+                        CSharpStatementLiteral - [177..178) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [178..184) - FullWidth: 6 - [Value5] - Gen<DirectiveToken {PropertyName;Member;Opt:False}>
+                            Identifier;[Value5];
+                        MarkupEphemeralTextLiteral - [184..186) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [186..186) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -1,0 +1,124 @@
+﻿RazorDocument - [0..313) - FullWidth: 313 - [@using Microsoft.AspNetCore.Components.Rendering;LFLF@code {LF    void RenderChildComponent(RenderTreeBuilder __builder)LF    {LF        var output = string.Empty;LF        if (__builder == null) output = "Builder is null!";LF        else output = "Builder is not null!";LF        <p>Output: @output</p>LF    }LF}]
+    MarkupBlock - [0..313) - FullWidth: 313
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..49) - FullWidth: 49
+            RazorDirective - [0..49) - FullWidth: 49
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..49) - FullWidth: 48
+                    CSharpStatementLiteral - [1..49) - FullWidth: 48 - [using Microsoft.AspNetCore.Components.Rendering;] - Gen<Import: Microsoft.AspNetCore.Components.Rendering;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Microsoft];
+                        Dot;[.];
+                        Identifier;[AspNetCore];
+                        Dot;[.];
+                        Identifier;[Components];
+                        Dot;[.];
+                        Identifier;[Rendering];
+                        Semicolon;[;];
+        MarkupTextLiteral - [49..53) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [53..313) - FullWidth: 260
+            RazorDirective - [53..313) - FullWidth: 260 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [53..54) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [54..313) - FullWidth: 259
+                    RazorMetaCode - [54..58) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [58..313) - FullWidth: 255
+                        UnclassifiedTextLiteral - [58..59) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [59..60) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [60..312) - FullWidth: 252
+                            CSharpStatementLiteral - [60..281) - FullWidth: 221 - [LF    void RenderChildComponent(RenderTreeBuilder __builder)LF    {LF        var output = string.Empty;LF        if (__builder == null) output = "Builder is null!";LF        else output = "Builder is not null!";LF        ] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[void];
+                                Whitespace;[ ];
+                                Identifier;[RenderChildComponent];
+                                LeftParenthesis;[(];
+                                Identifier;[RenderTreeBuilder];
+                                Whitespace;[ ];
+                                Identifier;[__builder];
+                                RightParenthesis;[)];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Identifier;[var];
+                                Whitespace;[ ];
+                                Identifier;[output];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Dot;[.];
+                                Identifier;[Empty];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Keyword;[if];
+                                Whitespace;[ ];
+                                LeftParenthesis;[(];
+                                Identifier;[__builder];
+                                Whitespace;[ ];
+                                Equals;[==];
+                                Whitespace;[ ];
+                                Keyword;[null];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                Identifier;[output];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["Builder is null!"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Keyword;[else];
+                                Whitespace;[ ];
+                                Identifier;[output];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["Builder is not null!"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                            MarkupBlock - [281..303) - FullWidth: 22
+                                MarkupElement - [281..303) - FullWidth: 22
+                                    MarkupStartTag - [281..284) - FullWidth: 3 - [<p>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Text;[p];
+                                        CloseAngle;[>];
+                                    MarkupTextLiteral - [284..292) - FullWidth: 8 - [Output: ] - Gen<Markup>
+                                        Text;[Output:];
+                                        Whitespace;[ ];
+                                    CSharpCodeBlock - [292..299) - FullWidth: 7
+                                        CSharpImplicitExpression - [292..299) - FullWidth: 7
+                                            CSharpTransition - [292..293) - FullWidth: 1 - Gen<None>
+                                                Transition;[@];
+                                            CSharpImplicitExpressionBody - [293..299) - FullWidth: 6
+                                                CSharpCodeBlock - [293..299) - FullWidth: 6
+                                                    CSharpExpressionLiteral - [293..299) - FullWidth: 6 - [output] - Gen<Expr>
+                                                        Identifier;[output];
+                                    MarkupEndTag - [299..303) - FullWidth: 4 - [</p>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        ForwardSlash;[/];
+                                        Text;[p];
+                                        CloseAngle;[>];
+                            CSharpStatementLiteral - [303..312) - FullWidth: 9 - [LF    }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [312..313) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [313..313) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

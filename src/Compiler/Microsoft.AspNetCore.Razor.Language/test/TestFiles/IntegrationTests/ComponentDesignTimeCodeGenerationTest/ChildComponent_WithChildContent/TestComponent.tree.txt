@@ -1,0 +1,58 @@
+﻿RazorDocument - [0..91) - FullWidth: 91 - [<MyComponent MyAttr="abc">Some text<some-child a='1'>Nested text</some-child></MyComponent>]
+    MarkupBlock - [0..91) - FullWidth: 91
+        MarkupTagHelperElement - [0..91) - FullWidth: 91 - MyComponent[StartTagAndEndTag] - MyComponent
+            MarkupTagHelperStartTag - [0..26) - FullWidth: 26 - [<MyComponent MyAttr="abc">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..25) - FullWidth: 13 - MyAttr - DoubleQuotes - Bound - [ MyAttr="abc"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..19) - FullWidth: 6 - [MyAttr] - Gen<Markup>
+                        Text;[MyAttr];
+                    Equals;[=];
+                    MarkupTextLiteral - [20..21) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [21..24) - FullWidth: 3
+                        MarkupTextLiteral - [21..24) - FullWidth: 3 - [abc] - Gen<Markup>
+                            Text;[abc];
+                    MarkupTextLiteral - [24..25) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [26..35) - FullWidth: 9 - [Some text] - Gen<Markup>
+                Text;[Some];
+                Whitespace;[ ];
+                Text;[text];
+            MarkupElement - [35..77) - FullWidth: 42
+                MarkupStartTag - [35..53) - FullWidth: 18 - [<some-child a='1'>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[some-child];
+                    MarkupAttributeBlock - [46..52) - FullWidth: 6 - [ a='1']
+                        MarkupTextLiteral - [46..47) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [47..48) - FullWidth: 1 - [a] - Gen<Markup>
+                            Text;[a];
+                        Equals;[=];
+                        MarkupTextLiteral - [49..50) - FullWidth: 1 - ['] - Gen<Markup>
+                            SingleQuote;['];
+                        GenericBlock - [50..51) - FullWidth: 1
+                            MarkupLiteralAttributeValue - [50..51) - FullWidth: 1 - [1]
+                                MarkupTextLiteral - [50..51) - FullWidth: 1 - [1] - Gen<Markup>
+                                    Text;[1];
+                        MarkupTextLiteral - [51..52) - FullWidth: 1 - ['] - Gen<Markup>
+                            SingleQuote;['];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [53..64) - FullWidth: 11 - [Nested text] - Gen<Markup>
+                    Text;[Nested];
+                    Whitespace;[ ];
+                    Text;[text];
+                MarkupEndTag - [64..77) - FullWidth: 13 - [</some-child>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[some-child];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [77..91) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

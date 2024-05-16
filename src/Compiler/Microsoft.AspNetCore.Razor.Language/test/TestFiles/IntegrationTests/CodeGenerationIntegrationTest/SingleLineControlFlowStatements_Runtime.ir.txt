@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -51,48 +51,48 @@
                     LazyIntermediateToken - (827:33,23 [2] SingleLineControlFlowStatements.cshtml) - CSharp - \n
                 HtmlContent - (832:35,0 [2] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (832:35,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
-                HtmlContent - (1671:75,0 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1671:75,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
+                HtmlContent - (1669:74,1 [4] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1669:74,1 [4] SingleLineControlFlowStatements.cshtml) - Html - \n\n
                 CSharpCode - (1674:76,1 [34] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (1674:76,1 [34] SingleLineControlFlowStatements.cshtml) - CSharp - for (var i = 0; i < 10; i++)\n    
                 CSharpExpression - (1709:77,5 [1] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (1709:77,5 [1] SingleLineControlFlowStatements.cshtml) - CSharp - i
-                CSharpCode - (1710:77,6 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1710:77,6 [2] SingleLineControlFlowStatements.cshtml) - CSharp - \n
-                HtmlContent - (1712:78,0 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1712:78,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
+                CSharpCode - (1710:77,6 [0] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1710:77,6 [0] SingleLineControlFlowStatements.cshtml) - CSharp - 
+                HtmlContent - (1710:77,6 [4] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1710:77,6 [4] SingleLineControlFlowStatements.cshtml) - Html - \n\n
                 CSharpCode - (1715:79,1 [43] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (1715:79,1 [43] SingleLineControlFlowStatements.cshtml) - CSharp - foreach (var item in new[] {"hello"})\n    
                 CSharpExpression - (1759:80,5 [4] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (1759:80,5 [4] SingleLineControlFlowStatements.cshtml) - CSharp - item
-                CSharpCode - (1763:80,9 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1763:80,9 [2] SingleLineControlFlowStatements.cshtml) - CSharp - \n
-                HtmlContent - (1765:81,0 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1765:81,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
+                CSharpCode - (1763:80,9 [0] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1763:80,9 [0] SingleLineControlFlowStatements.cshtml) - CSharp - 
+                HtmlContent - (1763:80,9 [4] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1763:80,9 [4] SingleLineControlFlowStatements.cshtml) - Html - \n\n
                 CSharpCode - (1768:82,1 [8] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (1768:82,1 [8] SingleLineControlFlowStatements.cshtml) - CSharp - do\n    
                 CSharpExpression - (1777:83,5 [12] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (1777:83,5 [12] SingleLineControlFlowStatements.cshtml) - CSharp - currentCount
-                CSharpCode - (1789:83,17 [32] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1789:83,17 [32] SingleLineControlFlowStatements.cshtml) - CSharp - \nwhile (--currentCount >= 0);\n
-                HtmlContent - (1821:85,0 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1821:85,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
-                CSharpCode - (1824:86,1 [51] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1824:86,1 [51] SingleLineControlFlowStatements.cshtml) - CSharp - while (--currentCount <= 10)\n    currentCount++;\n
-                HtmlContent - (1875:88,0 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1875:88,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
+                CSharpCode - (1789:83,17 [30] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1789:83,17 [30] SingleLineControlFlowStatements.cshtml) - CSharp - \nwhile (--currentCount >= 0);
+                HtmlContent - (1819:84,28 [4] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1819:84,28 [4] SingleLineControlFlowStatements.cshtml) - Html - \n\n
+                CSharpCode - (1824:86,1 [49] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1824:86,1 [49] SingleLineControlFlowStatements.cshtml) - CSharp - while (--currentCount <= 10)\n    currentCount++;
+                HtmlContent - (1873:87,19 [4] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1873:87,19 [4] SingleLineControlFlowStatements.cshtml) - Html - \n\n
                 CSharpCode - (1878:89,1 [99] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (1878:89,1 [99] SingleLineControlFlowStatements.cshtml) - CSharp - using (var reader = new System.IO.StreamReader("/something"))\n    // Reading the entire file\n    
                 CSharpExpression - (1978:91,5 [18] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (1978:91,5 [18] SingleLineControlFlowStatements.cshtml) - CSharp - reader.ReadToEnd()
-                CSharpCode - (1996:91,23 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1996:91,23 [2] SingleLineControlFlowStatements.cshtml) - CSharp - \n
-                HtmlContent - (1998:92,0 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (1998:92,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
-                CSharpCode - (2001:93,1 [34] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (2001:93,1 [34] SingleLineControlFlowStatements.cshtml) - CSharp - lock (this)\n    currentCount++;\n
-                HtmlContent - (2035:95,0 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (2035:95,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
+                CSharpCode - (1996:91,23 [0] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1996:91,23 [0] SingleLineControlFlowStatements.cshtml) - CSharp - 
+                HtmlContent - (1996:91,23 [4] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (1996:91,23 [4] SingleLineControlFlowStatements.cshtml) - Html - \n\n
+                CSharpCode - (2001:93,1 [32] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (2001:93,1 [32] SingleLineControlFlowStatements.cshtml) - CSharp - lock (this)\n    currentCount++;
+                HtmlContent - (2033:94,19 [4] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (2033:94,19 [4] SingleLineControlFlowStatements.cshtml) - Html - \n\n
                 CSharpCode - (2038:96,1 [10] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (2038:96,1 [10] SingleLineControlFlowStatements.cshtml) - CSharp - if (true) 
                 CSharpCode - (2049:96,12 [33] SingleLineControlFlowStatements.cshtml)
@@ -105,9 +105,10 @@
                     LazyIntermediateToken - (2118:99,23 [12] SingleLineControlFlowStatements.cshtml) - CSharp - DateTime.Now
                 HtmlContent - (2130:99,35 [6] SingleLineControlFlowStatements.cshtml)
                     LazyIntermediateToken - (2130:99,35 [6] SingleLineControlFlowStatements.cshtml) - Html - </p>\n
-                CSharpCode - (2136:100,0 [2] SingleLineControlFlowStatements.cshtml)
-                    LazyIntermediateToken - (2136:100,0 [2] SingleLineControlFlowStatements.cshtml) - CSharp - \n
-                HtmlContent - (2138:101,0 [17] SingleLineControlFlowStatements.cshtml)
+                CSharpCode - (2136:100,0 [0] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (2136:100,0 [0] SingleLineControlFlowStatements.cshtml) - CSharp - 
+                HtmlContent - (2136:100,0 [19] SingleLineControlFlowStatements.cshtml)
+                    LazyIntermediateToken - (2136:100,0 [2] SingleLineControlFlowStatements.cshtml) - Html - \n
                     LazyIntermediateToken - (2138:101,0 [2] SingleLineControlFlowStatements.cshtml) - Html - <p
                     LazyIntermediateToken - (2140:101,2 [1] SingleLineControlFlowStatements.cshtml) - Html - >
                     LazyIntermediateToken - (2141:101,3 [10] SingleLineControlFlowStatements.cshtml) - Html - After Text

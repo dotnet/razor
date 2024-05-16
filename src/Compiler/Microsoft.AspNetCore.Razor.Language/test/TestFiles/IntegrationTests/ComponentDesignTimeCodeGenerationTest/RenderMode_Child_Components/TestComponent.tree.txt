@@ -1,0 +1,217 @@
+﻿RazorDocument - [0..691) - FullWidth: 691 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">LF    <TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">LF        <TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />LF    </TestComponent>LF <TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">LF        <TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />LF        <TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />LF    </TestComponent>LF</TestComponent>LFLF@codeLF{LF    [Parameter]LF    public RenderFragment ChildContent { get; set; }LF}]
+    MarkupBlock - [0..691) - FullWidth: 691
+        MarkupTagHelperElement - [0..605) - FullWidth: 605 - TestComponent[StartTagAndEndTag] - TestComponent - RenderMode
+            MarkupTagHelperStartTag - [0..83) - FullWidth: 83 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperDirectiveAttribute - [14..82) - FullWidth: 68
+                    MarkupTextLiteral - [14..15) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [15..16) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [16..26) - FullWidth: 10 - [rendermode]
+                        Text;[rendermode];
+                    Equals;[=];
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [28..81) - FullWidth: 53
+                        CSharpExpressionLiteral - [28..81) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<None>
+                            Text;[Microsoft.AspNetCore.Components.Web.RenderMode.Server];
+                    MarkupTextLiteral - [81..82) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [83..89) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupTagHelperElement - [89..289) - FullWidth: 200 - TestComponent[StartTagAndEndTag] - TestComponent - RenderMode
+                MarkupTagHelperStartTag - [89..172) - FullWidth: 83 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[TestComponent];
+                    MarkupTagHelperDirectiveAttribute - [103..171) - FullWidth: 68
+                        MarkupTextLiteral - [103..104) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        RazorMetaCode - [104..105) - FullWidth: 1
+                            Transition;[@];
+                        MarkupTextLiteral - [105..115) - FullWidth: 10 - [rendermode]
+                            Text;[rendermode];
+                        Equals;[=];
+                        MarkupTextLiteral - [116..117) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [117..170) - FullWidth: 53
+                            CSharpExpressionLiteral - [117..170) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<None>
+                                Text;[Microsoft.AspNetCore.Components.Web.RenderMode.Server];
+                        MarkupTextLiteral - [170..171) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [172..182) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                MarkupTagHelperElement - [182..267) - FullWidth: 85 - TestComponent[SelfClosing] - TestComponent - RenderMode
+                    MarkupTagHelperStartTag - [182..267) - FullWidth: 85 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[TestComponent];
+                        MarkupTagHelperDirectiveAttribute - [196..264) - FullWidth: 68
+                            MarkupTextLiteral - [196..197) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            RazorMetaCode - [197..198) - FullWidth: 1
+                                Transition;[@];
+                            MarkupTextLiteral - [198..208) - FullWidth: 10 - [rendermode]
+                                Text;[rendermode];
+                            Equals;[=];
+                            MarkupTextLiteral - [209..210) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                            MarkupTagHelperAttributeValue - [210..263) - FullWidth: 53
+                                CSharpExpressionLiteral - [210..263) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<None>
+                                    Text;[Microsoft.AspNetCore.Components.Web.RenderMode.Server];
+                            MarkupTextLiteral - [263..264) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                        MarkupMiscAttributeContent - [264..265) - FullWidth: 1
+                            MarkupTextLiteral - [264..265) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        ForwardSlash;[/];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [267..273) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[    ];
+                MarkupTagHelperEndTag - [273..289) - FullWidth: 16 - [</TestComponent>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[TestComponent];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [289..292) - FullWidth: 3 - [LF ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[ ];
+            MarkupTagHelperElement - [292..587) - FullWidth: 295 - TestComponent[StartTagAndEndTag] - TestComponent - RenderMode
+                MarkupTagHelperStartTag - [292..375) - FullWidth: 83 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[TestComponent];
+                    MarkupTagHelperDirectiveAttribute - [306..374) - FullWidth: 68
+                        MarkupTextLiteral - [306..307) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        RazorMetaCode - [307..308) - FullWidth: 1
+                            Transition;[@];
+                        MarkupTextLiteral - [308..318) - FullWidth: 10 - [rendermode]
+                            Text;[rendermode];
+                        Equals;[=];
+                        MarkupTextLiteral - [319..320) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [320..373) - FullWidth: 53
+                            CSharpExpressionLiteral - [320..373) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<None>
+                                Text;[Microsoft.AspNetCore.Components.Web.RenderMode.Server];
+                        MarkupTextLiteral - [373..374) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [375..385) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                MarkupTagHelperElement - [385..470) - FullWidth: 85 - TestComponent[SelfClosing] - TestComponent - RenderMode
+                    MarkupTagHelperStartTag - [385..470) - FullWidth: 85 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[TestComponent];
+                        MarkupTagHelperDirectiveAttribute - [399..467) - FullWidth: 68
+                            MarkupTextLiteral - [399..400) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            RazorMetaCode - [400..401) - FullWidth: 1
+                                Transition;[@];
+                            MarkupTextLiteral - [401..411) - FullWidth: 10 - [rendermode]
+                                Text;[rendermode];
+                            Equals;[=];
+                            MarkupTextLiteral - [412..413) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                            MarkupTagHelperAttributeValue - [413..466) - FullWidth: 53
+                                CSharpExpressionLiteral - [413..466) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<None>
+                                    Text;[Microsoft.AspNetCore.Components.Web.RenderMode.Server];
+                            MarkupTextLiteral - [466..467) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                        MarkupMiscAttributeContent - [467..468) - FullWidth: 1
+                            MarkupTextLiteral - [467..468) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        ForwardSlash;[/];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [470..480) - FullWidth: 10 - [LF        ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[        ];
+                MarkupTagHelperElement - [480..565) - FullWidth: 85 - TestComponent[SelfClosing] - TestComponent - RenderMode
+                    MarkupTagHelperStartTag - [480..565) - FullWidth: 85 - [<TestComponent @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[TestComponent];
+                        MarkupTagHelperDirectiveAttribute - [494..562) - FullWidth: 68
+                            MarkupTextLiteral - [494..495) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            RazorMetaCode - [495..496) - FullWidth: 1
+                                Transition;[@];
+                            MarkupTextLiteral - [496..506) - FullWidth: 10 - [rendermode]
+                                Text;[rendermode];
+                            Equals;[=];
+                            MarkupTextLiteral - [507..508) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                            MarkupTagHelperAttributeValue - [508..561) - FullWidth: 53
+                                CSharpExpressionLiteral - [508..561) - FullWidth: 53 - [Microsoft.AspNetCore.Components.Web.RenderMode.Server] - Gen<None>
+                                    Text;[Microsoft.AspNetCore.Components.Web.RenderMode.Server];
+                            MarkupTextLiteral - [561..562) - FullWidth: 1 - ["] - Gen<Markup>
+                                DoubleQuote;["];
+                        MarkupMiscAttributeContent - [562..563) - FullWidth: 1
+                            MarkupTextLiteral - [562..563) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        ForwardSlash;[/];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [565..571) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[    ];
+                MarkupTagHelperEndTag - [571..587) - FullWidth: 16 - [</TestComponent>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[TestComponent];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [587..589) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [589..605) - FullWidth: 16 - [</TestComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[TestComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [605..609) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [609..691) - FullWidth: 82
+            RazorDirective - [609..691) - FullWidth: 82 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [609..610) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [610..691) - FullWidth: 81
+                    RazorMetaCode - [610..614) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [614..691) - FullWidth: 77
+                        UnclassifiedTextLiteral - [614..616) - FullWidth: 2 - [LF] - Gen<None>
+                            NewLine;[LF];
+                        RazorMetaCode - [616..617) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [617..690) - FullWidth: 73
+                            CSharpStatementLiteral - [617..690) - FullWidth: 73 - [LF    [Parameter]LF    public RenderFragment ChildContent { get; set; }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[RenderFragment];
+                                Whitespace;[ ];
+                                Identifier;[ChildContent];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Identifier;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [690..691) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [691..691) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

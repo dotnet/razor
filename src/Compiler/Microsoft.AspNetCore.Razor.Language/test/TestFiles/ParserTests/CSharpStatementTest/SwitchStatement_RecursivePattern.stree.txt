@@ -2,10 +2,10 @@
     MarkupBlock - [0..182)::182
         MarkupTextLiteral - [0..2)::2 - [LF] - Gen<Markup>
             NewLine;[LF];
-        CSharpCodeBlock - [2..182)::180
+        CSharpCodeBlock - [2..180)::178
             CSharpTransition - [2..3)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [3..64)::61 - [switch (DateTimeOffset.UtcNow)LF{LF    case { Year: 2022 }:LF] - Gen<Stmt>
+            CSharpStatementLiteral - [3..72)::69 - [switch (DateTimeOffset.UtcNow)LF{LF    case { Year: 2022 }:LF        ] - Gen<Stmt>
                 Keyword;[switch];
                 Whitespace;[ ];
                 LeftParenthesis;[(];
@@ -29,9 +29,8 @@
                 RightBrace;[}];
                 Colon;[:];
                 NewLine;[LF];
-            MarkupBlock - [64..163)::99
-                MarkupTextLiteral - [64..72)::8 - [        ] - Gen<Markup>
-                    Whitespace;[        ];
+                Whitespace;[        ];
+            MarkupBlock - [72..163)::91
                 MarkupElement - [72..161)::89
                     MarkupStartTag - [72..80)::8 - [<strong>] - Gen<Markup>
                         OpenAngle;[<];
@@ -68,13 +67,12 @@
                         CloseAngle;[>];
                 MarkupTextLiteral - [161..163)::2 - [LF] - Gen<Markup>
                     NewLine;[LF];
-            CSharpStatementLiteral - [163..182)::19 - [        break;LF}LF] - Gen<Stmt>
+            CSharpStatementLiteral - [163..180)::17 - [        break;LF}] - Gen<Stmt>
                 Whitespace;[        ];
                 Keyword;[break];
                 Semicolon;[;];
                 NewLine;[LF];
                 RightBrace;[}];
-                NewLine;[LF];
-        MarkupTextLiteral - [182..182)::0 - [] - Gen<Markup>
-            Marker;[];
+        MarkupTextLiteral - [180..182)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
     EndOfFile;[];

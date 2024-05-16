@@ -1,0 +1,40 @@
+﻿RazorDocument - [0..49) - FullWidth: 49 - [<MyComponent StringProperty="@(42.ToString())" />]
+    MarkupBlock - [0..49) - FullWidth: 49
+        MarkupTagHelperElement - [0..49) - FullWidth: 49 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..49) - FullWidth: 49 - [<MyComponent StringProperty="@(42.ToString())" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..46) - FullWidth: 34 - StringProperty - DoubleQuotes - Bound - [ StringProperty="@(42.ToString())"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..27) - FullWidth: 14 - [StringProperty] - Gen<Markup>
+                        Text;[StringProperty];
+                    Equals;[=];
+                    MarkupTextLiteral - [28..29) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [29..45) - FullWidth: 16
+                        MarkupBlock - [29..45) - FullWidth: 16
+                            CSharpCodeBlock - [29..45) - FullWidth: 16
+                                CSharpImplicitExpression - [29..45) - FullWidth: 16
+                                    CSharpTransition - [29..30) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [30..45) - FullWidth: 15
+                                        CSharpCodeBlock - [30..45) - FullWidth: 15
+                                            RazorMetaCode - [30..31) - FullWidth: 1 - Gen<None>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [31..44) - FullWidth: 13 - [42.ToString()] - Gen<Expr>
+                                                IntegerLiteral;[42];
+                                                Dot;[.];
+                                                Identifier;[ToString];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            RazorMetaCode - [44..45) - FullWidth: 1 - Gen<None>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [45..46) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [46..47) - FullWidth: 1
+                    MarkupTextLiteral - [46..47) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

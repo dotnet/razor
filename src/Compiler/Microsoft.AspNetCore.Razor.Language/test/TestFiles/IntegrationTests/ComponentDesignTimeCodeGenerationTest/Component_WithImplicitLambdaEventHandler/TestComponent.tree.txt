@@ -1,0 +1,84 @@
+﻿RazorDocument - [0..142) - FullWidth: 142 - [<MyComponent @onclick="() => Increment()"/>LFLF@code {LF    private int counter;LF    private void Increment() {LF        counter++;LF    }LF}]
+    MarkupBlock - [0..142) - FullWidth: 142
+        MarkupTagHelperElement - [0..43) - FullWidth: 43 - MyComponent[SelfClosing] - MyComponent
+            MarkupTagHelperStartTag - [0..43) - FullWidth: 43 - [<MyComponent @onclick="() => Increment()"/>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..41) - FullWidth: 29 - @onclick - DoubleQuotes - Unbound - [ @onclick="() => Increment()"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..21) - FullWidth: 8 - [@onclick] - Gen<Markup>
+                        Transition;[@];
+                        Text;[onclick];
+                    Equals;[=];
+                    MarkupTextLiteral - [22..23) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [23..40) - FullWidth: 17
+                        MarkupLiteralAttributeValue - [23..25) - FullWidth: 2 - [()]
+                            MarkupTextLiteral - [23..25) - FullWidth: 2 - [()] - Gen<Markup>
+                                Text;[()];
+                        MarkupLiteralAttributeValue - [25..28) - FullWidth: 3 - [ =>]
+                            MarkupTextLiteral - [25..26) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [26..28) - FullWidth: 2 - [=>] - Gen<Markup>
+                                Equals;[=];
+                                CloseAngle;[>];
+                        MarkupLiteralAttributeValue - [28..40) - FullWidth: 12 - [ Increment()]
+                            MarkupTextLiteral - [28..29) - FullWidth: 1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [29..40) - FullWidth: 11 - [Increment()] - Gen<Markup>
+                                Text;[Increment()];
+                    MarkupTextLiteral - [40..41) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [43..47) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [47..142) - FullWidth: 95
+            RazorDirective - [47..142) - FullWidth: 95 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [47..48) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [48..142) - FullWidth: 94
+                    RazorMetaCode - [48..52) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [52..142) - FullWidth: 90
+                        UnclassifiedTextLiteral - [52..53) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [53..54) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [54..141) - FullWidth: 87
+                            CSharpStatementLiteral - [54..141) - FullWidth: 87 - [LF    private int counter;LF    private void Increment() {LF        counter++;LF    }LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[private];
+                                Whitespace;[ ];
+                                Keyword;[int];
+                                Whitespace;[ ];
+                                Identifier;[counter];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[private];
+                                Whitespace;[ ];
+                                Keyword;[void];
+                                Whitespace;[ ];
+                                Identifier;[Increment];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[        ];
+                                Identifier;[counter];
+                                Increment;[++];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                RightBrace;[}];
+                                NewLine;[LF];
+                        RazorMetaCode - [141..142) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [142..142) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

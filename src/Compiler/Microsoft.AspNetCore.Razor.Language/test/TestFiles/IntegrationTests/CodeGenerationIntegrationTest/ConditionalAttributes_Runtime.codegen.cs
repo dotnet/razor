@@ -25,16 +25,18 @@ namespace AspNetCore
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line (1,3)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
+#line (1,3)-(4,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes.cshtml"
 
     var ch = true;
     var cls = "bar";
+    
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("    <a href=\"Foo\" />\r\n    <p");
+            WriteLiteral("<a href=\"Foo\" />\r\n");
+            WriteLiteral("<p");
             BeginWriteAttribute("class", " class=\"", 74, "\"", 86, 1);
             WriteAttributeValue("", 82, 
 #nullable restore
@@ -46,7 +48,8 @@ cls
 #nullable disable
             , 82, 4, false);
             EndWriteAttribute();
-            WriteLiteral(" />\r\n    <p");
+            WriteLiteral(" />\r\n");
+            WriteLiteral("<p");
             BeginWriteAttribute("class", " class=\"", 98, "\"", 114, 2);
             WriteAttributeValue("", 106, "foo", 106, 3, true);
             WriteAttributeValue(" ", 109, 
@@ -59,7 +62,8 @@ cls
 #nullable disable
             , 110, 4, false);
             EndWriteAttribute();
-            WriteLiteral(" />\r\n    <p");
+            WriteLiteral(" />\r\n");
+            WriteLiteral("<p");
             BeginWriteAttribute("class", " class=\"", 126, "\"", 142, 2);
             WriteAttributeValue("", 134, 
 #nullable restore
@@ -72,7 +76,8 @@ cls
             , 134, 4, false);
             WriteAttributeValue(" ", 138, "foo", 139, 4, true);
             EndWriteAttribute();
-            WriteLiteral(" />\r\n    <input type=\"checkbox\"");
+            WriteLiteral(" />\r\n");
+            WriteLiteral("<input type=\"checkbox\"");
             BeginWriteAttribute("checked", " checked=\"", 174, "\"", 187, 1);
             WriteAttributeValue("", 184, 
 #nullable restore
@@ -84,7 +89,8 @@ ch
 #nullable disable
             , 184, 3, false);
             EndWriteAttribute();
-            WriteLiteral(" />\r\n    <input type=\"checkbox\"");
+            WriteLiteral(" />\r\n");
+            WriteLiteral("<input type=\"checkbox\"");
             BeginWriteAttribute("checked", " checked=\"", 219, "\"", 236, 2);
             WriteAttributeValue("", 229, "foo", 229, 3, true);
             WriteAttributeValue(" ", 232, 
@@ -97,7 +103,8 @@ ch
 #nullable disable
             , 233, 3, false);
             EndWriteAttribute();
-            WriteLiteral(" />\r\n    <p");
+            WriteLiteral(" />\r\n");
+            WriteLiteral("<p");
             BeginWriteAttribute("class", " class=\"", 248, "\"", 281, 1);
             WriteAttributeValue("", 256, new Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_attribute_value_writer) => {
                 PushWriter(__razor_attribute_value_writer);
@@ -128,7 +135,9 @@ cls
             }
             ), 256, 25, false);
             EndWriteAttribute();
-            WriteLiteral(" />\r\n    <a href=\"~/Foo\" />\r\n    <script");
+            WriteLiteral(" />\r\n");
+            WriteLiteral("<a href=\"~/Foo\" />\r\n");
+            WriteLiteral("<script");
             BeginWriteAttribute("src", " src=\"", 322, "\"", 373, 1);
             WriteAttributeValue("", 328, 
 #nullable restore
@@ -140,7 +149,8 @@ Url.Content("~/Scripts/jquery-1.6.2.min.js")
 #nullable disable
             , 328, 45, false);
             EndWriteAttribute();
-            WriteLiteral(" type=\"text/javascript\"></script>\r\n    <script");
+            WriteLiteral(" type=\"text/javascript\"></script>\r\n");
+            WriteLiteral("<script");
             BeginWriteAttribute("src", " src=\"", 420, "\"", 487, 1);
             WriteAttributeValue("", 426, 
 #nullable restore
@@ -152,7 +162,8 @@ Url.Content("~/Scripts/modernizr-2.0.6-development-only.js")
 #nullable disable
             , 426, 61, false);
             EndWriteAttribute();
-            WriteLiteral(" type=\"text/javascript\"></script>\r\n    <script src=\"http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.16/jquery-ui.min.js\" type=\"text/javascript\"></script>\r\n");
+            WriteLiteral(" type=\"text/javascript\"></script>\r\n");
+            WriteLiteral("<script src=\"http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.16/jquery-ui.min.js\" type=\"text/javascript\"></script>\r\n");
         }
         #pragma warning restore 1998
         #nullable restore

@@ -1,0 +1,50 @@
+﻿RazorDocument - [0..93) - FullWidth: 93 - [<ComponentWithEditorRequiredParameters @attributes="@(new Dictionary<string, object>())" />LF]
+    MarkupBlock - [0..93) - FullWidth: 93
+        MarkupTagHelperElement - [0..91) - FullWidth: 91 - ComponentWithEditorRequiredParameters[SelfClosing] - ComponentWithEditorRequiredParameters - Attributes
+            MarkupTagHelperStartTag - [0..91) - FullWidth: 91 - [<ComponentWithEditorRequiredParameters @attributes="@(new Dictionary<string, object>())" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ComponentWithEditorRequiredParameters];
+                MarkupTagHelperDirectiveAttribute - [38..88) - FullWidth: 50
+                    MarkupTextLiteral - [38..39) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    RazorMetaCode - [39..40) - FullWidth: 1
+                        Transition;[@];
+                    MarkupTextLiteral - [40..50) - FullWidth: 10 - [attributes]
+                        Text;[attributes];
+                    Equals;[=];
+                    MarkupTextLiteral - [51..52) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [52..87) - FullWidth: 35
+                        MarkupBlock - [52..87) - FullWidth: 35
+                            CSharpCodeBlock - [52..87) - FullWidth: 35
+                                CSharpImplicitExpression - [52..87) - FullWidth: 35
+                                    CSharpTransition - [52..53) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [53..87) - FullWidth: 34
+                                        CSharpCodeBlock - [53..87) - FullWidth: 34
+                                            CSharpExpressionLiteral - [53..54) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [54..86) - FullWidth: 32 - [new Dictionary<string, object>()] - Gen<Expr>
+                                                Keyword;[new];
+                                                Whitespace;[ ];
+                                                Identifier;[Dictionary];
+                                                LessThan;[<];
+                                                Keyword;[string];
+                                                Comma;[,];
+                                                Whitespace;[ ];
+                                                Keyword;[object];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [86..87) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [87..88) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [88..89) - FullWidth: 1
+                    MarkupTextLiteral - [88..89) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+        MarkupTextLiteral - [91..93) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

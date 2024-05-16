@@ -1,0 +1,33 @@
+﻿RazorDocument - [0..35) - FullWidth: 35 - [<h1>Hello</h1>LFLF@("My value")LFLF]
+    MarkupBlock - [0..35) - FullWidth: 35
+        MarkupElement - [0..14) - FullWidth: 14
+            MarkupStartTag - [0..4) - FullWidth: 4 - [<h1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[h1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [4..9) - FullWidth: 5 - [Hello] - Gen<Markup>
+                Text;[Hello];
+            MarkupEndTag - [9..14) - FullWidth: 5 - [</h1>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[h1];
+                CloseAngle;[>];
+        MarkupTextLiteral - [14..18) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [18..31) - FullWidth: 13
+            CSharpExplicitExpression - [18..31) - FullWidth: 13
+                CSharpTransition - [18..19) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                CSharpExplicitExpressionBody - [19..31) - FullWidth: 12
+                    RazorMetaCode - [19..20) - FullWidth: 1 - Gen<None>
+                        LeftParenthesis;[(];
+                    CSharpCodeBlock - [20..30) - FullWidth: 10
+                        CSharpExpressionLiteral - [20..30) - FullWidth: 10 - ["My value"] - Gen<Expr>
+                            StringLiteral;["My value"];
+                    RazorMetaCode - [30..31) - FullWidth: 1 - Gen<None>
+                        RightParenthesis;[)];
+        MarkupTextLiteral - [31..35) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+    EndOfFile;[];

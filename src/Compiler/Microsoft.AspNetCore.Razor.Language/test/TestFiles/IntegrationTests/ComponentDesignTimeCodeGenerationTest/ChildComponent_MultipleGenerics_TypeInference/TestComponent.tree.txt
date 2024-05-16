@@ -1,0 +1,152 @@
+﻿RazorDocument - [0..229) - FullWidth: 229 - [<MyComponent Item="@("hi")" Items=@(new List<long>())>LF  <ChildContent><div>@context.ToLower()</div></ChildContent>LF<AnotherChildContent Context="item">LF  @System.Math.Max(0, item.Item);LF</AnotherChildContent>LF</MyComponent>]
+    MarkupBlock - [0..229) - FullWidth: 229
+        MarkupTagHelperElement - [0..229) - FullWidth: 229 - MyComponent[StartTagAndEndTag] - MyComponent<TItem1, TItem2>
+            MarkupTagHelperStartTag - [0..54) - FullWidth: 54 - [<MyComponent Item="@("hi")" Items=@(new List<long>())>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupTagHelperAttribute - [12..27) - FullWidth: 15 - Item - DoubleQuotes - Bound - [ Item="@("hi")"]
+                    MarkupTextLiteral - [12..13) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..17) - FullWidth: 4 - [Item] - Gen<Markup>
+                        Text;[Item];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..26) - FullWidth: 7
+                        MarkupBlock - [19..26) - FullWidth: 7
+                            CSharpCodeBlock - [19..26) - FullWidth: 7
+                                CSharpImplicitExpression - [19..26) - FullWidth: 7
+                                    CSharpTransition - [19..20) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [20..26) - FullWidth: 6
+                                        CSharpCodeBlock - [20..26) - FullWidth: 6
+                                            CSharpExpressionLiteral - [20..21) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [21..25) - FullWidth: 4 - ["hi"] - Gen<Expr>
+                                                StringLiteral;["hi"];
+                                            CSharpExpressionLiteral - [25..26) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                    MarkupTextLiteral - [26..27) - FullWidth: 1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [27..53) - FullWidth: 26 - Items - DoubleQuotes - Bound - [ Items=@(new List<long>())]
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [28..33) - FullWidth: 5 - [Items] - Gen<Markup>
+                        Text;[Items];
+                    Equals;[=];
+                    MarkupTagHelperAttributeValue - [34..53) - FullWidth: 19
+                        MarkupBlock - [34..53) - FullWidth: 19
+                            CSharpCodeBlock - [34..53) - FullWidth: 19
+                                CSharpImplicitExpression - [34..53) - FullWidth: 19
+                                    CSharpTransition - [34..35) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [35..53) - FullWidth: 18
+                                        CSharpCodeBlock - [35..53) - FullWidth: 18
+                                            CSharpExpressionLiteral - [35..36) - FullWidth: 1 - [(] - Gen<Expr>
+                                                LeftParenthesis;[(];
+                                            CSharpExpressionLiteral - [36..52) - FullWidth: 16 - [new List<long>()] - Gen<Expr>
+                                                Keyword;[new];
+                                                Whitespace;[ ];
+                                                Identifier;[List];
+                                                LessThan;[<];
+                                                Keyword;[long];
+                                                GreaterThan;[>];
+                                                LeftParenthesis;[(];
+                                                RightParenthesis;[)];
+                                            CSharpExpressionLiteral - [52..53) - FullWidth: 1 - [)] - Gen<Expr>
+                                                RightParenthesis;[)];
+                CloseAngle;[>];
+            MarkupTextLiteral - [54..58) - FullWidth: 4 - [LF  ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[  ];
+            MarkupTagHelperElement - [58..116) - FullWidth: 58 - ChildContent[StartTagAndEndTag] - ChildContent
+                MarkupTagHelperStartTag - [58..72) - FullWidth: 14 - [<ChildContent>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[ChildContent];
+                    CloseAngle;[>];
+                MarkupElement - [72..101) - FullWidth: 29
+                    MarkupStartTag - [72..77) - FullWidth: 5 - [<div>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[div];
+                        CloseAngle;[>];
+                    CSharpCodeBlock - [77..95) - FullWidth: 18
+                        CSharpImplicitExpression - [77..95) - FullWidth: 18
+                            CSharpTransition - [77..78) - FullWidth: 1 - Gen<None>
+                                Transition;[@];
+                            CSharpImplicitExpressionBody - [78..95) - FullWidth: 17
+                                CSharpCodeBlock - [78..95) - FullWidth: 17
+                                    CSharpExpressionLiteral - [78..95) - FullWidth: 17 - [context.ToLower()] - Gen<Expr>
+                                        Identifier;[context];
+                                        Dot;[.];
+                                        Identifier;[ToLower];
+                                        LeftParenthesis;[(];
+                                        RightParenthesis;[)];
+                    MarkupEndTag - [95..101) - FullWidth: 6 - [</div>] - Gen<Markup>
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[div];
+                        CloseAngle;[>];
+                MarkupTagHelperEndTag - [101..116) - FullWidth: 15 - [</ChildContent>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[ChildContent];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [116..118) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperElement - [118..213) - FullWidth: 95 - AnotherChildContent[StartTagAndEndTag] - AnotherChildContent
+                MarkupTagHelperStartTag - [118..154) - FullWidth: 36 - [<AnotherChildContent Context="item">] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[AnotherChildContent];
+                    MarkupTagHelperAttribute - [138..153) - FullWidth: 15 - Context - DoubleQuotes - Bound - [ Context="item"]
+                        MarkupTextLiteral - [138..139) - FullWidth: 1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [139..146) - FullWidth: 7 - [Context] - Gen<Markup>
+                            Text;[Context];
+                        Equals;[=];
+                        MarkupTextLiteral - [147..148) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                        MarkupTagHelperAttributeValue - [148..152) - FullWidth: 4
+                            MarkupTextLiteral - [148..152) - FullWidth: 4 - [item] - Gen<Markup>
+                                Text;[item];
+                        MarkupTextLiteral - [152..153) - FullWidth: 1 - ["] - Gen<Markup>
+                            DoubleQuote;["];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [154..158) - FullWidth: 4 - [LF  ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[  ];
+                CSharpCodeBlock - [158..188) - FullWidth: 30
+                    CSharpImplicitExpression - [158..188) - FullWidth: 30
+                        CSharpTransition - [158..159) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [159..188) - FullWidth: 29
+                            CSharpCodeBlock - [159..188) - FullWidth: 29
+                                CSharpExpressionLiteral - [159..188) - FullWidth: 29 - [System.Math.Max(0, item.Item)] - Gen<Expr>
+                                    Identifier;[System];
+                                    Dot;[.];
+                                    Identifier;[Math];
+                                    Dot;[.];
+                                    Identifier;[Max];
+                                    LeftParenthesis;[(];
+                                    IntegerLiteral;[0];
+                                    Comma;[,];
+                                    Whitespace;[ ];
+                                    Identifier;[item];
+                                    Dot;[.];
+                                    Identifier;[Item];
+                                    RightParenthesis;[)];
+                MarkupTextLiteral - [188..191) - FullWidth: 3 - [;LF] - Gen<Markup>
+                    Text;[;];
+                    NewLine;[LF];
+                MarkupTagHelperEndTag - [191..213) - FullWidth: 22 - [</AnotherChildContent>]
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[AnotherChildContent];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [213..215) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [215..229) - FullWidth: 14 - [</MyComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[MyComponent];
+                CloseAngle;[>];
+    EndOfFile;[];

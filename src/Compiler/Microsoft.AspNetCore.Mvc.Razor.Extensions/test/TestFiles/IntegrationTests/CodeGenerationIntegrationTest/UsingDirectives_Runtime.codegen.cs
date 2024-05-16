@@ -12,19 +12,19 @@ namespace AspNetCore
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
 #nullable restore
-#line (1,2)-(2,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
+#line (1,2)-(1,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
 using System.ComponentModel
 
 #nullable disable
     ;
 #nullable restore
-#line (2,2)-(3,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
+#line (2,2)-(2,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
 using System.Collections
 
 #nullable disable
     ;
 #nullable restore
-#line (3,2)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
+#line (3,2)-(3,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml"
 using System
 
 #nullable disable
@@ -47,6 +47,9 @@ using System
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
+            WriteLiteral("\r\n");
+            WriteLiteral("\r\n");
+            WriteLiteral("\r\n");
         }
         #pragma warning restore 1998
         #nullable restore

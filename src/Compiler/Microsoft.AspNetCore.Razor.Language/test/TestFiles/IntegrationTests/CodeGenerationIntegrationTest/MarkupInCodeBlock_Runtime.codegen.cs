@@ -25,15 +25,16 @@ namespace AspNetCore
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line (1,3)-(3,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MarkupInCodeBlock.cshtml"
+#line (1,3)-(3,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MarkupInCodeBlock.cshtml"
 
     for(int i = 1; i <= 10; i++) {
+        
 
 #line default
 #line hidden
 #nullable disable
 
-            WriteLiteral("        <p>Hello from C#, #");
+            WriteLiteral("<p>Hello from C#, #");
             Write(
 #nullable restore
 #line (3,30)-(3,42) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MarkupInCodeBlock.cshtml"

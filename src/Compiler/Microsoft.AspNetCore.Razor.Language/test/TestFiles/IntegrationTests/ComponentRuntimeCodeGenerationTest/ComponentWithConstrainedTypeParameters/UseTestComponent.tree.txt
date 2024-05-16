@@ -1,0 +1,226 @@
+﻿RazorDocument - [0..387) - FullWidth: 387 - [@using TestLF<TestComponent Item1=@item1 Items2=@items Item3=@item1>LF    <p>@context</p>LF</TestComponent>LFLF@code {LF    Image item1 = new Image() { id = 1, url="https://example.com"};LF    static Tag tag1 = new Tag() { description = "A description."};LF    static Tag tag2 = new Tag() { description = "Another description."};LF    List<Tag> items = new List<Tag>() { tag1, tag2 };LF}]
+    MarkupBlock - [0..387) - FullWidth: 387
+        MarkupTextLiteral - [0..0) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..11) - FullWidth: 11
+            RazorDirective - [0..11) - FullWidth: 11
+                CSharpTransition - [0..1) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..11) - FullWidth: 10
+                    CSharpStatementLiteral - [1..11) - FullWidth: 10 - [using Test] - Gen<Import: Test;>
+                        Keyword;[using];
+                        Whitespace;[ ];
+                        Identifier;[Test];
+        MarkupTextLiteral - [11..13) - FullWidth: 2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupTagHelperElement - [13..107) - FullWidth: 94 - TestComponent[StartTagAndEndTag] - TestComponent<TItem1, TItem2, TItem3>
+            MarkupTagHelperStartTag - [13..68) - FullWidth: 55 - [<TestComponent Item1=@item1 Items2=@items Item3=@item1>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[TestComponent];
+                MarkupTagHelperAttribute - [27..40) - FullWidth: 13 - Item1 - DoubleQuotes - Bound - [ Item1=@item1]
+                    MarkupTextLiteral - [27..28) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [28..33) - FullWidth: 5 - [Item1] - Gen<Markup>
+                        Text;[Item1];
+                    Equals;[=];
+                    MarkupTagHelperAttributeValue - [34..40) - FullWidth: 6
+                        MarkupBlock - [34..40) - FullWidth: 6
+                            CSharpCodeBlock - [34..40) - FullWidth: 6
+                                CSharpImplicitExpression - [34..40) - FullWidth: 6
+                                    CSharpTransition - [34..35) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [35..40) - FullWidth: 5
+                                        CSharpCodeBlock - [35..40) - FullWidth: 5
+                                            CSharpExpressionLiteral - [35..40) - FullWidth: 5 - [item1] - Gen<Expr>
+                                                Identifier;[item1];
+                MarkupTagHelperAttribute - [40..54) - FullWidth: 14 - Items2 - DoubleQuotes - Bound - [ Items2=@items]
+                    MarkupTextLiteral - [40..41) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [41..47) - FullWidth: 6 - [Items2] - Gen<Markup>
+                        Text;[Items2];
+                    Equals;[=];
+                    MarkupTagHelperAttributeValue - [48..54) - FullWidth: 6
+                        MarkupBlock - [48..54) - FullWidth: 6
+                            CSharpCodeBlock - [48..54) - FullWidth: 6
+                                CSharpImplicitExpression - [48..54) - FullWidth: 6
+                                    CSharpTransition - [48..49) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [49..54) - FullWidth: 5
+                                        CSharpCodeBlock - [49..54) - FullWidth: 5
+                                            CSharpExpressionLiteral - [49..54) - FullWidth: 5 - [items] - Gen<Expr>
+                                                Identifier;[items];
+                MarkupTagHelperAttribute - [54..67) - FullWidth: 13 - Item3 - DoubleQuotes - Bound - [ Item3=@item1]
+                    MarkupTextLiteral - [54..55) - FullWidth: 1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [55..60) - FullWidth: 5 - [Item3] - Gen<Markup>
+                        Text;[Item3];
+                    Equals;[=];
+                    MarkupTagHelperAttributeValue - [61..67) - FullWidth: 6
+                        MarkupBlock - [61..67) - FullWidth: 6
+                            CSharpCodeBlock - [61..67) - FullWidth: 6
+                                CSharpImplicitExpression - [61..67) - FullWidth: 6
+                                    CSharpTransition - [61..62) - FullWidth: 1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [62..67) - FullWidth: 5
+                                        CSharpCodeBlock - [62..67) - FullWidth: 5
+                                            CSharpExpressionLiteral - [62..67) - FullWidth: 5 - [item1] - Gen<Expr>
+                                                Identifier;[item1];
+                CloseAngle;[>];
+            MarkupTextLiteral - [68..74) - FullWidth: 6 - [LF    ] - Gen<Markup>
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupElement - [74..89) - FullWidth: 15
+                MarkupStartTag - [74..77) - FullWidth: 3 - [<p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[p];
+                    CloseAngle;[>];
+                CSharpCodeBlock - [77..85) - FullWidth: 8
+                    CSharpImplicitExpression - [77..85) - FullWidth: 8
+                        CSharpTransition - [77..78) - FullWidth: 1 - Gen<None>
+                            Transition;[@];
+                        CSharpImplicitExpressionBody - [78..85) - FullWidth: 7
+                            CSharpCodeBlock - [78..85) - FullWidth: 7
+                                CSharpExpressionLiteral - [78..85) - FullWidth: 7 - [context] - Gen<Expr>
+                                    Identifier;[context];
+                MarkupEndTag - [85..89) - FullWidth: 4 - [</p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[p];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [89..91) - FullWidth: 2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [91..107) - FullWidth: 16 - [</TestComponent>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[TestComponent];
+                CloseAngle;[>];
+        MarkupTextLiteral - [107..111) - FullWidth: 4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [111..387) - FullWidth: 276
+            RazorDirective - [111..387) - FullWidth: 276 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [111..112) - FullWidth: 1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [112..387) - FullWidth: 275
+                    RazorMetaCode - [112..116) - FullWidth: 4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [116..387) - FullWidth: 271
+                        UnclassifiedTextLiteral - [116..117) - FullWidth: 1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [117..118) - FullWidth: 1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [118..386) - FullWidth: 268
+                            CSharpStatementLiteral - [118..386) - FullWidth: 268 - [LF    Image item1 = new Image() { id = 1, url="https://example.com"};LF    static Tag tag1 = new Tag() { description = "A description."};LF    static Tag tag2 = new Tag() { description = "Another description."};LF    List<Tag> items = new List<Tag>() { tag1, tag2 };LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Identifier;[Image];
+                                Whitespace;[ ];
+                                Identifier;[item1];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[new];
+                                Whitespace;[ ];
+                                Identifier;[Image];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[id];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                IntegerLiteral;[1];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Identifier;[url];
+                                Assign;[=];
+                                StringLiteral;["https://example.com"];
+                                RightBrace;[}];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[static];
+                                Whitespace;[ ];
+                                Identifier;[Tag];
+                                Whitespace;[ ];
+                                Identifier;[tag1];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[new];
+                                Whitespace;[ ];
+                                Identifier;[Tag];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[description];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["A description."];
+                                RightBrace;[}];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[static];
+                                Whitespace;[ ];
+                                Identifier;[Tag];
+                                Whitespace;[ ];
+                                Identifier;[tag2];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[new];
+                                Whitespace;[ ];
+                                Identifier;[Tag];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[description];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                StringLiteral;["Another description."];
+                                RightBrace;[}];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Identifier;[List];
+                                LessThan;[<];
+                                Identifier;[Tag];
+                                GreaterThan;[>];
+                                Whitespace;[ ];
+                                Identifier;[items];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                Keyword;[new];
+                                Whitespace;[ ];
+                                Identifier;[List];
+                                LessThan;[<];
+                                Identifier;[Tag];
+                                GreaterThan;[>];
+                                LeftParenthesis;[(];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Identifier;[tag1];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Identifier;[tag2];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [386..387) - FullWidth: 1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [387..387) - FullWidth: 0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

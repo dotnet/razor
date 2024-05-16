@@ -11,7 +11,7 @@
             CSharpCodeBlock - [9..67)::58
                 CSharpTransition - [9..10)::1 - Gen<None> - SpanEditHandler;Accepts:None
                     Transition;[@];
-                CSharpStatementLiteral - [10..29)::19 - [do { var foo = bar;] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                CSharpStatementLiteral - [10..30)::20 - [do { var foo = bar; ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                     Keyword;[do];
                     Whitespace;[ ];
                     LeftBrace;[{];
@@ -24,9 +24,8 @@
                     Whitespace;[ ];
                     Identifier;[bar];
                     Semicolon;[;];
-                MarkupBlock - [29..41)::12
-                    MarkupTextLiteral - [29..30)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                        Whitespace;[ ];
+                    Whitespace;[ ];
+                MarkupBlock - [30..41)::11
                     MarkupTagHelperElement - [30..40)::10 - p[StartTagAndEndTag] - ptaghelper
                         MarkupTagHelperStartTag - [30..33)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                             OpenAngle;[<];
@@ -70,7 +69,7 @@
                 CSharpCodeBlock - [85..143)::58
                     CSharpTransition - [85..86)::1 - Gen<None> - SpanEditHandler;Accepts:None
                         Transition;[@];
-                    CSharpStatementLiteral - [86..105)::19 - [do { var foo = bar;] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                    CSharpStatementLiteral - [86..106)::20 - [do { var foo = bar; ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
                         Keyword;[do];
                         Whitespace;[ ];
                         LeftBrace;[{];
@@ -83,9 +82,8 @@
                         Whitespace;[ ];
                         Identifier;[bar];
                         Semicolon;[;];
-                    MarkupBlock - [105..117)::12
-                        MarkupTextLiteral - [105..106)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
-                            Whitespace;[ ];
+                        Whitespace;[ ];
+                    MarkupBlock - [106..117)::11
                         MarkupTagHelperElement - [106..116)::10 - p[StartTagAndEndTag] - ptaghelper
                             MarkupTagHelperStartTag - [106..109)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:None
                                 OpenAngle;[<];

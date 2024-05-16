@@ -1,12 +1,12 @@
 ﻿Document - 
     NamespaceDeclaration -  - Test
-        UsingDirective - (3:1,1 [22] ) - global::System
-        UsingDirective - (26:2,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (69:3,1 [27] ) - global::System.Linq
-        UsingDirective - (97:4,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
-        UsingDirective - (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Web
-        UsingDirective - (45:1,1 [49] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Rendering
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Web
+        UsingDirective - (45:1,1 [47] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Rendering
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupBlock -  - <h1 TestCssScope>Element with no attributes</h1>\n
@@ -24,17 +24,16 @@
                             MarkupBlock -  - <span id="hello" TestCssScope>This is in child content</span>
                         ReferenceCapture - (318:6,30 [20] x:\dir\subdir\Test\TestComponent.cshtml) - myComponentReference
                     HtmlAttribute -  - TestCssScope - 
-                CSharpCode - (439:10,1 [34] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (439:10,1 [34] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - if (DateTime.Now.Year > 1950)\n{\n
+                CSharpCode - (439:10,1 [38] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (439:10,1 [38] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - if (DateTime.Now.Year > 1950)\n{\n    
                 MarkupElement - (477:12,4 [80] x:\dir\subdir\Test\TestComponent.cshtml) - with-ref-capture
                     HtmlContent - (531:12,58 [7] x:\dir\subdir\Test\TestComponent.cshtml)
                         LazyIntermediateToken - (531:12,58 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Content
                     HtmlAttribute -  - some-attr - 
                     ReferenceCapture - (511:12,38 [18] x:\dir\subdir\Test\TestComponent.cshtml) - myElementReference
                     HtmlAttribute -  - TestCssScope - 
-                HtmlContent - (557:12,84 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (557:12,84 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
-                    LazyIntermediateToken - (559:13,0 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html -     
+                CSharpCode - (559:13,0 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (559:13,0 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -     
                 MarkupElement - (563:13,4 [74] x:\dir\subdir\Test\TestComponent.cshtml) - input
                     HtmlAttribute -  - id=" - "
                         HtmlAttributeValue - (574:13,15 [6] x:\dir\subdir\Test\TestComponent.cshtml) - 
@@ -55,10 +54,10 @@
                             IntermediateToken -  - CSharp - myVariable
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute -  - TestCssScope - 
-                CSharpCode - (639:14,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (639:14,0 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - }\n
-            CSharpCode - (651:16,7 [233] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (651:16,7 [233] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    ElementReference myElementReference;\n    TemplatedComponent myComponentReference;\n    string myVariable;\n\n    void MethodRenderingMarkup(RenderTreeBuilder __builder)\n    {\n        for (var i = 0; i < 10; i++)\n        {\n
+                CSharpCode - (639:14,0 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (639:14,0 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - }
+            CSharpCode - (651:16,7 [245] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (651:16,7 [245] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    ElementReference myElementReference;\n    TemplatedComponent myComponentReference;\n    string myVariable;\n\n    void MethodRenderingMarkup(RenderTreeBuilder __builder)\n    {\n        for (var i = 0; i < 10; i++)\n        {\n            
             MarkupElement - (896:25,12 [35] x:\dir\subdir\Test\TestComponent.cshtml) - li
                 HtmlAttribute - (899:25,15 [14] x:\dir\subdir\Test\TestComponent.cshtml) -  data-index= - 
                     CSharpExpressionAttributeValue - (911:25,27 [2] x:\dir\subdir\Test\TestComponent.cshtml) - 

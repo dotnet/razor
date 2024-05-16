@@ -31,7 +31,7 @@ if (true)
 
             __builder.AddContent(1, "This text is rendered");
 #nullable restore
-#line (4,39)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (4,39)-(5,2) "x:\dir\subdir\Test\TestComponent.cshtml"
 
 }
 

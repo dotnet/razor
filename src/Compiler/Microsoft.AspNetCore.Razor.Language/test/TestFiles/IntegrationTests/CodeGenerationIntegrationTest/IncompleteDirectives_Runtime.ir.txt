@@ -1,13 +1,13 @@
 ﻿Document - 
     RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        UsingDirective - (1:0,1 [22] ) - global::System
-        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
-        UsingDirective - (67:2,1 [27] ) - global::System.Linq
-        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
-        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
-        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
-        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
         RazorCompiledItemMetadataAttribute - 
         CreateNewOnMetadataUpdateAttribute - 
@@ -15,30 +15,42 @@
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (85:1,0 [2] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (85:1,0 [2] IncompleteDirectives.cshtml) - Html - \n
-                MalformedDirective - (100:2,13 [2] IncompleteDirectives.cshtml) - addTagHelper
-                    DirectiveToken - (100:2,13 [2] IncompleteDirectives.cshtml) - 
-                MalformedDirective - (116:3,14 [2] IncompleteDirectives.cshtml) - addTagHelper
-                    DirectiveToken - (116:3,14 [2] IncompleteDirectives.cshtml) - 
-                MalformedDirective - (132:4,14 [3] IncompleteDirectives.cshtml) - addTagHelper
-                    DirectiveToken - (132:4,14 [3] IncompleteDirectives.cshtml) - "
-                HtmlContent - (135:5,0 [2] IncompleteDirectives.cshtml)
-                    LazyIntermediateToken - (135:5,0 [2] IncompleteDirectives.cshtml) - Html - \n
-                MalformedDirective - (153:6,16 [2] IncompleteDirectives.cshtml) - removeTagHelper
-                    DirectiveToken - (153:6,16 [2] IncompleteDirectives.cshtml) - 
-                MalformedDirective - (172:7,17 [2] IncompleteDirectives.cshtml) - removeTagHelper
-                    DirectiveToken - (172:7,17 [2] IncompleteDirectives.cshtml) - 
-                MalformedDirective - (191:8,17 [3] IncompleteDirectives.cshtml) - removeTagHelper
-                    DirectiveToken - (191:8,17 [3] IncompleteDirectives.cshtml) - "
-                HtmlContent - (194:9,0 [2] IncompleteDirectives.cshtml)
-                    LazyIntermediateToken - (194:9,0 [2] IncompleteDirectives.cshtml) - Html - \n
-                MalformedDirective - (212:10,16 [2] IncompleteDirectives.cshtml) - tagHelperPrefix
-                    DirectiveToken - (212:10,16 [2] IncompleteDirectives.cshtml) - 
-                MalformedDirective - (231:11,17 [2] IncompleteDirectives.cshtml) - tagHelperPrefix
-                    DirectiveToken - (231:11,17 [2] IncompleteDirectives.cshtml) - 
-                MalformedDirective - (250:12,17 [3] IncompleteDirectives.cshtml) - tagHelperPrefix
-                    DirectiveToken - (250:12,17 [3] IncompleteDirectives.cshtml) - "
-                HtmlContent - (253:13,0 [2] IncompleteDirectives.cshtml)
-                    LazyIntermediateToken - (253:13,0 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (100:2,13 [0] IncompleteDirectives.cshtml) - addTagHelper
+                    DirectiveToken - (100:2,13 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (100:2,13 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (100:2,13 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (116:3,14 [0] IncompleteDirectives.cshtml) - addTagHelper
+                    DirectiveToken - (116:3,14 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (116:3,14 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (116:3,14 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (132:4,14 [1] IncompleteDirectives.cshtml) - addTagHelper
+                    DirectiveToken - (132:4,14 [1] IncompleteDirectives.cshtml) - "
+                HtmlContent - (133:4,15 [4] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (133:4,15 [4] IncompleteDirectives.cshtml) - Html - \n\n
+                MalformedDirective - (153:6,16 [0] IncompleteDirectives.cshtml) - removeTagHelper
+                    DirectiveToken - (153:6,16 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (153:6,16 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (153:6,16 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (172:7,17 [0] IncompleteDirectives.cshtml) - removeTagHelper
+                    DirectiveToken - (172:7,17 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (172:7,17 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (172:7,17 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (191:8,17 [1] IncompleteDirectives.cshtml) - removeTagHelper
+                    DirectiveToken - (191:8,17 [1] IncompleteDirectives.cshtml) - "
+                HtmlContent - (192:8,18 [4] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (192:8,18 [4] IncompleteDirectives.cshtml) - Html - \n\n
+                MalformedDirective - (212:10,16 [0] IncompleteDirectives.cshtml) - tagHelperPrefix
+                    DirectiveToken - (212:10,16 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (212:10,16 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (212:10,16 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (231:11,17 [0] IncompleteDirectives.cshtml) - tagHelperPrefix
+                    DirectiveToken - (231:11,17 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (231:11,17 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (231:11,17 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (250:12,17 [1] IncompleteDirectives.cshtml) - tagHelperPrefix
+                    DirectiveToken - (250:12,17 [1] IncompleteDirectives.cshtml) - "
+                HtmlContent - (251:12,18 [4] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (251:12,18 [4] IncompleteDirectives.cshtml) - Html - \n\n
                 MalformedDirective - (255:14,0 [9] IncompleteDirectives.cshtml) - inherits
                     CSharpCode - (264:14,9 [0] IncompleteDirectives.cshtml)
                         LazyIntermediateToken - (264:14,9 [0] IncompleteDirectives.cshtml) - CSharp - 
