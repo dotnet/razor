@@ -73,40 +73,24 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
         var razorDocument = context.TextDocument.AssumeNotNull();
         var span = request.Range.ToLinePositionSpan();
 
-        var remoteClient = await _remoteClientProvider.TryGetClientAsync(cancellationToken).ConfigureAwait(false);
+        var colorBackground = _clientSettingsManager.GetClientSettings().AdvancedSettings.ColorBackground;
 
-        if (remoteClient is null)
+        var correlationId = Guid.NewGuid();
+        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, RazorLSPConstants.CohostLanguageServerName, correlationId);
+
+        var tokens = await _remoteClientProvider.TryInvokeAsync<IRemoteSemanticTokensService, int[]?>(
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken) => service.GetSemanticTokensDataAsync(solutionInfo, razorDocument.Id, span, colorBackground, correlationId, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+
+        if (tokens is not null)
         {
-            _logger.LogWarning($"Couldn't get remote client");
-            return null;
-        }
-
-        try
-        {
-            var colorBackground = _clientSettingsManager.GetClientSettings().AdvancedSettings.ColorBackground;
-
-            var correlationId = Guid.NewGuid();
-            using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, RazorLSPConstants.CohostLanguageServerName, correlationId);
-
-            var data = await remoteClient.TryInvokeAsync<IRemoteSemanticTokensService, int[]?>(
-                razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.GetSemanticTokensDataAsync(solutionInfo, razorDocument.Id, span, colorBackground, correlationId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-
-            if (data.Value is not { } tokens)
-            {
-                return null;
-            }
-
             return new SemanticTokens
             {
                 Data = tokens
             };
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error calling remote");
-            return null;
-        }
+
+        return null;
     }
 }

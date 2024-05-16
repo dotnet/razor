@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +34,7 @@ internal class CohostLinkedEditingRangeEndpoint(IRemoteClientProvider remoteClie
     protected override bool RequiresLSPSolution => true;
 
     public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
-    {        
+    {
         if (clientCapabilities.TextDocument?.LinkedEditingRange?.DynamicRegistration == true)
         {
             return new Registration
@@ -58,35 +57,18 @@ internal class CohostLinkedEditingRangeEndpoint(IRemoteClientProvider remoteClie
     {
         var razorDocument = context.TextDocument.AssumeNotNull();
 
-        var remoteClient = await _remoteClientProvider.TryGetClientAsync(cancellationToken).ConfigureAwait(false);
-        if (remoteClient is null)
-        {
-            _logger.LogWarning($"Couldn't get remote client");
-            return null;
-        }
+        var linkedRanges = await _remoteClientProvider.TryInvokeAsync<IRemoteLinkedEditingRangeService, LinePositionSpan[]?>(
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken) => service.GetRangesAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), cancellationToken),
+            cancellationToken).ConfigureAwait(false);
 
-        try
+        if (linkedRanges is [{ } span1, { } span2])
         {
-            var data = await remoteClient.TryInvokeAsync<IRemoteLinkedEditingRangeService, LinePositionSpan[]?>(
-                razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.GetRangesAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-
-            if (data.Value is { } linkedRanges && linkedRanges.Length == 2)
+            return new LinkedEditingRanges
             {
-                var ranges = new Range[2] { linkedRanges[0].ToRange(), linkedRanges[1].ToRange() };
-
-                return new LinkedEditingRanges
-                {
-                    Ranges = ranges,
-                    WordPattern = LinkedEditingRangeHelper.WordPattern
-                };
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error calling remote");
-            return null;
+                Ranges = [span1.ToRange(), span2.ToRange()],
+                WordPattern = LinkedEditingRangeHelper.WordPattern
+            };
         }
 
         return null;

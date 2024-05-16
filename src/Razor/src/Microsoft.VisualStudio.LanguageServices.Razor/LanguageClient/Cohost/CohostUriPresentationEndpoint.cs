@@ -66,29 +66,20 @@ internal class CohostUriPresentationEndpoint(
     {
         var razorDocument = context.TextDocument.AssumeNotNull();
 
-        var remoteClient = await _remoteClientProvider.TryGetClientAsync(cancellationToken).ConfigureAwait(false);
-        if (remoteClient is null)
-        {
-            _logger.LogWarning($"Couldn't get remote client");
-            return null;
-        }
+        var data = await _remoteClientProvider.TryInvokeAsync<IRemoteUriPresentationService, TextChange?>(
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken) => service.GetPresentationAsync(solutionInfo, razorDocument.Id, request.Range.ToLinePositionSpan(), request.Uris, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
 
-        try
+        // If we got a response back, then either Razor or C# wants to do something with this, so we're good to go
+        if (data is { } textChange)
         {
-            var data = await remoteClient.TryInvokeAsync<IRemoteUriPresentationService, TextChange?>(
-                razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.GetPresentationAsync(solutionInfo, razorDocument.Id, request.Range.ToLinePositionSpan(), request.Uris, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            // If we got a response back, then either Razor or C# wants to do something with this, so we're good to go
-            if (data.Value is { } textChange)
+            return new WorkspaceEdit
             {
-                var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                return new WorkspaceEdit
+                DocumentChanges = new TextDocumentEdit[]
                 {
-                    DocumentChanges = new TextDocumentEdit[]
-                    {
                         new TextDocumentEdit
                         {
                             TextDocument = new()
@@ -97,14 +88,8 @@ internal class CohostUriPresentationEndpoint(
                             },
                             Edits = [textChange.ToTextEdit(sourceText)]
                         }
-                    }
-                };
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error calling remote");
-            return null;
+                }
+            };
         }
 
         // If we didn't get anything from Razor or Roslyn, lets ask Html what they want to do

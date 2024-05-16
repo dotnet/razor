@@ -1,10 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
@@ -18,17 +22,52 @@ internal sealed class RemoteClientProvider(
     IWorkspaceProvider workspaceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientCapabilitiesService clientCapabilitiesService,
-    ISemanticTokensLegendService semanticTokensLegendService)
+    ISemanticTokensLegendService semanticTokensLegendService,
+    ITelemetryReporter telemetryReporter,
+    ILoggerFactory loggerFactory)
     : IRemoteClientProvider
 {
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RemoteClientProvider>();
+
     private bool _isInitialized;
     private bool _isLSPInitialized;
 
-    public async Task<RazorRemoteHostClient?> TryGetClientAsync(CancellationToken cancellationToken)
+    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        where TService : class
+    {
+        var client = await TryGetClientAsync(cancellationToken).ConfigureAwait(false);
+        if (client is null)
+        {
+            _logger.LogError($"Couldn't get remote client for {typeof(TService).Name} service");
+            _telemetryReporter.ReportEvent("OOPClientFailure", Severity.Normal, new Property("service", typeof(TService).FullName));
+            return default;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return default;
+        }
+
+        try
+        {
+            var result = await client.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+
+            return result.Value;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error calling remote method for {typeof(TService).Name} service, invocation: ${invocation.ToString()}");
+            _telemetryReporter.ReportFault(ex, "Exception calling remote method for {service}", typeof(TService).FullName);
+            return default;
+        }
+    }
+
+    private async Task<RazorRemoteHostClient?> TryGetClientAsync(CancellationToken cancellationToken)
     {
         var workspace = _workspaceProvider.GetWorkspace();
 
