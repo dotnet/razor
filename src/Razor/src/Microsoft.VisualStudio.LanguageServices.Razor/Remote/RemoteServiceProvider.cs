@@ -3,6 +3,9 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -39,7 +42,12 @@ internal sealed class RemoteServiceProvider(
     private ValueTask<bool>? _isLSPInitializedTask;
     private bool _fullyInitialized;
 
-    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
+        Solution solution,
+        Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerMemberName] string? callerMemberName = null)
         where TService : class
     {
         var client = await TryGetClientAsync(cancellationToken).ConfigureAwait(false);
@@ -63,8 +71,9 @@ internal sealed class RemoteServiceProvider(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogError(ex, $"Error calling remote method for {typeof(TService).Name} service, invocation: ${invocation.ToString()}");
-            _telemetryReporter.ReportFault(ex, "Exception calling remote method for {service}", typeof(TService).FullName);
+            var approximateCallingClassName = Path.GetFileNameWithoutExtension(callerFilePath);
+            _logger.LogError(ex, $"Error calling remote method for {typeof(TService).Name} service, invocation: ${approximateCallingClassName}.{callerMemberName}");
+            _telemetryReporter.ReportFault(ex, "Exception calling remote method for {service}, invocation: {class}.{method}", typeof(TService).FullName, approximateCallingClassName, callerMemberName);
             return default;
         }
     }
