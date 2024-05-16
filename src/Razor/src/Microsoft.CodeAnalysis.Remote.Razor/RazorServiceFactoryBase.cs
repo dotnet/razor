@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 /// <remarks>
 /// Implementors of <see cref="IServiceHubServiceFactory" /> (and thus this class) MUST provide a parameterless constructor or ServiceHub will fail to construct them.
 /// </remarks>
-internal abstract partial class RazorServiceFactoryBase<TService> : IServiceHubServiceFactory where TService : class
+internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFactory where TService : class
 {
     private readonly RazorServiceDescriptorsWrapper _razorServiceDescriptors;
 
@@ -57,7 +57,7 @@ internal abstract partial class RazorServiceFactoryBase<TService> : IServiceHubS
         var descriptor = _razorServiceDescriptors.GetDescriptorForServiceFactory(typeof(TService));
         var serverConnection = descriptor.ConstructRpcConnection(pipe);
 
-        var exportProvider = await s_exportProviderLazy.GetValueAsync().ConfigureAwait(false);
+        var exportProvider = await MEFComposition.GetExportProviderAsync().ConfigureAwait(false);
 
         var service = CreateService(serviceBroker, exportProvider);
 
