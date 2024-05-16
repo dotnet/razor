@@ -1,13 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -25,18 +23,16 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal class CohostUriPresentationEndpoint(
-    IRemoteClientProvider remoteClientProvider,
+    IRemoteServiceProvider remoteServiceProvider,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     IFilePathService filePathService,
-    LSPRequestInvoker requestInvoker,
-    ILoggerFactory loggerFactory)
+    LSPRequestInvoker requestInvoker)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalUriPresentationParams, WorkspaceEdit?>, IDynamicRegistrationProvider
 {
-    private readonly IRemoteClientProvider _remoteClientProvider = remoteClientProvider;
+    private readonly IRemoteServiceProvider _remoteServiceProvider = remoteServiceProvider;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly IFilePathService _filePathService = filePathService;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostUriPresentationEndpoint>();
 
     protected override bool MutatesSolutionState => false;
 
@@ -66,7 +62,7 @@ internal class CohostUriPresentationEndpoint(
     {
         var razorDocument = context.TextDocument.AssumeNotNull();
 
-        var data = await _remoteClientProvider.TryInvokeAsync<IRemoteUriPresentationService, TextChange?>(
+        var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteUriPresentationService, TextChange?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetPresentationAsync(solutionInfo, razorDocument.Id, request.Range.ToLinePositionSpan(), request.Uris, cancellationToken),
             cancellationToken).ConfigureAwait(false);

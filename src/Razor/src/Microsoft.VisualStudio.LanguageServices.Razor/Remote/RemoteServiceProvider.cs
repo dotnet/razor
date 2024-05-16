@@ -16,23 +16,23 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Razor.Remote;
 
-[Export(typeof(IRemoteClientProvider))]
+[Export(typeof(IRemoteServiceProvider))]
 [method: ImportingConstructor]
-internal sealed class RemoteClientProvider(
+internal sealed class RemoteServiceProvider(
     IWorkspaceProvider workspaceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientCapabilitiesService clientCapabilitiesService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
-    : IRemoteClientProvider
+    : IRemoteServiceProvider
 {
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RemoteClientProvider>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RemoteServiceProvider>();
 
     private bool _isInitialized;
     private bool _isLSPInitialized;
