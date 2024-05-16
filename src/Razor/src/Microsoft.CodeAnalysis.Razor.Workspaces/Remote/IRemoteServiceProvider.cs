@@ -16,5 +16,6 @@ internal interface IRemoteServiceProvider
         Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken,
         [CallerFilePath] string? callerFilePath = null,
-        [CallerMemberName] string? callerMemberName = null);
+        [CallerMemberName] string? callerMemberName = null)
+        where TService : class;
 }
