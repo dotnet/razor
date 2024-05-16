@@ -30,6 +30,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
+    <None Update=".\Targets\**\*.targets" CopyToOutputDirectory="PreserveNewest" />
+    <None Update=".\Targets\**\*.xaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
