@@ -34,8 +34,10 @@ internal sealed class RemoteServiceProvider(
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RemoteServiceProvider>();
 
-    private bool _isInitialized;
-    private bool _isLSPInitialized;
+    private readonly object _gate = new();
+    private ValueTask<bool>? _isInitializedTask;
+    private ValueTask<bool>? _isLSPInitializedTask;
+    private bool _fullyInitialized;
 
     public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         where TService : class
@@ -89,37 +91,57 @@ internal sealed class RemoteServiceProvider(
 
     private async Task InitializeRemoteClientAsync(RazorRemoteHostClient remoteClient, CancellationToken cancellationToken)
     {
-        if (!_isInitialized)
+        if (_fullyInitialized)
         {
-            var initParams = new RemoteClientInitializationOptions
-            {
-                UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
-                UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
-                CSharpVirtualDocumentSuffix = _languageServerFeatureOptions.CSharpVirtualDocumentSuffix,
-                HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
-                IncludeProjectKeyInGeneratedFilePath = _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath,
-            };
-
-            await remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
-                (s, ct) => s.InitializeAsync(initParams, ct),
-                cancellationToken).ConfigureAwait(false);
-
-            _isInitialized = true;
+            return;
         }
 
-        if (!_isLSPInitialized && _clientCapabilitiesService.CanGetClientCapabilities)
+        lock (_gate)
         {
-            var initParams = new RemoteClientLSPInitializationOptions
+            if (_isInitializedTask is null)
             {
-                TokenTypes = _semanticTokensLegendService.TokenTypes.All,
-                TokenModifiers = _semanticTokensLegendService.TokenModifiers.All,
-            };
+                var initParams = new RemoteClientInitializationOptions
+                {
+                    UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
+                    UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
+                    CSharpVirtualDocumentSuffix = _languageServerFeatureOptions.CSharpVirtualDocumentSuffix,
+                    HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
+                    IncludeProjectKeyInGeneratedFilePath = _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath,
+                };
 
-            await remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
-                (s, ct) => s.InitializeLSPAsync(initParams, ct),
-                cancellationToken).ConfigureAwait(false);
+                _logger.LogDebug($"First OOP call, so initializing OOP service.");
 
-            _isLSPInitialized = true;
+                _isInitializedTask = remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
+                    (s, ct) => s.InitializeAsync(initParams, ct),
+                    cancellationToken);
+            }
+        }
+
+        await _isInitializedTask.Value.ConfigureAwait(false);
+
+        if (_clientCapabilitiesService.CanGetClientCapabilities)
+        {
+            lock (_gate)
+            {
+                if (_isLSPInitializedTask is null)
+                {
+                    var initParams = new RemoteClientLSPInitializationOptions
+                    {
+                        TokenTypes = _semanticTokensLegendService.TokenTypes.All,
+                        TokenModifiers = _semanticTokensLegendService.TokenModifiers.All,
+                    };
+
+                    _logger.LogDebug($"LSP server has started since last OOP call, so initializing OOP service with LSP info.");
+
+                    _isLSPInitializedTask = remoteClient.TryInvokeAsync<IRemoteClientInitializationService>(
+                        (s, ct) => s.InitializeLSPAsync(initParams, ct),
+                        cancellationToken);
+                }
+            }
+
+            await _isLSPInitializedTask.Value.ConfigureAwait(false);
+
+            _fullyInitialized = true;
         }
     }
 }
