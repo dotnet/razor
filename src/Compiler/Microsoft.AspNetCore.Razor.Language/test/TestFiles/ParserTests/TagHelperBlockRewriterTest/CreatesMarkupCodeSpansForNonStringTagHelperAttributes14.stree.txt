@@ -16,7 +16,8 @@
                             Whitespace;[    ];
                             Identifier;[var];
                             Whitespace;[ ];
-                            Identifier;[@string];
+                            Transition;[@];
+                            Keyword;[string];
                             Whitespace;[ ];
                             Assign;[=];
                             Whitespace;[ ];
