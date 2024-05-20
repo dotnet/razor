@@ -139,15 +139,19 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
         var languageServer = await CreateLanguageServerAsync(codeDocument, filePath);
 
-        var endpoint = new FoldingRangeEndpoint(
+        var foldingRangeService = new FoldingRangeService(
             DocumentMappingService,
-            languageServer,
             [
                 new UsingsFoldingRangeProvider(),
                 new RazorCodeBlockFoldingProvider(),
                 new RazorCSharpStatementFoldingProvider(),
                 new SectionDirectiveFoldingProvider()
             ],
+            LoggerFactory);
+
+        var endpoint = new FoldingRangeEndpoint(
+            languageServer,
+            foldingRangeService,
             LoggerFactory);
 
         var request = new FoldingRangeParams()
