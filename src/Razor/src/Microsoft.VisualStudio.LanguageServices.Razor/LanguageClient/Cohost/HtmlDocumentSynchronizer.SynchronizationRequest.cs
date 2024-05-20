@@ -29,12 +29,12 @@ internal sealed partial class HtmlDocumentSynchronizer
 
         private void Start(TextDocument document, Func<TextDocument, CancellationToken, Task<bool>> syncFunction)
         {
-            _cts = new(TimeSpan.FromMinutes(5));
+            _cts = new(TimeSpan.FromMinutes(1));
             _cts.Token.Register(Dispose);
             _ = syncFunction.Invoke(document, _cts.Token).ContinueWith((t, state) =>
             {
                 var tcs = (TaskCompletionSource<bool>)state;
-                if (t.IsCanceled || t.Result == false)
+                if (t.IsCanceled)
                 {
                     tcs.SetResult(false);
                 }
@@ -44,10 +44,11 @@ internal sealed partial class HtmlDocumentSynchronizer
                 }
                 else
                 {
-                    _cts.Dispose();
-                    _cts = null;
-                    tcs.SetResult(true);
+                    tcs.SetResult(t.Result);
                 }
+
+                _cts?.Dispose();
+                _cts = null;
             }, _tcs, _cts.Token, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
