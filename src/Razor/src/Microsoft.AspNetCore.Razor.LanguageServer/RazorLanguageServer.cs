@@ -139,13 +139,16 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
         services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
 
-        // Folding Range Providers
-        services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
-        services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
-        services.AddSingleton<IRazorFoldingRangeProvider, SectionDirectiveFoldingProvider>();
-        services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
+        if (!featureOptions.UseRazorCohostServer)
+        {
+            // Folding Range Providers
+            services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
+            services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
+            services.AddSingleton<IRazorFoldingRangeProvider, SectionDirectiveFoldingProvider>();
+            services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
             services.AddSingleton<IFoldingRangeService, FoldingRangeService>();
+        }
 
         // Other
         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
@@ -194,6 +197,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
             if (!featureOptions.UseRazorCohostServer)
             {
                 services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
+                services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
@@ -204,7 +208,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
             services.AddSingleton<IDocumentColorService, DocumentColorService>();
 
             services.AddHandler<ColorPresentationEndpoint>();
-            services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
             services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
             services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
             services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
