@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Setting_AutoClosingTagsDisplayName">
         <source>Auto insert closing tag</source>
-        <target state="new">Auto insert closing tag</target>
+        <target state="translated">Insertion automatique de la balise de fermeture</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AutoInsertAttributeQuotesDescription">
