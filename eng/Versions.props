@@ -49,8 +49,8 @@
   <PropertyGroup Label="Automated">
     <MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>6.0.2-servicing.22064.6</MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>6.0.1</MicrosoftNETCorePlatformsPackageVersion>
-    <MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>9.0.0-alpha.1.24162.2</MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>
-    <MicrosoftSourceBuildIntermediatearcadePackageVersion>8.0.0-beta.24170.6</MicrosoftSourceBuildIntermediatearcadePackageVersion>
+    <MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>9.0.0-alpha.1.24113.1</MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>
+    <MicrosoftSourceBuildIntermediatearcadePackageVersion>8.0.0-beta.24266.3</MicrosoftSourceBuildIntermediatearcadePackageVersion>
     <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23475.1</MicrosoftDotNetXliffTasksPackageVersion>
     <MicrosoftSourceBuildIntermediatexlifftasksPackageVersion>1.0.0-beta.23475.1</MicrosoftSourceBuildIntermediatexlifftasksPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>4.10.0-3.24169.7</MicrosoftNetCompilersToolsetPackageVersion>
