@@ -32,18 +32,18 @@ public class FormatDocumentTests(ITestOutputHelper testOutputHelper) : AbstractR
     // You'll just have to write tests for those ones :P
 
     [IdeTheory]
-    //[InlineData("BadlyFormattedCounter.razor")]
-    //[InlineData("FormatCommentWithKeyword.cshtml")]
+    [InlineData("BadlyFormattedCounter.razor")]
+    [InlineData("FormatCommentWithKeyword.cshtml")]
     [InlineData("FormatDocument.cshtml")]
-    //[InlineData("FormatDocumentAfterEdit.cshtml")]
-    //[InlineData("FormatDocumentWithTextAreaAttributes.cshtml")]
-    //[InlineData("FormatIfBlockInsideForBlock.cshtml")]
-    //[InlineData("FormatOnPaste.cshtml")]
-    //[InlineData("FormatOnPasteContainedLanguageCode.cshtml")]
-    //[InlineData("FormatSelection.cshtml")]
-    //[InlineData("FormatSelectionStartingWithContainedLanguageCode.cshtml")]
-    //[InlineData("FormatSwitchCaseBlock.cshtml")]
-    //[InlineData("RazorInCssClassAttribute.cshtml")]
+    [InlineData("FormatDocumentAfterEdit.cshtml")]
+    [InlineData("FormatDocumentWithTextAreaAttributes.cshtml")]
+    [InlineData("FormatIfBlockInsideForBlock.cshtml")]
+    [InlineData("FormatOnPaste.cshtml")]
+    [InlineData("FormatOnPasteContainedLanguageCode.cshtml")]
+    [InlineData("FormatSelection.cshtml")]
+    [InlineData("FormatSelectionStartingWithContainedLanguageCode.cshtml")]
+    [InlineData("FormatSwitchCaseBlock.cshtml")]
+    [InlineData("RazorInCssClassAttribute.cshtml")]
     public async Task FormattingDocument(string testFileName)
     {
         var inputResourceName = GetResourceName(testFileName, "Input");
