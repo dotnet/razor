@@ -1,4 +1,15 @@
 ﻿<Project>
+  <!--
+    The compiler portion of razor is specifically pinned to an earlier version of the
+    roslyn compiler. That maximizes our compatibility with earlier versions of .NET SDK
+    inside of visual studio
+    https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle
+  -->
+  <PropertyGroup>
+    <_RoslynPackageVersion>4.9.2</_RoslynPackageVersion>
+    <_RoslynPackageVersion Condition="'$(DotNetBuildFromSource)' == 'true'">$(MicrosoftCodeAnalysisCommonPackageVersion)</_RoslynPackageVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPackageVersion)" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetPackageVersion)" />
@@ -8,10 +19,10 @@
     <PackageVersion Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="$(MicrosoftBuildUtilitiesCoreVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonPackageVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpPackageVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="$(_RoslynPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(_RoslynPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(_RoslynPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(_RoslynPackageVersion)" />
     <PackageVersion Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageVersion Include="Microsoft.Css.Parser" Version="$(MicrosoftCssParserVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(MicrosoftExtensionsDependencyModelVersion)" />

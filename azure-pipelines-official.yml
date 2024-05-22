@@ -10,8 +10,6 @@ variables:
   value: AspNetCore
 - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
   value: true
-- name: Codeql.Enabled
-  value: true
 - name: LogLevel
   value: 'All'
 - name: RunIntegrationTests
@@ -39,9 +37,15 @@ variables:
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
     value: ''
+  - name: Codeql.Enabled
+    value: true
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - name: _InternalRuntimeDownloadArgs
     value: ''
+  - name: Codeql.Enabled
+    value: false
+  - name: Codeql.SkipTaskAutoInjection
+    value: true
 
 trigger:
   batch: true
@@ -73,7 +77,7 @@ extends:
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
-        image: 1es-windows-2022-pt
+        image: 1es-windows-2022
         os: windows
       sbom:
         enabled: false
@@ -378,10 +382,10 @@ extends:
             pool:
               ${{ if eq(variables['System.TeamProject'], 'public') }}:
                 name: NetCore-Public
-                demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+                demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
               ${{ if eq(variables['System.TeamProject'], 'internal') }}:
                 name: $(DncEngInternalBuildPool)
-                demands: ImageOverride -equals 1es-ubuntu-2004-pt
+                demands: ImageOverride -equals 1es-ubuntu-2004
               os: linux
 
             strategy:

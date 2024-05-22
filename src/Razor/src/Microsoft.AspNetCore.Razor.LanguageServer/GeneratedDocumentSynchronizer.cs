@@ -4,7 +4,7 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -30,7 +30,7 @@ internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
 
     public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
-        _dispatcher.AssertDispatcherThread();
+        _dispatcher.AssertRunningOnDispatcher();
 
         if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))
         {

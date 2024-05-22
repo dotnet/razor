@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
@@ -83,6 +84,9 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
 
     [IntegrationTestFact]
     public void Usings() => RunTest();
+
+    [IntegrationTestFact]
+    public void Usings_OutOfOrder() => RunTest();
 
     [IntegrationTestFact]
     public void ImplicitExpressionAtEOF() => RunTest();
@@ -251,6 +255,9 @@ public class CodeGenerationIntegrationTest(bool designTime = false)
 
     [IntegrationTestFact]
     public void AddTagHelperDirective() => RunTest();
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10186")]
+    public void EscapedIdentifier() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
     public override string GetTestFileName(string testName)
     {

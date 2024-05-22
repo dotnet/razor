@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,14 +23,14 @@ namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 [Export(typeof(IRazorDynamicFileInfoProvider))]
 [Export(typeof(IRazorDynamicFileInfoProviderInternal))]
-[Export(typeof(IProjectSnapshotChangeTrigger))]
-internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInternal, IRazorDynamicFileInfoProvider, IProjectSnapshotChangeTrigger
+[Export(typeof(IRazorStartupService))]
+internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInternal, IRazorDynamicFileInfoProvider, IRazorStartupService
 {
     private readonly ConcurrentDictionary<Key, Entry> _entries;
     private readonly Func<Key, Entry> _createEmptyEntry;
     private readonly IRazorDocumentServiceProviderFactory _factory;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-    private readonly FilePathService _filePathService;
+    private readonly IFilePathService _filePathService;
     private readonly IWorkspaceProvider _workspaceProvider;
     private readonly FallbackProjectManager _fallbackProjectManager;
 
@@ -37,8 +38,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     public RazorDynamicFileInfoProvider(
         IRazorDocumentServiceProviderFactory factory,
         LSPEditorFeatureDetector lspEditorFeatureDetector,
-        FilePathService filePathService,
+        IFilePathService filePathService,
         IWorkspaceProvider workspaceProvider,
+        IProjectSnapshotManager projectManager,
         FallbackProjectManager fallbackProjectManager)
     {
         _factory = factory;
@@ -48,14 +50,11 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         _fallbackProjectManager = fallbackProjectManager;
         _entries = new ConcurrentDictionary<Key, Entry>();
         _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
+
+        projectManager.Changed += ProjectManager_Changed;
     }
 
     public event EventHandler<string>? Updated;
-
-    public void Initialize(ProjectSnapshotManagerBase projectManager)
-    {
-        projectManager.Changed += ProjectManager_Changed;
-    }
 
     // Called by us to update LSP document entries
     public void UpdateLSPFileInfo(Uri documentUri, IDynamicDocumentContainer documentContainer)
@@ -75,7 +74,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         documentContainer.SetSupportsDiagnostics(true);
 
         // TODO: This needs to use the project key somehow, rather than assuming all generated content is the same
-        var filePath = FilePathService.GetProjectSystemFilePath(documentUri);
+        var filePath = GetProjectSystemFilePath(documentUri);
 
         var foundAny = false;
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
@@ -145,7 +144,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
             throw new ArgumentNullException(nameof(propertiesService));
         }
 
-        var filePath = FilePathService.GetProjectSystemFilePath(documentUri);
+        var filePath = GetProjectSystemFilePath(documentUri);
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
         {
             var associatedKey = associatedKvp.Key;
@@ -233,7 +232,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         }
     }
 
-    public async Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
+    public Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         if (projectFilePath is null)
         {
@@ -250,20 +249,18 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         var projectKey = TryFindProjectKeyForProjectId(projectId);
         if (projectKey is not { } razorProjectKey)
         {
-            return null;
+            return Task.FromResult<RazorDynamicFileInfo?>(null);
         }
 
-        await _fallbackProjectManager
-            .DynamicFileAddedAsync(projectId, razorProjectKey, projectFilePath, filePath, cancellationToken)
-            .ConfigureAwait(false);
+        _fallbackProjectManager.DynamicFileAdded(projectId, razorProjectKey, projectFilePath, filePath, cancellationToken);
 
         var key = new Key(projectId, filePath);
         var entry = _entries.GetOrAdd(key, _createEmptyEntry);
 
-        return entry.Current;
+        return Task.FromResult<RazorDynamicFileInfo?>(entry.Current);
     }
 
-    public async Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
+    public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         if (projectFilePath is null)
         {
@@ -278,12 +275,10 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         var projectKey = TryFindProjectKeyForProjectId(projectId);
         if (projectKey is not { } razorProjectKey)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        await _fallbackProjectManager
-            .DynamicFileRemovedAsync(projectId, razorProjectKey, projectFilePath, filePath, cancellationToken)
-            .ConfigureAwait(false);
+        _fallbackProjectManager.DynamicFileRemoved(projectId, razorProjectKey, projectFilePath, filePath, cancellationToken);
 
         // ---------------------------------------------------------- NOTE & CAUTION --------------------------------------------------------------
         //
@@ -297,6 +292,24 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         var key = new Key(projectId, filePath);
         _entries.TryRemove(key, out _);
+
+        return Task.CompletedTask;
+    }
+
+    public static string GetProjectSystemFilePath(Uri uri)
+    {
+        // In VS Windows project system file paths always utilize `\`. In VSMac they don't. This is a bit of a hack
+        // however, it's the only way to get the correct file path for a document to map to a corresponding project
+        // system.
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // VSWin
+            return uri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+        }
+
+        // VSMac
+        return uri.AbsolutePath;
     }
 
     public TestAccessor GetTestAccessor() => new(this);
@@ -339,7 +352,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         foreach (var project in workspace.CurrentSolution.Projects)
         {
-            if (key.Equals(ProjectKey.From(project)))
+            if (key.Matches(project))
             {
                 return project.Id;
             }
@@ -348,20 +361,13 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         return null;
     }
 
-    public ProjectKey? TryFindProjectKeyForProjectId(ProjectId projectId)
+    private ProjectKey? TryFindProjectKeyForProjectId(ProjectId projectId)
     {
         var workspace = _workspaceProvider.GetWorkspace();
 
-        var project = workspace.CurrentSolution.GetProject(projectId);
-        if (project is null ||
-            project.Language != LanguageNames.CSharp)
-        {
-            return null;
-        }
-
-        var projectKey = ProjectKey.From(project);
-
-        return projectKey;
+        return workspace.CurrentSolution.GetProject(projectId) is { Language: LanguageNames.CSharp } project
+            ? ProjectKey.From(project)
+            : null;
     }
 
     private RazorDynamicFileInfo CreateEmptyInfo(Key key)

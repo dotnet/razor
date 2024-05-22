@@ -15,9 +15,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -70,15 +73,14 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         TargetPath = "/Components/Pages/SemanticTokens.razor";
 
         var documentUri = new Uri(filePath);
-        var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+        var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
         var version = 1;
         DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
 
         var razorOptionsMonitor = RazorLanguageServer.GetRequiredService<RazorLSPOptionsMonitor>();
-        var clientConnection = RazorLanguageServer.GetRequiredService<IClientConnection>();
         var clientCapabilitiesService = new BenchmarkClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
         var razorSemanticTokensLegendService = new RazorSemanticTokensLegendService(clientCapabilitiesService);
-        SemanticTokensRangeEndpoint = new SemanticTokensRangeEndpoint(RazorSemanticTokenService, razorSemanticTokensLegendService, razorOptionsMonitor, clientConnection);
+        SemanticTokensRangeEndpoint = new SemanticTokensRangeEndpoint(RazorSemanticTokenService, razorSemanticTokensLegendService, razorOptionsMonitor, telemetryReporter: null);
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = new Range
@@ -125,7 +127,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot,
         CancellationToken cancellationToken)
     {
-        await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        await ProjectSnapshotManagerDispatcher.RunAsync(
                 () => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), cancellationToken)
             .ConfigureAwait(false);
     }
@@ -158,21 +160,18 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             IRazorDocumentMappingService documentMappingService,
             RazorSemanticTokensLegendService razorSemanticTokensLegendService,
             IRazorLoggerFactory loggerFactory)
-            : base(documentMappingService, razorSemanticTokensLegendService, languageServerFeatureOptions, loggerFactory, telemetryReporter: null)
+            : base(documentMappingService, razorSemanticTokensLegendService, csharpSemanticTokensProvider: null!, languageServerFeatureOptions, loggerFactory)
         {
         }
 
         // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
-        internal override Task<ImmutableArray<SemanticRange>?> GetCSharpSemanticRangesAsync(
-            IClientConnection clientConnection,
+        protected override Task<ImmutableArray<SemanticRange>?> GetCSharpSemanticRangesAsync(
+            VersionedDocumentContext documentContext,
             RazorCodeDocument codeDocument,
-            TextDocumentIdentifier textDocumentIdentifier,
-            Range razorRange,
+            LinePositionSpan razorSpan,
             bool colorBackground,
-            long documentVersion,
             Guid correlationId,
-            CancellationToken cancellationToken,
-            string previousResultId = null)
+            CancellationToken cancellationToken)
         {
             return Task.FromResult<ImmutableArray<SemanticRange>?>(PregeneratedRandomSemanticRanges);
         }
