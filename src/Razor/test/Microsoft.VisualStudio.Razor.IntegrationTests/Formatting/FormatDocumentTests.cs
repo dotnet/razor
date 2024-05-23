@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
