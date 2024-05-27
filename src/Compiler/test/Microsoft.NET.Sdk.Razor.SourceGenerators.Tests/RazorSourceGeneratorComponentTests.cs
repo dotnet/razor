@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -827,6 +828,148 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             var mappedSpan = originalText.Lines.GetTextSpan(mapped.Span);
             Assert.Equal(snippet, originalText.ToString(mappedSpan));
             Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10375")]
+    public async Task LineMapping_UsingSemicolon()
+    {
+        // Arrange
+        var source = """
+            @using System.Net.Http
+            @using static Microsoft.AspNetCore.Components.Web.RenderMode
+            """;
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = source,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        result.Diagnostics.Verify();
+        result.VerifyOutputsMatchBaseline();
+
+        var original = project.AdditionalDocuments.Single();
+        var originalText = await original.GetTextAsync();
+        Assert.Equal(source, originalText.ToString());
+        var generated = result.GeneratedSources.Single();
+        var generatedText = generated.SourceText;
+        var generatedTextString = generatedText.ToString();
+
+        // Find the usings and verify their mapping.
+        var snippets = new[]
+        {
+            "using System.Net.Http",
+            "using static Microsoft.AspNetCore.Components.Web.RenderMode"
+        };
+        var expectedLines = new[] { 0, 1 };
+        var expectedSemicolonMappings = new[] { true, false };
+        var originalIndex = -1;
+        var generatedIndex = -1;
+        foreach (var (snippet, expectedLine, expectedSemicolonMapping) in snippets.Zip(expectedLines, expectedSemicolonMappings))
+        {
+            originalIndex = source.IndexOf(snippet, originalIndex + 1, StringComparison.Ordinal);
+            generatedIndex = generatedTextString.IndexOf(snippet, generatedIndex + 1, StringComparison.Ordinal);
+            var generatedSpan = new TextSpan(generatedIndex, snippet.Length);
+            Assert.Equal(snippet, generatedText.ToString(generatedSpan));
+            var mapped = generated.SyntaxTree.GetMappedLineSpan(generatedSpan);
+            Assert.True(mapped.IsValid);
+            Assert.True(mapped.HasMappedPath);
+            Assert.Equal("Shared/Component1.razor", mapped.Path);
+            Assert.Equal(expectedLine, mapped.StartLinePosition.Line);
+            Assert.Equal(expectedLine, mapped.EndLinePosition.Line);
+            var mappedSpan = originalText.Lines.GetTextSpan(mapped.Span);
+            Assert.Equal(snippet, originalText.ToString(mappedSpan));
+            Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
+
+            // Find the using's semicolon.
+            // The first one is mapped back to the razor file, the second is not due to `#line hidden` emitted for it.
+            // The first one being mapped is not nice - the semicolon does not exist in the razor file,
+            // see https://github.com/dotnet/razor/issues/10375.
+            var usingDirective = generated.SyntaxTree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>()
+                .Single(s => s.Name.ToString() == snippet.Split(' ')[^1]);
+            var semicolon = usingDirective.SemicolonToken;
+            var mappedSemicolon = semicolon.GetLocation().GetMappedLineSpan();
+            Assert.True(mappedSemicolon.IsValid);
+            Assert.Equal(expectedSemicolonMapping, mappedSemicolon.HasMappedPath);
+            if (expectedSemicolonMapping)
+            {
+                Assert.Equal("Shared/Component1.razor", mappedSemicolon.Path);
+                Assert.Throws<ArgumentOutOfRangeException>(() => originalText.Lines.GetTextSpan(mappedSemicolon.Span));
+            }
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10375")]
+    public async Task LineMapping_UsingSemicolon_SemicolonsInRazor()
+    {
+        // Arrange
+        var source = """
+            @using System.Net.Http;
+            @using static Microsoft.AspNetCore.Components.Web.RenderMode;
+            """;
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = source,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        result.Diagnostics.Verify();
+        result.VerifyOutputsMatchBaseline();
+
+        var original = project.AdditionalDocuments.Single();
+        var originalText = await original.GetTextAsync();
+        Assert.Equal(source, originalText.ToString());
+        var generated = result.GeneratedSources.Single();
+        var generatedText = generated.SourceText;
+        var generatedTextString = generatedText.ToString();
+
+        // Find the usings and verify their mapping.
+        var snippets = new[]
+        {
+            "using System.Net.Http",
+            "using static Microsoft.AspNetCore.Components.Web.RenderMode"
+        };
+        var expectedLines = new[] { 0, 1 };
+        var originalIndex = -1;
+        var generatedIndex = -1;
+        foreach (var (snippet, expectedLine) in snippets.Zip(expectedLines))
+        {
+            originalIndex = source.IndexOf(snippet, originalIndex + 1, StringComparison.Ordinal);
+            generatedIndex = generatedTextString.IndexOf(snippet, generatedIndex + 1, StringComparison.Ordinal);
+            var generatedSpan = new TextSpan(generatedIndex, snippet.Length);
+            Assert.Equal(snippet, generatedText.ToString(generatedSpan));
+            var mapped = generated.SyntaxTree.GetMappedLineSpan(generatedSpan);
+            Assert.True(mapped.IsValid);
+            Assert.True(mapped.HasMappedPath);
+            Assert.Equal("Shared/Component1.razor", mapped.Path);
+            Assert.Equal(expectedLine, mapped.StartLinePosition.Line);
+            Assert.Equal(expectedLine, mapped.EndLinePosition.Line);
+            var mappedSpan = originalText.Lines.GetTextSpan(mapped.Span);
+            Assert.Equal(snippet, originalText.ToString(mappedSpan));
+            Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
+
+            // Find the using's semicolon and verify it's mapped back to the razor file.
+            var usingDirective = generated.SyntaxTree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>()
+                .Single(s => s.Name.ToString() == snippet.Split(' ')[^1]);
+            var semicolon = usingDirective.SemicolonToken;
+            var mappedSemicolon = semicolon.GetLocation().GetMappedLineSpan();
+            Assert.True(mappedSemicolon.IsValid);
+            Assert.True(mappedSemicolon.HasMappedPath);
+            Assert.Equal("Shared/Component1.razor", mappedSemicolon.Path);
+            Assert.Equal(expectedLine, mappedSemicolon.StartLinePosition.Line);
+            Assert.Equal(expectedLine, mappedSemicolon.EndLinePosition.Line);
+            var mappedSemicolonSpan = originalText.Lines.GetTextSpan(mappedSemicolon.Span);
+            Assert.Equal(";", originalText.ToString(mappedSemicolonSpan));
         }
     }
 
