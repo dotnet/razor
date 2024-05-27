@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteFoldingRangeService
 {
-    ValueTask<ImmutableArray<RemoteFoldingRange>?> GetFoldingRangesAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, ImmutableArray<RemoteFoldingRange> htmlRanges, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<RemoteFoldingRange>> GetFoldingRangesAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, ImmutableArray<RemoteFoldingRange> htmlRanges, CancellationToken cancellationToken);
 }

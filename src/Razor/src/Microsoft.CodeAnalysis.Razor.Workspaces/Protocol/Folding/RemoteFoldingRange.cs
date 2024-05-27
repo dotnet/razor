@@ -7,43 +7,29 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.Razor.Protocol.Folding;
 
 [DataContract]
-internal class RemoteFoldingRange
+internal readonly record struct RemoteFoldingRange(
+    [property: DataMember(Order = 0)] int StartLine,
+    [property: DataMember(Order = 1)] int? StartCharacter,
+    [property: DataMember(Order = 2)] int EndLine,
+    [property: DataMember(Order = 3)] int? EndCharacter,
+    [property: DataMember(Order = 4)] string? Kind,
+    [property: DataMember(Order = 5)] string? CollapsedText)
 {
-    [DataMember(Order = 0)]
-    public int StartLine { get; set; }
-
-    [DataMember(Order = 1)]
-    public int? StartCharacter { get; set; }
-
-    [DataMember(Order = 2)]
-    public int EndLine { get; set; }
-
-    [DataMember(Order = 3)]
-    public int? EndCharacter { get; set; }
-
-    [DataMember(Order = 4)]
-    public string? Kind { get; set; }
-
-    [DataMember(Order = 5)]
-    public string? CollapsedText { get; set; }
-
     public override string ToString()
     {
         return $"({StartLine}, {StartCharacter})-({EndLine}, {EndCharacter}), {Kind}, {CollapsedText}";
     }
 
-    public static RemoteFoldingRange FromFoldingRange(FoldingRange r)
-        => new RemoteFoldingRange
-        {
-            StartLine = r.StartLine,
-            StartCharacter = r.StartCharacter,
-            EndLine = r.EndLine,
-            EndCharacter = r.EndCharacter,
-            Kind = r.Kind?.Value,
-            CollapsedText = r.CollapsedText,
-        };
+    public static RemoteFoldingRange FromLspFoldingRange(FoldingRange r)
+        => new RemoteFoldingRange(
+            r.StartLine,
+            r.StartCharacter,
+            r.EndLine,
+            r.EndCharacter,
+            r.Kind?.Value,
+            r.CollapsedText);
 
-    public static FoldingRange ToFoldingRange(RemoteFoldingRange r)
+    public static FoldingRange ToLspFoldingRange(RemoteFoldingRange r)
         => new FoldingRange
         {
             StartLine = r.StartLine,

@@ -78,7 +78,7 @@ internal class CohostFoldingRangeEndpoint(
         }
 
         _logger.LogDebug($"Calling OOP with the {htmlRanges.Length} html ranges, so it can fill in the rest");
-        var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteFoldingRangeService, ImmutableArray<RemoteFoldingRange>?>(
+        var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteFoldingRangeService, ImmutableArray<RemoteFoldingRange>>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetFoldingRangesAsync(solutionInfo, razorDocument.Id, htmlRanges, cancellationToken),
             cancellationToken).ConfigureAwait(false);
@@ -87,7 +87,7 @@ internal class CohostFoldingRangeEndpoint(
         {
             _logger.LogDebug($"Got a total of {allRanges.Length} ranges back from OOP");
 
-            return allRanges.Select(RemoteFoldingRange.ToFoldingRange).ToArray();
+            return allRanges.Select(RemoteFoldingRange.ToLspFoldingRange).ToArray();
         }
 
         return null;
@@ -121,7 +121,7 @@ internal class CohostFoldingRangeEndpoint(
             return null;
         }
 
-        return result.Response.SelectAsArray(RemoteFoldingRange.FromFoldingRange);
+        return result.Response.SelectAsArray(RemoteFoldingRange.FromLspFoldingRange);
     }
 }
 
