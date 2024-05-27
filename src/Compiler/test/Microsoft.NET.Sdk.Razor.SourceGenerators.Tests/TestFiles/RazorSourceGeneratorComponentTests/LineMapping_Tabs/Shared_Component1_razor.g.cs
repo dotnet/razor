@@ -39,7 +39,7 @@ if (true)
 #nullable disable
             );
 #nullable restore
-#line (4,12)-(6,1) "Shared/Component1.razor"
+#line (4,12)-(5,3) "Shared/Component1.razor"
 
 	}
 

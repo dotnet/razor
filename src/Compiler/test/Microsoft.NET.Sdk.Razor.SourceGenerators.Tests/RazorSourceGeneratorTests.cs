@@ -1059,7 +1059,7 @@ namespace MyApp.Pages
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (2,2)-(3,1) ""Pages/Index.razor""
+#line (2,2)-(2,33) ""Pages/Index.razor""
 using SurveyPromptRootNamspace;
 
 #line default
@@ -1132,7 +1132,7 @@ namespace MyApp.Pages
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (2,2)-(3,1) ""Pages/Index.razor""
+#line (2,2)-(2,33) ""Pages/Index.razor""
 using SurveyPromptRootNamspace;
 
 #line default
@@ -1392,12 +1392,12 @@ namespace AspNetCoreGeneratedDocument
 
             // Act
             var result = RunGenerator(compilation!, ref driver,
-                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(68,167): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                // Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Pages_Index_cshtml.g.cs(69,167): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(68, 167),
-                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(84,171): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(69, 167),
+                // Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Pages_Index_cshtml.g.cs(85,171): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(84, 171)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(85, 171)
             );
 
             // Assert
@@ -1910,7 +1910,7 @@ namespace AspNetCoreGeneratedDocument
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""\r\n"");
-            WriteLiteral(""<h2>Hello world</h2>"");
+            WriteLiteral(""\n<h2>Hello world</h2>"");
         }
         #pragma warning restore 1998
         #nullable restore
@@ -2493,6 +2493,7 @@ namespace AspNetCoreGeneratedDocument
                         #pragma warning disable 1998
                         public async override global::System.Threading.Tasks.Task ExecuteAsync()
                         {
+                            WriteLiteral("\n");
                             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:test", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
                             }
                             );
