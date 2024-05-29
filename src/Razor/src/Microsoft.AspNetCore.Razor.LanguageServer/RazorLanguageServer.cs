@@ -35,7 +35,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
+internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
     private readonly ILoggerFactory _loggerFactory;
@@ -81,7 +81,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
     protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()
     {
         var handlerProvider = this.HandlerProvider;
-        var queue = new RazorRequestExecutionQueue(this, _logger, handlerProvider);
+        var queue = new RazorRequestExecutionQueue(this, Logger, handlerProvider);
         queue.Start();
 
         return queue;
@@ -103,7 +103,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         services.AddSingleton<IClientConnection>(_clientConnection);
 
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
-        services.AddSingleton<ILspLogger>(_logger);
+        services.AddSingleton<ILspLogger>(Logger);
 
         services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
         services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
@@ -123,7 +123,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
         services.AddHoverServices();
-        services.AddTextDocumentServices();
+        services.AddTextDocumentServices(featureOptions);
 
         // Auto insert
         services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
@@ -131,6 +131,7 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
         // Folding Range Providers
         services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
+        services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
         services.AddSingleton<IRazorFoldingRangeProvider, SectionDirectiveFoldingProvider>();
         services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
@@ -177,7 +178,12 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
 
             services.AddHandlerWithCapabilities<RenameEndpoint>();
             services.AddHandlerWithCapabilities<DefinitionEndpoint>();
-            services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
+
+            if (!featureOptions.UseRazorCohostServer)
+            {
+                services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
+            }
+
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();
             services.AddHandler<RazorProximityExpressionsEndpoint>();
@@ -223,14 +229,9 @@ internal partial class RazorLanguageServer : AbstractLanguageServer<RazorRequest
         return new TestAccessor(this);
     }
 
-    internal new class TestAccessor
+    internal new class TestAccessor(RazorLanguageServer server)
     {
-        private RazorLanguageServer _server;
-
-        public TestAccessor(RazorLanguageServer server)
-        {
-            _server = server;
-        }
+        private readonly RazorLanguageServer _server = server;
 
         public AbstractHandlerProvider HandlerProvider => _server.HandlerProvider;
 

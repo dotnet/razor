@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -106,7 +107,7 @@ internal sealed class DefinitionEndpoint(
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
-            return Task.FromResult<IDelegatedParams?>(null);
+            return SpecializedTasks.Null<IDelegatedParams>();
         }
 
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
@@ -285,9 +286,7 @@ internal sealed class DefinitionEndpoint(
         // Since we know how the compiler generates the C# source we can be a little specific here, and avoid
         // long tree walks. If the compiler ever changes how they generate their code, the tests for this will break
         // so we'll know about it.
-        if (root is CompilationUnitSyntax compilationUnit &&
-            compilationUnit.Members[0] is NamespaceDeclarationSyntax namespaceDeclaration &&
-            namespaceDeclaration.Members[0] is ClassDeclarationSyntax classDeclaration)
+        if (GetClassDeclaration(root) is { } classDeclaration)
         {
             var property = classDeclaration
                 .Members
@@ -311,8 +310,22 @@ internal sealed class DefinitionEndpoint(
             logger.LogInformation($"Property found but couldn't map its location.");
         }
 
-        logger.LogInformation($"Generated C# was not in expected shape (CompilationUnit -> Namespace -> Class)");
+        logger.LogInformation($"Generated C# was not in expected shape (CompilationUnit [-> Namespace] -> Class)");
 
         return null;
+
+        static ClassDeclarationSyntax? GetClassDeclaration(CodeAnalysis.SyntaxNode root)
+        {
+            return root switch
+            {
+                CompilationUnitSyntax unit => unit switch
+                {
+                    { Members: [NamespaceDeclarationSyntax { Members: [ClassDeclarationSyntax c, ..] }, ..] } => c,
+                    { Members: [ClassDeclarationSyntax c, ..] } => c,
+                    _ => null,
+                },
+                _ => null,
+            };
+        }
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
@@ -64,7 +65,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
             updater.DocumentRemoved(s_hostProject.Key, s_hostDocument);
         });
 
-        await listenerAccessor.ProjectChangedTask;
+        await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         editorDocumentMangerMock.VerifyAll();
@@ -103,7 +104,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
             updater.ProjectRemoved(s_hostProject.Key);
         });
 
-        await listenerAccessor.ProjectChangedTask;
+        await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         editorDocumentMangerMock.VerifyAll();
@@ -143,7 +144,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
             updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
-        await listenerAccessor.ProjectChangedTask;
+        await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         editorDocumentMangerMock.VerifyAll();
@@ -184,7 +185,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
             updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
-        await listenerAccessor.ProjectChangedTask;
+        await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
         Assert.True(called);

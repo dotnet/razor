@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -15,27 +14,18 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal sealed class RemoteHtmlDocumentService(
     IServiceBroker serviceBroker,
     DocumentSnapshotFactory documentSnapshotFactory)
-    : RazorServiceBase(serviceBroker), IRemoteHtmlDocumentService
+    : RazorDocumentServiceBase(serviceBroker, documentSnapshotFactory), IRemoteHtmlDocumentService
 {
-    private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
-
     public ValueTask<string?> GetHtmlDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken)
-       => RazorBrokeredServiceImplementation.RunServiceAsync(
+        => RunServiceAsync(
             solutionInfo,
-            ServiceBrokerClient,
-            solution => GetHtmlDocumentTextAsync(solution, razorDocumentId, cancellationToken),
+            razorDocumentId,
+            context => GetHtmlDocumentTextAsync(context, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<string?> GetHtmlDocumentTextAsync(Solution solution, DocumentId razorDocumentId, CancellationToken _)
+    private async ValueTask<string?> GetHtmlDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
-        var razorDocument = solution.GetAdditionalDocument(razorDocumentId);
-        if (razorDocument is null)
-        {
-            return null;
-        }
-
-        var documentSnapshot = _documentSnapshotFactory.GetOrCreate(razorDocument);
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         return codeDocument.GetHtmlSourceText().ToString();
     }
