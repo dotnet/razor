@@ -20,14 +20,25 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
 {
     private readonly RazorLanguageServer _server;
     private readonly JsonRpc _jsonRpc;
-    private readonly object _disposeLock;
+
     private bool _disposed;
 
     private RazorLanguageServerHost(RazorLanguageServer server, JsonRpc jsonRpc)
     {
         _server = server;
         _jsonRpc = jsonRpc;
-        _disposeLock = new object();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        _jsonRpc.Dispose();
     }
 
     public static RazorLanguageServerHost Create(
@@ -107,18 +118,5 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
     {
         var lspServices = _server.GetLspServices();
         return lspServices.GetRequiredService<T>();
-    }
-
-    public void Dispose()
-    {
-        lock (_disposeLock)
-        {
-            if (!_disposed)
-            {
-                _disposed = true;
-
-                TempDirectory.Instance.Dispose();
-            }
-        }
     }
 }

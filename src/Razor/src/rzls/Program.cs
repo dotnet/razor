@@ -80,7 +80,7 @@ public class Program
         // a server.
         var loggerFactory = new LoggerFactory([]);
 
-        var host = RazorLanguageServerHost.Create(
+        using var host = RazorLanguageServerHost.Create(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput(),
             loggerFactory,
