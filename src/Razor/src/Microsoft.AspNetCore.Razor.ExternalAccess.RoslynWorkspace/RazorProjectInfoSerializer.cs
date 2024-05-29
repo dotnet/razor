@@ -156,24 +156,22 @@ internal static class RazorProjectInfoSerializer
 
         var normalizedProjectPath = FilePathNormalizer.NormalizeDirectory(projectPath);
 
-        if (project.AdditionalDocumentIds.Count > 0)
+        // We go through additional documents, because that's where the razor files will be
+        foreach (var document in project.AdditionalDocuments)
         {
-            // We go through additional documents, because that's where the razor files will be
-            foreach (var document in project.AdditionalDocuments)
+            if (document.FilePath is { } filePath &&
+                TryGetFileKind(filePath, out var kind))
             {
-                if (document.FilePath is { } filePath &&
-                    TryGetFileKind(filePath, out var kind))
-                {
-                    documents.Add(new DocumentSnapshotHandle(filePath, GetTargetPath(filePath, normalizedProjectPath), kind));
-                }
+                documents.Add(new DocumentSnapshotHandle(filePath, GetTargetPath(filePath, normalizedProjectPath), kind));
             }
         }
-        else
+
+        if (documents.Count == 0)
         {
-            // Alternatively, we go through the Documents and look for our virtual C# documents, that the dynamic file
-            // info would have added. We don't do this if there was any true AdditionalFile items, because we don't want
-            // to assume things about a real project, we just want to have some support for projects that don't use the
-            // Razor SDK.
+            // If there were no Razor files as additional files, we go through the Documents and look for our virtual C#
+            // documents, that the dynamic file info would have added. We don't do this if there was any true AdditionalFile
+            // items, because we don't want to assume things about a real project, we just want to have some support for
+            // projects that don't use the Razor SDK.
             foreach (var document in project.Documents)
             {
                 if (TryGetRazorFileName(document.FilePath, out var razorFilePath) &&
@@ -232,12 +230,14 @@ internal static class RazorProjectInfoSerializer
         // Must match C# extension: https://github.com/dotnet/vscode-csharp/blob/main/src/razor/src/razorConventions.ts#L10
         const string prefix = "virtualcsharp-razor:///";
         const string suffix = "__virtual.cs";
+        const string generatedRazorExtension = $".razor{suffix}";
+        const string generatedCshtmlExtension = $".cshtml{suffix}";
 
         var path = filePath.AsSpan();
 
         // Generated files have a path like: virtualcsharp-razor:///e:/Scratch/RazorInConsole/Goo.cshtml__virtual.cs
         if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
-            (path.EndsWith($".razor{suffix}", s_stringComparison) || path.EndsWith($".cshtml{suffix}", s_stringComparison)))
+            (path.EndsWith(generatedRazorExtension, s_stringComparison) || path.EndsWith(generatedCshtmlExtension, s_stringComparison)))
         {
             // Go through the file path normalizer because it also does Uri decoding, and we're converting from a Uri to a path
             // but "new Uri(filePath).LocalPath" seems wasteful
