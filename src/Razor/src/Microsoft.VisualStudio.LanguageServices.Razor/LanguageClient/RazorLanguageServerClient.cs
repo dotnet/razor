@@ -184,8 +184,7 @@ internal class RazorLanguageServerClient(
     {
         if (_vsHostWorkspaceServicesProvider is not null)
         {
-            var wrapper = new HostServicesProviderWrapper(_vsHostWorkspaceServicesProvider);
-            serviceCollection.AddSingleton<HostServicesProvider>(wrapper);
+            serviceCollection.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostWorkspaceServicesProvider));
         }
     }
 
@@ -298,10 +297,10 @@ internal class RazorLanguageServerClient(
         }
     }
 
-    private sealed class HostServicesProviderWrapper(VisualStudioHostServicesProvider vsHostServicesProvider) : HostServicesProvider
+    private sealed class HostServicesProviderAdapter(VisualStudioHostServicesProvider vsHostServicesProvider) : IHostServicesProvider
     {
         private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider;
 
-        public override HostServices GetServices() => _vsHostServicesProvider.GetServices();
+        public HostServices GetServices() => _vsHostServicesProvider.GetServices();
     }
 }

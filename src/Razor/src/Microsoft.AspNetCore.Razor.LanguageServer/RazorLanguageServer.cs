@@ -145,7 +145,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         services.AddSingleton<ITelemetryReporter>(_telemetryReporter);
 
         // Defaults: For when the caller hasn't provided them through the `configure` action.
-        services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
+        services.TryAddSingleton<IHostServicesProvider, DefaultHostServicesProvider>();
 
         AddHandlers(services, featureOptions);
 
