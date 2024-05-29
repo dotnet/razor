@@ -30,7 +30,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
         var razorLoggerFactory = new NoopLoggerFactory();
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(
+        RazorLanguageServerHost = RazorLanguageServerHost.Create(
             serverStream,
             serverStream,
             razorLoggerFactory,
@@ -42,6 +42,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
                 Builder(collection);
             },
             featureOptions: BuildFeatureOptions());
+        RazorLanguageServerHost.StartListening();
     }
 
     protected internal virtual void Builder(IServiceCollection collection)
@@ -53,7 +54,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         return null;
     }
 
-    private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
+    private protected RazorLanguageServerHost RazorLanguageServerHost { get; }
 
     private protected NoopLogger Logger { get; }
 

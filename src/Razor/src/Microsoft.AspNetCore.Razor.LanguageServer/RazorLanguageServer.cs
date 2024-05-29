@@ -46,7 +46,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly ClientConnection _clientConnection;
 
-    // Cached for testing
     private AbstractHandlerProvider? _handlerProvider;
 
     public RazorLanguageServer(
@@ -78,9 +77,14 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         return new ClaspLoggingBridge(loggerFactory, telemetryReporter);
     }
 
+    // We override this to ensure that base.HandlerProvider is only called once.
+    // CLaSP currently does not cache the result of this property, though it probably should.
+    protected override AbstractHandlerProvider HandlerProvider
+        => _handlerProvider ??= base.HandlerProvider;
+
     protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()
     {
-        var handlerProvider = this.HandlerProvider;
+        var handlerProvider = HandlerProvider;
         var queue = new RazorRequestExecutionQueue(this, Logger, handlerProvider);
         queue.Start();
 
@@ -203,41 +207,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
 
             services.AddHandlerWithCapabilities<InlayHintEndpoint>();
             services.AddHandler<InlayHintResolveEndpoint>();
-        }
-    }
-
-    protected override AbstractHandlerProvider HandlerProvider
-    {
-        get
-        {
-            _handlerProvider ??= base.HandlerProvider;
-
-            return _handlerProvider;
-        }
-    }
-
-    internal T GetRequiredService<T>() where T : notnull
-    {
-        var lspServices = GetLspServices();
-
-        return lspServices.GetRequiredService<T>();
-    }
-
-    // Internal for testing
-    internal new TestAccessor GetTestAccessor()
-    {
-        return new TestAccessor(this);
-    }
-
-    internal new class TestAccessor(RazorLanguageServer server)
-    {
-        private readonly RazorLanguageServer _server = server;
-
-        public AbstractHandlerProvider HandlerProvider => _server.HandlerProvider;
-
-        public RazorRequestExecutionQueue GetRequestExecutionQueue()
-        {
-            return (RazorRequestExecutionQueue)_server.GetRequestExecutionQueue();
         }
     }
 }

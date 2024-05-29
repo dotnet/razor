@@ -64,7 +64,7 @@ internal class RazorLanguageServerClient(
     private readonly ILoggerFactory _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
     private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
 
-    private RazorLanguageServerWrapper? _server;
+    private RazorLanguageServerHost? _host;
 
     public event AsyncEventHandler<EventArgs>? StartAsync;
     public event AsyncEventHandler<EventArgs>? StopAsync
@@ -105,7 +105,7 @@ internal class RazorLanguageServerClient(
 
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
-        _server = RazorLanguageServerWrapper.Create(
+        _host = RazorLanguageServerHost.Create(
             serverStream,
             serverStream,
             _loggerFactory,
@@ -115,6 +115,8 @@ internal class RazorLanguageServerClient(
             lspOptions,
             _lspServerActivationTracker,
             traceSource);
+
+        _host.StartListening();
 
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
         await EnsureContainedLanguageServersInitializedAsync();
@@ -190,17 +192,17 @@ internal class RazorLanguageServerClient(
 
     private async Task EnsureCleanedUpServerAsync()
     {
-        if (_server is null)
+        if (_host is null)
         {
             // Server was already cleaned up
             return;
         }
 
-        if (_server is not null)
+        if (_host is not null)
         {
             _projectConfigurationFilePathStore.Changed -= ProjectConfigurationFilePathStore_Changed;
             // Server still hasn't shutdown, wait for it to shutdown
-            await _server.WaitForExitAsync().ConfigureAwait(false);
+            await _host.WaitForExitAsync().ConfigureAwait(false);
         }
     }
 

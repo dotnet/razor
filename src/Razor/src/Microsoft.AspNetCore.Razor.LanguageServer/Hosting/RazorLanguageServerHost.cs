@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,24 +16,21 @@ using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
-internal sealed class RazorLanguageServerWrapper : IDisposable
+internal sealed partial class RazorLanguageServerHost : IDisposable
 {
-    private readonly RazorLanguageServer _innerServer;
+    private readonly RazorLanguageServer _server;
+    private readonly JsonRpc _jsonRpc;
     private readonly object _disposeLock;
     private bool _disposed;
 
-    private RazorLanguageServerWrapper(RazorLanguageServer innerServer)
+    private RazorLanguageServerHost(RazorLanguageServer server, JsonRpc jsonRpc)
     {
-        if (innerServer is null)
-        {
-            throw new ArgumentNullException(nameof(innerServer));
-        }
-
-        _innerServer = innerServer;
+        _server = server;
+        _jsonRpc = jsonRpc;
         _disposeLock = new object();
     }
 
-    public static RazorLanguageServerWrapper Create(
+    public static RazorLanguageServerHost Create(
         Stream input,
         Stream output,
         ILoggerFactory loggerFactory,
@@ -63,10 +59,7 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
             lspServerActivationTracker,
             telemetryReporter);
 
-        var razorLanguageServer = new RazorLanguageServerWrapper(server);
-        jsonRpc.StartListening();
-
-        return razorLanguageServer;
+        return new RazorLanguageServerHost(server, jsonRpc);
     }
 
     private static (JsonRpc, JsonSerializer) CreateJsonRpc(Stream input, Stream output)
@@ -83,9 +76,14 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
         return (jsonRpc, messageFormatter.JsonSerializer);
     }
 
+    public void StartListening()
+    {
+        _jsonRpc.StartListening();
+    }
+
     public Task WaitForExitAsync()
     {
-        var lspServices = _innerServer.GetLspServices();
+        var lspServices = _server.GetLspServices();
         if (lspServices is LspServices razorServices)
         {
             // If the LSP Server is already disposed it means the server has already exited.
@@ -107,7 +105,8 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
 
     internal T GetRequiredService<T>() where T : notnull
     {
-        return _innerServer.GetRequiredService<T>();
+        var lspServices = _server.GetLspServices();
+        return lspServices.GetRequiredService<T>();
     }
 
     public void Dispose()
@@ -121,10 +120,5 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
                 TempDirectory.Instance.Dispose();
             }
         }
-    }
-
-    internal RazorLanguageServer GetInnerLanguageServerForTesting()
-    {
-        return _innerServer;
     }
 }
