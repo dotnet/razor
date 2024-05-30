@@ -11444,7 +11444,7 @@ Time: @DateTime.Now
                 assemblyName: "Microsoft.AspNetCore.Components",
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             .AddSyntaxTrees(Parse(minimalShim))
-            .AddReferences(Basic.Reference.Assemblies.Net80.References.All)
+            .AddReferences(ReferenceUtil.NetLatestAll)
             .EmitToImageReference();
         var baseCompilation = BaseCompilation.ReplaceReference(componentsDll, minimalShimRef);
 

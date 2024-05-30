@@ -40,7 +40,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         DefaultBaseCompilation = CSharpCompilation.Create(
             "TestAssembly",
             Array.Empty<SyntaxTree>(),
-            Basic.Reference.Assemblies.AspNet80.References.All,
+            ReferenceUtil.AspNetLatestAll,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         CSharpParseOptions = new CSharpParseOptions(LanguageVersion.Preview);

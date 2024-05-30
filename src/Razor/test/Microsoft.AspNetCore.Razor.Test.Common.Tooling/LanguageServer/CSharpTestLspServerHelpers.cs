@@ -59,7 +59,7 @@ internal static class CSharpTestLspServerHelpers
         var metadataReferences = (await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken))
             // ComponentBase here comes from our ComponentShim project, not the real ASP.NET libraries. It's enough for the generated C#
             // in tests to at least compile better.
-            .Add(Basic.Reference.Assemblies.AspNet80.References.MicrosoftAspNetCoreComponents);
+            .Add(ReferenceUtil.AspNetLatestComponents);
         var workspace = CreateCSharpTestWorkspace(csharpFiles, exportProvider, metadataReferences, razorSpanMappingService);
         var clientCapabilities = new VSInternalClientCapabilities
         {

@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
@@ -37,7 +38,7 @@ public class RazorIntegrationTestBase
         DefaultBaseCompilation = CSharpCompilation.Create(
             "TestAssembly",
             Array.Empty<SyntaxTree>(),
-            Basic.Reference.Assemblies.AspNet80.References.All,
+            ReferenceUtil.AspNetLatestAll,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         CSharpParseOptions = new CSharpParseOptions(LanguageVersion.Preview);

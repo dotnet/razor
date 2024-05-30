@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
@@ -36,7 +37,7 @@ public abstract class IntegrationTestBase
         DefaultBaseCompilation = CSharpCompilation.Create(
             "TestAssembly",
             Array.Empty<SyntaxTree>(),
-            Basic.Reference.Assemblies.AspNet80.References.All,
+            ReferenceUtil.AspNetLatestAll,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
