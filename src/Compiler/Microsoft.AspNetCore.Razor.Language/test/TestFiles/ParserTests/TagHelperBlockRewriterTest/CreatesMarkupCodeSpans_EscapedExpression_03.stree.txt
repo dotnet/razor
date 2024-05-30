@@ -1,0 +1,49 @@
+﻿RazorDocument - [0..40)::40 - [<person tag="@new string(@x("1, 2"))" />]
+    MarkupBlock - [0..40)::40
+        MarkupTagHelperElement - [0..40)::40 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [0..40)::40 - [<person tag="@new string(@x("1, 2"))" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [7..37)::30 - tag - DoubleQuotes - Bound - [ tag="@new string(@x("1, 2"))"]
+                    MarkupTextLiteral - [7..8)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [8..11)::3 - [tag] - Gen<Markup>
+                        Text;[tag];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [13..36)::23
+                        MarkupBlock - [13..17)::4
+                            CSharpCodeBlock - [13..17)::4
+                                CSharpImplicitExpression - [13..17)::4
+                                    CSharpTransition - [13..14)::1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [14..17)::3
+                                        CSharpCodeBlock - [14..17)::3
+                                            CSharpExpressionLiteral - [14..17)::3 - [new] - Gen<Expr>
+                                                Keyword;[new];
+                        CSharpExpressionLiteral - [17..25)::8 - [ string(] - Gen<None>
+                            Whitespace;[ ];
+                            Text;[string(];
+                        MarkupBlock - [25..35)::10
+                            CSharpCodeBlock - [25..35)::10
+                                CSharpImplicitExpression - [25..35)::10
+                                    CSharpTransition - [25..25)::0
+                                        Transition;[<Missing>];
+                                    CSharpImplicitExpressionBody - [25..35)::10
+                                        CSharpCodeBlock - [25..35)::10
+                                            CSharpExpressionLiteral - [25..35)::10 - [@x("1, 2")] - Gen<Expr>
+                                                Identifier;[@x];
+                                                LeftParenthesis;[(];
+                                                StringLiteral;["1, 2"];
+                                                RightParenthesis;[)];
+                        CSharpExpressionLiteral - [35..36)::1 - [)] - Gen<None>
+                            Text;[)];
+                    MarkupTextLiteral - [36..37)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [37..38)::1
+                    MarkupTextLiteral - [37..38)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

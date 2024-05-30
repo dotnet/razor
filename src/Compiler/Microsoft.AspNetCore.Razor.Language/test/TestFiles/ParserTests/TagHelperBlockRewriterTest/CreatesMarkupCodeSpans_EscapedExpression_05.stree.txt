@@ -1,0 +1,42 @@
+﻿RazorDocument - [0..39)::39 - [<person tag='new string(@x("1, 2"))' />]
+    MarkupBlock - [0..39)::39
+        MarkupTagHelperElement - [0..39)::39 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [0..39)::39 - [<person tag='new string(@x("1, 2"))' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [7..36)::29 - tag - SingleQuotes - Bound - [ tag='new string(@x("1, 2"))']
+                    MarkupTextLiteral - [7..8)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [8..11)::3 - [tag] - Gen<Markup>
+                        Text;[tag];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [13..35)::22
+                        CSharpExpressionLiteral - [13..16)::3 - [new] - Gen<None>
+                            Text;[new];
+                        CSharpExpressionLiteral - [16..24)::8 - [ string(] - Gen<None>
+                            Whitespace;[ ];
+                            Text;[string(];
+                        MarkupBlock - [24..34)::10
+                            CSharpCodeBlock - [24..34)::10
+                                CSharpImplicitExpression - [24..34)::10
+                                    CSharpTransition - [24..24)::0
+                                        Transition;[<Missing>];
+                                    CSharpImplicitExpressionBody - [24..34)::10
+                                        CSharpCodeBlock - [24..34)::10
+                                            CSharpExpressionLiteral - [24..34)::10 - [@x("1, 2")] - Gen<Expr>
+                                                Identifier;[@x];
+                                                LeftParenthesis;[(];
+                                                StringLiteral;["1, 2"];
+                                                RightParenthesis;[)];
+                        CSharpExpressionLiteral - [34..35)::1 - [)] - Gen<None>
+                            Text;[)];
+                    MarkupTextLiteral - [35..36)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [36..37)::1
+                    MarkupTextLiteral - [36..37)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

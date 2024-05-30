@@ -1,0 +1,42 @@
+﻿RazorDocument - [0..35)::35 - [<person tag='@new string("1 2")' />]
+    MarkupBlock - [0..35)::35
+        MarkupTagHelperElement - [0..35)::35 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [0..35)::35 - [<person tag='@new string("1 2")' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [7..32)::25 - tag - SingleQuotes - Bound - [ tag='@new string("1 2")']
+                    MarkupTextLiteral - [7..8)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [8..11)::3 - [tag] - Gen<Markup>
+                        Text;[tag];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [13..31)::18
+                        MarkupBlock - [13..17)::4
+                            CSharpCodeBlock - [13..17)::4
+                                CSharpImplicitExpression - [13..17)::4
+                                    CSharpTransition - [13..14)::1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpImplicitExpressionBody - [14..17)::3
+                                        CSharpCodeBlock - [14..17)::3
+                                            CSharpExpressionLiteral - [14..17)::3 - [new] - Gen<Expr>
+                                                Keyword;[new];
+                        CSharpExpressionLiteral - [17..27)::10 - [ string("1] - Gen<None>
+                            Whitespace;[ ];
+                            Text;[string(];
+                            DoubleQuote;["];
+                            Text;[1];
+                        CSharpExpressionLiteral - [27..31)::4 - [ 2")] - Gen<None>
+                            Whitespace;[ ];
+                            Text;[2];
+                            DoubleQuote;["];
+                            Text;[)];
+                    MarkupTextLiteral - [31..32)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [32..33)::1
+                    MarkupTextLiteral - [32..33)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];
