@@ -42,7 +42,6 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
                 Builder(collection);
             },
             featureOptions: BuildFeatureOptions());
-        RazorLanguageServerHost.StartListening();
     }
 
     protected internal virtual void Builder(IServiceCollection collection)

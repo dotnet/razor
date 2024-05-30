@@ -25,7 +25,6 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
         using var host = RazorLanguageServerHost.Create(serverStream, serverStream, LoggerFactory, NoOpTelemetryReporter.Instance);
-        host.StartListening();
 
         var server = host.GetTestAccessor().Server;
         server.Initialize();

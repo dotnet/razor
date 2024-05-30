@@ -35,7 +35,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorRequestContext>
+internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorRequestContext>, IDisposable
 {
     private readonly JsonRpc _jsonRpc;
     private readonly ILoggerFactory _loggerFactory;
@@ -70,6 +70,11 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         _clientConnection = new ClientConnection(_jsonRpc);
 
         Initialize();
+    }
+
+    public void Dispose()
+    {
+        _jsonRpc.Dispose();
     }
 
     private static ILspLogger CreateILspLogger(ILoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)

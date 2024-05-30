@@ -19,14 +19,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 internal sealed partial class RazorLanguageServerHost : IDisposable
 {
     private readonly RazorLanguageServer _server;
-    private readonly JsonRpc _jsonRpc;
-
     private bool _disposed;
 
-    private RazorLanguageServerHost(RazorLanguageServer server, JsonRpc jsonRpc)
+    private RazorLanguageServerHost(RazorLanguageServer server)
     {
         _server = server;
-        _jsonRpc = jsonRpc;
     }
 
     public void Dispose()
@@ -37,8 +34,7 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
         }
 
         _disposed = true;
-
-        _jsonRpc.Dispose();
+        _server.Dispose();
     }
 
     public static RazorLanguageServerHost Create(
@@ -70,7 +66,11 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
             lspServerActivationTracker,
             telemetryReporter);
 
-        return new RazorLanguageServerHost(server, jsonRpc);
+        var host = new RazorLanguageServerHost(server);
+
+        jsonRpc.StartListening();
+
+        return host;
     }
 
     private static (JsonRpc, JsonSerializer) CreateJsonRpc(Stream input, Stream output)
@@ -85,11 +85,6 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
         jsonRpc.ExceptionStrategy = ExceptionProcessing.ISerializable;
 
         return (jsonRpc, messageFormatter.JsonSerializer);
-    }
-
-    public void StartListening()
-    {
-        _jsonRpc.StartListening();
     }
 
     public Task WaitForExitAsync()

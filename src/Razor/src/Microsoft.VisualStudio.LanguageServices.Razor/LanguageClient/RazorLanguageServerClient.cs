@@ -116,8 +116,6 @@ internal class RazorLanguageServerClient(
             _lspServerActivationTracker,
             traceSource);
 
-        _host.StartListening();
-
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
         await EnsureContainedLanguageServersInitializedAsync();
         var connection = new Connection(clientStream, clientStream);

@@ -87,8 +87,6 @@ public class Program
             devKitTelemetryReporter ?? NoOpTelemetryReporter.Instance,
             featureOptions: languageServerFeatureOptions);
 
-        host.StartListening();
-
         // Now we have a server, and hence a connection, we have somewhere to log
         var clientConnection = host.GetRequiredService<IClientConnection>();
         var loggerProvider = new LoggerProvider(logLevel, clientConnection);
