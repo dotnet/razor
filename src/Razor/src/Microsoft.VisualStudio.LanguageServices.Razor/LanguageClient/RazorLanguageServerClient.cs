@@ -12,9 +12,7 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -35,7 +33,6 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 internal class RazorLanguageServerClient(
     RazorCustomMessageTarget customTarget,
     LSPRequestInvoker requestInvoker,
-    ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
     RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
     IRazorProjectInfoPublisher projectInfoPublisher,
     ILoggerFactory loggerFactory,
@@ -56,7 +53,6 @@ internal class RazorLanguageServerClient(
     private readonly ILspServerActivationTracker _lspServerActivationTracker = lspServerActivationTracker;
     private readonly RazorCustomMessageTarget _customMessageTarget = customTarget;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
-    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
     private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
     private readonly IRazorProjectInfoPublisher _projectInfoPublisher = projectInfoPublisher;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
@@ -196,51 +192,8 @@ internal class RazorLanguageServerClient(
 
         if (_host is not null)
         {
-            _projectConfigurationFilePathStore.Changed -= ProjectConfigurationFilePathStore_Changed;
             // Server still hasn't shutdown, wait for it to shutdown
             await _host.WaitForExitAsync().ConfigureAwait(false);
-        }
-    }
-
-    private void ProjectConfigurationFilePathStore_Changed(object sender, ProjectConfigurationFilePathChangedEventArgs args)
-    {
-        _ = ProjectConfigurationFilePathStore_ChangedAsync(args, CancellationToken.None);
-    }
-
-    private async Task ProjectConfigurationFilePathStore_ChangedAsync(ProjectConfigurationFilePathChangedEventArgs args, CancellationToken cancellationToken)
-    {
-        if (_languageServerFeatureOptions.DisableRazorLanguageServer || _languageServerFeatureOptions.UseProjectConfigurationEndpoint)
-        {
-            return;
-        }
-
-        try
-        {
-            var parameter = new MonitorProjectConfigurationFilePathParams()
-            {
-                ProjectKeyId = args.ProjectKey.Id,
-                ConfigurationFilePath = args.ConfigurationFilePath,
-            };
-
-            await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
-                LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
-                RazorLSPConstants.RazorLanguageServerName,
-                parameter,
-                cancellationToken);
-        }
-        catch (Exception)
-        {
-            // We're fire and forgetting here, if the request fails we're ok with that.
-            //
-            // Note: When moving between solutions this can fail with a null reference exception because the underlying LSP platform's
-            // JsonRpc object will be `null`. This can happen in two situations:
-            //      1.  There's currently a race in the platform on shutting down/activating so we don't get the opportunity to properly detach
-            //          from the configuration file path store changed event properly.
-            //          Tracked by: https://github.com/dotnet/aspnetcore/issues/23819
-            //      2.  The LSP platform failed to shutdown our language server properly due to a JsonRpc timeout. There's currently a limitation in
-            //          the LSP platform APIs where we don't know if the LSP platform requested shutdown but our language server never saw it. Therefore,
-            //          we will null-ref until our language server client boot-logic kicks back in and re-activates resulting in the old server being
-            //          being cleaned up.
         }
     }
 
@@ -281,17 +234,6 @@ internal class RazorLanguageServerClient(
         if (_languageServerFeatureOptions.UseProjectConfigurationEndpoint)
         {
             _projectInfoEndpointPublisher.StartSending();
-        }
-        else
-        {
-            _projectConfigurationFilePathStore.Changed += ProjectConfigurationFilePathStore_Changed;
-
-            var mappings = _projectConfigurationFilePathStore.GetMappings();
-            foreach (var mapping in mappings)
-            {
-                var args = new ProjectConfigurationFilePathChangedEventArgs(mapping.Key, mapping.Value);
-                ProjectConfigurationFilePathStore_Changed(this, args);
-            }
         }
     }
 

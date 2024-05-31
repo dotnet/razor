@@ -5,6 +5,8 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
@@ -12,15 +14,34 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 internal sealed class VisualStudioRazorProjectInfoPublisher : CodeAnalysis.Razor.ProjectSystem.RazorProjectInfoPublisher
 {
     [ImportingConstructor]
-    public VisualStudioRazorProjectInfoPublisher(IProjectSnapshotManager projectManager)
+    public VisualStudioRazorProjectInfoPublisher(
+        JoinableTaskContext joinableTaskContext,
+        LSPEditorFeatureDetector lspEditorFeatureDetector,
+        IProjectSnapshotManager projectManager)
         : base()
     {
+        var jtf = joinableTaskContext.Factory;
+
+        _ = jtf.RunAsync(async () =>
+        {
+            // Switch to the main thread because IsLSPEditorAvailable() expects to.
+            await jtf.SwitchToMainThreadAsync();
+
+            if (lspEditorFeatureDetector.IsLSPEditorAvailable())
+            {
+                Initialize(projectManager);
+            }
+        });
+    }
+
+    private void Initialize(IProjectSnapshotManager projectManager)
+    {
+        projectManager.Changed += ProjectManager_Changed;
+
         foreach (var project in projectManager.GetProjects())
         {
             EnqueueUpdate(project.ToRazorProjectInfo());
         }
-
-        projectManager.Changed += ProjectManager_Changed;
     }
 
     private void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
