@@ -10,7 +10,6 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
@@ -79,7 +78,7 @@ internal static class CompletionListMerger
         return new MergedCompletionListData(data1, data2);
     }
 
-    public static bool TrySplit(object? data, [NotNullWhen(true)] out IReadOnlyList<JObject>? splitData)
+    public static bool TrySplit(object? data, [NotNullWhen(true)] out IReadOnlyList<JsonObject>? splitData)
     {
         if (data is null)
         {
@@ -87,7 +86,7 @@ internal static class CompletionListMerger
             return false;
         }
 
-        var collector = new List<JObject>();
+        var collector = new List<JsonObject>();
         Split(data, collector);
 
         if (collector.Count == 0)
@@ -100,7 +99,7 @@ internal static class CompletionListMerger
         return true;
     }
 
-    private static void Split(object data, List<JObject> collector)
+    private static void Split(object data, List<JsonObject> collector)
     {
         if (data is MergedCompletionListData mergedData)
         {
@@ -156,7 +155,7 @@ internal static class CompletionListMerger
             (jobject.ContainsKey(Data2Key) || jobject.ContainsKey(Data2Key.ToLowerInvariant())))
         {
             // Merged data
-            var mergedCompletionListData = jobject.ToObject<MergedCompletionListData>();
+            var mergedCompletionListData = jobject.Deserialize<MergedCompletionListData>();
 
             if (mergedCompletionListData is null)
             {
