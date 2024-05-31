@@ -48,19 +48,19 @@ internal class RazorLanguageServerClient(
     VisualStudioHostServicesProvider vsHostServicesProvider)
     : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
 {
-    private readonly ILanguageClientBroker _languageClientBroker = languageClientBroker ?? throw new ArgumentNullException(nameof(languageClientBroker));
-    private readonly ILanguageServiceBroker2 _languageServiceBroker = languageServiceBroker ?? throw new ArgumentNullException(nameof(languageServiceBroker));
-    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
-    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager ?? throw new ArgumentNullException(nameof(clientSettingsManager));
-    private readonly ILspServerActivationTracker _lspServerActivationTracker = lspServerActivationTracker ?? throw new ArgumentNullException(nameof(lspServerActivationTracker));
-    private readonly RazorCustomMessageTarget _customMessageTarget = customTarget ?? throw new ArgumentNullException(nameof(customTarget));
-    private readonly LSPRequestInvoker _requestInvoker = requestInvoker ?? throw new ArgumentNullException(nameof(requestInvoker));
-    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-    private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher ?? throw new ArgumentNullException(nameof(projectInfoEndpointPublisher));
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-    private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider ?? throw new ArgumentNullException(nameof(vsHostServicesProvider));
-    private readonly ILoggerFactory _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-    private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
+    private readonly ILanguageClientBroker _languageClientBroker = languageClientBroker;
+    private readonly ILanguageServiceBroker2 _languageServiceBroker = languageServiceBroker;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
+    private readonly ILspServerActivationTracker _lspServerActivationTracker = lspServerActivationTracker;
+    private readonly RazorCustomMessageTarget _customMessageTarget = customTarget;
+    private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+    private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider;
+    private readonly ILoggerFactory _loggerFactory = loggerFactory;
+    private readonly RazorLogHubTraceProvider _traceProvider = traceProvider;
 
     private RazorLanguageServerHost? _host;
 
