@@ -45,7 +45,7 @@ internal class RazorLanguageServerClient(
     ITelemetryReporter telemetryReporter,
     IClientSettingsManager clientSettingsManager,
     ILspServerActivationTracker lspServerActivationTracker,
-    VisualStudioHostServicesProvider vsHostWorkspaceServicesProvider)
+    VisualStudioHostServicesProvider vsHostServicesProvider)
     : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
 {
     private readonly ILanguageClientBroker _languageClientBroker = languageClientBroker ?? throw new ArgumentNullException(nameof(languageClientBroker));
@@ -58,7 +58,7 @@ internal class RazorLanguageServerClient(
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
     private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher ?? throw new ArgumentNullException(nameof(projectInfoEndpointPublisher));
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-    private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider ?? throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
+    private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider ?? throw new ArgumentNullException(nameof(vsHostServicesProvider));
     private readonly ILoggerFactory _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
     private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
 
@@ -180,9 +180,9 @@ internal class RazorLanguageServerClient(
 
     private void ConfigureLanguageServer(IServiceCollection serviceCollection)
     {
-        if (_vsHostWorkspaceServicesProvider is not null)
+        if (_vsHostServicesProvider is not null)
         {
-            serviceCollection.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostWorkspaceServicesProvider));
+            serviceCollection.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
         }
     }
 
