@@ -37,6 +37,7 @@ internal class RazorLanguageServerClient(
     LSPRequestInvoker requestInvoker,
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
     RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
+    IRazorProjectInfoPublisher projectInfoManager,
     ILoggerFactory loggerFactory,
     RazorLogHubTraceProvider traceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
