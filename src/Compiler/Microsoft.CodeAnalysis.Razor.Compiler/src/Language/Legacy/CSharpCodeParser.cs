@@ -677,7 +677,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             codeBlock = SyntaxFactory.CSharpCodeBlock(builder.ToList());
         }
 
-        RazorMetaCodeSyntax? rightBrace;
+        RazorMetaCodeSyntax? rightBrace = null;
         if (At(SyntaxKind.RightBrace))
         {
             rightBrace = OutputAsMetaCode(EatCurrentToken());

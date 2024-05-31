@@ -222,6 +222,6 @@ public class CSharpCodeParserTest
             DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine),
             DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine),
         };
-        _ = new CSharpCodeParser(directiveDescriptors, context);
+        var parser = new CSharpCodeParser(directiveDescriptors, context);
     }
 }

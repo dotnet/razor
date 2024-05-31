@@ -411,7 +411,7 @@ internal abstract class Tokenizer : ITokenizer
 
     private static LookaheadToken BeginLookahead(ITextBuffer buffer)
     {
-        _ = buffer.Position;
+        var start = buffer.Position;
         return new LookaheadToken(buffer);
     }
 

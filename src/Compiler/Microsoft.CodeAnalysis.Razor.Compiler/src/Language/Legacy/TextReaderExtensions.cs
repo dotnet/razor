@@ -98,7 +98,7 @@ internal static class TextReaderExtensions
         }
 
         var builder = new StringBuilder();
-        int ch;
+        var ch = -1;
         while ((ch = reader.Peek()) != -1 && !condition((char)ch))
         {
             reader.Read(); // Advance the reader

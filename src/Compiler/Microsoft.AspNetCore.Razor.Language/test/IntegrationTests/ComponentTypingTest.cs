@@ -99,7 +99,7 @@ namespace Test
     }
 }
 "));
-        CompileToCSharp(@"
+        var generated = CompileToCSharp(@"
   <MyComponent Value=10 Something=@for
 
   <button disabled=@form.IsSubmitting type=""submit"" class=""btn btn-primary mt-3 mr-3 has-spinner @(form.IsSubmitting ? ""active"" :"""")"" onclick=@(async () => await SaveAsync(false))>

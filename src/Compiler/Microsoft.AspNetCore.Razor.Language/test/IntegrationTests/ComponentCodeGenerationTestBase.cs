@@ -5537,7 +5537,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: DesignTime);
-        CompileToAssembly(generated,
+        var result = CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(4,17): warning CS0169: The field 'TestComponent.counter' is never used
             //     private int counter;
             Diagnostic(ErrorCode.WRN_UnreferencedField, "counter").WithArguments("Test.TestComponent.counter").WithLocation(4, 17));
