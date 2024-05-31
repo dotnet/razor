@@ -42,7 +42,7 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
         Stream output,
         ILoggerFactory loggerFactory,
         ITelemetryReporter telemetryReporter,
-        Action<IServiceCollection>? configure = null,
+        Action<IServiceCollection>? configureServices = null,
         LanguageServerFeatureOptions? featureOptions = null,
         RazorLSPOptions? razorLSPOptions = null,
         ILspServerActivationTracker? lspServerActivationTracker = null,
@@ -61,7 +61,7 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
             jsonSerializer,
             loggerFactory,
             featureOptions,
-            configure,
+            configureServices,
             razorLSPOptions,
             lspServerActivationTracker,
             telemetryReporter);

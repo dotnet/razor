@@ -40,7 +40,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
     private readonly JsonRpc _jsonRpc;
     private readonly ILoggerFactory _loggerFactory;
     private readonly LanguageServerFeatureOptions? _featureOptions;
-    private readonly Action<IServiceCollection>? _configureServer;
+    private readonly Action<IServiceCollection>? _configureServices;
     private readonly RazorLSPOptions _lspOptions;
     private readonly ILspServerActivationTracker? _lspServerActivationTracker;
     private readonly ITelemetryReporter _telemetryReporter;
@@ -53,7 +53,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         JsonSerializer serializer,
         ILoggerFactory loggerFactory,
         LanguageServerFeatureOptions? featureOptions,
-        Action<IServiceCollection>? configureServer,
+        Action<IServiceCollection>? configureServices,
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
         ITelemetryReporter telemetryReporter)
@@ -62,7 +62,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         _jsonRpc = jsonRpc;
         _loggerFactory = loggerFactory;
         _featureOptions = featureOptions;
-        _configureServer = configureServer;
+        _configureServices = configureServices;
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
         _lspServerActivationTracker = lspServerActivationTracker;
         _telemetryReporter = telemetryReporter;
@@ -104,9 +104,9 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         // Wrap the logger factory so that we can add [LSP] to the start of all the categories
         services.AddSingleton<ILoggerFactory>(loggerFactoryWrapper);
 
-        if (_configureServer is not null)
+        if (_configureServices is not null)
         {
-            _configureServer(services);
+            _configureServices(services);
         }
 
         services.AddSingleton<IClientConnection>(_clientConnection);
