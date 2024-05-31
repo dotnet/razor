@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -107,6 +108,18 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         if (_configureServices is not null)
         {
             _configureServices(services);
+        }
+
+        // TODO: Remove this
+        foreach (var service in services)
+        {
+            // Only register RazorProjectInfoListener if an IRazorProjectInfoPublisher was registered.
+            if (service.ServiceType == typeof(IRazorProjectInfoPublisher))
+            {
+                services.AddSingleton<RazorProjectInfoListener>();
+                services.AddSingleton((services) => (IOnInitialized)services.GetRequiredService<RazorProjectInfoListener>());
+                break;
+            }
         }
 
         services.AddSingleton<IClientConnection>(_clientConnection);

@@ -4,20 +4,22 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
-[Export(typeof(IRazorStartupService)]
 [Export(typeof(IRazorProjectInfoPublisher))]
-internal sealed class VisualStudioRazorProjectInfoPublisher : CodeAnalysis.Razor.ProjectSystem.RazorProjectInfoPublisher, IRazorStartupService
+internal sealed class VisualStudioRazorProjectInfoPublisher : CodeAnalysis.Razor.ProjectSystem.RazorProjectInfoPublisher
 {
     [ImportingConstructor]
     public VisualStudioRazorProjectInfoPublisher(IProjectSnapshotManager projectManager)
         : base()
     {
+        foreach (var project in projectManager.GetProjects())
+        {
+            EnqueueUpdate(project.ToRazorProjectInfo());
+        }
+
         projectManager.Changed += ProjectManager_Changed;
     }
 
@@ -36,20 +38,12 @@ internal sealed class VisualStudioRazorProjectInfoPublisher : CodeAnalysis.Razor
             case ProjectChangeKind.DocumentRemoved:
             case ProjectChangeKind.DocumentAdded:
                 var newer = e.Newer.AssumeNotNull();
-                AddWork(newer.ToRazorProjectInfo());
+                EnqueueUpdate(newer.ToRazorProjectInfo());
                 break;
 
             case ProjectChangeKind.ProjectRemoved:
                 var older = e.Older.AssumeNotNull();
-                AddWork(new RazorProjectInfo(
-                    older.Key,
-                    older.FilePath,
-                    configuration: FallbackRazorConfiguration.Latest,
-                    rootNamespace: null,
-                    displayName: "",
-                    projectWorkspaceState: ProjectWorkspaceState.Default,
-                    documents: []));
-
+                EnqueueRemove(older.Key);
                 break;
 
             case ProjectChangeKind.DocumentChanged:

@@ -2,13 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal abstract partial class RazorProjectInfoPublisher
 {
-    private sealed class Comparer : IEqualityComparer<RazorProjectInfo>
+    private sealed class Comparer : IEqualityComparer<Work>
     {
         public static readonly Comparer Instance = new();
 
@@ -16,7 +15,7 @@ internal abstract partial class RazorProjectInfoPublisher
         {
         }
 
-        public bool Equals(RazorProjectInfo? x, RazorProjectInfo? y)
+        public bool Equals(Work? x, Work? y)
         {
             if (x is null)
             {
@@ -30,9 +29,9 @@ internal abstract partial class RazorProjectInfoPublisher
             return x.ProjectKey.Equals(y.ProjectKey);
         }
 
-        public int GetHashCode(RazorProjectInfo obj)
+        public int GetHashCode(Work work)
         {
-            return obj.ProjectKey.GetHashCode();
+            return work.ProjectKey.GetHashCode();
         }
     }
 }

@@ -37,7 +37,7 @@ internal class RazorLanguageServerClient(
     LSPRequestInvoker requestInvoker,
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
     RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
-    IRazorProjectInfoPublisher projectInfoManager,
+    IRazorProjectInfoPublisher projectInfoPublisher,
     ILoggerFactory loggerFactory,
     RazorLogHubTraceProvider traceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -58,6 +58,7 @@ internal class RazorLanguageServerClient(
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
     private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
+    private readonly IRazorProjectInfoPublisher _projectInfoPublisher = projectInfoPublisher;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
@@ -109,7 +110,7 @@ internal class RazorLanguageServerClient(
             serverStream,
             _loggerFactory,
             _telemetryReporter,
-            ConfigureLanguageServer,
+            ConfigureServices,
             _languageServerFeatureOptions,
             lspOptions,
             _lspServerActivationTracker,
@@ -179,12 +180,10 @@ internal class RazorLanguageServerClient(
         _lspServerActivationTracker.Activated();
     }
 
-    private void ConfigureLanguageServer(IServiceCollection serviceCollection)
+    private void ConfigureServices(IServiceCollection serviceCollection)
     {
-        if (_vsHostServicesProvider is not null)
-        {
-            serviceCollection.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
-        }
+        serviceCollection.AddSingleton<IRazorProjectInfoPublisher>(_projectInfoPublisher);
+        serviceCollection.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
     }
 
     private async Task EnsureCleanedUpServerAsync()
