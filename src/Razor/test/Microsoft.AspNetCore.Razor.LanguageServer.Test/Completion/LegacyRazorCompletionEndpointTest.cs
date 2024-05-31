@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -14,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
@@ -142,7 +142,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
         // Act & Assert
-        JsonConvert.SerializeObject(converted);
+        JsonSerializer.Serialize(converted);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
         // Act & Assert
-        JsonConvert.SerializeObject(converted);
+        JsonSerializer.Serialize(converted);
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
         // Act & Assert
-        JsonConvert.SerializeObject(converted);
+        JsonSerializer.Serialize(converted);
     }
 
     [Fact]

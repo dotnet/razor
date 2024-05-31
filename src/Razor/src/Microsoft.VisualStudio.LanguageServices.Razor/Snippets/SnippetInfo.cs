@@ -3,8 +3,9 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.VisualStudio.Razor.Snippets;
 
@@ -40,7 +41,7 @@ internal record SnippetInfo
         => _parsedXmlSnippet.Value;
 }
 
-internal record SnippetCompletionData([property: JsonProperty(SnippetCompletionData.PropertyName)] string Path)
+internal record SnippetCompletionData([property: JsonPropertyName(SnippetCompletionData.PropertyName)] string Path)
 {
     private const string PropertyName = "__razor_snippet_path";
 
@@ -48,12 +49,22 @@ internal record SnippetCompletionData([property: JsonProperty(SnippetCompletionD
     {
         snippetCompletionData = data as SnippetCompletionData;
 
-        if (data is JObject jObject &&
-            jObject.Property(PropertyName) is not null)
+        // TODO: Which one??
+        if (data is JsonObject jObject &&
+            jObject.TryGetPropertyValue(PropertyName, out _))
         {
             try
             {
-                snippetCompletionData = jObject.ToObject<SnippetCompletionData>();
+                snippetCompletionData = jObject.Deserialize<SnippetCompletionData>();
+            }
+            catch { }
+        }
+        else if (data is JsonElement jElement &&
+            jElement.TryGetProperty(PropertyName, out _))
+        {
+            try
+            {
+                snippetCompletionData = jElement.Deserialize<SnippetCompletionData>();
             }
             catch { }
         }
