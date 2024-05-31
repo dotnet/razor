@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -13,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 /// property to VSInternalCodeActionContext, but in our case we need to send a request to our CustomMessageTarget, and so
 /// we need the Context property serialized as the internal type.
 /// </summary>
-[DataContract]
 internal class VSCodeActionParams
 {
     [JsonPropertyName("textDocument")]
