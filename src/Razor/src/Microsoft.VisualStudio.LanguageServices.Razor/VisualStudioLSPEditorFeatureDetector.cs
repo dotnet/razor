@@ -66,7 +66,7 @@ internal class VisualStudioLSPEditorFeatureDetector : LspEditorFeatureDetector
     {
     }
 
-    public override bool IsLSPEditorAvailable(string? documentMoniker, object? hierarchy)
+    public override bool IsLSPEditorAvailable(string? documentMoniker)
     {
         _activityLog.LogInfo("Checking if LSP Editor is available");
         if (documentMoniker is null)
@@ -78,14 +78,6 @@ internal class VisualStudioLSPEditorFeatureDetector : LspEditorFeatureDetector
         if (!IsLSPEditorAvailable())
         {
             _activityLog.LogInfo("Using Legacy editor because the option was set to true");
-            return false;
-        }
-
-        var ivsHierarchy = hierarchy as IVsHierarchy;
-        if (!ProjectSupportsLSPEditor(documentMoniker, ivsHierarchy))
-        {
-            // Current project hierarchy doesn't support the LSP Razor editor
-            _activityLog.LogInfo("Using Legacy editor because the current project does not support LSP Editor");
             return false;
         }
 

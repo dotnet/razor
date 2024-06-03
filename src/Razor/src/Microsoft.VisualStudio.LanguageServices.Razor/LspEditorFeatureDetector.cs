@@ -5,7 +5,7 @@ namespace Microsoft.VisualStudio.Razor;
 
 internal abstract class LspEditorFeatureDetector
 {
-    public abstract bool IsLSPEditorAvailable(string? documentMoniker, object? hierarchy);
+    public abstract bool IsLSPEditorAvailable(string? documentMoniker);
 
     public abstract bool IsLSPEditorAvailable();
 

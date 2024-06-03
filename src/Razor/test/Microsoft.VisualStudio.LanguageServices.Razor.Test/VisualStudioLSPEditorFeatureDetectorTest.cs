@@ -24,7 +24,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         };
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+        var result = featureDetector.IsLSPEditorAvailable("testMoniker");
 
         // Assert
         Assert.True(result);
@@ -42,7 +42,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         };
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+        var result = featureDetector.IsLSPEditorAvailable("testMoniker");
 
         // Assert
         Assert.False(result);
@@ -60,27 +60,10 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         };
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+        var result = featureDetector.IsLSPEditorAvailable("testMoniker");
 
         // Assert
         Assert.True(result);
-    }
-
-    [UIFact]
-    public void IsLSPEditorAvailable_UnsupportedProject_ReturnsFalse()
-    {
-        // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            ProjectSupportsLSPEditorValue = false,
-        };
-
-        // Act
-        var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
-
-        // Assert
-        Assert.False(result);
     }
 
     [UIFact]
