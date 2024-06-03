@@ -13,24 +13,15 @@
                     MarkupTextLiteral - [12..13)::1 - ['] - Gen<Markup>
                         SingleQuote;['];
                     MarkupTagHelperAttributeValue - [13..35)::22
-                        CSharpExpressionLiteral - [13..16)::3 - [new] - Gen<None>
+                        CSharpExpressionLiteral - [13..35)::22 - [new string(@x("1, 2"))] - Gen<None>
                             Text;[new];
-                        CSharpExpressionLiteral - [16..24)::8 - [ string(] - Gen<None>
                             Whitespace;[ ];
                             Text;[string(];
-                        MarkupBlock - [24..34)::10
-                            CSharpCodeBlock - [24..34)::10
-                                CSharpImplicitExpression - [24..34)::10
-                                    CSharpTransition - [24..24)::0
-                                        Transition;[<Missing>];
-                                    CSharpImplicitExpressionBody - [24..34)::10
-                                        CSharpCodeBlock - [24..34)::10
-                                            CSharpExpressionLiteral - [24..34)::10 - [@x("1, 2")] - Gen<Expr>
-                                                Identifier;[@x];
-                                                LeftParenthesis;[(];
-                                                StringLiteral;["1, 2"];
-                                                RightParenthesis;[)];
-                        CSharpExpressionLiteral - [34..35)::1 - [)] - Gen<None>
+                            Transition;[@];
+                            Identifier;[x];
+                            LeftParenthesis;[(];
+                            StringLiteral;["1, 2"];
+                            RightParenthesis;[)];
                             Text;[)];
                     MarkupTextLiteral - [35..36)::1 - ['] - Gen<Markup>
                         SingleQuote;['];

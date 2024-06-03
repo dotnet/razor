@@ -1,4 +1,2 @@
-﻿Transition span at (13:0,13 [1] ) - Parent: Expression block at (13:0,13 [4] )
-Code span at (14:0,14 [3] ) - Parent: Expression block at (13:0,13 [4] )
-Code span at (17:0,17 [11] ) - Parent: Markup block at (13:0,13 [19] )
-Code span at (28:0,28 [4] ) - Parent: Markup block at (13:0,13 [19] )
+﻿Transition span at (13:0,13 [1] ) - Parent: Expression block at (13:0,13 [19] )
+Code span at (14:0,14 [18] ) - Parent: Expression block at (13:0,13 [19] )

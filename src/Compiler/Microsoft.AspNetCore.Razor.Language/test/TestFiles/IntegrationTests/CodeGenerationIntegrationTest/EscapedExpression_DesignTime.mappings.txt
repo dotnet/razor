@@ -3,48 +3,18 @@
 Generated Location: (1707:32,37 [17] )
 |"*, TestAssembly"|
 
-Source Location: (48:2,13 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
-|new|
-Generated Location: (2315:50,27 [3] )
-|new|
-
-Source Location: (51:2,16 [11] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
-| string("1,|
-Generated Location: (2318:50,30 [11] )
-| string("1,|
-
-Source Location: (62:2,27 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
-| 2")|
-Generated Location: (2329:50,41 [4] )
-| 2")|
+Source Location: (48:2,13 [18] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
+|new string("1, 2")|
+Generated Location: (2315:50,27 [18] )
+|new string("1, 2")|
 
 Source Location: (84:3,12 [18] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
 |new string("1, 2")|
 Generated Location: (2676:59,27 [18] )
 |new string("1, 2")|
 
-Source Location: (120:4,12 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
-|"0"|
-Generated Location: (3037:68,27 [3] )
-|"0"|
-
-Source Location: (123:4,15 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
-| +|
-Generated Location: (3040:68,30 [2] )
-| +|
-
-Source Location: (125:4,17 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
-| new|
-Generated Location: (3042:68,32 [4] )
-| new|
-
-Source Location: (129:4,21 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
-| |
-Generated Location: (3046:68,36 [1] )
-| |
-
-Source Location: (130:4,22 [14] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
-|@String("1 2")|
-Generated Location: (3047:68,37 [14] )
-|@String("1 2")|
+Source Location: (120:4,12 [24] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
+|"0" + new @String("1 2")|
+Generated Location: (3037:68,27 [24] )
+|"0" + new @String("1 2")|
 

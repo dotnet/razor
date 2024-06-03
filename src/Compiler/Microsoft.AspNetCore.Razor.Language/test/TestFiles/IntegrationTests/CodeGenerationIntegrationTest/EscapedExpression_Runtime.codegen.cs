@@ -53,22 +53,8 @@ namespace AspNetCore
             __tagHelperExecutionContext.Add(__InputTagHelper);
             __InputTagHelper.TagProp = 
 #nullable restore
-#line (3,14)-(3,17) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
-new
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (3,17)-(3,28) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
- string("1,
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (3,28)-(3,32) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
- 2")
+#line (3,14)-(3,32) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
+new string("1, 2")
 
 #line default
 #line hidden
@@ -113,36 +99,8 @@ new string("1, 2")
             __tagHelperExecutionContext.Add(__InputTagHelper);
             __InputTagHelper.TagProp = 
 #nullable restore
-#line (5,13)-(5,16) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
-"0"
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (5,16)-(5,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
- +
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (5,18)-(5,22) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
- new
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (5,22)-(5,23) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
- 
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (5,23)-(5,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
-@String("1 2")
+#line (5,13)-(5,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml"
+"0" + new @String("1 2")
 
 #line default
 #line hidden

@@ -13,25 +13,22 @@
                     MarkupTextLiteral - [12..13)::1 - ['] - Gen<Markup>
                         SingleQuote;['];
                     MarkupTagHelperAttributeValue - [13..31)::18
-                        MarkupBlock - [13..17)::4
-                            CSharpCodeBlock - [13..17)::4
-                                CSharpImplicitExpression - [13..17)::4
-                                    CSharpTransition - [13..14)::1 - Gen<None>
-                                        Transition;[@];
-                                    CSharpImplicitExpressionBody - [14..17)::3
-                                        CSharpCodeBlock - [14..17)::3
-                                            CSharpExpressionLiteral - [14..17)::3 - [new] - Gen<Expr>
-                                                Keyword;[new];
-                        CSharpExpressionLiteral - [17..27)::10 - [ string("1] - Gen<None>
-                            Whitespace;[ ];
-                            Text;[string(];
-                            DoubleQuote;["];
-                            Text;[1];
-                        CSharpExpressionLiteral - [27..31)::4 - [ 2")] - Gen<None>
-                            Whitespace;[ ];
-                            Text;[2];
-                            DoubleQuote;["];
-                            Text;[)];
+                        CSharpCodeBlock - [13..31)::18
+                            CSharpImplicitExpression - [13..31)::18
+                                CSharpTransition - [13..14)::1
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [14..31)::17
+                                    CSharpCodeBlock - [14..31)::17
+                                        CSharpExpressionLiteral - [14..31)::17 - [new string("1 2")] - Gen<None>
+                                            Keyword;[new];
+                                            Whitespace;[ ];
+                                            Text;[string(];
+                                            DoubleQuote;["];
+                                            Text;[1];
+                                            Whitespace;[ ];
+                                            Text;[2];
+                                            DoubleQuote;["];
+                                            Text;[)];
                     MarkupTextLiteral - [31..32)::1 - ['] - Gen<Markup>
                         SingleQuote;['];
                 MarkupMiscAttributeContent - [32..33)::1

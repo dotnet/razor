@@ -13,30 +13,20 @@
                     MarkupTextLiteral - [12..13)::1 - ['] - Gen<Markup>
                         SingleQuote;['];
                     MarkupTagHelperAttributeValue - [13..37)::24
-                        CSharpExpressionLiteral - [13..16)::3 - ["0"] - Gen<None>
+                        CSharpExpressionLiteral - [13..37)::24 - ["0" + new @String("1 2")] - Gen<None>
                             DoubleQuote;["];
                             Text;[0];
                             DoubleQuote;["];
-                        CSharpExpressionLiteral - [16..18)::2 - [ +] - Gen<None>
                             Whitespace;[ ];
                             Text;[+];
-                        CSharpExpressionLiteral - [18..22)::4 - [ new] - Gen<None>
                             Whitespace;[ ];
                             Text;[new];
-                        MarkupBlock - [22..37)::15
-                            CSharpExpressionLiteral - [22..23)::1 - [ ] - Gen<Expr>
-                                Whitespace;[ ];
-                            CSharpCodeBlock - [23..37)::14
-                                CSharpImplicitExpression - [23..37)::14
-                                    CSharpTransition - [23..23)::0
-                                        Transition;[<Missing>];
-                                    CSharpImplicitExpressionBody - [23..37)::14
-                                        CSharpCodeBlock - [23..37)::14
-                                            CSharpExpressionLiteral - [23..37)::14 - [@String("1 2")] - Gen<Expr>
-                                                Identifier;[@String];
-                                                LeftParenthesis;[(];
-                                                StringLiteral;["1 2"];
-                                                RightParenthesis;[)];
+                            Whitespace;[ ];
+                            Transition;[@];
+                            Identifier;[String];
+                            LeftParenthesis;[(];
+                            StringLiteral;["1 2"];
+                            RightParenthesis;[)];
                     MarkupTextLiteral - [37..38)::1 - ['] - Gen<Markup>
                         SingleQuote;['];
                 MarkupMiscAttributeContent - [38..39)::1
