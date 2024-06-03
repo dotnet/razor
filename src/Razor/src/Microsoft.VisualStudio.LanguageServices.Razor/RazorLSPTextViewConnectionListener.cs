@@ -39,7 +39,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-    private readonly LspEditorFeatureDetector _editorFeatureDetector;
+    private readonly ILspEditorFeatureDetector _editorFeatureDetector;
     private readonly IEditorOptionsFactoryService _editorOptionsFactory;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly IVsTextManager4 _textManager;
@@ -60,7 +60,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
     public RazorLSPTextViewConnectionListener(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
-        LspEditorFeatureDetector editorFeatureDetector,
+        ILspEditorFeatureDetector editorFeatureDetector,
         IEditorOptionsFactoryService editorOptionsFactory,
         IClientSettingsManager editorSettingsManager)
     {

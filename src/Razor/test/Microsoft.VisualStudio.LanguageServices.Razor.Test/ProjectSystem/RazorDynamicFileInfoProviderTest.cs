@@ -42,7 +42,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     protected override async Task InitializeAsync()
     {
         var documentServiceFactory = new RazorDocumentServiceProviderFactory();
-        var editorFeatureDetector = StrictMock.Of<LspEditorFeatureDetector>();
+        var editorFeatureDetector = StrictMock.Of<ILspEditorFeatureDetector>();
 
         _projectManager = CreateProjectSnapshotManager();
 

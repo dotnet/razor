@@ -23,7 +23,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var serviceProvider = CreateServiceProvider(featureFlagEnabled: true);
         using var activityLog = CreateActivityLog();
 
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -40,7 +40,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var serviceProvider = CreateServiceProvider(featureFlagEnabled: false);
         using var activityLog = CreateActivityLog();
 
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -57,7 +57,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var serviceProvider = CreateServiceProvider(optionEnabled: true);
         using var activityLog = CreateActivityLog();
 
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -74,7 +74,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var serviceProvider = CreateServiceProvider(optionEnabled: false);
         using var activityLog = CreateActivityLog();
 
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -90,7 +90,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
         var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -106,7 +106,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
         var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -122,7 +122,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var uiContextService = CreateUIContextService(isLiveShareGuestActive: true);
         var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -138,7 +138,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var uiContextService = CreateUIContextService();
         var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();

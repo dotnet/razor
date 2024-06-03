@@ -10,11 +10,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 internal abstract class RazorFilePathToContentTypeProviderBase : IFilePathToContentTypeProvider
 {
     private readonly IContentTypeRegistryService _contentTypeRegistryService;
-    private readonly LspEditorFeatureDetector _lspEditorFeatureDetector;
+    private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
 
     public RazorFilePathToContentTypeProviderBase(
         IContentTypeRegistryService contentTypeRegistryService,
-        LspEditorFeatureDetector lspEditorFeatureDetector)
+        ILspEditorFeatureDetector lspEditorFeatureDetector)
     {
         if (contentTypeRegistryService is null)
         {

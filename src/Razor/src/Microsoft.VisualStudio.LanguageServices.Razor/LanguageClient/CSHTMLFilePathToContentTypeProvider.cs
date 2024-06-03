@@ -14,7 +14,7 @@ internal class CSHTMLFilePathToContentTypeProvider : RazorFilePathToContentTypeP
     [ImportingConstructor]
     public CSHTMLFilePathToContentTypeProvider(
         IContentTypeRegistryService contentTypeRegistryService,
-        LspEditorFeatureDetector lspEditorFeatureDetector) : base(contentTypeRegistryService, lspEditorFeatureDetector)
+        ILspEditorFeatureDetector lspEditorFeatureDetector) : base(contentTypeRegistryService, lspEditorFeatureDetector)
     {
     }
 }

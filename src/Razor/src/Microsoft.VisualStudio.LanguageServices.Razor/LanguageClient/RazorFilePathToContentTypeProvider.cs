@@ -14,7 +14,7 @@ internal class RazorFilePathToContentTypeProvider : RazorFilePathToContentTypePr
     [ImportingConstructor]
     public RazorFilePathToContentTypeProvider(
         IContentTypeRegistryService contentTypeRegistryService,
-        LspEditorFeatureDetector lspEditorFeatureDetector) : base(contentTypeRegistryService, lspEditorFeatureDetector)
+        ILspEditorFeatureDetector lspEditorFeatureDetector) : base(contentTypeRegistryService, lspEditorFeatureDetector)
     {
     }
 }

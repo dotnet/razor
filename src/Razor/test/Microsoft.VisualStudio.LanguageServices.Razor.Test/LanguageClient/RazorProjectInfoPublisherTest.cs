@@ -704,7 +704,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
             projectStatePublishFilePathStore,
             loggerFactory)
     {
-        private static readonly StrictMock<LspEditorFeatureDetector> s_lspEditorFeatureDetector = new();
+        private static readonly StrictMock<ILspEditorFeatureDetector> s_lspEditorFeatureDetector = new();
 
         private readonly Action<IProjectSnapshot, string> _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
 

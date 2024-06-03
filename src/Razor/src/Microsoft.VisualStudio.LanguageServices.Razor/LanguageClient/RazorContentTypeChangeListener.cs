@@ -17,7 +17,7 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
 {
     private readonly TrackingLSPDocumentManager _lspDocumentManager;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
-    private readonly LspEditorFeatureDetector _lspEditorFeatureDetector;
+    private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly IEditorOptionsFactoryService _editorOptionsFactory;
     private readonly IFileToContentTypeService _fileToContentTypeService;
 
@@ -25,7 +25,7 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
     public RazorContentTypeChangeListener(
         ITextDocumentFactoryService textDocumentFactory,
         LSPDocumentManager lspDocumentManager,
-        LspEditorFeatureDetector lspEditorFeatureDetector,
+        ILspEditorFeatureDetector lspEditorFeatureDetector,
         IEditorOptionsFactoryService editorOptionsFactory,
         IFileToContentTypeService fileToContentTypeService)
     {
