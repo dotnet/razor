@@ -1527,7 +1527,7 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         var project = CreateTestProject(new(){
             ["Views/Home/Index.cshtml"] = """
                 @using Demo
-                @addTagHelper *, Demo
+                @addTagHelper *, TestProject
 
                 @{
                     ViewData["Title"] = "Home page";
@@ -1549,6 +1549,11 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
                 {
                     [HtmlAttributeName("myattr")]
                     public int MyAttr { get; set; }
+
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.Attributes.SetAttribute("out", MyAttr.ToString());
+                    }
                 }
             }
             """
