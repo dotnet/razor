@@ -89,8 +89,8 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
         });
     }
 
-    // We don't currently support file creation operations on VS Codespaces or VS Liveshare
-    public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
+    // We don't currently support file creation operations on VS CodeSpaces or VS Live Share
+    public override bool SupportsFileManipulation => !IsCodeSpacesOrLiveShare;
 
     // In VS we override the project configuration file name because we don't want our serialized state to clash with other platforms (VSCode)
     public override string ProjectConfigurationFileName => "project.razor.vs.bin";
@@ -109,7 +109,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool UpdateBuffersForClosedDocuments => false;
 
-    private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
+    private bool IsCodeSpacesOrLiveShare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 
     public override bool ShowAllCSharpCodeActions => _showAllCSharpCodeActions.Value;
 
