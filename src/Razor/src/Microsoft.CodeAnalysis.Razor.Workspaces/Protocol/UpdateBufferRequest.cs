@@ -1,25 +1,23 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
+namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
-internal class UpdateBufferRequest
+internal sealed class UpdateBufferRequest
 {
     [JsonPropertyName("hostDocumentVersion")]
-    public int? HostDocumentVersion { get; init; }
+    public int? HostDocumentVersion { get; set; }
 
     [JsonPropertyName("projectKeyId")]
-    public string? ProjectKeyId { get; init; }
+    public string? ProjectKeyId { get; set; }
 
     [JsonPropertyName("hostDocumentFilePath")]
-    public string? HostDocumentFilePath { get; init; }
+    public string? HostDocumentFilePath { get; set; }
 
     [JsonPropertyName("changes")]
-    public required IReadOnlyList<TextChange> Changes { get; init; }
+    public required RazorTextChange[] Changes { get; set; }
 
     [JsonPropertyName("previousWasEmpty")]
     public bool PreviousWasEmpty { get; set; }

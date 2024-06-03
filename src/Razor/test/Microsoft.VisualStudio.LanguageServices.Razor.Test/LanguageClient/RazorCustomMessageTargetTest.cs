@@ -115,7 +115,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
-            Changes = Array.Empty<TextChange>(),
+            Changes = [],
         };
 
         // Act
@@ -169,7 +169,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             ProjectKeyId = projectKey2.Id,
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
-            Changes = Array.Empty<TextChange>(),
+            Changes = [],
         };
 
         // Act
