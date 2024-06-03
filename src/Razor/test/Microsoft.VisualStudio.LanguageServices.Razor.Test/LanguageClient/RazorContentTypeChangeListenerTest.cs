@@ -215,7 +215,7 @@ public class RazorContentTypeChangeListenerTest : ToolingTestBase
         Mock.Get(textDocumentFactory).Setup(f => f.TryGetTextDocument(It.IsAny<ITextBuffer>(), out It.Ref<ITextDocument>.IsAny)).Returns(false);
 
         lspDocumentManager ??= Mock.Of<TrackingLSPDocumentManager>(MockBehavior.Strict);
-        lspEditorFeatureDetector ??= Mock.Of<LspEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable(It.IsAny<string>()) == true && detector.IsRemoteClient() == false, MockBehavior.Strict);
+        lspEditorFeatureDetector ??= Mock.Of<LspEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable() == true && detector.IsRemoteClient() == false, MockBehavior.Strict);
         fileToContentTypeService ??= Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _razorContentType, MockBehavior.Strict);
         var textManager = new Mock<IVsTextManager2>(MockBehavior.Strict);
         textManager.Setup(m => m.GetUserPreferences2(null, null, It.IsAny<LANGPREFERENCES2[]>(), null)).Returns(VSConstants.E_NOTIMPL);

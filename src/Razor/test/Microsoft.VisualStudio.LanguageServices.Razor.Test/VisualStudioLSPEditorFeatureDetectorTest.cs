@@ -24,7 +24,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         };
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable("testMoniker");
+        var result = featureDetector.IsLSPEditorAvailable();
 
         // Assert
         Assert.True(result);
@@ -42,7 +42,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         };
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable("testMoniker");
+        var result = featureDetector.IsLSPEditorAvailable();
 
         // Assert
         Assert.False(result);
@@ -60,7 +60,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         };
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable("testMoniker");
+        var result = featureDetector.IsLSPEditorAvailable();
 
         // Assert
         Assert.True(result);

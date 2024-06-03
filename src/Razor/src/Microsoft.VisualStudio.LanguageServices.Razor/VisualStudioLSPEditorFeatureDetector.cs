@@ -66,24 +66,6 @@ internal class VisualStudioLSPEditorFeatureDetector : LspEditorFeatureDetector
     {
     }
 
-    public override bool IsLSPEditorAvailable(string? documentMoniker)
-    {
-        _activityLog.LogInfo("Checking if LSP Editor is available");
-        if (documentMoniker is null)
-        {
-            _activityLog.LogWarning($"LSP Editor not available because {nameof(documentMoniker)} is null");
-            return false;
-        }
-
-        if (!IsLSPEditorAvailable())
-        {
-            _activityLog.LogInfo("Using Legacy editor because the option was set to true");
-            return false;
-        }
-
-        return true;
-    }
-
     public override bool IsLSPEditorAvailable() => !_useLegacyEditor.Value;
 
     public override bool IsRemoteClient() => IsVSRemoteClient() || IsLiveShareGuest();
