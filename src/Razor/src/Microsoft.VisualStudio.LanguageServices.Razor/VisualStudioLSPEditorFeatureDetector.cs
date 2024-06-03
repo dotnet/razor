@@ -20,18 +20,22 @@ internal class VisualStudioLSPEditorFeatureDetector : LspEditorFeatureDetector
     private static readonly Guid s_liveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
 
     private readonly Lazy<bool> _useLegacyEditor;
-
     private readonly RazorActivityLog _activityLog;
 
     [ImportingConstructor]
     public VisualStudioLSPEditorFeatureDetector(RazorActivityLog activityLog)
     {
+        _activityLog = activityLog;
+
         _useLegacyEditor = new Lazy<bool>(() =>
         {
+            _activityLog.LogInfo("Checking if LSP Editor is available");
+
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
             var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false);
             if (legacyEditorFeatureFlagEnabled)
             {
+                _activityLog.LogInfo("Using Legacy editor because the feature flag was set to true");
                 return true;
             }
 
@@ -39,10 +43,18 @@ internal class VisualStudioLSPEditorFeatureDetector : LspEditorFeatureDetector
             Assumes.Present(settingsManager);
 
             var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+
+            if (useLegacyEditor)
+            {
+                _activityLog.LogInfo("Using Legacy editor because the option was set to true");
+            }
+            else
+            {
+                _activityLog.LogInfo("LSP editor is available");
+            }
+
             return useLegacyEditor;
         });
-
-        _activityLog = activityLog;
     }
 
     public override bool IsLSPEditorAvailable() => !_useLegacyEditor.Value;
