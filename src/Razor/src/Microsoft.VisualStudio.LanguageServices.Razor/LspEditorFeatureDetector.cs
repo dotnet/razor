@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.Razor;
 internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector
 {
     private readonly IAsyncServiceProvider _serviceProvider;
+    private readonly IFeatureFlagService _featureFlagService;
     private readonly IUIContextService _uiContextService;
     private readonly RazorActivityLog _activityLog;
     private readonly AsyncLazy<bool> _useLegacyEditorLazy;
@@ -23,30 +24,26 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector
     public LspEditorFeatureDetector(
         IAsyncServiceProvider serviceProvider,
         JoinableTaskContext joinableTaskContext,
+        IFeatureFlagService featureFlagService,
         IUIContextService uiContextService,
         RazorActivityLog activityLog)
     {
         _serviceProvider = serviceProvider;
+        _featureFlagService = featureFlagService;
         _uiContextService = uiContextService;
         _activityLog = activityLog;
-        _useLegacyEditorLazy = new(GetLegacyEditorOptionAsync, joinableTaskContext.Factory);
+        _useLegacyEditorLazy = new(GetUseLegacyEditorValueAsync, joinableTaskContext.Factory);
     }
 
-    private async Task<bool> GetLegacyEditorOptionAsync()
+    private async Task<bool> GetUseLegacyEditorValueAsync()
     {
         _activityLog.LogInfo("Checking if LSP Editor is available");
 
-        var featureFlags = await _serviceProvider.GetFreeThreadedServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false);
-        Assumes.Present(featureFlags);
-
-        // IVsFeatureFlags is free-threaded but VSTHRD010 seems to be reported anyway.
-#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-        if (featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, defaultValue: false))
+        if (_featureFlagService.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor))
         {
             _activityLog.LogInfo("Using Legacy editor because the feature flag was set to true");
             return true;
         }
-#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 
         var settingsManager = await _serviceProvider.GetFreeThreadedServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(false);
         Assumes.Present(settingsManager);

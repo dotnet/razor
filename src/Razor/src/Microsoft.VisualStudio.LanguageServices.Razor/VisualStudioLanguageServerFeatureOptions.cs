@@ -4,15 +4,15 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(LanguageServerFeatureOptions))]
 internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
+    private readonly IFeatureFlagService _featureFlagService;
     private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
+
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
@@ -22,64 +22,27 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _useProjectConfigurationEndpoint;
 
     [ImportingConstructor]
-    public VisualStudioLanguageServerFeatureOptions(ILspEditorFeatureDetector lspEditorFeatureDetector)
+    public VisualStudioLanguageServerFeatureOptions(
+        IFeatureFlagService featureFlagService,
+        ILspEditorFeatureDetector lspEditorFeatureDetector)
     {
-        if (lspEditorFeatureDetector is null)
-        {
-            throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
-        }
-
+        _featureFlagService = featureFlagService;
         _lspEditorFeatureDetector = lspEditorFeatureDetector;
 
-        _showAllCSharpCodeActions = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var showAllCSharpCodeActions = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ShowAllCSharpCodeActions, defaultValue: false);
-            return showAllCSharpCodeActions;
-        });
-
-        _includeProjectKeyInGeneratedFilePath = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var includeProjectKeyInGeneratedFilePath = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.IncludeProjectKeyInGeneratedFilePath, defaultValue: true);
-            return includeProjectKeyInGeneratedFilePath;
-        });
-
-        _usePreciseSemanticTokenRanges = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var usePreciseSemanticTokenRanges = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UsePreciseSemanticTokenRanges, defaultValue: false);
-            return usePreciseSemanticTokenRanges;
-        });
-
-        _useRazorCohostServer = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var useRazorCohostServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseRazorCohostServer, defaultValue: false);
-            return useRazorCohostServer;
-        });
-
-        _disableRazorLanguageServer = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var disableRazorLanguageServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.DisableRazorLanguageServer, defaultValue: false);
-            return disableRazorLanguageServer;
-        });
-
-        _forceRuntimeCodeGeneration = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var forceRuntimeCodeGeneration = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ForceRuntimeCodeGeneration, defaultValue: false);
-            return forceRuntimeCodeGeneration;
-        });
-
-        _useProjectConfigurationEndpoint = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var useProjectConfigurationEndpoint = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseProjectConfigurationEndpoint, defaultValue: false);
-            return useProjectConfigurationEndpoint;
-        });
+        _showAllCSharpCodeActions = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.ShowAllCSharpCodeActions);
+        _includeProjectKeyInGeneratedFilePath = IsFeatureEnabledOrTrue(WellKnownFeatureFlagNames.IncludeProjectKeyInGeneratedFilePath);
+        _usePreciseSemanticTokenRanges = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.UsePreciseSemanticTokenRanges);
+        _useRazorCohostServer = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.UseRazorCohostServer);
+        _disableRazorLanguageServer = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.DisableRazorLanguageServer);
+        _forceRuntimeCodeGeneration = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.ForceRuntimeCodeGeneration);
+        _useProjectConfigurationEndpoint = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.UseProjectConfigurationEndpoint);
     }
+
+    private Lazy<bool> IsFeatureEnabledOrFalse(string featureName)
+        => new(() => _featureFlagService.IsFeatureEnabled(featureName, defaultValue: false));
+
+    private Lazy<bool> IsFeatureEnabledOrTrue(string featureName)
+        => new(() => _featureFlagService.IsFeatureEnabled(featureName, defaultValue: true));
 
     // We don't currently support file creation operations on VS CodeSpaces or VS Live Share
     public override bool SupportsFileManipulation => !IsCodeSpacesOrLiveShare;

@@ -19,11 +19,12 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsLspEditorAvailable_FeatureFlagEnabled_ReturnsFalse()
     {
         // Arrange
+        var featureFlagService = CreateFeatureFlagService(useLegacyRazorEditor: true);
         var uiContextService = CreateUIContextService();
-        var serviceProvider = CreateServiceProvider(featureFlagEnabled: true);
+        var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
 
-        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, featureFlagService, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -36,11 +37,12 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsLspEditorAvailable_FeatureFlagDisabled_ReturnsTrue()
     {
         // Arrange
+        var featureFlagService = CreateFeatureFlagService(useLegacyRazorEditor: false);
         var uiContextService = CreateUIContextService();
-        var serviceProvider = CreateServiceProvider(featureFlagEnabled: false);
+        var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
 
-        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, featureFlagService, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -53,11 +55,12 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsLspEditorAvailable_OptionEnabled_ReturnsFalse()
     {
         // Arrange
+        var featureFlagService = CreateFeatureFlagService();
         var uiContextService = CreateUIContextService();
         var serviceProvider = CreateServiceProvider(optionEnabled: true);
         using var activityLog = CreateActivityLog();
 
-        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, featureFlagService, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -70,11 +73,12 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsLspEditorAvailable_OptionDisabled_ReturnsTrue()
     {
         // Arrange
+        var featureFlagService = CreateFeatureFlagService();
         var uiContextService = CreateUIContextService();
         var serviceProvider = CreateServiceProvider(optionEnabled: false);
         using var activityLog = CreateActivityLog();
 
-        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, featureFlagService, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -87,10 +91,11 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsLspEditorAvailable_CloudEnvironmentConnected_ReturnsTrue()
     {
         // Arrange
+        var featureFlagService = CreateFeatureFlagService();
         var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
         var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
-        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, featureFlagService, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -103,10 +108,11 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsRemoteClient_CloudEnvironmentConnected_ReturnsTrue()
     {
         // Arrange
+        var featureFlagService = CreateFeatureFlagService();
         var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
         var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
-        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, featureFlagService, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -119,10 +125,11 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
     {
         // Arrange
+        var featureFlagService = CreateFeatureFlagService();
         var uiContextService = CreateUIContextService(isLiveShareGuestActive: true);
         var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
-        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, featureFlagService, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -135,10 +142,11 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsRemoteClient_UnknownEnvironment_ReturnsFalse()
     {
         // Arrange
+        var featureFlagService = CreateFeatureFlagService();
         var uiContextService = CreateUIContextService();
         var serviceProvider = CreateServiceProvider();
         using var activityLog = CreateActivityLog();
-        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+        var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, featureFlagService, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -162,13 +170,8 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         return new RazorActivityLog(serviceProviderMock.Object, JoinableTaskContext);
     }
 
-    private IAsyncServiceProvider CreateServiceProvider(bool featureFlagEnabled = false, bool optionEnabled = false)
+    private IAsyncServiceProvider CreateServiceProvider(bool optionEnabled = false)
     {
-        var featureFlagsMock = new StrictMock<IVsFeatureFlags>();
-        featureFlagsMock
-            .Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
-            .Returns(featureFlagEnabled);
-
         var settingsManagerMock = new StrictMock<ISettingsManager>();
         settingsManagerMock
             .Setup(x => x.GetValueOrDefault(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
@@ -176,13 +179,19 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
 
         var serviceProviderMock = new StrictMock<IAsyncServiceProvider>();
         serviceProviderMock
-            .Setup(x => x.GetServiceAsync(typeof(SVsFeatureFlags)))
-            .ReturnsAsync(featureFlagsMock.Object);
-        serviceProviderMock
             .Setup(x => x.GetServiceAsync(typeof(SVsSettingsPersistenceManager)))
             .ReturnsAsync(settingsManagerMock.Object);
 
         return serviceProviderMock.Object;
+    }
+
+    private IFeatureFlagService CreateFeatureFlagService(bool useLegacyRazorEditor = false)
+    {
+        var mock = new StrictMock<IFeatureFlagService>();
+        mock.Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
+            .Returns(useLegacyRazorEditor);
+
+        return mock.Object;
     }
 
     private IUIContextService CreateUIContextService(
