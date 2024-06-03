@@ -168,7 +168,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         return new RazorActivityLog(serviceProviderMock.Object, JoinableTaskContext);
     }
 
-    private IFeatureFlagService CreateFeatureFlagService(bool useLegacyRazorEditor = false)
+    private static IFeatureFlagService CreateFeatureFlagService(bool useLegacyRazorEditor = false)
     {
         var mock = new StrictMock<IFeatureFlagService>();
         mock.Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
@@ -177,7 +177,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         return mock.Object;
     }
 
-    private ISettingsPersistenceService CreateSettingsPersistenceService(bool useLegacyRazorEditor = false)
+    private static ISettingsPersistenceService CreateSettingsPersistenceService(bool useLegacyRazorEditor = false)
     {
         var mock = new StrictMock<ISettingsPersistenceService>();
         mock.Setup(x => x.GetValueOrDefault(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
@@ -186,7 +186,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         return mock.Object;
     }
 
-    private IUIContextService CreateUIContextService(
+    private static IUIContextService CreateUIContextService(
         bool isLiveShareHostActive = false,
         bool isLiveShareGuestActive = false,
         bool cloudEnvironmentConnectedActive = false)
