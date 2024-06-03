@@ -71,7 +71,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector
     /// <summary>
     /// Returns <see langword="true"/> if the LSP-based editor is available.
     /// </summary>
-    public bool IsLSPEditorAvailable()
+    public bool IsLspEditorAvailable()
         => !_useLegacyEditorLazy.GetValue();
 
     /// <summary>

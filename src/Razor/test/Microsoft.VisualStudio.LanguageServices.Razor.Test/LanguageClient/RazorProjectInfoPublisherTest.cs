@@ -715,7 +715,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
         static TestRazorProjectInfoPublisher()
         {
             s_lspEditorFeatureDetector
-                .Setup(t => t.IsLSPEditorAvailable())
+                .Setup(t => t.IsLspEditorAvailable())
                 .Returns(true);
         }
 

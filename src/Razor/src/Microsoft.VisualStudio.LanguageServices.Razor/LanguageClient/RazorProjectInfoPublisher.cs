@@ -84,7 +84,7 @@ internal class RazorProjectInfoPublisher : IRazorStartupService
             return;
         }
 
-        if (!_lspEditorFeatureDetector.IsLSPEditorAvailable())
+        if (!_lspEditorFeatureDetector.IsLspEditorAvailable())
         {
             return;
         }

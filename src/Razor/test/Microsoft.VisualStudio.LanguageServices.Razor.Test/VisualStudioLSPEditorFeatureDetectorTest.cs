@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Razor;
 public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [UIFact]
-    public void IsLSPEditorAvailable_FeatureFlagEnabled_ReturnsFalse()
+    public void IsLspEditorAvailable_FeatureFlagEnabled_ReturnsFalse()
     {
         // Arrange
         var uiContextService = CreateUIContextService();
@@ -26,14 +26,14 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable();
+        var result = featureDetector.IsLspEditorAvailable();
 
         // Assert
         Assert.False(result);
     }
 
     [UIFact]
-    public void IsLSPEditorAvailable_FeatureFlagDisabled_ReturnsTrue()
+    public void IsLspEditorAvailable_FeatureFlagDisabled_ReturnsTrue()
     {
         // Arrange
         var uiContextService = CreateUIContextService();
@@ -43,14 +43,14 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable();
+        var result = featureDetector.IsLspEditorAvailable();
 
         // Assert
         Assert.True(result);
     }
 
     [UIFact]
-    public void IsLSPEditorAvailable_OptionEnabled_ReturnsFalse()
+    public void IsLspEditorAvailable_OptionEnabled_ReturnsFalse()
     {
         // Arrange
         var uiContextService = CreateUIContextService();
@@ -60,14 +60,14 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable();
+        var result = featureDetector.IsLspEditorAvailable();
 
         // Assert
         Assert.False(result);
     }
 
     [UIFact]
-    public void IsLSPEditorAvailable_OptionDisabled_ReturnsTrue()
+    public void IsLspEditorAvailable_OptionDisabled_ReturnsTrue()
     {
         // Arrange
         var uiContextService = CreateUIContextService();
@@ -77,14 +77,14 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable();
+        var result = featureDetector.IsLspEditorAvailable();
 
         // Assert
         Assert.True(result);
     }
 
     [UIFact]
-    public void IsLSPEditorAvailable_IsVSRemoteClient_ReturnsTrue()
+    public void IsLspEditorAvailable_CloudEnvironmentConnected_ReturnsTrue()
     {
         // Arrange
         var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
@@ -93,14 +93,14 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var featureDetector = new LspEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable();
+        var result = featureDetector.IsLspEditorAvailable();
 
         // Assert
         Assert.True(result);
     }
 
     [UIFact]
-    public void IsRemoteClient_IsVSRemoteClient_ReturnsTrue()
+    public void IsRemoteClient_CloudEnvironmentConnected_ReturnsTrue()
     {
         // Arrange
         var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);

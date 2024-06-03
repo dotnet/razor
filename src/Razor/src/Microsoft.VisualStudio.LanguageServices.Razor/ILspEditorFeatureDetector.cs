@@ -8,7 +8,7 @@ internal interface ILspEditorFeatureDetector
     /// <summary>
     /// Returns <see langword="true"/> if the LSP-based editor is available.
     /// </summary>
-    bool IsLSPEditorAvailable();
+    bool IsLspEditorAvailable();
 
     /// <summary>
     /// Returns <see langword="true"/> if this is a LiveShare guest or a CodeSpaces client.
