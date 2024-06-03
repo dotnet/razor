@@ -14,13 +14,13 @@ namespace Microsoft.VisualStudio.Razor;
 public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [UIFact]
-    public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
+    public void IsLSPEditorAvailable_LegacyEditorDisabled_ReturnsTrue()
     {
         // Arrange
         using var activityLog = GetRazorActivityLog();
         var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
         {
-            ProjectSupportsLSPEditorValue = true,
+            UseLegacyEditor = false,
         };
 
         // Act
@@ -38,7 +38,6 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
         {
             UseLegacyEditor = true,
-            ProjectSupportsLSPEditorValue = true,
         };
 
         // Act
@@ -56,7 +55,6 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
         {
             IsVSRemoteClientValue = true,
-            ProjectSupportsLSPEditorValue = true,
         };
 
         // Act
@@ -67,7 +65,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     }
 
     [UIFact]
-    public void IsRemoteClient_VSRemoteClient_ReturnsTrue()
+    public void IsRemoteClient_IsRemoteClient_ReturnsTrue()
     {
         // Arrange
         using var activityLog = GetRazorActivityLog();
@@ -130,7 +128,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     }
 
     private class TestLSPEditorFeatureDetector(RazorActivityLog activityLog)
-        : VisualStudioLSPEditorFeatureDetector(projectCapabilityResolver: null!, activityLog)
+        : VisualStudioLSPEditorFeatureDetector(activityLog)
     {
         public bool UseLegacyEditor { get; set; }
 
@@ -140,8 +138,6 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
 
         public bool IsVSRemoteClientValue { get; set; }
 
-        public bool ProjectSupportsLSPEditorValue { get; set; }
-
         public override bool IsLSPEditorAvailable() => !UseLegacyEditor;
 
         public override bool IsLiveShareHost() => IsLiveShareHostValue;
@@ -149,7 +145,5 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         private protected override bool IsLiveShareGuest() => IsLiveShareGuestValue;
 
         private protected override bool IsVSRemoteClient() => IsVSRemoteClientValue;
-
-        private protected override bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy? hierarchy) => ProjectSupportsLSPEditorValue;
     }
 }
