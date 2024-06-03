@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -40,7 +39,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-    private readonly LSPEditorFeatureDetector _editorFeatureDetector;
+    private readonly LspEditorFeatureDetector _editorFeatureDetector;
     private readonly IEditorOptionsFactoryService _editorOptionsFactory;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly IVsTextManager4 _textManager;
@@ -61,7 +60,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
     public RazorLSPTextViewConnectionListener(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
-        LSPEditorFeatureDetector editorFeatureDetector,
+        LspEditorFeatureDetector editorFeatureDetector,
         IEditorOptionsFactoryService editorOptionsFactory,
         IClientSettingsManager editorSettingsManager)
     {

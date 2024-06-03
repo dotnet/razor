@@ -20,7 +20,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private const string ForceRuntimeCodeGenerationFeatureFlag = "Razor.LSP.ForceRuntimeCodeGeneration";
     private const string UseProjectConfigurationEndpointFeatureFlag = "Razor.LSP.UseProjectConfigurationEndpoint";
 
-    private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+    private readonly LspEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
@@ -30,7 +30,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _useProjectConfigurationEndpoint;
 
     [ImportingConstructor]
-    public VisualStudioLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
+    public VisualStudioLanguageServerFeatureOptions(LspEditorFeatureDetector lspEditorFeatureDetector)
     {
         if (lspEditorFeatureDetector is null)
         {

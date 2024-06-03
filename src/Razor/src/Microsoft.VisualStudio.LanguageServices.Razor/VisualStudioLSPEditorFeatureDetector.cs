@@ -3,7 +3,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Settings;
@@ -12,8 +11,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.Razor;
 
-[Export(typeof(LSPEditorFeatureDetector))]
-internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
+[Export(typeof(LspEditorFeatureDetector))]
+internal class VisualStudioLSPEditorFeatureDetector : LspEditorFeatureDetector
 {
     private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
     private const string DotNetCoreCSharpCapability = "CSharp&CPS";

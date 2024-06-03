@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.VisualStudio.Razor;
 
-internal abstract class LSPEditorFeatureDetector
+internal abstract class LspEditorFeatureDetector
 {
     public abstract bool IsLSPEditorAvailable(string? documentMoniker, object? hierarchy);
 

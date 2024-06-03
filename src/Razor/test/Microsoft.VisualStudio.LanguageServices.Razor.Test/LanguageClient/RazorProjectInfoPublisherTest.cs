@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -705,7 +704,7 @@ public class RazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : Langu
             projectStatePublishFilePathStore,
             loggerFactory)
     {
-        private static readonly StrictMock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new();
+        private static readonly StrictMock<LspEditorFeatureDetector> s_lspEditorFeatureDetector = new();
 
         private readonly Action<IProjectSnapshot, string> _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
 
