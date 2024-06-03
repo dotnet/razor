@@ -1,62 +1,45 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Razor.Logging;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(ILspEditorFeatureDetector))]
-internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector
+[method: ImportingConstructor]
+internal sealed class LspEditorFeatureDetector(
+    IFeatureFlagService featureFlagService,
+    ISettingsPersistenceService settingsPersistenceService,
+    IUIContextService uiContextService,
+    RazorActivityLog activityLog) : ILspEditorFeatureDetector
 {
-    private readonly IAsyncServiceProvider _serviceProvider;
-    private readonly IFeatureFlagService _featureFlagService;
-    private readonly IUIContextService _uiContextService;
-    private readonly RazorActivityLog _activityLog;
-    private readonly AsyncLazy<bool> _useLegacyEditorLazy;
+    private readonly IUIContextService _uiContextService = uiContextService;
+    private readonly Lazy<bool> _useLegacyEditorLazy = new(() => GetUseLegacyEditorValue(featureFlagService, settingsPersistenceService, activityLog));
 
-    [ImportingConstructor]
-    public LspEditorFeatureDetector(
-        IAsyncServiceProvider serviceProvider,
-        JoinableTaskContext joinableTaskContext,
+    private static bool GetUseLegacyEditorValue(
         IFeatureFlagService featureFlagService,
-        IUIContextService uiContextService,
+        ISettingsPersistenceService settingsPersistenceService,
         RazorActivityLog activityLog)
     {
-        _serviceProvider = serviceProvider;
-        _featureFlagService = featureFlagService;
-        _uiContextService = uiContextService;
-        _activityLog = activityLog;
-        _useLegacyEditorLazy = new(GetUseLegacyEditorValueAsync, joinableTaskContext.Factory);
-    }
+        activityLog.LogInfo("Checking if LSP Editor is available");
 
-    private async Task<bool> GetUseLegacyEditorValueAsync()
-    {
-        _activityLog.LogInfo("Checking if LSP Editor is available");
-
-        if (_featureFlagService.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor))
+        if (featureFlagService.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor))
         {
-            _activityLog.LogInfo("Using Legacy editor because the feature flag was set to true");
+            activityLog.LogInfo("Using Legacy editor because the feature flag was set to true");
             return true;
         }
 
-        var settingsManager = await _serviceProvider.GetFreeThreadedServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(false);
-        Assumes.Present(settingsManager);
-
-        var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
+        var useLegacyEditor = settingsPersistenceService.GetValueOrDefault<bool>(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
 
         if (useLegacyEditor)
         {
-            _activityLog.LogInfo("Using Legacy editor because the option was set to true");
+            activityLog.LogInfo("Using Legacy editor because the option was set to true");
         }
         else
         {
-            _activityLog.LogInfo("LSP editor is available");
+            activityLog.LogInfo("LSP editor is available");
         }
 
         return useLegacyEditor;
@@ -66,7 +49,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector
     /// Returns <see langword="true"/> if the LSP-based editor is available.
     /// </summary>
     public bool IsLspEditorAvailable()
-        => !_useLegacyEditorLazy.GetValue();
+        => !_useLegacyEditorLazy.Value;
 
     /// <summary>
     /// Returns <see langword="true"/> if this is a LiveShare guest or a CodeSpaces client.

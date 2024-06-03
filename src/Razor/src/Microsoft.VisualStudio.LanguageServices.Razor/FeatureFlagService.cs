@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Razor;
 [method: ImportingConstructor]
 internal sealed class FeatureFlagService(IAsyncServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext) : IFeatureFlagService
 {
-    private readonly JoinableTask<IVsFeatureFlags> _lazyFeatureFlags = joinableTaskContext.Factory.RunAsync(async () =>
+    private readonly JoinableTask<IVsFeatureFlags> _vsFeatureFlagsTask = joinableTaskContext.Factory.RunAsync(async () =>
     {
         var featureFlags = await serviceProvider.GetFreeThreadedServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false);
         Assumes.Present(featureFlags);
@@ -22,11 +22,11 @@ internal sealed class FeatureFlagService(IAsyncServiceProvider serviceProvider, 
 
     public bool IsFeatureEnabled(string featureName, bool defaultValue = false)
     {
-        var featureFlags = _lazyFeatureFlags.Join();
+        var vsFeatureFlags = _vsFeatureFlagsTask.Join();
 
         // IVsFeatureFlags is free-threaded but VSTHRD010 seems to be reported anyway.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-        return featureFlags.IsFeatureEnabled(featureName, defaultValue);
+        return vsFeatureFlags.IsFeatureEnabled(featureName, defaultValue);
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
     }
 }
