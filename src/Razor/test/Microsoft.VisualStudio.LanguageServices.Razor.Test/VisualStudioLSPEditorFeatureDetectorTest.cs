@@ -164,17 +164,14 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
 
     private IAsyncServiceProvider CreateServiceProvider(bool featureFlagEnabled = false, bool optionEnabled = false)
     {
-        const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
-        const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
-
         var featureFlagsMock = new StrictMock<IVsFeatureFlags>();
         featureFlagsMock
-            .Setup(x => x.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, It.IsAny<bool>()))
+            .Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
             .Returns(featureFlagEnabled);
 
         var settingsManagerMock = new StrictMock<ISettingsManager>();
         settingsManagerMock
-            .Setup(x => x.GetValueOrDefault(UseLegacyASPNETCoreEditorSetting, It.IsAny<bool>()))
+            .Setup(x => x.GetValueOrDefault(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
             .Returns(optionEnabled);
 
         var serviceProviderMock = new StrictMock<IAsyncServiceProvider>();

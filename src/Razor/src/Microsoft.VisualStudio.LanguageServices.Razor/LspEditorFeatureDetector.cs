@@ -14,9 +14,6 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(ILspEditorFeatureDetector))]
 internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector
 {
-    private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
-    private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
-
     private readonly IAsyncServiceProvider _serviceProvider;
     private readonly IUIContextService _uiContextService;
     private readonly RazorActivityLog _activityLog;
@@ -44,7 +41,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector
 
         // IVsFeatureFlags is free-threaded but VSTHRD010 seems to be reported anyway.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-        if (featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false))
+        if (featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, defaultValue: false))
         {
             _activityLog.LogInfo("Using Legacy editor because the feature flag was set to true");
             return true;
@@ -54,7 +51,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector
         var settingsManager = await _serviceProvider.GetFreeThreadedServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(false);
         Assumes.Present(settingsManager);
 
-        var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+        var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
 
         if (useLegacyEditor)
         {
