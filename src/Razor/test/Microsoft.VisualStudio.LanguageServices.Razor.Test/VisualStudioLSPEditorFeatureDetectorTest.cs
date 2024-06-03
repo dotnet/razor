@@ -2,7 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Razor.Logging;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
@@ -14,31 +16,14 @@ namespace Microsoft.VisualStudio.Razor;
 public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [UIFact]
-    public void IsLSPEditorAvailable_LegacyEditorDisabled_ReturnsTrue()
+    public void IsLSPEditorAvailable_FeatureFlagEnabled_ReturnsFalse()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            UseLegacyEditor = false,
-        };
+        var uiContextService = CreateUIContextService();
+        var serviceProvider = CreateServiceProvider(featureFlagEnabled: true);
+        using var activityLog = CreateActivityLog();
 
-        // Act
-        var result = featureDetector.IsLSPEditorAvailable();
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [UIFact]
-    public void IsLSPEditorAvailable_LegacyEditorEnabled_ReturnsFalse()
-    {
-        // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            UseLegacyEditor = true,
-        };
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -48,14 +33,14 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     }
 
     [UIFact]
-    public void IsLSPEditorAvailable_IsVSRemoteClient_ReturnsTrue()
+    public void IsLSPEditorAvailable_FeatureFlagDisabled_ReturnsTrue()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            IsVSRemoteClientValue = true,
-        };
+        var uiContextService = CreateUIContextService();
+        var serviceProvider = CreateServiceProvider(featureFlagEnabled: false);
+        using var activityLog = CreateActivityLog();
+
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -65,14 +50,63 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     }
 
     [UIFact]
-    public void IsRemoteClient_IsRemoteClient_ReturnsTrue()
+    public void IsLSPEditorAvailable_OptionEnabled_ReturnsFalse()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            IsVSRemoteClientValue = true,
-        };
+        var uiContextService = CreateUIContextService();
+        var serviceProvider = CreateServiceProvider(optionEnabled: true);
+        using var activityLog = CreateActivityLog();
+
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+
+        // Act
+        var result = featureDetector.IsLSPEditorAvailable();
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [UIFact]
+    public void IsLSPEditorAvailable_OptionDisabled_ReturnsTrue()
+    {
+        // Arrange
+        var uiContextService = CreateUIContextService();
+        var serviceProvider = CreateServiceProvider(optionEnabled: false);
+        using var activityLog = CreateActivityLog();
+
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+
+        // Act
+        var result = featureDetector.IsLSPEditorAvailable();
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [UIFact]
+    public void IsLSPEditorAvailable_IsVSRemoteClient_ReturnsTrue()
+    {
+        // Arrange
+        var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
+        var serviceProvider = CreateServiceProvider();
+        using var activityLog = CreateActivityLog();
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
+
+        // Act
+        var result = featureDetector.IsLSPEditorAvailable();
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [UIFact]
+    public void IsRemoteClient_IsVSRemoteClient_ReturnsTrue()
+    {
+        // Arrange
+        var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
+        var serviceProvider = CreateServiceProvider();
+        using var activityLog = CreateActivityLog();
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -85,11 +119,10 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            IsLiveShareGuestValue = true,
-        };
+        var uiContextService = CreateUIContextService(isLiveShareGuestActive: true);
+        var serviceProvider = CreateServiceProvider();
+        using var activityLog = CreateActivityLog();
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -102,8 +135,10 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsRemoteClient_UnknownEnvironment_ReturnsFalse()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog);
+        var uiContextService = CreateUIContextService();
+        var serviceProvider = CreateServiceProvider();
+        using var activityLog = CreateActivityLog();
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(serviceProvider, JoinableTaskContext, uiContextService, activityLog);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -112,7 +147,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         Assert.False(result);
     }
 
-    private RazorActivityLog GetRazorActivityLog()
+    private RazorActivityLog CreateActivityLog()
     {
         var vsActivityLogMock = new StrictMock<IVsActivityLog>();
         vsActivityLogMock
@@ -127,23 +162,48 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         return new RazorActivityLog(serviceProviderMock.Object, JoinableTaskContext);
     }
 
-    private class TestLSPEditorFeatureDetector(RazorActivityLog activityLog)
-        : VisualStudioLSPEditorFeatureDetector(activityLog)
+    private IAsyncServiceProvider CreateServiceProvider(bool featureFlagEnabled = false, bool optionEnabled = false)
     {
-        public bool UseLegacyEditor { get; set; }
+        const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
+        const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
-        public bool IsLiveShareGuestValue { get; set; }
+        var featureFlagsMock = new StrictMock<IVsFeatureFlags>();
+        featureFlagsMock
+            .Setup(x => x.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, It.IsAny<bool>()))
+            .Returns(featureFlagEnabled);
 
-        public bool IsLiveShareHostValue { get; set; }
+        var settingsManagerMock = new StrictMock<ISettingsManager>();
+        settingsManagerMock
+            .Setup(x => x.GetValueOrDefault(UseLegacyASPNETCoreEditorSetting, It.IsAny<bool>()))
+            .Returns(optionEnabled);
 
-        public bool IsVSRemoteClientValue { get; set; }
+        var serviceProviderMock = new StrictMock<IAsyncServiceProvider>();
+        serviceProviderMock
+            .Setup(x => x.GetServiceAsync(typeof(SVsFeatureFlags)))
+            .ReturnsAsync(featureFlagsMock.Object);
+        serviceProviderMock
+            .Setup(x => x.GetServiceAsync(typeof(SVsSettingsPersistenceManager)))
+            .ReturnsAsync(settingsManagerMock.Object);
 
-        public override bool IsLSPEditorAvailable() => !UseLegacyEditor;
+        return serviceProviderMock.Object;
+    }
 
-        public override bool IsLiveShareHost() => IsLiveShareHostValue;
+    private IUIContextService CreateUIContextService(
+        bool isLiveShareHostActive = false,
+        bool isLiveShareGuestActive = false,
+        bool cloudEnvironmentConnectedActive = false)
+    {
+        var mock = new StrictMock<IUIContextService>();
 
-        private protected override bool IsLiveShareGuest() => IsLiveShareGuestValue;
+        mock.Setup(x => x.IsActive(Guids.LiveShareHostUIContextGuid))
+            .Returns(isLiveShareHostActive);
 
-        private protected override bool IsVSRemoteClient() => IsVSRemoteClientValue;
+        mock.Setup(x => x.IsActive(Guids.LiveShareGuestUIContextGuid))
+            .Returns(isLiveShareGuestActive);
+
+        mock.Setup(x => x.IsActive(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid))
+            .Returns(cloudEnvironmentConnectedActive);
+
+        return mock.Object;
     }
 }
