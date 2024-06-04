@@ -5,9 +5,12 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.LogHub;
 using Microsoft.VisualStudio.RpcContracts.Logging;
-using VSShell = Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.Logging;
 
@@ -21,27 +24,39 @@ internal class VisualStudioWindowsLogHubTraceProvider : RazorLogHubTraceProvider
         requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.Information | SourceLevels.ActivityTracing),
         privacySetting: PrivacyFlags.MayContainPersonallyIdentifibleInformation | PrivacyFlags.MayContainPrivateInformation);
 
-    private readonly SemaphoreSlim _initializationSemaphore;
+    private readonly IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> _brokeredServiceContainer;
+    private readonly ReentrantSemaphore _initializationSemaphore;
+
     private IServiceBroker? _serviceBroker = null;
     private TraceSource? _traceSource;
 
-    public VisualStudioWindowsLogHubTraceProvider()
+    [ImportingConstructor]
+    public VisualStudioWindowsLogHubTraceProvider(
+        IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer,
+        JoinableTaskContext joinableTaskContext)
     {
-        _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+        _brokeredServiceContainer = brokeredServiceContainer;
+        _initializationSemaphore = ReentrantSemaphore.Create(initialCount: 1, joinableTaskContext, ReentrantSemaphore.ReentrancyMode.NotAllowed);
     }
 
     public override async Task InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
     {
-        if (await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false) is false)
+        var serviceBrokerInitialized = await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false);
+        if (!serviceBrokerInitialized)
         {
             return;
         }
+
+        var serviceBroker = _serviceBroker.AssumeNotNull();
 
         var logId = new LogId(
             logName: $"{logIdentifier}.{logHubSessionId}",
             serviceId: new ServiceMoniker($"Razor.{logIdentifier}"));
 
-        using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker!, ownsServiceBroker: true, cancellationToken).ConfigureAwait(false);
+        using var traceConfig = await TraceConfiguration
+            .CreateTraceConfigurationInstanceAsync(serviceBroker, ownsServiceBroker: true, cancellationToken)
+            .ConfigureAwait(false);
+
         _traceSource = await traceConfig.RegisterLogSourceAsync(logId, s_logOptions, cancellationToken).ConfigureAwait(false);
     }
 
@@ -52,39 +67,22 @@ internal class VisualStudioWindowsLogHubTraceProvider : RazorLogHubTraceProvider
 
     private async Task<bool> TryInitializeServiceBrokerAsync(CancellationToken cancellationToken)
     {
-        await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
+        // Check if the service broker has already been initialized
+        if (_serviceBroker is not null)
         {
-            // Check if the service broker has already been initialized
-            if (_serviceBroker is not null)
-            {
-                return true;
-            }
-
-            if (VSShell.Package.GetGlobalService(typeof(VSShell.Interop.SAsyncServiceProvider)) is not VSShell.IAsyncServiceProvider serviceProvider)
-            {
-                return false;
-            }
-
-            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<
-                VSShell.ServiceBroker.SVsBrokeredServiceContainer,
-                VSShell.ServiceBroker.IBrokeredServiceContainer>(serviceProvider).ConfigureAwait(false);
-            if (serviceContainer is null)
-            {
-                return false;
-            }
-
-            _serviceBroker = serviceContainer.GetFullAccessServiceBroker();
-            if (_serviceBroker is null)
-            {
-                return false;
-            }
-
             return true;
         }
-        finally
+
+        await _initializationSemaphore.ExecuteAsync(async () =>
         {
-            _initializationSemaphore.Release();
-        }
+            if (_serviceBroker is null &&
+                await _brokeredServiceContainer.GetValueOrNullAsync(cancellationToken) is IBrokeredServiceContainer serviceContainer)
+            {
+                _serviceBroker = serviceContainer.GetFullAccessServiceBroker();
+            }
+        },
+        cancellationToken);
+
+        return _serviceBroker is not null;
     }
 }
