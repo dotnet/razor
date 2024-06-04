@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
@@ -12,17 +13,20 @@ namespace Microsoft.VisualStudio.Razor;
 [method: ImportingConstructor]
 internal sealed class FeatureFlagService(IAsyncServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext) : IFeatureFlagService
 {
-    private readonly JoinableTask<IVsFeatureFlags> _vsFeatureFlagsTask = joinableTaskContext.Factory.RunAsync(async () =>
+    private readonly JoinableTask<IVsFeatureFlags> _getVsFeatureFlagsTask = joinableTaskContext.Factory.RunAsync(
+        () => GetVsFeatureFlagsAsync(serviceProvider));
+
+    private static async Task<IVsFeatureFlags> GetVsFeatureFlagsAsync(IAsyncServiceProvider serviceProvider)
     {
         var featureFlags = await serviceProvider.GetFreeThreadedServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false);
         Assumes.Present(featureFlags);
 
         return featureFlags;
-    });
+    }
 
     public bool IsFeatureEnabled(string featureName, bool defaultValue = false)
     {
-        var vsFeatureFlags = _vsFeatureFlagsTask.Join();
+        var vsFeatureFlags = _getVsFeatureFlagsTask.Join();
 
         // IVsFeatureFlags is free-threaded but VSTHRD010 seems to be reported anyway.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
