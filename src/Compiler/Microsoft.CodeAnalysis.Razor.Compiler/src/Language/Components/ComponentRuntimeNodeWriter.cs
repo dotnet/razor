@@ -338,7 +338,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             //
             // This makes it so the spacing is avoided for any formatting that happens on the generated code.
             var usingLength = "using ".Length;
-            using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (context.CodeWriter.BuildEnhancedLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
                 context.AddSourceMappingFor(new SourceSpan(
                     sourceSpan.FilePath,
@@ -349,7 +349,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.WriteLine("using");
             }
 
-            using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (context.CodeWriter.BuildEnhancedLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
                 var semicolonLength = node.HasExplicitSemicolon ? 0 : 1;
 
