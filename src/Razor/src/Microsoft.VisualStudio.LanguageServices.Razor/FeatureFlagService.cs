@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -30,6 +31,8 @@ internal sealed class FeatureFlagService(
 
     public bool IsFeatureEnabled(string featureName, bool defaultValue = false)
     {
+        // This task is kicked off in the constructor and is very unlikely to cause an implicit JTF.Run here.
+        Debug.Assert(_getVsFeatureFlagsTask.IsCompleted, "Expected task to have completed at this point.");
         var vsFeatureFlags = _getVsFeatureFlagsTask.Join();
 
         // IVsFeatureFlags is free-threaded but VSTHRD010 seems to be reported anyway.
