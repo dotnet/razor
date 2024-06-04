@@ -36,7 +36,7 @@ internal sealed class LspEditorFeatureDetector(
             return true;
         }
 
-        var useLegacyEditor = settingsPersistenceService.GetValueOrDefault<bool>(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
+        var useLegacyEditor = await settingsPersistenceService.GetBooleanOrDefaultAsync(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
 
         if (useLegacyEditor)
         {

@@ -176,8 +176,8 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     private static ISettingsPersistenceService CreateSettingsPersistenceService(bool useLegacyRazorEditor = false)
     {
         var mock = new StrictMock<ISettingsPersistenceService>();
-        mock.Setup(x => x.GetValueOrDefault(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
-            .Returns(useLegacyRazorEditor);
+        mock.Setup(x => x.GetBooleanOrDefaultAsync(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
+            .ReturnsAsync(useLegacyRazorEditor);
 
         return mock.Object;
     }

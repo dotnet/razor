@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -31,13 +30,10 @@ internal class SettingsPersistenceService(
         return settingsManager;
     }
 
-    [return: MaybeNull]
-    public T GetValueOrDefault<T>(string name, [AllowNull] T defaultValue = default)
+    public async ValueTask<bool> GetBooleanOrDefaultAsync(string name, bool defaultValue = false)
     {
-        // This task is kicked off in the constructor and is very unlikely to cause an implicit JTF.Run here.
-        Debug.Assert(_getSettingsManagerTask.IsCompleted, "Expected task to have completed at this point.");
-        var settingsManager = _getSettingsManagerTask.Join();
+        var settingsManager = await _getSettingsManagerTask;
 
-        return settingsManager.GetValueOrDefault(name, defaultValue);
+        return settingsManager.GetValueOrDefault(name, defaultValue)!;
     }
 }
