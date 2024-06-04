@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Razor.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -21,27 +21,24 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 [Export(typeof(ICommandHandler))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
 [method: ImportingConstructor]
-internal sealed class ViewCodeCommandHandler(
+internal sealed partial class ViewCodeCommandHandler(
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     ITextDocumentFactoryService textDocumentFactoryService,
     JoinableTaskContext joinableTaskContext) : ICommandHandler<ViewCodeCommandArgs>
 {
-    // Because query status happens all the time we want to cache the File.Exists checks for a reasonable amount of time
-    private const int CacheTimeoutMilliseconds = 10000;
-    private static readonly Stopwatch s_fileExistsStopwatch = Stopwatch.StartNew();
-    private static readonly Dictionary<string, (bool exists, long addedMs)> s_fileExistsCache = new();
-
     private static readonly FrozenSet<string> s_razorFileExtensions = new[]
     {
         RazorLSPConstants.CSHTMLFileExtension,
         RazorLSPConstants.RazorFileExtension
-    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    }.ToFrozenSet(FilePathComparer.Instance);
 
     private static readonly CommandState s_availableCommandState = new(isAvailable: true, displayText: SR.View_Code);
 
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService = textDocumentFactoryService;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
+
+    private readonly FileExistsHelper _helper = new();
 
     public string DisplayName => nameof(ViewCodeCommandHandler);
 
@@ -68,6 +65,10 @@ internal sealed class ViewCodeCommandHandler(
 
     private bool TryGetCSharpFilePath(ITextBuffer buffer, [NotNullWhen(true)] out string? codeFilePath)
     {
+        // Command state checks and execution should always happen on the main thread.
+        // However, if that changes, we should assert because our FileExistsHelper will likely be corrupted.
+        _joinableTaskContext.AssertUIThread();
+
         codeFilePath = null;
 
         if (!_textDocumentFactoryService.TryGetTextDocument(buffer, out var document) ||
@@ -86,15 +87,6 @@ internal sealed class ViewCodeCommandHandler(
 
         codeFilePath = Path.ChangeExtension(filePath, extension + RazorLSPConstants.CSharpFileExtension);
 
-        var now = s_fileExistsStopwatch.ElapsedMilliseconds;
-
-        if (!s_fileExistsCache.TryGetValue(codeFilePath, out var cache) ||
-            now - cache.addedMs > CacheTimeoutMilliseconds)
-        {
-            var exists = File.Exists(codeFilePath);
-            s_fileExistsCache[codeFilePath] = (exists, now);
-        }
-
-        return s_fileExistsCache[codeFilePath].exists;
+        return _helper.FileExists(codeFilePath);
     }
 }
