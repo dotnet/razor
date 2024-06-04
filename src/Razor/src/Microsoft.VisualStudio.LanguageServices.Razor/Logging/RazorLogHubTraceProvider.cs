@@ -15,26 +15,23 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.VisualStudio.Razor.Logging;
 
 [Export(typeof(RazorLogHubTraceProvider))]
-internal class RazorLogHubTraceProvider
+[method: ImportingConstructor]
+internal class RazorLogHubTraceProvider(
+    IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer,
+    JoinableTaskContext joinableTaskContext)
 {
     private static readonly LoggerOptions s_logOptions = new(
         requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.Information | SourceLevels.ActivityTracing),
         privacySetting: PrivacyFlags.MayContainPersonallyIdentifibleInformation | PrivacyFlags.MayContainPrivateInformation);
 
-    private readonly IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> _brokeredServiceContainer;
-    private readonly ReentrantSemaphore _initializationSemaphore;
+    private readonly IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> _brokeredServiceContainer = brokeredServiceContainer;
+    private readonly ReentrantSemaphore _initializationSemaphore = ReentrantSemaphore.Create(
+        initialCount: 1,
+        joinableTaskContext,
+        ReentrantSemaphore.ReentrancyMode.NotAllowed);
 
     private IServiceBroker? _serviceBroker = null;
     private TraceSource? _traceSource;
-
-    [ImportingConstructor]
-    public RazorLogHubTraceProvider(
-        IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer,
-        JoinableTaskContext joinableTaskContext)
-    {
-        _brokeredServiceContainer = brokeredServiceContainer;
-        _initializationSemaphore = ReentrantSemaphore.Create(initialCount: 1, joinableTaskContext, ReentrantSemaphore.ReentrancyMode.NotAllowed);
-    }
 
     public async Task InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
     {
