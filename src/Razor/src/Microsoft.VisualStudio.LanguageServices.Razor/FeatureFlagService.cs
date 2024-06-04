@@ -29,11 +29,9 @@ internal sealed class FeatureFlagService(
         return featureFlags;
     }
 
-    public bool IsFeatureEnabled(string featureName, bool defaultValue = false)
+    public async ValueTask<bool> IsFeatureEnabledAsync(string featureName, bool defaultValue = false)
     {
-        // This task is kicked off in the constructor and is very unlikely to cause an implicit JTF.Run here.
-        Debug.Assert(_getVsFeatureFlagsTask.IsCompleted, "Expected task to have completed at this point.");
-        var vsFeatureFlags = _getVsFeatureFlagsTask.Join();
+        var vsFeatureFlags = await _getVsFeatureFlagsTask;
 
         // IVsFeatureFlags is free-threaded but VSTHRD010 seems to be reported anyway.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread

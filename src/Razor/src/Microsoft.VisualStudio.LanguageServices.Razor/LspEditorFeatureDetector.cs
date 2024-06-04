@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Razor.Logging;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor;
 
@@ -13,19 +14,23 @@ internal sealed class LspEditorFeatureDetector(
     IFeatureFlagService featureFlagService,
     ISettingsPersistenceService settingsPersistenceService,
     IUIContextService uiContextService,
-    RazorActivityLog activityLog) : ILspEditorFeatureDetector
+    RazorActivityLog activityLog,
+    JoinableTaskContext joinableTaskContext) : ILspEditorFeatureDetector
 {
     private readonly IUIContextService _uiContextService = uiContextService;
-    private readonly Lazy<bool> _useLegacyEditorLazy = new(() => GetUseLegacyEditorValue(featureFlagService, settingsPersistenceService, activityLog));
+    private readonly AsyncLazy<bool> _useLegacyEditorLazy = new(
+        () => GetUseLegacyEditorValueAsync(featureFlagService, settingsPersistenceService, activityLog),
+        joinableTaskContext.Factory);
 
-    private static bool GetUseLegacyEditorValue(
+    private static async Task<bool> GetUseLegacyEditorValueAsync(
         IFeatureFlagService featureFlagService,
         ISettingsPersistenceService settingsPersistenceService,
         RazorActivityLog activityLog)
     {
         activityLog.LogInfo("Checking if LSP Editor is available");
 
-        if (featureFlagService.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor))
+        var featureFlagEnabled = await featureFlagService.IsFeatureEnabledAsync(WellKnownFeatureFlagNames.UseLegacyRazorEditor);
+        if (featureFlagEnabled)
         {
             activityLog.LogInfo("Using Legacy editor because the feature flag was set to true");
             return true;
@@ -49,7 +54,7 @@ internal sealed class LspEditorFeatureDetector(
     /// Returns <see langword="true"/> if the LSP-based editor is available.
     /// </summary>
     public bool IsLspEditorAvailable()
-        => !_useLegacyEditorLazy.Value;
+        => !_useLegacyEditorLazy.GetValue();
 
     /// <summary>
     /// Returns <see langword="true"/> if this is a LiveShare guest or a CodeSpaces client.

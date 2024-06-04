@@ -18,11 +18,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     {
         // Arrange
         var featureFlagService = CreateFeatureFlagService(useLegacyRazorEditor: true);
-        var settingsPersistenceService = CreateSettingsPersistenceService();
-        var uiContextService = CreateUIContextService();
-        using var activityLog = CreateActivityLog();
-
-        var featureDetector = new LspEditorFeatureDetector(featureFlagService, settingsPersistenceService, uiContextService, activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector(featureFlagService);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -36,11 +32,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     {
         // Arrange
         var featureFlagService = CreateFeatureFlagService(useLegacyRazorEditor: false);
-        var settingsPersistenceService = CreateSettingsPersistenceService();
-        var uiContextService = CreateUIContextService();
-        using var activityLog = CreateActivityLog();
-
-        var featureDetector = new LspEditorFeatureDetector(featureFlagService, settingsPersistenceService, uiContextService, activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector(featureFlagService);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -53,12 +45,8 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsLspEditorAvailable_OptionEnabled_ReturnsFalse()
     {
         // Arrange
-        var featureFlagService = CreateFeatureFlagService();
         var settingsPersistenceService = CreateSettingsPersistenceService(useLegacyRazorEditor: true);
-        var uiContextService = CreateUIContextService();
-        using var activityLog = CreateActivityLog();
-
-        var featureDetector = new LspEditorFeatureDetector(featureFlagService, settingsPersistenceService, uiContextService, activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector(settingsPersistenceService);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -71,12 +59,8 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsLspEditorAvailable_OptionDisabled_ReturnsTrue()
     {
         // Arrange
-        var featureFlagService = CreateFeatureFlagService();
         var settingsPersistenceService = CreateSettingsPersistenceService(useLegacyRazorEditor: false);
-        var uiContextService = CreateUIContextService();
-        using var activityLog = CreateActivityLog();
-
-        var featureDetector = new LspEditorFeatureDetector(featureFlagService, settingsPersistenceService, uiContextService, activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector(settingsPersistenceService);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -89,11 +73,8 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsLspEditorAvailable_CloudEnvironmentConnected_ReturnsTrue()
     {
         // Arrange
-        var featureFlagService = CreateFeatureFlagService();
-        var settingsPersistenceService = CreateSettingsPersistenceService();
         var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
-        using var activityLog = CreateActivityLog();
-        var featureDetector = new LspEditorFeatureDetector(featureFlagService, settingsPersistenceService, uiContextService, activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector(uiContextService);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -106,11 +87,8 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsRemoteClient_CloudEnvironmentConnected_ReturnsTrue()
     {
         // Arrange
-        var featureFlagService = CreateFeatureFlagService();
-        var settingsPersistenceService = CreateSettingsPersistenceService();
         var uiContextService = CreateUIContextService(cloudEnvironmentConnectedActive: true);
-        using var activityLog = CreateActivityLog();
-        var featureDetector = new LspEditorFeatureDetector(featureFlagService, settingsPersistenceService, uiContextService, activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector(uiContextService);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -123,11 +101,8 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
     {
         // Arrange
-        var featureFlagService = CreateFeatureFlagService();
-        var settingsPersistenceService = CreateSettingsPersistenceService();
         var uiContextService = CreateUIContextService(isLiveShareGuestActive: true);
-        using var activityLog = CreateActivityLog();
-        var featureDetector = new LspEditorFeatureDetector(featureFlagService, settingsPersistenceService, uiContextService, activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector(uiContextService);
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -140,17 +115,38 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsRemoteClient_UnknownEnvironment_ReturnsFalse()
     {
         // Arrange
-        var featureFlagService = CreateFeatureFlagService();
-        var settingsPersistenceService = CreateSettingsPersistenceService();
         var uiContextService = CreateUIContextService();
-        using var activityLog = CreateActivityLog();
-        var featureDetector = new LspEditorFeatureDetector(featureFlagService, settingsPersistenceService, uiContextService, activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector(uiContextService);
 
         // Act
         var result = featureDetector.IsRemoteClient();
 
         // Assert
         Assert.False(result);
+    }
+
+    private LspEditorFeatureDetector CreateLspEditorFeatureDetector(IFeatureFlagService featureFlagService)
+        => CreateLspEditorFeatureDetector(featureFlagService, settingsPersistenceService: null, uiContextService: null);
+
+    private LspEditorFeatureDetector CreateLspEditorFeatureDetector(ISettingsPersistenceService settingsPersistenceService)
+        => CreateLspEditorFeatureDetector(featureFlagService: null, settingsPersistenceService, uiContextService: null);
+
+    private LspEditorFeatureDetector CreateLspEditorFeatureDetector(IUIContextService uiContextService)
+        => CreateLspEditorFeatureDetector(featureFlagService: null, settingsPersistenceService: null, uiContextService);
+
+    private LspEditorFeatureDetector CreateLspEditorFeatureDetector(
+        IFeatureFlagService? featureFlagService = null,
+        ISettingsPersistenceService? settingsPersistenceService = null,
+        IUIContextService? uiContextService = null)
+    {
+        featureFlagService ??= CreateFeatureFlagService();
+        settingsPersistenceService ??= CreateSettingsPersistenceService();
+        uiContextService ??= CreateUIContextService();
+
+        var activityLog = CreateActivityLog();
+        AddDisposable(activityLog);
+
+        return new(featureFlagService, settingsPersistenceService, uiContextService, activityLog, JoinableTaskContext);
     }
 
     private RazorActivityLog CreateActivityLog()
@@ -171,8 +167,8 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     private static IFeatureFlagService CreateFeatureFlagService(bool useLegacyRazorEditor = false)
     {
         var mock = new StrictMock<IFeatureFlagService>();
-        mock.Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
-            .Returns(useLegacyRazorEditor);
+        mock.Setup(x => x.IsFeatureEnabledAsync(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
+            .ReturnsAsync(useLegacyRazorEditor);
 
         return mock.Object;
     }
