@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
@@ -80,7 +83,7 @@ internal partial class RazorCustomMessageTarget
             {
                 foreach (var codeAction in response.Response)
                 {
-                    codeAction.Data = JsonHelpers.TryConvertFromJsonElement(codeAction.Data);
+                    codeAction.Data = JsonHelpers.TryConvertFromJObject(codeAction.Data);
                     codeActions.Add(codeAction);
                 }
             }
@@ -128,7 +131,7 @@ internal partial class RazorCustomMessageTarget
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
         var codeAction = resolveCodeActionParams.CodeAction;
-        codeAction.Data = JsonHelpers.TryConvertBackToJsonElement(codeAction.Data);
+        codeAction.Data = JsonHelpers.TryConvertBackToJObject(codeAction.Data);
 
         var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeAction, VSInternalCodeAction?>(
             textBuffer,
@@ -142,7 +145,7 @@ internal partial class RazorCustomMessageTarget
             {
                 // Only take the first response from a resolution
                 var resolved = response.Response;
-                resolved.Data = JsonHelpers.TryConvertFromJsonElement(resolved.Data);
+                resolved.Data = JsonHelpers.TryConvertFromJObject(resolved.Data);
 
                 return resolved;
             }

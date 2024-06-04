@@ -215,7 +215,6 @@ internal sealed class CodeActionEndpoint(
 
         foreach (var codeAction in codeActions)
         {
-            // Note: we may see a perf benefit from using a JsonConverter
             if (codeAction.Data is not JsonElement jsonData ||
                 !jsonData.TryGetProperty("CustomTags", out var value) ||
                 value.Deserialize<string[]>() is not [..] tags)

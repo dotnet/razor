@@ -8,18 +8,18 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
 internal static class JsonHelpers
 {
-    private const string s_convertedFlag = "__convertedFromJsonElement";
+    private const string s_convertedFlag = "__convertedFromJObject";
 
     /// <summary>
-    /// Normalizes data from JsonElement to JObject as thats what we expect to process
+    /// Normalizes data from JObject to JsonElement as thats what we expect to process
     /// </summary>
-    internal static object? TryConvertFromJsonElement(object? data)
+    internal static object? TryConvertFromJObject(object? data)
     {
-        if (data is JsonElement element)
+        if (data is JObject jObject)
         {
-            var jObject = JObject.Parse(element.GetRawText());
             jObject[s_convertedFlag] = true;
-            return jObject;
+            return JsonDocument.Parse(jObject.ToString()).RootElement;
+            //return JsonSerializer.SerializeToElement(JsonNode.Parse(jObject.ToString()));
         }
 
         return data;
@@ -28,12 +28,12 @@ internal static class JsonHelpers
     /// <summary>
     /// Converts from JObject back to JsonElement, but only if the original conversion was done with <see cref="TryConvertFromJsonElement(object?)"/>
     /// </summary>
-    internal static object? TryConvertBackToJsonElement(object? data)
+    internal static object? TryConvertBackToJObject(object? data)
     {
-        if (data is JObject jObject &&
-           jObject.ContainsKey(s_convertedFlag))
+        if (codeAction.Data is JsonElement jsonElement &&
+            jsonElement.TryGetProperty(s_convertedFlag, out _))
         {
-            return JsonDocument.Parse(jObject.ToString()).RootElement;
+            codeAction.Data = JObject.Parse(jsonElement.ToString());
         }
 
         return data;
