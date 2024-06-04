@@ -3,6 +3,7 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -54,9 +55,10 @@ internal class RazorLogHubTraceProvider(
         _traceSource = await traceConfig.RegisterLogSourceAsync(logId, s_logOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    public TraceSource? TryGetTraceSource()
+    public bool TryGetTraceSource([NotNullWhen(true)] out TraceSource? traceSource)
     {
-        return _traceSource;
+        traceSource = _traceSource;
+        return traceSource is not null;
     }
 
     private async Task<bool> TryInitializeServiceBrokerAsync(CancellationToken cancellationToken)
