@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -31,7 +31,11 @@ internal sealed class ViewCodeCommandHandler(
     private static readonly Stopwatch s_fileExistsStopwatch = Stopwatch.StartNew();
     private static readonly Dictionary<string, (bool exists, long addedMs)> s_fileExistsCache = new();
 
-    private static readonly ImmutableHashSet<string> s_relatedRazorFileSuffixes = ImmutableHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, new[] { RazorLSPConstants.CSHTMLFileExtension, RazorLSPConstants.RazorFileExtension });
+    private static readonly FrozenSet<string> s_razorFileExtensions = new[]
+    {
+        RazorLSPConstants.CSHTMLFileExtension,
+        RazorLSPConstants.RazorFileExtension
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     private static readonly CommandState s_availableCommandState = new(isAvailable: true, displayText: SR.View_Code);
 
@@ -75,7 +79,7 @@ internal sealed class ViewCodeCommandHandler(
         var filePath = document.FilePath;
         var extension = Path.GetExtension(filePath);
 
-        if (!s_relatedRazorFileSuffixes.Contains(extension))
+        if (!s_razorFileExtensions.Contains(extension))
         {
             return false;
         }
