@@ -8,8 +8,8 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Threading;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
@@ -20,7 +20,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 [Name(nameof(ViewCodeCommandHandler))]
 [Export(typeof(ICommandHandler))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
-internal sealed class ViewCodeCommandHandler : ICommandHandler<ViewCodeCommandArgs>
+[method: ImportingConstructor]
+internal sealed class ViewCodeCommandHandler(
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+    ITextDocumentFactoryService textDocumentFactoryService,
+    JoinableTaskContext joinableTaskContext) : ICommandHandler<ViewCodeCommandArgs>
 {
     // Because query status happens all the time we want to cache the File.Exists checks for a reasonable amount of time
     private const int CacheTimeoutMilliseconds = 10000;
@@ -30,22 +34,12 @@ internal sealed class ViewCodeCommandHandler : ICommandHandler<ViewCodeCommandAr
     private static readonly ImmutableHashSet<string> s_relatedRazorFileSuffixes = ImmutableHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, new[] { RazorLSPConstants.CSHTMLFileExtension, RazorLSPConstants.RazorFileExtension });
 
     private static readonly CommandState s_availableCommandState = new(isAvailable: true, displayText: SR.View_Code);
-    private readonly DocumentInteractionManager _documentInteractionManager;
-    private readonly ITextDocumentFactoryService _textDocumentFactoryService;
-    private readonly JoinableTaskContext _joinableTaskContext;
+
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly ITextDocumentFactoryService _textDocumentFactoryService = textDocumentFactoryService;
+    private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
 
     public string DisplayName => nameof(ViewCodeCommandHandler);
-
-    [ImportingConstructor]
-    public ViewCodeCommandHandler(
-        DocumentInteractionManager documentInteractionManager,
-        ITextDocumentFactoryService textDocumentFactoryService,
-        JoinableTaskContext joinableTaskContext)
-    {
-        _documentInteractionManager = documentInteractionManager;
-        _textDocumentFactoryService = textDocumentFactoryService;
-        _joinableTaskContext = joinableTaskContext;
-    }
 
     public CommandState GetCommandState(ViewCodeCommandArgs args)
     {
@@ -61,8 +55,7 @@ internal sealed class ViewCodeCommandHandler : ICommandHandler<ViewCodeCommandAr
     {
         if (TryGetCSharpFilePath(args.SubjectBuffer, out var csharpFilePath))
         {
-            _joinableTaskContext.Factory.Run(() => _documentInteractionManager.OpenDocumentAsync(csharpFilePath, CancellationToken.None));
-
+            VsShellUtilities.OpenDocument(_serviceProvider, csharpFilePath);
             return true;
         }
 
